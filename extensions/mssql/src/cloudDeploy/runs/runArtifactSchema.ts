@@ -97,6 +97,20 @@ const RunnerIdentitySchema = z
     })
     .passthrough();
 
+/**
+ * Mirror of `SourceVersion` (Scope 2, decision D-A). `.optional()` on the
+ * record because artifacts written before Scope 2 predate the field; always
+ * written on new runs. Unknown fields pass through for forward-compat.
+ */
+const SourceVersionSchema = z
+    .object({
+        hash: z.string().min(1),
+        algorithm: z.literal("sha256"),
+        commitId: z.string().min(1).optional(),
+        ref: z.string().min(1).optional(),
+    })
+    .passthrough();
+
 const RunStatusSchema = z.nativeEnum(RunStatus);
 const ValidationStatusSchema = z.nativeEnum(ValidationStatus);
 
@@ -264,6 +278,7 @@ const RunRecordSchema = z
         environmentId: z.string().min(1),
         environmentSnapshot: EnvironmentSnapshotSchema,
         runner: RunnerIdentitySchema,
+        sourceVersion: SourceVersionSchema.optional(),
         startedAtMs: z.number().int().nonnegative(),
         endedAtMs: z.number().int().nonnegative(),
         status: RunStatusSchema,

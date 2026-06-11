@@ -46,11 +46,7 @@ import {
     type Validator,
     type ValidatorRunOptions,
 } from "../types";
-import {
-    ConnectionError,
-    type ConnectionHandle,
-    type ConnectionProvider,
-} from "../providers/connectionProvider";
+import { ConnectionError } from "../providers/connectionProvider";
 
 /**
  * The probe query. `@@VERSION` is preferred over `SELECT 1` because the
@@ -77,34 +73,42 @@ function extractServerVersion(rows: unknown[][]): string | undefined {
 export class ConnectivityValidator implements Validator<ValidationType.Connectivity> {
     public readonly type = ValidationType.Connectivity;
 
-    public constructor(private readonly _connections: ConnectionProvider) {}
-
     public async run(
-        env: Environment,
+        _env: Environment,
         _config: SettingsFor<ValidationType.Connectivity>,
         opts: ValidatorRunOptions,
     ): Promise<ValidationResult> {
         const startedAtMs = Date.now();
 
-        // Cheap pre-check so a caller-cancelled run never opens a socket.
+        // Cheap pre-check so a caller-cancelled run exits before any query.
         throwIfCancelled(opts.signal);
 
-        let handle: ConnectionHandle | undefined;
-        try {
-            handle = await this._connections.connect(env, opts.signal);
-            throwIfCancelled(opts.signal);
+        // Scope 2 (decision M7): connectivity is now the health check for the
+        // per-run ephemeral database the runner provisioned. When the runner
+        // could not stand one up, `opts.ephemeralConnection` is absent — that is
+        // the provisioning failure, surfaced here as a Failed result, which (as
+        // in Scope 1) GATES the remaining validations.
+        const handle = opts.ephemeralConnection;
+        if (handle === undefined) {
+            return buildFailedResult(
+                startedAtMs,
+                Date.now(),
+                new ConnectionError(
+                    "unknown",
+                    "The validation database could not be provisioned for this run.",
+                ),
+            );
+        }
 
+        try {
             const rows = await handle.execute(PROBE_SQL, opts.signal);
             throwIfCancelled(opts.signal);
 
             const serverVersion = extractServerVersion(rows);
             return buildPassedResult(startedAtMs, Date.now(), serverVersion);
         } catch (err) {
-            // Cancellation propagates to the runner unchanged so the runner
-            // can stamp the right reason from the (possibly timeout-derived)
-            // signal. Aborted signal during connect/execute also yields a
-            // ConnectionError("timeout") which we translate to cancellation
-            // when the signal is the cause.
+            // Cancellation propagates to the runner unchanged so the runner can
+            // stamp the right reason from the (possibly timeout-derived) signal.
             if (err instanceof CancellationError) {
                 throw err;
             }
@@ -116,16 +120,8 @@ export class ConnectivityValidator implements Validator<ValidationType.Connectiv
             }
             // Any other error: re-throw so the runner classifies as Errored.
             throw err;
-        } finally {
-            if (handle) {
-                try {
-                    await handle.dispose();
-                } catch {
-                    // Disposal failures are not surfaced — the validator's
-                    // job is the probe result, not connection-pool hygiene.
-                }
-            }
         }
+        // No disposal here: the runner owns the ephemeral database's lifecycle.
     }
 }
 

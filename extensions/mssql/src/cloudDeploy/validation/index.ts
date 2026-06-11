@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 export { Runner } from "./runner";
-export type { RunnerRunOptions } from "./runner";
+export type { RunnerRunOptions, RunnerRuntimeDeps } from "./runner";
 export { createDefaultRegistry } from "./registry";
 export type { RegistryProviders } from "./registry";
 export {
@@ -46,6 +46,22 @@ export {
     LiveArtifactProvider,
 } from "./providers/artifactProvider";
 export type { ArtifactProvider, FakeArtifactRead } from "./providers/artifactProvider";
+export {
+    DockerEphemeralDatabaseProvider,
+    EphemeralProvisionError,
+    FakeEphemeralDatabase,
+    FakeEphemeralDatabaseProvider,
+} from "./providers/ephemeralDatabaseProvider";
+export type {
+    DockerEphemeralDatabaseOptions,
+    EphemeralConnectionParams,
+    EphemeralConnector,
+    EphemeralDatabase,
+    EphemeralDatabaseProvider,
+    FakeProvisionInvocation,
+} from "./providers/ephemeralDatabaseProvider";
+export { DataGeneratorError, LiveDataGenerator, splitSqlBatches } from "./dataGenerator";
+export type { DataGenerator } from "./dataGenerator";
 export { ValidationService } from "./validationApi";
 export type {
     CloudDeployValidationApi,

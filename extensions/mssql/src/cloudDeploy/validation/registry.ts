@@ -61,12 +61,12 @@ export interface RegistryProviders {
  */
 export function createDefaultRegistry(providers: RegistryProviders): ValidatorRegistry {
     return defineRegistry({
-        [ValidationType.Connectivity]: new ConnectivityValidator(providers.connection),
+        [ValidationType.Connectivity]: new ConnectivityValidator(),
         [ValidationType.StaticAnalysis]: new StaticAnalysisValidator(
             providers.process,
             providers.staticAnalysis ?? {},
         ),
-        [ValidationType.UnitTests]: new UnitTestsValidator(providers.connection),
+        [ValidationType.UnitTests]: new UnitTestsValidator(),
         [ValidationType.WorkloadPlayback]: new WorkloadPlaybackValidator(
             providers.artifact,
             providers.process,

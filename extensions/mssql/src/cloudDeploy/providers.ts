@@ -22,6 +22,8 @@
 import { promises as fs } from "fs";
 import * as path from "path";
 
+import { SchemaFile, SchemaSourceReader } from "./runs/schemaHasher";
+
 // =============================================================================
 // Public interface
 // =============================================================================
@@ -110,4 +112,53 @@ export class LocalFileProvider implements FileProvider {
  */
 function randomSuffix(): string {
     return Math.random().toString(36).slice(2, 10);
+}
+
+// =============================================================================
+// LocalSchemaSourceReader (Scope 2)
+// =============================================================================
+
+/** Schema source-file extensions hashed for a `.sqlproj` (decision D-A). */
+const SCHEMA_SOURCE_EXTENSIONS: ReadonlySet<string> = new Set([".sql", ".sqlproj"]);
+
+/** Build-output directories excluded from the schema hash (decision D-A). */
+const BUILD_OUTPUT_DIRECTORIES: ReadonlySet<string> = new Set(["bin", "obj"]);
+
+/**
+ * Production `SchemaSourceReader` (Scope 2, decision D-A) backed by
+ * `node:fs/promises`. Recursively enumerates a `.sqlproj`'s schema source
+ * files (`.sql` + `.sqlproj`), excluding `bin/` and `obj/` build output, and
+ * returns each as a `SchemaFile` carrying a project-relative, forward-slash
+ * path plus its raw bytes. The pure `hashSchemaFiles` does the normalization
+ * and ordering, so this reader stays a thin fs walker.
+ */
+export class LocalSchemaSourceReader implements SchemaSourceReader {
+    public async listSqlProjFiles(projectDirectory: string): Promise<SchemaFile[]> {
+        const files: SchemaFile[] = [];
+        await this._walk(projectDirectory, projectDirectory, files);
+        return files;
+    }
+
+    public async readFileBuffer(filePath: string): Promise<Buffer> {
+        return fs.readFile(filePath);
+    }
+
+    private async _walk(rootDir: string, currentDir: string, out: SchemaFile[]): Promise<void> {
+        const entries = await fs.readdir(currentDir, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = path.join(currentDir, entry.name);
+            if (entry.isDirectory()) {
+                if (BUILD_OUTPUT_DIRECTORIES.has(entry.name.toLowerCase())) {
+                    continue;
+                }
+                await this._walk(rootDir, fullPath, out);
+                continue;
+            }
+            if (!SCHEMA_SOURCE_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
+                continue;
+            }
+            const content = await fs.readFile(fullPath);
+            out.push({ relativePath: path.relative(rootDir, fullPath), content });
+        }
+    }
 }

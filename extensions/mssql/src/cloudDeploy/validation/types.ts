@@ -26,6 +26,7 @@ import type {
     WorkloadPlaybackSettings,
 } from "../environments/types";
 import type { CancellationReason, ValidationResult } from "../runs/types";
+import type { ConnectionHandle } from "./providers/connectionProvider";
 
 // =============================================================================
 // Per-type settings narrowing
@@ -110,6 +111,16 @@ export interface ValidatorRunOptions {
     readonly runId: string;
     readonly signal: AbortSignal;
     readonly bus?: DiagnosticEventBus;
+    /**
+     * Connection to the per-run ephemeral database the runner provisioned and
+     * seeded for this run (Scope 2, decisions D-C / M6). Present only when the
+     * runner stood one up (i.e. a runtime validator is enabled and an ephemeral
+     * provider is wired); `undefined` for static-analysis-only runs and any
+     * context with no ephemeral provider. Runtime validators (unit tests,
+     * workload playback) run against this connection instead of opening their
+     * own.
+     */
+    readonly ephemeralConnection?: ConnectionHandle;
 }
 
 // =============================================================================

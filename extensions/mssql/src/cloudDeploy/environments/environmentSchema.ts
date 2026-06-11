@@ -51,8 +51,31 @@ export interface EnvironmentsFileIssue {
 /** Slug pattern: starts with letter or digit; then letters, digits, dash, underscore. */
 const ID_PATTERN = /^[a-z0-9][a-z0-9_-]*$/i;
 
-/** Per-validation settings — empty objects today; gain fields as each validation is implemented. */
+/**
+ * Runtime-host config (Scope 2, decision D-C): where a runtime validator stands
+ * up the per-run ephemeral database. `docker` = tool-managed throwaway
+ * container; `connection` = borrow an existing SQL engine by profile.
+ */
+const RuntimeHostSchema = z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("docker") }).passthrough(),
+    z
+        .object({
+            kind: z.literal("connection"),
+            connectionProfileId: z.string().min(1),
+        })
+        .passthrough(),
+]);
+
+/** Base per-validation settings: empty + passthrough so unknown fields survive. */
 const SettingsSchema = z.object({}).passthrough();
+
+/**
+ * Runtime-validator settings carry an optional `runtimeHost` (Scope 2). Other
+ * fields pass through unchanged for forward-compat.
+ */
+const RuntimeValidatorSettingsSchema = z
+    .object({ runtimeHost: RuntimeHostSchema.optional() })
+    .passthrough();
 
 const SourceOfTruthSchema = z.discriminatedUnion("kind", [
     z
@@ -94,14 +117,14 @@ const ValidationConfigSchema = z.discriminatedUnion("type", [
         .object({
             type: z.literal(ValidationType.UnitTests),
             enabled: z.boolean(),
-            settings: SettingsSchema.default({}),
+            settings: RuntimeValidatorSettingsSchema.default({}),
         })
         .passthrough(),
     z
         .object({
             type: z.literal(ValidationType.WorkloadPlayback),
             enabled: z.boolean(),
-            settings: SettingsSchema.default({}),
+            settings: RuntimeValidatorSettingsSchema.default({}),
         })
         .passthrough(),
 ]);
@@ -112,6 +135,7 @@ const EnvironmentSchema = z
         name: z.string().min(1),
         description: z.string().optional(),
         sourceOfTruth: SourceOfTruthSchema,
+        dataGeneratorScript: z.string().min(1).optional(),
         validations: z.array(ValidationConfigSchema),
     })
     .passthrough();

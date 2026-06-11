@@ -284,6 +284,27 @@ export interface ValidationResult {
 // =============================================================================
 
 /**
+ * Identity of the source schema a run validated (Scope 2, decision D-A).
+ *
+ * `hash` is a content fingerprint of the schema source files (the universal
+ * identity that lets runs be told apart and grouped: same schema -> same hash).
+ * It is a FINGERPRINT, not a copy \u2014 it answers "same or different schema?",
+ * never "what was in the schema?" (that stays git's job). `commitId` / `ref`
+ * are populated only in CI, where git provides a friendlier label for the same
+ * content the hash already identifies; locally only `hash` is present.
+ */
+export interface SourceVersion {
+    /** Content hash of the schema source, prefixed with the algorithm (e.g. `sha256:...`). */
+    readonly hash: string;
+    /** Hash algorithm used, so a future algorithm change is detectable. */
+    readonly algorithm: "sha256";
+    /** CI only: the git commit id this run validated. Absent locally. */
+    readonly commitId?: string;
+    /** CI only: the git ref / PR branch, for display. Absent locally. */
+    readonly ref?: string;
+}
+
+/**
  * Top-level run-record shape: one of these per persisted run artifact.
  *
  * `environmentSnapshot` is the FULL env value at the moment the run started,
@@ -300,6 +321,12 @@ export interface RunRecord {
     /** Frozen copy of the targeted env at run-start time. */
     readonly environmentSnapshot: Environment;
     readonly runner: RunnerIdentity;
+    /**
+     * Identity of the source schema this run validated (Scope 2, decision D-A).
+     * Optional in the type because run artifacts written before Scope 2 predate
+     * the field; always written on new runs.
+     */
+    readonly sourceVersion?: SourceVersion;
     readonly startedAtMs: number;
     readonly endedAtMs: number;
     /** Aggregate status across all `validations`. */

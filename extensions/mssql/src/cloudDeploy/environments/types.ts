@@ -60,6 +60,28 @@ export type SourceOfTruth =
     | { kind: SourceOfTruthKind.Container; connectionProfileId: string };
 
 // =============================================================================
+// Runtime host (Scope 2)
+// =============================================================================
+
+/**
+ * Where a runtime validator stands up the per-run ephemeral database (Scope 2,
+ * decision D-C). This is distinct from `SourceOfTruth`: the source of truth is
+ * *what schema to build*; the runtime host is *where to run the throwaway DB
+ * built from that schema*.
+ *
+ *   * `docker` — the tool spins up and tears down a throwaway SQL Server
+ *     container itself (the D1 default; the user only needs Docker present).
+ *   * `connection` — the tool borrows an existing SQL engine (reached by a
+ *     saved connection profile) and creates / drops a throwaway database on it.
+ *
+ * Carried per-validator (only the runtime validators need it), never on the
+ * environment, because static analysis needs no database at all.
+ */
+export type RuntimeHostConfig =
+    | { kind: "docker" }
+    | { kind: "connection"; connectionProfileId: string };
+
+// =============================================================================
 // Per-validation settings
 // =============================================================================
 
@@ -77,10 +99,22 @@ export interface StaticAnalysisSettings {
 }
 
 export interface UnitTestsSettings {
-    // populated when unit tests are implemented (e.g., tSQLt schema name, test filter)
+    /**
+     * Where to stand up the per-run ephemeral database the tSQLt suite runs
+     * against (Scope 2, decision D-C). When omitted, the runner's default host
+     * is used. Unit tests run against the same ephemeral database the runner
+     * provisions once per run.
+     */
+    runtimeHost?: RuntimeHostConfig;
 }
 
 export interface WorkloadPlaybackSettings {
+    /**
+     * Where to stand up the per-run ephemeral database the workload replays
+     * against (Scope 2, decision D-C). When omitted, the runner's default host
+     * is used.
+     */
+    runtimeHost?: RuntimeHostConfig;
     /**
      * Captured-workload artifact location consumed by the replay tool.
      * In Scope 1 this is an absolute or workspace-relative local file path
@@ -159,6 +193,16 @@ export interface Environment {
     description?: string;
     /** Where the schema for this env comes from. */
     sourceOfTruth: SourceOfTruth;
+    /**
+     * Path to a hand-authored data-generator SQL script that seeds the per-run
+     * ephemeral database before the runtime validators run (Scope 2, decision
+     * D-D). One script per environment, shared by the runtime validators;
+     * re-run fresh on every run so workload measurements stay comparable.
+     * Absolute or workspace-relative; resolved by the host. When omitted,
+     * workload playback is skipped (no data to measure) and unit tests rely on
+     * their own per-test fixtures.
+     */
+    dataGeneratorScript?: string;
     /**
      * Which validations run against this env, with their config. An empty
      * array is valid and means "no validations configured yet."

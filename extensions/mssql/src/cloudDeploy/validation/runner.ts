@@ -37,7 +37,12 @@
 import { randomUUID } from "crypto";
 
 import type { DiagnosticEventBus } from "../diagnostics";
-import { Environment, ValidationConfig, ValidationType } from "../environments/types";
+import {
+    Environment,
+    RuntimeHostConfig,
+    ValidationConfig,
+    ValidationType,
+} from "../environments/types";
 import {
     CancellationReason,
     RUN_STATUS_PRIORITY,
@@ -45,11 +50,18 @@ import {
     RunStatus,
     RUN_RECORD_SCHEMA_VERSION,
     RunnerIdentity,
+    SourceVersion,
     ValidationPayload,
     ValidationResult,
     ValidationStatus,
 } from "../runs/types";
+import type { SchemaHasher } from "../runs/schemaHasher";
 
+import type { DataGenerator } from "./dataGenerator";
+import type {
+    EphemeralDatabase,
+    EphemeralDatabaseProvider,
+} from "./providers/ephemeralDatabaseProvider";
 import { CancellationError, ValidatorRegistry, ValidatorRunOptions } from "./types";
 
 // =============================================================================
@@ -73,6 +85,22 @@ export interface RunnerRunOptions {
 }
 
 /**
+ * Scope 2 runtime dependencies the runner uses to build, seed, and identify the
+ * per-run ephemeral database (decisions D-A / D-C / D-D). All optional: when
+ * omitted the runner behaves exactly as in Scope 1 (no provisioning, no
+ * source-version stamping) — so a static-analysis-only run, a test, or a CLI
+ * harness needs none of them.
+ */
+export interface RunnerRuntimeDeps {
+    /** Stands up / tears down the per-run ephemeral database (decision D-C). */
+    readonly ephemeralProvider?: EphemeralDatabaseProvider;
+    /** Seeds the ephemeral database from the env's data-generator script (decision D-D). */
+    readonly dataGenerator?: DataGenerator;
+    /** Computes the run's source-schema identity hash (decision D-A). */
+    readonly schemaHasher?: SchemaHasher;
+}
+
+/**
  * Orchestrates a single validation run. Stateless across calls: each
  * `run()` constructs its own ids, signal, and aggregation state.
  *
@@ -83,6 +111,7 @@ export class Runner {
     public constructor(
         private readonly _registry: ValidatorRegistry,
         private readonly _bus?: DiagnosticEventBus,
+        private readonly _runtime: RunnerRuntimeDeps = {},
     ) {}
 
     public async run(env: Environment, opts: RunnerRunOptions = {}): Promise<RunRecord> {
@@ -100,11 +129,30 @@ export class Runner {
 
         this._emitRunStarted(runId, env, dispatchOrder);
 
+        // Scope 2 (decision D-A): identify the source schema this run validated.
+        // Best-effort — an unsupported source kind leaves the run unstamped
+        // rather than failing it.
+        const sourceVersion = await this._computeSourceVersion(env);
+
         const results: ValidationResult[] = [];
         let connectivityFailed = false;
         let cascadeCancellation: CancellationReason | undefined;
+        let ephemeral: EphemeralDatabase | undefined;
+        let provisionError: unknown;
 
         try {
+            // Scope 2 (decisions D-C / M6): provision ONE ephemeral database per
+            // run when a runtime validator is enabled, then seed it once (D-D).
+            // A provisioning failure is captured and surfaced on the runtime
+            // validators below rather than aborting the whole run.
+            if (this._needsEphemeralDatabase(dispatchOrder)) {
+                try {
+                    ephemeral = await this._provisionAndSeed(env, dispatchOrder, signal);
+                } catch (err) {
+                    provisionError = err;
+                }
+            }
+
             for (const config of dispatchOrder) {
                 if (!config.enabled) {
                     continue;
@@ -143,7 +191,23 @@ export class Runner {
                     continue;
                 }
 
-                const result = await this._dispatchOne(env, config, runId, signal);
+                // Scope 2: a runtime validator cannot run if the ephemeral
+                // database it needs failed to provision.
+                if (provisionError !== undefined && isRuntimeValidator(config.type)) {
+                    const errored = makeProvisionErroredResult(config, Date.now(), provisionError);
+                    results.push(errored);
+                    this._emitValidationStarted(runId, config.type);
+                    this._emitValidationFinished(runId, errored);
+                    continue;
+                }
+
+                const result = await this._dispatchOne(
+                    env,
+                    config,
+                    runId,
+                    signal,
+                    ephemeral?.connection,
+                );
                 results.push(result);
 
                 if (config.type === ValidationType.Connectivity && !isPass(result.status)) {
@@ -155,6 +219,11 @@ export class Runner {
                 }
             }
         } finally {
+            if (ephemeral !== undefined) {
+                // Always tear the ephemeral database down; never let a disposal
+                // failure mask the run's outcome.
+                await ephemeral.dispose().catch(() => undefined);
+            }
             disposeSignal();
         }
 
@@ -167,6 +236,7 @@ export class Runner {
             environmentId: env.id,
             environmentSnapshot: env,
             runner,
+            ...(sourceVersion !== undefined ? { sourceVersion } : {}),
             startedAtMs,
             endedAtMs,
             status,
@@ -179,6 +249,73 @@ export class Runner {
     }
 
     // -------------------------------------------------------------------------
+    // Scope 2 — ephemeral database + source identity
+    // -------------------------------------------------------------------------
+
+    /**
+     * Computes the run's `SourceVersion` (decision D-A) when a schema hasher is
+     * wired. Best-effort: an unsupported source-of-truth kind (or any hashing
+     * failure) yields `undefined` so the run proceeds unstamped rather than
+     * failing — the hash is metadata, not a gate.
+     */
+    private async _computeSourceVersion(env: Environment): Promise<SourceVersion | undefined> {
+        if (this._runtime.schemaHasher === undefined) {
+            return undefined;
+        }
+        try {
+            return await this._runtime.schemaHasher.hash(env.sourceOfTruth);
+        } catch {
+            return undefined;
+        }
+    }
+
+    /** True when an ephemeral database must be provisioned: a provider is wired
+     * and at least one enabled validation uses the ephemeral connection
+     * (connectivity is the provision health-check; unit tests + workload run
+     * against the database). Static analysis alone needs none. */
+    private _needsEphemeralDatabase(dispatchOrder: readonly ValidationConfig[]): boolean {
+        if (this._runtime.ephemeralProvider === undefined) {
+            return false;
+        }
+        return dispatchOrder.some((c) => c.enabled && usesEphemeralConnection(c.type));
+    }
+
+    /**
+     * Provisions the per-run ephemeral database from the env's source of truth
+     * and seeds it with the data-generator script (when one is configured and a
+     * generator is wired). The runtime host is taken from the first enabled
+     * runtime validator that declares one, defaulting to a tool-managed Docker
+     * container (decision D-C).
+     */
+    private async _provisionAndSeed(
+        env: Environment,
+        dispatchOrder: readonly ValidationConfig[],
+        signal: AbortSignal,
+    ): Promise<EphemeralDatabase> {
+        const provider = this._runtime.ephemeralProvider;
+        if (provider === undefined) {
+            throw new Error("Cannot provision an ephemeral database without a provider.");
+        }
+        const host = resolveRuntimeHost(dispatchOrder);
+        const ephemeral = await provider.provision(env.sourceOfTruth, host, signal);
+
+        if (env.dataGeneratorScript !== undefined && this._runtime.dataGenerator !== undefined) {
+            try {
+                await this._runtime.dataGenerator.seed(
+                    ephemeral.connection,
+                    env.dataGeneratorScript,
+                    signal,
+                );
+            } catch (err) {
+                // Tear down the just-provisioned database before surfacing.
+                await ephemeral.dispose().catch(() => undefined);
+                throw err;
+            }
+        }
+        return ephemeral;
+    }
+
+    // -------------------------------------------------------------------------
     // Internals
     // -------------------------------------------------------------------------
 
@@ -187,9 +324,10 @@ export class Runner {
         config: ValidationConfig,
         runId: string,
         signal: AbortSignal,
+        ephemeralConnection?: EphemeralDatabase["connection"],
     ): Promise<ValidationResult> {
         const validator = this._registry[config.type];
-        const opts: ValidatorRunOptions = { runId, signal, bus: this._bus };
+        const opts: ValidatorRunOptions = { runId, signal, bus: this._bus, ephemeralConnection };
         const startedAtMs = Date.now();
 
         // Emit the per-validation lifecycle here so every dispatched validation
@@ -333,6 +471,71 @@ function rollupRunStatus(results: readonly ValidationResult[]): RunStatus {
 
 function isPass(status: ValidationStatus): boolean {
     return status === ValidationStatus.Passed;
+}
+
+// =============================================================================
+// Scope 2 — runtime-validator helpers
+// =============================================================================
+
+/**
+ * The runtime validators (decision D-C): they execute against the per-run
+ * ephemeral database the runner provisions. Static analysis and connectivity
+ * are not runtime validators in this sense (static analysis builds the schema;
+ * connectivity is the provision health-check / gate).
+ */
+function isRuntimeValidator(type: ValidationType): boolean {
+    return type === ValidationType.UnitTests || type === ValidationType.WorkloadPlayback;
+}
+
+/**
+ * Validators that consume the per-run ephemeral connection: the runtime
+ * validators PLUS connectivity (which, in Scope 2, is the health check that the
+ * database was provisioned and is reachable — decision M7). Static analysis is
+ * the only validator that needs no database, so it is excluded.
+ */
+function usesEphemeralConnection(type: ValidationType): boolean {
+    return type === ValidationType.Connectivity || isRuntimeValidator(type);
+}
+
+/**
+ * Picks the runtime host for the per-run ephemeral database: the first enabled
+ * runtime validator that declares a `runtimeHost`, defaulting to a tool-managed
+ * Docker container (decision D-C). One database per run (M6), so one host.
+ */
+function resolveRuntimeHost(dispatchOrder: readonly ValidationConfig[]): RuntimeHostConfig {
+    for (const config of dispatchOrder) {
+        if (!config.enabled || !isRuntimeValidator(config.type)) {
+            continue;
+        }
+        const settings = config.settings as { runtimeHost?: RuntimeHostConfig };
+        if (settings.runtimeHost !== undefined) {
+            return settings.runtimeHost;
+        }
+    }
+    return { kind: "docker" };
+}
+
+/**
+ * Result for a runtime validator that could not run because its ephemeral
+ * database failed to provision. `Errored` (not `Failed`): the validation
+ * itself never executed; the infrastructure did not come up.
+ */
+function makeProvisionErroredResult(
+    config: ValidationConfig,
+    nowMs: number,
+    provisionError: unknown,
+): ValidationResult {
+    return {
+        validationId: validationIdFor(config),
+        displayName: displayNameFor(config.type),
+        status: ValidationStatus.Errored,
+        startedAtMs: nowMs,
+        endedAtMs: nowMs,
+        payload: emptyPayloadFor(config.type),
+        errorMessage: `Could not provision the validation database: ${
+            provisionError instanceof Error ? provisionError.message : String(provisionError)
+        }`,
+    };
 }
 
 // =============================================================================

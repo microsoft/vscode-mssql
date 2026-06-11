@@ -40,7 +40,7 @@
  *     `Errored`.
  */
 
-import { type Environment, SourceOfTruthKind, ValidationType } from "../../environments/types";
+import { type Environment, ValidationType } from "../../environments/types";
 import {
     type UnitTestFinding,
     type UnitTestsPayload,
@@ -54,11 +54,7 @@ import {
     type Validator,
     type ValidatorRunOptions,
 } from "../types";
-import {
-    ConnectionError,
-    type ConnectionHandle,
-    type ConnectionProvider,
-} from "../providers/connectionProvider";
+import { ConnectionError } from "../providers/connectionProvider";
 
 const DISPLAY_NAME = "Unit Tests";
 
@@ -83,27 +79,28 @@ const TSQLT_RESULTS_SQL = "SELECT Class, TestCase, Result, Msg FROM tSQLt.TestRe
 export class UnitTestsValidator implements Validator<ValidationType.UnitTests> {
     public readonly type = ValidationType.UnitTests;
 
-    public constructor(private readonly _connections: ConnectionProvider) {}
-
     public async run(
-        env: Environment,
+        _env: Environment,
         _config: SettingsFor<ValidationType.UnitTests>,
         opts: ValidatorRunOptions,
     ): Promise<ValidationResult> {
         const startedAtMs = Date.now();
 
-        // Cheap pre-check so a caller-cancelled run never opens a socket.
+        // Cheap pre-check so a caller-cancelled run exits before any query.
         throwIfCancelled(opts.signal);
 
-        if (env.sourceOfTruth.kind !== SourceOfTruthKind.Container) {
-            return buildSkippedNoLiveTarget(startedAtMs, Date.now(), env.sourceOfTruth.kind);
+        // Scope 2 (decision D-C): unit tests run against the per-run ephemeral
+        // database the runner provisioned and seeded, handed in via
+        // `opts.ephemeralConnection`. The validator no longer opens or owns a
+        // connection — the runner provisions one DB per run (M6) and disposes
+        // it. When no ephemeral connection is present (e.g. the runtime host
+        // could not be provisioned), there is nothing to run against.
+        const handle = opts.ephemeralConnection;
+        if (handle === undefined) {
+            return buildSkippedNoLiveTarget(startedAtMs, Date.now());
         }
 
-        let handle: ConnectionHandle | undefined;
         try {
-            handle = await this._connections.connect(env, opts.signal);
-            throwIfCancelled(opts.signal);
-
             // tSQLt installed?
             const probeRows = await handle.execute(TSQLT_PROBE_SQL, opts.signal);
             throwIfCancelled(opts.signal);
@@ -149,16 +146,9 @@ export class UnitTestsValidator implements Validator<ValidationType.UnitTests> {
             }
             // Any other error: re-throw so the runner classifies as Errored.
             throw err;
-        } finally {
-            if (handle) {
-                try {
-                    await handle.dispose();
-                } catch {
-                    // Disposal failures are not surfaced — the validator's
-                    // job is the test outcomes, not connection-pool hygiene.
-                }
-            }
         }
+        // No `finally` disposal: the runner owns the ephemeral database's
+        // lifecycle and disposes it once after every validator has run (M6).
     }
 }
 
@@ -256,16 +246,13 @@ function buildResultFromFindings(
     };
 }
 
-function buildSkippedNoLiveTarget(
-    startedAtMs: number,
-    endedAtMs: number,
-    kind: SourceOfTruthKind,
-): ValidationResult {
+function buildSkippedNoLiveTarget(startedAtMs: number, endedAtMs: number): ValidationResult {
     const finding: UnitTestFinding = {
         kind: "unit-tests",
         testName: "(skipped)",
         outcome: "skipped",
-        message: `Unit tests require a live database target; this environment's source of truth is "${kind}". Attach a Container connection profile to enable tSQLt.`,
+        message:
+            "No validation database was available to run unit tests against. Enable a runtime host (Docker) so the schema can be provisioned for this run.",
     };
     const payload: UnitTestsPayload = {
         validationType: ValidationType.UnitTests,
