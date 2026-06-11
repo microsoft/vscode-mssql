@@ -314,7 +314,7 @@ function getQueryResultFluentGridCommandConfiguration(): FluentResultGridCommand
                 label: "",
                 placements: [placement.Toolbar],
                 groupId: "view",
-                order: 500,
+                order: 100,
                 isVisible: (context) => !!context.canToggleViewMode && context.viewMode === "text",
             },
             {
@@ -322,7 +322,7 @@ function getQueryResultFluentGridCommandConfiguration(): FluentResultGridCommand
                 label: "",
                 placements: [placement.Toolbar],
                 groupId: "view",
-                order: 510,
+                order: 100,
                 isVisible: (context) => !!context.canToggleViewMode && context.viewMode !== "text",
             },
             {
@@ -330,7 +330,7 @@ function getQueryResultFluentGridCommandConfiguration(): FluentResultGridCommand
                 label: "",
                 placements: [placement.Toolbar],
                 groupId: "view",
-                order: 520,
+                order: 200,
                 isVisible: (context) => !!context.canToggleMaximize && !context.isMaximized,
             },
             {
@@ -338,7 +338,7 @@ function getQueryResultFluentGridCommandConfiguration(): FluentResultGridCommand
                 label: "",
                 placements: [placement.Toolbar],
                 groupId: "view",
-                order: 530,
+                order: 200,
                 isVisible: (context) => !!context.canToggleMaximize && !!context.isMaximized,
             },
         ],
