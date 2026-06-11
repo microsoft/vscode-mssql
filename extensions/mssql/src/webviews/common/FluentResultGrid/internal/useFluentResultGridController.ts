@@ -95,6 +95,7 @@ const emptyDataset: FluentResultGridDataRow[] = [];
 const clearAllFiltersCommand = "fluent-result-grid-clear-all-filters";
 const clearSortCommand = "fluent-result-grid-clear-sort";
 const showAllColumnsCommand = "fluent-result-grid-show-all-columns";
+const defaultFrozenColumnIndex = 0;
 
 type SourceRow = {
     rowId: number;
@@ -125,10 +126,13 @@ function getRowHeight(rowHeight: number | undefined, rowPadding: number): number
 
 function normalizeFrozenColumnIndex(value: number | undefined, columnCount: number): number {
     if (typeof value !== "number" || !Number.isFinite(value)) {
-        return 0;
+        return defaultFrozenColumnIndex;
     }
 
-    return Math.min(Math.max(0, Math.trunc(value)), Math.max(0, columnCount - 1));
+    return Math.min(
+        Math.max(defaultFrozenColumnIndex, Math.trunc(value)),
+        Math.max(defaultFrozenColumnIndex, columnCount - 1),
+    );
 }
 
 function toAnchorRect(rect: DOMRect) {
@@ -212,7 +216,7 @@ export function useFluentResultGridController({
     const restoredInitialStateSignatureRef = useRef<string | undefined>(undefined);
     const autoSizeRequestIdRef = useRef(0);
     const [frozenColumnIndex, setFrozenColumnIndex] = useState(
-        () => initialState?.frozenColumnIndex ?? 0,
+        () => initialState?.frozenColumnIndex ?? defaultFrozenColumnIndex,
     );
     const [isGridFocused, setIsGridFocused] = useState(false);
     const [displayedRowCount, setDisplayedRowCount] = useState(resultSetSummary.rowCount);
@@ -350,7 +354,7 @@ export function useFluentResultGridController({
         filterStateRef.current = initialState?.filters ?? {};
         sortStateRef.current = initialState?.sort;
         activeFilterColumnRef.current = undefined;
-        setFrozenColumnIndex(initialState?.frozenColumnIndex ?? 0);
+        setFrozenColumnIndex(initialState?.frozenColumnIndex ?? defaultFrozenColumnIndex);
     }, [
         columnSignature,
         gridId,
@@ -1276,10 +1280,8 @@ export function useFluentResultGridController({
                     return;
                 case FluentResultGridCommand.UnfreezeColumn:
                     if (activeColumn) {
-                        const columnIndex = grid.getColumnIndex(activeColumn.id);
-                        const nextFrozenColumnIndex = Math.max(0, columnIndex - 1);
-                        setFrozenColumnIndex(nextFrozenColumnIndex);
-                        applyFrozenColumnIndex(grid, nextFrozenColumnIndex);
+                        setFrozenColumnIndex(defaultFrozenColumnIndex);
+                        applyFrozenColumnIndex(grid, defaultFrozenColumnIndex);
                         emitStateChange(grid);
                     }
                     return;
