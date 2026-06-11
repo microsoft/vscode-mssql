@@ -5,7 +5,9 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as crypto from "crypto";
 import SqlToolsServerClient from "./serviceclient";
+import { readRefactorLogPath } from "../publishProject/projectUtils";
 import {
     SqlSymbolRenameParams,
     SqlSymbolRenameRequest,
@@ -156,6 +158,155 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
                     ),
             );
             workspaceEdit.set(fileUri, vsEdits);
+        }
+
+        // ── Refactorlog handling ────────────────────────────────────────────────────
+        // When STS resolved the element type (table, column, etc.) we also write a
+        // .refactorlog entry so DacFx deploy knows about the rename.
+        // The edit is added to the SAME WorkspaceEdit so Apply/Discard controls both.
+        if (
+            response.elementType &&
+            response.elementName &&
+            response.parentElementName &&
+            response.parentElementType
+        ) {
+            // Find the .sqlproj that owns the renamed file.
+            // Pick the most-specific (deepest) match to handle nested project structures.
+            const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
+            const normalizedDocPath = path.normalize(document.uri.fsPath);
+            const sqlprojUri = sqlprojFiles
+                .filter((projUri) => {
+                    const projDir = path.normalize(path.dirname(projUri.fsPath));
+                    const rel = path.relative(projDir, normalizedDocPath);
+                    return (
+                        !(rel === ".." || rel.startsWith(".." + path.sep)) && !path.isAbsolute(rel)
+                    );
+                })
+                .sort((a, b) => b.fsPath.length - a.fsPath.length)[0];
+
+            if (sqlprojUri) {
+                const projDir = path.dirname(sqlprojUri.fsPath);
+                const projName = path.basename(sqlprojUri.fsPath, ".sqlproj");
+
+                // Read the .sqlproj XML to find an existing <RefactorLog Include="..." /> entry.
+                const sqlprojDoc = await vscode.workspace.openTextDocument(sqlprojUri);
+                const sqlprojContent = sqlprojDoc.getText();
+                const existingRefactorLogRelPath = readRefactorLogPath(sqlprojContent);
+
+                // Resolve the refactorlog path:
+                // - If already declared in .sqlproj → resolve relative to project dir.
+                // - Otherwise → default to <ProjectName>.refactorlog next to .sqlproj.
+                const refactorlogRelPath = existingRefactorLogRelPath ?? projName + ".refactorlog";
+                const refactorlogAbsPath = path.resolve(projDir, refactorlogRelPath);
+                const refactorlogUri = vscode.Uri.file(refactorlogAbsPath);
+
+                // Generate GUID and UTC timestamp inline.
+                const guid = crypto.randomUUID();
+                const now = new Date();
+                const pad = (n: number) => String(n).padStart(2, "0");
+                const timestamp =
+                    `${pad(now.getUTCMonth() + 1)}/${pad(now.getUTCDate())}/${now.getUTCFullYear()} ` +
+                    `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+
+                // Escape XML special characters in values before embedding in XML attributes.
+                const xmlEscape = (v: string) =>
+                    v
+                        .replace(/&/g, "&amp;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;");
+
+                const operationXml = [
+                    `  <Operation Name="Rename Refactor" Key="${guid}" ChangeDateTime="${timestamp}">`,
+                    `    <Property Name="ElementName" Value="${xmlEscape(response.elementName)}" />`,
+                    `    <Property Name="ElementType" Value="${xmlEscape(response.elementType)}" />`,
+                    `    <Property Name="ParentElementName" Value="${xmlEscape(response.parentElementName)}" />`,
+                    `    <Property Name="ParentElementType" Value="${xmlEscape(response.parentElementType)}" />`,
+                    `    <Property Name="NewName" Value="${xmlEscape(newName)}" />`,
+                    `  </Operation>`,
+                ].join("\n");
+
+                if (existingRefactorLogRelPath) {
+                    // File is registered in .sqlproj — append to it if it exists,
+                    // or create it fresh if it was deleted after registration.
+                    let refactorlogExists = false;
+                    try {
+                        await vscode.workspace.fs.stat(refactorlogUri);
+                        refactorlogExists = true;
+                    } catch {
+                        // file missing — will create below
+                    }
+
+                    let existingContent: string;
+                    if (refactorlogExists) {
+                        const existingDoc = await vscode.workspace.openTextDocument(refactorlogUri);
+                        existingContent = existingDoc.getText();
+                    } else {
+                        // File was deleted after being registered — start fresh.
+                        existingContent = [
+                            '<?xml version="1.0" encoding="utf-8"?>',
+                            '<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">',
+                            "</Operations>",
+                        ].join("\n");
+                    }
+
+                    const closingTag = "</Operations>";
+                    const insertIdx = existingContent.lastIndexOf(closingTag);
+                    const updatedContent =
+                        insertIdx >= 0
+                            ? existingContent.slice(0, insertIdx) +
+                              operationXml +
+                              "\n" +
+                              existingContent.slice(insertIdx)
+                            : existingContent + "\n" + operationXml;
+
+                    if (refactorlogExists) {
+                        const existingDoc = await vscode.workspace.openTextDocument(refactorlogUri);
+                        const fullRange = new vscode.Range(
+                            existingDoc.lineAt(0).range.start,
+                            existingDoc.lineAt(existingDoc.lineCount - 1).range.end,
+                        );
+                        workspaceEdit.replace(refactorlogUri, fullRange, updatedContent);
+                    } else {
+                        workspaceEdit.createFile(refactorlogUri, {
+                            overwrite: false,
+                            contents: Buffer.from(updatedContent, "utf8"),
+                        });
+                    }
+                } else {
+                    // No refactorlog in .sqlproj yet — create the file and register it.
+
+                    // 1. Create the new .refactorlog file.
+                    const newRefactorlogContent = [
+                        '<?xml version="1.0" encoding="utf-8"?>',
+                        '<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">',
+                        operationXml,
+                        "</Operations>",
+                    ].join("\n");
+                    workspaceEdit.createFile(refactorlogUri, {
+                        overwrite: false,
+                        contents: Buffer.from(newRefactorlogContent, "utf8"),
+                    });
+
+                    // 2. Add <RefactorLog Include="..." /> to the .sqlproj in the same WorkspaceEdit.
+                    // Insert a new ItemGroup before the closing </Project> tag.
+                    const itemGroupEntry = `\n  <ItemGroup>\n    <RefactorLog Include="${refactorlogRelPath}" />\n  </ItemGroup>`;
+                    const projectCloseTag = "</Project>";
+                    const projectCloseIdx = sqlprojContent.lastIndexOf(projectCloseTag);
+                    const newSqlprojContent =
+                        projectCloseIdx >= 0
+                            ? sqlprojContent.slice(0, projectCloseIdx) +
+                              itemGroupEntry +
+                              "\n" +
+                              sqlprojContent.slice(projectCloseIdx)
+                            : sqlprojContent + itemGroupEntry;
+                    const sqlprojFullRange = new vscode.Range(
+                        sqlprojDoc.lineAt(0).range.start,
+                        sqlprojDoc.lineAt(sqlprojDoc.lineCount - 1).range.end,
+                    );
+                    workspaceEdit.replace(sqlprojUri, sqlprojFullRange, newSqlprojContent);
+                }
+            }
         }
 
         return workspaceEdit;
