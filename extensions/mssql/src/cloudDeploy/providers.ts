@@ -131,16 +131,32 @@ const BUILD_OUTPUT_DIRECTORIES: ReadonlySet<string> = new Set(["bin", "obj"]);
  * returns each as a `SchemaFile` carrying a project-relative, forward-slash
  * path plus its raw bytes. The pure `hashSchemaFiles` does the normalization
  * and ordering, so this reader stays a thin fs walker.
+ *
+ * A workspace-relative `projectDirectory` / `filePath` is resolved against
+ * `_baseDir` (the workspace-folder fsPath, when one is open) so the hash does
+ * not depend on the extension host's working directory — the same resolution
+ * the artifact provider and the ephemeral build use. Absolute paths pass
+ * through unchanged.
  */
 export class LocalSchemaSourceReader implements SchemaSourceReader {
+    public constructor(private readonly _baseDir?: string) {}
+
     public async listSqlProjFiles(projectDirectory: string): Promise<SchemaFile[]> {
+        const rootDir = this._resolve(projectDirectory);
         const files: SchemaFile[] = [];
-        await this._walk(projectDirectory, projectDirectory, files);
+        await this._walk(rootDir, rootDir, files);
         return files;
     }
 
     public async readFileBuffer(filePath: string): Promise<Buffer> {
-        return fs.readFile(filePath);
+        return fs.readFile(this._resolve(filePath));
+    }
+
+    private _resolve(p: string): string {
+        if (this._baseDir === undefined || path.isAbsolute(p)) {
+            return p;
+        }
+        return path.resolve(this._baseDir, p);
     }
 
     private async _walk(rootDir: string, currentDir: string, out: SchemaFile[]): Promise<void> {

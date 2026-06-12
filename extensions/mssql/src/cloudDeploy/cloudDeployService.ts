@@ -177,7 +177,9 @@ export class CloudDeployService implements vscode.Disposable {
         // validators skip rather than error.
         const processProvider = new LiveProcessProvider(workspaceFolder?.uri.fsPath);
         const runtime: RunnerRuntimeDeps = {
-            schemaHasher: new SchemaHasher(new LocalSchemaSourceReader()),
+            schemaHasher: new SchemaHasher(
+                new LocalSchemaSourceReader(workspaceFolder?.uri.fsPath),
+            ),
             dataGenerator: new LiveDataGenerator(
                 new LiveArtifactProvider(fileProvider, workspaceFolder?.uri.fsPath),
             ),
