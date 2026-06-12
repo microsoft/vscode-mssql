@@ -58,7 +58,8 @@ const HUB_VIEW_ID = "CloudDeployHub";
 export type HubInitialView =
     | { readonly kind: "runList" }
     | { readonly kind: "environment"; readonly envId: string }
-    | { readonly kind: "run"; readonly runId: string };
+    | { readonly kind: "run"; readonly runId: string }
+    | { readonly kind: "compare"; readonly runIdA: string; readonly runIdB: string };
 
 // =============================================================================
 // Controller
@@ -143,7 +144,11 @@ export class CloudDeployHubController extends WebviewPanelController<
         if (CloudDeployHubController._current !== undefined) {
             const existing = CloudDeployHubController._current;
             existing.revealToForeground();
-            void existing._navigateInternal(initialViewToReducerPayload(initialView));
+            if (initialView.kind === "compare") {
+                void existing._openComparison(initialView.runIdA, initialView.runIdB);
+            } else {
+                void existing._navigateInternal(initialViewToReducerPayload(initialView));
+            }
             return existing;
         }
         const created = new CloudDeployHubController(
@@ -158,9 +163,12 @@ export class CloudDeployHubController extends WebviewPanelController<
         CloudDeployHubController._current = created;
         // The run page needs the full RunRecord, which buildInitialState
         // cannot hydrate synchronously. Kick off the navigate flow so
-        // `selectedRun` is populated before the React side mounts.
+        // `selectedRun` is populated before the React side mounts. The compare
+        // page likewise needs both run records hydrated and diffed.
         if (initialView.kind === "run") {
             void created._navigateInternal(initialViewToReducerPayload(initialView));
+        } else if (initialView.kind === "compare") {
+            void created._openComparison(initialView.runIdA, initialView.runIdB);
         }
         return created;
     }
@@ -416,6 +424,16 @@ export class CloudDeployHubController extends WebviewPanelController<
         readonly runId?: string;
     }): Promise<void> {
         this.state = await this._computeNavigationState(payload);
+    }
+
+    /**
+     * Deep-link entry point for the auto-diff toast: hydrates both run records
+     * and lands the hub on the compare page. Mirrors the `compareRuns` reducer
+     * but is callable from `getOrCreate` (which has no webview message to
+     * dispatch yet).
+     */
+    private async _openComparison(runIdA: string, runIdB: string): Promise<void> {
+        this.state = await this._computeComparisonState(this.state, runIdA, runIdB);
     }
 
     private async _loadRun(runId: string): Promise<{

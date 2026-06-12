@@ -30,9 +30,18 @@ import * as path from "path";
 import * as Constants from "../constants/constants";
 import { DiagnosticEventBus } from "./diagnostics";
 import { EnvironmentStore } from "./environments/environmentStore";
+import { ValidationType } from "./environments/types";
 import { LocalFileProvider, LocalSchemaSourceReader } from "./providers";
-import { LocalRunsDirectoryReader, RunArtifactReader, RunArtifactWriter, RunStore } from "./runs";
+import {
+    LocalRunsDirectoryReader,
+    RunArtifactReader,
+    RunArtifactWriter,
+    RunStore,
+    selectBaselineRun,
+    type BaselineCandidate,
+} from "./runs";
 import { SchemaHasher } from "./runs/schemaHasher";
+import type { WorkloadObservedStep, WorkloadPlaybackPayload } from "./runs/types";
 import {
     CloudDeployValidationApi,
     ConnectionError,
@@ -186,6 +195,7 @@ export class CloudDeployService implements vscode.Disposable {
         // there is no way to reach a provisioned database, so the runtime
         // validators skip rather than error.
         const processProvider = new LiveProcessProvider(workspaceFolder?.uri.fsPath);
+        const runStore = this._runStore;
         const runtime: RunnerRuntimeDeps = {
             schemaHasher: new SchemaHasher(
                 new LocalSchemaSourceReader(workspaceFolder?.uri.fsPath),
@@ -193,6 +203,9 @@ export class CloudDeployService implements vscode.Disposable {
             dataGenerator: new LiveDataGenerator(
                 new LiveArtifactProvider(fileProvider, workspaceFolder?.uri.fsPath),
             ),
+            ...(runStore !== undefined
+                ? { workloadBaselineLookup: makeWorkloadBaselineLookup(runStore) }
+                : {}),
             ...(options.ephemeralConnector !== undefined
                 ? {
                       ephemeralProvider: new DockerEphemeralDatabaseProvider(
@@ -320,4 +333,59 @@ class UnconfiguredConnectionStrategy implements LiveConnectionStrategy {
             "Live connection strategy is not configured. The Cloud Deploy validation runner cannot open a live SQL connection in this build.",
         );
     }
+}
+
+// =============================================================================
+// Run-based workload baseline lookup
+// =============================================================================
+
+/**
+ * Builds the runner's `workloadBaselineLookup` (Scope 2, decision M9) over a
+ * `RunStore`. Given the current run's environment id and schema hash, it picks
+ * the most-recent earlier run of that environment whose schema differed
+ * (`selectBaselineRun`) and returns that run's measured workload steps. The
+ * workload validator compares its fresh measurements against these to flag
+ * regressions. Returns `undefined` when there is no comparable predecessor or
+ * the chosen baseline run recorded no workload steps.
+ */
+function makeWorkloadBaselineLookup(
+    runStore: RunStore,
+): (
+    envId: string,
+    currentSourceVersionHash: string | undefined,
+) => Promise<readonly WorkloadObservedStep[] | undefined> {
+    return async (envId, currentSourceVersionHash) => {
+        if (currentSourceVersionHash === undefined) {
+            return undefined;
+        }
+        const history: BaselineCandidate[] = runStore.list(envId).map((entry) => ({
+            runId: entry.runId,
+            startedAtMs: entry.startedAtMs,
+            sourceVersionHash: entry.sourceVersionHash,
+        }));
+        // Synthesize a "current" candidate that is later than all history so
+        // `selectBaselineRun` reduces to "most recent prior run with a different
+        // hash". The run is not yet persisted, so it is absent from history.
+        const baseline = selectBaselineRun(
+            {
+                runId: "__pending__",
+                startedAtMs: Number.MAX_SAFE_INTEGER,
+                sourceVersionHash: currentSourceVersionHash,
+            },
+            history,
+        );
+        if (baseline === undefined) {
+            return undefined;
+        }
+        const record = await runStore.get(baseline.runId);
+        if (record === undefined) {
+            return undefined;
+        }
+        const workload = record.validations.find(
+            (v) => v.validationId === ValidationType.WorkloadPlayback,
+        );
+        const payload = workload?.payload as WorkloadPlaybackPayload | undefined;
+        const observedSteps = payload?.observedSteps;
+        return observedSteps !== undefined && observedSteps.length > 0 ? observedSteps : undefined;
+    };
 }

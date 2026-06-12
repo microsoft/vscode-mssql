@@ -54,6 +54,7 @@ import {
     ValidationPayload,
     ValidationResult,
     ValidationStatus,
+    WorkloadObservedStep,
 } from "../runs/types";
 import type { SchemaHasher } from "../runs/schemaHasher";
 
@@ -98,6 +99,18 @@ export interface RunnerRuntimeDeps {
     readonly dataGenerator?: DataGenerator;
     /** Computes the run's source-schema identity hash (decision D-A). */
     readonly schemaHasher?: SchemaHasher;
+    /**
+     * Resolves the run-based performance baseline (decision M9): the measured
+     * workload steps of the most-recent earlier run of this environment whose
+     * schema hash differs from `currentSourceVersionHash`. Returns `undefined`
+     * when there is no comparable predecessor (e.g. the first run), in which
+     * case the workload validator records its measurements without flagging a
+     * regression. Omitted in tests and CLI harnesses that have no run store.
+     */
+    readonly workloadBaselineLookup?: (
+        envId: string,
+        currentSourceVersionHash: string | undefined,
+    ) => Promise<readonly WorkloadObservedStep[] | undefined>;
 }
 
 /**
@@ -133,6 +146,15 @@ export class Runner {
         // Best-effort — an unsupported source kind leaves the run unstamped
         // rather than failing it.
         const sourceVersion = await this._computeSourceVersion(env);
+
+        // Scope 2 (decision M9): resolve the run-based performance baseline up
+        // front (only when a workload validator is enabled) so the workload
+        // validator can compare its fresh measurements against the prior run.
+        const workloadBaseline = await this._resolveWorkloadBaseline(
+            env,
+            dispatchOrder,
+            sourceVersion,
+        );
 
         const results: ValidationResult[] = [];
         let connectivityFailed = false;
@@ -226,6 +248,7 @@ export class Runner {
                     runId,
                     signal,
                     ephemeral?.connection,
+                    workloadBaseline,
                 );
                 results.push(result);
 
@@ -318,13 +341,22 @@ export class Runner {
         const host = resolveRuntimeHost(dispatchOrder);
         const ephemeral = await provider.provision(env.sourceOfTruth, host, signal);
 
-        if (env.dataGeneratorScript !== undefined && this._runtime.dataGenerator !== undefined) {
+        if (env.dataGeneratorScript !== undefined) {
             try {
-                await this._runtime.dataGenerator.seed(
-                    ephemeral.connection,
-                    env.dataGeneratorScript,
-                    signal,
-                );
+                // Prefer the host's single-session script-file seeding (full
+                // `sqlcmd` semantics: `GO` batches, cross-batch temp objects)
+                // when available — required by installers like tSQLt. Otherwise
+                // fall back to the connection-based `DataGenerator` (one
+                // statement-batch per execute).
+                if (ephemeral.seedFromScriptFile !== undefined) {
+                    await ephemeral.seedFromScriptFile(env.dataGeneratorScript, signal);
+                } else if (this._runtime.dataGenerator !== undefined) {
+                    await this._runtime.dataGenerator.seed(
+                        ephemeral.connection,
+                        env.dataGeneratorScript,
+                        signal,
+                    );
+                }
             } catch (err) {
                 // Tear down the just-provisioned database before surfacing.
                 await ephemeral.dispose().catch(() => undefined);
@@ -332,6 +364,35 @@ export class Runner {
             }
         }
         return ephemeral;
+    }
+
+    /**
+     * Resolves the run-based performance baseline (decision M9) for this run.
+     * Only meaningful when a workload validator is enabled and a lookup is
+     * wired; otherwise returns `undefined`. Best-effort: a lookup failure
+     * leaves the workload validator without a baseline (it records its raw
+     * measurements) rather than failing the run.
+     */
+    private async _resolveWorkloadBaseline(
+        env: Environment,
+        dispatchOrder: readonly ValidationConfig[],
+        sourceVersion: SourceVersion | undefined,
+    ): Promise<readonly WorkloadObservedStep[] | undefined> {
+        const lookup = this._runtime.workloadBaselineLookup;
+        if (lookup === undefined) {
+            return undefined;
+        }
+        const workloadEnabled = dispatchOrder.some(
+            (c) => c.enabled && c.type === ValidationType.WorkloadPlayback,
+        );
+        if (!workloadEnabled) {
+            return undefined;
+        }
+        try {
+            return await lookup(env.id, sourceVersion?.hash);
+        } catch {
+            return undefined;
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -344,9 +405,16 @@ export class Runner {
         runId: string,
         signal: AbortSignal,
         ephemeralConnection?: EphemeralDatabase["connection"],
+        workloadBaseline?: readonly WorkloadObservedStep[],
     ): Promise<ValidationResult> {
         const validator = this._registry[config.type];
-        const opts: ValidatorRunOptions = { runId, signal, bus: this._bus, ephemeralConnection };
+        const opts: ValidatorRunOptions = {
+            runId,
+            signal,
+            bus: this._bus,
+            ephemeralConnection,
+            ...(config.type === ValidationType.WorkloadPlayback ? { workloadBaseline } : {}),
+        };
         const startedAtMs = Date.now();
 
         // Emit the per-validation lifecycle here so every dispatched validation

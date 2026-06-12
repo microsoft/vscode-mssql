@@ -21,6 +21,8 @@ import {
 } from "../cloudDeploy/dashboard";
 import { CloudDeployHubController } from "../cloudDeploy/dashboard/cloudDeployHubController";
 import { seedSampleRun } from "../cloudDeploy/dev/seedSampleRun";
+import { selectBaselineRun, type BaselineCandidate } from "../cloudDeploy/runs";
+import type { RunRecord } from "../cloudDeploy/runs/types";
 import {
     VsCodeMssqlConnectionStrategy,
     VsCodeMssqlEphemeralConnector,
@@ -2974,6 +2976,61 @@ export default class MainController implements vscode.Disposable {
         );
 
         await this.showCloudDeployValidateResult(envName, result);
+        await this.maybeOfferSchemaDiff(result.record);
+    }
+
+    /**
+     * After a validation run, offers a "View diff" toast when this run's schema
+     * differs from a prior run of the same environment (Scope 2, decisions D-B
+     * / M8). The baseline is the most-recent earlier run with a different
+     * schema hash — the local analog of CI's "diff against main". Best-effort:
+     * no run store, no source-version hash, or no comparable predecessor means
+     * no toast.
+     */
+    private async maybeOfferSchemaDiff(record: RunRecord): Promise<void> {
+        const store = this.cloudDeployService.runs.store;
+        if (store === undefined || record.sourceVersion === undefined) {
+            return;
+        }
+        // Refresh the cache so the just-persisted run is loadable when the user
+        // opens the diff, then project the env's history into baseline candidates.
+        try {
+            await store.scan();
+        } catch {
+            // RunStore.scan never throws on a missing dir; ignore any other failure.
+        }
+        const history: BaselineCandidate[] = store.list(record.environmentId).map((entry) => ({
+            runId: entry.runId,
+            startedAtMs: entry.startedAtMs,
+            sourceVersionHash: entry.sourceVersionHash,
+        }));
+        const baseline = selectBaselineRun(
+            {
+                runId: record.runId,
+                startedAtMs: record.startedAtMs,
+                sourceVersionHash: record.sourceVersion.hash,
+            },
+            history,
+        );
+        if (baseline === undefined) {
+            return;
+        }
+        const viewDiff = LocalizedConstants.CloudDeployValidation.viewSchemaDiffAction;
+        const action = await vscode.window.showInformationMessage(
+            LocalizedConstants.CloudDeployValidation.schemaChangedSinceLastRun,
+            viewDiff,
+        );
+        if (action === viewDiff) {
+            CloudDeployHubController.getOrCreate(
+                this._context,
+                this._vscodeWrapper,
+                this.cloudDeployService.environments,
+                this.cloudDeployService.runs.store,
+                this.cloudDeployService.diagnostics,
+                { kind: "compare", runIdA: baseline.runId, runIdB: record.runId },
+                this.cloudDeployService.getActiveRuns(),
+            );
+        }
     }
 
     private async showCloudDeployValidateResult(

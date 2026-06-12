@@ -110,33 +110,23 @@ export interface UnitTestsSettings {
 
 export interface WorkloadPlaybackSettings {
     /**
-     * Where to stand up the per-run ephemeral database the workload replays
+     * Where to stand up the per-run ephemeral database the workload runs
      * against (Scope 2, decision D-C). When omitted, the runner's default host
      * is used.
      */
     runtimeHost?: RuntimeHostConfig;
     /**
-     * Captured-workload artifact location consumed by the replay tool.
-     * In Scope 1 this is an absolute or workspace-relative local file path
-     * (resolved by the host); a future `GitHubArtifactProvider` reuses the
-     * same field with a `gh://` URI.
+     * Workload-spec artifact location: a JSON document `{ steps: [{ id, query,
+     * iterations? }] }` describing the queries to time against the per-run
+     * ephemeral database (Scope 2). In Scope 1 this is an absolute or
+     * workspace-relative local file path (resolved by the host); a future
+     * `GitHubArtifactProvider` reuses the same field with a `gh://` URI.
      */
     workloadUri?: string;
     /**
-     * Baseline-metrics artifact the replay's observed metrics are compared
-     * against. Same uri semantics as `workloadUri`.
-     */
-    baselineUri?: string;
-    /**
-     * Replay tool command. Defaults to `"sql-workload-replay"` when omitted;
-     * the service layer may pin an absolute path the same way it does for
-     * `sqlpackage`.
-     */
-    replayCommand?: string;
-    /**
      * Latency-regression threshold expressed as a fraction of the baseline
      * (e.g. `0.25` flags any step whose observed latency is more than 25 %
-     * higher than baseline). Defaults applied by the validator.
+     * higher than the run-based baseline). Defaults applied by the validator.
      */
     latencyRegressionThreshold?: number;
     /**

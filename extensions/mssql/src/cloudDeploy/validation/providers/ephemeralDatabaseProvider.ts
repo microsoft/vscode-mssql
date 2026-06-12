@@ -54,6 +54,17 @@ export interface EphemeralDatabase {
     readonly connection: ConnectionHandle;
     /** Name of the database created for this run (diagnostics / logging). */
     readonly databaseName: string;
+    /**
+     * Seeds the database by running a whole SQL script file on ONE session
+     * (full `sqlcmd` semantics: `GO` batch separators, session-scoped temp
+     * objects that span batches, etc.). Present only for hosts that can run a
+     * script file natively (the Docker provider runs it via in-container
+     * `sqlcmd -i`). When absent, the runner falls back to the connection-based
+     * `DataGenerator`. `scriptPath` is resolved against the workspace root the
+     * provider was configured with. Idempotent in neither direction — the
+     * caller invokes it at most once per run.
+     */
+    seedFromScriptFile?(scriptPath: string, signal: AbortSignal): Promise<void>;
     /** Tears down the connection and the host resources. Idempotent. */
     dispose(): Promise<void>;
 }
@@ -237,8 +248,19 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
                 signal,
             );
 
-            return new DockerEphemeralDatabase(connection, databaseName, () =>
-                this._removeContainer(dockerCommand, containerName),
+            return new DockerEphemeralDatabase(
+                connection,
+                databaseName,
+                () => this._removeContainer(dockerCommand, containerName),
+                (scriptPath, sig) =>
+                    this._seedViaContainer(
+                        dockerCommand,
+                        containerName,
+                        password,
+                        databaseName,
+                        scriptPath,
+                        sig,
+                    ),
             );
         } catch (err) {
             if (containerStarted) {
@@ -304,6 +326,39 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
                 `Failed to ${action}: ${processFailureDetail(result)}`,
             );
         }
+    }
+
+    /**
+     * Seeds the database from a whole SQL script file run on ONE in-container
+     * `sqlcmd` session: `docker cp` the file in, then `sqlcmd -i ... -b`. Unlike
+     * the connection-based `DataGenerator` (one `query/simpleexecute` per `GO`
+     * batch, which loses session-scoped temp objects between batches), this runs
+     * the entire script on a single session — required by installers like tSQLt
+     * whose early batches create `#temp` procedures that later batches call.
+     * `-b` makes sqlcmd exit non-zero on the first SQL error so it surfaces here.
+     */
+    private async _seedViaContainer(
+        dockerCommand: string,
+        containerName: string,
+        password: string,
+        databaseName: string,
+        scriptPath: string,
+        signal: AbortSignal,
+    ): Promise<void> {
+        const localPath = this._resolveAgainstWorkspace(scriptPath);
+        const inContainerPath = "/tmp/cloud-deploy-seed.sql";
+        await this._run(
+            dockerCommand,
+            ["cp", localPath, `${containerName}:${inContainerPath}`],
+            signal,
+            "copy the seed script into the container",
+        );
+        await this._run(
+            dockerCommand,
+            sqlcmdFileArgs(containerName, password, databaseName, inContainerPath),
+            signal,
+            "run the seed script in the container",
+        );
     }
 
     /**
@@ -414,7 +469,15 @@ class DockerEphemeralDatabase implements EphemeralDatabase {
         public readonly connection: ConnectionHandle,
         public readonly databaseName: string,
         private readonly _removeContainer: () => Promise<void>,
+        private readonly _seedScriptFile: (
+            scriptPath: string,
+            signal: AbortSignal,
+        ) => Promise<void>,
     ) {}
+
+    public seedFromScriptFile(scriptPath: string, signal: AbortSignal): Promise<void> {
+        return this._seedScriptFile(scriptPath, signal);
+    }
 
     public async dispose(): Promise<void> {
         if (this._disposed) {
@@ -516,6 +579,37 @@ function sqlcmdArgs(containerName: string, password: string, sql: string): strin
         "-C",
         "-Q",
         sql,
+    ];
+}
+
+/**
+ * `docker exec <name> sqlcmd ... -d <db> -b -i <file>` argument vector for
+ * running a whole script file on one in-container session. `-b` exits non-zero
+ * on the first SQL error so the provider surfaces it; `-d` runs the script in
+ * the validation database (where tSQLt installs its schema).
+ */
+function sqlcmdFileArgs(
+    containerName: string,
+    password: string,
+    databaseName: string,
+    inContainerPath: string,
+): string[] {
+    return [
+        "exec",
+        containerName,
+        IN_CONTAINER_SQLCMD,
+        "-S",
+        "localhost",
+        "-U",
+        SA_USER,
+        "-P",
+        password,
+        "-C",
+        "-d",
+        databaseName,
+        "-b",
+        "-i",
+        inContainerPath,
     ];
 }
 

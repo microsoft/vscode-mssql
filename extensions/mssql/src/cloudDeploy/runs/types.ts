@@ -244,6 +244,25 @@ export interface WorkloadPlaybackPayload {
         readonly steps: number;
         readonly regressions: number;
     };
+    /**
+     * The per-step metrics this run actually measured (Scope 2). Recorded so a
+     * later run can use this run as its performance baseline (the run-based
+     * baseline, decision M9) — comparing "is my schema slower than the last
+     * version I validated?" without a hand-maintained baseline file. Absent on
+     * runs that predate in-process measurement.
+     */
+    readonly observedSteps?: readonly WorkloadObservedStep[];
+}
+
+/**
+ * A single step's measured metrics (Scope 2). All metric fields optional so a
+ * step that only timed latency compares cleanly without synthesizing data.
+ */
+export interface WorkloadObservedStep {
+    readonly id: string;
+    readonly latencyMs?: number;
+    readonly throughputQps?: number;
+    readonly errorRate?: number;
 }
 
 // =============================================================================

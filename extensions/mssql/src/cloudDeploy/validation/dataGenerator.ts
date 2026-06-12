@@ -82,12 +82,15 @@ export class LiveDataGenerator implements DataGenerator {
         }
 
         const batches = splitSqlBatches(script);
-        for (const batch of batches) {
+        for (let i = 0; i < batches.length; i++) {
+            const batch = batches[i];
             try {
                 await connection.execute(batch, signal);
             } catch (err) {
                 throw new DataGeneratorError(
-                    `The data-generator script failed while executing a batch.`,
+                    `The data-generator script failed on batch ${i + 1} of ${batches.length}: ${
+                        err instanceof Error ? err.message : String(err)
+                    }`,
                     err,
                 );
             }

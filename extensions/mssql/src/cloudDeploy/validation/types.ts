@@ -25,9 +25,8 @@ import type {
     ValidationType,
     WorkloadPlaybackSettings,
 } from "../environments/types";
-import type { CancellationReason, ValidationResult } from "../runs/types";
+import type { CancellationReason, ValidationResult, WorkloadObservedStep } from "../runs/types";
 import type { ConnectionHandle } from "./providers/connectionProvider";
-
 // =============================================================================
 // Per-type settings narrowing
 // =============================================================================
@@ -121,6 +120,15 @@ export interface ValidatorRunOptions {
      * own.
      */
     readonly ephemeralConnection?: ConnectionHandle;
+    /**
+     * Per-step metrics from the run-based performance baseline (Scope 2,
+     * decision M9): the measured steps of the most-recent earlier run of this
+     * environment whose schema differed. The workload validator compares its
+     * fresh measurements against these to flag regressions. `undefined` when
+     * there is no prior run to baseline against (e.g. the first run), in which
+     * case the validator records its measurements without flagging a regression.
+     */
+    readonly workloadBaseline?: readonly WorkloadObservedStep[];
 }
 
 // =============================================================================

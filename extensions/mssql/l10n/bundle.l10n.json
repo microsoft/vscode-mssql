@@ -4114,6 +4114,8 @@
         "comment": ["{0} is the user-facing environment name"]
     },
     "Show output": "Show output",
+    "The schema changed since the last validation of this environment.": "The schema changed since the last validation of this environment.",
+    "View diff": "View diff",
     "Validation finished but the run artifact could not be saved: {0}/{0} is the underlying I/O error message": {
         "message": "Validation finished but the run artifact could not be saved: {0}",
         "comment": ["{0} is the underlying I/O error message"]

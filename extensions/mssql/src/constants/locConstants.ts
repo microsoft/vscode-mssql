@@ -3988,6 +3988,12 @@ export class CloudDeployValidation {
 
     public static showOutputChannelAction = l10n.t("Show output");
 
+    public static schemaChangedSinceLastRun = l10n.t(
+        "The schema changed since the last validation of this environment.",
+    );
+
+    public static viewSchemaDiffAction = l10n.t("View diff");
+
     public static persistFailed = (message: string): string =>
         l10n.t({
             message: "Validation finished but the run artifact could not be saved: {0}",

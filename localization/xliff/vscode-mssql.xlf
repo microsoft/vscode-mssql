@@ -7320,6 +7320,9 @@
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e02267937a827a1f967e2ea26f584c7a84f6954c9e897c2cc4c0e59b53a2a0d5">
+      <source xml:lang="en">The schema changed since the last validation of this environment.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
@@ -7797,6 +7800,9 @@
     </trans-unit>
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e5d6873018e6c694649856f665d50b005c1f80868336f34246baf8237717092">
+      <source xml:lang="en">View diff</source>
     </trans-unit>
     <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
       <source xml:lang="en">View known issues</source>

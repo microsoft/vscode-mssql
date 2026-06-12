@@ -228,6 +228,18 @@ const WorkloadPlaybackPayloadSchema = z
                 regressions: z.number().int().nonnegative(),
             })
             .passthrough(),
+        observedSteps: z
+            .array(
+                z
+                    .object({
+                        id: z.string().min(1),
+                        latencyMs: z.number().optional(),
+                        throughputQps: z.number().optional(),
+                        errorRate: z.number().optional(),
+                    })
+                    .passthrough(),
+            )
+            .optional(),
     })
     .passthrough();
 

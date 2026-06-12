@@ -67,9 +67,6 @@ export function createDefaultRegistry(providers: RegistryProviders): ValidatorRe
             providers.staticAnalysis ?? {},
         ),
         [ValidationType.UnitTests]: new UnitTestsValidator(),
-        [ValidationType.WorkloadPlayback]: new WorkloadPlaybackValidator(
-            providers.artifact,
-            providers.process,
-        ),
+        [ValidationType.WorkloadPlayback]: new WorkloadPlaybackValidator(providers.artifact),
     });
 }

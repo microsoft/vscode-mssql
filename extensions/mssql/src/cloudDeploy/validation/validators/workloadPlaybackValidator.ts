@@ -6,42 +6,38 @@
 /**
  * Cloud Deploy — `WorkloadPlaybackValidator`.
  *
- * Loads a captured workload via the injected `ArtifactProvider`, replays it
- * via the injected `ProcessProvider`, parses observed per-step metrics from
- * the replay tool's stdout, then compares them to a baseline (also loaded
- * via `ArtifactProvider`) and emits one finding per significant regression.
+ * Loads a workload spec via the injected `ArtifactProvider`, then measures
+ * each step IN-PROCESS by timing its query against the per-run ephemeral
+ * database the runner provisioned (Scope 2, decision D-C). Each step is run
+ * a few times and the median latency is recorded. The fresh measurements are
+ * compared to a RUN-BASED baseline (decision M9): the measured steps of the
+ * most-recent earlier run of this environment whose schema differed, injected
+ * by the runner via `opts.workloadBaseline`. One finding is emitted per step
+ * whose latency regressed beyond its threshold.
  *
- * The shape of both the workload artifact and the baseline artifact is a
- * permissive JSON object with a `steps` array; per step we read the metric
- * fields the comparator needs and ignore the rest. Forward-compat is
- * deliberately built into the parser so future capture formats (Query Store
- * extracts, Distributed Replay capture files) only need to project into the
- * `WorkloadStep` shape — the validator itself does not need to understand
- * the source-of-truth.
+ * The workload spec is a permissive JSON object `{ steps: [{ id, query,
+ * iterations? }] }`; steps missing an `id` or `query` are dropped so a partial
+ * spec measures what it can rather than failing the run.
  *
- * Source-of-truth gating mirrors `UnitTestsValidator`: replay needs a live
- * target, so non-`Container` envs are `Skipped` with a directing finding. A
- * missing `workloadUri` or `baselineUri` in `WorkloadPlaybackSettings` is
- * also `Skipped` (with config-pointing findings) — the env was declared
- * intent-wise but isn't yet wired up.
+ * A performance regression is surfaced as a `Warning`, NOT a `Failed`: perf
+ * cost is a judgment call — a dev may knowingly add an expensive feature — so
+ * the validator reports the delta without blocking the run.
  *
  * Outcome mapping:
- *   * Source-of-truth not Container → `Skipped` with a config finding.
- *   * `workloadUri` or `baselineUri` missing in settings → `Skipped` with
- *     a config finding naming the missing field.
- *   * Workload or baseline artifact missing on disk
- *     (`ArtifactNotFoundError`) → `Skipped` with a finding directing the
- *     user to populate the artifact.
- *   * Replay tool exits non-zero → `Failed` with a synthesized regression
- *     finding carrying a stderr excerpt.
- *   * Replay tool exits zero → parse stdout JSON, compare to baseline,
- *     emit one regression finding per matched step that exceeded its
- *     threshold. Status is `Passed` if zero regressions, `Failed`
- *     otherwise.
- *   * `CancellationError` (entry / artifact-read / spawn / post-spawn) →
- *     re-thrown so the runner reconciles `"user"` vs `"timeout"`.
- *   * Spawn-time `Error` (binary not found, OS refused) → re-thrown so the
- *     runner classifies as `Errored`.
+ *   * No ephemeral connection (no runtime validator provisioned one) →
+ *     `Skipped` with a config finding.
+ *   * `workloadUri` missing in settings → `Skipped` with a config finding.
+ *   * Workload spec missing on disk (`ArtifactNotFoundError`) → `Skipped`.
+ *   * Spec declares no measurable steps → `Skipped`.
+ *   * No run-based baseline (first run, or no comparable predecessor) →
+ *     `Passed`, recording the fresh measurements for the next run to baseline.
+ *   * Baseline present, no step regressed → `Passed`.
+ *   * Baseline present, one or more steps regressed → `Warning` with one
+ *     finding per regressed step.
+ *   * A workload query throws while being measured → `Errored`.
+ *   * `CancellationError` (entry / artifact-read / measurement) → re-thrown
+ *     so the runner reconciles `"user"` vs `"timeout"`.
+ *   * Malformed spec JSON → re-thrown so the runner classifies as `Errored`.
  *
  * Threshold defaults are deliberately conservative (25 % latency / 25 %
  * throughput / 5pp error-rate) so first-time users see the validator behave
@@ -49,15 +45,16 @@
  * threshold individually.
  */
 
-import { type Environment, SourceOfTruthKind, ValidationType } from "../../environments/types";
+import { type Environment, ValidationType } from "../../environments/types";
 import {
     type ValidationResult,
     ValidationStatus,
+    type WorkloadObservedStep,
     type WorkloadPlaybackPayload,
     type WorkloadRegressionFinding,
 } from "../../runs/types";
 import { ArtifactNotFoundError, type ArtifactProvider } from "../providers/artifactProvider";
-import { type ProcessProvider, type ProcessResult } from "../providers/processProvider";
+import { type ConnectionHandle } from "../providers/connectionProvider";
 import {
     CancellationError,
     type SettingsFor,
@@ -72,10 +69,6 @@ import {
 
 const DISPLAY_NAME = "Workload Playback";
 
-/** Replay tool command name when settings don't override. The service layer
- * may resolve an absolute path before commit 6 wires production. */
-const DEFAULT_REPLAY_COMMAND = "sql-workload-replay";
-
 /** Latency regression flagged when observed exceeds baseline by this fraction. */
 const DEFAULT_LATENCY_THRESHOLD = 0.25;
 /** Throughput regression flagged when observed drops below baseline by this fraction. */
@@ -83,18 +76,13 @@ const DEFAULT_THROUGHPUT_THRESHOLD = 0.25;
 /** Error-rate regression flagged when (observed − baseline) exceeds this absolute delta. */
 const DEFAULT_ERROR_RATE_THRESHOLD = 0.05;
 
-/** Bytes of stderr surfaced in a synthesized regression finding when the
- * replay tool exits non-zero with no parseable observations. */
-const STDERR_EXCERPT_BYTES = 1024;
-
-const SKIPPED_NEEDS_CONTAINER_MESSAGE =
-    "Workload playback requires a Container source of truth (a live target to replay against).";
+const SKIPPED_NEEDS_DATABASE_MESSAGE =
+    "Workload playback needs a provisioned validation database; none was available for this run.";
 const SKIPPED_MISSING_WORKLOAD_URI_MESSAGE =
     "WorkloadPlaybackSettings.workloadUri is not configured.";
-const SKIPPED_MISSING_BASELINE_URI_MESSAGE =
-    "WorkloadPlaybackSettings.baselineUri is not configured.";
+const SKIPPED_EMPTY_SPEC_MESSAGE = "The workload spec declares no measurable steps.";
 
-const SYNTHETIC_STEP_ID_REPLAY_FAILED = "__replay_failed__";
+const SYNTHETIC_STEP_ID_MEASUREMENT_FAILED = "__measurement_failed__";
 const SYNTHETIC_STEP_ID_NOT_CONFIGURED = "__not_configured__";
 const SYNTHETIC_STEP_ID_ARTIFACT_MISSING = "__artifact_missing__";
 
@@ -134,23 +122,24 @@ interface ResolvedThresholds {
 export class WorkloadPlaybackValidator implements Validator<ValidationType.WorkloadPlayback> {
     public readonly type = ValidationType.WorkloadPlayback;
 
-    public constructor(
-        private readonly _artifacts: ArtifactProvider,
-        private readonly _processes: ProcessProvider,
-    ) {}
+    public constructor(private readonly _artifacts: ArtifactProvider) {}
 
     public async run(
-        env: Environment,
+        _env: Environment,
         config: SettingsFor<ValidationType.WorkloadPlayback>,
         opts: ValidatorRunOptions,
     ): Promise<ValidationResult> {
         const startedAtMs = Date.now();
         throwIfCancelled(opts.signal);
 
-        if (env.sourceOfTruth.kind !== SourceOfTruthKind.Container) {
+        // Scope 2 (decision D-C): workload runs against the per-run ephemeral
+        // database the runner provisioned + seeded. No live connection means
+        // there is nothing to measure.
+        const connection = opts.ephemeralConnection;
+        if (connection === undefined) {
             return buildSkippedResult(
                 SYNTHETIC_STEP_ID_NOT_CONFIGURED,
-                SKIPPED_NEEDS_CONTAINER_MESSAGE,
+                SKIPPED_NEEDS_DATABASE_MESSAGE,
                 startedAtMs,
             );
         }
@@ -164,58 +153,41 @@ export class WorkloadPlaybackValidator implements Validator<ValidationType.Workl
             );
         }
 
-        const baselineUri = config.baselineUri;
-        if (baselineUri === undefined || baselineUri.length === 0) {
+        // The workload spec lists the steps to measure: each names a SQL query
+        // (or proc call) plus how many times to run it.
+        let specBuf: Buffer;
+        try {
+            specBuf = await this._artifacts.read(workloadUri);
+        } catch (err) {
+            if (err instanceof ArtifactNotFoundError) {
+                return buildSkippedResult(
+                    SYNTHETIC_STEP_ID_ARTIFACT_MISSING,
+                    `Workload spec not found at ${err.uri}.`,
+                    startedAtMs,
+                );
+            }
+            throw err;
+        }
+        throwIfCancelled(opts.signal);
+
+        const spec = parseWorkloadSpec(specBuf);
+        if (spec.length === 0) {
             return buildSkippedResult(
                 SYNTHETIC_STEP_ID_NOT_CONFIGURED,
-                SKIPPED_MISSING_BASELINE_URI_MESSAGE,
+                SKIPPED_EMPTY_SPEC_MESSAGE,
                 startedAtMs,
             );
         }
 
-        let workloadBuf: Buffer;
-        let baselineBuf: Buffer;
+        // Measure each step in-process by timing the query against the ephemeral
+        // connection (median of N iterations to shrug off noise).
+        const observed: WorkloadStep[] = [];
         try {
-            workloadBuf = await this._artifacts.read(workloadUri);
-        } catch (err) {
-            if (err instanceof ArtifactNotFoundError) {
-                return buildSkippedResult(
-                    SYNTHETIC_STEP_ID_ARTIFACT_MISSING,
-                    `Captured workload artifact not found at ${err.uri}.`,
-                    startedAtMs,
-                );
+            for (const step of spec) {
+                throwIfCancelled(opts.signal);
+                const latencyMs = await measureStep(connection, step, opts.signal);
+                observed.push({ id: step.id, latencyMs });
             }
-            throw err;
-        }
-        throwIfCancelled(opts.signal);
-
-        try {
-            baselineBuf = await this._artifacts.read(baselineUri);
-        } catch (err) {
-            if (err instanceof ArtifactNotFoundError) {
-                return buildSkippedResult(
-                    SYNTHETIC_STEP_ID_ARTIFACT_MISSING,
-                    `Baseline artifact not found at ${err.uri}.`,
-                    startedAtMs,
-                );
-            }
-            throw err;
-        }
-        throwIfCancelled(opts.signal);
-
-        // Parse the baseline now so a malformed baseline file fails the run
-        // before we burn time on a replay we can't interpret. Workload bytes
-        // are forwarded to the replay tool verbatim via stdin so we don't
-        // parse them here.
-        const baselineSteps = parseSteps(baselineBuf, "baseline");
-        const command = config.replayCommand ?? DEFAULT_REPLAY_COMMAND;
-
-        let result: ProcessResult;
-        try {
-            result = await this._processes.spawn(command, [], {
-                signal: opts.signal,
-                stdin: workloadBuf.toString("utf-8"),
-            });
         } catch (err) {
             if (err instanceof CancellationError) {
                 throw err;
@@ -223,56 +195,84 @@ export class WorkloadPlaybackValidator implements Validator<ValidationType.Workl
             if (opts.signal.aborted) {
                 throw new CancellationError("user");
             }
-            throw err;
-        }
-        throwIfCancelled(opts.signal);
-
-        if (result.aborted) {
-            throw new CancellationError("user");
+            // A query that errors is a measurement failure, surfaced as Errored.
+            return buildMeasurementErroredResult(err, startedAtMs);
         }
 
-        if (result.exitCode !== 0) {
-            return buildFailedReplayResult(result, startedAtMs);
+        const observedSteps = toObservedSteps(observed);
+
+        // Run-based baseline (decision M9): compare against the prior run's
+        // measured steps. With no baseline (first run) we record the
+        // measurements but flag no regression.
+        const baseline = opts.workloadBaseline;
+        if (baseline === undefined || baseline.length === 0) {
+            return buildFirstRunResult(observedSteps, startedAtMs);
         }
 
-        const observedSteps = parseSteps(Buffer.from(result.stdout, "utf-8"), "replay output");
         const thresholds = resolveThresholds(config);
-        const findings = compareSteps(baselineSteps, observedSteps, thresholds);
-
-        return buildComparisonResult(findings, baselineSteps.length, startedAtMs);
+        const findings = compareSteps(toWorkloadSteps(baseline), observed, thresholds);
+        return buildComparisonResult(findings, observedSteps, startedAtMs);
     }
 }
 
 // =============================================================================
-// Parsing
+// Measurement
 // =============================================================================
 
+/** A workload spec step: a SQL statement to time, and how many iterations. */
+interface WorkloadSpecStep {
+    readonly id: string;
+    readonly query: string;
+    readonly iterations: number;
+}
+
 /**
- * Decodes a `{ steps: [...] }` JSON document into our internal `WorkloadStep`
- * shape. Unknown step fields are dropped; missing metric fields are left
- * `undefined` so the comparator skips them rather than synthesizing zero.
- *
- * Throws a plain `Error` on JSON-parse failure or top-level shape mismatch
- * (validators bubble these as `Errored` via the runner).
+ * Times `step.query` against `connection` `iterations` times and returns the
+ * median elapsed milliseconds. The median (not mean) shrugs off the occasional
+ * slow outlier (GC pause, cache miss) so the figure is stable run-to-run.
  */
-function parseSteps(buf: Buffer, label: string): readonly WorkloadStep[] {
+async function measureStep(
+    connection: ConnectionHandle,
+    step: WorkloadSpecStep,
+    signal: AbortSignal,
+): Promise<number> {
+    const samples: number[] = [];
+    for (let i = 0; i < step.iterations; i++) {
+        throwIfCancelled(signal);
+        const started = Date.now();
+        await connection.execute(step.query, signal);
+        samples.push(Date.now() - started);
+    }
+    samples.sort((a, b) => a - b);
+    const mid = Math.floor(samples.length / 2);
+    return samples.length % 2 === 0 ? (samples[mid - 1] + samples[mid]) / 2 : samples[mid];
+}
+
+/** Default iterations per step when the spec omits a count. */
+const DEFAULT_STEP_ITERATIONS = 5;
+
+/**
+ * Parses a workload spec document: `{ steps: [{ id, query, iterations? }] }`.
+ * Steps missing an `id` or `query` are dropped (a partial spec measures what it
+ * can rather than failing the run). Throws only on JSON-parse / shape errors.
+ */
+function parseWorkloadSpec(buf: Buffer): readonly WorkloadSpecStep[] {
     let parsed: unknown;
     try {
         parsed = JSON.parse(buf.toString("utf-8"));
     } catch (err) {
         throw new Error(
-            `Failed to parse ${label} JSON: ${err instanceof Error ? err.message : String(err)}`,
+            `Failed to parse workload spec JSON: ${err instanceof Error ? err.message : String(err)}`,
         );
     }
     if (
         typeof parsed !== "object" ||
         parsed === null ||
-        !("steps" in parsed) ||
-        !Array.isArray((parsed as { steps: unknown }).steps)
+        !Array.isArray((parsed as { steps?: unknown }).steps)
     ) {
-        throw new Error(`${label} document is missing the required "steps" array.`);
+        throw new Error(`Workload spec is missing the required "steps" array.`);
     }
-    const out: WorkloadStep[] = [];
+    const out: WorkloadSpecStep[] = [];
     for (const raw of (parsed as { steps: unknown[] }).steps) {
         if (typeof raw !== "object" || raw === null) {
             continue;
@@ -281,19 +281,38 @@ function parseSteps(buf: Buffer, label: string): readonly WorkloadStep[] {
         if (typeof obj.id !== "string" || obj.id.length === 0) {
             continue;
         }
-        out.push({
-            id: obj.id,
-            latencyMs: numberOrUndefined(obj.latencyMs),
-            throughputQps: numberOrUndefined(obj.throughputQps),
-            errorRate: numberOrUndefined(obj.errorRate),
-            planHash: typeof obj.planHash === "string" ? obj.planHash : undefined,
-        });
+        if (typeof obj.query !== "string" || obj.query.length === 0) {
+            continue;
+        }
+        const iterations =
+            typeof obj.iterations === "number" &&
+            Number.isFinite(obj.iterations) &&
+            obj.iterations > 0
+                ? Math.floor(obj.iterations)
+                : DEFAULT_STEP_ITERATIONS;
+        out.push({ id: obj.id, query: obj.query, iterations });
     }
     return out;
 }
 
-function numberOrUndefined(v: unknown): number | undefined {
-    return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+/** Projects measured internal steps to the persisted `WorkloadObservedStep` shape. */
+function toObservedSteps(steps: readonly WorkloadStep[]): WorkloadObservedStep[] {
+    return steps.map((s) => ({
+        id: s.id,
+        ...(s.latencyMs !== undefined ? { latencyMs: s.latencyMs } : {}),
+        ...(s.throughputQps !== undefined ? { throughputQps: s.throughputQps } : {}),
+        ...(s.errorRate !== undefined ? { errorRate: s.errorRate } : {}),
+    }));
+}
+
+/** Lifts persisted baseline steps back into the internal comparison shape. */
+function toWorkloadSteps(steps: readonly WorkloadObservedStep[]): WorkloadStep[] {
+    return steps.map((s) => ({
+        id: s.id,
+        latencyMs: s.latencyMs,
+        throughputQps: s.throughputQps,
+        errorRate: s.errorRate,
+    }));
 }
 
 // =============================================================================
@@ -450,36 +469,63 @@ function formatPercent(ratio: number): string {
 
 function buildComparisonResult(
     findings: readonly WorkloadRegressionFinding[],
-    baselineStepCount: number,
+    observedSteps: readonly WorkloadObservedStep[],
     startedAtMs: number,
 ): ValidationResult {
     const payload: WorkloadPlaybackPayload = {
         validationType: ValidationType.WorkloadPlayback,
         findings,
         summary: {
-            steps: baselineStepCount,
+            steps: observedSteps.length,
             regressions: findings.length,
         },
+        observedSteps,
     };
+    // Decision D-? (Scope 2): a performance regression is a *signal*, not a
+    // hard failure. Perf cost is a judgment call — a dev may knowingly add an
+    // expensive feature — so we surface the delta as a Warning rather than
+    // blocking the run with a Failed.
     return {
         validationId: ValidationType.WorkloadPlayback,
         displayName: DISPLAY_NAME,
-        status: findings.length === 0 ? ValidationStatus.Passed : ValidationStatus.Failed,
+        status: findings.length === 0 ? ValidationStatus.Passed : ValidationStatus.Warning,
         startedAtMs,
         endedAtMs: Date.now(),
         payload,
     };
 }
 
-function buildFailedReplayResult(result: ProcessResult, startedAtMs: number): ValidationResult {
-    const excerpt = (result.stderr || result.stdout).slice(0, STDERR_EXCERPT_BYTES).trim();
-    const message =
-        excerpt.length > 0
-            ? `Replay tool exited with code ${result.exitCode}: ${excerpt}`
-            : `Replay tool exited with code ${result.exitCode} (no diagnostics on stderr).`;
+/**
+ * First run for an environment (or first run after a schema change with no
+ * comparable predecessor): there is no baseline, so we record the freshly
+ * measured steps as Passed. The next run uses these as its baseline.
+ */
+function buildFirstRunResult(
+    observedSteps: readonly WorkloadObservedStep[],
+    startedAtMs: number,
+): ValidationResult {
+    const payload: WorkloadPlaybackPayload = {
+        validationType: ValidationType.WorkloadPlayback,
+        findings: [],
+        summary: { steps: observedSteps.length, regressions: 0 },
+        observedSteps,
+    };
+    return {
+        validationId: ValidationType.WorkloadPlayback,
+        displayName: DISPLAY_NAME,
+        status: ValidationStatus.Passed,
+        startedAtMs,
+        endedAtMs: Date.now(),
+        payload,
+    };
+}
+
+/** A workload query that threw while being measured fails the validator. */
+function buildMeasurementErroredResult(err: unknown, startedAtMs: number): ValidationResult {
+    const message = `Workload measurement failed: ${err instanceof Error ? err.message : String(err)}`;
     const finding: WorkloadRegressionFinding = {
         kind: "workload-playback",
-        stepId: SYNTHETIC_STEP_ID_REPLAY_FAILED,
+        stepId: SYNTHETIC_STEP_ID_MEASUREMENT_FAILED,
         regression: "error-rate",
         delta: 0,
         message,
@@ -492,7 +538,7 @@ function buildFailedReplayResult(result: ProcessResult, startedAtMs: number): Va
     return {
         validationId: ValidationType.WorkloadPlayback,
         displayName: DISPLAY_NAME,
-        status: ValidationStatus.Failed,
+        status: ValidationStatus.Errored,
         startedAtMs,
         endedAtMs: Date.now(),
         payload,
