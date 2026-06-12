@@ -263,21 +263,8 @@ export function useFluentResultGridController({
         [resultSetSummary.columnInfo],
     );
     const resultIdentitySignature = useMemo(
-        () =>
-            [
-                gridId,
-                resultSetSummary.batchId,
-                resultSetSummary.id,
-                resultSetSummary.rowCount,
-                columnSignature,
-            ].join("|"),
-        [
-            columnSignature,
-            gridId,
-            resultSetSummary.batchId,
-            resultSetSummary.id,
-            resultSetSummary.rowCount,
-        ],
+        () => [gridId, resultSetSummary.batchId, resultSetSummary.id, columnSignature].join("|"),
+        [columnSignature, gridId, resultSetSummary.batchId, resultSetSummary.id],
     );
     const previousResultIdentitySignatureRef = useRef<string | undefined>(undefined);
     const dataSourceRef = useRef(dataSource);
@@ -1715,7 +1702,7 @@ export function useFluentResultGridController({
             const currentRowCount = latestRowCountRef.current;
             const sampleRows =
                 includeData && currentRowCount > 0
-                    ? await fetchRows(
+                    ? await dataView.getRangeAsync(
                           0,
                           Math.min(FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS, currentRowCount),
                       )
@@ -1750,7 +1737,7 @@ export function useFluentResultGridController({
                     ? sampleRows.reduce((maxWidth, row) => {
                           const columnDataIndex = Number(column.field);
                           const value = Number.isInteger(columnDataIndex)
-                              ? row[columnDataIndex]
+                              ? row[columnDataIndex.toString()]
                               : undefined;
                           const text = getFluentResultGridAutoSizeCellText(value);
                           return Math.max(
@@ -1781,7 +1768,7 @@ export function useFluentResultGridController({
             grid.invalidate();
             grid.render();
         },
-        [autoSizeColumnsMode, containerRef, fetchRows],
+        [autoSizeColumnsMode, containerRef, dataView],
     );
 
     const scheduleAutoSizeColumns = useCallback(() => {

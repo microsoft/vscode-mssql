@@ -95,12 +95,9 @@ export function getFluentResultGridColumnName(columnInfo: IDbColumn): string {
 export function getFluentResultGridColumnFormatter(
     columnInfo: IDbColumn,
 ): Formatter<FluentResultGridDataRow> {
-    if (columnInfo.isXml || columnInfo.isJson) {
-        return ((_row, _cell, value) =>
-            getHyperlinkCellHtml(value)) as Formatter<FluentResultGridDataRow>;
-    }
+    let shouldRenderAsHyperlink = columnInfo.isXml || columnInfo.isJson;
 
-    if (columnInfo.isVector) {
+    if (columnInfo.isVector && !shouldRenderAsHyperlink) {
         return ((_row, _cell, value) =>
             getTextCellHtml(
                 value,
@@ -114,7 +111,7 @@ export function getFluentResultGridColumnFormatter(
     const maxDistinctRows = 20;
 
     return ((row, _cell, value) => {
-        if (columnInfo.isXml || columnInfo.isJson) {
+        if (shouldRenderAsHyperlink) {
             return getHyperlinkCellHtml(value);
         }
 
@@ -136,13 +133,8 @@ export function getFluentResultGridColumnFormatter(
 
         sampledRows.add(row);
 
-        if (isXmlCell(displayValue)) {
-            columnInfo.isXml = true;
-            return getHyperlinkCellHtml(value);
-        }
-
-        if (isJson(displayValue)) {
-            columnInfo.isJson = true;
+        if (isXmlCell(displayValue) || isJson(displayValue)) {
+            shouldRenderAsHyperlink = true;
             return getHyperlinkCellHtml(value);
         }
 

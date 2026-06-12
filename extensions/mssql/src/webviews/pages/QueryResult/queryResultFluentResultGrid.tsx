@@ -16,6 +16,7 @@ import {
     type FluentResultGridStrings,
     type FluentResultGridTheme,
 } from "../../common/FluentResultGrid";
+import "../../common/FluentResultGrid/FluentResultGrid.vscode.css";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {

@@ -13,51 +13,40 @@
     font-size: inherit;
     position: relative;
 
-    --fluent-result-grid-list-focus-background: var(--vscode-list-focusBackground, #094771);
-    --fluent-result-grid-list-focus-foreground: var(--vscode-list-focusForeground, #ffffff);
-    --fluent-result-grid-list-active-selection-background: var(
-        --vscode-list-activeSelectionBackground,
-        #094771
-    );
-    --fluent-result-grid-list-active-selection-foreground: var(
-        --vscode-list-activeSelectionForeground,
-        #ffffff
-    );
+    --fluent-result-grid-background: #1e1e1e;
+    --fluent-result-grid-foreground: #cccccc;
+    --fluent-result-grid-description-foreground: var(--fluent-result-grid-foreground);
+    --fluent-result-grid-border-color: #454545;
+    --fluent-result-grid-link-foreground: #3794ff;
+    --fluent-result-grid-link-active-foreground: var(--fluent-result-grid-link-foreground);
+    --fluent-result-grid-scrollbar-track-background: var(--fluent-result-grid-background);
+    --fluent-result-grid-scrollbar-thumb-background: rgba(121, 121, 121, 0.4);
+    --fluent-result-grid-scrollbar-thumb-hover-background: rgba(100, 100, 100, 0.7);
+    --fluent-result-grid-scrollbar-thumb-active-background: rgba(191, 191, 191, 0.4);
+    --fluent-result-grid-empty-state-background: var(--fluent-result-grid-background);
+    --fluent-result-grid-empty-state-foreground: var(--fluent-result-grid-description-foreground);
+    --fluent-result-grid-list-focus-background: #094771;
+    --fluent-result-grid-list-focus-foreground: #ffffff;
+    --fluent-result-grid-list-active-selection-background: #094771;
+    --fluent-result-grid-list-active-selection-foreground: #ffffff;
     --fluent-result-grid-list-inactive-selection-background: var(
-        --vscode-list-inactiveSelectionBackground,
-        var(--vscode-list-activeSelectionBackground, #094771)
+        --fluent-result-grid-list-active-selection-background
     );
-    --fluent-result-grid-list-inactive-selection-foreground: var(
-        --vscode-list-inactiveSelectionForeground,
-        var(--vscode-foreground, #cccccc)
-    );
-    --fluent-result-grid-list-hover-background: var(--vscode-list-hoverBackground, #2a2d2e);
-    --fluent-result-grid-list-hover-foreground: var(
-        --vscode-list-hoverForeground,
-        var(--vscode-foreground, #cccccc)
-    );
-    --fluent-result-grid-list-focus-outline: var(--vscode-contrastActiveBorder, #007fd4);
-    --fluent-result-grid-list-selection-outline: var(--vscode-contrastActiveBorder, #007fd4);
-    --fluent-result-grid-list-hover-outline: var(--vscode-contrastActiveBorder, transparent);
-    --fluent-result-grid-list-inactive-focus-outline: var(
-        --vscode-list-inactiveFocusOutline,
-        #999999
-    );
-    --fluent-result-grid-table-header-background: var(
-        --vscode-mssql-resultsGridHeaderBackground,
-        var(--vscode-editorWidget-background, var(--vscode-editor-background, #3c3c3c))
-    );
-    --fluent-result-grid-table-header-foreground: var(--vscode-editor-foreground, #cccccc);
-    --fluent-result-grid-null-cell-background: var(
-        --vscode-mssql-resultsGridNullBackground,
-        transparent
-    );
-    --fluent-result-grid-null-cell-foreground: var(
-        --vscode-mssql-resultsGridNullForeground,
-        var(--vscode-foreground, #cccccc)
-    );
-    --fluent-result-grid-row-even-background: var(--vscode-editor-background, #1e1e1e);
-    --fluent-result-grid-row-odd-background: var(--vscode-editor-background, #1e1e1e);
+    --fluent-result-grid-list-inactive-selection-foreground: var(--fluent-result-grid-foreground);
+    --fluent-result-grid-list-hover-background: #2a2d2e;
+    --fluent-result-grid-list-hover-foreground: var(--fluent-result-grid-foreground);
+    --fluent-result-grid-list-focus-outline: #007fd4;
+    --fluent-result-grid-list-selection-outline: #007fd4;
+    --fluent-result-grid-list-hover-outline: transparent;
+    --fluent-result-grid-list-inactive-focus-outline: #999999;
+    --fluent-result-grid-table-header-background: #3c3c3c;
+    --fluent-result-grid-table-header-foreground: var(--fluent-result-grid-foreground);
+    --fluent-result-grid-table-header-hover-background: #2a2d2e;
+    --fluent-result-grid-table-header-active-background: #094771;
+    --fluent-result-grid-null-cell-background: transparent;
+    --fluent-result-grid-null-cell-foreground: var(--fluent-result-grid-foreground);
+    --fluent-result-grid-row-even-background: var(--fluent-result-grid-background);
+    --fluent-result-grid-row-odd-background: var(--fluent-result-grid-background);
 
     --slick-header-background-color: var(--fluent-result-grid-table-header-background);
     --slick-grid-header-background: var(--fluent-result-grid-table-header-background);
@@ -65,36 +54,35 @@
     --slick-font-size-base: 1em;
     --slick-header-font-size: 1em;
     --slick-header-font-weight: normal;
-    --slick-header-column-background-hover: var(--vscode-list-hoverBackground, #2a2d2e);
-    --slick-header-column-background-active: var(--vscode-list-activeSelectionBackground, #094771);
-    --slick-header-row-border-color: var(--vscode-panel-border, #454545);
+    --slick-header-column-background-hover: var(--fluent-result-grid-table-header-hover-background);
+    --slick-header-column-background-active: var(
+        --fluent-result-grid-table-header-active-background
+    );
+    --slick-header-row-border-color: var(--fluent-result-grid-border-color);
     --slick-cell-even-background-color: var(--fluent-result-grid-row-even-background);
     --slick-cell-odd-background-color: var(--fluent-result-grid-row-odd-background);
-    --slick-cell-text-color: var(--vscode-foreground, #cccccc);
-    --slick-canvas-bg-color: var(--vscode-editor-background, #1e1e1e);
-    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground, #2a2d2e);
-    --slick-row-selected-color: var(--vscode-list-activeSelectionBackground, #094771);
-    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground, #094771);
-    --slick-border-color: var(--vscode-editorWidget-border, #454545);
-    --slick-grid-border-color: var(--vscode-editorWidget-border, #454545);
-    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border, #454545);
-    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border, #454545);
-    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
+    --slick-cell-text-color: var(--fluent-result-grid-foreground);
+    --slick-canvas-bg-color: var(--fluent-result-grid-background);
+    --slick-row-mouse-hover-color: var(--fluent-result-grid-list-hover-background);
+    --slick-row-selected-color: var(--fluent-result-grid-list-active-selection-background);
+    --slick-cell-selected-color: var(--fluent-result-grid-list-active-selection-background);
+    --slick-border-color: var(--fluent-result-grid-border-color);
+    --slick-grid-border-color: var(--fluent-result-grid-border-color);
+    --slick-cell-border-right: 1px solid var(--fluent-result-grid-border-color);
+    --slick-cell-border-top: 1px solid var(--fluent-result-grid-border-color);
+    --slick-cell-border-bottom: 1px solid var(--fluent-result-grid-border-color);
     --slick-cell-border-left: 0;
     --slick-cell-box-shadow: none;
-    --slick-container-border-top: 1px solid var(--vscode-editorWidget-border, #454545);
-    --slick-container-border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
+    --slick-container-border-top: 1px solid var(--fluent-result-grid-border-color);
+    --slick-container-border-bottom: 1px solid var(--fluent-result-grid-border-color);
     --slick-pane-top-border-top: none;
-    --slick-scrollbar-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4))
-        var(--vscode-editor-background, #1e1e1e);
+    --slick-scrollbar-color: var(--fluent-result-grid-scrollbar-thumb-background)
+        var(--fluent-result-grid-scrollbar-track-background);
 }
 
 .results-grid--alternating .fluent-result-grid,
 .fluent-result-grid.results-grid--alternating {
-    --fluent-result-grid-row-even-background: var(
-        --vscode-list-alternatingBackground,
-        rgba(128, 128, 128, 0.05)
-    );
+    --fluent-result-grid-row-even-background: rgba(128, 128, 128, 0.05);
 }
 
 .fluent-result-grid-body {
@@ -143,30 +131,30 @@
 .fluent-result-grid .slick-viewport::-webkit-scrollbar {
     width: 14px;
     height: 14px;
-    background-color: var(--vscode-editor-background, #1e1e1e);
+    background-color: var(--fluent-result-grid-scrollbar-track-background);
 }
 
 .fluent-result-grid .slick-viewport::-webkit-scrollbar-track {
-    background-color: var(--vscode-editor-background, #1e1e1e);
+    background-color: var(--fluent-result-grid-scrollbar-track-background);
 }
 
 .fluent-result-grid .slick-viewport::-webkit-scrollbar-thumb {
-    background-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4));
-    border: 3px solid var(--vscode-editor-background, #1e1e1e);
+    background-color: var(--fluent-result-grid-scrollbar-thumb-background);
+    border: 3px solid var(--fluent-result-grid-scrollbar-track-background);
     border-radius: 7px;
     background-clip: padding-box;
 }
 
 .fluent-result-grid .slick-viewport::-webkit-scrollbar-thumb:hover {
-    background-color: var(--vscode-scrollbarSlider-hoverBackground, rgba(100, 100, 100, 0.7));
+    background-color: var(--fluent-result-grid-scrollbar-thumb-hover-background);
 }
 
 .fluent-result-grid .slick-viewport::-webkit-scrollbar-thumb:active {
-    background-color: var(--vscode-scrollbarSlider-activeBackground, rgba(191, 191, 191, 0.4));
+    background-color: var(--fluent-result-grid-scrollbar-thumb-active-background);
 }
 
 .fluent-result-grid .slick-viewport::-webkit-scrollbar-corner {
-    background-color: var(--vscode-editor-background, #1e1e1e);
+    background-color: var(--fluent-result-grid-scrollbar-track-background);
 }
 
 .fluent-result-grid .slick-header,
@@ -182,9 +170,9 @@
 .fluent-result-grid .slick-header-column.slick-state-default {
     background-color: var(--fluent-result-grid-table-header-background) !important;
     border-left: 0 !important;
-    border-right: 1px solid var(--vscode-panel-border, #454545);
+    border-right: 1px solid var(--fluent-result-grid-border-color);
     border-top: 0 !important;
-    border-bottom: 1px solid var(--vscode-panel-border, #454545);
+    border-bottom: 1px solid var(--fluent-result-grid-border-color);
     box-sizing: border-box !important;
     color: var(--fluent-result-grid-table-header-foreground) !important;
     float: left;
@@ -202,7 +190,7 @@
 
 .fluent-result-grid .slick-header-column:hover,
 .fluent-result-grid .slick-header-column.slick-state-default:hover {
-    background-color: var(--vscode-list-hoverBackground, #2a2d2e);
+    background-color: var(--fluent-result-grid-table-header-hover-background);
 }
 
 .fluent-result-grid .slick-header-column .slick-column-name {
@@ -279,7 +267,7 @@
     align-items: center;
     background-color: inherit;
     box-sizing: border-box;
-    color: var(--vscode-foreground, #cccccc);
+    color: var(--fluent-result-grid-foreground);
     font-family: inherit;
     font-size: inherit;
     padding-top: calc(1px + var(--results-row-padding, 0px));
@@ -316,13 +304,13 @@
 }
 
 .fluent-result-grid .slick-cell a.grid-cell-value-container {
-    color: var(--vscode-textLink-foreground, #3794ff);
+    color: var(--fluent-result-grid-link-foreground);
     cursor: pointer;
     text-decoration: underline;
 }
 
 .fluent-result-grid .slick-cell a.grid-cell-value-container:hover {
-    color: var(--vscode-textLink-activeForeground, #3794ff);
+    color: var(--fluent-result-grid-link-active-foreground);
 }
 
 .fluent-result-grid .slick-cell .grid-cell-value-container.missing-value,
@@ -382,11 +370,11 @@
 
 .results-grid--gridlines-horizontal .fluent-result-grid .slick-cell {
     border-right-color: transparent;
-    border-bottom-color: var(--vscode-panel-border, #454545);
+    border-bottom-color: var(--fluent-result-grid-border-color);
 }
 
 .results-grid--gridlines-vertical .fluent-result-grid .slick-cell {
-    border-right-color: var(--vscode-panel-border, #454545);
+    border-right-color: var(--fluent-result-grid-border-color);
     border-bottom-color: transparent;
 }
 
@@ -396,8 +384,8 @@
 }
 
 .results-grid--gridlines-both .fluent-result-grid .slick-cell {
-    border-right-color: var(--vscode-panel-border, #454545);
-    border-bottom-color: var(--vscode-panel-border, #454545);
+    border-right-color: var(--fluent-result-grid-border-color);
+    border-bottom-color: var(--fluent-result-grid-border-color);
 }
 
 .fluent-result-grid .slick-cell.fluent-result-grid-row-number-cell {
@@ -441,8 +429,8 @@
 
 .fluent-result-grid-empty-state {
     align-items: center;
-    background-color: var(--vscode-editor-background, transparent);
-    color: var(--vscode-descriptionForeground, var(--vscode-foreground, #cccccc));
+    background-color: var(--fluent-result-grid-empty-state-background);
+    color: var(--fluent-result-grid-empty-state-foreground);
     display: flex;
     font-style: italic;
     inset: 24px 0 0 0;

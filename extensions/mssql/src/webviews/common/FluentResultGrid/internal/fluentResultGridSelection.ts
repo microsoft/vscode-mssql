@@ -135,29 +135,27 @@ export function convertDisplayedSelectionRowsToActual(
     getActualRowId: (displayRow: number) => number | undefined,
 ): ISlickRange[] {
     const converted: ISlickRange[] = [];
-
-    for (const range of selection) {
-        const actualRows: number[] = [];
-        for (let row = range.fromRow; row <= range.toRow; row++) {
-            const actualRow = getActualRowId(row);
-            if (actualRow !== undefined) {
-                actualRows.push(actualRow);
-            }
+    const orderedSelection = [...selection].sort((left, right) => {
+        if (left.fromRow !== right.fromRow) {
+            return left.fromRow - right.fromRow;
+        }
+        if (left.fromCell !== right.fromCell) {
+            return left.fromCell - right.fromCell;
+        }
+        if (left.toRow !== right.toRow) {
+            return left.toRow - right.toRow;
         }
 
-        if (actualRows.length === 0) {
-            continue;
-        }
+        return left.toCell - right.toCell;
+    });
 
-        actualRows.sort((left, right) => left - right);
-        let start = actualRows[0];
-        let previous = start;
+    for (const range of orderedSelection) {
+        let start: number | undefined;
+        let previous: number | undefined;
 
-        for (let index = 1; index <= actualRows.length; index++) {
-            const current = actualRows[index];
-            if (current === previous + 1) {
-                previous = current;
-                continue;
+        const flushRange = () => {
+            if (start === undefined || previous === undefined) {
+                return;
             }
 
             converted.push({
@@ -167,9 +165,34 @@ export function convertDisplayedSelectionRowsToActual(
                 toRow: previous,
             });
 
-            start = current;
-            previous = current;
+            start = undefined;
+            previous = undefined;
+        };
+
+        for (let row = range.fromRow; row <= range.toRow; row++) {
+            const actualRow = getActualRowId(row);
+            if (actualRow === undefined) {
+                flushRange();
+                continue;
+            }
+
+            if (start === undefined || previous === undefined) {
+                start = actualRow;
+                previous = actualRow;
+                continue;
+            }
+
+            if (actualRow === previous + 1) {
+                previous = actualRow;
+                continue;
+            }
+
+            flushRange();
+            start = actualRow;
+            previous = actualRow;
         }
+
+        flushRange();
     }
 
     return converted;

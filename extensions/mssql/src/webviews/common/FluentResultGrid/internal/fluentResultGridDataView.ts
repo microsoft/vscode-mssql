@@ -247,6 +247,14 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
         return this.rows?.[index - this.offset] ?? this.createPlaceholderRow(index);
     }
 
+    public getLoadedItem(index: number): T | undefined {
+        if (!this.rows || !this.contains(index)) {
+            return undefined;
+        }
+
+        return this.rows[index - this.offset];
+    }
+
     public positionWindow(offset: number, length: number, totalItems: number): void {
         const totalLength = toNonNegativeInteger(totalItems);
         const nextOffset = clamp(toNonNegativeInteger(offset), 0, totalLength);
@@ -406,6 +414,11 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             return [];
         }
 
+        const loadedRows = this.getLoadedRangeFromCurrentWindows(range.start, range.end);
+        if (loadedRows) {
+            return loadedRows;
+        }
+
         const rows = await Promise.resolve(
             this.loadRows(range.start, range.end - range.start),
         ).catch(() => []);
@@ -442,12 +455,34 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         this.bufferWindowAfter.dispose();
     }
 
+    private getLoadedRangeFromCurrentWindows(start: number, end: number): T[] | undefined {
+        const rows: T[] = [];
+        for (let index = start; index < end; index++) {
+            const row = this.getLoadedDataFromCurrentWindows(index);
+            if (!row) {
+                return undefined;
+            }
+
+            rows.push(row);
+        }
+
+        return rows;
+    }
+
     private getRangeFromCurrentWindows(start: number, end: number): T[] {
         const rows: T[] = [];
         for (let index = start; index < end; index++) {
             rows.push(this.getDataFromCurrentWindows(index));
         }
         return rows;
+    }
+
+    private getLoadedDataFromCurrentWindows(index: number): T | undefined {
+        return (
+            this.bufferWindowBefore.getLoadedItem(index) ??
+            this.bufferWindowAfter.getLoadedItem(index) ??
+            this.window.getLoadedItem(index)
+        );
     }
 
     private getDataFromCurrentWindows(index: number): T {
