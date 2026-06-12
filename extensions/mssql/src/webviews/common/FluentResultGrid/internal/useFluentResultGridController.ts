@@ -98,6 +98,7 @@ const clearSortCommand = "fluent-result-grid-clear-sort";
 const showAllColumnsCommand = "fluent-result-grid-show-all-columns";
 const defaultFrozenColumnIndex = 0;
 const gridMenuButtonSelector = ".slick-grid-menu-button";
+const initialAutoSizeRetryDelaysMs = [50, 100, 250, 500, 1000];
 
 function makeFluentResultGridMenuButtonsUntabbable(containerNode: HTMLElement): void {
     containerNode.querySelectorAll<HTMLElement>(gridMenuButtonSelector).forEach((button) => {
@@ -210,6 +211,7 @@ export function useFluentResultGridController({
     canToggleMaximize,
     isMaximized,
     initialState,
+    initialStateReady = true,
     onCommand,
     onStateChange,
     onSelectionSummaryChange,
@@ -271,8 +273,8 @@ export function useFluentResultGridController({
     dataSourceRef.current = dataSource;
     const rowsDataSource = dataSource.kind === "rows" ? dataSource : undefined;
     const initialStateRestoreSignature = useMemo(
-        () => JSON.stringify(initialState ?? {}),
-        [initialState],
+        () => (initialStateReady ? JSON.stringify(initialState ?? {}) : undefined),
+        [initialState, initialStateReady],
     );
 
     const fetchRowsFromSource = useCallback(
@@ -1683,10 +1685,10 @@ export function useFluentResultGridController({
     handleKeyDownRef.current = handleKeyDown;
 
     const applyAutoSizeColumns = useCallback(
-        async (requestId?: number) => {
+        async (requestId?: number, options?: { useLoadedRowsOnly?: boolean }): Promise<boolean> => {
             const grid = reactGridRef.current?.slickGrid;
             if (!grid || autoSizeColumnsMode === ResultsGridAutoSizeStyle.Off) {
-                return;
+                return true;
             }
 
             const includeHeaders =
@@ -1696,24 +1698,32 @@ export function useFluentResultGridController({
                 autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
                 autoSizeColumnsMode === ResultsGridAutoSizeStyle.DataOnly;
             if (!includeHeaders && !includeData) {
-                return;
+                return true;
             }
 
             const currentRowCount = latestRowCountRef.current;
-            const sampleRows =
-                includeData && currentRowCount > 0
-                    ? await dataView.getRangeAsync(
-                          0,
-                          Math.min(FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS, currentRowCount),
-                      )
-                    : [];
+            let sampleRows: FluentResultGridDataRow[] = [];
+            if (includeData && currentRowCount > 0) {
+                const sampleRowCount = Math.min(
+                    FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS,
+                    currentRowCount,
+                );
+                sampleRows = options?.useLoadedRowsOnly
+                    ? dataView.getLoadedRange(0, sampleRowCount)
+                    : await dataView.getRangeAsync(0, sampleRowCount);
+
+                if (options?.useLoadedRowsOnly && sampleRows.length === 0) {
+                    return false;
+                }
+            }
+
             if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
-                return;
+                return true;
             }
 
             const canvasContext = document.createElement("canvas").getContext("2d");
             if (!canvasContext) {
-                return;
+                return true;
             }
 
             const computedStyle = containerRef.current
@@ -1761,26 +1771,51 @@ export function useFluentResultGridController({
             });
 
             if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
-                return;
+                return true;
             }
 
             grid.setColumns(resizedColumns);
             grid.invalidate();
             grid.render();
+            return true;
         },
         [autoSizeColumnsMode, containerRef, dataView],
     );
 
-    const scheduleAutoSizeColumns = useCallback(() => {
-        const requestId = ++autoSizeRequestIdRef.current;
-        requestAnimationFrame(() => {
+    const scheduleAutoSizeColumns = useCallback(
+        (attempt = 0) => {
+            const requestId = ++autoSizeRequestIdRef.current;
             requestAnimationFrame(() => {
-                if (autoSizeRequestIdRef.current === requestId) {
-                    void applyAutoSizeColumns(requestId);
-                }
+                requestAnimationFrame(() => {
+                    window.setTimeout(() => {
+                        if (autoSizeRequestIdRef.current !== requestId) {
+                            return;
+                        }
+
+                        const useLoadedRowsOnly = attempt < initialAutoSizeRetryDelaysMs.length;
+                        void applyAutoSizeColumns(requestId, { useLoadedRowsOnly }).then(
+                            (applied) => {
+                                if (
+                                    applied ||
+                                    autoSizeRequestIdRef.current !== requestId ||
+                                    attempt >= initialAutoSizeRetryDelaysMs.length
+                                ) {
+                                    return;
+                                }
+
+                                window.setTimeout(() => {
+                                    if (autoSizeRequestIdRef.current === requestId) {
+                                        scheduleAutoSizeColumns(attempt + 1);
+                                    }
+                                }, initialAutoSizeRetryDelaysMs[attempt]);
+                            },
+                        );
+                    }, 0);
+                });
             });
-        });
-    }, [applyAutoSizeColumns]);
+        },
+        [applyAutoSizeColumns],
+    );
 
     const restoreInitialState = useCallback(
         async (grid: SlickGrid) => {
@@ -1885,20 +1920,29 @@ export function useFluentResultGridController({
 
     const restoreCurrentInitialState = useCallback(
         (grid: SlickGrid) => {
+            if (!initialStateReady || initialStateRestoreSignature === undefined) {
+                return;
+            }
+
             restoredInitialStateSignatureRef.current = initialStateRestoreSignature;
             void restoreInitialState(grid);
         },
-        [initialStateRestoreSignature, restoreInitialState],
+        [initialStateReady, initialStateRestoreSignature, restoreInitialState],
     );
 
     useEffect(() => {
         const grid = reactGridRef.current?.slickGrid;
-        if (!grid || restoredInitialStateSignatureRef.current === initialStateRestoreSignature) {
+        if (
+            !initialStateReady ||
+            !grid ||
+            initialStateRestoreSignature === undefined ||
+            restoredInitialStateSignatureRef.current === initialStateRestoreSignature
+        ) {
             return;
         }
 
         restoreCurrentInitialState(grid);
-    }, [initialStateRestoreSignature, restoreCurrentInitialState]);
+    }, [initialStateReady, initialStateRestoreSignature, restoreCurrentInitialState]);
 
     const gridOptions = useMemo<GridOption>(
         () => ({
@@ -1964,6 +2008,20 @@ export function useFluentResultGridController({
                             );
                         },
                     },
+                    {
+                        command: FluentResultGridCommand.UnfreezeColumn,
+                        iconCssClass: "fi fi-pin-off",
+                        itemVisibilityOverride: (args: GridMenuCallbackArgs) =>
+                            (args.grid.getOptions().frozenColumn ?? defaultFrozenColumnIndex) >
+                            defaultFrozenColumnIndex,
+                        positionOrder: 13,
+                        title: strings.commands[FluentResultGridCommand.UnfreezeColumn]?.label,
+                        action: (_event: Event, args: GridMenuCommandItemCallbackArgs) => {
+                            setFrozenColumnIndex(defaultFrozenColumnIndex);
+                            applyFrozenColumnIndex(args.grid, defaultFrozenColumnIndex);
+                            emitStateChange(args.grid);
+                        },
+                    },
                 ],
                 hideForceFitButton: true,
                 hideSyncResizeButton: true,
@@ -1983,6 +2041,7 @@ export function useFluentResultGridController({
             skipFreezeColumnValidation: true,
         }),
         [
+            applyFrozenColumnIndex,
             clearAllFilters,
             clearSort,
             emitStateChange,

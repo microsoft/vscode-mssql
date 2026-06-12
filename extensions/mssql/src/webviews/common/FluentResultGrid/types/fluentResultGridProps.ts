@@ -59,6 +59,7 @@ export interface FluentResultGridProps
     resultSetSummary: ResultSetSummary;
     dataSource: FluentResultGridDataSource;
     initialState?: FluentResultGridState;
+    initialStateReady?: boolean;
 }
 
 export interface FluentResultGridHandle {

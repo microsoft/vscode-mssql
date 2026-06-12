@@ -40,6 +40,7 @@ export interface FluentResultGridRowStore<T extends Slick.SlickData> {
     getLength(): number;
     at(index: number): T;
     getRange(start: number, end: number): T[];
+    getLoadedRange(start: number, end: number): T[];
     getRangeAsync(start: number, end: number): Promise<T[]>;
     setCollectionChangedCallback(callback: (startIndex: number, count: number) => void): void;
     setLength(length: number, resetData?: boolean): void;
@@ -181,6 +182,10 @@ class FluentResultGridInMemoryRowStore<T extends Slick.SlickData>
 
     public getRangeAsync(start: number, end: number): Promise<T[]> {
         return Promise.resolve(this.getRange(start, end));
+    }
+
+    public getLoadedRange(start: number, end: number): T[] {
+        return this.getRange(start, end);
     }
 
     public setCollectionChangedCallback(
@@ -345,7 +350,7 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
     public setLength(length: number, resetData = true): void {
         const nextLength = toNonNegativeInteger(length);
         const shouldResetWindows = resetData || nextLength < this.length;
-        this.lengthChanged = this.lengthChanged || shouldResetWindows || nextLength !== this.length;
+        this.lengthChanged = this.lengthChanged || shouldResetWindows;
         this.length = nextLength;
     }
 
@@ -407,6 +412,16 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         return currentRows;
     }
 
+    public getLoadedRange(start: number, end: number): T[] {
+        const range = normalizeRange(start, end, this.length);
+
+        if (range.end <= range.start) {
+            return [];
+        }
+
+        return this.getPartialLoadedRangeFromCurrentWindows(range.start, range.end);
+    }
+
     public async getRangeAsync(start: number, end: number): Promise<T[]> {
         const range = normalizeRange(start, end, this.length);
 
@@ -464,6 +479,18 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             }
 
             rows.push(row);
+        }
+
+        return rows;
+    }
+
+    private getPartialLoadedRangeFromCurrentWindows(start: number, end: number): T[] {
+        const rows: T[] = [];
+        for (let index = start; index < end; index++) {
+            const row = this.getLoadedDataFromCurrentWindows(index);
+            if (row) {
+                rows.push(row);
+            }
         }
 
         return rows;
@@ -585,6 +612,11 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
     public getRangeAsync(startIndex: number, length: number): Promise<T[]> {
         const start = toNonNegativeInteger(startIndex);
         return this.rowStore.getRangeAsync(start, start + toNonNegativeInteger(length));
+    }
+
+    public getLoadedRange(startIndex: number, length: number): T[] {
+        const start = toNonNegativeInteger(startIndex);
+        return this.rowStore.getLoadedRange(start, start + toNonNegativeInteger(length));
     }
 
     public setLength(length: number, resetData = false): void {

@@ -500,7 +500,10 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
         areResultSetSummariesEquivalent,
     );
     const [initialState, setInitialState] = useState<FluentResultGridState | undefined>();
+    const [isInitialStateLoaded, setIsInitialStateLoaded] = useState(false);
     const isInitialStateLoadedRef = useRef(false);
+    const latestDataSourceRowCountRef = useRef(resultSetSummary?.rowCount ?? 0);
+    latestDataSourceRowCountRef.current = resultSetSummary?.rowCount ?? 0;
     const columnWidthsSignatureRef = useRef<string | undefined>(undefined);
     const filtersSignatureRef = useRef<string | undefined>(undefined);
     const gridViewStateSignatureRef = useRef<string | undefined>(undefined);
@@ -513,6 +516,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
 
         let disposed = false;
         isInitialStateLoadedRef.current = false;
+        setIsInitialStateLoaded(false);
         void (async () => {
             const [filters, columnWidths, gridViewState, scrollPosition] = await Promise.all([
                 context.extensionRpc.sendRequest(qr.GetFiltersRequest.type, {
@@ -550,6 +554,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
             scrollPositionSignatureRef.current = JSON.stringify(scrollPosition ?? {});
             setInitialState(nextInitialState);
             isInitialStateLoadedRef.current = true;
+            setIsInitialStateLoaded(true);
         })();
 
         return () => {
@@ -560,7 +565,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
     const dataSource = useMemo(
         () => ({
             kind: "windowed" as const,
-            rowCount: resultSetSummary?.rowCount ?? 0,
+            rowCount: latestDataSourceRowCountRef.current,
             getRows: async (offset: number, count: number) => {
                 if (!context || !uri) {
                     return [];
@@ -576,7 +581,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                 return response?.rows ?? [];
             },
         }),
-        [context, props.batchId, props.resultId, resultSetSummary?.rowCount, uri],
+        [context, props.batchId, props.resultId, uri],
     );
 
     const handleStateChange = useCallback(
@@ -787,6 +792,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
 
     useEffect(() => {
         isInitialStateLoadedRef.current = false;
+        setIsInitialStateLoaded(false);
         setInitialState(undefined);
     }, [props.gridId, uri]);
 
@@ -815,6 +821,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
             canToggleMaximize={props.canToggleMaximize}
             isMaximized={props.isMaximized}
             initialState={initialState}
+            initialStateReady={isInitialStateLoaded}
             onCommand={handleCommand}
             onStateChange={handleStateChange}
             onSelectionSummaryChange={handleSelectionSummaryChange}
