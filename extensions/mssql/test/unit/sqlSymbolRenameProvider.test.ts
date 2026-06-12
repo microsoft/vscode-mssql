@@ -294,4 +294,167 @@ suite("SqlSymbolRenameProvider Tests", () => {
             );
         });
     });
+
+    // -------------------------------------------------------------------------
+    suite("refactorlog handling", () => {
+        const token = {} as vscode.CancellationToken;
+        let createFileSpy: sinon.SinonSpy;
+        let replaceSpy: sinon.SinonSpy;
+        let openTextDocumentStub: sinon.SinonStub;
+
+        // Builds a fake TextDocument whose getText/lineAt/lineCount reflect `content`.
+        function makeTextDoc(content: string): vscode.TextDocument {
+            const lines = content.split("\n");
+            return {
+                getText: (_r?: vscode.Range) => content,
+                lineCount: lines.length,
+                lineAt: (i: number) => ({
+                    range: new vscode.Range(
+                        new vscode.Position(i, 0),
+                        new vscode.Position(i, lines[i].length),
+                    ),
+                }),
+            } as unknown as vscode.TextDocument;
+        }
+
+        // A rename response that carries the four refactorlog metadata fields plus
+        // a non-empty change set (so the early single-file path is not taken).
+        function refactorResponse() {
+            return {
+                changes: {
+                    [vscode.Uri.file(defaultSqlFile).toString()]: [
+                        {
+                            range: {
+                                start: { line: 0, character: 0 },
+                                end: { line: 0, character: 7 },
+                            },
+                            newText: "NewTable",
+                        },
+                    ],
+                },
+                elementName: "[dbo].[MyTable]",
+                elementType: "SqlTable",
+                parentElementName: "[dbo]",
+                parentElementType: "SqlSchema",
+                newName: "NewTable",
+            };
+        }
+
+        setup(() => {
+            createFileSpy = sandbox.spy(vscode.WorkspaceEdit.prototype, "createFile");
+            replaceSpy = sandbox.spy(vscode.WorkspaceEdit.prototype, "replace");
+            openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
+            // The .sqlproj that owns the renamed file.
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+        });
+
+        test("creates a new .refactorlog and registers it when none exists", async () => {
+            const sqlprojContent = ["<Project>", "  <ItemGroup />", "</Project>"].join("\n");
+            openTextDocumentStub.callsFake((_uri: vscode.Uri) =>
+                Promise.resolve(makeTextDoc(sqlprojContent)),
+            );
+            sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves(refactorResponse());
+
+            const doc = makeDocument(sandbox);
+            await provider.provideRenameEdits(doc, new vscode.Position(0, 0), "NewTable", token);
+
+            // A new .refactorlog file was created with the Rename Refactor operation.
+            expect(createFileSpy).to.have.been.called;
+            const [createdUri, createOpts] = createFileSpy.firstCall.args as [
+                vscode.Uri,
+                { contents: Buffer },
+            ];
+            expect(createdUri.fsPath).to.equal(
+                vscode.Uri.file(path.resolve(projectDir, "proj.refactorlog")).fsPath,
+            );
+            const created = createOpts.contents.toString("utf8");
+            expect(created).to.contain('Name="Rename Refactor"');
+            expect(created).to.contain('Value="[dbo].[MyTable]"');
+            expect(created).to.contain('Value="SqlTable"');
+
+            // The .sqlproj was updated with a <RefactorLog Include="..."> entry.
+            const sqlprojReplace = replaceSpy
+                .getCalls()
+                .find((c) => (c.args[0] as vscode.Uri).fsPath.endsWith(".sqlproj"));
+            expect(sqlprojReplace, "expected a replace on the .sqlproj").to.not.be.undefined;
+            expect(sqlprojReplace!.args[2] as string).to.contain(
+                '<RefactorLog Include="proj.refactorlog" />',
+            );
+        });
+
+        test("appends to an existing registered .refactorlog", async () => {
+            const sqlprojContent = [
+                "<Project>",
+                '  <ItemGroup><RefactorLog Include="proj.refactorlog" /></ItemGroup>',
+                "</Project>",
+            ].join("\n");
+            const existingLog = [
+                '<?xml version="1.0" encoding="utf-8"?>',
+                '<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">',
+                "</Operations>",
+            ].join("\n");
+            openTextDocumentStub.callsFake((_uri: vscode.Uri) =>
+                Promise.resolve(
+                    makeTextDoc(_uri.fsPath.endsWith(".sqlproj") ? sqlprojContent : existingLog),
+                ),
+            );
+            // The registered .refactorlog already exists on disk — replace the whole fs object
+            // since vscode.workspace.fs.stat is non-configurable and cannot be stubbed directly.
+            sandbox
+                .stub(vscode.workspace, "fs")
+                .value({ stat: sandbox.stub().resolves({} as vscode.FileStat) });
+            sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves(refactorResponse());
+
+            const doc = makeDocument(sandbox);
+            await provider.provideRenameEdits(doc, new vscode.Position(0, 0), "NewTable", token);
+
+            // No new file created — the existing one is edited in place.
+            expect(createFileSpy).to.not.have.been.called;
+
+            const logReplace = replaceSpy
+                .getCalls()
+                .find((c) => (c.args[0] as vscode.Uri).fsPath.endsWith(".refactorlog"));
+            expect(logReplace, "expected a replace on the .refactorlog").to.not.be.undefined;
+            const updated = logReplace!.args[2] as string;
+            expect(updated).to.contain('Name="Rename Refactor"');
+            // The new operation is inserted before the closing tag.
+            expect(updated.indexOf("Rename Refactor")).to.be.lessThan(
+                updated.indexOf("</Operations>"),
+            );
+        });
+
+        test("does not write a refactorlog when elementType is missing", async () => {
+            const sqlprojContent = ["<Project>", "</Project>"].join("\n");
+            openTextDocumentStub.callsFake((_uri: vscode.Uri) =>
+                Promise.resolve(makeTextDoc(sqlprojContent)),
+            );
+            // Non-data object (e.g. stored procedure) — STS returns no element type.
+            sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
+                ...refactorResponse(),
+                elementType: null,
+                parentElementName: null,
+                parentElementType: null,
+            });
+
+            const doc = makeDocument(sandbox);
+            const edit = await provider.provideRenameEdits(
+                doc,
+                new vscode.Position(0, 0),
+                "NewTable",
+                token,
+            );
+
+            expect(edit).to.be.instanceOf(vscode.WorkspaceEdit);
+            expect(createFileSpy).to.not.have.been.called;
+            // No replace targeting a refactorlog or sqlproj should have happened.
+            const refactorReplace = replaceSpy
+                .getCalls()
+                .find(
+                    (c) =>
+                        (c.args[0] as vscode.Uri).fsPath.endsWith(".refactorlog") ||
+                        (c.args[0] as vscode.Uri).fsPath.endsWith(".sqlproj"),
+                );
+            expect(refactorReplace).to.be.undefined;
+        });
+    });
 });
