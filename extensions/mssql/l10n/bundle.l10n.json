@@ -1967,6 +1967,7 @@
     "No runs against this environment yet.": "No runs against this environment yet.",
     "Loading run details...": "Loading run details...",
     "Runner": "Runner",
+    "Schema version": "Schema version",
     "This run executed no validations.": "This run executed no validations.",
     "Artifact": "Artifact",
     "Delete run": "Delete run",

@@ -150,6 +150,14 @@ export const RunView: React.FC = () => {
                 <span>
                     {run.runner.displayName} ({run.runner.hostKind})
                 </span>
+                {run.sourceVersion ? (
+                    <>
+                        <span className={classes.metaLabel}>{strings.runSchemaVersionLabel}</span>
+                        <span className={classes.artifactPath}>
+                            {run.sourceVersion.commitId ?? run.sourceVersion.hash}
+                        </span>
+                    </>
+                ) : null}
                 {artifactPath ? (
                     <>
                         <span className={classes.metaLabel}>{strings.runArtifactLabel}</span>

@@ -3102,6 +3102,7 @@ export class LocConstants {
             runStartedLabel: l10n.t("Started"),
             runDurationLabel: l10n.t("Duration"),
             runRunnerLabel: l10n.t("Runner"),
+            runSchemaVersionLabel: l10n.t("Schema version"),
             runValidationsLabel: l10n.t("Validations"),
             runNoValidations: l10n.t("This run executed no validations."),
             runArtifactLabel: l10n.t("Artifact"),
