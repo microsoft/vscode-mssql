@@ -43,6 +43,7 @@ export interface FluentResultGridRowStore<T extends Slick.SlickData> {
     getRangeAsync(start: number, end: number): Promise<T[]>;
     setCollectionChangedCallback(callback: (startIndex: number, count: number) => void): void;
     setLength(length: number, resetData?: boolean): void;
+    setRows?: (rows: FluentResultGridRow[], length?: number) => number;
     resetAroundIndex?: (index: number) => void;
     getItems(): T[];
     dispose(): void;
@@ -198,6 +199,14 @@ class FluentResultGridInMemoryRowStore<T extends Slick.SlickData>
         const changedCount = Math.abs(nextLength - this.length);
         this.length = nextLength;
         this.collectionChangedCallback?.(changedStart, changedCount);
+    }
+
+    public setRows(rows: FluentResultGridRow[], length = rows.length): number {
+        this.rows = rows.map((row, index) =>
+            this.rowFactory.createRow(row, index, this.columnCount),
+        );
+        this.length = toNonNegativeInteger(length);
+        return this.length;
     }
 
     public getItems(): T[] {
@@ -566,6 +575,38 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
         }
 
         this.ensureViewportLoaded();
+    }
+
+    public setRows(rows: FluentResultGridRow[], length = rows.length): boolean {
+        const previous = this.getLength();
+        const nextLength = this.rowStore.setRows?.(rows, length);
+        if (nextLength === undefined) {
+            return false;
+        }
+
+        if (previous !== nextLength) {
+            this.onRowCountChanged.notify({
+                previous,
+                current: nextLength,
+                itemCount: nextLength,
+                dataView: this as unknown as SlickDataView,
+                callingOnRowsChanged: false,
+            });
+            this.scheduleRowCountUpdate();
+        }
+
+        if (nextLength > 0) {
+            this.onRowsChanged.notify({
+                rows: getRange(0, nextLength),
+                itemCount: nextLength,
+                dataView: this as unknown as SlickDataView,
+                calledOnRowCountChanged: previous !== nextLength,
+            });
+        }
+        this.grid?.invalidateAllRows();
+        this.scheduleRender();
+        this.ensureViewportLoaded();
+        return true;
     }
 
     public refresh(startIndex = 0): void {

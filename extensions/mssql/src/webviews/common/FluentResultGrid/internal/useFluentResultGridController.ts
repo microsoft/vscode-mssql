@@ -11,6 +11,7 @@ import {
     useRef,
     useState,
     type FocusEvent as ReactFocusEvent,
+    type KeyboardEvent as ReactKeyboardEvent,
     type RefObject,
 } from "react";
 import type { Column, GridOption, SlickgridReactInstance } from "slickgrid-react";
@@ -102,6 +103,19 @@ function makeFluentResultGridMenuButtonsUntabbable(containerNode: HTMLElement): 
     containerNode.querySelectorAll<HTMLElement>(gridMenuButtonSelector).forEach((button) => {
         button.tabIndex = -1;
     });
+}
+
+function isEditableKeyboardTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    if (target.isContentEditable) {
+        return true;
+    }
+
+    const tagName = target.tagName.toLowerCase();
+    return tagName === "input" || tagName === "select" || tagName === "textarea";
 }
 
 type SourceRow = {
@@ -627,16 +641,21 @@ export function useFluentResultGridController({
 
             if (!hasActiveTransforms()) {
                 transformedRowsRef.current = undefined;
-                dataView.setLength(latestRowCountRef.current, true);
-                setDisplayedRowCount(latestRowCountRef.current);
-                const targetRow = Math.min(
-                    preservedTopRow,
-                    Math.max(0, latestRowCountRef.current - 1),
-                );
-                dataView.refresh(targetRow);
+                const currentRowCount = latestRowCountRef.current;
+                const rowsReset =
+                    dataSourceRef.current.kind === "rows" &&
+                    dataView.setRows(dataSourceRef.current.rows, currentRowCount);
+                if (!rowsReset) {
+                    dataView.setLength(currentRowCount, true);
+                }
+                setDisplayedRowCount(currentRowCount);
+                const targetRow = Math.min(preservedTopRow, Math.max(0, currentRowCount - 1));
+                if (!rowsReset) {
+                    dataView.refresh(targetRow);
+                }
                 grid.invalidateAllRows();
                 grid.updateRowCount();
-                if (options?.preserveScrollPosition && latestRowCountRef.current > 0) {
+                if (options?.preserveScrollPosition && currentRowCount > 0) {
                     grid.scrollRowToTop(targetRow);
                 }
                 grid.render();
@@ -703,10 +722,20 @@ export function useFluentResultGridController({
             }
 
             transformedRowsRef.current = rows;
-            dataView.setLength(rows.length, true);
+            const rowsReplaced =
+                dataSourceRef.current.kind === "rows" &&
+                dataView.setRows(
+                    rows.map((row) => row.cells),
+                    rows.length,
+                );
+            if (!rowsReplaced) {
+                dataView.setLength(rows.length, true);
+            }
             setDisplayedRowCount(rows.length);
             const targetRow = Math.min(preservedTopRow, Math.max(0, rows.length - 1));
-            dataView.refresh(targetRow);
+            if (!rowsReplaced) {
+                dataView.refresh(targetRow);
+            }
             grid.invalidateAllRows();
             grid.updateRowCount();
             if (options?.preserveScrollPosition && rows.length > 0) {
@@ -1353,6 +1382,37 @@ export function useFluentResultGridController({
             showAllColumns,
             toggleSortForColumn,
         ],
+    );
+
+    const handleGridKeyDownCapture = useCallback(
+        (event: ReactKeyboardEvent<HTMLDivElement>) => {
+            const keyboardEvent = event.nativeEvent;
+            if (isEditableKeyboardTarget(keyboardEvent.target)) {
+                return;
+            }
+
+            const isSelectAllShortcut =
+                fluentResultGridEventMatchesShortcut(
+                    keyboardEvent,
+                    keyBindings[FluentResultGridCommand.SelectAll],
+                ) ||
+                (isFluentResultGridMetaOrCtrlKeyPressed(keyboardEvent) &&
+                    keyboardEvent.code === "KeyA");
+
+            if (!isSelectAllShortcut) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            keyboardEvent.stopImmediatePropagation();
+
+            void handleCommand({
+                ...commandContext,
+                commandId: FluentResultGridCommand.SelectAll,
+            });
+        },
+        [commandContext, handleCommand, keyBindings],
     );
 
     const openHeaderContextMenuForColumn = useCallback(
@@ -2311,6 +2371,7 @@ export function useFluentResultGridController({
         handleContextMenu,
         handleGridContainerBlur,
         handleGridContainerFocus,
+        handleGridKeyDownCapture,
         handleHeaderCellRendered,
         handleHeaderClick,
         handleHeaderContextMenu,
