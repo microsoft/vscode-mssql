@@ -106,6 +106,14 @@
     color: var(--vscode-editorGhostText-foreground, #888);
 }
 
+.table-cell-vector {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+}
+
 /* Row number column */
 .table-row-number {
     color: var(--vscode-foreground);

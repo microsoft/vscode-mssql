@@ -425,6 +425,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             cellClasses.push("table-cell-null");
                         }
 
+                        if (isVector) {
+                            cellClasses.push("table-cell-vector");
+                        }
+
                         const elmType = hasFailed || isModified ? "div" : "span";
                         return createDomElement(elmType, {
                             className: cellClasses.join(" "),
