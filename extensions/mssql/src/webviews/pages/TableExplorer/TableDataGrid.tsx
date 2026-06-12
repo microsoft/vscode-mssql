@@ -122,6 +122,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const firstCellSelectedRef = useRef<boolean>(false);
         // Plain-text column names for callers that need a label without HTML.
         const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
+        const vectorColumnFieldsRef = useRef<Set<string>>(new Set());
+        const [vectorTooltip, setVectorTooltip] = useState<{
+            visible: boolean;
+            x: number;
+            y: number;
+        }>({ visible: false, x: 0, y: 0 });
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -368,6 +374,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[], currentThemeKind?: ColorThemeKind): Column[] {
+            vectorColumnFieldsRef.current.clear();
+
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
                 const headerName = colInfo.dataTypeName
@@ -437,6 +445,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     column.editor = {
                         model: Editors.text,
                     };
+                }
+
+                if (colInfo.dataTypeName?.toLowerCase() === "vector") {
+                    vectorColumnFieldsRef.current.add(`col${index}`);
                 }
 
                 // Add originalIndex as a custom property for tracking edits with hidden columns
@@ -827,6 +839,36 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 void reactGridRef.current.paginationService.goToPageNumber(targetPage);
             }
         }, [dataset]);
+
+        useEffect(() => {
+            if (!vectorTooltip.visible) {
+                return;
+            }
+            const dismiss = () => setVectorTooltip((prev) => ({ ...prev, visible: false }));
+            const onKeyDown = (e: KeyboardEvent) => {
+                if (e.key === "Escape") {
+                    dismiss();
+                }
+            };
+            document.addEventListener("click", dismiss, { once: true });
+            document.addEventListener("keydown", onKeyDown);
+            return () => {
+                document.removeEventListener("click", dismiss);
+                document.removeEventListener("keydown", onKeyDown);
+            };
+        }, [vectorTooltip.visible]);
+
+        function handleDblClick(e: MouseEvent, args: any) {
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid) {
+                return;
+            }
+            const column = grid.getVisibleColumns()[args.cell];
+            if (!column || !vectorColumnFieldsRef.current.has(String(column.field))) {
+                return;
+            }
+            setVectorTooltip({ visible: true, x: e.clientX, y: e.clientY });
+        }
 
         function handleCellChange(_e: CustomEvent, args: any) {
             // Capture pagination state
@@ -1472,7 +1514,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     onSort={($event) => handleSort($event, $event.detail.args)}
                     onSortChanged={($event) => handleSlickSortChanged($event.detail)}
                     onSortCleared={() => handleSlickSortCleared()}
+                    onDblClick={($event) =>
+                        handleDblClick($event.detail.eventData, $event.detail.args)
+                    }
                 />
+                {vectorTooltip.visible && (
+                    <div
+                        className="vector-readonly-tooltip"
+                        style={{ left: vectorTooltip.x + 12, top: vectorTooltip.y + 12 }}>
+                        {loc.tableExplorer.vectorReadonlyTooltip}
+                    </div>
+                )}
             </div>
         );
     },
