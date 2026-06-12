@@ -433,7 +433,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     },
                 };
 
-                if (colInfo.isEditable) {
+                if (colInfo.isEditable && colInfo.dataTypeName?.toLowerCase() !== "vector") {
                     column.editor = {
                         model: Editors.text,
                     };
