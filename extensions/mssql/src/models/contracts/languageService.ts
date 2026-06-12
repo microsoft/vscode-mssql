@@ -173,7 +173,7 @@ export interface SqlSymbolRenameResponse {
 }
 
 export namespace SqlSymbolRenameRequest {
-    export const type = new RequestType<SqlSymbolRenameParams, SqlSymbolRenameResponse, void, void>(
+    export const type = new RequestType<SqlSymbolRenameParams, SqlSymbolRenameResponse, void>(
         "sql/rename",
     );
 }
