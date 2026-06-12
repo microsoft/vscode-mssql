@@ -122,12 +122,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const firstCellSelectedRef = useRef<boolean>(false);
         // Plain-text column names for callers that need a label without HTML.
         const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
-        const vectorColumnFieldsRef = useRef<Set<string>>(new Set());
-        const [vectorTooltip, setVectorTooltip] = useState<{
-            visible: boolean;
-            x: number;
-            y: number;
-        }>({ visible: false, x: 0, y: 0 });
+        const [vectorTooltip, setVectorTooltip] = useState<{ x: number; y: number } | null>(null);
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -374,8 +369,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[], currentThemeKind?: ColorThemeKind): Column[] {
-            vectorColumnFieldsRef.current.clear();
-
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
                 const headerName = colInfo.dataTypeName
@@ -441,18 +434,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     },
                 };
 
-                if (colInfo.isEditable && colInfo.dataTypeName?.toLowerCase() !== "vector") {
+                const isVector = colInfo.dataTypeName?.toLowerCase() === "vector";
+                if (colInfo.isEditable && !isVector) {
                     column.editor = {
                         model: Editors.text,
                     };
                 }
 
-                if (colInfo.dataTypeName?.toLowerCase() === "vector") {
-                    vectorColumnFieldsRef.current.add(`col${index}`);
-                }
-
-                // Add originalIndex as a custom property for tracking edits with hidden columns
+                // Add originalIndex and isVector as custom properties for use at interaction time
                 (column as any).originalIndex = index;
+                (column as any).isVector = isVector;
 
                 return column;
             });
@@ -841,10 +832,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }, [dataset]);
 
         useEffect(() => {
-            if (!vectorTooltip.visible) {
+            if (!vectorTooltip) {
                 return;
             }
-            const dismiss = () => setVectorTooltip((prev) => ({ ...prev, visible: false }));
+            const dismiss = () => setVectorTooltip(null);
             const onKeyDown = (e: KeyboardEvent) => {
                 if (e.key === "Escape") {
                     dismiss();
@@ -856,7 +847,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 document.removeEventListener("click", dismiss);
                 document.removeEventListener("keydown", onKeyDown);
             };
-        }, [vectorTooltip.visible]);
+        }, [vectorTooltip]);
 
         function handleDblClick(e: MouseEvent, args: any) {
             const grid = reactGridRef.current?.slickGrid;
@@ -864,10 +855,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const column = grid.getVisibleColumns()[args.cell];
-            if (!column || !vectorColumnFieldsRef.current.has(String(column.field))) {
+            if (!(column as any)?.isVector) {
                 return;
             }
-            setVectorTooltip({ visible: true, x: e.clientX, y: e.clientY });
+            setVectorTooltip({ x: e.clientX, y: e.clientY });
         }
 
         function handleCellChange(_e: CustomEvent, args: any) {
@@ -976,6 +967,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const column = grid.getVisibleColumns()[activeCell.cell];
+            if ((column as any)?.isVector) {
+                const cellNode = grid.getCellNode(activeCell.row, activeCell.cell);
+                const rect = cellNode?.getBoundingClientRect();
+                if (rect) {
+                    setVectorTooltip({ x: rect.left, y: rect.bottom });
+                }
+                e.preventDefault();
+                return;
+            }
             if (column?.id !== "undo") {
                 return;
             }
@@ -1518,7 +1518,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         handleDblClick($event.detail.eventData, $event.detail.args)
                     }
                 />
-                {vectorTooltip.visible && (
+                {vectorTooltip && (
                     <div
                         className="vector-readonly-tooltip"
                         style={{ left: vectorTooltip.x + 12, top: vectorTooltip.y + 12 }}>
