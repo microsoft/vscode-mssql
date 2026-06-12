@@ -80,13 +80,14 @@ export class CloudDeployHubController extends WebviewPanelController<
         private readonly _runStore: RunStore | undefined,
         private readonly _diagnostics: DiagnosticEventBus | undefined,
         initialView: HubInitialView,
+        activeRuns: readonly LiveRunSummary[] = [],
     ) {
         super(
             context,
             vscodeWrapper,
             HUB_SOURCE_FILE,
             HUB_VIEW_ID,
-            buildInitialState(_environments, _runStore, initialView),
+            buildInitialState(_environments, _runStore, initialView, activeRuns),
             {
                 title: CloudDeployDashboard.viewTitle,
                 viewColumn: vscode.ViewColumn.Active,
@@ -137,6 +138,7 @@ export class CloudDeployHubController extends WebviewPanelController<
         runStore: RunStore | undefined,
         diagnostics: DiagnosticEventBus | undefined,
         initialView: HubInitialView,
+        activeRuns: readonly LiveRunSummary[] = [],
     ): CloudDeployHubController {
         if (CloudDeployHubController._current !== undefined) {
             const existing = CloudDeployHubController._current;
@@ -151,6 +153,7 @@ export class CloudDeployHubController extends WebviewPanelController<
             runStore,
             diagnostics,
             initialView,
+            activeRuns,
         );
         CloudDeployHubController._current = created;
         // The run page needs the full RunRecord, which buildInitialState
@@ -523,17 +526,22 @@ function buildInitialState(
     environments: EnvironmentStore | undefined,
     runStore: RunStore | undefined,
     initialView: HubInitialView,
+    activeRuns: readonly LiveRunSummary[] = [],
 ): CloudDeployHubState {
     const envs = listEnvironmentSummaries(environments);
     const runs = runStore?.list() ?? [];
     const defaultEnvId = environments?.getDefaultEnvironmentId();
+    // Seed live runs from the service's active-run tracker so a hub opened
+    // mid-run shows the "currently running" banner immediately, not only for
+    // runs that start after the hub is open.
+    const liveRuns = dedupeLiveRuns(activeRuns);
 
     if (initialView.kind === "environment") {
         return {
             currentPage: "environment",
             environments: envs,
             runs,
-            liveRuns: [],
+            liveRuns,
             defaultEnvId,
             selectedEnvId: initialView.envId,
             selectedEnvironment: tryGetEnvironment(environments, initialView.envId),
@@ -545,7 +553,7 @@ function buildInitialState(
             currentPage: "run",
             environments: envs,
             runs,
-            liveRuns: [],
+            liveRuns,
             defaultEnvId,
             selectedRunId: initialView.runId,
             selectedRunArtifactPath: entry?.artifactPath,
@@ -558,7 +566,7 @@ function buildInitialState(
         currentPage: "runList",
         environments: envs,
         runs,
-        liveRuns: [],
+        liveRuns,
         defaultEnvId,
     };
 }

@@ -49,6 +49,7 @@ import {
     ValidationService,
     createDefaultRegistry,
 } from "./validation";
+import { LiveRunSummary } from "../sharedInterfaces/cloudDeployHub";
 
 /**
  * Run-artifact I/O surface attached to the service. The `writer` and
@@ -123,6 +124,15 @@ export class CloudDeployService implements vscode.Disposable {
     private readonly _runStore: RunStore | undefined;
     private readonly _runsWatcher: vscode.FileSystemWatcher | undefined;
     private _runsScanDebounce: NodeJS.Timeout | undefined;
+    /**
+     * In-flight runs, tracked for the service's whole lifetime so the hub can
+     * show the "currently running" banner even when it is opened AFTER a run
+     * started (the hub's own bus subscription only catches events emitted while
+     * it is open). Keyed by runId; populated on `validation-run-started`, pruned
+     * on `validation-run-finished`.
+     */
+    private readonly _activeRuns = new Map<string, LiveRunSummary>();
+    private readonly _activeRunsSubscriptions: vscode.Disposable[] = [];
 
     public constructor(
         workspaceFolder: vscode.WorkspaceFolder | undefined,
@@ -204,6 +214,33 @@ export class CloudDeployService implements vscode.Disposable {
 
         this.outputChannel = vscode.window.createOutputChannel(OUTPUT_CHANNEL_NAME);
         this._outputSubscriber = new OutputChannelSubscriber(this.outputChannel, this.diagnostics);
+
+        // Track in-flight runs for the service lifetime so a hub opened mid-run
+        // still shows the "currently running" banner (see `_activeRuns`).
+        this._activeRunsSubscriptions.push(
+            this.diagnostics.on("validation-run-started", (event) => {
+                this._activeRuns.set(event.payload.runId, {
+                    runId: event.payload.runId,
+                    environmentId: event.payload.environmentId,
+                    environmentName: this.environments?.get(event.payload.environmentId)?.name,
+                    startedAtMs: event.timestampMs,
+                });
+            }),
+        );
+        this._activeRunsSubscriptions.push(
+            this.diagnostics.on("validation-run-finished", (event) => {
+                this._activeRuns.delete(event.payload.runId);
+            }),
+        );
+    }
+
+    /**
+     * Snapshot of the runs currently executing, newest first. The hub seeds its
+     * "currently running" banner from this on open so a run that started before
+     * the hub was opened is still shown.
+     */
+    public getActiveRuns(): readonly LiveRunSummary[] {
+        return [...this._activeRuns.values()].sort((a, b) => b.startedAtMs - a.startedAtMs);
     }
 
     /** Loads on-disk state. Safe to call when no folder is open (resolves immediately). */
@@ -252,6 +289,7 @@ export class CloudDeployService implements vscode.Disposable {
         this._runsWatcher?.dispose();
         this._runStore?.dispose();
         this.environments?.dispose();
+        this._activeRunsSubscriptions.forEach((s) => s.dispose());
         this._outputSubscriber.dispose();
         this.outputChannel.dispose();
         this.diagnostics.dispose();

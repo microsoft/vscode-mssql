@@ -1203,6 +1203,7 @@ export default class MainController implements vscode.Disposable {
                     this.cloudDeployService.runs.store,
                     this.cloudDeployService.diagnostics,
                     { kind: "runList" },
+                    this.cloudDeployService.getActiveRuns(),
                 );
             }),
         );
@@ -1220,6 +1221,7 @@ export default class MainController implements vscode.Disposable {
                         this.cloudDeployService.runs.store,
                         this.cloudDeployService.diagnostics,
                         { kind: "environment", envId },
+                        this.cloudDeployService.getActiveRuns(),
                     );
                 },
             ),
@@ -1236,6 +1238,7 @@ export default class MainController implements vscode.Disposable {
                     this.cloudDeployService.runs.store,
                     this.cloudDeployService.diagnostics,
                     { kind: "run", runId },
+                    this.cloudDeployService.getActiveRuns(),
                 );
             }),
         );
