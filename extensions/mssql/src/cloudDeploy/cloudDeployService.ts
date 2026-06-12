@@ -186,6 +186,7 @@ export class CloudDeployService implements vscode.Disposable {
                       ephemeralProvider: new DockerEphemeralDatabaseProvider(
                           processProvider,
                           options.ephemeralConnector,
+                          { workspaceRoot: workspaceFolder?.uri.fsPath },
                       ),
                   }
                 : {}),

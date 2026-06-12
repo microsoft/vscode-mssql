@@ -150,6 +150,11 @@ export class Runner {
                     ephemeral = await this._provisionAndSeed(env, dispatchOrder, signal);
                 } catch (err) {
                     provisionError = err;
+                    // Surface the real provisioning failure on the diagnostic bus
+                    // so it reaches the output channel and the run's Logs tab —
+                    // otherwise the validators only show a generic "could not be
+                    // provisioned" message and the actual cause is lost.
+                    this._emitProvisionFailed(runId, err);
                 }
             }
 
@@ -191,8 +196,22 @@ export class Runner {
                     continue;
                 }
 
-                // Scope 2: a runtime validator cannot run if the ephemeral
-                // database it needs failed to provision.
+                // Scope 2: when provisioning failed, surface the real reason on
+                // the connectivity gate (it is the provision health-check) and
+                // mark the runtime validators Errored — they have no database to
+                // run against.
+                if (provisionError !== undefined && config.type === ValidationType.Connectivity) {
+                    const failed = makeProvisionFailedConnectivityResult(
+                        config,
+                        Date.now(),
+                        provisionError,
+                    );
+                    results.push(failed);
+                    connectivityFailed = true;
+                    this._emitValidationStarted(runId, config.type);
+                    this._emitValidationFinished(runId, failed);
+                    continue;
+                }
                 if (provisionError !== undefined && isRuntimeValidator(config.type)) {
                     const errored = makeProvisionErroredResult(config, Date.now(), provisionError);
                     results.push(errored);
@@ -366,6 +385,21 @@ export class Runner {
         }
     }
 
+    private _emitProvisionFailed(runId: string, err: unknown): void {
+        const message = err instanceof Error ? err.message : String(err);
+        this._bus?.emit({
+            source: "validation",
+            type: "validation-progress",
+            severity: "error",
+            correlationId: runId,
+            payload: {
+                runId,
+                validationType: ValidationType.Connectivity,
+                message: `Ephemeral database provisioning failed: ${message}`,
+            },
+        });
+    }
+
     private _emitRunStarted(
         runId: string,
         env: Environment,
@@ -535,6 +569,42 @@ function makeProvisionErroredResult(
         errorMessage: `Could not provision the validation database: ${
             provisionError instanceof Error ? provisionError.message : String(provisionError)
         }`,
+    };
+}
+
+/**
+ * Connectivity result when provisioning failed (decision M7): connectivity is
+ * the provision health-check, so a provisioning failure surfaces here as a
+ * `Failed` result whose finding carries the REAL underlying reason — not the
+ * generic "could not be provisioned" message the validator emits when it simply
+ * has no connection. This is what makes the actual cause (docker not found,
+ * sqlpackage failure, readiness timeout, …) visible in the run detail.
+ */
+function makeProvisionFailedConnectivityResult(
+    config: ValidationConfig,
+    nowMs: number,
+    provisionError: unknown,
+): ValidationResult {
+    const reason =
+        provisionError instanceof Error ? provisionError.message : String(provisionError);
+    return {
+        validationId: validationIdFor(config),
+        displayName: displayNameFor(config.type),
+        status: ValidationStatus.Failed,
+        startedAtMs: nowMs,
+        endedAtMs: nowMs,
+        payload: {
+            validationType: ValidationType.Connectivity,
+            findings: [
+                {
+                    kind: "connectivity",
+                    outcome: "unknown",
+                    severity: "error",
+                    message: `Could not provision the validation database: ${reason}`,
+                },
+            ],
+            summary: { reachable: false },
+        },
     };
 }
 

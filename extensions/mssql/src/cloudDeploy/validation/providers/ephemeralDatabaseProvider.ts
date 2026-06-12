@@ -33,6 +33,7 @@
  */
 
 import { randomUUID } from "crypto";
+import * as path from "path";
 
 import { SourceOfTruth, SourceOfTruthKind, RuntimeHostConfig } from "../../environments/types";
 import { ConnectionError, ConnectionHandle } from "./connectionProvider";
@@ -124,6 +125,12 @@ export interface DockerEphemeralDatabaseOptions {
     readonly hostPort?: number;
     /** Directory the schema build writes its dacpac into. */
     readonly buildOutputDirectory?: string;
+    /**
+     * Workspace root used to resolve a workspace-relative source-of-truth path
+     * (and the build output) to an absolute path before spawning the build, so
+     * the build does not depend on the spawned process's working directory.
+     */
+    readonly workspaceRoot?: string;
     /** Milliseconds to wait for the container to accept connections. */
     readonly readinessTimeoutMs?: number;
     /** Milliseconds between readiness probes. */
@@ -308,7 +315,7 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
         signal: AbortSignal,
     ): Promise<string> {
         if (sourceOfTruth.kind === SourceOfTruthKind.Dacpac) {
-            return sourceOfTruth.path;
+            return this._resolveAgainstWorkspace(sourceOfTruth.path);
         }
         if (sourceOfTruth.kind !== SourceOfTruthKind.SqlProj) {
             throw new EphemeralProvisionError(
@@ -316,14 +323,29 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
             );
         }
         const dotnetCommand = this._opts.dotnetCommand ?? DEFAULT_DOTNET_COMMAND;
-        const outputDir = this._opts.buildOutputDirectory ?? buildOutputDirOf(sourceOfTruth.path);
+        // Resolve to an absolute path so the build never depends on the spawned
+        // process's working directory (a relative path produced MSB1009
+        // "project file does not exist" when the cwd was not the workspace root).
+        const projectPath = this._resolveAgainstWorkspace(sourceOfTruth.path);
+        const outputDir =
+            this._opts.buildOutputDirectory ??
+            path.join(path.dirname(projectPath), "bin", "CloudDeploy");
         await this._run(
             dotnetCommand,
-            ["build", sourceOfTruth.path, "/nologo", "-o", outputDir],
+            ["build", projectPath, "/nologo", "/p:NetCoreBuild=true", "-o", outputDir],
             signal,
             "build the SQL project into a dacpac",
         );
-        return dacpacPathFor(sourceOfTruth.path, outputDir);
+        return dacpacPathFor(projectPath, outputDir);
+    }
+
+    /** Resolves a (possibly workspace-relative) path to absolute when a
+     * workspace root is configured; leaves already-absolute paths untouched. */
+    private _resolveAgainstWorkspace(p: string): string {
+        if (path.isAbsolute(p) || this._opts.workspaceRoot === undefined) {
+            return p;
+        }
+        return path.resolve(this._opts.workspaceRoot, p);
     }
 
     /** Publishes a dacpac into the container's database via sqlpackage. */
@@ -524,19 +546,12 @@ function generatePassword(): string {
     return `Cd_${randomUUID().replace(/-/g, "")}_9`;
 }
 
-/** Build-output directory for a `.sqlproj` when none is configured. */
-function buildOutputDirOf(sqlprojPath: string): string {
-    const normalized = sqlprojPath.replace(/\\/g, "/");
-    const lastSlash = normalized.lastIndexOf("/");
-    const dir = lastSlash === -1 ? "." : normalized.slice(0, lastSlash);
-    return `${dir}/bin/CloudDeploy`;
-}
-
-/** Expected dacpac path for a built `.sqlproj` in `outputDir`. */
+/** Expected dacpac path for a built `.sqlproj` in `outputDir`. Uses native path
+ * joins so the resulting path is valid for both the build `-o` argument and the
+ * sqlpackage `/SourceFile:` argument. */
 function dacpacPathFor(sqlprojPath: string, outputDir: string): string {
-    const normalized = sqlprojPath.replace(/\\/g, "/");
-    const base = normalized.slice(normalized.lastIndexOf("/") + 1).replace(/\.sqlproj$/i, "");
-    return `${outputDir}/${base}.dacpac`;
+    const base = path.basename(sqlprojPath).replace(/\.sqlproj$/i, "");
+    return path.join(outputDir, `${base}.dacpac`);
 }
 
 /** A concise, surfaceable detail string from a failed process result. */
