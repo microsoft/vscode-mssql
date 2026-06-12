@@ -30,17 +30,22 @@ import * as path from "path";
 import * as Constants from "../constants/constants";
 import { DiagnosticEventBus } from "./diagnostics";
 import { EnvironmentStore } from "./environments/environmentStore";
-import { LocalFileProvider } from "./providers";
+import { LocalFileProvider, LocalSchemaSourceReader } from "./providers";
 import { LocalRunsDirectoryReader, RunArtifactReader, RunArtifactWriter, RunStore } from "./runs";
+import { SchemaHasher } from "./runs/schemaHasher";
 import {
     CloudDeployValidationApi,
     ConnectionError,
     ConnectionHandle,
+    DockerEphemeralDatabaseProvider,
+    EphemeralConnector,
     LiveArtifactProvider,
     LiveConnectionProvider,
     LiveConnectionStrategy,
+    LiveDataGenerator,
     LiveProcessProvider,
     OutputChannelSubscriber,
+    RunnerRuntimeDeps,
     ValidationService,
     createDefaultRegistry,
 } from "./validation";
@@ -71,6 +76,14 @@ export interface CloudDeployRunsApi {
  */
 export interface CloudDeployServiceOptions {
     readonly connectionStrategy?: LiveConnectionStrategy;
+    /**
+     * Opens a connection to a freshly-provisioned ephemeral database (Scope 2,
+     * decision D-C). Production wiring (in `mainController`) supplies
+     * `VsCodeMssqlEphemeralConnector`; tests omit it. When omitted, the runtime
+     * validators (unit tests, workload) are skipped because no ephemeral
+     * database can be stood up — the rest of the pipeline still functions.
+     */
+    readonly ephemeralConnector?: EphemeralConnector;
 }
 
 const OUTPUT_CHANNEL_NAME = "Cloud Deploy";
@@ -155,11 +168,35 @@ export class CloudDeployService implements vscode.Disposable {
             artifact: new LiveArtifactProvider(fileProvider, workspaceFolder?.uri.fsPath),
             staticAnalysis: { systemDacpacsLocation: resolveSystemDacpacsLocation() },
         });
+
+        // Scope 2 (decisions D-A / D-C / D-D): runtime dependencies the runner
+        // uses to build, seed, and identify the per-run ephemeral database. The
+        // ephemeral provider is only wired when the host supplies an
+        // `ephemeralConnector` (the vscode-mssql connection stack); without one
+        // there is no way to reach a provisioned database, so the runtime
+        // validators skip rather than error.
+        const processProvider = new LiveProcessProvider(workspaceFolder?.uri.fsPath);
+        const runtime: RunnerRuntimeDeps = {
+            schemaHasher: new SchemaHasher(new LocalSchemaSourceReader()),
+            dataGenerator: new LiveDataGenerator(
+                new LiveArtifactProvider(fileProvider, workspaceFolder?.uri.fsPath),
+            ),
+            ...(options.ephemeralConnector !== undefined
+                ? {
+                      ephemeralProvider: new DockerEphemeralDatabaseProvider(
+                          processProvider,
+                          options.ephemeralConnector,
+                      ),
+                  }
+                : {}),
+        };
+
         this.validation = new ValidationService(
             registry,
             this.diagnostics,
             this.environments,
             writer,
+            runtime,
         );
 
         this.outputChannel = vscode.window.createOutputChannel(OUTPUT_CHANNEL_NAME);

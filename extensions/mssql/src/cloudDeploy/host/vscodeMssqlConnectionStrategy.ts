@@ -37,14 +37,19 @@
 import { randomUUID } from "crypto";
 import { RequestType } from "vscode-languageclient";
 
-import { SimpleExecuteResult } from "vscode-mssql";
+import { IConnectionInfo, SimpleExecuteResult } from "vscode-mssql";
 
 import ConnectionManager from "../../controllers/connectionManager";
+import { AuthenticationType } from "../../sharedInterfaces/connectionDialog";
 import {
     ConnectionError,
     ConnectionHandle,
     LiveConnectionStrategy,
 } from "../validation/providers/connectionProvider";
+import {
+    EphemeralConnectionParams,
+    EphemeralConnector,
+} from "../validation/providers/ephemeralDatabaseProvider";
 
 /** Wire-format params for the SQL Tools Service `query/simpleexecute` request. */
 interface SimpleExecuteParams {
@@ -127,10 +132,95 @@ export class VsCodeMssqlConnectionStrategy implements LiveConnectionStrategy {
 }
 
 /**
- * `ConnectionHandle` backed by a single owner URI. `execute()` routes
- * through `query/simpleexecute`; `dispose()` is idempotent and swallows
- * disconnect errors so cleanup paths in validators don't mask the
- * primary failure.
+ * Production `EphemeralConnector` (Scope 2, decision D-C) backed by vscode-mssql's
+ * `ConnectionManager`. Opens a `ConnectionHandle` to a freshly-provisioned
+ * ephemeral database by raw connection parameters (host / port / sa credentials),
+ * rather than a saved connection profile — the ephemeral container has no profile.
+ * Constructed alongside `VsCodeMssqlConnectionStrategy` and handed to the
+ * `DockerEphemeralDatabaseProvider` so the Docker orchestration stays
+ * host-agnostic while the real connection stack is injected here.
+ */
+export class VsCodeMssqlEphemeralConnector implements EphemeralConnector {
+    public constructor(private readonly _connectionManager: ConnectionManager) {}
+
+    public async connect(
+        params: EphemeralConnectionParams,
+        signal: AbortSignal,
+    ): Promise<ConnectionHandle> {
+        if (signal.aborted) {
+            throw new ConnectionError("timeout", "Connection attempt cancelled before opening.");
+        }
+
+        const ownerUri = `cloud-deploy-ephemeral://${params.database}/${randomUUID()}`;
+        const credentials = buildEphemeralCredentials(params);
+
+        let connected: boolean;
+        try {
+            connected = await this._connectionManager.connect(ownerUri, credentials, {
+                connectionSource: "cloudDeploy",
+                shouldHandleErrors: false,
+            });
+        } catch (err) {
+            throw new ConnectionError(
+                "unknown",
+                `Failed to connect to the ephemeral database: ${err instanceof Error ? err.message : String(err)}`,
+            );
+        }
+
+        if (!connected) {
+            throw new ConnectionError("unknown", "Failed to connect to the ephemeral database.");
+        }
+
+        if (signal.aborted) {
+            try {
+                await this._connectionManager.disconnect(ownerUri);
+            } catch {
+                // best-effort; cancellation supersedes disconnect failures
+            }
+            throw new ConnectionError(
+                "timeout",
+                "Connection cancelled after opening; session has been disposed.",
+            );
+        }
+
+        return new VsCodeMssqlConnectionHandle(this._connectionManager, ownerUri);
+    }
+}
+
+/**
+ * Builds the `IConnectionInfo` for an ephemeral SQL login connection. The
+ * ephemeral container is local and short-lived, so encryption is optional and
+ * the server certificate is trusted (the container ships a self-signed cert).
+ */
+function buildEphemeralCredentials(params: EphemeralConnectionParams): IConnectionInfo {
+    return {
+        server: `${params.host},${params.port}`,
+        database: params.database,
+        user: params.user,
+        password: params.password,
+        authenticationType: AuthenticationType.SqlLogin,
+        encrypt: "Optional",
+        trustServerCertificate: params.trustServerCertificate,
+        port: params.port,
+        email: undefined,
+        accountId: undefined,
+        tenantId: undefined,
+        azureAccountToken: undefined,
+        expiresOn: undefined,
+        hostNameInCertificate: undefined,
+        persistSecurityInfo: undefined,
+        secureEnclaves: undefined,
+        connectionString: undefined,
+        applicationName: "vscode-mssql",
+        connectTimeout: 30,
+    } as unknown as IConnectionInfo;
+}
+
+/**
+ * `ConnectionHandle` backed by a single owner URI. `execute()` routes through
+ * `query/simpleexecute`; `dispose()` is idempotent and swallows disconnect
+ * errors so cleanup paths in validators don't mask the primary failure. Shared
+ * by both the profile-based strategy and the ephemeral connector.
  */
 class VsCodeMssqlConnectionHandle implements ConnectionHandle {
     private _disposed = false;

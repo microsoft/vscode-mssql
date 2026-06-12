@@ -44,7 +44,7 @@ import {
     ValidationStatus,
 } from "../runs/types";
 
-import { Runner, RunnerRunOptions } from "./runner";
+import { Runner, RunnerRunOptions, RunnerRuntimeDeps } from "./runner";
 import type { ValidatorRegistry } from "./types";
 
 // =============================================================================
@@ -140,8 +140,9 @@ export class ValidationService implements CloudDeployValidationApi {
         private readonly _bus: DiagnosticEventBus,
         private readonly _environments: EnvironmentStore | undefined,
         private readonly _writer?: RunArtifactWriter,
+        runtime: RunnerRuntimeDeps = {},
     ) {
-        this._runner = new Runner(this._registry, this._bus);
+        this._runner = new Runner(this._registry, this._bus, runtime);
     }
 
     public async run(
