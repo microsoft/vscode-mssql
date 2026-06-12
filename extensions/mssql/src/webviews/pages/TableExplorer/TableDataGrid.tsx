@@ -831,8 +831,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [dataset]);
 
+        const tooltipOpen = vectorTooltip !== null;
         useEffect(() => {
-            if (!vectorTooltip) {
+            if (!tooltipOpen) {
                 return;
             }
             const dismiss = () => setVectorTooltip(null);
@@ -847,7 +848,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 document.removeEventListener("click", dismiss);
                 document.removeEventListener("keydown", onKeyDown);
             };
-        }, [vectorTooltip]);
+        }, [tooltipOpen]);
+
+        function isVectorCol(col: Column | undefined): boolean {
+            return !!(col as any)?.isVector;
+        }
 
         function handleDblClick(e: MouseEvent, args: any) {
             const grid = reactGridRef.current?.slickGrid;
@@ -855,7 +860,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const column = grid.getVisibleColumns()[args.cell];
-            if (!(column as any)?.isVector) {
+            if (!isVectorCol(column)) {
                 return;
             }
             setVectorTooltip({ x: e.clientX, y: e.clientY });
@@ -967,13 +972,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const column = grid.getVisibleColumns()[activeCell.cell];
-            if ((column as any)?.isVector) {
+            if (isVectorCol(column)) {
                 const cellNode = grid.getCellNode(activeCell.row, activeCell.cell);
                 const rect = cellNode?.getBoundingClientRect();
                 if (rect) {
                     setVectorTooltip({ x: rect.left, y: rect.bottom });
                 }
                 e.preventDefault();
+                e.stopPropagation();
                 return;
             }
             if (column?.id !== "undo") {
