@@ -1257,11 +1257,6 @@
       <source xml:lang="en">Column width must be at least {0} pixels.</source>
       <note>{0} is the minimum column width in pixels</note>
     </trans-unit>
-    <trans-unit id="++CODE++a63cd0b69f3e104594e10aac331bb628708c0bf778f94e4e4a1295ffb09ff303">
-      <source xml:lang="en">Column width must be between {0} and {1} pixels.</source>
-      <note>{0} is the minimum column width in pixels
-{1} is the maximum column width in pixels</note>
-    </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
     </trans-unit>

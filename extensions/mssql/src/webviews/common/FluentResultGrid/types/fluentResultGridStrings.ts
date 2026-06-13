@@ -36,7 +36,7 @@ export interface FluentResultGridFilterStrings {
 export interface FluentResultGridResizeDialogStrings {
     title: (columnName: string) => string;
     widthLabel: string;
-    validationError: (minWidth: number, maxWidth: number) => string;
+    validationError: (minWidth: number) => string;
     submit: string;
     cancel: string;
 }

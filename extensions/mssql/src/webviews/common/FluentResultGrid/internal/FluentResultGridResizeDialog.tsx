@@ -26,7 +26,6 @@ import type { FluentResultGridResizeDialogOverlayState } from "./fluentResultGri
 import type { FluentResultGridStrings } from "../types/fluentResultGridStrings";
 
 const defaultMinColumnWidth = 50;
-const defaultMaxColumnWidth = 400;
 const popupWidth = 220;
 
 const useStyles = makeStyles({
@@ -92,9 +91,9 @@ function parseColumnWidth(value: string): number {
     return Number.parseInt(value, 10);
 }
 
-function isColumnWidthValid(value: string, minWidth: number, maxWidth: number): boolean {
+function isColumnWidthValid(value: string, minWidth: number): boolean {
     const parsedWidth = parseColumnWidth(value);
-    return Number.isFinite(parsedWidth) && parsedWidth >= minWidth && parsedWidth <= maxWidth;
+    return Number.isFinite(parsedWidth) && parsedWidth >= minWidth;
 }
 
 function getResizeOverlayPosition({
@@ -148,12 +147,11 @@ export function FluentResultGridResizeDialog({
     const submitButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const cancelButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const minWidth = overlay.minWidth ?? defaultMinColumnWidth;
-    const maxWidth = overlay.maxWidth ?? defaultMaxColumnWidth;
     const [inputValue, setInputValue] = useState<string>(
         Math.round(overlay.initialWidth).toString(),
     );
     const [popupHeight, setPopupHeight] = useState(0);
-    const isValid = isColumnWidthValid(inputValue, minWidth, maxWidth);
+    const isValid = isColumnWidthValid(inputValue, minWidth);
 
     useEffect(() => {
         setInputValue(Math.round(overlay.initialWidth).toString());
@@ -265,7 +263,7 @@ export function FluentResultGridResizeDialog({
             <Field
                 label={strings.resizeDialog.widthLabel}
                 validationMessage={
-                    isValid ? undefined : strings.resizeDialog.validationError(minWidth, maxWidth)
+                    isValid ? undefined : strings.resizeDialog.validationError(minWidth)
                 }>
                 <Input
                     ref={inputRef}
@@ -274,7 +272,6 @@ export function FluentResultGridResizeDialog({
                     size="small"
                     value={inputValue}
                     min={minWidth}
-                    max={maxWidth}
                     onChange={(_, data) => setInputValue(data.value)}
                     onKeyDown={(event) => {
                         if (event.key === "Enter") {

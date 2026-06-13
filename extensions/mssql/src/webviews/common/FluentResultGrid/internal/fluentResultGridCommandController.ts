@@ -30,7 +30,6 @@ import {
     FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
     FLUENT_RESULT_GRID_JSON_LANGUAGE_ID,
-    FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
     FLUENT_RESULT_GRID_XML_LANGUAGE_ID,
@@ -225,7 +224,6 @@ export function useFluentResultGridCommandController({
                 anchorRect: toFluentResultGridAnchorRect(headerNode.getBoundingClientRect()),
                 initialWidth: column.width ?? FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
                 minWidth: FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
-                maxWidth: FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
                 onDismiss: () => grid.focus(),
                 onSubmit: (newWidth: number) => resizeColumn(grid, columnId, newWidth),
             });
