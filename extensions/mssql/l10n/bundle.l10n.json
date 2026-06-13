@@ -2596,9 +2596,18 @@
         "message": "Results ({0})",
         "comment": ["{0} is the keyboard shortcut for the results tab"]
     },
+    "Results Preview ({0})/{0} is the keyboard shortcut for the preview results tab": {
+        "message": "Results Preview ({0})",
+        "comment": ["{0} is the keyboard shortcut for the preview results tab"]
+    },
+    "Results Preview": "Results Preview",
     "Results ({0})/{0} is the number of results": {
         "message": "Results ({0})",
         "comment": ["{0} is the number of results"]
+    },
+    "Results Preview ({0})/{0} is the number of preview results": {
+        "message": "Results Preview ({0})",
+        "comment": ["{0} is the number of preview results"]
     },
     "Messages ({0})/{0} is the keyboard shortcut for the messages tab": {
         "message": "Messages ({0})",
@@ -3636,6 +3645,7 @@
     "Page": "Page",
     "Refresh dataset": "Refresh dataset",
     "Remove sort": "Remove sort",
+    "Show all columns": "Show all columns",
     "Sort ascending": "Sort ascending",
     "Sort descending": "Sort descending",
     "Synchronous resize": "Synchronous resize",

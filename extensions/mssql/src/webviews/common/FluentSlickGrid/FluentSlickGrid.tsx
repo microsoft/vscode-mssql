@@ -97,6 +97,28 @@ type SlickgridReactPublicProps = React.JSX.LibraryManagedAttributes<
     React.ComponentProps<typeof SlickgridReact>
 >;
 
+/**
+ * Works around a bug in `slickgrid-react`'s `initialization()`: when a `customDataView`
+ * prop is supplied, the library skips assigning its internal `this.dataView` (it only does
+ * so inside the `if (!this.props.customDataView)` branch), yet later in the same method it
+ * unconditionally dereferences `this.dataView` (e.g. `this.dataView.setGrid(...)`), throwing
+ * "Cannot read properties of undefined". We can't use `SlickgridReact` directly for grids
+ * that rely on a custom data view (such as the virtualized query-result grid).
+ *
+ * This subclass pre-seeds `this.dataView` with the provided `customDataView` before calling
+ * `super.initialization()`, so every internal reference resolves correctly. Grids that don't
+ * pass a `customDataView` are unaffected.
+ */
+class FluentSlickgridReact extends SlickgridReact {
+    public override initialization(...args: Parameters<SlickgridReact["initialization"]>): void {
+        if (this.props.customDataView && !this.dataView) {
+            this.dataView = this.props.customDataView as typeof this.dataView;
+        }
+
+        super.initialization(...args);
+    }
+}
+
 export interface FluentSlickGridProps extends Omit<SlickgridReactPublicProps, "options"> {
     options: GridOption;
 }
@@ -122,5 +144,5 @@ export const FluentSlickGrid: React.FC<FluentSlickGridProps> = ({ options, ...pr
         [options],
     );
 
-    return <SlickgridReact {...props} options={mergedOptions} />;
+    return <FluentSlickgridReact {...props} options={mergedOptions} />;
 };
