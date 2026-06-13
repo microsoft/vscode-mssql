@@ -55,14 +55,77 @@ export async function addDatabaseConnection(
 
     await iframe.getByRole("checkbox", { name: "Trust server certificate" }).click();
     await iframe.getByRole("button", { name: "Connect", exact: true }).click();
+
+    // Wait for the Connection Dialog editor tab to disappear. VS Code renders a
+    // tab in the editor tab strip for every open panel. When the connection
+    // dialog closes the tab is removed from the DOM, giving us a reliable
+    // signal that the connection attempt has completed. We check for
+    // "detached" rather than "hidden" so the wait resolves even if the tab
+    // was never rendered (e.g. it closed before the locator was evaluated).
+    const dialogTab = vsCodePage.locator('[role="tab"][aria-label*="Connection Dialog"]');
+    try {
+        // If the tab is already gone this resolves immediately; if it's still
+        // open it waits up to 60 s for it to be removed from the DOM.
+        await dialogTab.waitFor({ state: "detached", timeout: 60 * 1000 });
+    } catch {
+        // Tab was never present or already detached — treat as closed.
+    }
+
+    // Verify the server node is present in Object Explorer in the connected
+    // state. The OE label is the profile name when one is set, otherwise the
+    // server name. A disconnected node carries data-vscode-context containing
+    // "disconnected" on the treeitem element itself, so we use a CSS :not()
+    // selector (which applies to the element itself) rather than
+    // .filter({ hasNot }) which only checks descendant elements.
+    const nodeLabel = profileName || serverName;
+    await vsCodePage
+        .locator(
+            `[role="treeitem"][aria-label*="${nodeLabel}"]:not([data-vscode-context*="disconnected"])`,
+        )
+        .first()
+        .waitFor({ state: "visible", timeout: 60 * 1000 });
 }
 
-export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
-    await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(">MS SQL: New Query");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
+export async function openNewQueryEditor(
+    vsCodePage: Page,
+    connectedServerName?: string,
+): Promise<void> {
+    if (connectedServerName) {
+        // When a server name is provided, open the new query via the OE context menu instead of the command palette
+        const serverNode = vsCodePage
+            .locator(
+                `[role="treeitem"][aria-label*="${connectedServerName}"]:not([data-vscode-context*="disconnected"])`,
+            )
+            .first();
+        await serverNode.waitFor({ state: "visible", timeout: 20 * 1000 });
+
+        const contextMenu = vsCodePage.locator(".context-view.monaco-menu-container");
+        await serverNode.click({ button: "right" });
+        await contextMenu.waitFor({ state: "visible", timeout: 5 * 1000 });
+        const menuItem = await contextMenu
+            .locator('[role="menuitem"]')
+            .filter({ hasText: /^New Query$/ })
+            .first();
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        await menuItem.click({ timeout: 3 * 1000 });
+    } else {
+        // No server context — fall back to the command palette.
+        // This may display the connection quick-pick if there's no default connection.
+        await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.type(">MS SQL: New Query");
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.press("Enter");
+    }
+
+    // Wait for the mssql code lens to appear, confirming the editor is open
+    // and the extension has attached a connection to it.
+    const codeLens = connectedServerName
+        ? vsCodePage.locator(".codelens-decoration").filter({ hasText: connectedServerName })
+        : vsCodePage.locator(".codelens-decoration");
+    await codeLens.first().waitFor({ state: "visible", timeout: 30 * 1000 });
 }
 
 export async function disconnect(vsCodePage: Page): Promise<void> {
@@ -85,7 +148,12 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
     await vsCodePage.click('div[class="view-lines monaco-mouse-cursor-text"]');
-    await vsCodePage.keyboard.type(text);
+    // Use insertText instead of keyboard.type() so the text is injected as a
+    // single input event rather than individual key events. keyboard.type()
+    // triggers VS Code's auto-closing-brackets logic (inserting an extra ")"
+    // for every "(", etc.), which produces invalid T-SQL. insertText bypasses
+    // all editor auto-complete and auto-closing hooks.
+    await vsCodePage.keyboard.insertText(text);
 }
 
 export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promise<void> {
