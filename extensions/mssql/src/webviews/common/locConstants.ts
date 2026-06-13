@@ -893,7 +893,18 @@ export class LocConstants {
                 });
             },
             enterDesiredColumnWidth: l10n.t("Enter desired column width in pixels"),
-            resizeValidationError: (minWidth: number) => {
+            resizeValidationError: (minWidth: number, maxWidth?: number) => {
+                if (maxWidth !== undefined) {
+                    return l10n.t({
+                        message: "Column width must be between {0} and {1} pixels.",
+                        args: [minWidth, maxWidth],
+                        comment: [
+                            "{0} is the minimum column width in pixels",
+                            "{1} is the maximum column width in pixels",
+                        ],
+                    });
+                }
+
                 return l10n.t({
                     message: "Column width must be at least {0} pixels.",
                     args: [minWidth],

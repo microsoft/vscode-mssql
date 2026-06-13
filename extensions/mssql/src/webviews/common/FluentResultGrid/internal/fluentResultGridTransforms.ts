@@ -13,6 +13,7 @@ import type {
     FluentResultGridFilterValue,
 } from "./fluentResultGridOverlays";
 import type { FluentResultGridStrings } from "../types/fluentResultGridStrings";
+import type { SourceRow } from "./fluentResultGridControllerTypes";
 
 export type FluentResultGridSortState = {
     columnId: string;
@@ -73,15 +74,24 @@ export function hasActiveFluentResultGridFilters(filters: ColumnFilterMap): bool
     );
 }
 
-export function applyFluentResultGridTransforms({
+export function normalizeFluentResultGridSelectedFilterValues(
+    filterValues: FluentResultGridFilterValue[],
+    availableItems?: readonly { value: FluentResultGridFilterValue }[],
+): FluentResultGridFilterValue[] {
+    return availableItems && filterValues.length === availableItems.length ? [] : filterValues;
+}
+
+function applyFluentResultGridTransformsCore<TRow>({
     rows,
+    getCells,
     filters,
     sort,
 }: {
-    rows: readonly DbCellValue[][];
+    rows: readonly TRow[];
+    getCells: (row: TRow) => readonly DbCellValue[];
     filters: ColumnFilterMap;
     sort?: FluentResultGridSortState;
-}): DbCellValue[][] {
+}): TRow[] {
     let transformedRows = [...rows];
 
     for (const [columnId, filterState] of Object.entries(filters)) {
@@ -94,7 +104,7 @@ export function applyFluentResultGridTransforms({
 
         const selectedValues = new Set<FluentResultGridFilterValue>(filterValues);
         transformedRows = transformedRows.filter((row) =>
-            selectedValues.has(getFluentResultGridCellFilterValue(row, columnId)),
+            selectedValues.has(getFluentResultGridCellFilterValue(getCells(row), columnId)),
         );
     }
 
@@ -103,13 +113,47 @@ export function applyFluentResultGridTransforms({
         transformedRows.sort(
             (a, b) =>
                 compareFluentResultGridCellValues(
-                    getFluentResultGridCellFilterValue(a, sort.columnId),
-                    getFluentResultGridCellFilterValue(b, sort.columnId),
+                    getFluentResultGridCellFilterValue(getCells(a), sort.columnId),
+                    getFluentResultGridCellFilterValue(getCells(b), sort.columnId),
                 ) * sortMultiplier,
         );
     }
 
     return transformedRows;
+}
+
+export function applyFluentResultGridTransforms({
+    rows,
+    filters,
+    sort,
+}: {
+    rows: readonly DbCellValue[][];
+    filters: ColumnFilterMap;
+    sort?: FluentResultGridSortState;
+}): DbCellValue[][] {
+    return applyFluentResultGridTransformsCore({
+        rows,
+        getCells: (row) => row,
+        filters,
+        sort,
+    });
+}
+
+export function applyFluentResultGridTransformsToSourceRows({
+    rows,
+    filters,
+    sort,
+}: {
+    rows: readonly SourceRow[];
+    filters: ColumnFilterMap;
+    sort?: FluentResultGridSortState;
+}): SourceRow[] {
+    return applyFluentResultGridTransformsCore({
+        rows,
+        getCells: (row) => row.cells,
+        filters,
+        sort,
+    });
 }
 
 export function getFluentResultGridFilterDisplayText(

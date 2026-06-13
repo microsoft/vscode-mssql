@@ -53,6 +53,7 @@ export interface FluentResultGridResizeDialogOverlayState {
     gridId: FluentResultGridId;
     columnId: FluentResultGridColumnId;
     columnName: string;
+    anchorRect: FluentResultGridAnchorRect;
     initialWidth: number;
     minWidth?: number;
     maxWidth?: number;

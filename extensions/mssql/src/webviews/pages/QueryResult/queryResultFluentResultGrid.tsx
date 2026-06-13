@@ -416,7 +416,8 @@ function getQueryResultFluentGridStrings(): FluentResultGridStrings {
         resizeDialog: {
             title: locConstants.queryResult.resizeColumn,
             widthLabel: locConstants.queryResult.enterDesiredColumnWidth,
-            validationError: (minWidth) => locConstants.queryResult.resizeValidationError(minWidth),
+            validationError: (minWidth, maxWidth) =>
+                locConstants.queryResult.resizeValidationError(minWidth, maxWidth),
             submit: locConstants.queryResult.resize,
             cancel: locConstants.common.cancel,
         },
