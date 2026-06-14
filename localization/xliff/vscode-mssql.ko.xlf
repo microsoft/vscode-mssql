@@ -9739,7 +9739,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
         <source xml:lang="en">Verify a container image by using the Notation CLI</source>
-        <target state="new">Verify a container image by using the Notation CLI</target>
+        <target state="translated">Notation CLI를 사용하여 컨테이너 이미지를 확인하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>
