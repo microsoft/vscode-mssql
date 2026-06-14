@@ -120,7 +120,7 @@
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.139",
         "chai": "^5.3.3",
         "cli-color": "^2.0.4",
-        "esbuild": "^0.25.0",
+        "esbuild": "^0.28.1",
         "html-to-image": "1.11.11",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
