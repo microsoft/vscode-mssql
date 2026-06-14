@@ -197,7 +197,6 @@ export function useFluentResultGridCommandController({
                 .map((column) => (column.id === columnId ? { ...column, width } : column));
             grid.setColumns(resizedColumns);
             grid.invalidate();
-            grid.render();
             emitStateChange(grid);
             grid.focus();
         },
@@ -251,7 +250,6 @@ export function useFluentResultGridCommandController({
             updateHeaderButtonStates(grid);
             emitStateChange(grid);
             grid.invalidate();
-            grid.render();
             grid.focus();
         },
         [
@@ -292,7 +290,6 @@ export function useFluentResultGridCommandController({
             updateHeaderButtonStates(grid);
             emitStateChange(grid);
             grid.invalidate();
-            grid.render();
             grid.focus();
         },
         [
@@ -317,7 +314,6 @@ export function useFluentResultGridCommandController({
 
             grid.setColumns(columnsToShow);
             grid.invalidate();
-            grid.render();
             updateHeaderButtonStates(grid);
             emitStateChange(grid, columnsToShow);
             grid.focus();
@@ -371,7 +367,6 @@ export function useFluentResultGridCommandController({
             updateHeaderButtonStates(grid);
             emitStateChange(grid);
             grid.invalidate();
-            grid.render();
             grid.focus();
         },
         [

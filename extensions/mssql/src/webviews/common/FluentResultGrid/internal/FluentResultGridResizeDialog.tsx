@@ -24,8 +24,8 @@ import {
 import type { FluentResultGridCloseOverlayOptions } from "./fluentResultGridProviderTypes";
 import type { FluentResultGridResizeDialogOverlayState } from "./fluentResultGridOverlays";
 import type { FluentResultGridStrings } from "../types/fluentResultGridStrings";
+import { FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH } from "./fluentResultGridConstants";
 
-const defaultMinColumnWidth = 50;
 const popupWidth = 220;
 
 const useStyles = makeStyles({
@@ -146,7 +146,7 @@ export function FluentResultGridResizeDialog({
     const closeButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const submitButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const cancelButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
-    const minWidth = overlay.minWidth ?? defaultMinColumnWidth;
+    const minWidth = overlay.minWidth ?? FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH;
     const [inputValue, setInputValue] = useState<string>(
         Math.round(overlay.initialWidth).toString(),
     );

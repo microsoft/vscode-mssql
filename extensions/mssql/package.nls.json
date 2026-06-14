@@ -202,7 +202,7 @@
     "mssql.ignorePlatformWarning": "[Optional] Do not show unsupported platform warnings",
     "mssql.Configuration": "MSSQL configuration",
     "mssql.chooseAuthMethod": "Chooses which Authentication method to use",
-    "mssql.preview.betaResultsGrid.description": "Enables the preview query results grid experience with faster rendering, better state management, and more column customization options, including showing, hiding, and freezing columns.",
+    "mssql.preview.betaResultsGrid.description": "Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.",
     "mssql.preview.useVscodeAccountsForEntraMFA.description": "Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.",
     "mssql.authCodeGrant.description": "Prompts users to sign in using their browser.",
     "mssql.deviceCode.description": "Allows users to sign in to input-constrained devices.",

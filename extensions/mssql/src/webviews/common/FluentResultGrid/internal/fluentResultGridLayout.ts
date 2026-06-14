@@ -65,9 +65,7 @@ export function useFluentResultGridLayout({
     const refreshFrozenColumnLayout = useCallback(
         (grid: SlickGrid) => {
             grid.resizeCanvas();
-            grid.invalidateAllRows();
-            grid.updateRowCount();
-            grid.render();
+            grid.invalidate();
             dataViewRef.current?.ensureViewportLoaded();
         },
         [dataViewRef],
@@ -257,7 +255,6 @@ export function useFluentResultGridLayout({
 
             grid.setColumns(resizedColumns);
             grid.invalidate();
-            grid.render();
             return true;
         },
         [autoSizeColumnsMode, containerRef, dataView, latestRowCountRef, reactGridRef],

@@ -367,7 +367,6 @@ export function useFluentResultGridController({
 
                 updateHeaderButtonStates(grid);
                 grid.invalidate();
-                grid.render();
                 if (shouldAutoSizeColumns) {
                     layoutController.scheduleAutoSizeColumns();
                 }
