@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useMemo } from "react";
-import { GridOption, SlickgridReact } from "slickgrid-react";
+import { SlickgridReact, type GridOption } from "slickgrid-react";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "./fluentSlickGrid.css";
 

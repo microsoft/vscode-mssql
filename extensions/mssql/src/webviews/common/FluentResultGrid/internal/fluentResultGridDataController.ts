@@ -13,7 +13,7 @@ import {
     type MutableRefObject,
     type SetStateAction,
 } from "react";
-import type { SlickGrid } from "@slickgrid-universal/common";
+import type { SlickGrid } from "slickgrid-react";
 import type {
     ColumnFilterMap,
     DbCellValue,

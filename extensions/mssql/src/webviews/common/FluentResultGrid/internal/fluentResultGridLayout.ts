@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useEffect, useRef, type MutableRefObject, type RefObject } from "react";
-import type { SlickGrid } from "@slickgrid-universal/common";
+import type { SlickGrid } from "slickgrid-react";
 import { ResultsGridAutoSizeStyle } from "../../../../sharedInterfaces/queryResult";
 import {
     FLUENT_RESULT_GRID_AUTO_SIZE_CELL_PADDING_WIDTH,

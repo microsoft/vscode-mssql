@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { SlickGrid } from "@slickgrid-universal/common";
-import type { Column } from "slickgrid-react";
+import type { Column, SlickGrid } from "slickgrid-react";
 import type {
     GridViewState,
     IDbColumn,

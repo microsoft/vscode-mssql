@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { Formatter } from "@slickgrid-universal/common";
+import { type Formatter, type FormatterResultWithHtml, htmlEncode } from "slickgrid-react";
 import { isJson } from "../../jsonUtils";
+import { locConstants } from "../../locConstants";
 import { isXmlCell } from "../../xmlUtils";
 import type { IDbColumn } from "../../../../sharedInterfaces/queryResult";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
@@ -17,34 +18,30 @@ function isDbCellValue(value: unknown): value is { displayValue: string; isNull:
     );
 }
 
-export function escapeHtml(value: string): string {
-    return value.replace(/[<|>|&|"|']/g, (match) => {
-        switch (match) {
-            case "<":
-                return "&lt;";
-            case ">":
-                return "&gt;";
-            case "&":
-                return "&amp;";
-            case '"':
-                return "&quot;";
-            case "'":
-                return "&#39;";
-            default:
-                return match;
-        }
-    });
-}
-
 function getCellDisplayValue(cellValue: string): string {
     const valueToDisplay = cellValue.length > 250 ? `${cellValue.slice(0, 250)}...` : cellValue;
-    return escapeHtml(valueToDisplay.replace(/(\r\n|\n|\r)/g, "↵"));
+    return valueToDisplay.replace(/(\r\n|\n|\r)/g, "↵");
 }
 
-function getTextCellHtml(
-    value: unknown,
-    addClasses?: string,
-): string | { text: string; addClasses: string } {
+function createCellValueElement({
+    tagName,
+    valueToDisplay,
+    titleValue = valueToDisplay,
+    cellClasses,
+}: {
+    tagName: "a" | "span";
+    valueToDisplay: string;
+    titleValue?: string;
+    cellClasses: string;
+}): HTMLElement {
+    const element = document.createElement(tagName);
+    element.className = cellClasses;
+    element.title = titleValue;
+    element.textContent = valueToDisplay;
+    return element;
+}
+
+function getTextCellFormatterResult(value: unknown, addClasses?: string): FormatterResultWithHtml {
     let cellClasses = "grid-cell-value-container";
     let valueToDisplay = "";
     let titleValue = "";
@@ -62,11 +59,18 @@ function getTextCellHtml(
         titleValue = valueToDisplay;
     }
 
-    const html = `<span title="${titleValue}" class="${cellClasses}">${valueToDisplay}</span>`;
-    return addClasses ? { text: html, addClasses } : html;
+    return {
+        html: createCellValueElement({
+            tagName: "span",
+            valueToDisplay,
+            titleValue,
+            cellClasses,
+        }),
+        addClasses,
+    };
 }
 
-function getHyperlinkCellHtml(value: unknown): string {
+function getHyperlinkCellFormatterResult(value: unknown): FormatterResultWithHtml {
     let cellClasses = "grid-cell-value-container";
     let valueToDisplay = "";
     let isHyperlink = false;
@@ -81,15 +85,19 @@ function getHyperlinkCellHtml(value: unknown): string {
         }
     }
 
-    return isHyperlink
-        ? `<a class="${cellClasses}" title="${valueToDisplay}">${valueToDisplay}</a>`
-        : `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
+    return {
+        html: createCellValueElement({
+            tagName: isHyperlink ? "a" : "span",
+            valueToDisplay,
+            cellClasses,
+        }),
+    };
 }
 
 export function getFluentResultGridColumnName(columnInfo: IDbColumn): string {
     return columnInfo.columnName === "Microsoft SQL Server 2005 XML Showplan"
-        ? "Showplan XML"
-        : escapeHtml(columnInfo.columnName);
+        ? htmlEncode(locConstants.queryResult.showplanXML)
+        : htmlEncode(columnInfo.columnName);
 }
 
 export function getFluentResultGridColumnFormatter(
@@ -99,7 +107,7 @@ export function getFluentResultGridColumnFormatter(
 
     if (columnInfo.isVector && !shouldRenderAsHyperlink) {
         return ((_row, _cell, value) =>
-            getTextCellHtml(
+            getTextCellFormatterResult(
                 value,
                 isDbCellValue(value) && value.isNull
                     ? FLUENT_RESULT_GRID_NULL_CELL_CSS_CLASS
@@ -112,7 +120,7 @@ export function getFluentResultGridColumnFormatter(
 
     return ((row, _cell, value) => {
         if (shouldRenderAsHyperlink) {
-            return getHyperlinkCellHtml(value);
+            return getHyperlinkCellFormatterResult(value);
         }
 
         const displayValue = isDbCellValue(value) ? value.displayValue : undefined;
@@ -123,7 +131,7 @@ export function getFluentResultGridColumnFormatter(
             sampledRows.has(row) ||
             sampledRows.size >= maxDistinctRows
         ) {
-            return getTextCellHtml(
+            return getTextCellFormatterResult(
                 value,
                 isDbCellValue(value) && value.isNull
                     ? FLUENT_RESULT_GRID_NULL_CELL_CSS_CLASS
@@ -135,10 +143,10 @@ export function getFluentResultGridColumnFormatter(
 
         if (isXmlCell(displayValue) || isJson(displayValue)) {
             shouldRenderAsHyperlink = true;
-            return getHyperlinkCellHtml(value);
+            return getHyperlinkCellFormatterResult(value);
         }
 
-        return getTextCellHtml(value);
+        return getTextCellFormatterResult(value);
     }) as Formatter<FluentResultGridDataRow>;
 }
 
@@ -146,8 +154,11 @@ export function fluentResultGridRowNumberFormatter(
     _row: number | undefined,
     _cell: number | undefined,
     value: unknown,
-): string {
-    return `<span class="row-number fluent-result-grid-row-number">${value ?? ""}</span>`;
+): FormatterResultWithHtml {
+    const rowNumber = document.createElement("span");
+    rowNumber.className = "row-number fluent-result-grid-row-number";
+    rowNumber.textContent = value?.toString() ?? "";
+    return { html: rowNumber };
 }
 
 export function getFluentResultGridAutoSizeCellText(value: unknown): string {

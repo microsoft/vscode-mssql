@@ -11,7 +11,7 @@ import {
     type MutableRefObject,
     type RefObject,
 } from "react";
-import { SlickEventData, type SlickGrid } from "@slickgrid-universal/common";
+import { SlickEventData, type SlickGrid } from "slickgrid-react";
 import { getPreviousFocusableElement } from "../../utils";
 import type {
     FluentResultGridCommandContext,

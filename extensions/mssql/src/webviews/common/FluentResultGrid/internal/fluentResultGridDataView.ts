@@ -14,7 +14,7 @@ import {
     SlickEvent,
     SlickEventHandler,
     SlickGrid,
-} from "@slickgrid-universal/common";
+} from "slickgrid-react";
 import type { DbCellValue } from "../../../../sharedInterfaces/queryResult";
 import type {
     FluentResultGridDataSource,

@@ -5,12 +5,13 @@
 
 import debounce from "lodash/debounce";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Column, GridOption } from "slickgrid-react";
 import type {
+    Column,
     GridMenuCallbackArgs,
     GridMenuCommandItemCallbackArgs,
+    GridOption,
     SlickGrid,
-} from "@slickgrid-universal/common";
+} from "slickgrid-react";
 import {
     baseFluentReadOnlyGridOption,
     createFluentAutoResizeOptions,
