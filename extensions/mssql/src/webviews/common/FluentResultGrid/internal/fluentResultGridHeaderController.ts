@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, type MutableRefObject } from "react";
-import { SlickRange, type Column, type SlickGrid } from "slickgrid-react";
+import { SlickRange } from "@slickgrid-universal/common";
+import type { Column, SlickGrid } from "slickgrid-react";
 import type {
     ColumnFilterMap,
     ResultSetSummary,

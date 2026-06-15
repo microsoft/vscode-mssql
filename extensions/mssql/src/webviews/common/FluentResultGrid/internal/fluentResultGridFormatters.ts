@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type Formatter, type FormatterResultWithHtml, htmlEncode } from "slickgrid-react";
+import type { Formatter, FormatterResultWithHtml } from "slickgrid-react";
+import { htmlEncode } from "@slickgrid-universal/utils";
 import { isJson } from "../../jsonUtils";
 import { locConstants } from "../../locConstants";
 import { isXmlCell } from "../../xmlUtils";

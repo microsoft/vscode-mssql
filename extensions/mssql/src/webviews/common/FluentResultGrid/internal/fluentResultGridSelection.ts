@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SlickRange, type SlickGrid } from "slickgrid-react";
+import { SlickRange } from "@slickgrid-universal/common";
+import type { SlickGrid } from "slickgrid-react";
 import type { ISlickRange } from "../../../../sharedInterfaces/queryResult";
 import { FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX } from "./fluentResultGridConstants";
 

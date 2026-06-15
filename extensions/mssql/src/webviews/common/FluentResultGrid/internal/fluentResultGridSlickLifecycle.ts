@@ -9,8 +9,8 @@ import {
     SlickEventHandler,
     type SlickGrid,
     type SlickRange,
-    type SlickgridReactInstance,
-} from "slickgrid-react";
+} from "@slickgrid-universal/common";
+import type { SlickgridReactInstance } from "slickgrid-react";
 import type { FluentResultGridProps } from "../types/fluentResultGridProps";
 import type { ReactGridInstanceWithSharedService } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataRow, FluentResultGridDataView } from "./fluentResultGridDataView";
