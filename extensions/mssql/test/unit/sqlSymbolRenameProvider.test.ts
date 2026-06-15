@@ -317,8 +317,19 @@ suite("SqlSymbolRenameProvider Tests", () => {
             } as unknown as vscode.TextDocument;
         }
 
-        // A rename response that carries the four refactorlog metadata fields plus
-        // a non-empty change set (so the early single-file path is not taken).
+        // A rename response that carries the STS-generated refactorlog content plus a non-empty
+        // change set (so the early single-file path is not taken).
+        const generatedRefactorLog = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">',
+            '  <Operation Name="Rename Refactor" Key="abc" ChangeDateTime="01/01/2026 00:00:00">',
+            '    <Property Name="ElementName" Value="[dbo].[MyTable]" />',
+            '    <Property Name="ElementType" Value="SqlTable" />',
+            '    <Property Name="NewName" Value="NewTable" />',
+            "  </Operation>",
+            "</Operations>",
+        ].join("\n");
+
         function refactorResponse() {
             return {
                 changes: {
@@ -332,10 +343,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
                         },
                     ],
                 },
-                elementName: "[dbo].[MyTable]",
-                elementType: "SqlTable",
-                parentElementName: "[dbo]",
-                parentElementType: "SqlSchema",
+                refactorLogContent: generatedRefactorLog,
                 newName: "NewTable",
             };
         }
@@ -353,12 +361,16 @@ suite("SqlSymbolRenameProvider Tests", () => {
             openTextDocumentStub.callsFake((_uri: vscode.Uri) =>
                 Promise.resolve(makeTextDoc(sqlprojContent)),
             );
+            // No refactorlog file exists yet — stat rejects.
+            sandbox
+                .stub(vscode.workspace, "fs")
+                .value({ stat: sandbox.stub().rejects(new Error("not found")) });
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves(refactorResponse());
 
             const doc = makeDocument(sandbox);
             await provider.provideRenameEdits(doc, new vscode.Position(0, 0), "NewTable", token);
 
-            // A new .refactorlog file was created with the Rename Refactor operation.
+            // A new .refactorlog file was created with the STS-generated content.
             expect(createFileSpy).to.have.been.called;
             const [createdUri, createOpts] = createFileSpy.firstCall.args as [
                 vscode.Uri,
@@ -368,9 +380,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
                 vscode.Uri.file(path.resolve(projectDir, "proj.refactorlog")).fsPath,
             );
             const created = createOpts.contents.toString("utf8");
-            expect(created).to.contain('Name="Rename Refactor"');
-            expect(created).to.contain('Value="[dbo].[MyTable]"');
-            expect(created).to.contain('Value="SqlTable"');
+            expect(created).to.equal(generatedRefactorLog);
 
             // The .sqlproj was updated with a <RefactorLog Include="..."> entry.
             const sqlprojReplace = replaceSpy
@@ -382,7 +392,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
             );
         });
 
-        test("appends to an existing registered .refactorlog", async () => {
+        test("passes existing refactorlog content to STS and writes the returned content", async () => {
             const sqlprojContent = [
                 "<Project>",
                 '  <ItemGroup><RefactorLog Include="proj.refactorlog" /></ItemGroup>',
@@ -408,32 +418,40 @@ suite("SqlSymbolRenameProvider Tests", () => {
             const doc = makeDocument(sandbox);
             await provider.provideRenameEdits(doc, new vscode.Position(0, 0), "NewTable", token);
 
-            // No new file created — the existing one is edited in place.
+            // The current refactorlog content is forwarded to STS so it can append the new operation.
+            expect(sendRequestStub).to.have.been.calledWith(
+                SqlSymbolRenameRequest.type,
+                sinon.match({ existingRefactorLogContent: existingLog }),
+            );
+
+            // No new file created — the existing one is overwritten with the STS content.
             expect(createFileSpy).to.not.have.been.called;
 
             const logReplace = replaceSpy
                 .getCalls()
                 .find((c) => (c.args[0] as vscode.Uri).fsPath.endsWith(".refactorlog"));
             expect(logReplace, "expected a replace on the .refactorlog").to.not.be.undefined;
-            const updated = logReplace!.args[2] as string;
-            expect(updated).to.contain('Name="Rename Refactor"');
-            // The new operation is inserted before the closing tag.
-            expect(updated.indexOf("Rename Refactor")).to.be.lessThan(
-                updated.indexOf("</Operations>"),
-            );
+            expect(logReplace!.args[2] as string).to.equal(generatedRefactorLog);
+
+            // Already registered — the .sqlproj must not be modified again.
+            const sqlprojReplace = replaceSpy
+                .getCalls()
+                .find((c) => (c.args[0] as vscode.Uri).fsPath.endsWith(".sqlproj"));
+            expect(sqlprojReplace).to.be.undefined;
         });
 
-        test("does not write a refactorlog when elementType is missing", async () => {
+        test("does not write a refactorlog when refactorLogContent is missing", async () => {
             const sqlprojContent = ["<Project>", "</Project>"].join("\n");
             openTextDocumentStub.callsFake((_uri: vscode.Uri) =>
                 Promise.resolve(makeTextDoc(sqlprojContent)),
             );
-            // Non-data object (e.g. stored procedure) — STS returns no element type.
+            sandbox
+                .stub(vscode.workspace, "fs")
+                .value({ stat: sandbox.stub().rejects(new Error("not found")) });
+            // Non-data object (e.g. stored procedure) — STS returns no refactorlog content.
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 ...refactorResponse(),
-                elementType: null,
-                parentElementName: null,
-                parentElementType: null,
+                refactorLogContent: null,
             });
 
             const doc = makeDocument(sandbox);

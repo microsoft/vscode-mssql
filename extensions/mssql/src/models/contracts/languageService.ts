@@ -155,6 +155,8 @@ export interface SqlSymbolRenameParams {
     textDocument: { uri: string };
     position: { line: number; character: number };
     newName: string;
+    /** Current content of the project's .refactorlog file, or null/empty if none exists yet. */
+    existingRefactorLogContent: string | null;
 }
 
 export interface SqlSymbolRenameTextEdit {
@@ -167,14 +169,11 @@ export interface SqlSymbolRenameTextEdit {
 
 export interface SqlSymbolRenameResponse {
     changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
-    /** Fully bracket-quoted element name, e.g. [dbo].[Customers]. Used as ElementName in .refactorlog. */
-    elementName: string | null;
-    /** DacFx refactorlog element type, e.g. "SqlTable", "SqlSimpleColumn". Null when refactorlog not needed. */
-    elementType: string | null;
-    /** Fully bracket-quoted parent element name, e.g. [dbo] or [dbo].[Table1]. */
-    parentElementName: string | null;
-    /** DacFx refactorlog parent type, e.g. "SqlSchema" or "SqlTable". */
-    parentElementType: string | null;
+    /**
+     * Full content of the .refactorlog file with the new rename operation appended, ready to write.
+     * Null when the renamed symbol does not require a refactorlog entry.
+     */
+    refactorLogContent: string | null;
     newName: string;
 }
 
