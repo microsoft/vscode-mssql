@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, Text, tokens } from "@fluentui/react-components";
+import { Button, makeStyles, Tab, TabList, Text, tokens } from "@fluentui/react-components";
 import * as React from "react";
 import { locConstants } from "../../common/locConstants";
 import { useCloudDeployHubContext } from "./cloudDeployHubStateProvider";
 import { useCloudDeployHubSelector } from "./cloudDeployHubSelector";
 import { RunListView } from "./views/runListView";
+import { EnvironmentsListView } from "./views/environmentsListView";
 import { EnvironmentView } from "./views/environmentView";
 import { RunView } from "./views/runView";
 import { CompareView } from "./views/compareView";
@@ -51,21 +52,37 @@ const useStyles = makeStyles({
 
 export const CloudDeployHubPage: React.FC = () => {
     const classes = useStyles();
-    const { refresh } = useCloudDeployHubContext();
+    const { refresh, navigate } = useCloudDeployHubContext();
     const currentPage = useCloudDeployHubSelector((s) => s.currentPage);
     const errorMessage = useCloudDeployHubSelector((s) => s.errorMessage);
     const strings = locConstants.cloudDeployHub;
+
+    // The top tab switcher peers the two landing pages. Detail pages
+    // (environment / run / compare) carry their own back arrow instead.
+    const isLandingPage = currentPage === "environmentList" || currentPage === "runList";
 
     return (
         <div className={classes.root}>
             <div className={classes.header}>
                 <Text className={classes.title}>{strings.title}</Text>
+                {isLandingPage ? (
+                    <TabList
+                        selectedValue={currentPage}
+                        onTabSelect={(_e, data) =>
+                            navigate(data.value as "environmentList" | "runList")
+                        }
+                        size="small">
+                        <Tab value="environmentList">{strings.tabEnvironments}</Tab>
+                        <Tab value="runList">{strings.tabRuns}</Tab>
+                    </TabList>
+                ) : null}
                 <Button size="small" onClick={refresh}>
                     {strings.refresh}
                 </Button>
             </div>
             {errorMessage ? <div className={classes.error}>{errorMessage}</div> : null}
             <div className={classes.content}>
+                {currentPage === "environmentList" && <EnvironmentsListView />}
                 {currentPage === "runList" && <RunListView />}
                 {currentPage === "environment" && <EnvironmentView />}
                 {currentPage === "run" && <RunView />}

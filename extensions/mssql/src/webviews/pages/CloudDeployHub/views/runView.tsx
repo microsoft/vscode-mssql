@@ -12,6 +12,7 @@ import { useCloudDeployHubSelector } from "../cloudDeployHubSelector";
 import { StatusBadge } from "../components/statusBadge";
 import { ValidationCard } from "../components/validationCard";
 import { EventTimeline } from "../components/eventTimeline";
+import { sourceKindLabel } from "../components/humanize";
 
 const useStyles = makeStyles({
     backRow: {
@@ -91,6 +92,15 @@ function formatDuration(startedAtMs: number, endedAtMs: number): string {
     return locConstants.cloudDeployHub.durationSeconds(seconds);
 }
 
+/**
+ * Detail text for a source of truth: the file path for sqlproj / dacpac
+ * sources. Reads `path` defensively so a future additive source kind without
+ * one renders cleanly (just the kind label, no detail).
+ */
+function sourceOfTruthDetail(sourceOfTruth: { readonly path?: string }): string {
+    return sourceOfTruth.path ?? "";
+}
+
 export const RunView: React.FC = () => {
     const classes = useStyles();
     const { navigate, revealArtifact, deleteRun } = useCloudDeployHubContext();
@@ -105,7 +115,7 @@ export const RunView: React.FC = () => {
             <div className={classes.loading}>
                 <Text>{strings.runNotLoaded}</Text>
                 <div style={{ marginTop: "12px" }}>
-                    <Link onClick={() => navigate("runList")}>{strings.backToList}</Link>
+                    <Link onClick={() => navigate("runList")}>{strings.backToRuns}</Link>
                 </div>
             </div>
         );
@@ -119,7 +129,7 @@ export const RunView: React.FC = () => {
                     icon={<ArrowLeftRegular />}
                     size="small"
                     onClick={() => navigate("runList")}>
-                    {strings.backToList}
+                    {strings.backToRuns}
                 </Button>
                 <Button
                     appearance="subtle"
@@ -149,6 +159,13 @@ export const RunView: React.FC = () => {
                 <span className={classes.metaLabel}>{strings.runRunnerLabel}</span>
                 <span>
                     {run.runner.displayName} ({run.runner.hostKind})
+                </span>
+                <span className={classes.metaLabel}>{strings.runSourceOfTruthLabel}</span>
+                <span className={classes.artifactPath}>
+                    {sourceKindLabel(run.environmentSnapshot.sourceOfTruth.kind)}
+                    {sourceOfTruthDetail(run.environmentSnapshot.sourceOfTruth)
+                        ? ` · ${sourceOfTruthDetail(run.environmentSnapshot.sourceOfTruth)}`
+                        : ""}
                 </span>
                 {run.sourceVersion ? (
                     <>

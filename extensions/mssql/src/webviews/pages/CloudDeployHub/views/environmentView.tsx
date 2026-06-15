@@ -125,7 +125,9 @@ export const EnvironmentView: React.FC = () => {
             <div className={classes.notFound}>
                 <Text>{strings.environmentNotFound(selectedEnvId ?? "")}</Text>
                 <div style={{ marginTop: "12px" }}>
-                    <Link onClick={() => navigate("runList")}>{strings.backToList}</Link>
+                    <Link onClick={() => navigate("environmentList")}>
+                        {strings.backToEnvironments}
+                    </Link>
                 </div>
             </div>
         );
@@ -146,8 +148,8 @@ export const EnvironmentView: React.FC = () => {
                     appearance="subtle"
                     icon={<ArrowLeftRegular />}
                     size="small"
-                    onClick={() => navigate("runList")}>
-                    {strings.backToList}
+                    onClick={() => navigate("environmentList")}>
+                    {strings.backToEnvironments}
                 </Button>
             </div>
             <div className={classes.titleRow}>

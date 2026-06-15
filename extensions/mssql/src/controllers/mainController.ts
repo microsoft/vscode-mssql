@@ -21,12 +21,7 @@ import {
 } from "../cloudDeploy/dashboard";
 import { CloudDeployHubController } from "../cloudDeploy/dashboard/cloudDeployHubController";
 import { seedSampleRun } from "../cloudDeploy/dev/seedSampleRun";
-import { selectBaselineRun, type BaselineCandidate } from "../cloudDeploy/runs";
-import type { RunRecord } from "../cloudDeploy/runs/types";
-import {
-    VsCodeMssqlConnectionStrategy,
-    VsCodeMssqlEphemeralConnector,
-} from "../cloudDeploy/host/vscodeMssqlConnectionStrategy";
+import { VsCodeMssqlEphemeralConnector } from "../cloudDeploy/host/vscodeMssqlConnectionStrategy";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -142,6 +137,16 @@ import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvi
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
 import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
+
+/** Narrows an unknown command arg to the hub's `{ envId }` validate payload. */
+function isEnvIdPayload(value: unknown): value is { readonly envId: string } {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        typeof (value as { envId?: unknown }).envId === "string" &&
+        (value as { envId: string }).envId.length > 0
+    );
+}
 
 /**
  * The main controller class that initializes the extension
@@ -1139,7 +1144,6 @@ export default class MainController implements vscode.Disposable {
             cloudDeployFolder,
             this._context.workspaceState,
             {
-                connectionStrategy: new VsCodeMssqlConnectionStrategy(this._connectionMgr),
                 ephemeralConnector: new VsCodeMssqlEphemeralConnector(this._connectionMgr),
             },
         );
@@ -1198,6 +1202,19 @@ export default class MainController implements vscode.Disposable {
 
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdCloudDeployOpenHub, () => {
+                CloudDeployHubController.getOrCreate(
+                    this._context,
+                    this._vscodeWrapper,
+                    this.cloudDeployService.environments,
+                    this.cloudDeployService.runs.store,
+                    this.cloudDeployService.diagnostics,
+                    { kind: "environmentList" },
+                    this.cloudDeployService.getActiveRuns(),
+                );
+            }),
+        );
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdCloudDeployViewAllRuns, () => {
                 CloudDeployHubController.getOrCreate(
                     this._context,
                     this._vscodeWrapper,
@@ -2884,12 +2901,23 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Invoked from the tree view "Validate environment" context menu: validate
-        // the clicked environment directly. Otherwise (Command Palette) prompt for it.
+        // the clicked environment directly. Invoked from the hub's per-row Validate
+        // button: an `{ envId }` payload. Otherwise (Command Palette) prompt for it.
         let envId: string;
         let envName: string;
         if (isEnvironmentNode(node)) {
             envId = node.env.id;
             envName = node.env.name;
+        } else if (isEnvIdPayload(node)) {
+            const env = envs.find((e) => e.id === node.envId);
+            if (env === undefined) {
+                this._vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.CloudDeployValidation.noEnvironmentsDeclared,
+                );
+                return;
+            }
+            envId = env.id;
+            envName = env.name;
         } else {
             const items = envs.map((env) => ({
                 label: env.name,
@@ -2976,61 +3004,6 @@ export default class MainController implements vscode.Disposable {
         );
 
         await this.showCloudDeployValidateResult(envName, result);
-        await this.maybeOfferSchemaDiff(result.record);
-    }
-
-    /**
-     * After a validation run, offers a "View diff" toast when this run's schema
-     * differs from a prior run of the same environment (Scope 2, decisions D-B
-     * / M8). The baseline is the most-recent earlier run with a different
-     * schema hash — the local analog of CI's "diff against main". Best-effort:
-     * no run store, no source-version hash, or no comparable predecessor means
-     * no toast.
-     */
-    private async maybeOfferSchemaDiff(record: RunRecord): Promise<void> {
-        const store = this.cloudDeployService.runs.store;
-        if (store === undefined || record.sourceVersion === undefined) {
-            return;
-        }
-        // Refresh the cache so the just-persisted run is loadable when the user
-        // opens the diff, then project the env's history into baseline candidates.
-        try {
-            await store.scan();
-        } catch {
-            // RunStore.scan never throws on a missing dir; ignore any other failure.
-        }
-        const history: BaselineCandidate[] = store.list(record.environmentId).map((entry) => ({
-            runId: entry.runId,
-            startedAtMs: entry.startedAtMs,
-            sourceVersionHash: entry.sourceVersionHash,
-        }));
-        const baseline = selectBaselineRun(
-            {
-                runId: record.runId,
-                startedAtMs: record.startedAtMs,
-                sourceVersionHash: record.sourceVersion.hash,
-            },
-            history,
-        );
-        if (baseline === undefined) {
-            return;
-        }
-        const viewDiff = LocalizedConstants.CloudDeployValidation.viewSchemaDiffAction;
-        const action = await vscode.window.showInformationMessage(
-            LocalizedConstants.CloudDeployValidation.schemaChangedSinceLastRun,
-            viewDiff,
-        );
-        if (action === viewDiff) {
-            CloudDeployHubController.getOrCreate(
-                this._context,
-                this._vscodeWrapper,
-                this.cloudDeployService.environments,
-                this.cloudDeployService.runs.store,
-                this.cloudDeployService.diagnostics,
-                { kind: "compare", runIdA: baseline.runId, runIdB: record.runId },
-                this.cloudDeployService.getActiveRuns(),
-            );
-        }
     }
 
     private async showCloudDeployValidateResult(

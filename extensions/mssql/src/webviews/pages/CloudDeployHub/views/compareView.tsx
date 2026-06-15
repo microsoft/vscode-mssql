@@ -105,7 +105,7 @@ export const CompareView: React.FC = () => {
                         icon={<ArrowLeftRegular />}
                         size="small"
                         onClick={() => navigate("runList")}>
-                        {strings.backToList}
+                        {strings.backToRuns}
                     </Button>
                 </div>
             </div>
@@ -120,7 +120,7 @@ export const CompareView: React.FC = () => {
                     icon={<ArrowLeftRegular />}
                     size="small"
                     onClick={() => navigate("runList")}>
-                    {strings.backToList}
+                    {strings.backToRuns}
                 </Button>
             </div>
             <Text as="h2" className={classes.heading}>

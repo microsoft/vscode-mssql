@@ -256,6 +256,8 @@
     "mssql.cloudDeploy.refreshDashboard": "Cloud Deploy: Refresh dashboard",
     "mssql.cloudDeploy.revealRunArtifact": "Cloud Deploy: Reveal run artifact in OS",
     "mssql.cloudDeploy.openHub": "Cloud Deploy: Open hub",
+    "mssql.cloudDeploy.viewAllEnvironments": "View all environments",
+    "mssql.cloudDeploy.viewAllRuns": "View all runs",
     "mssql.cloudDeploy.openEnvironment": "Cloud Deploy: Open environment in hub",
     "mssql.cloudDeploy.openRun": "Cloud Deploy: Open run in hub",
     "mssql.cloudDeploy.seedSampleRun": "Cloud Deploy: Seed sample run (dev)",

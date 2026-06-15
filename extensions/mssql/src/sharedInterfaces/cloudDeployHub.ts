@@ -11,7 +11,8 @@
  * by user actions in the webview.
  *
  * The hub is a single-panel view that navigates between several pages:
- *   * `runList`     — every run in the workspace (default landing).
+ *   * `environmentList` — every declared environment (default landing).
+ *   * `runList`     — every run in the workspace.
  *   * `environment` — one environment + its recent runs.
  *   * `run`         — full detail for one run (status, validations, artifact).
  *   * `compare`     — two runs diffed side by side.
@@ -30,7 +31,13 @@ import type { RunListEntry, RunRecord } from "../cloudDeploy/runs/types";
 // =============================================================================
 
 /** The top-level pages the hub navigates between. */
-export type HubPage = "pipeline" | "environment" | "run" | "runList" | "compare";
+export type HubPage =
+    | "pipeline"
+    | "environmentList"
+    | "environment"
+    | "run"
+    | "runList"
+    | "compare";
 
 // =============================================================================
 // Wire-friendly summaries
@@ -125,6 +132,8 @@ export interface CloudDeployHubReducers {
     deleteRun: { readonly runId: string };
     /** Compare two runs side by side. Navigates to the compare page. */
     compareRuns: { readonly runIdA: string; readonly runIdB: string };
+    /** Run the validation pipeline against an environment (per-row Validate). */
+    runValidation: { readonly envId: string };
     /**
      * Set (or clear, with `undefined`) the user's default environment.
      * Persisted by the `EnvironmentStore` in workspace state.

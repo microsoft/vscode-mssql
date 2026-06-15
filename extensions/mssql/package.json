@@ -560,6 +560,12 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "mssql.cloudDeploy.openHub",
+                    "when": "view == mssqlCloudDeploy",
+                    "title": "%mssql.cloudDeploy.openHub%",
+                    "group": "navigation"
+                },
+                {
                     "command": "mssql.cloudDeploy.refreshDashboard",
                     "when": "view == mssqlCloudDeploy",
                     "title": "%mssql.cloudDeploy.refreshDashboard%",
@@ -585,6 +591,18 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.cloudDeploy.openHub",
+                    "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.section.environments",
+                    "title": "%mssql.cloudDeploy.viewAllEnvironments%",
+                    "group": "1_cloudDeploy@1"
+                },
+                {
+                    "command": "mssql.cloudDeploy.viewAllRuns",
+                    "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.section.runs",
+                    "title": "%mssql.cloudDeploy.viewAllRuns%",
+                    "group": "1_cloudDeploy@1"
+                },
                 {
                     "command": "mssql.cloudDeploy.validateEnvironment",
                     "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.environment",
@@ -1613,6 +1631,12 @@
             {
                 "command": "mssql.cloudDeploy.openHub",
                 "title": "%mssql.cloudDeploy.openHub%",
+                "category": "MS SQL",
+                "icon": "$(window)"
+            },
+            {
+                "command": "mssql.cloudDeploy.viewAllRuns",
+                "title": "%mssql.cloudDeploy.viewAllRuns%",
                 "category": "MS SQL"
             },
             {

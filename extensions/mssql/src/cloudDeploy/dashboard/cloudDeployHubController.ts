@@ -23,6 +23,7 @@
 import * as vscode from "vscode";
 
 import { CloudDeployDashboard } from "../../constants/locConstants";
+import { cmdCloudDeployValidate } from "../../constants/constants";
 import {
     CloudDeployHubReducers,
     CloudDeployHubState,
@@ -56,6 +57,7 @@ const HUB_VIEW_ID = "CloudDeployHub";
 
 /** Page the hub should land on when first opened. */
 export type HubInitialView =
+    | { readonly kind: "environmentList" }
     | { readonly kind: "runList" }
     | { readonly kind: "environment"; readonly envId: string }
     | { readonly kind: "run"; readonly runId: string }
@@ -248,6 +250,23 @@ export class CloudDeployHubController extends WebviewPanelController<
 
         this.registerReducer("compareRuns", async (state, payload) => {
             return await this._computeComparisonState(state, payload.runIdA, payload.runIdB);
+        });
+
+        this.registerReducer("runValidation", async (state, payload) => {
+            if (typeof payload.envId === "string" && payload.envId.length > 0) {
+                // Defer the command to the next tick. The validation pipeline emits
+                // `validation-run-started` synchronously once `run()` begins, which
+                // the bus subscription uses to populate `liveRuns` (the "Currently
+                // running" banner). If we fired it inline, that update would land
+                // BEFORE this reducer's returned state is applied — and the return
+                // would then clobber `liveRuns` back to empty. Deferring guarantees
+                // the reducer's state lands first, so the live update sticks.
+                const envId = payload.envId;
+                setTimeout(() => {
+                    void vscode.commands.executeCommand(cmdCloudDeployValidate, { envId });
+                }, 0);
+            }
+            return this._withFreshSnapshots(state);
         });
 
         this.registerReducer("setDefaultEnvironment", async (state, payload) => {
@@ -581,7 +600,7 @@ function buildInitialState(
         };
     }
     return {
-        currentPage: "runList",
+        currentPage: initialView.kind === "runList" ? "runList" : "environmentList",
         environments: envs,
         runs,
         liveRuns,
@@ -657,5 +676,8 @@ function initialViewToReducerPayload(initialView: HubInitialView): {
     if (initialView.kind === "run") {
         return { page: "run", runId: initialView.runId };
     }
-    return { page: "runList" };
+    if (initialView.kind === "runList") {
+        return { page: "runList" };
+    }
+    return { page: "environmentList" };
 }
