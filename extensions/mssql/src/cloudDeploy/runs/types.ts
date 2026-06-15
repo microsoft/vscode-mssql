@@ -59,13 +59,19 @@ export enum RunStatus {
  * Per-status severity rank. Higher value = worse outcome. Aggregation picks
  * the validation with the highest rank as the run-level `RunStatus`.
  *
+ * `Skipped` is the FLOOR (rank 0): a skip means "this check doesn't apply
+ * here" (e.g. static analysis against a pre-built dacpac), which is the most
+ * benign outcome — not a problem. `Passed` ranks just above it so a run with
+ * a mix of passes and skips rolls up to `Passed` (real work ran and
+ * succeeded), while a run where EVERYTHING skipped stays `Skipped`.
+ *
  * `Object.freeze` prevents accidental mutation of shared module-level state
  * by callers (a real bug class once the store starts copying these constants
  * into telemetry payloads).
  */
 export const RUN_STATUS_PRIORITY: Readonly<Record<RunStatus, number>> = Object.freeze({
-    [RunStatus.Passed]: 0,
-    [RunStatus.Skipped]: 1,
+    [RunStatus.Skipped]: 0,
+    [RunStatus.Passed]: 1,
     [RunStatus.Cancelled]: 2,
     [RunStatus.Warning]: 3,
     [RunStatus.Failed]: 4,

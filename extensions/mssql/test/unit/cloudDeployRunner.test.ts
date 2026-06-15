@@ -159,6 +159,42 @@ suite("CloudDeploy Validation Runner", () => {
             expect(record.status).to.equal(RunStatus.Passed);
         });
 
+        test("a mix of Passed and Skipped rolls up to Passed", async () => {
+            // A dacpac run skips static analysis by design but everything else
+            // passes; the run is healthy, so it must read Passed, not Skipped.
+            const { registry, staticAnalysis } = makeFakeRegistry();
+            staticAnalysis.behavior = {
+                kind: "pass",
+                result: { status: ValidationStatus.Skipped },
+            };
+            const env = makeEnvironmentWithValidations([
+                makeValidationConfig(ValidationType.StaticAnalysis),
+                makeValidationConfig(ValidationType.UnitTests),
+            ]);
+
+            const record = await new Runner(registry, bus).run(env);
+            expect(record.status).to.equal(RunStatus.Passed);
+        });
+
+        test("all-Skipped rolls up to Skipped", async () => {
+            const { registry, staticAnalysis, unitTests } = makeFakeRegistry();
+            staticAnalysis.behavior = {
+                kind: "pass",
+                result: { status: ValidationStatus.Skipped },
+            };
+            unitTests.behavior = {
+                kind: "pass",
+                result: { status: ValidationStatus.Skipped },
+            };
+            const env = makeEnvironmentWithValidations([
+                makeValidationConfig(ValidationType.StaticAnalysis),
+                makeValidationConfig(ValidationType.UnitTests),
+            ]);
+
+            const record = await new Runner(registry, bus).run(env);
+            expect(record.status).to.equal(RunStatus.Skipped);
+        });
+
         test("a single Warning rolls up to Warning when nothing worse is present", async () => {
             const { registry, staticAnalysis } = makeFakeRegistry();
             staticAnalysis.behavior = { kind: "warning" };

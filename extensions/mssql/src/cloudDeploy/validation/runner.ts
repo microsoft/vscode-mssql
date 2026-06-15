@@ -551,6 +551,11 @@ function orderForDispatch(configs: readonly ValidationConfig[]): readonly Valida
  * rank and uses its status as the run-level status. An empty results list
  * collapses to `Passed` (nothing ran, nothing failed).
  *
+ * The loop seeds with `Skipped` (the priority floor) so a run whose
+ * validations ALL skipped rolls up to `Skipped`, while any single `Passed`
+ * surfaces above the skips (e.g. a dacpac run where static analysis skips by
+ * design but everything else passes rolls up to `Passed`, not `Skipped`).
+ *
  * `ValidationStatus` and `RunStatus` share string values, so the lookup
  * via `RUN_STATUS_PRIORITY` is safe.
  */
@@ -558,7 +563,7 @@ function rollupRunStatus(results: readonly ValidationResult[]): RunStatus {
     if (results.length === 0) {
         return RunStatus.Passed;
     }
-    let worst: RunStatus = RunStatus.Passed;
+    let worst: RunStatus = RunStatus.Skipped;
     let worstRank = RUN_STATUS_PRIORITY[worst];
     for (const r of results) {
         const asRun = r.status as unknown as RunStatus;
