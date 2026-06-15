@@ -1971,6 +1971,9 @@ export class LocConstants {
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
             configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
+            verifyContainerImageNotationCli: l10n.t(
+                "Verify a container image by using the Notation CLI",
+            ),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),
             checkingPrerequisites: l10n.t("Checking pre-requisites"),
             createContainer: l10n.t("Create Container"),
