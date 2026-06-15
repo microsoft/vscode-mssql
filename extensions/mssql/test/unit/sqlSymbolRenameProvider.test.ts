@@ -149,6 +149,8 @@ suite("SqlSymbolRenameProvider Tests", () => {
         const token = {} as vscode.CancellationToken;
 
         test("throws renameOnlyInProjectFiles when STS returns no result", async () => {
+            const projUri = vscode.Uri.file(defaultProjFile);
+            findFilesStub.resolves([projUri]);
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves(undefined);
 
             const doc = makeDocument(sandbox);
@@ -163,7 +165,27 @@ suite("SqlSymbolRenameProvider Tests", () => {
             expect(err!.message).to.equal(loc.renameOnlyInProjectFiles);
         });
 
+        test("wraps sendRequest rejection with renameRequestFailed message", async () => {
+            const projUri = vscode.Uri.file(defaultProjFile);
+            findFilesStub.resolves([projUri]);
+            const originalError = new Error("STS connection failed");
+            sendRequestStub.withArgs(SqlSymbolRenameRequest.type).rejects(originalError);
+
+            const doc = makeDocument(sandbox);
+            let err: Error | undefined;
+            try {
+                await provider.provideRenameEdits(doc, new vscode.Position(0, 0), "NewName", token);
+            } catch (e) {
+                err = e as Error;
+            }
+
+            expect(err).to.not.be.undefined;
+            expect(err!.message).to.equal(loc.renameRequestFailed("STS connection failed"));
+        });
+
         test("falls back to single-file rename when STS returns empty changes", async () => {
+            const projUri = vscode.Uri.file(defaultProjFile);
+            findFilesStub.resolves([projUri]);
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 changes: {},
                 elementName: "MyTable",
@@ -191,6 +213,8 @@ suite("SqlSymbolRenameProvider Tests", () => {
         });
 
         test("builds WorkspaceEdit from multi-file STS response", async () => {
+            const projUri = vscode.Uri.file(defaultProjFile);
+            findFilesStub.resolves([projUri]);
             const fileAUri = vscode.Uri.file(path.join(projectDir, "a.sql")).toString();
             const fileBUri = vscode.Uri.file(path.join(projectDir, "b.sql")).toString();
 
@@ -241,6 +265,8 @@ suite("SqlSymbolRenameProvider Tests", () => {
         });
 
         test("sends correct params to STS", async () => {
+            const projUri = vscode.Uri.file(defaultProjFile);
+            findFilesStub.resolves([projUri]);
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 changes: {},
                 elementName: "col",

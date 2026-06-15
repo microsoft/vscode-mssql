@@ -25,6 +25,12 @@ import { SqlSymbolRename as loc } from "../constants/locConstants";
  */
 export class SqlSymbolRenameProvider implements vscode.RenameProvider {
     /**
+     * Regex to match SQL identifiers: bracket-quoted (e.g. [TableName]) or regular word (e.g. TableName).
+     * Shared between prepareRename and provideRenameEdits to ensure consistent identifier detection.
+     */
+    private static readonly _renameWordRegex = /\[+[^\]]*\]+|\w+/;
+
+    /**
      * Returns true if `filePath` lives under the directory of any `.sqlproj` file
      * currently in the workspace. Uses VS Code's cached file index — no directory walks.
      */
@@ -52,7 +58,10 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             if (!inProject) {
                 return Promise.reject(new Error(loc.renameOnlyInProjectFiles));
             }
-            const wordRange = document.getWordRangeAtPosition(position, /\[+[^\]]*\]+|\w+/);
+            const wordRange = document.getWordRangeAtPosition(
+                position,
+                SqlSymbolRenameProvider._renameWordRegex,
+            );
             if (!wordRange) {
                 return Promise.reject(new Error(loc.renameNotSupportedAtPosition));
             }
@@ -73,8 +82,17 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
         newName: string,
-        _token: vscode.CancellationToken,
+        token: vscode.CancellationToken,
     ): Promise<vscode.WorkspaceEdit | null | undefined> {
+        // Enforce SQL project membership even if prepareRename wasn't called
+        if (!(await SqlSymbolRenameProvider.isInSqlProject(document.uri.fsPath))) {
+            throw new Error(loc.renameOnlyInProjectFiles);
+        }
+
+        if (token.isCancellationRequested) {
+            return undefined;
+        }
+
         const params: SqlSymbolRenameParams = {
             textDocument: { uri: document.uri.toString() },
             position: { line: position.line, character: position.character },
@@ -93,6 +111,10 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             );
         }
 
+        if (token.isCancellationRequested) {
+            return undefined;
+        }
+
         if (!response) {
             throw new Error(loc.renameOnlyInProjectFiles);
         }
@@ -101,7 +123,10 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
 
         if (!response.changes || Object.keys(response.changes).length === 0) {
             // No cross-file references — rename just the token at cursor in this file.
-            const wordRange = document.getWordRangeAtPosition(position, /\[+[^\]]*\]+|\w+/);
+            const wordRange = document.getWordRangeAtPosition(
+                position,
+                SqlSymbolRenameProvider._renameWordRegex,
+            );
             if (!wordRange) {
                 throw new Error(loc.noRenameableSymbolAtCursor);
             }
