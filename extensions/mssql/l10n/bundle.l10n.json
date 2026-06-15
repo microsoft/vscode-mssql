@@ -1908,6 +1908,12 @@
     "Please choose a blob to load restore plan": "Please choose a blob to load restore plan",
     "Cloud Deploy": "Cloud Deploy",
     "Back to runs": "Back to runs",
+    "Runs": "Runs",
+    "Environments": "Environments",
+    "No environments declared. Add one to .mssql/environments.json to get started.": "No environments declared. Add one to .mssql/environments.json to get started.",
+    "Last run": "Last run",
+    "No runs yet": "No runs yet",
+    "Validate": "Validate",
     "Reveal artifact": "Reveal artifact",
     "All runs": "All runs",
     "No runs yet. Run a validation against an environment to see it here.": "No runs yet. Run a validation against an environment to see it here.",
@@ -4120,7 +4126,6 @@
         "message": "Validation finished but the run artifact could not be saved: {0}",
         "comment": ["{0} is the underlying I/O error message"]
     },
-    "Environments": "Environments",
     "Recent Runs": "Recent Runs",
     "No environments declared. Add one to .mssql/environments.json.": "No environments declared. Add one to .mssql/environments.json.",
     "No runs yet. Run validation to produce one.": "No runs yet. Run validation to produce one.",
@@ -4167,7 +4172,6 @@
         "comment": ["{0} is the underlying error message"]
     },
     "Failed to load one or both runs for comparison.": "Failed to load one or both runs for comparison.",
-    "No runs yet": "No runs yet",
     "Source: {0}/{0} is the friendly source-of-truth kind name": {
         "message": "Source: {0}",
         "comment": ["{0} is the friendly source-of-truth kind name"]

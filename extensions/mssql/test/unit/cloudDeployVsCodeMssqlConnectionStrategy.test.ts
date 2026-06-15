@@ -4,37 +4,42 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Tests for `VsCodeMssqlConnectionStrategy` — the host-glue
- * `LiveConnectionStrategy` that bridges Cloud Deploy's connection seam to
- * vscode-mssql's `ConnectionManager`. Covers profile lookup, owner-URI
- * lifecycle, signal cancellation, error mapping, and idempotent dispose.
+ * Tests for `VsCodeMssqlEphemeralConnector` — the host-glue `EphemeralConnector`
+ * that bridges Cloud Deploy's ephemeral-database seam (Scope 2, decision D-C)
+ * to vscode-mssql's `ConnectionManager`. Covers owner-URI lifecycle, signal
+ * cancellation, error mapping, the shared `VsCodeMssqlConnectionHandle`'s
+ * row-mapping, and idempotent dispose.
  *
- * The `ConnectionManager` itself is stubbed via `FakeConnectionManager`:
- * the strategy only touches a tiny public surface (`connectionStore.connectionConfig.getConnectionById`
- * and `getConnections`, `connect`, `disconnect`, `client.sendRequest`), so a typed shim suffices.
+ * The `ConnectionManager` itself is stubbed via `FakeConnectionManager`: the
+ * connector only touches a tiny public surface (`connect`, `disconnect`,
+ * `client.sendRequest`), so a typed shim suffices.
  */
 
 import { expect } from "chai";
 
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ConnectionError } from "../../src/cloudDeploy/validation/providers/connectionProvider";
-import { VsCodeMssqlConnectionStrategy } from "../../src/cloudDeploy/host/vscodeMssqlConnectionStrategy";
-
-interface ProfileRecord {
-    readonly id: string;
-    readonly server: string;
-    readonly profileName?: string;
-}
+import { VsCodeMssqlEphemeralConnector } from "../../src/cloudDeploy/host/vscodeMssqlConnectionStrategy";
+import type { EphemeralConnectionParams } from "../../src/cloudDeploy/validation/providers/ephemeralDatabaseProvider";
 
 interface ConnectCall {
     readonly ownerUri: string;
-    readonly profileId: string;
+    readonly server: string;
 }
 
 interface SimpleExecuteRow {
     readonly displayValue: string;
     readonly isNull: boolean;
 }
+
+const PARAMS: EphemeralConnectionParams = {
+    host: "localhost",
+    port: 11433,
+    user: "sa",
+    password: "p@ss",
+    database: "CloudDeployValidation",
+    trustServerCertificate: true,
+};
 
 class FakeConnectionManager {
     public connectResult: boolean | (() => boolean | Promise<boolean>) = true;
@@ -48,18 +53,6 @@ class FakeConnectionManager {
     public connectCalls: ConnectCall[] = [];
     public disconnectCalls: string[] = [];
     public executeCalls: Array<{ sql: string; ownerUri: string }> = [];
-
-    public constructor(private readonly _profiles: Record<string, ProfileRecord>) {}
-
-    public get connectionStore() {
-        return {
-            connectionConfig: {
-                getConnectionById: async (id: string): Promise<ProfileRecord | undefined> =>
-                    this._profiles[id],
-                getConnections: async (): Promise<ProfileRecord[]> => Object.values(this._profiles),
-            },
-        };
-    }
 
     public get client() {
         return {
@@ -81,10 +74,10 @@ class FakeConnectionManager {
 
     public async connect(
         ownerUri: string,
-        profile: ProfileRecord,
+        credentials: { server: string },
         _options: { connectionSource?: string; shouldHandleErrors?: boolean },
     ): Promise<boolean> {
-        this.connectCalls.push({ ownerUri, profileId: profile.id });
+        this.connectCalls.push({ ownerUri, server: credentials.server });
         if (this.connectThrow) {
             throw this.connectThrow;
         }
@@ -104,55 +97,15 @@ function asConnectionManager(fake: FakeConnectionManager): ConnectionManager {
     return fake as unknown as ConnectionManager;
 }
 
-suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
-    const profileId = "profile-A";
-    const profile: ProfileRecord = { id: profileId, server: "localhost,1433" };
-
-    test("throws ConnectionError(unknown) when profile id is not found", async () => {
-        const fake = new FakeConnectionManager({});
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
-
-        try {
-            await strategy.connectByProfileId("missing", new AbortController().signal);
-            expect.fail("expected ConnectionError");
-        } catch (err) {
-            expect(err).to.be.instanceOf(ConnectionError);
-            expect((err as ConnectionError).kind).to.equal("unknown");
-            expect((err as ConnectionError).message).to.contain("missing");
-        }
-        expect(fake.connectCalls).to.have.length(0);
-    });
-
-    test("falls back to a profileName match when the id lookup misses", async () => {
-        // environments.json references the connection by its user-facing name;
-        // getConnectionById misses (the key is a GUID), so the strategy must
-        // fall back to scanning getConnections() for a matching profileName.
-        const named: ProfileRecord = {
-            id: "guid-123",
-            server: "localhost,1433",
-            profileName: "smoke-local-container",
-        };
-        const fake = new FakeConnectionManager({ [named.id]: named });
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
-
-        const handle = await strategy.connectByProfileId(
-            "smoke-local-container",
-            new AbortController().signal,
-        );
-
-        expect(handle).to.not.be.undefined;
-        expect(fake.connectCalls).to.have.length(1);
-        expect(fake.connectCalls[0].profileId).to.equal(named.id);
-    });
-
-    test("throws ConnectionError(timeout) when signal is pre-aborted; never looks up profile", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
+suite("CloudDeploy VsCodeMssqlEphemeralConnector", () => {
+    test("throws ConnectionError(timeout) when signal is pre-aborted; never connects", async () => {
+        const fake = new FakeConnectionManager();
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
         const ctrl = new AbortController();
         ctrl.abort();
 
         try {
-            await strategy.connectByProfileId(profileId, ctrl.signal);
+            await connector.connect(PARAMS, ctrl.signal);
             expect.fail("expected ConnectionError");
         } catch (err) {
             expect(err).to.be.instanceOf(ConnectionError);
@@ -161,29 +114,39 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
         expect(fake.connectCalls).to.have.length(0);
     });
 
+    test("connects with host,port credentials and returns a usable handle", async () => {
+        const fake = new FakeConnectionManager();
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
+
+        const handle = await connector.connect(PARAMS, new AbortController().signal);
+
+        expect(handle).to.not.be.undefined;
+        expect(fake.connectCalls).to.have.length(1);
+        expect(fake.connectCalls[0].server).to.equal("localhost,11433");
+    });
+
     test("throws ConnectionError(unknown) when ConnectionManager.connect returns false", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
+        const fake = new FakeConnectionManager();
         fake.connectResult = false;
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
 
         try {
-            await strategy.connectByProfileId(profileId, new AbortController().signal);
+            await connector.connect(PARAMS, new AbortController().signal);
             expect.fail("expected ConnectionError");
         } catch (err) {
             expect(err).to.be.instanceOf(ConnectionError);
             expect((err as ConnectionError).kind).to.equal("unknown");
         }
         expect(fake.connectCalls).to.have.length(1);
-        expect(fake.connectCalls[0].profileId).to.equal(profileId);
     });
 
     test("wraps connect() exception as ConnectionError(unknown)", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
+        const fake = new FakeConnectionManager();
         fake.connectThrow = new Error("login refused");
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
 
         try {
-            await strategy.connectByProfileId(profileId, new AbortController().signal);
+            await connector.connect(PARAMS, new AbortController().signal);
             expect.fail("expected ConnectionError");
         } catch (err) {
             expect(err).to.be.instanceOf(ConnectionError);
@@ -192,8 +155,8 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
         }
     });
 
-    test("returns a usable handle on success; execute maps DbCellValue rows to (string|null)[][]", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
+    test("execute maps DbCellValue rows to (string|null)[][] and reuses the owner URI", async () => {
+        const fake = new FakeConnectionManager();
         fake.sendRequestImpl = (sql) => {
             expect(sql).to.equal("SELECT @@VERSION");
             return [
@@ -203,21 +166,20 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
                 ],
             ];
         };
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
 
-        const handle = await strategy.connectByProfileId(profileId, new AbortController().signal);
+        const handle = await connector.connect(PARAMS, new AbortController().signal);
         const rows = await handle.execute("SELECT @@VERSION", new AbortController().signal);
 
         expect(rows).to.deep.equal([["Microsoft SQL Server 2022", null]]);
         expect(fake.executeCalls).to.have.length(1);
-        // Owner URI is reused across connect → execute → dispose.
         expect(fake.executeCalls[0].ownerUri).to.equal(fake.connectCalls[0].ownerUri);
     });
 
     test("execute() throws ConnectionError(timeout) when signal aborted before send", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
-        const handle = await strategy.connectByProfileId(profileId, new AbortController().signal);
+        const fake = new FakeConnectionManager();
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
+        const handle = await connector.connect(PARAMS, new AbortController().signal);
 
         const ctrl = new AbortController();
         ctrl.abort();
@@ -232,10 +194,10 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
     });
 
     test("execute() wraps sendRequest errors as ConnectionError(unknown)", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
+        const fake = new FakeConnectionManager();
         fake.sendRequestThrow = new Error("query timed out on server");
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
-        const handle = await strategy.connectByProfileId(profileId, new AbortController().signal);
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
+        const handle = await connector.connect(PARAMS, new AbortController().signal);
 
         try {
             await handle.execute("SELECT 1", new AbortController().signal);
@@ -248,9 +210,9 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
     });
 
     test("dispose() disconnects exactly once even when called repeatedly", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
-        const handle = await strategy.connectByProfileId(profileId, new AbortController().signal);
+        const fake = new FakeConnectionManager();
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
+        const handle = await connector.connect(PARAMS, new AbortController().signal);
 
         await handle.dispose();
         await handle.dispose();
@@ -261,10 +223,10 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
     });
 
     test("dispose() swallows disconnect errors", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
+        const fake = new FakeConnectionManager();
         fake.disconnectThrow = new Error("server already gone");
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
-        const handle = await strategy.connectByProfileId(profileId, new AbortController().signal);
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
+        const handle = await connector.connect(PARAMS, new AbortController().signal);
 
         // Must not throw.
         await handle.dispose();
@@ -272,9 +234,9 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
     });
 
     test("execute() after dispose() throws ConnectionError(unknown)", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
-        const handle = await strategy.connectByProfileId(profileId, new AbortController().signal);
+        const fake = new FakeConnectionManager();
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
+        const handle = await connector.connect(PARAMS, new AbortController().signal);
         await handle.dispose();
 
         try {
@@ -289,39 +251,40 @@ suite("CloudDeploy VsCodeMssqlConnectionStrategy", () => {
 
     test("aborts after a successful connect: tears down and throws ConnectionError(timeout)", async () => {
         const ctrl = new AbortController();
-        const fake = new FakeConnectionManager({ [profileId]: profile });
+        const fake = new FakeConnectionManager();
         // Abort the signal while connect() is in flight so the post-connect
-        // check in `connectByProfileId` observes an aborted signal.
+        // check observes an aborted signal.
         fake.connectResult = () => {
             ctrl.abort();
             return true;
         };
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
 
         try {
-            await strategy.connectByProfileId(profileId, ctrl.signal);
+            await connector.connect(PARAMS, ctrl.signal);
             expect.fail("expected ConnectionError");
         } catch (err) {
             expect(err).to.be.instanceOf(ConnectionError);
             expect((err as ConnectionError).kind).to.equal("timeout");
         }
         expect(fake.connectCalls).to.have.length(1);
-        // Cleanup: disconnect should have been called once on the post-abort path.
         expect(fake.disconnectCalls).to.have.length(1);
         expect(fake.disconnectCalls[0]).to.equal(fake.connectCalls[0].ownerUri);
     });
 
     test("owner URIs are unique per connect attempt", async () => {
-        const fake = new FakeConnectionManager({ [profileId]: profile });
-        const strategy = new VsCodeMssqlConnectionStrategy(asConnectionManager(fake));
+        const fake = new FakeConnectionManager();
+        const connector = new VsCodeMssqlEphemeralConnector(asConnectionManager(fake));
 
-        const h1 = await strategy.connectByProfileId(profileId, new AbortController().signal);
-        const h2 = await strategy.connectByProfileId(profileId, new AbortController().signal);
+        const h1 = await connector.connect(PARAMS, new AbortController().signal);
+        const h2 = await connector.connect(PARAMS, new AbortController().signal);
         await h1.dispose();
         await h2.dispose();
 
         expect(fake.connectCalls).to.have.length(2);
         expect(fake.connectCalls[0].ownerUri).to.not.equal(fake.connectCalls[1].ownerUri);
-        expect(fake.connectCalls[0].ownerUri).to.match(/^cloud-deploy:\/\/profile-A\//);
+        expect(fake.connectCalls[0].ownerUri).to.match(
+            /^cloud-deploy-ephemeral:\/\/CloudDeployValidation\//,
+        );
     });
 });

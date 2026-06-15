@@ -389,21 +389,19 @@ function statusText(status: RunStatus | undefined): string {
         : CloudDeployDashboard.statusName(status);
 }
 
-/** Friendly name for a source-of-truth kind, e.g. "SQL project" / "Live database". */
+/** Friendly name for a source-of-truth kind, e.g. "SQL project" / "Dacpac". */
 function sourceKindText(kind: SourceOfTruthKind): string {
     switch (kind) {
         case SourceOfTruthKind.SqlProj:
             return CloudDeployDashboard.sourceKindSqlProj;
         case SourceOfTruthKind.Dacpac:
             return CloudDeployDashboard.sourceKindDacpac;
-        case SourceOfTruthKind.Container:
-            return CloudDeployDashboard.sourceKindContainer;
     }
 }
 
-/** The path or connection profile behind a source of truth, shown as detail text. */
+/** The path behind a source of truth, shown as detail text. */
 function sourceDetailText(sot: SourceOfTruth): string {
-    return sot.kind === SourceOfTruthKind.Container ? sot.connectionProfileId : sot.path;
+    return sot.path;
 }
 
 /** Theme icon id for a source-of-truth kind. */
@@ -413,7 +411,5 @@ function sourceKindIcon(kind: SourceOfTruthKind): string {
             return "project";
         case SourceOfTruthKind.Dacpac:
             return "package";
-        case SourceOfTruthKind.Container:
-            return "database";
     }
 }

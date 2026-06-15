@@ -36,8 +36,8 @@ export async function seedSampleRun(
         name: "Sample Dev",
         description: "Synthetic env used by the seed-sample-run dev command.",
         sourceOfTruth: {
-            kind: SourceOfTruthKind.Container,
-            connectionProfileId: "sample-connection",
+            kind: SourceOfTruthKind.SqlProj,
+            path: "sample/SampleProject.sqlproj",
         },
         validations: [
             { type: ValidationType.Connectivity, enabled: true, settings: {} },

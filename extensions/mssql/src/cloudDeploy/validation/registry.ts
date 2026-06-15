@@ -21,7 +21,6 @@
 
 import { ValidationType } from "../environments/types";
 import type { ArtifactProvider } from "./providers/artifactProvider";
-import type { ConnectionProvider } from "./providers/connectionProvider";
 import type { ProcessProvider } from "./providers/processProvider";
 import { defineRegistry, ValidatorRegistry } from "./types";
 import { ConnectivityValidator } from "./validators/connectivityValidator";
@@ -36,7 +35,6 @@ import { WorkloadPlaybackValidator } from "./validators/workloadPlaybackValidato
  * bundle once and hands it to `createDefaultRegistry` to build the registry.
  */
 export interface RegistryProviders {
-    readonly connection: ConnectionProvider;
     readonly process: ProcessProvider;
     readonly artifact: ArtifactProvider;
     /**

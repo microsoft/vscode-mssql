@@ -4,34 +4,28 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — host glue: vscode-mssql `LiveConnectionStrategy`.
+ * Cloud Deploy — host glue: vscode-mssql `EphemeralConnector`.
  *
- * Bridges the strategy seam declared in
- * `validation/providers/connectionProvider.ts` to the running extension's
- * `ConnectionManager`. This is the only place under `cloudDeploy/` that
- * imports controller-level types, by design — the rest of the package
- * stays host-agnostic and unit-testable in isolation.
+ * Bridges the connector seam declared in
+ * `validation/providers/ephemeralDatabaseProvider.ts` to the running
+ * extension's `ConnectionManager`. This is the only place under
+ * `cloudDeploy/` that imports controller-level types, by design — the rest of
+ * the package stays host-agnostic and unit-testable in isolation.
  *
- * Resolution flow for `connectByProfileId(profileId, signal)`:
- *   1. Look up the profile by stable id via
- *      `connectionStore.connectionConfig.getConnectionById`, then fall back
- *      to a `profileName` match so hand-authored `environments.json` files
- *      can reference a connection by its user-facing name. If neither
- *      matches, throw `ConnectionError("unknown", ...)` — connectivity
- *      validators surface this as a `Failed` result with a deterministic
- *      message.
- *   2. Mint a per-attempt owner URI (a uuid) and call
- *      `ConnectionManager.connect(ownerUri, profile, { shouldHandleErrors: false })`.
- *      `shouldHandleErrors: false` keeps the call non-interactive: failures
- *      return `false` rather than prompting the user.
- *   3. On `false` / exception, throw `ConnectionError`. On success, return
- *      a `ConnectionHandle` whose `execute()` issues `query/simpleexecute`
- *      against the owner URI and `dispose()` disconnects (idempotently).
+ * `VsCodeMssqlEphemeralConnector.connect(params, signal)` opens a
+ * `ConnectionHandle` to a freshly-provisioned per-run ephemeral database
+ * (Scope 2, decision D-C) by raw connection parameters (host / port / sa
+ * credentials), rather than a saved connection profile — the ephemeral
+ * container has no profile. It mints a per-attempt owner URI and calls
+ * `ConnectionManager.connect(..., { shouldHandleErrors: false })`
+ * (non-interactive). The returned handle's `execute()` issues
+ * `query/simpleexecute` against the owner URI; `dispose()` disconnects
+ * idempotently.
  *
  * Cancellation: `signal` is checked before connect, before each execute,
  * and after a successful connect. Aborts surface as
- * `ConnectionError("timeout", ...)`, which is the validator-facing
- * convention for any pre-emptive shutdown.
+ * `ConnectionError("timeout", ...)`, the validator-facing convention for any
+ * pre-emptive shutdown.
  */
 
 import { randomUUID } from "crypto";
@@ -41,11 +35,7 @@ import { IConnectionInfo, SimpleExecuteResult } from "vscode-mssql";
 
 import ConnectionManager from "../../controllers/connectionManager";
 import { AuthenticationType } from "../../sharedInterfaces/connectionDialog";
-import {
-    ConnectionError,
-    ConnectionHandle,
-    LiveConnectionStrategy,
-} from "../validation/providers/connectionProvider";
+import { ConnectionError, ConnectionHandle } from "../validation/providers/connectionProvider";
 import {
     EphemeralConnectionParams,
     EphemeralConnector,
@@ -60,76 +50,6 @@ interface SimpleExecuteParams {
 const SimpleExecuteRequest = new RequestType<SimpleExecuteParams, SimpleExecuteResult, void, void>(
     "query/simpleexecute",
 );
-
-/**
- * Production `LiveConnectionStrategy` backed by vscode-mssql's
- * `ConnectionManager`. Constructed once during extension activation and
- * passed to `CloudDeployService` via `CloudDeployServiceOptions`.
- */
-export class VsCodeMssqlConnectionStrategy implements LiveConnectionStrategy {
-    public constructor(private readonly _connectionManager: ConnectionManager) {}
-
-    public async connectByProfileId(
-        profileId: string,
-        signal: AbortSignal,
-    ): Promise<ConnectionHandle> {
-        if (signal.aborted) {
-            throw new ConnectionError("timeout", "Connection attempt cancelled before opening.");
-        }
-
-        const connectionConfig = this._connectionManager.connectionStore.connectionConfig;
-        let profile = await connectionConfig.getConnectionById(profileId);
-        if (profile === undefined) {
-            // Fall back to a user-facing name match so environments.json can
-            // reference a connection by its profile name rather than its GUID.
-            const all = await connectionConfig.getConnections();
-            profile = all.find((candidate) => candidate.profileName === profileId);
-        }
-        if (profile === undefined) {
-            throw new ConnectionError(
-                "unknown",
-                `Connection profile "${profileId}" was not found in vscode-mssql.`,
-            );
-        }
-
-        const ownerUri = `cloud-deploy://${profileId}/${randomUUID()}`;
-
-        let connected: boolean;
-        try {
-            connected = await this._connectionManager.connect(ownerUri, profile, {
-                connectionSource: "cloudDeploy",
-                shouldHandleErrors: false,
-            });
-        } catch (err) {
-            throw new ConnectionError(
-                "unknown",
-                `Failed to open connection for profile "${profileId}": ${err instanceof Error ? err.message : String(err)}`,
-            );
-        }
-
-        if (!connected) {
-            throw new ConnectionError(
-                "unknown",
-                `Failed to open connection for profile "${profileId}".`,
-            );
-        }
-
-        if (signal.aborted) {
-            // Connected, but the caller cancelled; tear the session down before surfacing.
-            try {
-                await this._connectionManager.disconnect(ownerUri);
-            } catch {
-                // best-effort; cancellation supersedes disconnect failures
-            }
-            throw new ConnectionError(
-                "timeout",
-                "Connection cancelled after opening; session has been disposed.",
-            );
-        }
-
-        return new VsCodeMssqlConnectionHandle(this._connectionManager, ownerUri);
-    }
-}
 
 /**
  * Production `EphemeralConnector` (Scope 2, decision D-C) backed by vscode-mssql's

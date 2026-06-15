@@ -235,7 +235,7 @@ function synthesizeEnvNotFoundRecord(envId: string, runner?: RunnerIdentity): Ru
     const placeholderEnv: Environment = {
         id: envId,
         name: envId,
-        sourceOfTruth: { kind: SourceOfTruthKind.Container, connectionProfileId: "" },
+        sourceOfTruth: { kind: SourceOfTruthKind.SqlProj, path: "" },
         validations: [],
     };
     return {

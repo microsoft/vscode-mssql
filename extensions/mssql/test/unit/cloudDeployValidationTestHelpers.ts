@@ -220,7 +220,7 @@ export function makeEnvironmentWithValidations(
     return {
         id: "env-1",
         name: "Env 1",
-        sourceOfTruth: { kind: SourceOfTruthKind.Container, connectionProfileId: "conn-1" },
+        sourceOfTruth: { kind: SourceOfTruthKind.SqlProj, path: "proj/Project.sqlproj" },
         validations,
         ...overrides,
     };

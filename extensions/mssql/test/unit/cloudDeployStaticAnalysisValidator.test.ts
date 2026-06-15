@@ -27,7 +27,7 @@
 
 import { expect } from "chai";
 
-import { SourceOfTruthKind, ValidationType } from "../../src/cloudDeploy/environments/types";
+import { SourceOfTruthKind } from "../../src/cloudDeploy/environments/types";
 import { ValidationStatus, type StaticAnalysisPayload } from "../../src/cloudDeploy/runs/types";
 import {
     CancellationError,
@@ -64,24 +64,6 @@ suite("CloudDeploy StaticAnalysisValidator", () => {
     setup(() => {
         processes = new FakeProcessProvider();
         validator = new StaticAnalysisValidator(processes);
-    });
-
-    test("returns Skipped for Container source-of-truth without spawning a build", async () => {
-        const env = makeEnvironmentWithValidations([]); // default Container
-
-        const result = await validator.run(env, {}, { ...RUN_OPTS_BASE, signal: freshSignal() });
-
-        expect(result.status).to.equal(ValidationStatus.Skipped);
-        expect(result.validationId).to.equal(ValidationType.StaticAnalysis);
-        expect(result.displayName).to.equal("Static Analysis");
-        const payload = result.payload as StaticAnalysisPayload;
-        expect(payload.findings).to.have.length(1);
-        expect(payload.findings[0]).to.include({
-            kind: "static-analysis",
-            severity: "info",
-            ruleId: "SOURCE_OF_TRUTH_UNSUPPORTED",
-        });
-        expect(processes.invocations).to.have.length(0);
     });
 
     test("returns Skipped for Dacpac source-of-truth without spawning a build", async () => {

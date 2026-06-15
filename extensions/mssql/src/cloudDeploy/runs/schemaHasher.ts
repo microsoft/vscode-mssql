@@ -144,10 +144,13 @@ export class SchemaHasher {
                 const bytes = await this._reader.readFileBuffer(sourceOfTruth.path);
                 return hashDacpacBytes(bytes);
             }
-            default:
-                // The remaining source-of-truth kinds have no buildable schema to
-                // fingerprint; callers gate on this before reaching the hasher.
-                throw new SchemaHashUnsupportedError(sourceOfTruth.kind);
+            default: {
+                // `SourceOfTruth` is exhausted above (sqlproj + dacpac). This
+                // guard surfaces a future additive kind that has no buildable
+                // schema to fingerprint instead of silently returning nothing.
+                const exhaustive: never = sourceOfTruth;
+                throw new SchemaHashUnsupportedError(`${exhaustive}`);
+            }
         }
     }
 }

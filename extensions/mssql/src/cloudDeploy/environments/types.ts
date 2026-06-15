@@ -47,17 +47,18 @@ export enum ValidationType {
 export enum SourceOfTruthKind {
     SqlProj = "sqlproj",
     Dacpac = "dacpac",
-    Container = "container",
 }
 
 /**
  * Where the schema for this env comes from. Discriminated union: exactly one
- * variant is set per env. Validators must reject any other shape.
+ * variant is set per env. Validators must reject any other shape. The schema
+ * is always the source of truth (Scope 2, decision D-E) — the per-run
+ * ephemeral database is built from it; a live container is no longer a source
+ * of truth (it is, at most, a validator's runtime host via `RuntimeHostConfig`).
  */
 export type SourceOfTruth =
     | { kind: SourceOfTruthKind.SqlProj; path: string }
-    | { kind: SourceOfTruthKind.Dacpac; path: string }
-    | { kind: SourceOfTruthKind.Container; connectionProfileId: string };
+    | { kind: SourceOfTruthKind.Dacpac; path: string };
 
 // =============================================================================
 // Runtime host (Scope 2)

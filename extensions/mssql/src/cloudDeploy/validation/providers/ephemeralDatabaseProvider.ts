@@ -372,11 +372,7 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
         if (sourceOfTruth.kind === SourceOfTruthKind.Dacpac) {
             return this._resolveAgainstWorkspace(sourceOfTruth.path);
         }
-        if (sourceOfTruth.kind !== SourceOfTruthKind.SqlProj) {
-            throw new EphemeralProvisionError(
-                `Cannot provision a database from source-of-truth kind "${sourceOfTruth.kind}".`,
-            );
-        }
+        // Only `SqlProj` remains — build it into a dacpac.
         const dotnetCommand = this._opts.dotnetCommand ?? DEFAULT_DOTNET_COMMAND;
         // Resolve to an absolute path so the build never depends on the spawned
         // process's working directory (a relative path produced MSB1009

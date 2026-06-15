@@ -14,19 +14,11 @@ export {
     throwIfCancelled,
 } from "./types";
 export type { SettingsFor, Validator, ValidatorRegistry, ValidatorRunOptions } from "./types";
-export {
-    ConnectionError,
-    FakeConnectionHandle,
-    FakeConnectionProvider,
-    LiveConnectionProvider,
-} from "./providers/connectionProvider";
+export { ConnectionError, FakeConnectionHandle } from "./providers/connectionProvider";
 export type {
     ConnectionFailureKind,
     ConnectionHandle,
-    ConnectionProvider,
-    FakeConnectionBehavior,
     FakeConnectionHandleConfig,
-    LiveConnectionStrategy,
 } from "./providers/connectionProvider";
 export { ConnectivityValidator } from "./validators/connectivityValidator";
 export { FakeProcessProvider, LiveProcessProvider } from "./providers/processProvider";

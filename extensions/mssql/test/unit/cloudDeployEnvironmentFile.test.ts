@@ -34,7 +34,7 @@ function makeEnv(id: string): Environment {
     return {
         id,
         name: id,
-        sourceOfTruth: { kind: SourceOfTruthKind.Container, connectionProfileId: "conn-1" },
+        sourceOfTruth: { kind: SourceOfTruthKind.SqlProj, path: "proj/Project.sqlproj" },
         validations: [],
     };
 }

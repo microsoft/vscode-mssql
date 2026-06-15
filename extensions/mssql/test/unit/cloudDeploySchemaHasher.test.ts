@@ -163,10 +163,12 @@ suite("CloudDeploy SchemaHasher", () => {
             const hasher = new SchemaHasher(new FakeReader());
             let caught: unknown;
             try {
-                await hasher.hash({
-                    kind: SourceOfTruthKind.Container,
-                    connectionProfileId: "local",
-                });
+                // No unsupported kind exists in the union today (sqlproj + dacpac
+                // are both handled), so cast a bogus kind to exercise the
+                // defensive exhaustive guard.
+                await hasher.hash({ kind: "mystery", path: "x" } as unknown as Parameters<
+                    SchemaHasher["hash"]
+                >[0]);
             } catch (err) {
                 caught = err;
             }

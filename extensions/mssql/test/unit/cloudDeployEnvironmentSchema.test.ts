@@ -18,7 +18,7 @@ function validEnv(overrides: Record<string, unknown> = {}): Record<string, unkno
     return {
         id: "local-dev",
         name: "Local dev",
-        sourceOfTruth: { kind: "container", connectionProfileId: "conn-1" },
+        sourceOfTruth: { kind: "sqlproj", path: "./db.sqlproj" },
         validations: [],
         ...overrides,
     };
@@ -89,7 +89,7 @@ suite("CloudDeploy EnvironmentSchema", () => {
     });
 
     suite("per-environment fields", () => {
-        test("accepts a minimal valid env (container source-of-truth)", () => {
+        test("accepts a minimal valid env (sqlproj source-of-truth)", () => {
             const result = validateEnvironmentsFile(fileWith(validEnv()), FILE_PATH);
             expect(result.environments).to.have.length(1);
             expect(result.environments[0].id).to.equal("local-dev");
@@ -138,7 +138,8 @@ suite("CloudDeploy EnvironmentSchema", () => {
         });
 
         test("does NOT require a top-level `connectionProfileId` field", () => {
-            // The container source-of-truth carries its own connection id; the env itself doesn't.
+            // The schema is the source of truth (Scope 2); the env itself carries
+            // no top-level connection id.
             const env = validEnv();
             delete (env as Record<string, unknown>).connectionProfileId;
             const result = validateEnvironmentsFile(fileWith(env), FILE_PATH);
@@ -170,14 +171,11 @@ suite("CloudDeploy EnvironmentSchema", () => {
             });
         });
 
-        test("rejects container without a connectionProfileId", () => {
-            const env = validEnv({ sourceOfTruth: { kind: "container" } });
+        test("rejects dacpac without a path", () => {
+            const env = validEnv({ sourceOfTruth: { kind: "dacpac" } });
             expectThrowsWithIssues(fileWith(env), (issues) => {
-                expect(
-                    issues.some(
-                        (i) => i.path === "$.environments[0].sourceOfTruth.connectionProfileId",
-                    ),
-                ).to.be.true;
+                expect(issues.some((i) => i.path === "$.environments[0].sourceOfTruth.path")).to.be
+                    .true;
             });
         });
 

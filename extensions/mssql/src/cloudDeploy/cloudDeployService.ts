@@ -44,13 +44,9 @@ import { SchemaHasher } from "./runs/schemaHasher";
 import type { WorkloadObservedStep, WorkloadPlaybackPayload } from "./runs/types";
 import {
     CloudDeployValidationApi,
-    ConnectionError,
-    ConnectionHandle,
     DockerEphemeralDatabaseProvider,
     EphemeralConnector,
     LiveArtifactProvider,
-    LiveConnectionProvider,
-    LiveConnectionStrategy,
     LiveDataGenerator,
     LiveProcessProvider,
     OutputChannelSubscriber,
@@ -77,15 +73,10 @@ export interface CloudDeployRunsApi {
 
 /**
  * Optional per-construction injection points. Production wiring (in
- * `mainController`) supplies `connectionStrategy` once vscode-mssql's
- * `ConnectionManager` is available; tests substitute their own. When
- * omitted, the service installs a stub strategy that throws
- * `ConnectionError("unknown")` with a clear "not configured" message —
- * connectivity validations against `Container` envs surface as
- * `Failed`, but the rest of the pipeline still functions.
+ * `mainController`) supplies `ephemeralConnector` once vscode-mssql's
+ * `ConnectionManager` is available; tests substitute their own or omit it.
  */
 export interface CloudDeployServiceOptions {
-    readonly connectionStrategy?: LiveConnectionStrategy;
     /**
      * Opens a connection to a freshly-provisioned ephemeral database (Scope 2,
      * decision D-C). Production wiring (in `mainController`) supplies
@@ -180,9 +171,6 @@ export class CloudDeployService implements vscode.Disposable {
         };
 
         const registry = createDefaultRegistry({
-            connection: new LiveConnectionProvider(
-                options.connectionStrategy ?? new UnconfiguredConnectionStrategy(),
-            ),
             process: new LiveProcessProvider(workspaceFolder?.uri.fsPath),
             artifact: new LiveArtifactProvider(fileProvider, workspaceFolder?.uri.fsPath),
             staticAnalysis: { systemDacpacsLocation: resolveSystemDacpacsLocation() },
@@ -306,32 +294,6 @@ export class CloudDeployService implements vscode.Disposable {
         this._outputSubscriber.dispose();
         this.outputChannel.dispose();
         this.diagnostics.dispose();
-    }
-}
-
-// =============================================================================
-// Stub strategy for the un-wired connectivity path
-// =============================================================================
-
-/**
- * Placeholder `LiveConnectionStrategy` used when the host has not yet
- * supplied a real one. Throws `ConnectionError("unknown")` with a
- * deterministic message so the connectivity validator surfaces a `Failed`
- * result — the rest of the pipeline keeps running unimpeded.
- *
- * The real strategy (binding `vscode-mssql`'s `ConnectionManager`) lands
- * as a follow-up; the service constructor accepts an injected strategy
- * for that wiring.
- */
-class UnconfiguredConnectionStrategy implements LiveConnectionStrategy {
-    public async connectByProfileId(
-        _profileId: string,
-        _signal: AbortSignal,
-    ): Promise<ConnectionHandle> {
-        throw new ConnectionError(
-            "unknown",
-            "Live connection strategy is not configured. The Cloud Deploy validation runner cannot open a live SQL connection in this build.",
-        );
     }
 }
 

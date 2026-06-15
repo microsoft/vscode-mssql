@@ -3985,6 +3985,9 @@
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
     </trans-unit>
+    <trans-unit id="++CODE++512a48218ba2179153629504206e7d54a7767e19ee2aa21574a7c614e5c92537">
+      <source xml:lang="en">Last run</source>
+    </trans-unit>
     <trans-unit id="++CODE++36adcd07b9bda0b9f1549c552e2fc660ab3781202fcee02e0aa2c1829e566e76">
       <source xml:lang="en">Latest run</source>
     </trans-unit>
@@ -4819,6 +4822,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d84c64c6052ba9bf305d4dcca0dec03f4666f70deb49fd6fd4797c75caf0a58">
+      <source xml:lang="en">No environments declared. Add one to .mssql/environments.json to get started.</source>
     </trans-unit>
     <trans-unit id="++CODE++95a333dcdeb09cbb00e6da2caf33739a71ba379cc810c0d2a9a74daaced80bdf">
       <source xml:lang="en">No environments declared. Add one to .mssql/environments.json.</source>
@@ -6035,6 +6041,9 @@
       <source xml:lang="en">Running query on connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++848f54e89660cea4357644039ac5d7146f76c8e85df5c04076e08feb7e7547f0">
+      <source xml:lang="en">Runs</source>
     </trans-unit>
     <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
       <source xml:lang="en">SQL</source>
@@ -7713,6 +7722,9 @@
       <source xml:lang="en">Using {0} to process your request...</source>
       <note>{0} is the model name that will be processing the request</note>
     </trans-unit>
+    <trans-unit id="++CODE++40611abbdda22526b47ddcb41553bf3f556195a6855f2aca8404d62791a7ec67">
+      <source xml:lang="en">Validate</source>
+    </trans-unit>
     <trans-unit id="++CODE++a73a6576ca228a2f04383ae754a60e2e43ab9d6e55e03e3b1db5db0bef2fcf18">
       <source xml:lang="en">Validating environment &apos;{0}&apos;</source>
       <note>{0} is the user-facing environment name</note>
@@ -9200,6 +9212,12 @@
     </trans-unit>
     <trans-unit id="mssql.viewBackgroundTaskLogs">
       <source xml:lang="en">View Task Logs</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.viewAllEnvironments">
+      <source xml:lang="en">View all environments</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.viewAllRuns">
+      <source xml:lang="en">View all runs</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

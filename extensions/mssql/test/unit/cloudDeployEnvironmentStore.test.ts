@@ -56,7 +56,7 @@ function makeEnv(id: string, overrides: Partial<Environment> = {}): Environment 
     return {
         id,
         name: id,
-        sourceOfTruth: { kind: SourceOfTruthKind.Container, connectionProfileId: "conn-1" },
+        sourceOfTruth: { kind: SourceOfTruthKind.SqlProj, path: "proj/Project.sqlproj" },
         validations: [],
         ...overrides,
     };
