@@ -29,6 +29,14 @@ import { QueryResultsGridView } from "./queryResultsGridView";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
+import {
+    getQueryResultGridPerfNow,
+    measureQueryResultGridPerfAsync,
+    recordQueryResultGridPerfEvent,
+    scheduleQueryResultGridPerfPaint,
+    setQueryResultGridPerfEnabled,
+    type QueryResultGridPerfContext,
+} from "./gridPerf";
 
 const DEFAULT_FONT_SIZE = 12;
 const BASE_ROW_PADDING = 12;
@@ -495,9 +503,22 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
         qr.ResultsGridAutoSizeStyle.HeadersAndData;
     const inMemoryDataProcessingThreshold =
         useQueryResultSelector((state) => state.inMemoryDataProcessingThreshold) ?? 5000;
+    const isGridPerfTelemetryEnabled = useQueryResultSelector(
+        (state) => state.isGridPerfTelemetryEnabled === true,
+    );
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
         areResultSetSummariesEquivalent,
+    );
+    const gridPerfResultIdentity = useMemo(
+        () =>
+            [
+                props.gridId,
+                resultSetSummary?.batchId,
+                resultSetSummary?.id,
+                getResultSetSummaryColumnSignature(resultSetSummary),
+            ].join("|"),
+        [props.gridId, resultSetSummary],
     );
     const [initialState, setInitialState] = useState<FluentResultGridState | undefined>();
     const [isInitialStateLoaded, setIsInitialStateLoaded] = useState(false);
@@ -508,6 +529,73 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
     const filtersSignatureRef = useRef<string | undefined>(undefined);
     const gridViewStateSignatureRef = useRef<string | undefined>(undefined);
     const scrollPositionSignatureRef = useRef<string | undefined>(undefined);
+    const gridPerfContext = useMemo<QueryResultGridPerfContext>(
+        () => ({
+            enabled: isGridPerfTelemetryEnabled,
+            gridKind: "beta",
+            gridId: props.gridId,
+            batchId: props.batchId,
+            resultId: props.resultId,
+        }),
+        [isGridPerfTelemetryEnabled, props.batchId, props.gridId, props.resultId],
+    );
+    const gridPerfContextRef = useRef(gridPerfContext);
+    gridPerfContextRef.current = gridPerfContext;
+    const gridPerfMountStartRef = useRef(getQueryResultGridPerfNow());
+    const gridPerfFirstDataPaintRecordedRef = useRef(false);
+    const gridPerfPreviousRowCountRef = useRef<number | undefined>(undefined);
+
+    useEffect(() => {
+        setQueryResultGridPerfEnabled(isGridPerfTelemetryEnabled);
+    }, [isGridPerfTelemetryEnabled]);
+
+    useEffect(() => {
+        if (!resultSetSummary) {
+            return;
+        }
+
+        const mountStart = getQueryResultGridPerfNow();
+        gridPerfMountStartRef.current = mountStart;
+        gridPerfFirstDataPaintRecordedRef.current = false;
+        gridPerfPreviousRowCountRef.current = resultSetSummary.rowCount;
+
+        recordQueryResultGridPerfEvent(gridPerfContext, "mount-start", {
+            rowCount: resultSetSummary.rowCount,
+            columnCount: resultSetSummary.columnInfo.length,
+        });
+        scheduleQueryResultGridPerfPaint(gridPerfContext, "mount-first-paint", mountStart, {
+            rowCount: resultSetSummary.rowCount,
+            columnCount: resultSetSummary.columnInfo.length,
+        });
+
+        return () => {
+            recordQueryResultGridPerfEvent(gridPerfContext, "unmount");
+        };
+    }, [gridPerfContext, gridPerfResultIdentity]);
+
+    useEffect(() => {
+        if (!resultSetSummary) {
+            return;
+        }
+
+        const previousRowCount = gridPerfPreviousRowCountRef.current;
+        if (previousRowCount !== undefined && previousRowCount !== resultSetSummary.rowCount) {
+            const startTime = getQueryResultGridPerfNow();
+            const metadata = {
+                previousRowCount,
+                rowCount: resultSetSummary.rowCount,
+            };
+            recordQueryResultGridPerfEvent(gridPerfContext, "row-count-change", metadata);
+            scheduleQueryResultGridPerfPaint(
+                gridPerfContext,
+                "row-count-change-paint",
+                startTime,
+                metadata,
+            );
+        }
+
+        gridPerfPreviousRowCountRef.current = resultSetSummary.rowCount;
+    }, [gridPerfContext, resultSetSummary?.rowCount]);
 
     useEffect(() => {
         if (!context || !uri) {
@@ -571,14 +659,58 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                     return [];
                 }
 
-                const response = await context.extensionRpc.sendRequest(qr.GetRowsRequest.type, {
-                    uri,
-                    batchId: props.batchId,
-                    resultId: props.resultId,
-                    rowStart: offset,
-                    numberOfRows: count,
-                });
-                return response?.rows ?? [];
+                const rows =
+                    (await measureQueryResultGridPerfAsync(
+                        gridPerfContextRef.current,
+                        "get-rows",
+                        {
+                            offset,
+                            count,
+                        },
+                        async () => {
+                            const response = await context.extensionRpc.sendRequest(
+                                qr.GetRowsRequest.type,
+                                {
+                                    uri,
+                                    batchId: props.batchId,
+                                    resultId: props.resultId,
+                                    rowStart: offset,
+                                    numberOfRows: count,
+                                },
+                            );
+                            return response?.rows ?? [];
+                        },
+                    )) ?? [];
+
+                if (rows.length > 0) {
+                    const responseTime = getQueryResultGridPerfNow();
+                    scheduleQueryResultGridPerfPaint(
+                        gridPerfContextRef.current,
+                        "get-rows-response-paint",
+                        responseTime,
+                        {
+                            offset,
+                            count,
+                            returnedRows: rows.length,
+                        },
+                    );
+
+                    if (!gridPerfFirstDataPaintRecordedRef.current) {
+                        gridPerfFirstDataPaintRecordedRef.current = true;
+                        scheduleQueryResultGridPerfPaint(
+                            gridPerfContextRef.current,
+                            "first-data-paint",
+                            gridPerfMountStartRef.current,
+                            {
+                                offset,
+                                count,
+                                returnedRows: rows.length,
+                            },
+                        );
+                    }
+                }
+
+                return rows;
             },
         }),
         [context, props.batchId, props.resultId, uri],

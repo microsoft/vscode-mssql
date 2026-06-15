@@ -302,6 +302,7 @@ export const configInMemoryDataProcessingThreshold =
 export const configResultsGridAlternatingRowColors = "resultsGrid.alternatingRowColors";
 export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
 export const configResultsGridRowPadding = "resultsGrid.rowPadding";
+export const configGridPerfTelemetry = "mssql.dev.gridPerfTelemetry";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";

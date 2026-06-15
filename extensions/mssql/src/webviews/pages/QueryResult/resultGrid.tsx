@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import $ from "jquery";
-import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useContext, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import "../../media/slickgrid.css";
 import { range, Table } from "./table/table";
 import { defaultTableStyles } from "./table/interfaces";
@@ -22,6 +22,14 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
 import { isXmlCell } from "../../common/xmlUtils";
+import {
+    getQueryResultGridPerfNow,
+    measureQueryResultGridPerfAsync,
+    recordQueryResultGridPerfEvent,
+    scheduleQueryResultGridPerfPaint,
+    setQueryResultGridPerfEnabled,
+    type QueryResultGridPerfContext,
+} from "./gridPerf";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -75,6 +83,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     const autoSizeColumnsMode =
         useQueryResultSelector((state) => state.autoSizeColumnsMode) ??
         qr.ResultsGridAutoSizeStyle.HeadersAndData;
+    const isGridPerfTelemetryEnabled = useQueryResultSelector(
+        (state) => state.isGridPerfTelemetryEnabled === true,
+    );
 
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
@@ -86,6 +97,87 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
 
     const gridContainerRef = useRef<HTMLDivElement>(null);
     const isTableCreated = useRef<boolean>(false);
+    const gridPerfContext = useMemo<QueryResultGridPerfContext>(
+        () => ({
+            enabled: isGridPerfTelemetryEnabled,
+            gridKind: "legacy",
+            gridId: props.gridId,
+            batchId: props.batchId,
+            resultId: props.resultId,
+        }),
+        [isGridPerfTelemetryEnabled, props.batchId, props.gridId, props.resultId],
+    );
+    const gridPerfContextRef = useRef(gridPerfContext);
+    gridPerfContextRef.current = gridPerfContext;
+    const gridPerfMountStartRef = useRef(getQueryResultGridPerfNow());
+    const gridPerfFirstDataPaintRecordedRef = useRef(false);
+    const gridPerfFirstFetchResponseTimeRef = useRef<number | undefined>(undefined);
+    const gridPerfPreviousRowCountRef = useRef<number | undefined>(undefined);
+    const gridPerfResultIdentity = useMemo(
+        () =>
+            [
+                props.gridId,
+                resultSetSummary?.batchId,
+                resultSetSummary?.id,
+                resultSetSummary?.columnInfo
+                    ?.map((column) => `${column.columnName},${column.dataType}`)
+                    .join("|"),
+            ].join("|"),
+        [props.gridId, resultSetSummary],
+    );
+
+    useEffect(() => {
+        setQueryResultGridPerfEnabled(isGridPerfTelemetryEnabled);
+    }, [isGridPerfTelemetryEnabled]);
+
+    useEffect(() => {
+        if (!resultSetSummary) {
+            return;
+        }
+
+        const mountStart = getQueryResultGridPerfNow();
+        gridPerfMountStartRef.current = mountStart;
+        gridPerfFirstDataPaintRecordedRef.current = false;
+        gridPerfFirstFetchResponseTimeRef.current = undefined;
+        gridPerfPreviousRowCountRef.current = resultSetSummary.rowCount;
+
+        recordQueryResultGridPerfEvent(gridPerfContext, "mount-start", {
+            rowCount: resultSetSummary.rowCount,
+            columnCount: resultSetSummary.columnInfo.length,
+        });
+        scheduleQueryResultGridPerfPaint(gridPerfContext, "mount-first-paint", mountStart, {
+            rowCount: resultSetSummary.rowCount,
+            columnCount: resultSetSummary.columnInfo.length,
+        });
+
+        return () => {
+            recordQueryResultGridPerfEvent(gridPerfContext, "unmount");
+        };
+    }, [gridPerfContext, gridPerfResultIdentity]);
+
+    useEffect(() => {
+        if (!resultSetSummary) {
+            return;
+        }
+
+        const previousRowCount = gridPerfPreviousRowCountRef.current;
+        if (previousRowCount !== undefined && previousRowCount !== resultSetSummary.rowCount) {
+            const startTime = getQueryResultGridPerfNow();
+            const metadata = {
+                previousRowCount,
+                rowCount: resultSetSummary.rowCount,
+            };
+            recordQueryResultGridPerfEvent(gridPerfContext, "row-count-change", metadata);
+            scheduleQueryResultGridPerfPaint(
+                gridPerfContext,
+                "row-count-change-paint",
+                startTime,
+                metadata,
+            );
+        }
+
+        gridPerfPreviousRowCountRef.current = resultSetSummary.rowCount;
+    }, [gridPerfContext, resultSetSummary?.rowCount]);
     if (!props.gridParentRef) {
         return undefined;
     }
@@ -102,18 +194,27 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     }));
 
     const fetchRows = async (offset: number, count: number) => {
-        const response = await context.extensionRpc.sendRequest(qr.GetRowsRequest.type, {
-            uri: uri,
-            batchId: props.batchId,
-            resultId: props.resultId,
-            rowStart: offset,
-            numberOfRows: count,
-        });
+        const response = await measureQueryResultGridPerfAsync(
+            gridPerfContextRef.current,
+            "get-rows",
+            {
+                offset,
+                count,
+            },
+            async () =>
+                context.extensionRpc.sendRequest(qr.GetRowsRequest.type, {
+                    uri: uri,
+                    batchId: props.batchId,
+                    resultId: props.resultId,
+                    rowStart: offset,
+                    numberOfRows: count,
+                }),
+        );
         if (!response) {
             return [];
         }
         var columnLength = resultSetSummary?.columnInfo?.length;
-        return response.rows.map((r, rowOffset) => {
+        const rows = response.rows.map((r, rowOffset) => {
             let dataWithSchema: {
                 [key: string]: any;
             } = {};
@@ -132,6 +233,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             }
             return dataWithSchema;
         });
+
+        if (rows.length > 0 && !gridPerfFirstDataPaintRecordedRef.current) {
+            gridPerfFirstDataPaintRecordedRef.current = true;
+            gridPerfFirstFetchResponseTimeRef.current = getQueryResultGridPerfNow();
+        }
+
+        return rows;
     };
 
     // Resize the grid when the parent container size changes
@@ -271,6 +379,31 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             collection.setCollectionChangedCallback((startIndex, count) => {
                 let refreshedRows = range(startIndex, startIndex + count);
                 tableRef.current?.invalidateRows(refreshedRows, true);
+
+                const firstFetchResponseTime = gridPerfFirstFetchResponseTimeRef.current;
+                if (firstFetchResponseTime !== undefined) {
+                    gridPerfFirstFetchResponseTimeRef.current = undefined;
+                    scheduleQueryResultGridPerfPaint(
+                        gridPerfContextRef.current,
+                        "get-rows-response-paint",
+                        firstFetchResponseTime,
+                        {
+                            offset: startIndex,
+                            count,
+                            returnedRows: count,
+                        },
+                    );
+                    scheduleQueryResultGridPerfPaint(
+                        gridPerfContextRef.current,
+                        "first-data-paint",
+                        gridPerfMountStartRef.current,
+                        {
+                            offset: startIndex,
+                            count,
+                            returnedRows: count,
+                        },
+                    );
+                }
             });
 
             tableRef.current.layout(

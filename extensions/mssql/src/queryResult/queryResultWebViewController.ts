@@ -63,6 +63,9 @@ export class QueryResultWebviewController extends WebviewViewController<
             isBetaResultsGridEnabled: previewService.isFeatureEnabled(
                 PreviewFeature.BetaResultsGrid,
             ),
+            isGridPerfTelemetryEnabled:
+                vscodeWrapper.getConfiguration().get<boolean>(Constants.configGridPerfTelemetry) ??
+                false,
         });
 
         void this.initialize();
@@ -119,6 +122,14 @@ export class QueryResultWebviewController extends WebviewViewController<
                     const newValue = this.isBetaResultsGridEnabled;
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.isBetaResultsGridEnabled = newValue;
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                    stateChanged = true;
+                }
+                if (e.affectsConfiguration(Constants.configGridPerfTelemetry)) {
+                    const newValue = this.isGridPerfTelemetryEnabled;
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.isGridPerfTelemetryEnabled = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
                     stateChanged = true;
@@ -227,6 +238,13 @@ export class QueryResultWebviewController extends WebviewViewController<
         return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
+    private get isGridPerfTelemetryEnabled(): boolean {
+        return (
+            this.vscodeWrapper.getConfiguration().get<boolean>(Constants.configGridPerfTelemetry) ??
+            false
+        );
+    }
+
     private registerRpcHandlers() {
         this.onRequest(qr.OpenInNewTabRequest.type, async (message) => {
             void this.createPanelController(message.uri);
@@ -297,6 +315,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
+            isGridPerfTelemetryEnabled: this.isGridPerfTelemetryEnabled,
             initializationError: undefined,
         };
     }
@@ -367,6 +386,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
+            isGridPerfTelemetryEnabled: this.isGridPerfTelemetryEnabled,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }

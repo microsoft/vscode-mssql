@@ -79,7 +79,8 @@
         "package": "node scripts/package-extension.js",
         "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
-        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
+        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\"",
+        "perf:grid": "npm run build:extension && npm run build:extension-bundle && npm run build:webviews && npm run build:webviews-bundle && npx playwright test -c playwright.perf.config.ts"
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",

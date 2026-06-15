@@ -21,6 +21,7 @@ export type mssqlExtensionLaunchConfig = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initialConfig?: any;
     useVsix?: boolean;
+    useTempProfile?: boolean;
 };
 
 export const DEFAULT_USER_CONFIG = {
@@ -28,6 +29,17 @@ export const DEFAULT_USER_CONFIG = {
 };
 
 const DOTNET_RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
+
+function getElectronLaunchEnvironment(): NodeJS.ProcessEnv {
+    const env = { ...process.env };
+    delete env.ELECTRON_RUN_AS_NODE;
+    for (const key of Object.keys(env)) {
+        if (key.startsWith("VSCODE_")) {
+            delete env[key];
+        }
+    }
+    return env;
+}
 
 function installExtension(
     cliPath: string,
@@ -44,6 +56,7 @@ function installExtension(
             `--extensions-dir=${extensionsDir}`,
         ],
         {
+            env: getElectronLaunchEnvironment(),
             encoding: "utf-8",
             stdio: "pipe",
             shell: process.platform === "win32",
@@ -69,6 +82,7 @@ export async function launchVsCodeWithMssqlExtension(
     const config: mssqlExtensionLaunchConfig = {
         initialConfig: DEFAULT_USER_CONFIG,
         useVsix: false,
+        useTempProfile: true,
         ...options,
     };
 
@@ -133,7 +147,7 @@ export async function launchVsCodeWithMssqlExtension(
          */
         console.log("Installing VSIX before launch...");
         installExtension(cliPath, vsixPath, userDataDir, extensionsDir);
-    } else {
+    } else if (config.useTempProfile) {
         launchArgs.push("--temp-profile");
     }
 
@@ -152,6 +166,7 @@ export async function launchVsCodeWithMssqlExtension(
         args: config.useVsix
             ? launchArgs
             : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
+        env: getElectronLaunchEnvironment(),
         ...(shouldRecordVideo
             ? {
                   recordVideo: {
@@ -164,7 +179,7 @@ export async function launchVsCodeWithMssqlExtension(
 
     const electronApp = await electron.launch(electronLaunchOptions);
 
-    const page = await electronApp.firstWindow({ timeout: 10_000 });
+    const page = await electronApp.firstWindow({ timeout: 30_000 });
 
     await page.setViewportSize({ width: 1920, height: 1080 });
 
