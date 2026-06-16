@@ -4137,3 +4137,15 @@ export const foreignKeys2 = l10n.t("Foreign Keys");
 export const checkConstraints2 = l10n.t("Check Constraints");
 
 export const advancedOptions = l10n.t("Advanced Options");
+
+export class SqlSymbolRename {
+    public static renameNotSupportedAtPosition = l10n.t(
+        "Rename is not supported at this position.",
+    );
+    public static renameOnlyInProjectFiles = l10n.t(
+        "Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static renameRequestFailed = (message: string): string =>
+        l10n.t("Rename request failed: {0}", message);
+    public static noRenameableSymbolAtCursor = l10n.t("No renameable symbol found at cursor.");
+}
