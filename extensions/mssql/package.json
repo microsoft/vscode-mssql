@@ -598,12 +598,6 @@
                     "group": "1_cloudDeploy@1"
                 },
                 {
-                    "command": "mssql.cloudDeploy.viewAllRuns",
-                    "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.section.runs",
-                    "title": "%mssql.cloudDeploy.viewAllRuns%",
-                    "group": "1_cloudDeploy@1"
-                },
-                {
                     "command": "mssql.cloudDeploy.validateEnvironment",
                     "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.environment",
                     "group": "1_cloudDeploy@1"

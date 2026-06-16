@@ -4011,7 +4011,7 @@ export class CloudDeployDashboard {
 
     public static environmentsSection = l10n.t("Environments");
 
-    public static recentRunsSection = l10n.t("Recent Runs");
+    public static runsFolder = l10n.t("Runs");
 
     public static noEnvironmentsPlaceholder = l10n.t(
         "No environments declared. Add one to .mssql/environments.json.",

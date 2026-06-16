@@ -5669,9 +5669,6 @@
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
     </trans-unit>
-    <trans-unit id="++CODE++53972e864229c7cc77a4d8fa1a7127fcf98c7dbc383fc9482b4a5afe10dfcfcb">
-      <source xml:lang="en">Recent Runs</source>
-    </trans-unit>
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>

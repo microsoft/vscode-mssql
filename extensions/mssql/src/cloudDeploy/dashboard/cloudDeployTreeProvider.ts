@@ -6,12 +6,12 @@
 /**
  * Cloud Deploy — activity-bar tree provider (D3-Part-2 commit 2).
  *
- * Renders two sections under the "SQL Server" activity bar:
+ * Renders a single section under the "SQL Server" activity bar:
  *
  *   * Environments — every declared env, each leaf showing the env name
- *     plus the status icon of its latest run (or "no runs yet").
- *   * Recent Runs  — the 10 most recent runs across all envs, newest first,
- *     each leaf showing the env name + status + a relative-time hint.
+ *     plus the status icon of its latest run (or "no runs yet"). Expanding an
+ *     environment reveals its source-of-truth detail and its last few runs
+ *     nested directly beneath it.
  *
  * The provider is a pure projection over `EnvironmentStore` and `RunStore`;
  * it owns no state of its own. It refreshes when either source fires its
@@ -21,12 +21,8 @@
  * Invoking a leaf fires the appropriate command (defined in package.json):
  *
  *   * Environment leaf → `mssql.cloudDeploy.validateEnvironment` (existing
- *     D2 surface — runs validation on that env). The hub webview is
- *     out-of-scope for this commit.
- *   * Run leaf → `mssql.cloudDeploy.revealRunArtifact` (reveals the
- *     `.cdrun.zip` in the OS file explorer). Opening the artifact in a
- *     formatted view requires the hub webview, which lands in a later
- *     commit.
+ *     D2 surface — runs validation on that env).
+ *   * Run leaf → `mssql.cloudDeploy.openRun` (opens the run in the hub).
  *
  * Right-click context menus add "Refresh runs" on the view title.
  */
@@ -43,9 +39,6 @@ import { RunStatus } from "../runs/types";
 // Constants
 // =============================================================================
 
-/** Cap on the "Recent Runs" section. Keeps the tree readable on busy workspaces. */
-const RECENT_RUNS_LIMIT = 10;
-
 /** Cap on the runs shown nested under a single environment in the tree. */
 const RUNS_PER_ENVIRONMENT = 5;
 
@@ -56,11 +49,11 @@ export const CLOUD_DEPLOY_VIEW_ID = "mssqlCloudDeploy";
 // Tree node types
 // =============================================================================
 
-type TreeNode = SectionNode | EnvironmentNode | SourceNode | RunNode | EmptyNode;
+type TreeNode = SectionNode | EnvironmentNode | SourceNode | RunsFolderNode | RunNode | EmptyNode;
 
 interface SectionNode {
     readonly kind: "section";
-    readonly id: "environments" | "runs";
+    readonly id: "environments";
     readonly label: string;
 }
 
@@ -77,12 +70,16 @@ interface SourceNode {
     readonly env: Environment;
 }
 
+/** Collapsible folder under an environment that groups its recent runs. */
+interface RunsFolderNode {
+    readonly kind: "runsFolder";
+    readonly env: Environment;
+    readonly runCount: number;
+}
+
 interface RunNode {
     readonly kind: "run";
     readonly entry: RunListEntry;
-    /** When true, the run sits under its environment, so the env name is
-     *  redundant and the leaf labels itself by run id instead. */
-    readonly nested?: boolean;
 }
 
 interface EmptyNode {
@@ -148,6 +145,8 @@ export class CloudDeployTreeProvider
                 return makeEnvironmentItem(element);
             case "source":
                 return makeSourceItem(element);
+            case "runsFolder":
+                return makeRunsFolderItem(element);
             case "run":
                 return makeRunItem(element);
             case "empty":
@@ -163,31 +162,42 @@ export class CloudDeployTreeProvider
                     id: "environments",
                     label: CloudDeployDashboard.environmentsSection,
                 },
-                { kind: "section", id: "runs", label: CloudDeployDashboard.recentRunsSection },
             ];
         }
         if (element.kind === "section") {
-            return element.id === "environments"
-                ? this._environmentChildren()
-                : this._runChildren();
+            return this._environmentChildren();
         }
         if (element.kind === "environment") {
             return this._environmentDetailChildren(element.env);
+        }
+        if (element.kind === "runsFolder") {
+            return this._runsFolderChildren(element.env);
         }
         return [];
     }
 
     /**
-     * Children of an expanded environment: a source-of-truth detail leaf, then
-     * the environment's most recent runs nested directly beneath it.
+     * Children of an expanded environment: a source-of-truth detail leaf, then a
+     * collapsible "Runs" folder grouping the environment's recent runs.
      */
     private _environmentDetailChildren(env: Environment): TreeNode[] {
-        const children: TreeNode[] = [{ kind: "source", env }];
+        const runCount = this._runStore?.list(env.id).length ?? 0;
+        return [
+            { kind: "source", env },
+            { kind: "runsFolder", env, runCount },
+        ];
+    }
+
+    /** Children of a "Runs" folder: the environment's most recent runs, or a
+     *  placeholder when it has none yet. */
+    private _runsFolderChildren(env: Environment): TreeNode[] {
         const runs = this._runStore?.list(env.id) ?? [];
-        for (const entry of runs.slice(0, RUNS_PER_ENVIRONMENT)) {
-            children.push({ kind: "run", entry, nested: true });
+        if (runs.length === 0) {
+            return [{ kind: "empty", parentSection: "runs" }];
         }
-        return children;
+        return runs
+            .slice(0, RUNS_PER_ENVIRONMENT)
+            .map<RunNode>((entry) => ({ kind: "run", entry }));
     }
 
     private _environmentChildren(): TreeNode[] {
@@ -223,14 +233,6 @@ export class CloudDeployTreeProvider
             latestStatus: this._latestStatusFor(env.id),
             isDefault: env.id === defaultEnvId,
         }));
-    }
-
-    private _runChildren(): TreeNode[] {
-        const all = this._runStore?.list() ?? [];
-        if (all.length === 0) {
-            return [{ kind: "empty", parentSection: "runs" }];
-        }
-        return all.slice(0, RECENT_RUNS_LIMIT).map<RunNode>((entry) => ({ kind: "run", entry }));
     }
 
     private _latestStatusFor(envId: string): RunStatus | undefined {
@@ -292,12 +294,27 @@ function makeSourceItem(node: SourceNode): vscode.TreeItem {
     return item;
 }
 
+/**
+ * The collapsible "Runs" folder under an expanded environment, grouping that
+ * environment's recent runs. Collapsed by default to keep the environment row
+ * tidy; the run count is shown as the description.
+ */
+function makeRunsFolderItem(node: RunsFolderNode): vscode.TreeItem {
+    const item = new vscode.TreeItem(
+        CloudDeployDashboard.runsFolder,
+        vscode.TreeItemCollapsibleState.Collapsed,
+    );
+    item.description = `${node.runCount}`;
+    item.contextValue = "cloudDeploy.runsFolder";
+    item.iconPath = new vscode.ThemeIcon("history");
+    return item;
+}
+
 function makeRunItem(node: RunNode): vscode.TreeItem {
     const { entry } = node;
-    // Nested under its environment, the run labels itself by short id (the env
-    // name would be redundant). In the flat Recent Runs section it leads with
-    // the environment name so cross-env runs are distinguishable.
-    const label = node.nested ? entry.runId.slice(0, 8) : entry.envDisplayName;
+    // Runs are always nested under their environment, so the leaf labels itself
+    // by short run id (the env name would be redundant).
+    const label = entry.runId.slice(0, 8);
     const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
     item.description = formatRunDescription(entry);
     item.tooltip = CloudDeployDashboard.runTooltip(entry.runId, entry.artifactPath);
@@ -334,9 +351,9 @@ function isRunNode(arg: unknown): arg is RunNode {
 
 function makeEmptyItem(node: EmptyNode): vscode.TreeItem {
     const label =
-        node.parentSection === "environments"
-            ? CloudDeployDashboard.noEnvironmentsPlaceholder
-            : CloudDeployDashboard.noRunsPlaceholder;
+        node.parentSection === "runs"
+            ? CloudDeployDashboard.noRunsPlaceholder
+            : CloudDeployDashboard.noEnvironmentsPlaceholder;
     const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
     item.contextValue = `cloudDeploy.empty.${node.parentSection}`;
     return item;

@@ -119,11 +119,11 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         expect(CLOUD_DEPLOY_VIEW_ID).to.equal("mssqlCloudDeploy");
     });
 
-    test("root returns the two section nodes", () => {
+    test("root returns the single environments section node", () => {
         const roots = provider.getChildren();
-        expect(roots).to.have.lengthOf(2);
+        expect(roots).to.have.lengthOf(1);
         const ids = roots.map((n) => (n.kind === "section" ? n.id : "?"));
-        expect(ids).to.deep.equal(["environments", "runs"]);
+        expect(ids).to.deep.equal(["environments"]);
     });
 
     test("environments section is empty when no envs are declared", () => {
@@ -202,7 +202,7 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         expect(children[0].kind).to.equal("source");
     });
 
-    test("environment children nest that environment's runs beneath the source", async () => {
+    test("an environment expands to a source leaf and a runs folder", async () => {
         envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
         await seedRun("r-old", "dev", "Dev", 1_000);
         await seedRun("r-new", "dev", "Dev", 5_000);
@@ -211,44 +211,57 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         const envSection = provider.getChildren()[0];
         const envNode = provider.getChildren(envSection)[0];
         const children = provider.getChildren(envNode);
-        expect(children[0].kind).to.equal("source");
-        const runIds = children
+        const kinds = children.map((c) => c.kind);
+        expect(kinds).to.deep.equal(["source", "runsFolder"]);
+    });
+
+    test("the runs folder lists that environment's runs newest-first", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        await seedRun("r-old", "dev", "Dev", 1_000);
+        await seedRun("r-new", "dev", "Dev", 5_000);
+        await runStore.scan();
+
+        const envSection = provider.getChildren()[0];
+        const envNode = provider.getChildren(envSection)[0];
+        const runsFolder = provider.getChildren(envNode).find((c) => c.kind === "runsFolder");
+        if (runsFolder === undefined) {
+            throw new Error("expected a runs folder");
+        }
+        const runIds = provider
+            .getChildren(runsFolder)
             .filter((c) => c.kind === "run")
             .map((c) => (c.kind === "run" ? c.entry.runId : "?"));
         expect(runIds).to.deep.equal(["r-new", "r-old"]);
     });
 
-    test("runs section is empty before any scan", () => {
-        const roots = provider.getChildren();
-        const runSection = roots.find((n) => n.kind === "section" && n.id === "runs");
-        const children = provider.getChildren(runSection);
+    test("the runs folder shows an empty placeholder when the env has no runs", () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        const envSection = provider.getChildren()[0];
+        const envNode = provider.getChildren(envSection)[0];
+        const runsFolder = provider.getChildren(envNode).find((c) => c.kind === "runsFolder");
+        if (runsFolder === undefined) {
+            throw new Error("expected a runs folder");
+        }
+        const children = provider.getChildren(runsFolder);
         expect(children).to.have.lengthOf(1);
         expect(children[0].kind).to.equal("empty");
     });
 
-    test("runs section lists scanned runs newest-first", async () => {
-        await seedRun("r-old", "dev", "Dev", 1_000);
-        await seedRun("r-new", "dev", "Dev", 5_000);
-        await runStore.scan();
-
-        const roots = provider.getChildren();
-        const runSection = roots.find((n) => n.kind === "section" && n.id === "runs");
-        const children = provider.getChildren(runSection);
-        expect(children).to.have.lengthOf(2);
-        const ids = children.map((c) => (c.kind === "run" ? c.entry.runId : "?"));
-        expect(ids).to.deep.equal(["r-new", "r-old"]);
-    });
-
-    test("runs section caps at 10 entries", async () => {
-        for (let i = 0; i < 15; i++) {
+    test("the runs folder caps at five entries", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
+        for (let i = 0; i < 8; i++) {
             await seedRun(`r-${i}`, "dev", "Dev", i * 1_000);
         }
         await runStore.scan();
 
-        const roots = provider.getChildren();
-        const runSection = roots.find((n) => n.kind === "section" && n.id === "runs");
-        const children = provider.getChildren(runSection);
-        expect(children).to.have.lengthOf(10);
+        const envSection = provider.getChildren()[0];
+        const envNode = provider.getChildren(envSection)[0];
+        const runsFolder = provider.getChildren(envNode).find((c) => c.kind === "runsFolder");
+        if (runsFolder === undefined) {
+            throw new Error("expected a runs folder");
+        }
+        const runChildren = provider.getChildren(runsFolder).filter((c) => c.kind === "run");
+        expect(runChildren).to.have.lengthOf(5);
     });
 
     test("environment leaf shows the latest run status as its icon", async () => {
@@ -291,10 +304,19 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
     });
 
     test("getTreeItem on a run node binds the open-run command", async () => {
+        envStore.envs = [makeEnvironment({ id: "dev", name: "Dev" })];
         await seedRun("r-1", "dev", "Dev", 1_000);
         await runStore.scan();
-        const runSection = provider.getChildren()[1];
-        const node = provider.getChildren(runSection)[0];
+        const envSection = provider.getChildren()[0];
+        const envNode = provider.getChildren(envSection)[0];
+        const runsFolder = provider.getChildren(envNode).find((c) => c.kind === "runsFolder");
+        if (runsFolder === undefined) {
+            throw new Error("expected a runs folder");
+        }
+        const node = provider.getChildren(runsFolder).find((c) => c.kind === "run");
+        if (node === undefined) {
+            throw new Error("expected a nested run node");
+        }
         const item = provider.getTreeItem(node);
         expect(item.command?.command).to.equal("mssql.cloudDeploy.openRun");
         expect(item.command?.arguments?.[0]).to.equal("r-1");
@@ -341,7 +363,7 @@ suite("CloudDeploy CloudDeployTreeProvider", () => {
         const bare = new CloudDeployTreeProvider(undefined, undefined);
         try {
             const roots = bare.getChildren();
-            expect(roots).to.have.lengthOf(2);
+            expect(roots).to.have.lengthOf(1);
             for (const root of roots) {
                 const children = bare.getChildren(root);
                 expect(children).to.have.lengthOf(1);

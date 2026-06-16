@@ -4126,7 +4126,6 @@
         "message": "Validation finished but the run artifact could not be saved: {0}",
         "comment": ["{0} is the underlying I/O error message"]
     },
-    "Recent Runs": "Recent Runs",
     "No environments declared. Add one to .mssql/environments.json.": "No environments declared. Add one to .mssql/environments.json.",
     "No runs yet. Run validation to produce one.": "No runs yet. Run validation to produce one.",
     "Run validation": "Run validation",
