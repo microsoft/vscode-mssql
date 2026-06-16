@@ -103,24 +103,24 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         newName: string,
         token: vscode.CancellationToken,
     ): Promise<vscode.WorkspaceEdit | null | undefined> {
-        // Enforce SQL project membership even if prepareRename wasn't called
-        if (!(await SqlSymbolRenameProvider.isInSqlProject(document.uri.fsPath))) {
-            throw new Error(loc.renameOnlyInProjectFiles);
-        }
-
         if (token.isCancellationRequested) {
             return undefined;
         }
 
         // Resolve the project's refactorlog target up front so we can hand its current content to
         // STS. STS appends the new operation and returns the full document for us to write.
+        // This also enforces SQL project membership: a file outside any .sqlproj resolves to
+        // undefined (even if prepareRename wasn't called).
         const refactorTarget = await SqlSymbolRenameProvider.resolveRefactorLogTarget(document);
+        if (!refactorTarget) {
+            throw new Error(loc.renameOnlyInProjectFiles);
+        }
 
         const params: SqlSymbolRenameParams = {
             textDocument: { uri: document.uri.toString() },
             position: { line: position.line, character: position.character },
             newName,
-            existingRefactorLogContent: refactorTarget?.existingContent ?? null,
+            existingRefactorLogContent: refactorTarget.existingContent,
         };
 
         let response;
@@ -160,6 +160,15 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
                     ? `[${newName}]`
                     : newName;
             workspaceEdit.replace(document.uri, wordRange, finalName);
+            // Still write the refactorlog (if STS produced one) so the single-file rename and the
+            // refactorlog update stay atomic under Apply/Discard.
+            if (response.refactorLogContent) {
+                this.applyRefactorLogEdit(
+                    workspaceEdit,
+                    refactorTarget,
+                    response.refactorLogContent,
+                );
+            }
             return workspaceEdit;
         }
 
@@ -186,7 +195,7 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         // STS returns the full .refactorlog content (existing operations + the new rename) when
         // the renamed symbol needs one. We write it via the SAME WorkspaceEdit so Apply/Discard
         // controls the code edits and the refactorlog together.
-        if (response.refactorLogContent && refactorTarget) {
+        if (response.refactorLogContent) {
             this.applyRefactorLogEdit(workspaceEdit, refactorTarget, response.refactorLogContent);
         }
 

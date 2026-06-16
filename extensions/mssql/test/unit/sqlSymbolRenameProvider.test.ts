@@ -148,6 +148,20 @@ suite("SqlSymbolRenameProvider Tests", () => {
     suite("provideRenameEdits", () => {
         const token = {} as vscode.CancellationToken;
 
+        setup(() => {
+            // provideRenameEdits resolves the refactorlog target, which reads the .sqlproj via
+            // openTextDocument and stats the .refactorlog. Stub both with defaults so these tests
+            // stay hermetic and never touch the real filesystem. The refactorlog-specific
+            // behavior is covered separately in the "refactorlog handling" suite.
+            const sqlprojDoc = {
+                getText: () => "<Project>\n</Project>",
+            } as unknown as vscode.TextDocument;
+            sandbox.stub(vscode.workspace, "openTextDocument").resolves(sqlprojDoc);
+            sandbox
+                .stub(vscode.workspace, "fs")
+                .value({ stat: sandbox.stub().rejects(new Error("not found")) });
+        });
+
         test("throws renameOnlyInProjectFiles when STS returns no result", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
             findFilesStub.resolves([projUri]);
@@ -372,10 +386,11 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
             // A new .refactorlog file was created with the STS-generated content.
             expect(createFileSpy).to.have.been.called;
-            const [createdUri, createOpts] = createFileSpy.firstCall.args as [
-                vscode.Uri,
-                { contents: Buffer },
-            ];
+            const createCall = createFileSpy
+                .getCalls()
+                .find((c) => (c.args[0] as vscode.Uri).fsPath.endsWith(".refactorlog"));
+            expect(createCall, "expected a createFile on the .refactorlog").to.not.be.undefined;
+            const [createdUri, createOpts] = createCall!.args as [vscode.Uri, { contents: Buffer }];
             expect(createdUri.fsPath).to.equal(
                 vscode.Uri.file(path.resolve(projectDir, "proj.refactorlog")).fsPath,
             );
