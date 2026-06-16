@@ -11,7 +11,7 @@ const styles = makeStyles({
         display: "flex",
         justifyContent: "left",
         alignItems: "center",
-        color: "var(--vscode-scmGraph-foreground4)",
+        color: "var(--vscode-testing-iconPassed)",
         gap: "4px",
     },
 });
