@@ -265,7 +265,7 @@ export function useFluentResultGridLayout({
             const requestId = ++autoSizeRequestIdRef.current;
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    window.setTimeout(() => {
+                    queueMicrotask(() => {
                         if (autoSizeRequestIdRef.current !== requestId) {
                             return;
                         }
@@ -288,7 +288,7 @@ export function useFluentResultGridLayout({
                                 }, initialAutoSizeRetryDelaysMs[attempt]);
                             },
                         );
-                    }, 0);
+                    });
                 });
             });
         },
