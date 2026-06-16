@@ -185,6 +185,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 await this.queryResultContext.extensionRpc.sendRequest(CopyColumnNameRequest.type, {
                     columnName,
                 });
+                this.queryResultContext.showCopyIndicator();
                 break;
             }
         }
