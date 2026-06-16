@@ -14,7 +14,7 @@ import {
 import { Divider, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { locConstants as loc } from "../../../common/locConstants";
 import { VscodeDiffEditor } from "../../../common/vscodeMonaco";
-import * as mssql from "vscode-mssql";
+import { getAggregatedScript, groupConstraintChildrenByAction } from "./compareDiffEditorUtils";
 import "./compareDiffEditor.css";
 
 const useStyles = makeStyles({
@@ -50,87 +50,6 @@ const useStyles = makeStyles({
         lineHeight: "1.5",
     },
 });
-
-const getAggregatedScript = (diff: mssql.DiffEntry, getSourceScript: boolean): string => {
-    let script = "";
-    if (diff !== null) {
-        let diffScript = getSourceScript
-            ? formatScript(diff.sourceScript)
-            : formatScript(diff.targetScript);
-        if (diffScript) {
-            script += diffScript + "\n\n";
-        }
-
-        diff.children.forEach((child) => {
-            let childScript = getAggregatedScript(child, getSourceScript);
-            script += childScript;
-        });
-    }
-
-    return script;
-};
-
-const formatScript = (script: string): string => {
-    if (!script) {
-        return "";
-    }
-
-    return script;
-};
-
-/**
- * Collect the hierarchical-child diffs that represent constraint changes (PK / FK / UNIQUE /
- * CHECK / DEFAULT) under the selected parent diff, grouped by SchemaUpdateAction. Used to
- * render the "Constraints added / dropped / changed" banner above the diff editor.
- *
- * Filtered to constraint object types only so column-change children (which are already part
- * of the parent table's CREATE / ALTER script) do not get listed here. Reads the source name
- * when present and falls back to the target name so that Drop-only diffs still produce a label.
- */
-const groupConstraintChildrenByAction = (
-    diff: mssql.DiffEntry | undefined,
-): { [action in SchemaUpdateAction]?: string[] } => {
-    const grouped: { [action in SchemaUpdateAction]?: string[] } = {};
-    if (!diff?.children) {
-        return grouped;
-    }
-    for (const child of diff.children) {
-        if (!isConstraintObjectType(child.sourceObjectType ?? child.targetObjectType)) {
-            continue;
-        }
-        const name = formatChildName(child);
-        if (!name) {
-            continue;
-        }
-        const action = child.updateAction as SchemaUpdateAction;
-        (grouped[action] ??= []).push(name);
-    }
-    return grouped;
-};
-
-// DacFx ObjectType TypeName values for the constraint kinds that can appear under a SqlTable
-// in a Schema Compare diff. Match exactly the strings emitted by
-// `SchemaComparisonExcludedObjectId(objectType, name).TypeName` in sqltoolsservice (see
-// CreateDiffEntry in SchemaCompareUtils).
-const CONSTRAINT_OBJECT_TYPE_SUFFIXES = [
-    "PrimaryKeyConstraint",
-    "ForeignKeyConstraint",
-    "UniqueConstraint",
-    "CheckConstraint",
-    "DefaultConstraint",
-];
-
-const isConstraintObjectType = (objectType: string | undefined): boolean => {
-    if (!objectType) {
-        return false;
-    }
-    return CONSTRAINT_OBJECT_TYPE_SUFFIXES.some((suffix) => objectType.endsWith(suffix));
-};
-
-const formatChildName = (child: mssql.DiffEntry): string => {
-    const parts = (child.sourceValue?.length ? child.sourceValue : child.targetValue) ?? [];
-    return parts.length > 0 ? parts.join(".") : (child.name ?? "");
-};
 
 interface Props {
     selectedDiffId: number;
