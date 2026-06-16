@@ -7491,14 +7491,14 @@ Errore:
         <note>{0} is the keyboard shortcut for the preview results tab</note>
         <target state="new">Results Preview ({0})</target>
       </trans-unit>
-      <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
-        <source xml:lang="en">Results copied to clipboard</source>
-        <target state="translated">Risultati copiati negli Appunti</target>
-      </trans-unit>
       <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
         <source xml:lang="en">Results exported successfully to {0}</source>
         <note>{0} is the file path</note>
         <target state="translated">Risultati esportati correttamente in {0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++307ea97b854d629bc8febac31e69d61ee13fcdeca467abf549e7a3258bce347e">
+        <source xml:lang="en">Results toolbar</source>
+        <target state="new">Results toolbar</target>
       </trans-unit>
       <trans-unit id="++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d">
         <source xml:lang="en">Resume</source>
@@ -11592,10 +11592,6 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
       <trans-unit id="mssql.results.openAfterSave">
         <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
         <target state="translated">Se abilitato, le esportazioni dei risultati delle query salvate vengono aperte dopo l'esportazione. Le esportazioni di Excel si aprono con il gestore di file di sistema; le esportazioni di testo si aprono in VS Code.</target>
-      </trans-unit>
-      <trans-unit id="mssql.results.showCopyNotification">
-        <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
-        <target state="translated">Quando è abilitata, mostra una notifica dopo che i risultati della query sono stati copiati negli Appunti.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
