@@ -82,6 +82,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     gridSettings?: GridSettings;
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
+    isBetaResultsGridEnabled?: boolean;
     initializationError?: string;
     selectionSummary?: SelectionSummary;
 }
@@ -258,6 +259,33 @@ export interface SetColumnWidthsParams {
 
 export namespace SetColumnWidthsRequest {
     export const type = new RequestType<SetColumnWidthsParams, void, void>("setColumnWidths");
+}
+
+export interface GridViewState {
+    hiddenColumnIds?: string[];
+    frozenColumnIndex?: number;
+    selection?: ISlickRange[];
+}
+
+export interface GetGridViewStateParams {
+    uri: string;
+    gridId: string;
+}
+
+export namespace GetGridViewStateRequest {
+    export const type = new RequestType<GetGridViewStateParams, GridViewState | undefined, void>(
+        "getGridViewState",
+    );
+}
+
+export interface SetGridViewStateParams {
+    uri: string;
+    gridId: string;
+    gridViewState: GridViewState;
+}
+
+export namespace SetGridViewStateRequest {
+    export const type = new RequestType<SetGridViewStateParams, void, void>("setGridViewState");
 }
 
 export namespace ShowFilterDisabledMessageRequest {

@@ -132,6 +132,7 @@ export const QueryResultPane = () => {
     const executionPlanGraphs = useQueryResultSelector<ExecutionPlanGraph[] | undefined>(
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
+    const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
 
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
@@ -263,11 +264,25 @@ export const QueryResultPane = () => {
                     {Object.keys(resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
-                            title={locConstants.queryResult.resultTabTooltip(
-                                keyBindings[WebviewAction.QueryResultSwitchToResultsTab].label,
-                            )}
+                            title={
+                                isBetaResultsGridEnabled
+                                    ? locConstants.queryResult.resultBetaTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                                    : locConstants.queryResult.resultTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                            }
                             key={qr.QueryResultPaneTabs.Results}>
-                            {locConstants.queryResult.results(getGridCount(resultSetSummaries))}
+                            {isBetaResultsGridEnabled
+                                ? locConstants.queryResult.resultsBeta(
+                                      getGridCount(resultSetSummaries),
+                                  )
+                                : locConstants.queryResult.results(
+                                      getGridCount(resultSetSummaries),
+                                  )}
                         </Tab>
                     )}
                     <Tab
