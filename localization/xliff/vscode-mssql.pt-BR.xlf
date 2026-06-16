@@ -7461,6 +7461,20 @@ Erro:
         <note>{0} is the keyboard shortcut for the results tab</note>
         <target state="translated">Resultados ({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++2d69137f5dd060efac1008188981aff344c1d3de8f7c3bf54359e68cc4e19b5e">
+        <source xml:lang="en">Results Preview</source>
+        <target state="new">Results Preview</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2944b5a2b1f061b198f19a818d051f7246c0494c3a7150d757f2301e3ab9e06a">
+        <source xml:lang="en">Results Preview ({0})</source>
+        <note>{0} is the number of preview results</note>
+        <target state="new">Results Preview ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++19845d8a46ab987a3d8bf7a121f630c6f4dd5bbf37f30e81ec6fb187bba7a8e3">
+        <source xml:lang="en">Results Preview ({0})</source>
+        <note>{0} is the keyboard shortcut for the preview results tab</note>
+        <target state="new">Results Preview ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
         <source xml:lang="en">Results copied to clipboard</source>
         <target state="translated">Resultados copiados para a área de transferência</target>
@@ -8491,6 +8505,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
         <source xml:lang="en">Show a random table definition</source>
         <target state="translated">Mostrar uma definição de tabela aleatória</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87e6b9fe0c51b9ad481c1e47b40fbc5a13ea3464c5131908b81cb2b21cd33822">
+        <source xml:lang="en">Show all columns</source>
+        <target state="new">Show all columns</target>
       </trans-unit>
       <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
         <source xml:lang="en">Show full error message</source>
@@ -10946,6 +10964,10 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">Habilita recursos experimentais na extensão do MSSQL. Os recursos não estão prontos para produção e podem ter bugs ou problemas. Reinicie o Visual Studio Code após alterar essa configuração.</target>
+      </trans-unit>
+      <trans-unit id="mssql.preview.betaResultsGrid.description">
+        <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
+        <target state="new">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</target>
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan (MSSQL)</source>
