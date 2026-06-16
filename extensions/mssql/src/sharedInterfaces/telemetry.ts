@@ -49,6 +49,7 @@ export enum TelemetryViews {
     Restore = "Restore",
     SqlNotebooks = "SqlNotebooks",
     ServiceClient = "ServiceClient",
+    SqlToolsMcp = "SqlToolsMcp",
 }
 
 export enum TelemetryActions {
@@ -248,6 +249,14 @@ export enum TelemetryActions {
     ServiceStarted = "ServiceStarted",
     ServiceStartFailed = "ServiceStartFailed",
     AcquireDotnetRuntimeFailed = "AcquireDotnetRuntimeFailed",
+    SqlToolsMcpProviderRegistration = "SqlToolsMcpProviderRegistration",
+    SqlToolsMcpDefinitionResolution = "SqlToolsMcpDefinitionResolution",
+    SqlToolsMcpBridgeLifecycle = "SqlToolsMcpBridgeLifecycle",
+    SqlToolsMcpListConnections = "SqlToolsMcpListConnections",
+    SqlToolsMcpConnect = "SqlToolsMcpConnect",
+    SqlToolsMcpRegisterConnection = "SqlToolsMcpRegisterConnection",
+    SqlToolsMcpExecuteQuery = "SqlToolsMcpExecuteQuery",
+    SqlToolsMcpRemoveConnection = "SqlToolsMcpRemoveConnection",
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",

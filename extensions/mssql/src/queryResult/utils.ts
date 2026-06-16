@@ -21,8 +21,10 @@ import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { QueryResultSingletonStore } from "./singletonStore";
 import * as LocalizedConstants from "../constants/locConstants";
 import { formatXml } from "../utils/utils";
+import { getLogger } from "../models/logger";
 
 export const MAX_VIEW_COLUMN = 9;
+const logger = getLogger("QueryResult");
 
 export function getNewResultPaneViewColumn(
     uri: string,
@@ -96,8 +98,8 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.SetEditorSelectionRequest.type, async (message) => {
         if (!message.uri || !message.selectionData) {
-            console.warn(
-                `Invalid setEditorSelection request.  Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
+            logger.warn(
+                `Invalid setEditorSelection request. Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
             );
             return;
         }
@@ -245,6 +247,19 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.GetColumnWidthsRequest.type, async (message) => {
         return store.gridState.gridColumnWidths.get(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+        );
+    });
+
+    webviewController.onRequest(qr.SetGridViewStateRequest.type, async (message) => {
+        store.gridState.gridViewStates.set(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+            message.gridViewState,
+        );
+    });
+
+    webviewController.onRequest(qr.GetGridViewStateRequest.type, async (message) => {
+        return store.gridState.gridViewStates.get(
             QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
         );
     });
@@ -405,11 +420,16 @@ export function recordLength(record: any): number {
     return Object.keys(record).length;
 }
 
-export function messageToString(message: qr.IMessage): string {
-    if (message.link?.text) {
-        return `${message.message}${message.link.text}`;
+export function messageToString(message: qr.IMessage, includeTimestamp: boolean = false): string {
+    const text = message.link?.text ? `${message.message}${message.link.text}` : message.message;
+    if (!includeTimestamp || !message.time) {
+        return text;
     }
-    return message.message;
+
+    return text
+        .split(/\r?\n/)
+        .map((line) => `${message.time}\t${line}`)
+        .join("\n");
 }
 
 /**

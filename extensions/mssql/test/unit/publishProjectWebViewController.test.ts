@@ -1255,7 +1255,6 @@ suite("PublishProjectWebViewController Tests", () => {
         state: PublishDialogState,
         updateStateSpy: sinon.SinonStub,
         expectedError?: string,
-        loggerErrorSpy?: sinon.SinonStub,
     ) {
         expect(state.inProgress, "inProgress should be false after error").to.be.false;
         expect(updateStateSpy, "updateState should be called").to.have.been.called;
@@ -1265,13 +1264,6 @@ suite("PublishProjectWebViewController Tests", () => {
                 message: expectedError,
                 intent: "error",
             });
-        }
-
-        if (loggerErrorSpy) {
-            expect(loggerErrorSpy, "logger.error should be called").to.have.been.calledWith(
-                "Failed during container publish:",
-                sinon.match.instanceOf(Error),
-            );
         }
     }
 
@@ -1390,9 +1382,6 @@ suite("PublishProjectWebViewController Tests", () => {
             .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
             .rejects(new Error("Unexpected network failure"));
 
-        // Mock logger to capture error
-        const loggerErrorSpy = sandbox.stub(controller["logger"], "error");
-
         // Mock updateState to capture state changes
         const updateStateSpy = sandbox.stub(controller, "updateState");
 
@@ -1403,12 +1392,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const newState = await publishNow(controller.state, {});
 
         // Validate error state
-        validateContainerPublishError(
-            newState,
-            updateStateSpy,
-            "Unexpected network failure",
-            loggerErrorSpy,
-        );
+        validateContainerPublishError(newState, updateStateSpy, "Unexpected network failure");
     });
 
     test("createDockerContainer succeeds on second attempt after transient auth failure", async () => {

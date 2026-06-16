@@ -113,11 +113,13 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpClient } from "../http/httpClient";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
@@ -149,7 +151,7 @@ export default class MainController implements vscode.Disposable {
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
-    private _logger: Logger;
+    private _logger: ILogger;
     private _lastBackgroundTaskClickTime = 0;
     private _lastBackgroundTaskId: string | undefined;
 
@@ -191,7 +193,7 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "MainController");
+        this._logger = logger.withPrefix("MainController");
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
@@ -246,7 +248,7 @@ export default class MainController implements vscode.Disposable {
      * Deactivates the extension
      */
     public async deactivate(): Promise<void> {
-        Utils.logDebug("de-activated.");
+        this._logger.debug("Extension de-activated.");
         await this.onDisconnect();
         this._statusview.dispose();
     }
@@ -357,6 +359,15 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearAzureTokenCache, () =>
                 this.connectionManager.onClearAzureTokenCache(),
             );
+            // Register the RenameProvider so F2 / "Rename Symbol" uses our STS backend.
+            // This gives the native inline rename textbox + VS Code's preview panel.
+            this._context.subscriptions.push(
+                vscode.languages.registerRenameProvider(
+                    { language: "sql" },
+                    new SqlSymbolRenameProvider(),
+                ),
+            );
+
             this.registerCommand(Constants.cmdShowEstimatedPlan);
             this._event.on(Constants.cmdShowEstimatedPlan, () => {
                 void this.onRunQuery({
@@ -497,7 +508,7 @@ export default class MainController implements vscode.Disposable {
                             });
                         } else {
                             // The editor already contains text
-                            console.warn("Chat with database: unable to open editor");
+                            this._logger.warn("Chat with database: unable to open editor");
                         }
                     } else {
                         // The editor was somehow not created
@@ -1070,7 +1081,6 @@ export default class MainController implements vscode.Disposable {
         }
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
-        Utils.logDebug("activated.");
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
@@ -2537,7 +2547,7 @@ export default class MainController implements vscode.Disposable {
             let uri = this._vscodeWrapper.activeTextEditorUri;
             await this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
-            console.warn(`Unexpected error cancelling query : ${getErrorMessage(err)}`);
+            this._logger.warn(`Unexpected error cancelling query: ${getErrorMessage(err)}`);
         }
     }
 
@@ -2629,7 +2639,7 @@ export default class MainController implements vscode.Disposable {
                 try {
                     await this.createObjectExplorerSession(credentials);
                 } catch (error) {
-                    this._connectionMgr.client.logger.error(error);
+                    this._logger.error("Failed to create Object Explorer session", error);
                 }
                 return true;
             }
@@ -2837,7 +2847,9 @@ export default class MainController implements vscode.Disposable {
                 title,
             );
         } catch (err) {
-            console.warn(`Unexpected error running current statement : ${err}`);
+            self._logger.warn(
+                `Unexpected error running current statement: ${getErrorMessage(err)}`,
+            );
         }
     }
 
@@ -2902,7 +2914,7 @@ export default class MainController implements vscode.Disposable {
                 executionPlanOptions,
             );
         } catch (err) {
-            console.warn(`Unexpected error running query : ${err}`);
+            this._logger.warn(`Unexpected error running query: ${getErrorMessage(err)}`);
         }
     }
 
@@ -3360,13 +3372,10 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Updates Pii Logging configuration for Logger.
+     * PII logging is read from configuration at log time by ILogger.
      */
     private updatePiiLoggingLevel(): void {
-        const piiLogging: boolean = vscode.workspace
-            .getConfiguration(Constants.extensionName)
-            .get(Constants.piiLogging, false);
-        SqlToolsServerClient.instance.logger.piiLogging = piiLogging;
+        // no-op
     }
 
     /**

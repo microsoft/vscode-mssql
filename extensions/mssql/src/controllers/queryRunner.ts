@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
 import VscodeWrapper from "./vscodeWrapper";
@@ -58,6 +59,8 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export interface IResultSet {
     columns: string[];
@@ -157,12 +160,14 @@ export default class QueryRunner {
     private _onSummaryChangedEmitter: vscode.EventEmitter<SummaryChanged> =
         new vscode.EventEmitter<SummaryChanged>();
     public onSummaryChanged: vscode.Event<SummaryChanged> = this._onSummaryChangedEmitter.event;
+    private _logger: ILogger = logger.withPrefix("QueryRunner");
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
     constructor(
         private _ownerUri: string,
         private _editorTitle: string,
+        private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
         private _vscodeWrapper?: VscodeWrapper,
@@ -434,9 +439,7 @@ export default class QueryRunner {
     }
 
     public setupQueryExecution(_selection: ISelectionData): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgStartedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
 
@@ -447,9 +450,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgFinishedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgFinishedExecute(this._ownerUri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
@@ -462,11 +463,18 @@ export default class QueryRunner {
             promise.resolve();
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
+        this._statusView.executedQuery(result.ownerUri);
+        this._statusView.setExecutionTime(
+            result.ownerUri,
+            Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
+        );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError,
         });
@@ -500,7 +508,10 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds += executionTime;
         if (executionTime > 0) {
             // send a time message in the format used for query complete
-            this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
+            this.sendBatchTimeMessage(
+                batch.id,
+                Utils.durationToDisplay(executionTime, { format: "clock" }),
+            );
         }
         this._batchCompleteEmitter.fire(batch);
     }
@@ -603,7 +614,9 @@ export default class QueryRunner {
         }
 
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
         });
@@ -989,6 +1002,7 @@ export default class QueryRunner {
 
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
+
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,

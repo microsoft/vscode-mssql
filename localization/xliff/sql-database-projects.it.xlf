@@ -880,11 +880,11 @@
       </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
-        <target state="translated">Confronto schemi</target>
+        <target state="translated">Confronto schema</target>
       </trans-unit>
       <trans-unit id="++CODE++a02dd1e9db0fbe4268ecc26c5d908d72358d5a9696dab790d7a9aab401c9875d">
         <source xml:lang="en">Schema Compare failed: {0}</source>
-        <target state="translated">Il confronto schemi non è riuscito: {0}</target>
+        <target state="translated">Il confronto dello schema non è riuscito: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bbe07ca4baf11ff83f1c4302b5e18d62b2366d997a62a1a5b6da653a3ea77ecd">
         <source xml:lang="en">Schema compare could not start because build failed</source>
@@ -892,7 +892,7 @@
       </trans-unit>
       <trans-unit id="++CODE++23671d64b25eaa818fbcd21bf8eef0b3d8f256518d15ae3e1928f2fd94138035">
         <source xml:lang="en">Schema compare extension installation is required to run schema compare</source>
-        <target state="translated">Per eseguire il confronto tra schemi, è necessaria l'installazione dell'estensione per il confronto dello schema</target>
+        <target state="translated">Per eseguire il confronto dello schema, è necessaria l'installazione dell'apposita estensione</target>
       </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
@@ -1056,7 +1056,7 @@
       </trans-unit>
       <trans-unit id="++CODE++72c65e70a4db945f4b9dccbbdda3aaeade2926ad368b312dd0d820995250e9f8">
         <source xml:lang="en">The Schema Compare extension must be installed to a update a project from a database.</source>
-        <target state="translated">Per aggiornare un progetto da un database, è necessario installare l'estensione Confronto schemi.</target>
+        <target state="translated">Per aggiornare un progetto da un database, è necessario installare l'estensione Confronto schema.</target>
       </trans-unit>
       <trans-unit id="++CODE++1541ca54eaafab6eaf10bd1051af6f50394e0b8f11aad6012045ce761a8ff683">
         <source xml:lang="en">The project '{0}' will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?</source>
@@ -1220,7 +1220,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1759988fd95773a6e5fffcc896143f0bb8b7798322561aa8ea5ddbf79da0e9d1">
         <source xml:lang="en">View changes in Schema Compare</source>
-        <target state="translated">Visualizza modifiche in Confronto schemi</target>
+        <target state="translated">Visualizza modifiche in Confronto schema</target>
       </trans-unit>
       <trans-unit id="++CODE++687f18249c3d167aac61254957df3d2cd669ee30d31548e228ae611f932b2b9e">
         <source xml:lang="en">Would you like to reload your database project?</source>
@@ -1472,7 +1472,7 @@ Progetti:
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
-        <target state="translated">Confronto schemi</target>
+        <target state="translated">Confronto schema</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.updateProjectFromDatabase">
         <source xml:lang="en">Update Project from Database</source>

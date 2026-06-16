@@ -30,6 +30,10 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
+export class SqlToolsMcp {
+    public static serverLabel = l10n.t("SQL Tools (MSSQL)");
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
@@ -819,7 +823,6 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
-export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -4047,3 +4050,15 @@ export const foreignKeys2 = l10n.t("Foreign Keys");
 export const checkConstraints2 = l10n.t("Check Constraints");
 
 export const advancedOptions = l10n.t("Advanced Options");
+
+export class SqlSymbolRename {
+    public static renameNotSupportedAtPosition = l10n.t(
+        "Rename is not supported at this position.",
+    );
+    public static renameOnlyInProjectFiles = l10n.t(
+        "Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static renameRequestFailed = (message: string): string =>
+        l10n.t("Rename request failed: {0}", message);
+    public static noRenameableSymbolAtCursor = l10n.t("No renameable symbol found at cursor.");
+}

@@ -12,14 +12,10 @@ import {
     makeStyles,
     Text,
     Spinner,
+    Toolbar,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useRef, useState } from "react";
-import {
-    CheckmarkCircle20Regular,
-    DatabaseSearch24Regular,
-    ErrorCircle24Regular,
-    OpenRegular,
-} from "@fluentui/react-icons";
+import { useContext, useEffect, useState } from "react";
+import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { hasResultsOrMessages } from "./queryResultUtils";
@@ -35,19 +31,9 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
 import { QueryResultSettingsControl } from "./queryResultSettingsControl";
+import { CopyIndicator } from "../../common/CopyIndicator";
 
 const useStyles = makeStyles({
-    copiedIndicator: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        padding: "0 6px",
-        whiteSpace: "nowrap",
-    },
-    copiedIndicatorText: {
-        fontSize: "12px",
-        fontWeight: 600,
-    },
     root: {
         width: "100%",
         height: "100%",
@@ -131,10 +117,6 @@ const useStyles = makeStyles({
     },
 });
 
-const COPY_INDICATOR_DURATION_MS = 3000;
-let copySuccessNotificationHandlerRegistered = false;
-let showCopySuccessIndicator: (() => void) | undefined;
-
 export const QueryResultPane = () => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
@@ -142,6 +124,7 @@ export const QueryResultPane = () => {
     if (!context) {
         return;
     }
+    const log = context.log;
 
     // Use selectors to get specific state pieces
     const resultSetSummaries = useQueryResultSelector<
@@ -159,6 +142,7 @@ export const QueryResultPane = () => {
     const executionPlanGraphs = useQueryResultSelector<ExecutionPlanGraph[] | undefined>(
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
+    const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
 
     const { keyBindings } = useVscodeWebview();
 
@@ -215,42 +199,10 @@ export const QueryResultPane = () => {
     const [webviewLocation, setWebviewLocation] = useState<qr.QueryResultWebviewLocation>(
         qr.QueryResultWebviewLocation.Panel,
     );
-    const [showCopiedIndicator, setShowCopiedIndicator] = useState(false);
-    const copyIndicatorTimeoutRef = useRef<number | undefined>(undefined);
-
-    useEffect(() => {
-        showCopySuccessIndicator = () => {
-            if (copyIndicatorTimeoutRef.current !== undefined) {
-                window.clearTimeout(copyIndicatorTimeoutRef.current);
-            }
-
-            setShowCopiedIndicator(true);
-            copyIndicatorTimeoutRef.current = window.setTimeout(() => {
-                setShowCopiedIndicator(false);
-                copyIndicatorTimeoutRef.current = undefined;
-            }, COPY_INDICATOR_DURATION_MS);
-        };
-
-        if (!copySuccessNotificationHandlerRegistered) {
-            context.extensionRpc.onNotification(qr.ShowCopySuccessNotification.type, () => {
-                showCopySuccessIndicator?.();
-            });
-            copySuccessNotificationHandlerRegistered = true;
-        }
-
-        return () => {
-            if (showCopySuccessIndicator) {
-                showCopySuccessIndicator = undefined;
-            }
-            if (copyIndicatorTimeoutRef.current !== undefined) {
-                window.clearTimeout(copyIndicatorTimeoutRef.current);
-            }
-        };
-    }, [context.extensionRpc]);
 
     useEffect(() => {
         getWebviewLocation().catch((e) => {
-            console.error(e);
+            log.error("Failed to get webview location", e);
             setWebviewLocation(qr.QueryResultWebviewLocation.Panel);
         });
     }, []);
@@ -324,11 +276,25 @@ export const QueryResultPane = () => {
                     {Object.keys(resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
-                            title={locConstants.queryResult.resultTabTooltip(
-                                keyBindings[WebviewAction.QueryResultSwitchToResultsTab].label,
-                            )}
+                            title={
+                                isBetaResultsGridEnabled
+                                    ? locConstants.queryResult.resultBetaTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                                    : locConstants.queryResult.resultTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                            }
                             key={qr.QueryResultPaneTabs.Results}>
-                            {locConstants.queryResult.results(getGridCount(resultSetSummaries))}
+                            {isBetaResultsGridEnabled
+                                ? locConstants.queryResult.resultsBeta(
+                                      getGridCount(resultSetSummaries),
+                                  )
+                                : locConstants.queryResult.results(
+                                      getGridCount(resultSetSummaries),
+                                  )}
                         </Tab>
                     )}
                     <Tab
@@ -350,19 +316,9 @@ export const QueryResultPane = () => {
                         </Tab>
                     )}
                 </TabList>
-                <div className={classes.ribbonActions}>
-                    {showCopiedIndicator && (
-                        <div
-                            className={classes.copiedIndicator}
-                            role="status"
-                            aria-live="polite"
-                            title={locConstants.queryResult.copiedToClipboard}>
-                            <CheckmarkCircle20Regular />
-                            <span className={classes.copiedIndicatorText}>
-                                {locConstants.queryResult.copied}
-                            </span>
-                        </div>
-                    )}
+
+                <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
+                    <CopyIndicator visible={context.copyIndicatorVisible} />
                     <QueryResultSettingsControl uri={uri} webviewLocation={webviewLocation} />
                     {webviewLocation === qr.QueryResultWebviewLocation.Panel && (
                         <Button
@@ -382,7 +338,7 @@ export const QueryResultPane = () => {
                             {locConstants.queryResult.openResultInNewTab}
                         </Button>
                     )}
-                </div>
+                </Toolbar>
             </div>
 
             <div className={classes.tabContentContainer}>

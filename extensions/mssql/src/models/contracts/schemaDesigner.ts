@@ -14,7 +14,6 @@ export namespace SchemaDesignerRequests {
         export const type = new RequestType<
             SchemaDesigner.CreateSessionRequest,
             SchemaDesigner.CreateSessionResponse,
-            void,
             void
         >("schemaDesigner/createSession");
     }
@@ -23,7 +22,7 @@ export namespace SchemaDesignerRequests {
      * Represents a request to dispose a schema designer session
      */
     export namespace DisposeSession {
-        export const type = new RequestType<SchemaDesigner.DisposeSessionRequest, void, void, void>(
+        export const type = new RequestType<SchemaDesigner.DisposeSessionRequest, void, void>(
             "schemaDesigner/disposeSession",
         );
     }
@@ -35,7 +34,6 @@ export namespace SchemaDesignerRequests {
         export const type = new RequestType<
             SchemaDesigner.GenerateScriptRequest,
             SchemaDesigner.GenerateScriptResponse,
-            void,
             void
         >("schemaDesigner/generateScript");
     }
@@ -47,7 +45,6 @@ export namespace SchemaDesignerRequests {
         export const type = new RequestType<
             SchemaDesigner.GetDefinitionRequest,
             SchemaDesigner.GetDefinitionResponse,
-            void,
             void
         >("schemaDesigner/getDefinition");
     }
@@ -59,7 +56,6 @@ export namespace SchemaDesignerRequests {
         export const type = new RequestType<
             SchemaDesigner.GetReportRequest,
             SchemaDesigner.GetReportResponse,
-            void,
             void
         >("schemaDesigner/getReport");
     }
@@ -68,22 +64,22 @@ export namespace SchemaDesignerRequests {
      * Represents a notification to update the schema designer model
      */
     export namespace PublishSession {
-        export const type = new RequestType<SchemaDesigner.PublishSessionRequest, void, void, void>(
+        export const type = new RequestType<SchemaDesigner.PublishSessionRequest, void, void>(
             "schemaDesigner/publishSession",
         );
     }
 
     export namespace ProgressNotification {
-        export const type = new NotificationType<
-            SchemaDesigner.SchemaDesignerProgressNotificationParams,
-            void
-        >("schemaDesigner/progress");
+        export const type =
+            new NotificationType<SchemaDesigner.SchemaDesignerProgressNotificationParams>(
+                "schemaDesigner/progress",
+            );
     }
 
     export namespace MessageNotification {
-        export const type = new NotificationType<
-            SchemaDesigner.SchemaDesignerMessageNotificationParams,
-            void
-        >("schemaDesigner/message");
+        export const type =
+            new NotificationType<SchemaDesigner.SchemaDesignerMessageNotificationParams>(
+                "schemaDesigner/message",
+            );
     }
 }

@@ -1910,7 +1910,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 connection.password = password;
             }
         } else {
-            this.logger.logDebug(
+            this.logger.debug(
                 "Connection string connection found in Connection Dialog initialization; should have been converted.",
             );
         }
@@ -1982,7 +1982,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
         }
 
-        this.logger.verbose(
+        this.logger.debug(
             `Read ${this._cachedEntraAccounts.length} Azure accounts: ${this._cachedEntraAccounts.map((a) => a.value).join(", ")}`,
         );
 
@@ -2089,7 +2089,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     await this.handleAzureMFAEdits("accountId");
                 } else {
                     const account = await this._mainController.azureAccountService.addAccount();
-                    this.logger.verbose(
+                    this.logger.debug(
                         `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
                     );
 
@@ -2097,7 +2097,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                     this.state.connectionProfile.accountId = account.key.id;
 
-                    this.logger.verbose(`Selecting '${account.key.id}'`);
+                    this.logger.debug(`Selecting '${account.key.id}'`);
 
                     this.updateState();
                     await this.handleAzureMFAEdits("accountId");

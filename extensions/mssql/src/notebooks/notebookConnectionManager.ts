@@ -14,8 +14,11 @@ import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
-import { ILogger2 } from "../models/logger2";
-import { NotebookQueryExecutor, NotebookQueryResult } from "./notebookQueryExecutor";
+import { ILogger } from "../sharedInterfaces/logger";
+import {
+    HeadlessQueryExecutor,
+    HeadlessQueryResult,
+} from "../queryExecution/headlessQueryExecutor";
 
 /**
  * Manages the active database connection for a notebook.
@@ -38,8 +41,8 @@ export class NotebookConnectionManager implements vscode.Disposable {
     private connectionUri: string | undefined;
     private connectionInfo: IConnectionInfo | undefined;
     private connectionLabel: string = "";
-    private log: ILogger2;
-    private readonly queryExecutor: NotebookQueryExecutor;
+    private log: ILogger;
+    private readonly queryExecutor: HeadlessQueryExecutor;
 
     /**
      * Cell document URIs already registered with STS for IntelliSense against
@@ -65,12 +68,12 @@ export class NotebookConnectionManager implements vscode.Disposable {
     constructor(
         private connectionMgr: ConnectionManager,
         private connectionSharingService: ConnectionSharingService,
-        log: ILogger2,
+        log: ILogger,
         client?: SqlToolsServiceClient,
         notificationHandler?: QueryNotificationHandler,
     ) {
         this.log = log;
-        this.queryExecutor = new NotebookQueryExecutor(
+        this.queryExecutor = new HeadlessQueryExecutor(
             client ?? SqlToolsServiceClient.instance,
             notificationHandler ?? QueryNotificationHandler.instance,
             log,
@@ -311,7 +314,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     async executeQueryString(
         sql: string,
         cancellationToken?: vscode.CancellationToken,
-    ): Promise<NotebookQueryResult> {
+    ): Promise<HeadlessQueryResult> {
         if (!this.connectionUri) {
             this.log.warn(`[executeQueryString] no active connection`);
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);

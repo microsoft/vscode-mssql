@@ -12,7 +12,7 @@ import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 chai.use(sinonChai);
 
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
-import { ILogger2 } from "../../../src/models/logger2";
+import { ILogger } from "../../../src/sharedInterfaces/logger";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import { ConnectionStore } from "../../../src/models/connectionStore";
@@ -71,10 +71,10 @@ function makeConnectionInfo(overrides?: Partial<IConnectionInfo>): IConnectionIn
 }
 
 /**
- * Build a stub ILogger2 with all required interface
+ * Build a stub ILogger with all required interface
  * members so the type checker is satisfied without `as any`.
  */
-function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger2> {
+function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
     return {
         trace: sandbox.stub(),
         debug: sandbox.stub(),
@@ -85,7 +85,7 @@ function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<IL
         show: sandbox.stub(),
         withPrefix: sandbox.stub(),
         dispose: sandbox.stub(),
-    } as sinon.SinonStubbedInstance<ILogger2>;
+    } as sinon.SinonStubbedInstance<ILogger>;
 }
 
 suite("NotebookConnectionManager", () => {
@@ -94,7 +94,7 @@ suite("NotebookConnectionManager", () => {
     let sharingService: sinon.SinonStubbedInstance<ConnectionSharingService>;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
-    let log: sinon.SinonStubbedInstance<ILogger2>;
+    let log: sinon.SinonStubbedInstance<ILogger>;
     let stubStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let stubUI: sinon.SinonStubbedInstance<ConnectionUI>;
     let mgr: NotebookConnectionManager;
@@ -126,7 +126,7 @@ suite("NotebookConnectionManager", () => {
         sharingService = sandbox.createStubInstance(ConnectionSharingService);
         sharingService.isConnected.returns(false);
 
-        // --- STS client & notification handler (for NotebookQueryExecutor) ---
+        // --- STS client & notification handler (for HeadlessQueryExecutor) ---
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
         mockClient.sendRequest.resolves({});
         mockNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
@@ -497,7 +497,7 @@ suite("NotebookConnectionManager", () => {
         test("delegates to query executor when connected", async () => {
             await mgr.connectWith(makeConnectionInfo());
 
-            // The NotebookQueryExecutor registers a handler via notificationHandler,
+            // The HeadlessQueryExecutor registers a handler via notificationHandler,
             // sends an executeString request via the STS client, and waits for completion.
             // Simulate the full batch lifecycle so the promise resolves.
             mockClient.sendRequest.callsFake(() => {

@@ -24,7 +24,7 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 
 import { FabricHelper } from "../fabric/fabricHelper";
 import { VsCodeAzureHelper } from "./azureHelpers";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import { getCloudId } from "../azure/providerSettings";
 import { startActivity } from "../telemetry/telemetry";
 import { getErrorMessage } from "../utils/utils";
@@ -40,7 +40,7 @@ export const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 7;
 export interface BrowseProviderHost {
     /** Live state object owned by the controller; used by providers for stale-result guards. */
     readonly state: ConnectionDialogWebviewState;
-    readonly logger: Logger;
+    readonly logger: ILogger;
     /** Push a state update to the webview. */
     updateState(state?: ConnectionDialogWebviewState): void;
     /** Refresh tenant-sign-in status data; called as part of the Azure cache priming flow. */
@@ -265,7 +265,7 @@ export class AzureBrowseProvider extends BrowseProvider {
             this.refreshFavoritesIntoState(state);
             this.host.updateState(state);
 
-            this.host.logger.log(
+            this.host.logger.trace(
                 `Loaded ${subsForTenant.length} Azure subscriptions for tenant ${tenantId}`,
             );
 
@@ -321,7 +321,7 @@ export class AzureBrowseProvider extends BrowseProvider {
             );
             subscription.loadStatus = { status: ApiStatus.Loaded };
             this.host.updateState(state);
-            this.host.logger.log(
+            this.host.logger.trace(
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );
 
@@ -519,7 +519,7 @@ export class FabricBrowseProvider extends BrowseProvider {
             this.refreshFavoritesIntoState(state);
             this.host.updateState(state);
 
-            this.host.logger.log(
+            this.host.logger.trace(
                 `Loaded ${cachedWorkspaces.length} Fabric workspaces for tenant ${tenantId}`,
             );
 
@@ -614,7 +614,7 @@ export class FabricBrowseProvider extends BrowseProvider {
 
             const totalCount = workspace.databases.length;
             const warehouseCount = totalCount - sqlDbCount - sqlEndpointCount;
-            this.host.logger.log(
+            this.host.logger.trace(
                 `Loaded ${sqlDbCount} Fabric databases, ${sqlEndpointCount} SQL endpoints, and ${warehouseCount} warehouses for workspace ${workspace.id}`,
             );
 

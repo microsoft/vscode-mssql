@@ -21,6 +21,7 @@ import {
     CopyType,
 } from "../../src/models/contracts/queryExecute";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
 import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose";
@@ -48,6 +49,7 @@ suite("Query Runner tests", () => {
     let testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let testStatusView: sinon.SinonStubbedInstance<StatusView>;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -56,6 +58,7 @@ suite("Query Runner tests", () => {
         return new QueryRunner(
             uri,
             title,
+            testStatusView,
             testSqlToolsServerClient,
             testQueryNotificationHandler,
             testVscodeWrapper,
@@ -67,6 +70,7 @@ suite("Query Runner tests", () => {
         testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
+        testStatusView = sandbox.createStubInstance(StatusView);
         QueryRunner["_runningQueries"] = [];
 
         (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
@@ -74,9 +78,11 @@ suite("Query Runner tests", () => {
         );
         (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.logToOutputChannel as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
         (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
+            stubs.createWorkspaceConfiguration({}),
+        );
     });
 
     teardown(() => {
@@ -117,8 +123,8 @@ suite("Query Runner tests", () => {
         expect(testQueryNotificationHandler.registerRunner).to.have.been.calledOnce;
         expect(testQueryNotificationHandler.registerRunner.firstCall.args[1]).to.equal(standardUri);
 
-        // ... The VS Code output should be updated
-        expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
+        // ... The VS Code status should be updated
+        expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
         expect(queryRunner.isExecutingQuery).to.equal(true);
@@ -153,8 +159,9 @@ suite("Query Runner tests", () => {
             expect.fail("Expected runQuery to throw an error");
         } catch {
             // Then:
-            // ... The output channel should still log the failed start
-            expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
+            // ... The view status should have started and stopped
+            expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
+            expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
             expect(queryRunner.isExecutingQuery).to.equal(false);
         }
@@ -230,8 +237,8 @@ suite("Query Runner tests", () => {
         setupWorkspaceConfig(configResult);
 
         let dateNow = new Date();
-        let fiveSecondsAgo = new Date(dateNow.getTime() - 5000);
-        let elapsedTimeString = Utils.parseNumAsTimeString(5000);
+        let fiveSecondsAgo = new Date(dateNow.getTime() - 5_000);
+        let elapsedTimeString = Utils.durationToDisplay(5_000, { format: "clock" });
         let batchComplete: QueryExecuteBatchNotificationParams = {
             ownerUri: "uri",
             batchSummary: {
@@ -736,6 +743,7 @@ suite("Query Runner tests", () => {
                 const tokenSource = new vscode.CancellationTokenSource();
                 await task(progress, tokenSource.token);
             });
+            sandbox.stub(vscode.window, "showInformationMessage").resolves(undefined);
         });
 
         test("copyResults calls copyResults2 with correct CopyType", async () => {

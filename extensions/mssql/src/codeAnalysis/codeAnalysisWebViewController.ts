@@ -168,7 +168,7 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
                     );
                 }
                 if (payload.closeAfterSave) {
-                    this.vscodeWrapper.logToOutputChannel(Loc.rulesSaved);
+                    this.logger.info(Loc.rulesSaved);
                     this.panel.dispose();
                 }
                 // Update the baseline rules so the component's useEffect resets isDirty

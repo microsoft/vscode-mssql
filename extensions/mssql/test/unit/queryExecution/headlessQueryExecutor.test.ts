@@ -10,7 +10,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 
 chai.use(sinonChai);
-import { NotebookQueryExecutor } from "../../../src/notebooks/notebookQueryExecutor";
+import { HeadlessQueryExecutor } from "../../../src/queryExecution/headlessQueryExecutor";
 import {
     QueryNotificationHandler,
     type IQueryEventHandler,
@@ -33,11 +33,11 @@ function makeColumn(columnName: string, dataTypeName: string): IDbColumn {
     };
 }
 
-suite("NotebookQueryExecutor", () => {
+suite("HeadlessQueryExecutor", () => {
     let sandbox: sinon.SinonSandbox;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
-    let executor: NotebookQueryExecutor;
+    let executor: HeadlessQueryExecutor;
     let capturedHandler: IQueryEventHandler;
 
     setup(() => {
@@ -53,7 +53,7 @@ suite("NotebookQueryExecutor", () => {
             },
         );
 
-        executor = new NotebookQueryExecutor(mockClient, mockNotificationHandler);
+        executor = new HeadlessQueryExecutor(mockClient, mockNotificationHandler);
     });
 
     teardown(() => {

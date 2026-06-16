@@ -86,6 +86,7 @@ export class LocConstants {
             learnMore: l10n.t("Learn more"),
             moveUp: l10n.t("Move Up"),
             moveDown: l10n.t("Move Down"),
+            copied: l10n.t("Copied"),
         };
     }
 
@@ -664,11 +665,27 @@ export class LocConstants {
                 }
                 return l10n.t("Results");
             },
+            resultBetaTabTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Results Preview ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the preview results tab"],
+                    });
+                }
+                return l10n.t("Results Preview");
+            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
+                }),
+            resultsBeta: (count: number) =>
+                l10n.t({
+                    message: "Results Preview ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of preview results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
@@ -692,6 +709,7 @@ export class LocConstants {
                 "Show query results in a new editor tab instead of the query pane.",
             ),
             closeResultsSettings: l10n.t("Close results settings"),
+            resultsToolbar: l10n.t("Results toolbar"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {
@@ -1845,6 +1863,13 @@ export class LocConstants {
             addServerConnection: l10n.t("Add Server Connection"),
             noDifferences: l10n.t("No schema differences were found."),
             initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            applyingChanges: l10n.t("Applying changes, this might take a while..."),
+            applySucceededRunAgain: l10n.t(
+                "Changes applied successfully. Run Schema Compare again to see updated differences.",
+            ),
+            applyFailedRunAgain: l10n.t(
+                "Apply failed. Fix the error and retry, or run Schema Compare again.",
+            ),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
             defaultUserName: l10n.t("default"),
@@ -2057,6 +2082,9 @@ export class LocConstants {
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
             configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
+            verifyContainerImageNotationCli: l10n.t(
+                "Verify a container image by using the Notation CLI",
+            ),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),
             checkingPrerequisites: l10n.t("Checking pre-requisites"),
             createContainer: l10n.t("Create Container"),
@@ -2634,6 +2662,7 @@ export class LocConstants {
             removeSort: l10n.t("Remove sort"),
             save: l10n.t("Save"),
             selectAll: l10n.t("Select all"),
+            showAllColumns: l10n.t("Show all columns"),
             sortAscending: l10n.t("Sort ascending"),
             sortDescending: l10n.t("Sort descending"),
             synchronousResize: l10n.t("Synchronous resize"),

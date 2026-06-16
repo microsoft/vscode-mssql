@@ -23,12 +23,14 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import { getLogger } from "./logger";
 // Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
+const logger = getLogger("SqlOutputContentProvider");
 
 // holds information about the state of a query runner
 export class QueryRunnerState {
@@ -420,7 +422,7 @@ export class SqlOutputContentProvider {
             if (promise) {
                 promise.reject(false);
             }
-            console.log(`Error running query for ${uri}: ${getErrorMessage(error)}`);
+            logger.error(`Error running query for ${uri}: ${getErrorMessage(error)}`);
         }
     }
 
@@ -560,7 +562,7 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title);
+            queryRunner = new QueryRunner(uri, title, statusView);
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {
@@ -702,6 +704,7 @@ export class SqlOutputContentProvider {
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
+                    time: new Date().toLocaleTimeString(),
                 });
                 // if there is an error, show the error message and set the tab to the messages tab
                 let tabState: QueryResultPaneTabs;

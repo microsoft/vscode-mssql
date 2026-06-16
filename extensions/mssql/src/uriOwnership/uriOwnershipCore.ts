@@ -4,10 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
 
 // TODO: Move URI ownership core/coordinator logic to a shared package.
 const PACKAGE_JSON_COMMON_FEATURES_KEY = "vscode-sql-common-features";
 const SET_CONTEXT_COMMAND = "setContext";
+const logger = getLogger("UriOwnership");
 
 interface UriOwnershipApi {
     ownsUri(uri: vscode.Uri): boolean;
@@ -202,8 +205,8 @@ export class UriOwnershipCoordinator {
                         this._registerCoordinatingExtensionApi(extInfo.extensionId, exports);
                     },
                     (err) => {
-                        console.error(
-                            `[${this._context.extension.id}] Error activating coordinating extension ${extInfo.extensionId}: ${err}`,
+                        logger.error(
+                            `Error activating coordinating extension ${extInfo.extensionId}: ${getErrorMessage(err)}`,
                         );
                     },
                 );
@@ -315,8 +318,8 @@ export class UriOwnershipCoordinator {
             void Promise.resolve()
                 .then(() => releaseUri(uriString))
                 .catch((err) => {
-                    console.error(
-                        `[${this._context.extension.id}] Error releasing uri ownership for ${uriString}: ${err}`,
+                    logger.error(
+                        `Error releasing uri ownership for ${uriString}: ${getErrorMessage(err)}`,
                     );
                 });
         }
