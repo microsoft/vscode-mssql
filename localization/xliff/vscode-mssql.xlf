@@ -5714,6 +5714,9 @@
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
     </trans-unit>
+    <trans-unit id="++CODE++307ea97b854d629bc8febac31e69d61ee13fcdeca467abf549e7a3258bce347e">
+      <source xml:lang="en">Results toolbar</source>
+    </trans-unit>
     <trans-unit id="++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d">
       <source xml:lang="en">Resume</source>
     </trans-unit>

@@ -307,7 +307,7 @@ export const QueryResultPane = () => {
                     )}
                 </TabList>
 
-                <Toolbar>
+                <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
                     <CopyIndicator visible={context.copyIndicatorVisible} />
                     {webviewLocation === "panel" && (
                         <Button

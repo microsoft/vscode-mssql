@@ -18,14 +18,13 @@ const styles = makeStyles({
 
 export const CopyIndicator: React.FC<{ visible: boolean }> = ({ visible }) => {
     const classes = styles();
-    // The live region is always rendered so screen readers register it before its
-    // contents change. Announcements fire when the inner text is added on copy.
+    // The live region stays in the accessibility tree at all times so screen readers
+    // register it before its contents change. Only the inner text is toggled, which
+    // triggers the announcement when it is added on copy. Avoid visibility:hidden here
+    // since it removes the element from the accessibility tree and suppresses the
+    // aria-live announcement.
     return (
-        <div
-            className={classes.copyIndicator}
-            role="status"
-            aria-live="polite"
-            style={{ visibility: visible ? "visible" : "hidden" }}>
+        <div className={classes.copyIndicator} role="status" aria-live="polite">
             {visible && (
                 <>
                     <CheckmarkCircle16Regular />
