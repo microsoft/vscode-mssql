@@ -12,6 +12,7 @@ import {
     makeStyles,
     Text,
     Spinner,
+    Toolbar,
 } from "@fluentui/react-components";
 import { useContext, useEffect, useRef, useState } from "react";
 import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
@@ -28,6 +29,7 @@ import { QueryExecutionPlanTab } from "./queryExecutionPlanTab";
 import { QueryResultsTab } from "./queryResultsTab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
+import { CopyIndicator } from "../../common/CopyIndicator";
 
 const useStyles = makeStyles({
     root: {
@@ -304,21 +306,28 @@ export const QueryResultPane = () => {
                         </Tab>
                     )}
                 </TabList>
-                {webviewLocation === "panel" && (
-                    <Button
-                        icon={<OpenRegular />}
-                        iconPosition="after"
-                        appearance="subtle"
-                        onClick={async () => {
-                            await context.extensionRpc.sendRequest(qr.OpenInNewTabRequest.type, {
-                                uri: uri!,
-                            });
-                        }}
-                        title={locConstants.queryResult.openResultInNewTab}
-                        style={{ marginTop: "4px", marginBottom: "4px" }}>
-                        {locConstants.queryResult.openResultInNewTab}
-                    </Button>
-                )}
+
+                <Toolbar>
+                    <CopyIndicator visible={context.copyIndicatorVisible} />
+                    {webviewLocation === "panel" && (
+                        <Button
+                            icon={<OpenRegular />}
+                            iconPosition="after"
+                            appearance="subtle"
+                            onClick={async () => {
+                                await context.extensionRpc.sendRequest(
+                                    qr.OpenInNewTabRequest.type,
+                                    {
+                                        uri: uri!,
+                                    },
+                                );
+                            }}
+                            title={locConstants.queryResult.openResultInNewTab}
+                            style={{ marginTop: "4px", marginBottom: "4px" }}>
+                            {locConstants.queryResult.openResultInNewTab}
+                        </Button>
+                    )}
+                </Toolbar>
             </div>
 
             <div className={classes.tabContentContainer}>

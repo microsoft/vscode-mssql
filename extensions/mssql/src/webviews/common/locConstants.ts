@@ -86,6 +86,7 @@ export class LocConstants {
             learnMore: l10n.t("Learn more"),
             moveUp: l10n.t("Move Up"),
             moveDown: l10n.t("Move Down"),
+            copied: l10n.t("Copied"),
         };
     }
 
