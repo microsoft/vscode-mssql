@@ -18,14 +18,20 @@ const styles = makeStyles({
 
 export const CopyIndicator: React.FC<{ visible: boolean }> = ({ visible }) => {
     const classes = styles();
+    // The live region is always rendered so screen readers register it before its
+    // contents change. Announcements fire when the inner text is added on copy.
     return (
         <div
             className={classes.copyIndicator}
-            role={visible ? "status" : undefined}
-            aria-hidden={!visible}
+            role="status"
+            aria-live="polite"
             style={{ visibility: visible ? "visible" : "hidden" }}>
-            <CheckmarkCircle16Regular />
-            {locConstants.common.copied}
+            {visible && (
+                <>
+                    <CheckmarkCircle16Regular />
+                    {locConstants.common.copied}
+                </>
+            )}
         </div>
     );
 };
