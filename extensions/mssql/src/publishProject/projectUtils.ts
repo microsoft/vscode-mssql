@@ -434,7 +434,9 @@ export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: strin
  * @returns The relative path declared in the Include attribute, or undefined if none is present
  */
 export function readRefactorLogPath(sqlprojText: string): string | undefined {
-    const match = sqlprojText.match(/<RefactorLog\s+Include="([^"]+)"/i);
+    // Match the Include attribute regardless of its position among other attributes
+    // (e.g. <RefactorLog Condition="..." Include="..." />).
+    const match = sqlprojText.match(/<RefactorLog\b[^>]*?\bInclude\s*=\s*"([^"]+)"/i);
     return match ? match[1] : undefined;
 }
 

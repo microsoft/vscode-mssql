@@ -159,7 +159,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
             sandbox.stub(vscode.workspace, "openTextDocument").resolves(sqlprojDoc);
             sandbox
                 .stub(vscode.workspace, "fs")
-                .value({ stat: sandbox.stub().rejects(new Error("not found")) });
+                .value({ stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()) });
         });
 
         test("throws renameOnlyInProjectFiles when STS returns no result", async () => {
@@ -378,7 +378,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
             // No refactorlog file exists yet — stat rejects.
             sandbox
                 .stub(vscode.workspace, "fs")
-                .value({ stat: sandbox.stub().rejects(new Error("not found")) });
+                .value({ stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()) });
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves(refactorResponse());
 
             const doc = makeDocument(sandbox);
@@ -462,7 +462,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
             );
             sandbox
                 .stub(vscode.workspace, "fs")
-                .value({ stat: sandbox.stub().rejects(new Error("not found")) });
+                .value({ stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()) });
             // Non-data object (e.g. stored procedure) — STS returns no refactorlog content.
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 ...refactorResponse(),

@@ -14,6 +14,15 @@ import {
 } from "../models/contracts/languageService";
 import { SqlSymbolRename as loc } from "../constants/locConstants";
 
+/** Escapes a string for safe use inside an XML attribute value (e.g. an Include path). */
+function escapeXmlAttribute(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
 /**
  * Resolved refactorlog destination for a rename: the owning `.sqlproj`, the refactorlog file, and
  * the refactorlog's current content (null when the file does not exist yet).
@@ -229,7 +238,9 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
 
         if (!target.isRegistered) {
             // Register <RefactorLog Include="..." /> in the .sqlproj in the same WorkspaceEdit.
-            const itemGroupEntry = `\n  <ItemGroup>\n    <RefactorLog Include="${target.refactorlogRelPath}" />\n  </ItemGroup>`;
+            // Escape the path so project names/paths containing & < > " stay valid XML.
+            const includeValue = escapeXmlAttribute(target.refactorlogRelPath);
+            const itemGroupEntry = `\n  <ItemGroup>\n    <RefactorLog Include="${includeValue}" />\n  </ItemGroup>`;
             const projectCloseTag = "</Project>";
             const projectCloseIdx = target.sqlprojContent.lastIndexOf(projectCloseTag);
             const newSqlprojContent =
@@ -293,7 +304,12 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             await vscode.workspace.fs.stat(refactorlogUri);
             refactorlogDoc = await vscode.workspace.openTextDocument(refactorlogUri);
             existingContent = refactorlogDoc.getText();
-        } catch {
+        } catch (err) {
+            // Only treat a genuine "not found" as "no file yet". Rethrow other errors
+            // (permission, transient provider failures) so we don't mistakenly recreate the file.
+            if (!(err instanceof vscode.FileSystemError && err.code === "FileNotFound")) {
+                throw err;
+            }
             // File does not exist yet — leave existingContent null.
         }
 
