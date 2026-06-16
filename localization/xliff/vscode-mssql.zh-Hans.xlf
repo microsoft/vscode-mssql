@@ -6239,6 +6239,10 @@ Error:
         <source xml:lang="en">No property changes available.</source>
         <target state="translated">没有可用的属性更改。</target>
       </trans-unit>
+      <trans-unit id="++CODE++dca3ee73f048d988c89462169bafd9d3173c8f941a22768414517de4a0892611">
+        <source xml:lang="en">No renameable symbol found at cursor.</source>
+        <target state="new">No renameable symbol found at cursor.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fb3366f4457488366aacf21f69259ad9213cd246963ee0e9a6c11fa0ab19a058">
         <source xml:lang="en">No resource groups found</source>
         <target state="translated">未找到资源组</target>
@@ -7340,6 +7344,18 @@ Error:
       <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
         <source xml:lang="en">Rename Options</source>
         <target state="translated">重命名选项</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98340672aa64e0201bd86c0c7c68acd1f368e2f4ce9565da2425778a5c29b6fa">
+        <source xml:lang="en">Rename is not supported at this position.</source>
+        <target state="new">Rename is not supported at this position.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7b3c234afcf63337c7b7f9d04081dadcb68c2af5d13412495dc1e37eaf5ce9ef">
+        <source xml:lang="en">Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.</source>
+        <target state="new">Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b406ebedeaa86f8565a4faaca1dc07e2f53a0179f6c4a15f5340124aecb9e453">
+        <source xml:lang="en">Rename request failed: {0}</source>
+        <target state="new">Rename request failed: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++765f920dea2bbe32e15041c0045002e4888642f0e6e49e5888275518cb3f9a97">
         <source xml:lang="en">Renaming database</source>
