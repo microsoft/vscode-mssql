@@ -42,6 +42,10 @@ export interface ResultGridProps {
     gridParentRef: React.RefObject<HTMLDivElement | null>;
     resultId: number;
     batchId: number;
+    viewMode?: qr.QueryResultViewMode;
+    canToggleMaximize?: boolean;
+    isMaximized?: boolean;
+    onToggleMaximize?: () => void;
 }
 
 export interface ResultGridHandle {
