@@ -33,6 +33,7 @@ export class SqlToolsMcpServerDefinitionProvider
     private readonly didChangeEmitter = new vscode.EventEmitter<void>();
     private readonly configChangeDisposable: vscode.Disposable;
     private readonly dotnetPathByRuntimeConfig = new Map<string, string>();
+    private readonly notifiedOverrideFolders = new Set<string>();
 
     readonly onDidChangeMcpServerDefinitions = this.didChangeEmitter.event;
 
@@ -121,6 +122,7 @@ export class SqlToolsMcpServerDefinitionProvider
             }
 
             const launchInfo = await this.bridgeManager.prepareLaunch();
+            this.notifyOverrideLaunch();
             sendSqlToolsMcpAction(
                 TelemetryActions.SqlToolsMcpDefinitionResolution,
                 {
@@ -239,6 +241,18 @@ export class SqlToolsMcpServerDefinitionProvider
 
         throw new Error(
             `SQL Tools MCP override path does not contain SQLtoolsMCPserver or SQLtoolsMCPserver.dll: ${overrideFolder}`,
+        );
+    }
+
+    private notifyOverrideLaunch(): void {
+        const overrideFolder = process.env[sqlToolsMcpOverrideEnvVar];
+        if (!overrideFolder || this.notifiedOverrideFolders.has(overrideFolder)) {
+            return;
+        }
+
+        this.notifiedOverrideFolders.add(overrideFolder);
+        void vscode.window.showInformationMessage(
+            `Launched SQL Tools MCP server from overridden path: ${overrideFolder}`,
         );
     }
 
