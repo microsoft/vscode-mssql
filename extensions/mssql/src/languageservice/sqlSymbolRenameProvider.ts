@@ -241,8 +241,9 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             // Escape the path so project names/paths containing & < > " stay valid XML.
             const includeValue = escapeXmlAttribute(target.refactorlogRelPath);
             const itemGroupEntry = `\n  <ItemGroup>\n    <RefactorLog Include="${includeValue}" />\n  </ItemGroup>`;
-            const projectCloseTag = "</Project>";
-            const projectCloseIdx = target.sqlprojContent.lastIndexOf(projectCloseTag);
+            // Use regex to find </Project> tag, accounting for optional whitespace before >
+            const projectCloseMatch = /<\/Project\s*>/i.exec(target.sqlprojContent);
+            const projectCloseIdx = projectCloseMatch?.index ?? -1;
             const newSqlprojContent =
                 projectCloseIdx >= 0
                     ? target.sqlprojContent.slice(0, projectCloseIdx) +
