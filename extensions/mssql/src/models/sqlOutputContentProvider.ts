@@ -771,6 +771,9 @@ export class SqlOutputContentProvider {
                     resultId: e.resultId,
                 };
                 this.updateWebviewState(e.uri, state);
+                // Refresh the editor status bar summary, which is shown when the results footer
+                // preview is disabled.
+                this._queryResultWebviewController.updateSelectionSummary();
             });
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
@@ -810,6 +813,9 @@ export class SqlOutputContentProvider {
             self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
             return;
         }
+
+        // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
+        this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query
         try {

@@ -703,12 +703,6 @@ export class LocConstants {
             copied: l10n.t("Copied"),
             copiedToClipboard: l10n.t("Copied to clipboard"),
             openResultInNewTab: l10n.t("Open in New Tab"),
-            resultsSettings: l10n.t("Results Settings"),
-            showResultsInEditorTab: l10n.t("Open results in new tab"),
-            showResultsInEditorTabDescription: l10n.t(
-                "Show query results in a new editor tab instead of the query pane.",
-            ),
-            closeResultsSettings: l10n.t("Close results settings"),
             resultsToolbar: l10n.t("Results toolbar"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {

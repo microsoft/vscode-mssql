@@ -39,6 +39,13 @@ export class QueryResultWebviewController extends WebviewViewController<
     private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
         new Map<string, QueryResultWebviewPanelController>();
     private _correlationId: string = randomUUID();
+    /**
+     * Editor status bar item used to show the grid selection summary when the query results
+     * footer preview is disabled. When the footer preview is enabled, the selection summary is
+     * shown inside the results view footer instead and this item stays hidden.
+     */
+    private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
+        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
 
@@ -64,9 +71,14 @@ export class QueryResultWebviewController extends WebviewViewController<
             isBetaResultsGridEnabled: previewService.isFeatureEnabled(
                 PreviewFeature.BetaResultsGrid,
             ),
+            isQueryResultsFooterEnabled: previewService.isFeatureEnabled(
+                PreviewFeature.QueryResultsFooter,
+            ),
         });
 
         void this.initialize();
+
+        context.subscriptions.push(this._selectionSummaryStatusBarItem);
 
         // not the best api but it's the best we can do in VSCode
         context.subscriptions.push(
@@ -125,6 +137,18 @@ export class QueryResultWebviewController extends WebviewViewController<
                     stateChanged = true;
                 }
                 if (
+                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.QueryResultsFooter))
+                ) {
+                    const newValue = this.isQueryResultsFooterEnabled;
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.isQueryResultsFooterEnabled = newValue;
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                    // Show or hide the editor status bar summary depending on the new flag value.
+                    this.updateSelectionSummary();
+                    stateChanged = true;
+                }
+                if (
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
                     e.affectsConfiguration("mssql.resultsGrid.rowPadding")
@@ -174,6 +198,8 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
+        this.updateSelectionSummary();
+
         const uri = getUriKey(editor?.document?.uri);
         const hasPanel = uri && this.hasPanel(uri);
         const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
@@ -230,6 +256,10 @@ export class QueryResultWebviewController extends WebviewViewController<
 
     private get isBetaResultsGridEnabled(): boolean {
         return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
+    }
+
+    private get isQueryResultsFooterEnabled(): boolean {
+        return previewService.isFeatureEnabled(PreviewFeature.QueryResultsFooter);
     }
 
     private registerRpcHandlers() {
@@ -305,6 +335,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
+            isQueryResultsFooterEnabled: this.isQueryResultsFooterEnabled,
             initializationError: undefined,
         };
     }
@@ -405,6 +436,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             executionElapsedMilliseconds: undefined,
             rowsAffected: undefined,
             isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
+            isQueryResultsFooterEnabled: this.isQueryResultsFooterEnabled,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -576,6 +608,43 @@ export class QueryResultWebviewController extends WebviewViewController<
                 this._queryResultStateMap.delete(uri);
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
+
+            this.updateSelectionSummary();
+        }
+    }
+
+    /**
+     * Updates the editor status bar item that shows the grid selection summary.
+     *
+     * When the query results footer preview is enabled the selection summary is rendered inside
+     * the results view footer, so the status bar item is hidden. Otherwise it reflects the
+     * selection summary of the active query result.
+     */
+    public updateSelectionSummary(): void {
+        if (this.isQueryResultsFooterEnabled) {
+            this._selectionSummaryStatusBarItem.hide();
+            return;
+        }
+
+        let activeUri = Array.from(this._queryResultWebviewPanelControllerMap.keys()).find(
+            (uri) => this._queryResultWebviewPanelControllerMap.get(uri).panel.active,
+        );
+
+        if (!activeUri) {
+            activeUri = getUriKey(vscode.window.activeTextEditor?.document.uri);
+        }
+
+        const summary = activeUri
+            ? this._queryResultStateMap.get(activeUri)?.selectionSummary
+            : undefined;
+
+        if (summary?.text) {
+            this._selectionSummaryStatusBarItem.text = summary.text;
+            this._selectionSummaryStatusBarItem.tooltip = summary.tooltip;
+            this._selectionSummaryStatusBarItem.command = summary.command;
+            this._selectionSummaryStatusBarItem.show();
+        } else {
+            this._selectionSummaryStatusBarItem.hide();
         }
     }
 
@@ -694,48 +763,5 @@ export class QueryResultWebviewController extends WebviewViewController<
             });
         });
         return total;
-    }
-
-    public getOpenQueryResultsInTabByDefaultRequestHandler(): boolean {
-        return this.vscodeWrapper
-            .getConfiguration()
-            .get<boolean>(Constants.configOpenQueryResultsInTabByDefault, false);
-    }
-
-    public async setOpenQueryResultsInTabByDefaultRequestHandler(
-        params: qr.SetOpenQueryResultsInTabByDefaultParams,
-    ): Promise<void> {
-        const { enabled, uri, webviewLocation } = params;
-        const configuration = this.vscodeWrapper.getConfiguration();
-        const previousValue = configuration.get<boolean>(
-            Constants.configOpenQueryResultsInTabByDefault,
-            false,
-        );
-
-        if (enabled && webviewLocation === qr.QueryResultWebviewLocation.Panel && uri) {
-            await this.createPanelController(uri);
-        }
-
-        await configuration.update(
-            Constants.configOpenQueryResultsInTabByDefault,
-            enabled,
-            vscode.ConfigurationTarget.Global,
-        );
-
-        // Skip the one-time prompt after users explicitly choose their preferred result location.
-        await configuration.update(
-            Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
-            true,
-            vscode.ConfigurationTarget.Global,
-        );
-
-        sendActionEvent(
-            TelemetryViews.QueryResult,
-            TelemetryActions.QueryResultsTabDefaultSettingToggled,
-            {
-                enabled: enabled.toString(),
-                previousValue: previousValue.toString(),
-            },
-        );
     }
 }

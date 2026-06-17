@@ -101,41 +101,6 @@ suite("QueryResultWebviewController", () => {
         sandbox.restore();
     });
 
-    test("moves current result to a tab when open-by-default is enabled via request handler", async () => {
-        openResultsInTabByDefault = false;
-        const createPanelControllerStub = sandbox
-            .stub(controller, "createPanelController")
-            .resolves();
-
-        await controller.setOpenQueryResultsInTabByDefaultRequestHandler({
-            enabled: true,
-            uri: testUri,
-            webviewLocation: qr.QueryResultWebviewLocation.Panel,
-        });
-
-        expect(createPanelControllerStub).to.have.been.calledWithExactly(testUri);
-        expect(configuration.update).to.have.been.calledWith(
-            Constants.configOpenQueryResultsInTabByDefault,
-            true,
-            vscode.ConfigurationTarget.Global,
-        );
-    });
-
-    test("does not move current result when open-by-default is disabled via request handler", async () => {
-        openResultsInTabByDefault = true;
-        const createPanelControllerStub = sandbox
-            .stub(controller, "createPanelController")
-            .resolves();
-
-        await controller.setOpenQueryResultsInTabByDefaultRequestHandler({
-            enabled: false,
-            uri: testUri,
-            webviewLocation: qr.QueryResultWebviewLocation.Panel,
-        });
-
-        expect(createPanelControllerStub).to.not.have.been.called;
-    });
-
     test("moves current result to a tab when the setting is enabled through configuration change", async () => {
         openResultsInTabByDefault = true;
         const createPanelControllerStub = sandbox

@@ -30,7 +30,6 @@ import { QueryResultsTab } from "./queryResultsTab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
-import { QueryResultSettingsControl } from "./queryResultSettingsControl";
 import { CopyIndicator } from "../../common/CopyIndicator";
 
 const useStyles = makeStyles({
@@ -143,6 +142,9 @@ export const QueryResultPane = () => {
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
     const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
+    const isQueryResultsFooterEnabled = useQueryResultSelector(
+        (s) => s.isQueryResultsFooterEnabled,
+    );
 
     const { keyBindings } = useVscodeWebview();
 
@@ -219,7 +221,7 @@ export const QueryResultPane = () => {
                         <Text className={classes.noResultMessage}>{initilizationError}</Text>
                     </div>
                 </div>
-                <QueryResultSummaryFooter hideMetrics={true} />
+                {isQueryResultsFooterEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
             </div>
         );
     }
@@ -258,7 +260,7 @@ export const QueryResultPane = () => {
                         )}
                     </div>
                 </div>
-                <QueryResultSummaryFooter hideMetrics={true} />
+                {isQueryResultsFooterEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
             </div>
         );
     }
@@ -319,7 +321,6 @@ export const QueryResultPane = () => {
 
                 <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
                     <CopyIndicator visible={context.copyIndicatorVisible} />
-                    <QueryResultSettingsControl uri={uri} webviewLocation={webviewLocation} />
                     {webviewLocation === qr.QueryResultWebviewLocation.Panel && (
                         <Button
                             icon={<OpenRegular />}
@@ -378,7 +379,7 @@ export const QueryResultPane = () => {
                     <QueryExecutionPlanTab />
                 </div>
             </div>
-            <QueryResultSummaryFooter />
+            {isQueryResultsFooterEnabled && <QueryResultSummaryFooter />}
         </div>
     );
 };

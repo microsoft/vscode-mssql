@@ -84,6 +84,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
     isBetaResultsGridEnabled?: boolean;
+    isQueryResultsFooterEnabled?: boolean;
     initializationError?: string;
     selectionSummary?: SelectionSummary;
     isExecuting?: boolean;
@@ -415,22 +416,6 @@ export interface GetWebviewLocationParams {
 export namespace GetWebviewLocationRequest {
     export const type = new RequestType<GetWebviewLocationParams, QueryResultWebviewLocation, void>(
         "getWebviewLocation",
-    );
-}
-
-export namespace GetOpenQueryResultsInTabByDefaultRequest {
-    export const type = new RequestType<void, boolean, void>("getOpenQueryResultsInTabByDefault");
-}
-
-export interface SetOpenQueryResultsInTabByDefaultParams {
-    enabled: boolean;
-    uri?: string;
-    webviewLocation?: QueryResultWebviewLocation;
-}
-
-export namespace SetOpenQueryResultsInTabByDefaultRequest {
-    export const type = new RequestType<SetOpenQueryResultsInTabByDefaultParams, void, void>(
-        "setOpenQueryResultsInTabByDefault",
     );
 }
 

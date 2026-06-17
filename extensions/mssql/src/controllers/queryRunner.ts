@@ -442,6 +442,8 @@ export default class QueryRunner {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
+        // Update the status view to show that we're executing
+        this._statusView.executingQuery(this.uri);
 
         QueryRunner.addRunningQuery(this._ownerUri);
 
@@ -574,6 +576,13 @@ export default class QueryRunner {
 
         // Send the message to the results pane
         this._messageEmitter.fire(message);
+
+        // Set row count on status bar if there are no errors
+        if (!obj.message.isError) {
+            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
+        } else {
+            this._statusView.hideRowCount(obj.ownerUri, true);
+        }
     }
 
     /**
@@ -1123,6 +1132,39 @@ export default class QueryRunner {
                 stats.min = result.min;
             }
 
+            // Build a textual summary used by the editor status bar when the query results footer
+            // preview is disabled. The footer ignores these fields and renders from `stats`.
+            let text: string;
+            let tooltip: string;
+            if (result.average !== undefined && result.average !== null) {
+                const average = result.average.toFixed(2);
+                text = LocalizedConstants.QueryResult.numericSelectionSummary(
+                    average,
+                    result.count,
+                    result.sum,
+                );
+                tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
+                    average,
+                    result.count,
+                    result.distinctCount,
+                    result.max ?? 0,
+                    result.min ?? 0,
+                    result.nullCount,
+                    result.sum,
+                );
+            } else {
+                text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
+                    result.count,
+                    result.distinctCount,
+                    result.nullCount,
+                );
+                tooltip = LocalizedConstants.QueryResult.nonNumericSelectionSummaryTooltip(
+                    result.count,
+                    result.distinctCount,
+                    result.nullCount,
+                );
+            }
+
             // Resolve the cancel confirmation to clean up
             if (!isCanceled) {
                 cancel.reject();
@@ -1130,6 +1172,8 @@ export default class QueryRunner {
 
             this.fireSummaryChangedEvent(requestId, {
                 stats,
+                text,
+                tooltip,
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,

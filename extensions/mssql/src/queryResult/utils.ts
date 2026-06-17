@@ -85,17 +85,6 @@ export function registerCommonRequestHandlers(
         return result;
     });
 
-    webviewController.onRequest(qr.GetOpenQueryResultsInTabByDefaultRequest.type, async () => {
-        return webviewViewController.getOpenQueryResultsInTabByDefaultRequestHandler();
-    });
-
-    webviewController.onRequest(
-        qr.SetOpenQueryResultsInTabByDefaultRequest.type,
-        async (message) => {
-            await webviewViewController.setOpenQueryResultsInTabByDefaultRequestHandler(message);
-        },
-    );
-
     webviewController.onRequest(qr.SetEditorSelectionRequest.type, async (message) => {
         if (!message.uri || !message.selectionData) {
             logger.warn(
