@@ -240,7 +240,6 @@ export function useFluentResultGridHeaderController({
                 strings.commands[FluentResultGridCommand.ToggleSort]?.label ??
                 "";
             const sortButton = document.createElement("button");
-            sortButton.id = "sort-btn";
             sortButton.type = "button";
             sortButton.className = "slick-header-sortbutton";
             sortButton.tabIndex = -1;
@@ -263,7 +262,6 @@ export function useFluentResultGridHeaderController({
                 strings.commands[FluentResultGridCommand.OpenFilter]?.label ??
                 "";
             const filterButton = document.createElement("button");
-            filterButton.id = "filter-btn";
             filterButton.type = "button";
             filterButton.className = "slick-header-filterbutton";
             filterButton.tabIndex = -1;

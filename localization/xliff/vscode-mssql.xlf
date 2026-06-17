@@ -4758,6 +4758,9 @@
     <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
       <source xml:lang="en">No property changes available.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dca3ee73f048d988c89462169bafd9d3173c8f941a22768414517de4a0892611">
+      <source xml:lang="en">No renameable symbol found at cursor.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fb3366f4457488366aacf21f69259ad9213cd246963ee0e9a6c11fa0ab19a058">
       <source xml:lang="en">No resource groups found</source>
     </trans-unit>
@@ -5595,6 +5598,15 @@
     <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
       <source xml:lang="en">Rename Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++98340672aa64e0201bd86c0c7c68acd1f368e2f4ce9565da2425778a5c29b6fa">
+      <source xml:lang="en">Rename is not supported at this position.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b3c234afcf63337c7b7f9d04081dadcb68c2af5d13412495dc1e37eaf5ce9ef">
+      <source xml:lang="en">Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b406ebedeaa86f8565a4faaca1dc07e2f53a0179f6c4a15f5340124aecb9e453">
+      <source xml:lang="en">Rename request failed: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++765f920dea2bbe32e15041c0045002e4888642f0e6e49e5888275518cb3f9a97">
       <source xml:lang="en">Renaming database</source>
     </trans-unit>
@@ -5698,12 +5710,12 @@
       <source xml:lang="en">Results Preview ({0})</source>
       <note>{0} is the keyboard shortcut for the preview results tab</note>
     </trans-unit>
-    <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
-      <source xml:lang="en">Results copied to clipboard</source>
-    </trans-unit>
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++307ea97b854d629bc8febac31e69d61ee13fcdeca467abf549e7a3258bce347e">
+      <source xml:lang="en">Results toolbar</source>
     </trans-unit>
     <trans-unit id="++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d">
       <source xml:lang="en">Resume</source>
@@ -8810,9 +8822,6 @@
     </trans-unit>
     <trans-unit id="mssql.results.openAfterSave">
       <source xml:lang="en">When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.</source>
-    </trans-unit>
-    <trans-unit id="mssql.results.showCopyNotification">
-      <source xml:lang="en">When enabled, show a notification after query results are copied to the clipboard.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

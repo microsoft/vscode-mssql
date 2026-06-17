@@ -73,8 +73,7 @@ export function fluentResultGridEventMatchesShortcut(
 export function isFluentResultGridMetaOrCtrlKeyPressed(
     event: FluentResultGridKeyboardShortcutEvent,
 ): boolean {
-    const platform = typeof navigator === "undefined" ? "" : navigator.platform;
-    return platform.toUpperCase().indexOf("MAC") >= 0 ? event.metaKey : event.ctrlKey;
+    return event.metaKey || event.ctrlKey;
 }
 
 function eventMatchesCommandShortcut(
