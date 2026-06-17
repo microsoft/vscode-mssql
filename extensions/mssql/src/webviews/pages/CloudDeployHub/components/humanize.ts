@@ -40,6 +40,8 @@ export function sourceKindLabel(kind: string | undefined): string {
             return strings.sourceKindDacpac;
         case "container":
             return strings.sourceKindContainer;
+        case "connection":
+            return strings.sourceKindConnection;
         default:
             return kind ?? "";
     }

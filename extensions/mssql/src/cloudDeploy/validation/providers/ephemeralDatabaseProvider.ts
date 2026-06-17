@@ -35,9 +35,15 @@
 import { randomUUID } from "crypto";
 import * as path from "path";
 
-import { SourceOfTruth, SourceOfTruthKind, RuntimeHostConfig } from "../../environments/types";
+import { SourceOfTruth, RuntimeHostConfig } from "../../environments/types";
 import { ConnectionError, ConnectionHandle } from "./connectionProvider";
-import { ProcessProvider, ProcessResult } from "./processProvider";
+import { ProcessProvider, ProcessResult, describeProcessFailure } from "./processProvider";
+import {
+    ResolvedSchema,
+    SchemaResolutionError,
+    SourceConnectionStringResolver,
+    resolveSchemaToDacpac,
+} from "./schemaResolver";
 
 // =============================================================================
 // Public types
@@ -137,6 +143,13 @@ export interface DockerEphemeralDatabaseOptions {
     /** Directory the schema build writes its dacpac into. */
     readonly buildOutputDirectory?: string;
     /**
+     * Resolves a saved connection profile to a source connection string, used
+     * when a live-database source of truth is built on the Docker host (extract
+     * the live schema, then publish it into the throwaway container). Omitted
+     * when no `connection` source is in play.
+     */
+    readonly sourceConnectionStringResolver?: SourceConnectionStringResolver;
+    /**
      * Workspace root used to resolve a workspace-relative source-of-truth path
      * (and the build output) to an absolute path before spawning the build, so
      * the build does not depend on the spawned process's working directory.
@@ -150,7 +163,6 @@ export interface DockerEphemeralDatabaseOptions {
 
 const DEFAULT_IMAGE = "mcr.microsoft.com/mssql/server:2022-latest";
 const DEFAULT_DOCKER_COMMAND = "docker";
-const DEFAULT_DOTNET_COMMAND = "dotnet";
 const DEFAULT_SQLPACKAGE_COMMAND = "sqlpackage";
 const DEFAULT_HOST_PORT = 11433;
 const DEFAULT_READINESS_TIMEOUT_MS = 60_000;
@@ -233,8 +245,20 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
                 "create the validation database",
             );
 
-            const dacpacPath = await this._resolveDacpac(sourceOfTruth, signal);
-            await this._publishDacpac(dacpacPath, hostPort, password, databaseName, signal);
+            const resolved = await this._resolveSchema(sourceOfTruth, signal);
+            try {
+                await this._publishDacpac(
+                    resolved.dacpacPath,
+                    hostPort,
+                    password,
+                    databaseName,
+                    signal,
+                );
+            } finally {
+                // The dacpac has been published (or publish failed); either way
+                // the temp build/extract directory is no longer needed.
+                await resolved.dispose();
+            }
 
             const connection = await this._connector.connect(
                 {
@@ -323,7 +347,7 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
         );
         if (result.exitCode !== 0) {
             throw new EphemeralProvisionError(
-                `Failed to ${action}: ${processFailureDetail(result)}`,
+                `Failed to ${action}: ${describeProcessFailure(result)}`,
             );
         }
     }
@@ -365,29 +389,34 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
      * Resolves a `.dacpac` to publish: builds a `.sqlproj` into one, or returns a
      * pre-built dacpac's path directly.
      */
-    private async _resolveDacpac(
+    private async _resolveSchema(
         sourceOfTruth: SourceOfTruth,
         signal: AbortSignal,
-    ): Promise<string> {
-        if (sourceOfTruth.kind === SourceOfTruthKind.Dacpac) {
-            return this._resolveAgainstWorkspace(sourceOfTruth.path);
+    ): Promise<ResolvedSchema> {
+        try {
+            return await resolveSchemaToDacpac(
+                sourceOfTruth,
+                this._processes,
+                {
+                    dotnetCommand: this._opts.dotnetCommand,
+                    sqlpackageCommand: this._opts.sqlpackageCommand,
+                    workspaceRoot: this._opts.workspaceRoot,
+                    buildOutputDirectory: this._opts.buildOutputDirectory,
+                    sourceConnectionStringResolver: this._opts.sourceConnectionStringResolver,
+                },
+                signal,
+            );
+        } catch (err) {
+            if (err instanceof EphemeralProvisionError) {
+                throw err;
+            }
+            throw new EphemeralProvisionError(
+                err instanceof SchemaResolutionError
+                    ? err.message
+                    : `Failed to resolve the schema: ${errorMessage(err)}`,
+                err,
+            );
         }
-        // Only `SqlProj` remains — build it into a dacpac.
-        const dotnetCommand = this._opts.dotnetCommand ?? DEFAULT_DOTNET_COMMAND;
-        // Resolve to an absolute path so the build never depends on the spawned
-        // process's working directory (a relative path produced MSB1009
-        // "project file does not exist" when the cwd was not the workspace root).
-        const projectPath = this._resolveAgainstWorkspace(sourceOfTruth.path);
-        const outputDir =
-            this._opts.buildOutputDirectory ??
-            path.join(path.dirname(projectPath), "bin", "CloudDeploy");
-        await this._run(
-            dotnetCommand,
-            ["build", projectPath, "/nologo", "/p:NetCoreBuild=true", "-o", outputDir],
-            signal,
-            "build the SQL project into a dacpac",
-        );
-        return dacpacPathFor(projectPath, outputDir);
     }
 
     /** Resolves a (possibly workspace-relative) path to absolute when a
@@ -450,7 +479,7 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
         }
         if (result.exitCode !== 0) {
             throw new EphemeralProvisionError(
-                `Failed to ${action}: ${processFailureDetail(result)}`,
+                `Failed to ${action}: ${describeProcessFailure(result)}`,
             );
         }
         return result;
@@ -634,26 +663,6 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 /** A short, complexity-satisfying password for the throwaway container. */
 function generatePassword(): string {
     return `Cd_${randomUUID().replace(/-/g, "")}_9`;
-}
-
-/** Expected dacpac path for a built `.sqlproj` in `outputDir`. Uses native path
- * joins so the resulting path is valid for both the build `-o` argument and the
- * sqlpackage `/SourceFile:` argument. */
-function dacpacPathFor(sqlprojPath: string, outputDir: string): string {
-    const base = path.basename(sqlprojPath).replace(/\.sqlproj$/i, "");
-    return path.join(outputDir, `${base}.dacpac`);
-}
-
-/** A concise, surfaceable detail string from a failed process result. */
-function processFailureDetail(result: ProcessResult): string {
-    const stderr = result.stderr.trim();
-    const stdout = result.stdout.trim();
-    const detail = stderr.length > 0 ? stderr : stdout;
-    const exit =
-        result.exitCode === null
-            ? `signal ${result.signal ?? "unknown"}`
-            : `exit ${result.exitCode}`;
-    return detail.length > 0 ? `${exit}: ${detail}` : exit;
 }
 
 /** Normalizes an unknown thrown value to a message string. */

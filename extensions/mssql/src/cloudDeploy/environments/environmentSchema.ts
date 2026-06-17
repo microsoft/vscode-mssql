@@ -90,6 +90,12 @@ const SourceOfTruthSchema = z.discriminatedUnion("kind", [
             path: z.string().min(1),
         })
         .passthrough(),
+    z
+        .object({
+            kind: z.literal(SourceOfTruthKind.Connection),
+            connectionProfileId: z.string().min(1),
+        })
+        .passthrough(),
 ]);
 
 const ValidationConfigSchema = z.discriminatedUnion("type", [

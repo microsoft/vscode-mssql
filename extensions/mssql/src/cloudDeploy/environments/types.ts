@@ -47,6 +47,7 @@ export enum ValidationType {
 export enum SourceOfTruthKind {
     SqlProj = "sqlproj",
     Dacpac = "dacpac",
+    Connection = "connection",
 }
 
 /**
@@ -55,10 +56,16 @@ export enum SourceOfTruthKind {
  * is always the source of truth (Scope 2, decision D-E) — the per-run
  * ephemeral database is built from it; a live container is no longer a source
  * of truth (it is, at most, a validator's runtime host via `RuntimeHostConfig`).
+ *
+ *   * `SqlProj` / `Dacpac` — the schema lives in a file on disk.
+ *   * `Connection` — the schema lives in a running database, read READ-ONLY
+ *     (a `sqlpackage` extract). The live database is never the validation
+ *     target; only its shape is copied into the throwaway database.
  */
 export type SourceOfTruth =
     | { kind: SourceOfTruthKind.SqlProj; path: string }
-    | { kind: SourceOfTruthKind.Dacpac; path: string };
+    | { kind: SourceOfTruthKind.Dacpac; path: string }
+    | { kind: SourceOfTruthKind.Connection; connectionProfileId: string };
 
 // =============================================================================
 // Runtime host (Scope 2)

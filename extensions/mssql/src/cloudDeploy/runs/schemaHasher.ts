@@ -144,6 +144,13 @@ export class SchemaHasher {
                 const bytes = await this._reader.readFileBuffer(sourceOfTruth.path);
                 return hashDacpacBytes(bytes);
             }
+            case SourceOfTruthKind.Connection: {
+                // A live database has no on-disk source files to fingerprint and
+                // no stable byte artifact (an extract is non-deterministic), so
+                // the run is left unstamped. The runner treats a throw here as
+                // "unstamped" rather than a run failure — the hash is metadata.
+                throw new SchemaHashUnsupportedError(sourceOfTruth.kind);
+            }
             default: {
                 // `SourceOfTruth` is exhausted above (sqlproj + dacpac). This
                 // guard surfaces a future additive kind that has no buildable

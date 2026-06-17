@@ -21,7 +21,11 @@ import {
 } from "../cloudDeploy/dashboard";
 import { CloudDeployHubController } from "../cloudDeploy/dashboard/cloudDeployHubController";
 import { seedSampleRun } from "../cloudDeploy/dev/seedSampleRun";
-import { VsCodeMssqlEphemeralConnector } from "../cloudDeploy/host/vscodeMssqlConnectionStrategy";
+import {
+    VsCodeMssqlConnectionHostGateway,
+    VsCodeMssqlEphemeralConnector,
+} from "../cloudDeploy/host/vscodeMssqlConnectionStrategy";
+import { LiveProcessProvider } from "../cloudDeploy/validation";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -1145,6 +1149,10 @@ export default class MainController implements vscode.Disposable {
             this._context.workspaceState,
             {
                 ephemeralConnector: new VsCodeMssqlEphemeralConnector(this._connectionMgr),
+                connectionHostGateway: new VsCodeMssqlConnectionHostGateway(
+                    this._connectionMgr,
+                    new LiveProcessProvider(cloudDeployFolder?.uri.fsPath),
+                ),
             },
         );
         this._context.subscriptions.push(this.cloudDeployService);

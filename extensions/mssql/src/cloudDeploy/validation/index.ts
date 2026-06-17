@@ -52,6 +52,19 @@ export type {
     EphemeralDatabaseProvider,
     FakeProvisionInvocation,
 } from "./providers/ephemeralDatabaseProvider";
+export { ConnectionEphemeralDatabaseProvider } from "./providers/connectionEphemeralDatabaseProvider";
+export type {
+    ConnectionEphemeralDatabaseOptions,
+    ConnectionHostGateway,
+} from "./providers/connectionEphemeralDatabaseProvider";
+export { DispatchingEphemeralDatabaseProvider } from "./providers/dispatchingEphemeralDatabaseProvider";
+export type { EphemeralDatabaseProvidersByHost } from "./providers/dispatchingEphemeralDatabaseProvider";
+export { SchemaResolutionError, resolveSchemaToDacpac } from "./providers/schemaResolver";
+export type {
+    ResolvedSchema,
+    SchemaResolverOptions,
+    SourceConnectionStringResolver,
+} from "./providers/schemaResolver";
 export { DataGeneratorError, LiveDataGenerator, splitSqlBatches } from "./dataGenerator";
 export type { DataGenerator } from "./dataGenerator";
 export { ValidationService } from "./validationApi";

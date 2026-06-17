@@ -4136,6 +4136,9 @@
     <trans-unit id="++CODE++8c65fd97ac392221774a817a1b3c64998062706a570495780bb3f0bf3e1545e9">
       <source xml:lang="en">Live database</source>
     </trans-unit>
+    <trans-unit id="++CODE++f3f4ece748b95cad0b78cc1ccb062151bf36468fb89dc021882223f1ff1b0f35">
+      <source xml:lang="en">Live database connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
     </trans-unit>

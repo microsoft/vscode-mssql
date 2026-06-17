@@ -408,3 +408,21 @@ export class FakeProcessProvider implements ProcessProvider {
 function keyOf(command: string, firstArg: string): string {
     return `${command}\u0000${firstArg}`;
 }
+
+/**
+ * A concise, surfaceable detail string from a failed process result: the
+ * trimmed stderr (or stdout) prefixed with the exit code, or the terminating
+ * signal when the child was killed (`exitCode` is not a number). Shared by the
+ * ephemeral-database providers and the schema resolver so the failure-detail
+ * shape stays identical across every `sqlpackage` / `dotnet` / `docker` spawn.
+ */
+export function describeProcessFailure(result: ProcessResult): string {
+    const stderr = result.stderr.trim();
+    const stdout = result.stdout.trim();
+    const detail = stderr.length > 0 ? stderr : stdout;
+    const exit =
+        typeof result.exitCode === "number"
+            ? `exit ${result.exitCode}`
+            : `signal ${result.signal ?? "unknown"}`;
+    return detail.length > 0 ? `${exit}: ${detail}` : exit;
+}

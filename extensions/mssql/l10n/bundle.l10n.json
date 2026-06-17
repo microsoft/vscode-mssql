@@ -1935,6 +1935,7 @@
     "SQL project": "SQL project",
     "Dacpac (pre-built)": "Dacpac (pre-built)",
     "Live database": "Live database",
+    "Live database connection": "Live database connection",
     "Run started": "Run started",
     "{0} started/{0} is a validation name like Static Analysis": {
         "message": "{0} started",

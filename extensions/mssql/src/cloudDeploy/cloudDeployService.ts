@@ -44,12 +44,17 @@ import { SchemaHasher } from "./runs/schemaHasher";
 import type { WorkloadObservedStep, WorkloadPlaybackPayload } from "./runs/types";
 import {
     CloudDeployValidationApi,
+    ConnectionEphemeralDatabaseProvider,
+    ConnectionHostGateway,
+    DispatchingEphemeralDatabaseProvider,
     DockerEphemeralDatabaseProvider,
     EphemeralConnector,
+    EphemeralDatabaseProvider,
     LiveArtifactProvider,
     LiveDataGenerator,
     LiveProcessProvider,
     OutputChannelSubscriber,
+    ProcessProvider,
     RunnerRuntimeDeps,
     ValidationService,
     createDefaultRegistry,
@@ -85,6 +90,17 @@ export interface CloudDeployServiceOptions {
      * database can be stood up — the rest of the pipeline still functions.
      */
     readonly ephemeralConnector?: EphemeralConnector;
+
+    /**
+     * Host glue for the `connection` runtime host (Scope 2): borrow an existing
+     * SQL engine reached by a saved connection profile to stand up the throwaway
+     * database, instead of a tool-managed Docker container. Production wiring
+     * (in `mainController`) supplies `VsCodeMssqlConnectionHostGateway`; tests
+     * and the Docker-only path omit it (a run that asks for the `connection`
+     * host without it surfaces a clear provisioning error). The same gateway
+     * also resolves a live-database source of truth's connection string.
+     */
+    readonly connectionHostGateway?: ConnectionHostGateway;
 }
 
 const OUTPUT_CHANNEL_NAME = "Cloud Deploy";
@@ -104,6 +120,44 @@ function resolveSystemDacpacsLocation(): string | undefined {
     return extensionPath === undefined
         ? undefined
         : path.join(extensionPath, Constants.buildDirectory);
+}
+
+/**
+ * Builds the runtime-host-dispatching `EphemeralDatabaseProvider` (Scope 2):
+ * `docker` always available (tool-managed container), `connection` available
+ * only when the host gateway is wired (borrow an existing SQL engine). The
+ * live-database source-of-truth resolver is derived from the same gateway and
+ * shared by both hosts, so a `connection` source works regardless of where the
+ * throwaway database is stood up.
+ */
+function buildEphemeralProvider(
+    processes: ProcessProvider,
+    ephemeralConnector: EphemeralConnector,
+    connectionHostGateway: ConnectionHostGateway | undefined,
+    workspaceRoot: string | undefined,
+): EphemeralDatabaseProvider {
+    const sourceConnectionStringResolver =
+        connectionHostGateway !== undefined
+            ? (id: string, signal: AbortSignal) =>
+                  connectionHostGateway.buildConnectionString(id, undefined, signal)
+            : undefined;
+
+    const docker = new DockerEphemeralDatabaseProvider(processes, ephemeralConnector, {
+        workspaceRoot,
+        ...(sourceConnectionStringResolver !== undefined ? { sourceConnectionStringResolver } : {}),
+    });
+
+    const connection =
+        connectionHostGateway !== undefined
+            ? new ConnectionEphemeralDatabaseProvider(processes, connectionHostGateway, {
+                  workspaceRoot,
+                  ...(sourceConnectionStringResolver !== undefined
+                      ? { sourceConnectionStringResolver }
+                      : {}),
+              })
+            : undefined;
+
+    return new DispatchingEphemeralDatabaseProvider({ docker, connection });
 }
 
 /**
@@ -196,10 +250,11 @@ export class CloudDeployService implements vscode.Disposable {
                 : {}),
             ...(options.ephemeralConnector !== undefined
                 ? {
-                      ephemeralProvider: new DockerEphemeralDatabaseProvider(
+                      ephemeralProvider: buildEphemeralProvider(
                           processProvider,
                           options.ephemeralConnector,
-                          { workspaceRoot: workspaceFolder?.uri.fsPath },
+                          options.connectionHostGateway,
+                          workspaceFolder?.uri.fsPath,
                       ),
                   }
                 : {}),

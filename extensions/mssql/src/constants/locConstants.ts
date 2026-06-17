@@ -4127,6 +4127,8 @@ export class CloudDeployDashboard {
 
     public static sourceKindContainer = l10n.t("Live database");
 
+    public static sourceKindConnection = l10n.t("Live database connection");
+
     /** Public friendly status name, reused by the tree's environment rows. */
     public static statusName = (status: RunStatus): string => statusLabel(status);
 }
