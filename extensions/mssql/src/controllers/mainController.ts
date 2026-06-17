@@ -2970,11 +2970,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     private isShortcutsConfigurationEnabled(): boolean {
-        return (
-            vscode.workspace
-                .getConfiguration()
-                .get<boolean>(Constants.configEnableShortcutsConfiguration) === true
-        );
+        return previewService.isFeatureEnabled(PreviewFeature.ShortcutsConfiguration);
     }
 
     private createQuickQueryService(): QuickQueryService {
