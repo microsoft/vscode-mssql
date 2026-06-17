@@ -824,7 +824,6 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
-export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",

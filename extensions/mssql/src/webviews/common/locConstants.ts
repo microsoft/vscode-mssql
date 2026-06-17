@@ -86,6 +86,7 @@ export class LocConstants {
             learnMore: l10n.t("Learn more"),
             moveUp: l10n.t("Move Up"),
             moveDown: l10n.t("Move Down"),
+            copied: l10n.t("Copied"),
         };
     }
 
@@ -700,6 +701,7 @@ export class LocConstants {
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
+            resultsToolbar: l10n.t("Results toolbar"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {
