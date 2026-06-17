@@ -163,6 +163,28 @@ suite("CloudDeploy EnvironmentSchema", () => {
             expect(result.environments[0].sourceOfTruth.kind).to.equal("dacpac");
         });
 
+        test("accepts a connection (live database) source with a profile id", () => {
+            const env = validEnv({
+                sourceOfTruth: { kind: "connection", connectionProfileId: "prod-db" },
+            });
+            const result = validateEnvironmentsFile(fileWith(env), FILE_PATH);
+            expect(result.environments[0].sourceOfTruth).to.deep.equal({
+                kind: "connection",
+                connectionProfileId: "prod-db",
+            });
+        });
+
+        test("rejects a connection source without a profile id", () => {
+            const env = validEnv({ sourceOfTruth: { kind: "connection" } });
+            expectThrowsWithIssues(fileWith(env), (issues) => {
+                expect(
+                    issues.some(
+                        (i) => i.path === "$.environments[0].sourceOfTruth.connectionProfileId",
+                    ),
+                ).to.be.true;
+            });
+        });
+
         test("rejects sqlproj without a path", () => {
             const env = validEnv({ sourceOfTruth: { kind: "sqlproj" } });
             expectThrowsWithIssues(fileWith(env), (issues) => {
