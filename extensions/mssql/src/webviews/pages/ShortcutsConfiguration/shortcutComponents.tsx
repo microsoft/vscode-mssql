@@ -33,7 +33,6 @@ import {
 } from "@fluentui/react-components";
 import { Checkmark12Regular, Keyboard16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
-import { isMac } from "../../common/utils";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { QuickQuerySlot } from "../../../sharedInterfaces/shortcutsConfiguration";
@@ -41,6 +40,7 @@ import { ShortcutItem } from "./shortcutDefinitions";
 import {
     formatShortcut,
     HighlightedText,
+    readModifiers,
     shortcutFromKeyboardEvent,
 } from "./shortcutKeyboardUtils";
 
@@ -382,23 +382,6 @@ export const SaveIndicator = ({ state }: { state: SaveState }) => {
     );
 };
 
-function readModifiers(event: KeyboardEvent): string[] {
-    const parts: string[] = [];
-    if (event.ctrlKey) {
-        parts.push("ctrl");
-    }
-    if (event.metaKey) {
-        parts.push(isMac() ? "cmd" : "meta");
-    }
-    if (event.altKey) {
-        parts.push("alt");
-    }
-    if (event.shiftKey) {
-        parts.push("shift");
-    }
-    return parts;
-}
-
 export const ShortcutRecorder = ({
     onSave,
     onClose,
@@ -588,6 +571,7 @@ export const ShortcutChip = ({
 
 export const QuickQueryEditorDialog = ({
     slot,
+    slotName,
     open,
     onClose,
     onSave,
@@ -597,6 +581,7 @@ export const QuickQueryEditorDialog = ({
     loc,
 }: {
     slot: QuickQuerySlot;
+    slotName: string;
     open: boolean;
     onClose: () => void;
     onSave: (query: string) => void;
@@ -731,7 +716,7 @@ export const QuickQueryEditorDialog = ({
             }}>
             <DialogSurface className={classes.queryDialog}>
                 <DialogBody>
-                    <DialogTitle>{loc.queryDialogTitle(slot.name)}</DialogTitle>
+                    <DialogTitle>{loc.queryDialogTitle(slotName)}</DialogTitle>
                     <DialogContent className={classes.queryDialogContent}>
                         <Field className={classes.field} label={loc.query}>
                             <div
@@ -760,7 +745,7 @@ export const QuickQueryEditorDialog = ({
                                         pasteAs: { enabled: false },
                                         dropIntoEditor: { enabled: false },
                                         tabFocusMode: false,
-                                        ariaLabel: loc.queryEditorAriaLabel(slot.name),
+                                        ariaLabel: loc.queryEditorAriaLabel(slotName),
                                     }}
                                     onChange={(value) => {
                                         draftRef.current = value ?? "";

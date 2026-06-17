@@ -12,6 +12,7 @@ import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import * as utils from "../../src/utils/utils";
 import * as Constants from "../../src/constants/constants";
+import * as Loc from "../../src/constants/locConstants";
 import { ShortcutsConfigurationWebviewController } from "../../src/controllers/shortcutsConfigurationWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { parseKeybindingsText } from "../../src/keybindings/keybindingsService";
@@ -34,7 +35,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let updateConfigurationStub: sinon.SinonStub;
     let keybindingsText: string;
-    let keybindingsFilePath: string;
     let tempUserDataPath: string;
     let quickQueriesSetting: unknown;
     let webviewShortcutsSetting: Record<string, string>;
@@ -55,8 +55,19 @@ suite("shortcutsConfiguration Webview Controller", () => {
         tempUserDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-config-test-"));
         const globalStoragePath = path.join(tempUserDataPath, "globalStorage", "ms-mssql.mssql");
         fs.mkdirSync(globalStoragePath, { recursive: true });
-        keybindingsFilePath = path.join(tempUserDataPath, "keybindings.json");
-        fs.writeFileSync(keybindingsFilePath, keybindingsText);
+        sandbox.stub(vscode.workspace.fs, "readFile").callsFake(async (uri) => {
+            if (uri.scheme === "vscode-userdata" && uri.path === "/User/keybindings.json") {
+                return new TextEncoder().encode(keybindingsText);
+            }
+            throw new Error(`Unexpected readFile URI: ${uri.toString()}`);
+        });
+        sandbox.stub(vscode.workspace.fs, "writeFile").callsFake(async (uri, content) => {
+            if (uri.scheme === "vscode-userdata" && uri.path === "/User/keybindings.json") {
+                keybindingsText = new TextDecoder("utf-8").decode(content);
+                return;
+            }
+            throw new Error(`Unexpected writeFile URI: ${uri.toString()}`);
+        });
 
         quickQueriesSetting = normalizeQuickQueries(undefined);
         webviewShortcutsSetting = {};
@@ -156,13 +167,12 @@ suite("shortcutsConfiguration Webview Controller", () => {
             vscode.ConfigurationTarget.Global,
         );
         const quickQueries = normalizeQuickQueries(quickQueriesSetting);
-        keybindingsText = fs.readFileSync(keybindingsFilePath, "utf-8");
         expect(quickQueries[0]).to.deep.equal({
             name: "Health Check",
             query: "select 1",
             executionMode: QuickQueryExecutionMode.Open,
         });
-        expect(result.message).to.equal("Configuration saved.");
+        expect(result.message).to.equal(Loc.shortcutsConfigurationSaved);
         expect(result.webviewShortcuts).to.deep.equal({
             [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a",
         });
@@ -186,7 +196,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
         "command": "workbench.action.keep"
     }
 ]`;
-        fs.writeFileSync(keybindingsFilePath, keybindingsText);
         const reducer = getReducer("saveConfiguration");
 
         const result = await reducer(controller.state, {
@@ -203,7 +212,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
         expect(result.webviewShortcuts).to.deep.equal({
             [WebviewAction.ResultGridCopySelection]: "ctrl+c",
         });
-        keybindingsText = fs.readFileSync(keybindingsFilePath, "utf-8");
         expect(parseKeybindingsText(keybindingsText)).to.deep.equal([
             {
                 key: "ctrl+k",

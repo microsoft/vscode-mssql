@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isMac } from "../../common/utils";
+import { resolveKeyToken } from "../../common/keyboardUtils";
 import { makeStyles } from "@fluentui/react-components";
 
-const modifierKeys = new Set(["Control", "Alt", "Shift", "Meta", "CapsLock", "Tab", "Escape"]);
+const modifierKeys = new Set(["Control", "Alt", "Shift", "Meta", "CapsLock", "Escape"]);
 
 function normalizeRecordedKey(event: KeyboardEvent): string {
     const codeMap: Record<string, string> = {
@@ -61,11 +62,7 @@ function normalizeRecordedKey(event: KeyboardEvent): string {
     return specialKeyMap[event.key] ?? event.key.toLowerCase();
 }
 
-export function shortcutFromKeyboardEvent(event: KeyboardEvent): string | undefined {
-    if (modifierKeys.has(event.key)) {
-        return undefined;
-    }
-
+export function readModifiers(event: KeyboardEvent): string[] {
     const parts: string[] = [];
     if (event.ctrlKey) {
         parts.push("ctrl");
@@ -79,8 +76,15 @@ export function shortcutFromKeyboardEvent(event: KeyboardEvent): string | undefi
     if (event.shiftKey) {
         parts.push("shift");
     }
-    parts.push(normalizeRecordedKey(event));
-    return parts.join("+");
+    return parts;
+}
+
+export function shortcutFromKeyboardEvent(event: KeyboardEvent): string | undefined {
+    if (modifierKeys.has(event.key)) {
+        return undefined;
+    }
+
+    return [...readModifiers(event), normalizeRecordedKey(event)].join("+");
 }
 
 export function formatShortcut(value: string | undefined): string {
@@ -88,51 +92,29 @@ export function formatShortcut(value: string | undefined): string {
         return "";
     }
 
+    const modifierDisplayMap: Record<string, string> = {
+        ctrl: "Ctrl",
+        control: "Ctrl",
+        ctrlcmd: isMac() ? "Cmd" : "Ctrl",
+        cmd: "Cmd",
+        command: "Cmd",
+        meta: isMac() ? "Cmd" : "Meta",
+        alt: "Alt",
+        option: "Alt",
+        shift: "Shift",
+    };
+
     return value
         .split("+")
         .map((token) => token.trim())
         .filter((token) => token.length > 0)
         .map((token) => {
             const lower = token.toLowerCase();
-            const tokenMap: Record<string, string> = {
-                ctrl: "Ctrl",
-                control: "Ctrl",
-                ctrlcmd: isMac() ? "Cmd" : "Ctrl",
-                cmd: "Cmd",
-                command: "Cmd",
-                meta: isMac() ? "Cmd" : "Meta",
-                alt: "Alt",
-                option: "Alt",
-                shift: "Shift",
-                up: "Up",
-                down: "Down",
-                left: "Left",
-                right: "Right",
-                pageup: "PageUp",
-                pagedown: "PageDown",
-                space: "Space",
-                escape: "Esc",
-                comma: ",",
-                period: ".",
-                dot: ".",
-                slash: "/",
-                forwardslash: "/",
-                backslash: "\\",
-                minus: "-",
-                hyphen: "-",
-                equal: "=",
-                equals: "=",
-                semicolon: ";",
-                quote: "'",
-                apostrophe: "'",
-                backquote: "`",
-                backtick: "`",
-                bracketleft: "[",
-                leftbracket: "[",
-                bracketright: "]",
-                rightbracket: "]",
-            };
-            return tokenMap[lower] ?? (lower.length === 1 ? lower.toUpperCase() : token);
+            return (
+                modifierDisplayMap[lower] ??
+                resolveKeyToken(lower)?.display ??
+                (lower.length === 1 ? lower.toUpperCase() : token)
+            );
         })
         .join("+");
 }

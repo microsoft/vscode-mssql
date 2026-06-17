@@ -367,6 +367,12 @@ export class LocConstants {
             autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
+            quickQuerySlotName: (slotNumber: number) =>
+                l10n.t({
+                    message: "Query {0}",
+                    args: [slotNumber],
+                    comment: ["{0} is the Quick Query slot number"],
+                }),
             queryDialogTitle: (name: string) =>
                 l10n.t({
                     message: "{0} query",

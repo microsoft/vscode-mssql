@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import { applyEdits, modify, parse, ParseError, printParseErrorCode } from "jsonc-parser";
+import * as Loc from "../constants/locConstants";
 
 export interface KeybindingRule {
     key?: string;
@@ -25,23 +26,18 @@ export interface CommandKeybindingUpdate {
 
 const defaultKeybindingsText = "[\n]\n";
 
+function getCurrentPlatformKeyProperty(): "mac" | "win" | "linux" {
+    return process.platform === "darwin" ? "mac" : process.platform === "win32" ? "win" : "linux";
+}
+
 function getPlatformKeybinding(rule: KeybindingRule): string | undefined {
-    const platformKey =
-        process.platform === "darwin"
-            ? rule.mac
-            : process.platform === "win32"
-              ? rule.win
-              : rule.linux;
+    const platformKey = rule[getCurrentPlatformKeyProperty()];
 
     return typeof platformKey === "string"
         ? platformKey
         : typeof rule.key === "string"
           ? rule.key
           : undefined;
-}
-
-function getCurrentPlatformKeyProperty(): "mac" | "win" | "linux" {
-    return process.platform === "darwin" ? "mac" : process.platform === "win32" ? "win" : "linux";
 }
 
 function getFormattingOptions(text: string) {
@@ -65,13 +61,11 @@ export function parseKeybindingsText(text: string): KeybindingRule[] {
 
     if (errors.length > 0) {
         const error = errors[0];
-        throw new Error(
-            `Could not parse keybindings.json: ${printParseErrorCode(error.error)} at offset ${error.offset}.`,
-        );
+        throw new Error(Loc.keybindingsParseError(printParseErrorCode(error.error), error.offset));
     }
 
     if (!Array.isArray(parsed)) {
-        throw new Error("Could not parse keybindings.json: root value must be an array.");
+        throw new Error(Loc.keybindingsRootMustBeArray);
     }
 
     return parsed as KeybindingRule[];
@@ -159,8 +153,6 @@ export function updateKeybindingsText(text: string, updates: CommandKeybindingUp
 }
 
 export class KeybindingsService {
-    constructor(private readonly context: vscode.ExtensionContext) {}
-
     public async getCommandKeybindings(commandIds: string[]): Promise<Record<string, string>> {
         const rules = parseKeybindingsText(await this.readKeybindingsText());
         const result: Record<string, string> = {};
@@ -186,12 +178,11 @@ export class KeybindingsService {
         await vscode.commands.executeCommand("workbench.action.openGlobalKeybindingsFile");
     }
 
-    private get userDataUri(): vscode.Uri {
-        return vscode.Uri.joinPath(this.context.globalStorageUri, "..", "..");
-    }
-
     private get keybindingsUri(): vscode.Uri {
-        return vscode.Uri.joinPath(this.userDataUri, "keybindings.json");
+        return vscode.Uri.from({
+            scheme: "vscode-userdata",
+            path: "/User/keybindings.json",
+        });
     }
 
     private async readKeybindingsText(): Promise<string> {
@@ -207,7 +198,6 @@ export class KeybindingsService {
     }
 
     private async writeKeybindingsText(text: string): Promise<void> {
-        await vscode.workspace.fs.createDirectory(this.userDataUri);
         await vscode.workspace.fs.writeFile(this.keybindingsUri, new TextEncoder().encode(text));
     }
 }

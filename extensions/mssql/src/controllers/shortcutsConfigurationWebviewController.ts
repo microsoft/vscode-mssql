@@ -64,7 +64,7 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             },
         );
 
-        this.keybindingsService = new KeybindingsService(context);
+        this.keybindingsService = new KeybindingsService();
         this.registerRpcHandlers();
         this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((event) => {

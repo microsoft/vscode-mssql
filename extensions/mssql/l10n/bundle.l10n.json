@@ -26,6 +26,18 @@
     "Shortcuts Configuration": "Shortcuts Configuration",
     "Configuration saved.": "Configuration saved.",
     "The keybindings file has been opened for manual editing.": "The keybindings file has been opened for manual editing.",
+    "Could not parse keybindings.json: {0} at offset {1}./{0} is the parse error description{1} is the character offset of the error": {
+        "message": "Could not parse keybindings.json: {0} at offset {1}.",
+        "comment": [
+            "{0} is the parse error description",
+            "{1} is the character offset of the error"
+        ]
+    },
+    "Could not parse keybindings.json: root value must be an array.": "Could not parse keybindings.json: root value must be an array.",
+    "Quick Query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
+        "message": "Quick Query slot must be between 1 and {0}.",
+        "comment": ["{0} is the maximum Quick Query slot number"]
+    },
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
     "Please select a database node in Object Explorer to rename.": "Please select a database node in Object Explorer to rename.",
@@ -2422,6 +2434,10 @@
     "Auto-execute": "Auto-execute",
     "Clear Quick Query": "Clear Quick Query",
     "Clear this Quick Query": "Clear this Quick Query",
+    "Query {0}/{0} is the Quick Query slot number": {
+        "message": "Query {0}",
+        "comment": ["{0} is the Quick Query slot number"]
+    },
     "{0} query/{0} is the Quick Query shortcut name": {
         "message": "{0} query",
         "comment": ["{0} is the Quick Query shortcut name"]

@@ -1788,6 +1788,14 @@
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++69c9abac2cb0439eac9a7d06a17d87d5324dc2bbb0b4b1a84e7658ee174e98e2">
+      <source xml:lang="en">Could not parse keybindings.json: root value must be an array.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++417840012ba6cc2c27ca7fe8f6afc3c0bea2646a4ff7766d21f33a3af6241d9f">
+      <source xml:lang="en">Could not parse keybindings.json: {0} at offset {1}.</source>
+      <note>{0} is the parse error description
+{1} is the character offset of the error</note>
+    </trans-unit>
     <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
       <source xml:lang="en">Count: {0}</source>
       <note>{0} is the count</note>
@@ -5618,6 +5626,10 @@
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
     </trans-unit>
+    <trans-unit id="++CODE++deb1a9c8e97e16607d476d2629a1b1d6662cd61971180d3747130b12a2b3a88e">
+      <source xml:lang="en">Query {0}</source>
+      <note>{0} is the Quick Query slot number</note>
+    </trans-unit>
     <trans-unit id="++CODE++9f24e982799f47ef97760b8fbb95ce6c89390fba37aa7fe9b6314f69aaa691ea">
       <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
       <note>{0} is the query number
@@ -5625,6 +5637,10 @@
     </trans-unit>
     <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
       <source xml:lang="en">Quick Queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d">
+      <source xml:lang="en">Quick Query slot must be between 1 and {0}.</source>
+      <note>{0} is the maximum Quick Query slot number</note>
     </trans-unit>
     <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
       <source xml:lang="en">Quick filter all columns...</source>

@@ -46,6 +46,21 @@ export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let keybindingsFileOpenedForManualEditing = l10n.t(
     "The keybindings file has been opened for manual editing.",
 );
+export let keybindingsParseError = (detail: string, offset: number) =>
+    l10n.t({
+        message: "Could not parse keybindings.json: {0} at offset {1}.",
+        args: [detail, offset],
+        comment: ["{0} is the parse error description", "{1} is the character offset of the error"],
+    });
+export let keybindingsRootMustBeArray = l10n.t(
+    "Could not parse keybindings.json: root value must be an array.",
+);
+export let quickQuerySlotOutOfRange = (maxSlot: number) =>
+    l10n.t({
+        message: "Quick Query slot must be between 1 and {0}.",
+        args: [maxSlot],
+        comment: ["{0} is the maximum Quick Query slot number"],
+    });
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );

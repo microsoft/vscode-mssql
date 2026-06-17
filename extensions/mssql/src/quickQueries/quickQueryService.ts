@@ -11,6 +11,7 @@ import {
     QuickQuerySlot,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { ConnectionStrategy, NewQueryOptions } from "../controllers/sqlDocumentService";
+import * as Loc from "../constants/locConstants";
 
 export enum QuickQueryRunResult {
     OpenedConfiguration = "openedConfiguration",
@@ -31,10 +32,7 @@ export function getQuickQuerySlot(slots: QuickQuerySlot[], slotNumber: number): 
     return normalizeQuickQueries(slots)[slotNumber - 1];
 }
 
-export function resolveQuickQueryConnectionOptions(): Pick<
-    NewQueryOptions,
-    "connectionStrategy" | "connectionInfo"
-> {
+export function resolveQuickQueryConnectionOptions(): Pick<NewQueryOptions, "connectionStrategy"> {
     return {
         connectionStrategy: ConnectionStrategy.PromptForConnection,
     };
@@ -45,7 +43,7 @@ export class QuickQueryService {
 
     public async run(slotNumber: number): Promise<QuickQueryRunResult> {
         if (slotNumber < 1 || slotNumber > quickQueryCount) {
-            throw new Error(`Quick Query slot must be between 1 and ${quickQueryCount}.`);
+            throw new Error(Loc.quickQuerySlotOutOfRange(quickQueryCount));
         }
 
         const slot = getQuickQuerySlot(this.dependencies.readQuickQueries(), slotNumber);
