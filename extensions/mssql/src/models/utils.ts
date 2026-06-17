@@ -578,27 +578,127 @@ export function isBoolean(obj: any): obj is boolean {
 }
 
 /**
- * Takes a number of milliseconds and converts it to a string like HH:MM:SS.fff
- * @param value The number of milliseconds to convert to a timespan string
- * @returns A properly formatted timespan string.
+ * Breaks a Unix-epoch-milliseconds timestamp into the pieces a caller usually wants for
+ * human-friendly logs. When `epochMilliseconds` is omitted, formats "now" instead.
+ *
+ * @param epochMilliseconds The Unix-epoch-milliseconds timestamp to format. Defaults to
+ *   `Date.now()`. Note: if you have an `exp`-style claim in seconds (the JWT default),
+ *   multiply by 1000 at the call site.
+ * @param includeTimezone Whether to include the timezone offset in the ISO string.
+ *   Default: `false`.
+ * @param includeMilliseconds Whether to include the millisecond component in both
+ *   the ISO string and the relative duration. Default: `true`.
+ * @returns
+ * - `epochMilliseconds`: the resolved input, echoed for convenience.
+ * - `iso`: formatted as `YYYY-MM-DDTHH:mm:ss[.fff][±HH:MM]` in the current
+ *   timezone, e.g. `2026-06-04T01:16:18.123`.
+ * - `relative`: a coarse, human-readable distance from "now" — `"in 4m 57s 0ms"`
+ *   for future timestamps, `"3h 12m 0s 0ms ago"` for past ones, `"now"` when
+ *   input equals current time.
  */
-export function parseNumAsTimeString(value: number): string {
-    let tempVal = value;
-    let h = Math.floor(tempVal / msInH);
-    tempVal %= msInH;
-    let m = Math.floor(tempVal / msInM);
-    tempVal %= msInM;
-    let s = Math.floor(tempVal / msInS);
-    tempVal %= msInS;
+export function epochToDisplay(
+    epochMilliseconds?: number,
+    { includeTimezone = false, includeMilliseconds = true } = {},
+): { epochMilliseconds: number; iso: string; relative: string } {
+    // capture "now"
+    const now = Date.now();
+    const resolvedMs = epochMilliseconds ?? now;
+    const date = new Date(resolvedMs);
 
-    let hs = h < 10 ? "0" + h : "" + h;
-    let ms = m < 10 ? "0" + m : "" + m;
-    let ss = s < 10 ? "0" + s : "" + s;
-    let mss = tempVal < 10 ? "00" + tempVal : tempVal < 100 ? "0" + tempVal : "" + tempVal;
+    // construct ISO format
+    const pad = (n: number, width = 2) => String(n).padStart(width, "0");
+    const offsetMinutesTotal = -date.getTimezoneOffset();
+    const offsetMinutes = Math.abs(offsetMinutesTotal);
+    let iso =
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+        `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 
-    let rs = hs + ":" + ms + ":" + ss;
+    if (includeMilliseconds) {
+        iso += `.${pad(date.getMilliseconds(), 3)}`;
+    }
 
-    return tempVal > 0 ? rs + "." + mss : rs;
+    if (includeTimezone) {
+        const offsetSign = offsetMinutesTotal >= 0 ? "+" : "-";
+        iso += `${offsetSign}${pad(Math.floor(offsetMinutes / 60))}:${pad(offsetMinutes % 60)}`;
+    }
+
+    // construct relative
+    const deltaMs = resolvedMs - now;
+    const duration = durationToDisplay(deltaMs, {
+        format: "human",
+        includeMilliseconds,
+        includeSign: false,
+    });
+
+    let relative: string;
+    if (deltaMs === 0) {
+        relative = "now";
+    } else if (deltaMs > 0) {
+        relative = `in ${duration}`;
+    } else {
+        relative = `${duration} ago`;
+    }
+
+    return { epochMilliseconds: resolvedMs, iso, relative };
+}
+
+/**
+ * Converts a number of milliseconds into a human-readable duration string.
+ *
+ * @param milliseconds The duration to render. May be negative — the sign is
+ *   dropped (so the caller can compose the preposition: "in X" vs "X ago").
+ * @param format Output style:
+ *   - `"human"` (default): `"1h 2m 3s"` / `"45s"` / `"45s 100ms"`. Higher
+ *     units are omitted until they're non-zero, but every unit below the
+ *     highest non-zero one is kept (so `1h 0m 5s`, not `1h 5s`).
+ *   - `"clock"`: zero-padded `HH:MM:SS[.fff]`. This replicates the legacy
+ *     `parseNumAsTimeString` output used by query / notebook timing displays.
+ * @param includeMilliseconds Whether to include the milliseconds component.
+ *   Default: `true`. Renders as `" Xms"` in `"human"` format and `.fff` in
+ *   `"clock"` format.
+ * @param includeSign Whether to include `-` for negative values.  If `false`, the absolute value is used.
+ *   Default: `false`.
+ */
+export function durationToDisplay(
+    milliseconds: number,
+    {
+        format = "human",
+        includeMilliseconds = true,
+        includeSign = false,
+    }: { format?: "human" | "clock"; includeMilliseconds?: boolean; includeSign?: boolean } = {},
+): string {
+    const sign = includeSign && milliseconds < 0 ? "-" : "";
+
+    let remaining = Math.abs(milliseconds);
+    const hours = Math.floor(remaining / msInH);
+    remaining %= msInH;
+    const minutes = Math.floor(remaining / msInM);
+    remaining %= msInM;
+    const seconds = Math.floor(remaining / msInS);
+    const millis = remaining % msInS;
+
+    if (format === "clock") {
+        const pad = (n: number, width = 2) => String(n).padStart(width, "0");
+        let result = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        if (includeMilliseconds) {
+            result += `.${pad(millis, 3)}`;
+        }
+        return sign + result;
+    }
+
+    // "human"
+    const parts: string[] = [];
+    if (hours > 0) {
+        parts.push(`${hours}h`);
+    }
+    if (minutes > 0 || hours > 0) {
+        parts.push(`${minutes}m`);
+    }
+    parts.push(`${seconds}s`);
+    if (includeMilliseconds) {
+        parts.push(`${millis}ms`);
+    }
+    return sign + parts.join(" ");
 }
 
 function getConfiguration(): vscode.WorkspaceConfiguration {

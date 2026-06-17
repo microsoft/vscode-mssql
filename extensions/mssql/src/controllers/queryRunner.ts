@@ -457,13 +457,15 @@ export default class QueryRunner {
         this._statusView.executedQuery(result.ownerUri);
         this._statusView.setExecutionTime(
             result.ownerUri,
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             hasError,
         });
         sendActionEvent(
@@ -496,7 +498,10 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds += executionTime;
         if (executionTime > 0) {
             // send a time message in the format used for query complete
-            this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
+            this.sendBatchTimeMessage(
+                batch.id,
+                Utils.durationToDisplay(executionTime, { format: "clock" }),
+            );
         }
         this._batchCompleteEmitter.fire(batch);
     }
@@ -605,7 +610,9 @@ export default class QueryRunner {
         }
 
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
             hasError: !!error,
         });
         this._statusView.executedQuery(this._ownerUri);
@@ -843,11 +850,6 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    if (this.shouldShowCopyNotification()) {
-                        vscode.window.showInformationMessage(
-                            LocalizedConstants.resultsCopiedToClipboard,
-                        );
-                    }
                     resolve();
                 } catch (error) {
                     // Don't show error if cancelled
@@ -993,14 +995,6 @@ export default class QueryRunner {
 
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
-
-    private shouldShowCopyNotification(): boolean {
-        const config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-            this.uri,
-        );
-        return config.get<boolean>(Constants.configResultsShowCopyNotification, true);
-    }
 
     public async generateSelectionSummaryData(
         selections: ISlickRange[],

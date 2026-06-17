@@ -26,6 +26,7 @@ import {
 } from "./utils";
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 
 export class QueryResultWebviewController extends WebviewViewController<
     qr.QueryResultWebviewState,
@@ -59,6 +60,9 @@ export class QueryResultWebviewController extends WebviewViewController<
             fontSettings: {},
             gridSettings: {},
             autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
+            isBetaResultsGridEnabled: previewService.isFeatureEnabled(
+                PreviewFeature.BetaResultsGrid,
+            ),
         });
 
         void this.initialize();
@@ -107,6 +111,14 @@ export class QueryResultWebviewController extends WebviewViewController<
                     const newValue = getInMemoryGridDataProcessingThreshold();
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.inMemoryDataProcessingThreshold = newValue;
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                    stateChanged = true;
+                }
+                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid))) {
+                    const newValue = this.isBetaResultsGridEnabled;
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.isBetaResultsGridEnabled = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
                     stateChanged = true;
@@ -211,6 +223,10 @@ export class QueryResultWebviewController extends WebviewViewController<
         );
     }
 
+    private get isBetaResultsGridEnabled(): boolean {
+        return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
+    }
+
     private registerRpcHandlers() {
         this.onRequest(qr.OpenInNewTabRequest.type, async (message) => {
             void this.createPanelController(message.uri);
@@ -280,6 +296,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
+            isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
             initializationError: undefined,
         };
     }
@@ -349,6 +366,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
+            isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }

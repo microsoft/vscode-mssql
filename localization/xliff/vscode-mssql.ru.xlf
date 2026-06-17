@@ -568,6 +568,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
         <target state="translated">Используйте контекстные предложения для синтаксиса SQL, связей и ограничений</target>
       </trans-unit>
+      <trans-unit id="++CODE++b7a29a0664722b59ea2bc598ce82feac6ef017534cb0564b53d9b3189f7233ce">
+        <source xml:lang="en">Apply failed. Fix the error and retry, or run Schema Compare again.</source>
+        <target state="translated">Не удалось применить изменения. Исправьте ошибку и повторите попытку или снова запустите Сравнение схем.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
+        <source xml:lang="en">Applying changes, this might take a while...</source>
+        <target state="translated">Применение изменений может занять некоторое время...</target>
+      </trans-unit>
       <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
         <source xml:lang="en">Approve</source>
         <target state="translated">Утвердить</target>
@@ -1215,6 +1223,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Changes ({0})</source>
         <note>{0} is the number of schema changes</note>
         <target state="translated">Изменения ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++451c56077f521060be29b5df2ec0d863cdc0fcff4970e3ad7e5e44e7a780ae42">
+        <source xml:lang="en">Changes applied successfully. Run Schema Compare again to see updated differences.</source>
+        <target state="translated">Изменения применены. Снова запустите Сравнение схем, чтобы увидеть обновленные различия.</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -7658,7 +7670,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
         <source xml:lang="en">SQL Tools (MSSQL)</source>
-        <target state="new">SQL Tools (MSSQL)</target>
+        <target state="translated">Инструменты SQL (MSSQL)</target>
       </trans-unit>
       <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
         <source xml:lang="en">SQL database in Fabric</source>
@@ -9725,6 +9737,10 @@ Query: {2}</source>
         <source xml:lang="en">Value is required</source>
         <target state="translated">Требуется значение</target>
       </trans-unit>
+      <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
+        <source xml:lang="en">Verify a container image by using the Notation CLI</source>
+        <target state="translated">Проверьте образ контейнера с помощью CLI Notation</target>
+      </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>
         <target state="translated">Проверить резервную копию после завершения</target>
@@ -11219,7 +11235,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.sqlToolsMcp.serverLabel">
         <source xml:lang="en">SQL Tools (MSSQL)</source>
-        <target state="new">SQL Tools (MSSQL)</target>
+        <target state="translated">Инструменты SQL (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>

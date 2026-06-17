@@ -1793,6 +1793,12 @@
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },
+                "mssql.preview.betaResultsGrid": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.betaResultsGrid.description%",
+                    "scope": "application"
+                },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [
                         "boolean",
@@ -2299,12 +2305,6 @@
                 "mssql.results.openAfterSave": {
                     "type": "boolean",
                     "description": "%mssql.results.openAfterSave%",
-                    "default": true,
-                    "scope": "resource"
-                },
-                "mssql.results.showCopyNotification": {
-                    "type": "boolean",
-                    "description": "%mssql.results.showCopyNotification%",
                     "default": true,
                     "scope": "resource"
                 },

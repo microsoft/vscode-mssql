@@ -568,6 +568,14 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
         <target state="translated">Aplicar sugestões contextuais para sintaxe, relações e restrições SQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++b7a29a0664722b59ea2bc598ce82feac6ef017534cb0564b53d9b3189f7233ce">
+        <source xml:lang="en">Apply failed. Fix the error and retry, or run Schema Compare again.</source>
+        <target state="translated">Falha na aplicação. Corrija o erro e tente novamente ou execute Comparação de Esquemas novamente.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
+        <source xml:lang="en">Applying changes, this might take a while...</source>
+        <target state="translated">Aplicando alterações. Isso pode demorar um pouco...</target>
+      </trans-unit>
       <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
         <source xml:lang="en">Approve</source>
         <target state="translated">Aprovar</target>
@@ -1215,6 +1223,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Changes ({0})</source>
         <note>{0} is the number of schema changes</note>
         <target state="translated">Alterações ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++451c56077f521060be29b5df2ec0d863cdc0fcff4970e3ad7e5e44e7a780ae42">
+        <source xml:lang="en">Changes applied successfully. Run Schema Compare again to see updated differences.</source>
+        <target state="translated">Alterações aplicadas com sucesso. Execute Comparação de Esquemas novamente para ver as diferenças atualizadas.</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -7658,7 +7670,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
         <source xml:lang="en">SQL Tools (MSSQL)</source>
-        <target state="new">SQL Tools (MSSQL)</target>
+        <target state="translated">Ferramentas do SQL (MSSQL)</target>
       </trans-unit>
       <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
         <source xml:lang="en">SQL database in Fabric</source>
@@ -9725,6 +9737,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Value is required</source>
         <target state="translated">O valor é obrigatório</target>
       </trans-unit>
+      <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
+        <source xml:lang="en">Verify a container image by using the Notation CLI</source>
+        <target state="translated">Verifique uma imagem de contêiner usando a CLI do Notation</target>
+      </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>
         <target state="translated">Verificar backup quando terminar</target>
@@ -11219,7 +11235,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.sqlToolsMcp.serverLabel">
         <source xml:lang="en">SQL Tools (MSSQL)</source>
-        <target state="new">SQL Tools (MSSQL)</target>
+        <target state="translated">Ferramentas do SQL (MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>

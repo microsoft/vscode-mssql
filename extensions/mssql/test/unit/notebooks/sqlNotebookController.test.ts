@@ -469,7 +469,7 @@ suite("SqlNotebookController", () => {
             const executionTimeBlock = output.blocks[2];
             expect(executionTimeBlock).to.deep.equal({
                 type: "text",
-                text: LocalizedConstants.elapsedTimeLabel("00:00:02"),
+                text: LocalizedConstants.elapsedTimeLabel("00:00:02.000"),
             });
         });
 
