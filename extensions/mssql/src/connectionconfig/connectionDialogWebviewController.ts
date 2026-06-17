@@ -1879,10 +1879,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         const connectionDraft = structuredClone(initializedConnection) as IConnectionDialogProfile;
+        // clear properties that will be unique for a cloned connection
         connectionDraft.id = undefined;
         connectionDraft.profileName = undefined;
+
+        // clear management properties that aren't serialized
         delete (connectionDraft as IConnectionProfileWithSource).configSource;
-        // Clear the user-managed sort order; copies start un-ordered (alphabetical).
         delete (connectionDraft as IConnectionProfile).order;
 
         this._connectionBeingEdited = undefined;

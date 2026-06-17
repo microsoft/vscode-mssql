@@ -15,52 +15,6 @@ import { IConnectionGroup, IConnectionProfile } from "../../src/models/interface
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { initializeIconUtils } from "./utils";
 
-function makeGroup(name: string, order?: number, id?: string): IConnectionGroup {
-    return {
-        id: id ?? `group_${name}`,
-        name,
-        parentId: ConnectionConfig.ROOT_GROUP_ID,
-        configSource: vscode.ConfigurationTarget.Global,
-        order,
-    };
-}
-
-function makeGroupNode(name: string, order?: number, id?: string): ConnectionGroupNode {
-    return new ConnectionGroupNode(makeGroup(name, order, id));
-}
-
-function makeProfile(name: string, order?: number, id?: string): IConnectionProfile {
-    return {
-        profileName: name,
-        id: id ?? `conn_${name}`,
-        server: name,
-        database: "",
-        authenticationType: "SqlLogin",
-        user: "",
-        password: "",
-        savePassword: false,
-        groupId: ConnectionConfig.ROOT_GROUP_ID,
-        order,
-        // The rest of IConnectionProfile is irrelevant for ordering tests.
-    } as unknown as IConnectionProfile;
-}
-
-function makeConnectionNode(name: string, order?: number, id?: string): ConnectionNode {
-    return new ConnectionNode(makeProfile(name, order, id) as never);
-}
-
-function makeRootGroupNode(): ConnectionGroupNode {
-    return new ConnectionGroupNode({
-        id: ConnectionConfig.ROOT_GROUP_ID,
-        name: ConnectionConfig.ROOT_GROUP_ID,
-        configSource: vscode.ConfigurationTarget.Global,
-    });
-}
-
-function labels(nodes: TreeNodeInfo[]): string[] {
-    return nodes.map((n) => n.label.toString());
-}
-
 suite("ConnectionGroupNode ordering", () => {
     setup(() => {
         initializeIconUtils();
@@ -170,3 +124,49 @@ suite("ConnectionGroupNode ordering", () => {
         });
     });
 });
+
+function makeGroup(name: string, order?: number, id?: string): IConnectionGroup {
+    return {
+        id: id ?? `group_${name}`,
+        name,
+        parentId: ConnectionConfig.ROOT_GROUP_ID,
+        configSource: vscode.ConfigurationTarget.Global,
+        order,
+    };
+}
+
+function makeGroupNode(name: string, order?: number, id?: string): ConnectionGroupNode {
+    return new ConnectionGroupNode(makeGroup(name, order, id));
+}
+
+function makeProfile(name: string, order?: number, id?: string): IConnectionProfile {
+    return {
+        profileName: name,
+        id: id ?? `conn_${name}`,
+        server: name,
+        database: "",
+        authenticationType: "SqlLogin",
+        user: "",
+        password: "",
+        savePassword: false,
+        groupId: ConnectionConfig.ROOT_GROUP_ID,
+        order,
+        // The rest of IConnectionProfile is irrelevant for ordering tests.
+    } as unknown as IConnectionProfile;
+}
+
+function makeConnectionNode(name: string, order?: number, id?: string): ConnectionNode {
+    return new ConnectionNode(makeProfile(name, order, id) as never);
+}
+
+function makeRootGroupNode(): ConnectionGroupNode {
+    return new ConnectionGroupNode({
+        id: ConnectionConfig.ROOT_GROUP_ID,
+        name: ConnectionConfig.ROOT_GROUP_ID,
+        configSource: vscode.ConfigurationTarget.Global,
+    });
+}
+
+function labels(nodes: TreeNodeInfo[]): string[] {
+    return nodes.map((n) => n.label.toString());
+}

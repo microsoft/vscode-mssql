@@ -82,14 +82,11 @@ export class ConnectionGroupNode extends TreeNodeInfo {
     /**
      * Adds a child node to the server group.
      *
-     * Ordering rules (applied independently within each kind — groups vs. connections —
-     * because groups are always rendered before connections):
-     *   1. Nodes with a non-negative `order` property come before nodes without one,
-     *      sorted from lowest to highest.
-     *   2. Nodes with equal `order` (or both unordered) are sorted alphabetically by
-     *      lower-cased label.
-     *
-     * @param child The child node to add.
+     * Ordering precedence:
+     *   1. Groups always come before connections
+     *   2. Items with `order` set always come before items with it unset
+     *   3. Items with order set are sorted from lowest to highest
+     *   4. Items without `order` set or with equal `order` values are sorted alphabetically (case-insensitive)
      */
     public addChild(child: TreeNodeInfo): void {
         const isChildConnectionGroup = child instanceof ConnectionGroupNode;
@@ -134,9 +131,7 @@ export function createConnectionGroupContextValue(): vscodeMssql.TreeNodeContext
 }
 
 /**
- * Returns the effective sort `order` value for a tree node, or `undefined` if the node has no
- * valid order.  Only non-negative finite numbers are considered valid; everything else (negative
- * numbers, NaN, non-numeric values, missing property) is treated as "no order".
+ * Returns the effective sort `order` value for a tree node, or `undefined` if the node has no valid order.
  */
 function getNodeOrder(node: TreeNodeInfo): number | undefined {
     let candidate: unknown;
@@ -149,15 +144,15 @@ function getNodeOrder(node: TreeNodeInfo): number | undefined {
     if (typeof candidate === "number" && Number.isFinite(candidate) && candidate >= 0) {
         return candidate;
     }
+
+    // invalid values (negative, NaN, non-numeric) are treated as unordered
     return undefined;
 }
 
 /**
- * Compares two tree nodes of the same kind (both groups or both non-groups) using:
+ * Compares two tree nodes of the same kind (both groups or both non-groups):
  *   1. The `order` property (ordered nodes first, ascending), then
- *   2. Lower-cased label as a tie-breaker / fallback.
- *
- * Exported for test purposes.
+ *   2. alphabetically (case-insensitive) by label.
  */
 export function compareOrderedNodes(a: TreeNodeInfo, b: TreeNodeInfo): number {
     const orderA = getNodeOrder(a);

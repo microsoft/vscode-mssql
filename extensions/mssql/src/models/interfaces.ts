@@ -71,9 +71,7 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     accountStore: AccountStore;
     configSource: ConfigTarget;
     /**
-     * Optional sort order for display in the Object Explorer.  Connections with a non-negative
-     * `order` are displayed before those without one (lowest value first); ties are broken
-     * alphabetically.  Only ever set by the user manually editing settings.json.
+     * Optional sort order for display in the Object Explorer.  Set manually in config JSON
      */
     order?: number;
     isValidProfile(): boolean;
@@ -88,9 +86,7 @@ export interface IConnectionGroup {
     color?: string;
     description?: string;
     /**
-     * Optional sort order for display in the Object Explorer.  Groups with a non-negative
-     * `order` are displayed before those without one (lowest value first); ties are broken
-     * alphabetically.  Only ever set by the user manually editing settings.json.
+     * Optional sort order for display in the Object Explorer.  Set manually in config JSON
      */
     order?: number;
 }
