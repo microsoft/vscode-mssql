@@ -1455,10 +1455,14 @@
         "comment": ["{0} is the operation name"]
     },
     "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
-    "Missing connectionId. Please provide a connectionId to open Data API builder.": "Missing connectionId. Please provide a connectionId to open Data API builder.",
+    "Missing connection reference. Please provide exactly one of connectionId or connectionName.": "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
+    "Ambiguous connection reference. Please provide only one of connectionId or connectionName.": "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
+    "No SQL Tools MCP connection found for connectionName: {0}/{0} is the SQL Tools MCP registered connection name": {
+        "message": "No SQL Tools MCP connection found for connectionName: {0}",
+        "comment": ["{0} is the SQL Tools MCP registered connection name"]
+    },
     "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.": "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
-    "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",
     "Table added to schema designer successfully.": "Table added to schema designer successfully.",
     "Failed to add table to schema designer.": "Failed to add table to schema designer.",
     "Table updated in schema designer successfully.": "Table updated in schema designer successfully.",

@@ -2619,17 +2619,24 @@ export class MssqlChatAgent {
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
-    public static dabToolMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open Data API builder.",
+    public static toolMissingConnectionReference = l10n.t(
+        "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     );
+    public static toolAmbiguousConnectionReference = l10n.t(
+        "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
+    );
+    public static noSqlToolsMcpConnectionName = (connectionName: string) => {
+        return l10n.t({
+            message: "No SQL Tools MCP connection found for connectionName: {0}",
+            args: [connectionName],
+            comment: ["{0} is the SQL Tools MCP registered connection name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
     public static schemaDesignerStaleState = l10n.t(
         "Schema designer state changed. Fetch the latest schema and retry the operation.",
-    );
-    public static schemaDesignerMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open the schema designer.",
     );
     public static schemaDesignerAddTableSuccess = l10n.t(
         "Table added to schema designer successfully.",

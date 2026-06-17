@@ -2753,7 +2753,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_schema_designer",
-                "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer for a connectionId when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
+                "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer with exactly one of connectionId or connectionName when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2776,8 +2776,13 @@
                             ]
                         },
                         "connectionId": {
-                            "description": "Connection ID to use when opening the schema designer (show operation only).",
+                            "description": "VS Code runtime connection ID to use when opening the schema designer (show operation only). Do not use this field for a ConnectionId returned by a SQL Tools MCP tool. Provide exactly one of connectionId or connectionName.",
                             "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "connectionName": {
+                            "description": "SQL Tools MCP registered connection name to use when opening the schema designer (show operation only). Pass a ConnectionId returned by a SQL Tools MCP tool in this connectionName field. Provide exactly one of connectionId or connectionName.",
+                            "title": "Connection Name",
                             "type": "string"
                         },
                         "payload": {
@@ -3697,8 +3702,17 @@
                                     ]
                                 }
                             },
-                            "required": [
-                                "connectionId"
+                            "oneOf": [
+                                {
+                                    "required": [
+                                        "connectionId"
+                                    ]
+                                },
+                                {
+                                    "required": [
+                                        "connectionName"
+                                    ]
+                                }
                             ]
                         },
                         {
@@ -3790,7 +3804,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view with exactly one of connectionId or connectionName when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3998,8 +4012,14 @@
                             ]
                         },
                         "connectionId": {
-                            "description": "Connection ID to use when opening Data API builder (show operation only). Do not include for get_state/apply_changes when an active designer is already open.",
+                            "description": "VS Code runtime connection ID to use when opening Data API builder (show operation only). Do not use this field for a ConnectionId returned by a SQL Tools MCP tool. Provide exactly one of connectionId or connectionName. Do not include for get_state/apply_changes when an active designer is already open.",
                             "title": "Connection ID",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "connectionName": {
+                            "description": "SQL Tools MCP registered connection name to use when opening Data API builder (show operation only). Pass a ConnectionId returned by a SQL Tools MCP tool in this connectionName field. Provide exactly one of connectionId or connectionName. Do not include for get_state/apply_changes when an active designer is already open.",
+                            "title": "Connection Name",
                             "type": "string",
                             "minLength": 1
                         },
