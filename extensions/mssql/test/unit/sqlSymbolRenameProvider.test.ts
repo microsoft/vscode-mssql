@@ -12,8 +12,11 @@ import * as vscode from "vscode";
 import { SqlSymbolRenameProvider } from "../../src/languageservice/sqlSymbolRenameProvider";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { SqlSymbolRenameRequest } from "../../src/models/contracts/languageService";
-import { SqlSymbolRename as loc } from "../../src/constants/locConstants";
-
+import {
+    SqlMoveToSchema as moveLoc,
+    SqlSymbolRename as loc,
+} from "../../src/constants/locConstants";
+import { SqlMoveToSchemaProvider } from "../../src/languageservice/sqlMoveToSchemaProvider";
 chai.use(sinonChai);
 
 // Cross-platform path helpers — always derived from vscode.Uri so separators match the OS.
@@ -466,7 +469,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
             // Non-data object (e.g. stored procedure) — STS returns no refactorlog content.
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 ...refactorResponse(),
-                refactorLogContent: null,
+                refactorLogContent: undefined,
             });
 
             const doc = makeDocument(sandbox);
@@ -488,6 +491,60 @@ suite("SqlSymbolRenameProvider Tests", () => {
                         (c.args[0] as vscode.Uri).fsPath.endsWith(".sqlproj"),
                 );
             expect(refactorReplace).to.be.undefined;
+        });
+    });
+});
+
+suite("SqlMoveToSchemaProvider Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let provider: SqlMoveToSchemaProvider;
+    let findFilesStub: sinon.SinonStub;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        provider = new SqlMoveToSchemaProvider(
+            {} as unknown as import("../../src/controllers/vscodeWrapper").default,
+        );
+        findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    // -------------------------------------------------------------------------
+    suite("provideCodeActions", () => {
+        const emptyRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+        test("offers no action when the file is not inside a SQL project", async () => {
+            findFilesStub.resolves([]); // no .sqlproj in workspace
+            const doc = makeDocument(sandbox, { fsPath: path.join(path.sep, "other", "file.sql") });
+
+            const actions = await provider.provideCodeActions(doc, emptyRange);
+
+            expect(actions).to.be.an("array").that.is.empty;
+        });
+
+        test("offers no action when the cursor is not on a word", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            const doc = makeDocument(sandbox, { fsPath: defaultSqlFile });
+            (doc.getWordRangeAtPosition as sinon.SinonStub).returns(undefined);
+
+            const actions = await provider.provideCodeActions(doc, emptyRange);
+
+            expect(actions).to.be.an("array").that.is.empty;
+        });
+
+        test("offers a Move to Schema refactor action inside a SQL project", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            const doc = makeDocument(sandbox, { fsPath: defaultSqlFile });
+
+            const actions = await provider.provideCodeActions(doc, emptyRange);
+
+            expect(actions).to.have.length(1);
+            expect(actions[0].title).to.equal(moveLoc.moveToSchemaTitle);
+            expect(actions[0].kind?.contains(vscode.CodeActionKind.Refactor)).to.be.true;
+            expect(actions[0].command?.command).to.equal("mssql.moveToSchema");
         });
     });
 });
