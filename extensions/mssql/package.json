@@ -1692,12 +1692,6 @@
                     "description": "%mssql.preview.betaResultsGrid.description%",
                     "scope": "application"
                 },
-                "mssql.preview.queryResultsFooter": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.queryResultsFooter.description%",
-                    "scope": "application"
-                },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [
                         "boolean",

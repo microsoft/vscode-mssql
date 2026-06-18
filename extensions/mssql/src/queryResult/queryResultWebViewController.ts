@@ -71,9 +71,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             isBetaResultsGridEnabled: previewService.isFeatureEnabled(
                 PreviewFeature.BetaResultsGrid,
             ),
-            isQueryResultsFooterEnabled: previewService.isFeatureEnabled(
-                PreviewFeature.QueryResultsFooter,
-            ),
         });
 
         void this.initialize();
@@ -134,17 +131,6 @@ export class QueryResultWebviewController extends WebviewViewController<
                         state.isBetaResultsGridEnabled = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
-                    stateChanged = true;
-                }
-                if (
-                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.QueryResultsFooter))
-                ) {
-                    const newValue = this.isQueryResultsFooterEnabled;
-                    for (const [uri, state] of this._queryResultStateMap) {
-                        state.isQueryResultsFooterEnabled = newValue;
-                        this._queryResultStateMap.set(uri, state);
-                    }
-                    // Show or hide the editor status bar summary depending on the new flag value.
                     this.updateSelectionSummary();
                     stateChanged = true;
                 }
@@ -258,10 +244,6 @@ export class QueryResultWebviewController extends WebviewViewController<
         return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
-    private get isQueryResultsFooterEnabled(): boolean {
-        return previewService.isFeatureEnabled(PreviewFeature.QueryResultsFooter);
-    }
-
     private registerRpcHandlers() {
         this.onRequest(qr.OpenInNewTabRequest.type, async (message) => {
             void this.createPanelController(message.uri);
@@ -335,7 +317,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
-            isQueryResultsFooterEnabled: this.isQueryResultsFooterEnabled,
             initializationError: undefined,
         };
     }
@@ -436,7 +417,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             executionElapsedMilliseconds: undefined,
             rowsAffected: undefined,
             isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
-            isQueryResultsFooterEnabled: this.isQueryResultsFooterEnabled,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -621,7 +601,7 @@ export class QueryResultWebviewController extends WebviewViewController<
      * selection summary of the active query result.
      */
     public updateSelectionSummary(): void {
-        if (this.isQueryResultsFooterEnabled) {
+        if (this.isBetaResultsGridEnabled) {
             this._selectionSummaryStatusBarItem.hide();
             return;
         }

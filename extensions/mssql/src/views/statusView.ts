@@ -122,7 +122,7 @@ export default class StatusView implements vscode.Disposable {
      * suppressed because the footer surfaces that information inside the results view.
      */
     private get isQueryResultsFooterEnabled(): boolean {
-        return previewService.isFeatureEnabled(PreviewFeature.QueryResultsFooter);
+        return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
     // Create status bar item if needed

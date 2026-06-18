@@ -142,9 +142,6 @@ export const QueryResultPane = () => {
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
     const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
-    const isQueryResultsFooterEnabled = useQueryResultSelector(
-        (s) => s.isQueryResultsFooterEnabled,
-    );
 
     const { keyBindings } = useVscodeWebview();
 
@@ -221,7 +218,7 @@ export const QueryResultPane = () => {
                         <Text className={classes.noResultMessage}>{initilizationError}</Text>
                     </div>
                 </div>
-                {isQueryResultsFooterEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
+                {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
             </div>
         );
     }
@@ -260,7 +257,7 @@ export const QueryResultPane = () => {
                         )}
                     </div>
                 </div>
-                {isQueryResultsFooterEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
+                {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
             </div>
         );
     }
@@ -379,7 +376,7 @@ export const QueryResultPane = () => {
                     <QueryExecutionPlanTab />
                 </div>
             </div>
-            {isQueryResultsFooterEnabled && <QueryResultSummaryFooter />}
+            {isBetaResultsGridEnabled && <QueryResultSummaryFooter />}
         </div>
     );
 };
