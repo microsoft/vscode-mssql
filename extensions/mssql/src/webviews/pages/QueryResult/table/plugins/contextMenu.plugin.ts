@@ -103,6 +103,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     selection: convertedSelection,
                     includeHeaders: false,
                 });
+                this.queryResultContext.showCopyIndicator();
                 break;
             case GridContextMenuAction.CopyWithHeaders:
                 log.trace("Copy with headers action triggered");
@@ -113,6 +114,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     selection: convertedSelection,
                     includeHeaders: true,
                 });
+                this.queryResultContext.showCopyIndicator();
                 break;
             case GridContextMenuAction.CopyHeaders:
                 log.trace("Copy Headers action triggered");
@@ -122,6 +124,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     resultId: this.resultSetSummary.id,
                     selection: convertedSelection,
                 });
+                this.queryResultContext.showCopyIndicator();
                 break;
             case GridContextMenuAction.CopyAsCsv:
                 log.trace("Copy as CSV action triggered");
@@ -131,6 +134,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     resultId: this.resultSetSummary.id,
                     selection: convertedSelection,
                 });
+                this.queryResultContext.showCopyIndicator();
                 break;
             case GridContextMenuAction.CopyAsJson:
                 log.trace("Copy as JSON action triggered");
@@ -141,6 +145,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     selection: convertedSelection,
                     includeHeaders: true, // Default to including headers for JSON
                 });
+                this.queryResultContext.showCopyIndicator();
                 break;
             case GridContextMenuAction.CopyAsInClause:
                 log.trace("Copy as IN clause action triggered");
@@ -150,6 +155,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     resultId: this.resultSetSummary.id,
                     selection: convertedSelection,
                 });
+                this.queryResultContext.showCopyIndicator();
                 break;
             case GridContextMenuAction.CopyAsInsertInto:
                 log.trace("Copy as INSERT INTO action triggered");
@@ -162,6 +168,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         selection: convertedSelection,
                     },
                 );
+                this.queryResultContext.showCopyIndicator();
                 break;
             default:
                 log.warn(`Unknown action: ${action}`);

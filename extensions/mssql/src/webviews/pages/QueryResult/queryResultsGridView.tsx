@@ -4,12 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles } from "@fluentui/react-components";
-import { createRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+    createRef,
+    ForwardRefExoticComponent,
+    RefAttributes,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
-import ResultGrid, { ResultGridHandle } from "./resultGrid";
+import ResultGrid, { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
@@ -35,18 +45,33 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         borderBottom: "1px solid var(--vscode-editorWidget-border)",
         flex: "0 0 auto",
+        minHeight: 0,
+        overflow: "hidden",
     },
 });
 
 type GridItem = { batchId: number; resultId: number; index: number };
+type ResultGridComponent = ForwardRefExoticComponent<
+    ResultGridProps & RefAttributes<ResultGridHandle>
+>;
+
+export interface QueryResultsGridViewProps {
+    GridComponent?: ResultGridComponent;
+    showExternalCommandBar?: boolean;
+}
 
 const ROW_HEIGHT = 26;
 const HEADER = 30;
 export const MARGIN_BOTTOM = 10;
 const MIN_HORIZONTAL_SCROLLBAR_SPACE = 18; // Reserve space so short grids don't clip the scrollbar over rows
-const DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS = 8;
+const DEFAULT_NATURAL_VISIBLE_ROW_CAP = 8;
+const DEFAULT_FONT_SIZE = 12;
+const BASE_ROW_PADDING = 12;
 
-export const QueryResultsGridView = () => {
+export const QueryResultsGridView = ({
+    GridComponent = ResultGrid,
+    showExternalCommandBar = true,
+}: QueryResultsGridViewProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
@@ -85,11 +110,19 @@ export const QueryResultsGridView = () => {
     }, [resultSetSummaries]);
 
     function naturalHeight(rowCount: number): number {
-        let visibleRows = rowCount === 0 ? 1 : rowCount;
-        if (visibleRows > DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS) {
-            visibleRows = DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS;
-        }
-        return visibleRows * ROW_HEIGHT + HEADER + MARGIN_BOTTOM + MIN_HORIZONTAL_SCROLLBAR_SPACE;
+        const rowPadding =
+            typeof gridSettings?.rowPadding === "number" && Number.isFinite(gridSettings.rowPadding)
+                ? Math.max(0, gridSettings.rowPadding)
+                : 0;
+        const rowHeight = Math.max(
+            ROW_HEIGHT,
+            (fontSettings?.fontSize ?? DEFAULT_FONT_SIZE) + BASE_ROW_PADDING + rowPadding * 2,
+        );
+        const visibleRows = Math.max(
+            1,
+            Math.min(rowCount === 0 ? 1 : rowCount, DEFAULT_NATURAL_VISIBLE_ROW_CAP),
+        );
+        return visibleRows * rowHeight + HEADER + MARGIN_BOTTOM + MIN_HORIZONTAL_SCROLLBAR_SPACE;
     }
 
     const gridHeights: number[] = useMemo(() => {
@@ -104,22 +137,37 @@ export const QueryResultsGridView = () => {
             return [gridViewContainerHeight];
         }
 
-        const preferredHeights = gridList.map((it) =>
-            naturalHeight(resultSetSummaries?.[it.batchId]?.[it.resultId]?.rowCount ?? 0),
+        const rowCounts = gridList.map(
+            (it) => resultSetSummaries?.[it.batchId]?.[it.resultId]?.rowCount ?? 0,
         );
+        const preferredHeights = rowCounts.map((rowCount) => naturalHeight(rowCount));
 
-        // Calculate total minimum height needed.
-        const totalMinHeight = preferredHeights.reduce((sum, h) => sum + h, 0);
+        // Calculate the content-sized height needed before any large grid absorbs extra space.
+        const totalPreferredHeight = preferredHeights.reduce((sum, h) => sum + h, 0);
 
-        // Calculate height adjustment if we have extra space to distribute evenly
+        if (gridViewContainerHeight <= totalPreferredHeight) {
+            return preferredHeights;
+        }
+
+        const canGrow = rowCounts.map((rowCount) => rowCount > DEFAULT_NATURAL_VISIBLE_ROW_CAP);
+        const growableGridCount = canGrow.filter(Boolean).length;
+        if (growableGridCount === 0) {
+            return preferredHeights;
+        }
+
         const heightAdjustment =
-            gridViewContainerHeight > totalMinHeight
-                ? (gridViewContainerHeight - totalMinHeight) / numGrids
-                : 0;
+            (gridViewContainerHeight - totalPreferredHeight) / growableGridCount;
 
-        // Distribute heights: preferred + proportional share of extra space
-        return preferredHeights.map((preferredHeight) => preferredHeight + heightAdjustment);
-    }, [gridList, gridViewContainerHeight]);
+        return preferredHeights.map((preferredHeight, index) =>
+            canGrow[index] ? preferredHeight + heightAdjustment : preferredHeight,
+        );
+    }, [
+        fontSettings?.fontSize,
+        gridList,
+        gridSettings?.rowPadding,
+        gridViewContainerHeight,
+        resultSetSummaries,
+    ]);
 
     // Restore grid view container scroll position on mount
     useEffect(() => {
@@ -178,7 +226,7 @@ export const QueryResultsGridView = () => {
             }
         }
         return undefined;
-    }, [gridList, gridContainerRefs, gridRefs]);
+    }, [gridList, gridRefs]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -285,6 +333,55 @@ export const QueryResultsGridView = () => {
         });
     };
 
+    const handleCommandBarKeyDown = useCallback(
+        (event: React.KeyboardEvent, gridIndex: number) => {
+            if (!event.shiftKey || event.key !== "Tab") {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            gridRefs.current[gridIndex]?.focusGrid();
+        },
+        [gridRefs],
+    );
+
+    useEffect(() => {
+        const handler = (event: KeyboardEvent) => {
+            if (!event.shiftKey || event.key !== "Tab") {
+                return;
+            }
+
+            const activeElement = document.activeElement as HTMLElement | null;
+            const commandBar = activeElement?.closest<HTMLElement>(
+                '[data-query-result-command-bar="true"]',
+            );
+            if (!commandBar) {
+                return;
+            }
+
+            for (let i = 0; i < gridList.length; i++) {
+                const item = gridList[i];
+                const gridKey = `${item.batchId}_${item.resultId}`;
+                const resultSetContainer = document.getElementById(gridKey);
+                if (!resultSetContainer?.contains(commandBar)) {
+                    continue;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                gridRefs.current[i]?.focusGrid();
+                return;
+            }
+        };
+
+        document.addEventListener("keydown", handler, true);
+        return () => {
+            document.removeEventListener("keydown", handler, true);
+        };
+    }, [gridList, gridRefs]);
+
     const persistGridPaneScrollPosition = useMemo(
         () =>
             debounce((scrollTop: number) => {
@@ -365,6 +462,8 @@ export const QueryResultsGridView = () => {
                 ]
                     .filter(Boolean)
                     .join(" ");
+                const rowCount = resultSetSummaries?.[item.batchId]?.[item.resultId]?.rowCount ?? 0;
+                const gridHeight = gridHeights[index] ?? naturalHeight(rowCount);
 
                 return (
                     <div
@@ -377,14 +476,21 @@ export const QueryResultsGridView = () => {
                                     ? fontSettings.fontFamily
                                     : "var(--vscode-editor-font-family)",
                                 fontSize: `${fontSettings?.fontSize ?? 12}px`,
-                                height: `${maximizedGridKey === gridKey ? `100%` : `${gridHeights[index]}px`}`,
+                                height: isMaximized ? "100%" : `${gridHeight}px`,
+                                paddingRight: showExternalCommandBar ? undefined : 0,
                                 "--results-row-padding": `${gridSettings?.rowPadding ?? 0}px`,
                             } as React.CSSProperties
                         }>
                         <div
-                            style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
+                            style={{
+                                flex: 1,
+                                minWidth: 0,
+                                minHeight: 0,
+                                height: "100%",
+                                overflow: "hidden",
+                            }}
                             ref={containerRef}>
-                            <ResultGrid
+                            <GridComponent
                                 gridId={gridKey}
                                 key={gridKey}
                                 gridParentRef={containerRef}
@@ -393,15 +499,24 @@ export const QueryResultsGridView = () => {
                                 }}
                                 batchId={item.batchId}
                                 resultId={item.resultId}
+                                viewMode={viewMode}
+                                canToggleMaximize={
+                                    viewMode === qr.QueryResultViewMode.Grid && gridList.length > 1
+                                }
+                                isMaximized={isMaximized}
+                                onToggleMaximize={() => handleToggleMaximize(gridKey)}
                             />
                         </div>
-                        <CommandBar
-                            uri={uri}
-                            resultSetSummary={resultSetSummaries[item.batchId][item.resultId]}
-                            viewMode={viewMode}
-                            onToggleMaximize={() => handleToggleMaximize(gridKey)}
-                            isMaximized={isMaximized}
-                        />
+                        {showExternalCommandBar && (
+                            <CommandBar
+                                uri={uri}
+                                resultSetSummary={resultSetSummaries[item.batchId][item.resultId]}
+                                viewMode={viewMode}
+                                onToggleMaximize={() => handleToggleMaximize(gridKey)}
+                                onKeyDownCapture={(event) => handleCommandBarKeyDown(event, index)}
+                                isMaximized={isMaximized}
+                            />
+                        )}
                     </div>
                 );
             })}

@@ -570,11 +570,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++b7a29a0664722b59ea2bc598ce82feac6ef017534cb0564b53d9b3189f7233ce">
         <source xml:lang="en">Apply failed. Fix the error and retry, or run Schema Compare again.</source>
-        <target state="new">Apply failed. Fix the error and retry, or run Schema Compare again.</target>
+        <target state="translated">적용하지 못했습니다. 오류를 수정한 다음 다시 시도하거나, 스키마 비교를 다시 실행하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
         <source xml:lang="en">Applying changes, this might take a while...</source>
-        <target state="new">Applying changes, this might take a while...</target>
+        <target state="translated">변경 사항을 적용하는 중입니다. 시간이 조금 걸릴 수 있습니다...</target>
       </trans-unit>
       <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
         <source xml:lang="en">Approve</source>
@@ -1226,7 +1226,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++451c56077f521060be29b5df2ec0d863cdc0fcff4970e3ad7e5e44e7a780ae42">
         <source xml:lang="en">Changes applied successfully. Run Schema Compare again to see updated differences.</source>
-        <target state="new">Changes applied successfully. Run Schema Compare again to see updated differences.</target>
+        <target state="translated">변경 내용을 적용했습니다. 업데이트된 차이점을 보려면 스키마 비교를 다시 실행하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -9736,6 +9736,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
         <source xml:lang="en">Value is required</source>
         <target state="translated">값 필요</target>
+      </trans-unit>
+      <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
+        <source xml:lang="en">Verify a container image by using the Notation CLI</source>
+        <target state="translated">Notation CLI를 사용하여 컨테이너 이미지를 확인하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>

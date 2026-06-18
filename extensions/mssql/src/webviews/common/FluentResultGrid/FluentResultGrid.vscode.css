@@ -1,0 +1,94 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body .fluent-result-grid {
+    --fluent-result-grid-background: var(--vscode-editor-background, #1e1e1e);
+    --fluent-result-grid-foreground: var(--vscode-foreground, #cccccc);
+    --fluent-result-grid-description-foreground: var(
+        --vscode-descriptionForeground,
+        var(--fluent-result-grid-foreground)
+    );
+    --fluent-result-grid-border-color: var(
+        --vscode-editorWidget-border,
+        var(--vscode-panel-border, #454545)
+    );
+    --fluent-result-grid-link-foreground: var(--vscode-textLink-foreground, #3794ff);
+    --fluent-result-grid-link-active-foreground: var(
+        --vscode-textLink-activeForeground,
+        var(--fluent-result-grid-link-foreground)
+    );
+    --fluent-result-grid-scrollbar-track-background: var(--vscode-editor-background, #1e1e1e);
+    --fluent-result-grid-scrollbar-thumb-background: var(
+        --vscode-scrollbarSlider-background,
+        rgba(121, 121, 121, 0.4)
+    );
+    --fluent-result-grid-scrollbar-thumb-hover-background: var(
+        --vscode-scrollbarSlider-hoverBackground,
+        rgba(100, 100, 100, 0.7)
+    );
+    --fluent-result-grid-scrollbar-thumb-active-background: var(
+        --vscode-scrollbarSlider-activeBackground,
+        rgba(191, 191, 191, 0.4)
+    );
+    --fluent-result-grid-list-focus-background: var(--vscode-list-focusBackground, #094771);
+    --fluent-result-grid-list-focus-foreground: var(--vscode-list-focusForeground, #ffffff);
+    --fluent-result-grid-list-active-selection-background: var(
+        --vscode-list-activeSelectionBackground,
+        #094771
+    );
+    --fluent-result-grid-list-active-selection-foreground: var(
+        --vscode-list-activeSelectionForeground,
+        #ffffff
+    );
+    --fluent-result-grid-list-inactive-selection-background: var(
+        --vscode-list-inactiveSelectionBackground,
+        var(--vscode-list-activeSelectionBackground, #094771)
+    );
+    --fluent-result-grid-list-inactive-selection-foreground: var(
+        --vscode-list-inactiveSelectionForeground,
+        var(--fluent-result-grid-foreground)
+    );
+    --fluent-result-grid-list-hover-background: var(--vscode-list-hoverBackground, #2a2d2e);
+    --fluent-result-grid-list-hover-foreground: var(
+        --vscode-list-hoverForeground,
+        var(--fluent-result-grid-foreground)
+    );
+    --fluent-result-grid-list-focus-outline: var(--vscode-contrastActiveBorder, #007fd4);
+    --fluent-result-grid-list-selection-outline: var(--vscode-contrastActiveBorder, #007fd4);
+    --fluent-result-grid-list-hover-outline: var(--vscode-contrastActiveBorder, transparent);
+    --fluent-result-grid-list-inactive-focus-outline: var(
+        --vscode-list-inactiveFocusOutline,
+        #999999
+    );
+    --fluent-result-grid-table-header-background: var(
+        --vscode-mssql-resultsGridHeaderBackground,
+        var(--vscode-editorWidget-background, var(--fluent-result-grid-background))
+    );
+    --fluent-result-grid-table-header-foreground: var(
+        --vscode-editor-foreground,
+        var(--fluent-result-grid-foreground)
+    );
+    --fluent-result-grid-table-header-hover-background: var(--vscode-list-hoverBackground, #2a2d2e);
+    --fluent-result-grid-table-header-active-background: var(
+        --vscode-list-activeSelectionBackground,
+        #094771
+    );
+    --fluent-result-grid-null-cell-background: var(
+        --vscode-mssql-resultsGridNullBackground,
+        transparent
+    );
+    --fluent-result-grid-null-cell-foreground: var(
+        --vscode-mssql-resultsGridNullForeground,
+        var(--fluent-result-grid-foreground)
+    );
+}
+
+body .results-grid--alternating .fluent-result-grid,
+body .fluent-result-grid.results-grid--alternating {
+    --fluent-result-grid-row-even-background: var(
+        --vscode-list-alternatingBackground,
+        rgba(128, 128, 128, 0.05)
+    );
+}

@@ -429,6 +429,19 @@ export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: strin
 }
 
 /**
+ * Reads the first <RefactorLog Include="..." /> path from .sqlproj XML text.
+ * @param sqlprojText Raw XML content of the .sqlproj file
+ * @returns The relative path declared in the Include attribute, or undefined if none is present
+ */
+export function readRefactorLogPath(sqlprojText: string): string | undefined {
+    // Match the Include attribute regardless of its position among other attributes
+    // (e.g. <RefactorLog Condition="..." Include="..." />).
+    // Support both single and double quotes for MSBuild/XML compatibility.
+    const match = sqlprojText.match(/<RefactorLog\b[^>]*?\bInclude\s*=\s*(['"])([^'"]+)\1/i);
+    return match ? match[2] : undefined;
+}
+
+/**
  * Parses the SqlCodeAnalysisRules property value from the .sqlproj into a map of
  * shortRuleId -> severity override.
  *

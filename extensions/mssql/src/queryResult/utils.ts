@@ -240,6 +240,19 @@ export function registerCommonRequestHandlers(
         );
     });
 
+    webviewController.onRequest(qr.SetGridViewStateRequest.type, async (message) => {
+        store.gridState.gridViewStates.set(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+            message.gridViewState,
+        );
+    });
+
+    webviewController.onRequest(qr.GetGridViewStateRequest.type, async (message) => {
+        return store.gridState.gridViewStates.get(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+        );
+    });
+
     webviewController.onNotification(qr.SetGridScrollPositionNotification.type, async (message) => {
         store.gridState.gridScrollPositions.set(
             QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),

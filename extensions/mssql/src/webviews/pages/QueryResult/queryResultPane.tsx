@@ -12,6 +12,7 @@ import {
     makeStyles,
     Text,
     Spinner,
+    Toolbar,
 } from "@fluentui/react-components";
 import { useContext, useEffect, useRef, useState } from "react";
 import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
@@ -28,6 +29,7 @@ import { QueryExecutionPlanTab } from "./queryExecutionPlanTab";
 import { QueryResultsTab } from "./queryResultsTab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
+import { CopyIndicator } from "../../common/CopyIndicator";
 
 const useStyles = makeStyles({
     root: {
@@ -132,6 +134,7 @@ export const QueryResultPane = () => {
     const executionPlanGraphs = useQueryResultSelector<ExecutionPlanGraph[] | undefined>(
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
+    const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
 
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
@@ -263,11 +266,25 @@ export const QueryResultPane = () => {
                     {Object.keys(resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
-                            title={locConstants.queryResult.resultTabTooltip(
-                                keyBindings[WebviewAction.QueryResultSwitchToResultsTab].label,
-                            )}
+                            title={
+                                isBetaResultsGridEnabled
+                                    ? locConstants.queryResult.resultBetaTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                                    : locConstants.queryResult.resultTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                            }
                             key={qr.QueryResultPaneTabs.Results}>
-                            {locConstants.queryResult.results(getGridCount(resultSetSummaries))}
+                            {isBetaResultsGridEnabled
+                                ? locConstants.queryResult.resultsBeta(
+                                      getGridCount(resultSetSummaries),
+                                  )
+                                : locConstants.queryResult.results(
+                                      getGridCount(resultSetSummaries),
+                                  )}
                         </Tab>
                     )}
                     <Tab
@@ -289,21 +306,28 @@ export const QueryResultPane = () => {
                         </Tab>
                     )}
                 </TabList>
-                {webviewLocation === "panel" && (
-                    <Button
-                        icon={<OpenRegular />}
-                        iconPosition="after"
-                        appearance="subtle"
-                        onClick={async () => {
-                            await context.extensionRpc.sendRequest(qr.OpenInNewTabRequest.type, {
-                                uri: uri!,
-                            });
-                        }}
-                        title={locConstants.queryResult.openResultInNewTab}
-                        style={{ marginTop: "4px", marginBottom: "4px" }}>
-                        {locConstants.queryResult.openResultInNewTab}
-                    </Button>
-                )}
+
+                <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
+                    <CopyIndicator visible={context.copyIndicatorVisible} />
+                    {webviewLocation === "panel" && (
+                        <Button
+                            icon={<OpenRegular />}
+                            iconPosition="after"
+                            appearance="subtle"
+                            onClick={async () => {
+                                await context.extensionRpc.sendRequest(
+                                    qr.OpenInNewTabRequest.type,
+                                    {
+                                        uri: uri!,
+                                    },
+                                );
+                            }}
+                            title={locConstants.queryResult.openResultInNewTab}
+                            style={{ marginTop: "4px", marginBottom: "4px" }}>
+                            {locConstants.queryResult.openResultInNewTab}
+                        </Button>
+                    )}
+                </Toolbar>
             </div>
 
             <div className={classes.tabContentContainer}>

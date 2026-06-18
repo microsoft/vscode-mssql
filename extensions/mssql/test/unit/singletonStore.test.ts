@@ -40,6 +40,16 @@ suite("QueryResultSingletonStore", () => {
             scrollTop: 30,
             scrollLeft: 40,
         });
+        queryResultStore.gridState.gridViewStates.set(gridKey1, {
+            hiddenColumnIds: ["column1"],
+            frozenColumnIndex: 1,
+            selection: [{ fromCell: 0, fromRow: 0, toCell: 1, toRow: 2 }],
+        });
+        queryResultStore.gridState.gridViewStates.set(gridKey2, {
+            hiddenColumnIds: ["column2"],
+            frozenColumnIndex: 2,
+            selection: [{ fromCell: 2, fromRow: 3, toCell: 2, toRow: 4 }],
+        });
 
         // Delete URI state
         queryResultStore.deleteUriState(testUri);
@@ -81,6 +91,14 @@ suite("QueryResultSingletonStore", () => {
             queryResultStore.gridState.gridScrollPositions.has(gridKey2),
             "gridScrollPositions for grid2 should be deleted",
         ).is.equal(false);
+        expect(
+            queryResultStore.gridState.gridViewStates.has(gridKey1),
+            "gridViewStates for grid1 should be deleted",
+        ).is.equal(false);
+        expect(
+            queryResultStore.gridState.gridViewStates.has(gridKey2),
+            "gridViewStates for grid2 should be deleted",
+        ).is.equal(false);
     });
 
     test("deleteUriState should not affect data from other URIs", () => {
@@ -103,6 +121,16 @@ suite("QueryResultSingletonStore", () => {
         });
         queryResultStore.gridState.gridColumnWidths.set(gridKey1, [100, 200]);
         queryResultStore.gridState.gridColumnWidths.set(gridKey2, [150, 250]);
+        queryResultStore.gridState.gridViewStates.set(gridKey1, {
+            hiddenColumnIds: ["column1"],
+            frozenColumnIndex: 1,
+            selection: [{ fromCell: 0, fromRow: 0, toCell: 0, toRow: 0 }],
+        });
+        queryResultStore.gridState.gridViewStates.set(gridKey2, {
+            hiddenColumnIds: ["column2"],
+            frozenColumnIndex: 2,
+            selection: [{ fromCell: 1, fromRow: 1, toCell: 1, toRow: 1 }],
+        });
 
         // Delete only testUri1
         queryResultStore.deleteUriState(testUri1);
@@ -123,6 +151,10 @@ suite("QueryResultSingletonStore", () => {
         expect(
             queryResultStore.gridState.gridColumnWidths.has(gridKey1),
             "testUri1 gridColumnWidths should be deleted",
+        ).is.equal(false);
+        expect(
+            queryResultStore.gridState.gridViewStates.has(gridKey1),
+            "testUri1 gridViewStates should be deleted",
         ).is.equal(false);
 
         // Verify testUri2 data still exists
@@ -160,6 +192,18 @@ suite("QueryResultSingletonStore", () => {
             queryResultStore.gridState.gridColumnWidths.get(gridKey2),
             "testUri2 gridColumnWidths value should match",
         ).is.deep.equal([150, 250]);
+        expect(
+            queryResultStore.gridState.gridViewStates.has(gridKey2),
+            "testUri2 gridViewStates should exist",
+        ).is.equal(true);
+        expect(
+            queryResultStore.gridState.gridViewStates.get(gridKey2),
+            "testUri2 gridViewStates value should match",
+        ).is.deep.equal({
+            hiddenColumnIds: ["column2"],
+            frozenColumnIndex: 2,
+            selection: [{ fromCell: 1, fromRow: 1, toCell: 1, toRow: 1 }],
+        });
     });
 
     test("deleteUriState should handle non-existent URI gracefully", () => {

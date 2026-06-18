@@ -35,6 +35,7 @@ suite("SQL Tools MCP server definition provider", () => {
     let bridgeManager: sinon.SinonStubbedInstance<SqlToolsMcpBridgeManager>;
     let logger: sinon.SinonStubbedInstance<Logger>;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
+    let showInformationMessageStub: sinon.SinonStub;
     let configListener: ((event: vscode.ConfigurationChangeEvent) => void) | undefined;
     let originalOverride: string | undefined;
 
@@ -70,6 +71,9 @@ suite("SQL Tools MCP server definition provider", () => {
             configListener = listener;
             return new vscode.Disposable(() => {});
         });
+        showInformationMessageStub = sandbox
+            .stub(vscode.window, "showInformationMessage")
+            .resolves(undefined);
     });
 
     teardown(() => {
@@ -206,6 +210,20 @@ suite("SQL Tools MCP server definition provider", () => {
         expect(definitions[0].args).to.deep.equal([
             path.join("/override/sqltools-mcp", "SQLtoolsMCPserver.dll"),
         ]);
+        expect(showInformationMessageStub).not.to.have.been.called;
+    });
+
+    test("notifies once when resolving a server from the override path", async () => {
+        process.env.MSSQL_SQLTOOLS_MCP = "/override/sqltools-mcp";
+        existingPaths.add(path.join("/override/sqltools-mcp", getExecutableName()));
+        const provider = createProvider();
+
+        await provider.resolveMcpServerDefinition();
+        await provider.resolveMcpServerDefinition();
+
+        expect(showInformationMessageStub).to.have.been.calledOnceWith(
+            "Launched SQL Tools MCP server from overridden path: /override/sqltools-mcp",
+        );
     });
 
     test("throws when the override path does not contain a launchable payload", async () => {
@@ -222,6 +240,7 @@ suite("SQL Tools MCP server definition provider", () => {
         }
 
         expect(bridgeManager.prepareLaunch).not.to.have.been.called;
+        expect(showInformationMessageStub).not.to.have.been.called;
     });
 
     test("notifies and initializes when the feature flag changes on", () => {

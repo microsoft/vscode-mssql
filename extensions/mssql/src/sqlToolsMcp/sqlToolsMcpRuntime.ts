@@ -35,17 +35,13 @@ import {
     sendSqlToolsMcpAction,
     sendSqlToolsMcpError,
 } from "./sqlToolsMcpTelemetry";
-
-interface RegisteredExecutionContext {
-    connectionHandle: string;
-    ownerUri: string;
-    platformContext: BridgePlatformContext;
-    disposed: boolean;
-    queryTail: Promise<void>;
-}
+import {
+    SqlToolsMcpRegisteredConnection,
+    sqlToolsMcpConnectionRegistry,
+} from "./sqlToolsMcpConnectionRegistry";
 
 export class SqlToolsMcpRuntime {
-    private readonly registeredConnections = new Map<string, RegisteredExecutionContext>();
+    private readonly registeredConnections = sqlToolsMcpConnectionRegistry;
     private readonly platformContextDetector: PlatformContextDetector;
 
     constructor(
@@ -374,7 +370,7 @@ export class SqlToolsMcpRuntime {
         return await this.platformContextDetector.detect(ownerUri, connectionInfo, serverInfo);
     }
 
-    private async cleanupContext(context: RegisteredExecutionContext): Promise<void> {
+    private async cleanupContext(context: SqlToolsMcpRegisteredConnection): Promise<void> {
         await context.queryTail;
 
         try {
@@ -385,7 +381,7 @@ export class SqlToolsMcpRuntime {
     }
 
     private async runSerializedQuery<T>(
-        context: RegisteredExecutionContext,
+        context: SqlToolsMcpRegisteredConnection,
         cancellationToken: HeadlessQueryCancellationToken | undefined,
         callback: () => Promise<T>,
     ): Promise<T> {
@@ -413,7 +409,7 @@ export class SqlToolsMcpRuntime {
     }
 
     private throwIfQueryCannotStart(
-        context: RegisteredExecutionContext,
+        context: SqlToolsMcpRegisteredConnection,
         cancellationToken: HeadlessQueryCancellationToken | undefined,
     ): void {
         if (context.disposed) {

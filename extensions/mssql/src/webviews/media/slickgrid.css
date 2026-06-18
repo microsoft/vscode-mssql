@@ -205,6 +205,8 @@
     text-overflow: ellipsis;
     display: inline-block;
     flex: 1 1 auto;
+    margin-bottom: 0;
+    min-width: 0;
 }
 
 /* ── Results grid: row padding (via CSS custom property set on the grid container) ── */

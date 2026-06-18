@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useCallback, useEffect, useMemo, useState } from "react";
+import { ReactNode, createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCoreRPCs } from "../../common/utils";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
@@ -88,6 +88,8 @@ export interface QueryResultReactProvider
      * @returns void
      */
     openResizeDialog: (options: Partial<ResizeColumnDialogState>) => void;
+    showCopyIndicator: () => void;
+    copyIndicatorVisible: boolean;
 }
 
 export const QueryResultCommandsContext = createContext<QueryResultReactProvider | undefined>(
@@ -100,6 +102,8 @@ interface QueryResultProviderProps {
 
 const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children }) => {
     const { extensionRpc } = useVscodeWebview<QueryResultWebviewState, QueryResultReducers>();
+    const [copyIndicatorVisible, setCopyIndicatorVisible] = useState(false);
+    const copyIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     // Grid context menu state
     const [menuState, setMenuState] = useState<{
         open: boolean;
@@ -146,10 +150,24 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         setHeaderMenuState((s) => (s.open ? { ...s, open: false } : s));
     }, []);
 
+    const showCopyIndicator = useCallback(() => {
+        if (copyIndicatorTimeoutRef.current) {
+            clearTimeout(copyIndicatorTimeoutRef.current);
+        }
+
+        setCopyIndicatorVisible(true);
+        copyIndicatorTimeoutRef.current = setTimeout(() => {
+            setCopyIndicatorVisible(false);
+            copyIndicatorTimeoutRef.current = undefined;
+        }, 3000);
+    }, []);
+
     const commands = useMemo<QueryResultReactProvider>(
         () => ({
             extensionRpc,
             ...getCoreRPCs<QueryResultReducers>(extensionRpc),
+            copyIndicatorVisible,
+            showCopyIndicator,
             setResultTab: (tabId: QueryResultPaneTabs) => {
                 extensionRpc.action("setResultTab", { tabId });
             },
@@ -232,7 +250,13 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                 }));
             },
         }),
-        [extensionRpc, hideFilterPopup, hideHeaderContextMenu],
+        [
+            extensionRpc,
+            copyIndicatorVisible,
+            showCopyIndicator,
+            hideFilterPopup,
+            hideHeaderContextMenu,
+        ],
     );
 
     // Close context menu when focus leaves the webview or it becomes hidden
@@ -254,6 +278,14 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
     }, [hideFilterPopup, hideContextMenu, hideHeaderContextMenu]);
+
+    useEffect(() => {
+        return () => {
+            if (copyIndicatorTimeoutRef.current) {
+                clearTimeout(copyIndicatorTimeoutRef.current);
+            }
+        };
+    }, []);
     return (
         <QueryResultCommandsContext.Provider value={commands}>
             {children}

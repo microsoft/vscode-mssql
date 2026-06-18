@@ -23,7 +23,6 @@ import {
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
-import * as LocalizedConstants from "../../src/constants/locConstants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
 import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose";
 import { ISelectionData } from "../../src/models/interfaces";
@@ -791,39 +790,6 @@ suite("Query Runner tests", () => {
             await queryRunner.copyResults(selection, 0, 0, false);
 
             expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(expectedContent);
-        });
-
-        test("copyResults shows notification by default", async () => {
-            const queryRunner = createQueryRunner();
-            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
-
-            testSqlToolsServerClient.sendRequest
-                .withArgs(CopyResults2Request.type, sinon.match.object)
-                .resolves({ content: "copied" });
-
-            await queryRunner.copyResults(selection, 0, 0, false);
-
-            expect(vscode.window.showInformationMessage).to.have.been.calledOnceWith(
-                LocalizedConstants.resultsCopiedToClipboard,
-            );
-        });
-
-        test("copyResults does not show notification when setting is disabled", async () => {
-            const queryRunner = createQueryRunner();
-            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
-            (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
-                stubs.createWorkspaceConfiguration({
-                    [Constants.configResultsShowCopyNotification]: false,
-                }),
-            );
-
-            testSqlToolsServerClient.sendRequest
-                .withArgs(CopyResults2Request.type, sinon.match.object)
-                .resolves({ content: "copied" });
-
-            await queryRunner.copyResults(selection, 0, 0, false);
-
-            expect(vscode.window.showInformationMessage).to.not.have.been.called;
         });
 
         test("copyResults does not call clipboard fallback when content is not returned", async () => {

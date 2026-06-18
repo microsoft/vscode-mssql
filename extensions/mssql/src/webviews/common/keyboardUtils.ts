@@ -15,7 +15,7 @@ import { isMac } from "./utils";
 
 type TokenHandler = (matcher: WebviewKeyCombination, displayTokens: string[]) => void;
 
-type KeyResolution = {
+export type KeyResolution = {
     key: string;
     code?: string;
     display: string;
@@ -113,6 +113,10 @@ const specialKeyMap: Record<string, KeyResolution> = {
     apostrophe: { key: "'", code: "Quote", display: "'" },
     backquote: { key: "`", code: "Backquote", display: "`" },
     backtick: { key: "`", code: "Backquote", display: "`" },
+    bracketleft: { key: "[", code: "BracketLeft", display: "[" },
+    leftbracket: { key: "[", code: "BracketLeft", display: "[" },
+    bracketright: { key: "]", code: "BracketRight", display: "]" },
+    rightbracket: { key: "]", code: "BracketRight", display: "]" },
 };
 
 const FUNCTION_KEY_REGEX = /^f([1-9]|1[0-2])$/;
@@ -138,7 +142,7 @@ function normalize(raw?: string): string[] {
  * @param token Key token to resolve
  * @returns Resolved key information or undefined if not recognized
  */
-function resolveKeyToken(token: string): KeyResolution | undefined {
+export function resolveKeyToken(token: string): KeyResolution | undefined {
     if (token.length === 1 && token >= "a" && token <= "z") {
         return {
             key: token,

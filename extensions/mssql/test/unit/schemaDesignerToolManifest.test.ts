@@ -8,6 +8,38 @@ import * as fs from "fs";
 import * as path from "path";
 
 suite("Schema Designer LM tool manifest schema", () => {
+    test("mssql_schema_designer show requires exactly one connection reference", () => {
+        const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+
+        const tool = (packageJson.contributes?.languageModelTools ?? []).find(
+            (t: any) => t?.name === "mssql_schema_designer",
+        );
+        expect(tool, "missing mssql_schema_designer tool in contributes.languageModelTools").to
+            .exist;
+
+        expect(tool.inputSchema?.properties).to.include.keys(
+            "operation",
+            "connectionId",
+            "connectionName",
+        );
+        expect(tool.inputSchema?.properties?.connectionId?.description).to.contain(
+            "Do not use this field for a ConnectionId returned by a SQL Tools MCP tool",
+        );
+        expect(tool.inputSchema?.properties?.connectionName?.description).to.contain(
+            "Pass a ConnectionId returned by a SQL Tools MCP tool",
+        );
+
+        const showVariant = (tool.inputSchema?.oneOf ?? []).find(
+            (variant: any) => variant?.properties?.operation?.enum?.[0] === "show",
+        );
+        expect(showVariant, "missing inputSchema.oneOf variant for show").to.exist;
+        expect(showVariant.oneOf, "show: connection reference oneOf").to.deep.equal([
+            { required: ["connectionId"] },
+            { required: ["connectionName"] },
+        ]);
+    });
+
     test("mssql_schema_designer edits use op-specific oneOf schemas", () => {
         const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));

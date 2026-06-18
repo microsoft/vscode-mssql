@@ -174,6 +174,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             selection,
             includeHeaders,
         });
+        this._qrContext.showCopyIndicator();
     }
 
     private async copyHeaders() {
@@ -185,6 +186,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             resultId: this.resultSetSummary.id,
             selection,
         });
+        this._qrContext.showCopyIndicator();
     }
 
     private async copyAsCsv() {
@@ -195,6 +197,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             resultId: this.resultSetSummary.id,
             selection,
         });
+        this._qrContext.showCopyIndicator();
     }
 
     private async copyAsJson() {
@@ -206,6 +209,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             selection,
             includeHeaders: true,
         });
+        this._qrContext.showCopyIndicator();
     }
 
     private async copyAsInsertInto() {
@@ -216,6 +220,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             resultId: this.resultSetSummary.id,
             selection,
         });
+        this._qrContext.showCopyIndicator();
     }
 
     private async copyAsInClause() {
@@ -226,6 +231,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             resultId: this.resultSetSummary.id,
             selection,
         });
+        this._qrContext.showCopyIndicator();
     }
 
     private async saveResults(format: string) {
@@ -262,5 +268,6 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             selection: convertedSelection,
             includeHeaders: undefined, // Keeping it undefined so that it can be determined by user settings
         });
+        this._qrContext.showCopyIndicator();
     }
 }

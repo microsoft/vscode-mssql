@@ -570,11 +570,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++b7a29a0664722b59ea2bc598ce82feac6ef017534cb0564b53d9b3189f7233ce">
         <source xml:lang="en">Apply failed. Fix the error and retry, or run Schema Compare again.</source>
-        <target state="new">Apply failed. Fix the error and retry, or run Schema Compare again.</target>
+        <target state="translated">Échec de l’application. Corrigez l’erreur et réessayez, ou exécutez de nouveau Comparer les schémas.</target>
       </trans-unit>
       <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
         <source xml:lang="en">Applying changes, this might take a while...</source>
-        <target state="new">Applying changes, this might take a while...</target>
+        <target state="translated">Application des modifications, cela peut prendre un certain temps...</target>
       </trans-unit>
       <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
         <source xml:lang="en">Approve</source>
@@ -1226,7 +1226,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++451c56077f521060be29b5df2ec0d863cdc0fcff4970e3ad7e5e44e7a780ae42">
         <source xml:lang="en">Changes applied successfully. Run Schema Compare again to see updated differences.</source>
-        <target state="new">Changes applied successfully. Run Schema Compare again to see updated differences.</target>
+        <target state="translated">Les modifications ont été correctement appliquées. Exécutez de nouveau Comparer les schémas pour voir les différences mises à jour.</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -9736,6 +9736,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
         <source xml:lang="en">Value is required</source>
         <target state="translated">La valeur est obligatoire</target>
+      </trans-unit>
+      <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
+        <source xml:lang="en">Verify a container image by using the Notation CLI</source>
+        <target state="translated">Vérifiez une image de conteneur à l’aide de l’interface CLI Notation</target>
       </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>
