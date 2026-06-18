@@ -441,6 +441,11 @@
         <source xml:lang="en">Alphabetical</source>
         <target state="translated">Alphabetisch</target>
       </trans-unit>
+      <trans-unit id="++CODE++93bf77241a758da927077de735ca027835f02556f4b104f28537449e10314fe4">
+        <source xml:lang="en">Already used by {0}</source>
+        <note>{0} is the name of the command that already uses this shortcut</note>
+        <target state="new">Already used by {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
         <source xml:lang="en">Alter</source>
         <target state="translated">Ändern</target>
@@ -706,6 +711,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">Die automatische Anordnung wird alle Diagrammelemente basierend auf optimalen Layoutalgorithmen neu positionieren. Alle benutzerdefinierten Positionierungen, die Sie erstellt haben, gehen verloren. Möchten Sie mit der automatischen Anordnung Ihres Schemadiagramms fortfahren?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae">
+        <source xml:lang="en">Auto-execute</source>
+        <target state="new">Auto-execute</target>
       </trans-unit>
       <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
         <source xml:lang="en">Auto-pause</source>
@@ -1189,6 +1198,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Change Setting</source>
         <target state="translated">Einstellung ändern</target>
       </trans-unit>
+      <trans-unit id="++CODE++c1420b8d527255a7c11251ec2298ccb6c82a1a965504736e4ebc6213cbe0d59c">
+        <source xml:lang="en">Change column width</source>
+        <target state="new">Change column width</target>
+      </trans-unit>
       <trans-unit id="++CODE++7cd8625322b19db450bf5b5df61bd30ef4b1905e112753ea458faf1881b2ff01">
         <source xml:lang="en">Change database to '{2}' for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
@@ -1416,6 +1429,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Clear Filters</source>
         <target state="translated">Filter löschen</target>
       </trans-unit>
+      <trans-unit id="++CODE++fd72e4ccf0cf3552624160111216203503c35e6eed3088c3336018cc3f6c8df0">
+        <source xml:lang="en">Clear Quick Query</source>
+        <target state="new">Clear Quick Query</target>
+      </trans-unit>
       <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
         <source xml:lang="en">Clear Recent Connections List</source>
         <target state="translated">Liste der zuletzt verwendeten Verbindungen löschen</target>
@@ -1471,6 +1488,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++9d57c82931ed2fcf9bbbc9dbc259e850c0c2b7d57b06e24b627597e60019bc6a">
         <source xml:lang="en">Clear quick filter and all column filters</source>
         <target state="translated">Schnellfilter und alle Spaltenfilter löschen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7e5fa0501c8d13caadebe4371667523cdf75b44f5bade77031f13b1af442cbc7">
+        <source xml:lang="en">Clear this Quick Query</source>
+        <target state="new">Clear this Quick Query</target>
       </trans-unit>
       <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
         <source xml:lang="en">Clear token cache</source>
@@ -1727,6 +1748,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Config copied to clipboard</source>
         <target state="translated">Konfiguration in Zwischenablage kopiert</target>
       </trans-unit>
+      <trans-unit id="++CODE++6b5b3c69e02dd47e73c93615e2a00d870b2ced5f28f2b7698d30d77d82cc349b">
+        <source xml:lang="en">Configuration saved.</source>
+        <target state="new">Configuration saved.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82873129471e6b6e9430f9aa6128f04c4a95e8553a4a5387d825f2b6a1b06e52">
+        <source xml:lang="en">Configuration sections</source>
+        <target state="new">Configuration sections</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
         <source xml:lang="en">Configuration to Import</source>
         <target state="translated">Zu importierende Konfiguration</target>
@@ -1734,6 +1763,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
         <target state="translated">Konfigurieren von Linux-Containern</target>
+      </trans-unit>
+      <trans-unit id="++CODE++40b05867de48832993b117a3596bebf4b2bf2a99dade41af88c8dfada45469cd">
+        <source xml:lang="en">Configure Quick Query and in-app shortcuts.</source>
+        <target state="new">Configure Quick Query and in-app shortcuts.</target>
       </trans-unit>
       <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
         <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
@@ -1746,6 +1779,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
         <target state="translated">Konfigurieren und Anpassen von SQL Server-Containern</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3135416947bed2e7934a6e4463fa842ab5b8ddc86566c9789517f8c5864c35da">
+        <source xml:lang="en">Configure command-backed SQL snippets that can open or run from keyboard shortcuts.</source>
+        <target state="new">Configure command-backed SQL snippets that can open or run from keyboard shortcuts.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0dc4fcae95361a5ae1cd5e7fc5c817848bbc8819fe5ee0d71615d064884af32">
+        <source xml:lang="en">Configure shortcuts that are handled inside MSSQL views.</source>
+        <target state="new">Configure shortcuts that are handled inside MSSQL views.</target>
       </trans-unit>
       <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
         <source xml:lang="en">Confirm Password</source>
@@ -2120,6 +2161,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Continue using for additional charges</source>
         <target state="translated">Bei zusätzlichen Gebühren weiter verwenden</target>
       </trans-unit>
+      <trans-unit id="++CODE++04ed7bc7a0e65dc11fc23e991a54fdd2c2ea33d9919598c0cccbfd9df831f338">
+        <source xml:lang="en">Control the results grid display</source>
+        <target state="new">Control the results grid display</target>
+      </trans-unit>
       <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
         <source xml:lang="en">Copied</source>
         <target state="translated">Kopiert</target>
@@ -2146,6 +2191,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copy</source>
         <target state="translated">Kopieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++494452315caa7a652419add0f9ab91ee1216f59ce7fd2df7b515e464891e7576">
+        <source xml:lang="en">Copy &amp; Export</source>
+        <target state="new">Copy &amp; Export</target>
+      </trans-unit>
       <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
         <source xml:lang="en">Copy As</source>
         <target state="translated">Kopieren als</target>
@@ -2170,9 +2219,17 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copy Script to Clipboard</source>
         <target state="translated">Skript in die Zwischenablage kopieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++0782d5f6e07165c5ebb97befd583b8a1c3638492fd29a6572f522d263ad80cf7">
+        <source xml:lang="en">Copy all cells including column headers</source>
+        <target state="new">Copy all cells including column headers</target>
+      </trans-unit>
       <trans-unit id="++CODE++bd0768aa6b547da2466d49441410931420e8beb78cc1d3051e68242a04e8583b">
         <source xml:lang="en">Copy all text output for this cell (messages, PRINT, errors)</source>
         <target state="translated">Gesamte Textausgabe für diese Zelle kopieren (Nachrichten, DRUCKEN, Fehler)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++92c2be94ea7b8c7c0f98f10a74334b876b9eebef81b7c5040fd44858161162b3">
+        <source xml:lang="en">Copy all with headers</source>
+        <target state="new">Copy all with headers</target>
       </trans-unit>
       <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
         <source xml:lang="en">Copy as CSV</source>
@@ -2181,6 +2238,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++5f7261cbf4eef17922f168d487b4e92de9bb9b118350254bfff4ea732bf0e1d9">
         <source xml:lang="en">Copy as IN clause</source>
         <target state="translated">Als IN-Klausel kopieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++70c5c483aafe39672e9e235e497d4ef30ac6605004846f52e7375ec3cd219584">
+        <source xml:lang="en">Copy as INSERT</source>
+        <target state="new">Copy as INSERT</target>
       </trans-unit>
       <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
         <source xml:lang="en">Copy as INSERT INTO</source>
@@ -2202,6 +2263,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copy connection string to clipboard</source>
         <target state="translated">Verbindungszeichenfolge in Zwischenablage kopieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++b5b443f33da497ccf2678851978831b0e00e274513ff16f44c570776cb6cc34c">
+        <source xml:lang="en">Copy data and save results to files</source>
+        <target state="new">Copy data and save results to files</target>
+      </trans-unit>
       <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
         <source xml:lang="en">Copy link</source>
         <target state="translated">Link kopieren</target>
@@ -2214,6 +2279,34 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copy script</source>
         <target state="translated">Skript kopieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++0a38548b485206d1f25ce2972558430d9b21b1faf6eef2b0be7640df5501a5a1">
+        <source xml:lang="en">Copy selected cells including column headers</source>
+        <target state="new">Copy selected cells including column headers</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c3dcade5599c349f33a37a61ffe62a6fe5869a269e9161bcb4ac646be5159f01">
+        <source xml:lang="en">Copy selected cells to the clipboard</source>
+        <target state="new">Copy selected cells to the clipboard</target>
+      </trans-unit>
+      <trans-unit id="++CODE++63a5c4dc29521a8fde5af9a7c76c810afc8fe8334dc48051c0c33ec3bf958458">
+        <source xml:lang="en">Copy selection</source>
+        <target state="new">Copy selection</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a4ed4911e5bf672eb7173fe1691365c85ae58bfbde3f47747b7562b2c4dca659">
+        <source xml:lang="en">Copy selection formatted as INSERT statements</source>
+        <target state="new">Copy selection formatted as INSERT statements</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7083f7a3fd959aaff62b880369f2aca7b64484dc09f401a7ad5d9ea0164d13be">
+        <source xml:lang="en">Copy selection formatted as JSON</source>
+        <target state="new">Copy selection formatted as JSON</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2bafa76cb5f5540c98bc6a9fee4972a6a0110d6c437b19ec00e24a0337d876b">
+        <source xml:lang="en">Copy selection formatted as a SQL IN clause</source>
+        <target state="new">Copy selection formatted as a SQL IN clause</target>
+      </trans-unit>
+      <trans-unit id="++CODE++816c1912d0238752e5be53d7dede310f3a8a0cb21c63b15152265ba0720f498e">
+        <source xml:lang="en">Copy selection formatted as comma-separated values</source>
+        <target state="new">Copy selection formatted as comma-separated values</target>
+      </trans-unit>
       <trans-unit id="++CODE++e1b145c1fedde6b3a445206c1a5cdce5a5545f2392793095b07c41a62a01c123">
         <source xml:lang="en">Copy text data to clipboard</source>
         <target state="translated">Textdaten in die Zwischenablage kopieren</target>
@@ -2221,6 +2314,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
         <target state="translated">Mit Headern kopieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5efc857bf6b522c8b4e4a699282d9ffcaeae01800f6230c27d5043d3e261b00e">
+        <source xml:lang="en">Copy with headers</source>
+        <target state="new">Copy with headers</target>
       </trans-unit>
       <trans-unit id="++CODE++3044963803237002cd39b23ffdbf08d431d1667985a812f1793c48f8fae7b3a4">
         <source xml:lang="en">Copy {0} URL</source>
@@ -3626,9 +3723,29 @@ Fehler:
         <source xml:lang="en">Expand properties pane</source>
         <target state="translated">Eigenschaftenbereich erweitern</target>
       </trans-unit>
+      <trans-unit id="++CODE++c1afa16d3357f0abaf8c3109a78ae2074b1f1c3b2989f6c9ddcb726289c2ee48">
+        <source xml:lang="en">Expand selection down</source>
+        <target state="new">Expand selection down</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b701c298e690838c7d2adb77f18b10ba1220b1f89db94922e5f7808d1b40406">
+        <source xml:lang="en">Expand selection left</source>
+        <target state="new">Expand selection left</target>
+      </trans-unit>
+      <trans-unit id="++CODE++04bc0003e468f2b76906bfaea64ecca4da1b8add1c9362b3c0c21ab6d9e1edc4">
+        <source xml:lang="en">Expand selection right</source>
+        <target state="new">Expand selection right</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5cee2c16df307a8396ef4abfeac4f48be891f1de1a5ecd759a3cb7a1def4a650">
+        <source xml:lang="en">Expand selection up</source>
+        <target state="new">Expand selection up</target>
+      </trans-unit>
       <trans-unit id="++CODE++20d05307976810a29eedcdd82a29eb034086a79de4932ea3bab85093679f6580">
         <source xml:lang="en">Expand settings</source>
         <target state="translated">Einstellungen erweitern</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1f6fd5837dbaa5405a58b9b5a8a025cab673664f697a7c9a9ed2a59189e1843b">
+        <source xml:lang="en">Expand the active grid to fill the panel</source>
+        <target state="new">Expand the active grid to fill the panel</target>
       </trans-unit>
       <trans-unit id="++CODE++23950c524f395d8a86f042de7ea4cbba348146e9c1c79acb3d7fbb89d4198080">
         <source xml:lang="en">Expand {0}</source>
@@ -3666,6 +3783,22 @@ Fehler:
       <trans-unit id="++CODE++3ea11e5375be0ce5e379faa26d710b97b89245399ffbc2531367154056e88037">
         <source xml:lang="en">Export all captured events to a CSV file</source>
         <target state="translated">Alle erfassten Ereignisse in eine CSV-Datei exportieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++afb922fa69e0ff94cbd9778a497ceb754ae7e21238bd21a6e2eca1c57a9f8f1c">
+        <source xml:lang="en">Export all results as INSERT statements</source>
+        <target state="new">Export all results as INSERT statements</target>
+      </trans-unit>
+      <trans-unit id="++CODE++78c31590e4603f5bd30129c464cb98ee84190bdf2ef4462607ec9f361f543d48">
+        <source xml:lang="en">Export all results to a CSV file</source>
+        <target state="new">Export all results to a CSV file</target>
+      </trans-unit>
+      <trans-unit id="++CODE++231d481074718ac0cee48342495b52a512b53002c22e90537c93fc2851f85bb0">
+        <source xml:lang="en">Export all results to a JSON file</source>
+        <target state="new">Export all results to a JSON file</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5be15d5b5b4cc52954f9556226d71e11e6615cc61f77411094cb407fb0327ff1">
+        <source xml:lang="en">Export all results to an Excel file</source>
+        <target state="new">Export all results to an Excel file</target>
       </trans-unit>
       <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
         <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
@@ -3728,6 +3861,22 @@ Fehler:
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
         <target state="translated">Ausdruck</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79b8def2ae4ac205694aa75706cca849c3ac0378dd34853ecd9d18937ab4e184">
+        <source xml:lang="en">Extend the current selection one cell down</source>
+        <target state="new">Extend the current selection one cell down</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ccb1c4cef9d7d57fa92ca2a24713b0a811bd2189f3148f8821bfccb77f8b4a7">
+        <source xml:lang="en">Extend the current selection one cell left</source>
+        <target state="new">Extend the current selection one cell left</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4741c1710f3f6e605917d302dda5d91e06f9ff571fe21fb29e53fd696b041c78">
+        <source xml:lang="en">Extend the current selection one cell right</source>
+        <target state="new">Extend the current selection one cell right</target>
+      </trans-unit>
+      <trans-unit id="++CODE++733116999b0da66d1e7d0c6a35b2b2a1d3c5667a429ae87d3f0d1ae7dfdd7fcd">
+        <source xml:lang="en">Extend the current selection one cell up</source>
+        <target state="new">Extend the current selection one cell up</target>
       </trans-unit>
       <trans-unit id="++CODE++312cd31b86c8f1e8bfe2bee53392337f74d6268be0bfcef0e28a57b2ef861473">
         <source xml:lang="en">Extended Events Log Files</source>
@@ -4432,6 +4581,18 @@ Fehler:
         <source xml:lang="en">Flat</source>
         <target state="translated">Flach</target>
       </trans-unit>
+      <trans-unit id="++CODE++762550b051f95cfccd3aafcc54ed71051c74eddc0b6110fbbe6e4d53573efade">
+        <source xml:lang="en">Focus the Messages tab</source>
+        <target state="new">Focus the Messages tab</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c0041f54d3b660d7aa6278b134f840cc1c0136c61fbf7a8898cc290426fa432">
+        <source xml:lang="en">Focus the Query Plan tab</source>
+        <target state="new">Focus the Query Plan tab</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8f6024d9c9e1ced78c0be59ae6cf30a96420a90976cf31394bcd75abe7c19adb">
+        <source xml:lang="en">Focus the Results tab in the query results panel</source>
+        <target state="new">Focus the Results tab in the query results panel</target>
+      </trans-unit>
       <trans-unit id="++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50">
         <source xml:lang="en">Folder Path</source>
         <target state="translated">Ordnerpfad</target>
@@ -4923,6 +5084,10 @@ Fehler:
       <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
         <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
         <target state="translated">Im Daten-API-Generator ist die lokale Containerbereitstellung nur für Verbindungen mit SQL-Authentifizierung verfügbar. Ihr aktueller Verbindungstyp wird nicht unterstützt.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2574b3edc726c742a53a8c2453aa785036737b718f29576c2f31265fc691cb52">
+        <source xml:lang="en">In-App Shortcuts</source>
+        <target state="new">In-App Shortcuts</target>
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
@@ -5612,6 +5777,10 @@ Fehler:
         <source xml:lang="en">Manage relationships</source>
         <target state="translated">Beziehungen verwalten</target>
       </trans-unit>
+      <trans-unit id="++CODE++92c20a4c9f9605c5118291b8c16272a3732ad73f2293593fd9136db4837d93cf">
+        <source xml:lang="en">Managed in VS Code</source>
+        <target state="new">Managed in VS Code</target>
+      </trans-unit>
       <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
         <source xml:lang="en">Mandatory (Recommended)</source>
         <target state="translated">Obligatorisch (Empfohlen)</target>
@@ -5661,6 +5830,10 @@ Fehler:
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
         <target state="translated">Panelgröße maximieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bf18e5cb878e3e2732c578fcc970528f5dbb3bf17ad8378e40d9bb675f5e19af">
+        <source xml:lang="en">Maximize results grid</source>
+        <target state="new">Maximize results grid</target>
       </trans-unit>
       <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
         <source xml:lang="en">Media</source>
@@ -5842,9 +6015,37 @@ Fehler:
         <source xml:lang="en">Move Up</source>
         <target state="translated">Nach oben</target>
       </trans-unit>
+      <trans-unit id="++CODE++2d5283fdd2a43acc64170f29dc3d6892ffe9c36f84adf2a0fdcaf19c869f5e72">
+        <source xml:lang="en">Move and expand the active grid selection</source>
+        <target state="new">Move and expand the active grid selection</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5defb507de07fc33f447ed735c12fb0520493a09c2ad759d19a2f298a070dfce">
+        <source xml:lang="en">Move focus to the next result set grid</source>
+        <target state="new">Move focus to the next result set grid</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26825fb5a23a1dc6ad7a97722d21ac4c03f6056a5601b641cfb921705b7ef11d">
+        <source xml:lang="en">Move focus to the previous result set grid</source>
+        <target state="new">Move focus to the previous result set grid</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7ef29db2f48bc9bd611c6152b14e6c378e0654dc760f9f09a412cebda6143dc1">
+        <source xml:lang="en">Move selection to the first cell in the row</source>
+        <target state="new">Move selection to the first cell in the row</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
+        <source xml:lang="en">Move selection to the last cell in the row</source>
+        <target state="new">Move selection to the last cell in the row</target>
+      </trans-unit>
       <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
         <source xml:lang="en">Move to Root</source>
         <target state="translated">In Stamm verschieben</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3a27763b5955826a714f69acc938b88a67ed38cc9845144d2119cf34c95292e5">
+        <source xml:lang="en">Move to row end</source>
+        <target state="new">Move to row end</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa4fe9eaec5e94afba7d6d4e933234da72e1f9c63d4416d5b14f20886807bc6b">
+        <source xml:lang="en">Move to row start</source>
+        <target state="new">Move to row start</target>
       </trans-unit>
       <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
         <source xml:lang="en">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
@@ -5886,6 +6087,10 @@ Fehler:
       <trans-unit id="++CODE++2b7cfe25c7ec50bed3130625cf2450de919a7f1961b5081b5e069d3bc41bb9f5">
         <source xml:lang="en">Navigate to this item in the diagram</source>
         <target state="translated">Zu diesem Element im Diagramm navigieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3db65f8c2a7d1861b4bca37da3adec5aa7905931eb6faddbc595a35f75e6ca40">
+        <source xml:lang="en">Navigation</source>
+        <target state="new">Navigation</target>
       </trans-unit>
       <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
         <source xml:lang="en">Needs attention</source>
@@ -5994,6 +6199,10 @@ Fehler:
       <trans-unit id="++CODE++6ead5dfdc11ef7da26e4c09f348d42a8d6306b7faa54ce0a7dc6c567dab1db6f">
         <source xml:lang="en">Next Page</source>
         <target state="translated">Nächste Seite</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d16ec5726f48c5b08e87c321cb51cbf747a0f93819614dc25c7d9ee2ed2acea7">
+        <source xml:lang="en">Next result grid</source>
+        <target state="new">Next result grid</target>
       </trans-unit>
       <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
         <source xml:lang="en">No</source>
@@ -6244,6 +6453,10 @@ Fehler:
         <source xml:lang="en">No property changes available.</source>
         <target state="translated">Keine Eigenschaftsänderungen verfügbar.</target>
       </trans-unit>
+      <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
+        <source xml:lang="en">No query set</source>
+        <target state="new">No query set</target>
+      </trans-unit>
       <trans-unit id="++CODE++dca3ee73f048d988c89462169bafd9d3173c8f941a22768414517de4a0892611">
         <source xml:lang="en">No renameable symbol found at cursor.</source>
         <target state="new">No renameable symbol found at cursor.</target>
@@ -6314,6 +6527,10 @@ Fehler:
       <trans-unit id="++CODE++42f23e5323393c23245d6bbe61f912df022f3f9e6df0eb0b21e66939a788b773">
         <source xml:lang="en">No servers found in the selected subscription.</source>
         <target state="translated">Es wurde keine Server im ausgewählten Abonnement gefunden.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f22dbb17b16be5bfbac36adfb176f81d7ac2e9da72c6bb8df6ffcaa9e7aaee76">
+        <source xml:lang="en">No shortcut</source>
+        <target state="new">No shortcut</target>
       </trans-unit>
       <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
         <source xml:lang="en">No storage accounts found</source>
@@ -6563,6 +6780,14 @@ Fehler:
         <source xml:lang="en">Open a new bug</source>
         <target state="translated">Neuen Bug melden</target>
       </trans-unit>
+      <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
+        <source xml:lang="en">Open column menu</source>
+        <target state="new">Open column menu</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cef89448c86ea390bfb9f0953513fd8871c5595cd7e65fc9ef5fc306fe7bfd11">
+        <source xml:lang="en">Open filter menu</source>
+        <target state="new">Open filter menu</target>
+      </trans-unit>
       <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
         <source xml:lang="en">Open in Editor</source>
         <target state="translated">In Editor öffnen</target>
@@ -6586,6 +6811,14 @@ Fehler:
       <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
         <source xml:lang="en">Open text data in a new editor</source>
         <target state="translated">Textdaten in einem neuen Editor öffnen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b149650147ea515f8b169a924958dc005be53e5709e6adee200ae4fc1717e5f">
+        <source xml:lang="en">Open the active column filter menu</source>
+        <target state="new">Open the active column filter menu</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbb50adbb73b1b5f818d1141b21f7ba002a3227a0d46c6409398beb2f97fb904">
+        <source xml:lang="en">Open the active column menu</source>
+        <target state="new">Open the active column menu</target>
       </trans-unit>
       <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
         <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
@@ -6876,6 +7109,10 @@ Fehler:
         <source xml:lang="en">Preserve the replication settings</source>
         <target state="translated">Beibehalten der Replikationseinstellungen</target>
       </trans-unit>
+      <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
+        <source xml:lang="en">Press desired key combination and then press ENTER.</source>
+        <target state="new">Press desired key combination and then press ENTER.</target>
+      </trans-unit>
       <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
         <source xml:lang="en">Preview</source>
         <target state="translated">Vorschau</target>
@@ -6906,6 +7143,10 @@ Fehler:
         <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
         <note>{0} is the uri</note>
         <target state="translated">Vorherige ausstehende Verbindungswiederherstellung für URI {0}, erfolgreich.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4db3bf069b203cbdc1b3ca3044d790bd8a59fbc93577df5184901d18c8247e7d">
+        <source xml:lang="en">Previous result grid</source>
+        <target state="new">Previous result grid</target>
       </trans-unit>
       <trans-unit id="++CODE++d196df298e2df96370fbe47015195f865db9761ab45899b56376f17df4174a88">
         <source xml:lang="en">Previous step failed. Please check the error message and try again.</source>
@@ -7117,6 +7358,11 @@ Fehler:
         <note>{0} is the file name or session name</note>
         <target state="translated">Abfrageprofiler: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++3dd2984885ceb7c9591c74b48a11baafda636d82b815b8dd6b6ea010633eb5a5">
+        <source xml:lang="en">Query editor for {0}</source>
+        <note>{0} is the Quick Query shortcut name</note>
+        <target state="new">Query editor for {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
         <target state="translated">Abfrage ausgeführt</target>
@@ -7137,11 +7383,25 @@ Fehler:
         <source xml:lang="en">Query succeeded</source>
         <target state="translated">Abfrage erfolgreich</target>
       </trans-unit>
+      <trans-unit id="++CODE++deb1a9c8e97e16607d476d2629a1b1d6662cd61971180d3747130b12a2b3a88e">
+        <source xml:lang="en">Query {0}</source>
+        <note>{0} is the Quick Query slot number</note>
+        <target state="new">Query {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++9f24e982799f47ef97760b8fbb95ce6c89390fba37aa7fe9b6314f69aaa691ea">
         <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
         <note>{0} is the query number
 {1} is the query cost</note>
         <target state="translated">Abfrage {0}:  Abfragekosten (in Relation zum Skript):  {1}%</target>
+      </trans-unit>
+      <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
+        <source xml:lang="en">Quick Queries</source>
+        <target state="new">Quick Queries</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d">
+        <source xml:lang="en">Quick Query slot must be between 1 and {0}.</source>
+        <note>{0} is the maximum Quick Query slot number</note>
+        <target state="new">Quick Query slot must be between 1 and {0}.</target>
       </trans-unit>
       <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
         <source xml:lang="en">Quick filter all columns...</source>
@@ -7215,6 +7475,14 @@ Fehler:
       <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
         <source xml:lang="en">Recent connections list cleared</source>
         <target state="translated">Die Liste der zuletzt verwendeten Verbindungen wurde gelöscht.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8cb3da9c49a18274300475b2f9dbf9edd0a194821a1ce05c7d8351ffee8abdaa">
+        <source xml:lang="en">Record shortcut</source>
+        <target state="new">Record shortcut</target>
+      </trans-unit>
+      <trans-unit id="++CODE++69762f2ef1c8cba117041b8880a33b5ac1862bbcbe41df7463dbc36d93666e06">
+        <source xml:lang="en">Recording shortcut</source>
+        <target state="new">Recording shortcut</target>
       </trans-unit>
       <trans-unit id="++CODE++85a3403bf7f8754b479e80917b7d779d63640b98e77450fe47ae7303ca7e9d03">
         <source xml:lang="en">Recovery Model</source>
@@ -7408,6 +7676,10 @@ Fehler:
         <source xml:lang="en">Resize column '{0}'</source>
         <note>{0} is the name of the column</note>
         <target state="translated">Größe der Spalte „{0}“ ändern</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
+        <source xml:lang="en">Resize the active result grid column</source>
+        <target state="new">Resize the active result grid column</target>
       </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
@@ -7827,6 +8099,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Save results as Excel</source>
         <target state="translated">Ergebnisse als Excel speichern</target>
       </trans-unit>
+      <trans-unit id="++CODE++7db22e23e36ac73d5840c074dbd62bb82af8a770ce1ed36f2d969ef9cd2b35d5">
+        <source xml:lang="en">Save results as INSERT</source>
+        <target state="new">Save results as INSERT</target>
+      </trans-unit>
       <trans-unit id="++CODE++9ec5cd9a56d3b361b5d614149a73d6014c7d2520a64e9fa2578cc50ac0e8da82">
         <source xml:lang="en">Save results as JSON</source>
         <target state="translated">Ergebnisse als JSON speichern</target>
@@ -7851,6 +8127,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Save without connecting</source>
         <target state="translated">Ohne Verbindung speichern</target>
       </trans-unit>
+      <trans-unit id="++CODE++b5c120b316c237a0deab3140267aebedba61947d3ae268d708a53d5be119e9fb">
+        <source xml:lang="en">Saved</source>
+        <target state="new">Saved</target>
+      </trans-unit>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
         <target state="translated">Gespeicherte Verbindungen</target>
@@ -7859,6 +8139,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Saved results to {0}</source>
         <note>{0} is the saved file path</note>
         <target state="translated">Ergebnisse gespeichert in {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dc85af8f2b1d0d6756547cd5f79557466e25e682b882f68d277bd7f125851321">
+        <source xml:lang="en">Saving...</source>
+        <target state="new">Saving...</target>
       </trans-unit>
       <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
         <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
@@ -8007,6 +8291,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">Verbindungsgruppen durchsuchen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++16f289fd88de8f7176a04262f13bf831d2316e26607f21d402390985e3d67643">
+        <source xml:lang="en">Search in-app shortcuts</source>
+        <target state="new">Search in-app shortcuts</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -8223,6 +8511,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Select all</source>
         <target state="translated">Alle auswählen</target>
       </trans-unit>
+      <trans-unit id="++CODE++9eed9051f40845c8f08e087a56a034b55663a939be88ba2b85bdedcfa70d58f4">
+        <source xml:lang="en">Select all cells in the active grid</source>
+        <target state="new">Select all cells in the active grid</target>
+      </trans-unit>
       <trans-unit id="++CODE++958a0500f227e31bede1c2aaac7f01cb586d081a4fa0396928370f797a956bd7">
         <source xml:lang="en">Select all entities</source>
         <target state="translated">Alle Entitäten auswählen</target>
@@ -8251,6 +8543,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++16900742d2f35c9ffb6cc72369893127a8357154e22d9c4b84f020e87dac0602">
         <source xml:lang="en">Select an operation</source>
         <target state="translated">Vorgang auswählen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++91db086469f6b5535752cd441009d061a5ade94b6684a1dbaff02da204515224">
+        <source xml:lang="en">Select column</source>
+        <target state="new">Select column</target>
       </trans-unit>
       <trans-unit id="++CODE++1dd75b0dd68914e185b547fe475e416fe18bc8a68709129eada033866baf612c">
         <source xml:lang="en">Select file to import</source>
@@ -8289,6 +8585,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Select profile to remove</source>
         <target state="translated">Wählen Sie das Profil aus, das entfernt werden soll.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e87f968a3216e3d0da242045101a1687665b2a6190c87b7489484b33fac806fe">
+        <source xml:lang="en">Select row</source>
+        <target state="new">Select row</target>
+      </trans-unit>
       <trans-unit id="++CODE++803814693885dfb92ec8373f4c02f31015541e0e97e437287cdd0db681e0dae6">
         <source xml:lang="en">Select session</source>
         <target state="translated">Sitzung auswählen</target>
@@ -8309,6 +8609,14 @@ Abfrage: {2}</target>
         <source xml:lang="en">Select the SQL Server Container Image</source>
         <target state="translated">SQL Server-Containerimage auswählen</target>
       </trans-unit>
+      <trans-unit id="++CODE++35fe28e40fadbc936a823ffa66927b3602ce01fe009f13d4f4ad381904efe075">
+        <source xml:lang="en">Select the entire current column</source>
+        <target state="new">Select the entire current column</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9ecda0247fcac26fa6b5b650012315b4faeaf853a3d1147f243e0af310d6c1da">
+        <source xml:lang="en">Select the entire current row</source>
+        <target state="new">Select the entire current row</target>
+      </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
         <target state="translated">Das ausgewählte Microsoft Entra-Konto wurde erfolgreich entfernt.</target>
@@ -8320,6 +8628,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
         <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
         <target state="translated">Die ausgewählte Sicherungsdatei enthält keine gültige Datenbanksicherung.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
+        <source xml:lang="en">Selection</source>
+        <target state="new">Selection</target>
       </trans-unit>
       <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
         <source xml:lang="en">Sequelize</source>
@@ -8478,6 +8790,18 @@ Abfrage: {2}</target>
         <note>{0} is the rule identifier, e.g. SR0001</note>
         <target state="translated">Schweregrad für {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++5753ea3780f34ad1295fb9957f1575e7e7578aa0e891d89524c26ad6f504cb1d">
+        <source xml:lang="en">Shortcut</source>
+        <target state="new">Shortcut</target>
+      </trans-unit>
+      <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
+        <source xml:lang="en">Shortcuts Configuration</source>
+        <target state="new">Shortcuts Configuration</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bf913efbcc381cf124165f3786831debf4e1caf3e8b775f07ba3b65e58534ac6">
+        <source xml:lang="en">Shortcuts configuration page</source>
+        <target state="new">Shortcuts configuration page</target>
+      </trans-unit>
       <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
         <source xml:lang="en">Show All</source>
         <target state="translated">Alle anzeigen</target>
@@ -8526,6 +8850,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
         <source xml:lang="en">Show a random table definition</source>
         <target state="translated">Zufällige Tabellendefinition anzeigen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e003a6ddd41b59eec63e1e129d92668798116d9cf37d1d07d9b64c94fe2e872e">
+        <source xml:lang="en">Show all Quick Query shortcuts in VS Code Keyboard Shortcuts</source>
+        <target state="new">Show all Quick Query shortcuts in VS Code Keyboard Shortcuts</target>
       </trans-unit>
       <trans-unit id="++CODE++87e6b9fe0c51b9ad481c1e47b40fbc5a13ea3464c5131908b81cb2b21cd33822">
         <source xml:lang="en">Show all columns</source>
@@ -8926,6 +9254,14 @@ Abfrage: {2}</target>
         <source xml:lang="en">Switch Source and Target</source>
         <target state="translated">Quelle und Ziel wechseln</target>
       </trans-unit>
+      <trans-unit id="++CODE++5f9a6468c67e9a70a4b7b3b9b65d5c8d1ff0dcd29d0deeebf7232dde003c2918">
+        <source xml:lang="en">Switch between result panes and tabs</source>
+        <target state="new">Switch between result panes and tabs</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d797c6360240f8a9e067207c81426437b0a655a0a744840a19a889ab8de4b58e">
+        <source xml:lang="en">Switch results view</source>
+        <target state="new">Switch results view</target>
+      </trans-unit>
       <trans-unit id="++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e">
         <source xml:lang="en">Switch to Grid View</source>
         <target state="translated">Zur Rasteransicht wechseln</target>
@@ -8938,6 +9274,18 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">Zu MSAL wechseln</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56d1ddd89ea8addb38a7bb1334b629f844e02943ae7a704b57db0365cae1933d">
+        <source xml:lang="en">Switch to Messages tab</source>
+        <target state="new">Switch to Messages tab</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa363e02c367c780ed5cc3f684cf764a74898a4e76019c76a265fe5ec61f1916">
+        <source xml:lang="en">Switch to Query Plan tab</source>
+        <target state="new">Switch to Query Plan tab</target>
+      </trans-unit>
+      <trans-unit id="++CODE++28fd5c6ba4e41650a7ce3740f77e58bbb63957f03d37508270c0c6d673853756">
+        <source xml:lang="en">Switch to Results tab</source>
+        <target state="new">Switch to Results tab</target>
       </trans-unit>
       <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
         <source xml:lang="en">Switch to Text View</source>
@@ -9400,6 +9748,10 @@ Abfrage: {2}</target>
         <note>{0} is the schema name</note>
         <target state="translated">Alle Entitäten in {0} umschalten</target>
       </trans-unit>
+      <trans-unit id="++CODE++9bcf2e5fe7e330dcd17af169e2cd49b62da4c4c033dbeb88966f8e3a8d5e6ad8">
+        <source xml:lang="en">Toggle between grid and text view</source>
+        <target state="new">Toggle between grid and text view</target>
+      </trans-unit>
       <trans-unit id="++CODE++c7b96245094d8cc24762fbd0211e44291f3224450089189c452ce1985982dd94">
         <source xml:lang="en">Toggle columns for {0}</source>
         <note>{0} is the entity name</note>
@@ -9426,6 +9778,14 @@ Abfrage: {2}</target>
         <source xml:lang="en">Toggle selection for {0}</source>
         <note>{0} is the connection group name</note>
         <target state="translated">Auswahl für „{0}“ umschalten</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3530580cb0b2502d5d9f2f76b00bdd5327a347462ac68c585b9d6335504f7d90">
+        <source xml:lang="en">Toggle sort</source>
+        <target state="new">Toggle sort</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2e327b209b58dcf9d6320599972241b62f8e7dc07393319e1d40f6cc88f7be4">
+        <source xml:lang="en">Toggle sorting for the active column</source>
+        <target state="new">Toggle sorting for the active column</target>
       </trans-unit>
       <trans-unit id="++CODE++4999049f347c8083a5db26ef5fb3f51dc8ec31e0518279072ffdd7a2e8119195">
         <source xml:lang="en">Token refreshed successfully.</source>
@@ -10421,6 +10781,11 @@ Abfrage: {2}</target>
         <note>{0} is the object type</note>
         <target state="translated">{0}-Eigenschaften</target>
       </trans-unit>
+      <trans-unit id="++CODE++5cfce2c8b0bf6572d859afa030e35d76e8740a8750643214bd34c31876496f67">
+        <source xml:lang="en">{0} query</source>
+        <note>{0} is the Quick Query shortcut name</note>
+        <target state="new">{0} query</target>
+      </trans-unit>
       <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
         <source xml:lang="en">{0} rows selected, click to load summary</source>
         <note>{0} is the number of rows to fetch summary statistics for</note>
@@ -10724,6 +11089,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Compare Schemas...</source>
         <target state="translated">Schemas vergleichen ...</target>
       </trans-unit>
+      <trans-unit id="mssql.quickQueries">
+        <source xml:lang="en">Configure up to 10 Quick Queries that can be opened or run from commands.</source>
+        <target state="new">Configure up to 10 Quick Queries that can be opened or run from commands.</target>
+      </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect (MSSQL)</source>
         <target state="translated">Verbinden (MSSQL)</target>
@@ -10763,6 +11132,10 @@ Abfrage: {2}</target>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Steuert die maximale Anzahl von Zeilen, die im Arbeitsspeicher gefiltert und sortiert werden dürfen. Wenn die Zahl überschritten wird, werden die Sortier- und Filterfunktionen deaktiviert. Warnung: die Erhöhung dieser Anzahl kann sich auf die Leistung auswirken.</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.executionMode">
+        <source xml:lang="en">Controls whether this Quick Query opens in an editor or opens and runs immediately.</source>
+        <target state="new">Controls whether this Quick Query opens in an editor or opens and runs immediately.</target>
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
@@ -10837,6 +11210,10 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect (MSSQL)</source>
         <target state="translated">Trennen (MSSQL)</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.name">
+        <source xml:lang="en">Display name for this Quick Query.</source>
+        <target state="new">Display name for this Quick Query.</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
         <source xml:lang="en">Display results in a formatted text format.</source>
@@ -10986,6 +11363,10 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">Aktiviert experimentelle Features in der MSSQL-Erweiterung. Die Features sind nicht produktionsbereit und weisen möglicherweise Fehler oder Probleme auf. Starten Sie Visual Studio Code neu, nachdem Sie diese Einstellung geändert haben.</target>
       </trans-unit>
+      <trans-unit id="mssql.preview.shortcutsConfiguration.description">
+        <source xml:lang="en">Enables the keyboard shortcuts configuration editor and Quick Queries commands.</source>
+        <target state="new">Enables the keyboard shortcuts configuration editor and Quick Queries commands.</target>
+      </trans-unit>
       <trans-unit id="mssql.preview.betaResultsGrid.description">
         <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
         <target state="new">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</target>
@@ -11058,13 +11439,13 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Launch Query Profiler...</source>
         <target state="translated">Abfrageprofiler starten...</target>
       </trans-unit>
+      <trans-unit id="mssql.Configuration">
+        <source xml:lang="en">MSSQL</source>
+        <target state="new">MSSQL</target>
+      </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
         <target state="translated">MSSQL Copilot</target>
-      </trans-unit>
-      <trans-unit id="mssql.Configuration">
-        <source xml:lang="en">MSSQL configuration</source>
-        <target state="translated">MSSQL-Konfiguration</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
         <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.
@@ -11180,6 +11561,10 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
         <target state="translated">Die XEL-Datei des Abfrageprofilers öffnen (Vorschau)</target>
       </trans-unit>
+      <trans-unit id="mssql.shortcutsConfiguration.open">
+        <source xml:lang="en">Open Shortcuts Configuration</source>
+        <target state="new">Open Shortcuts Configuration</target>
+      </trans-unit>
       <trans-unit id="mssql.openBackgroundTask">
         <source xml:lang="en">Open Task Result</source>
         <target state="translated">Aufgabenergebnis öffnen</target>
@@ -11191,6 +11576,14 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
         <target state="translated">Im GitHub Copilot-Chat öffnen</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
+        <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
+        <target state="new">Open the query in a SQL editor and run it immediately.</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.executionMode.open">
+        <source xml:lang="en">Open the query in a SQL editor.</source>
+        <target state="new">Open the query in a SQL editor.</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -11260,6 +11653,46 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">Run Query</source>
         <target state="translated">Abfrage ausführen</target>
       </trans-unit>
+      <trans-unit id="mssql.quickQueries.run1">
+        <source xml:lang="en">Run Quick Query 1</source>
+        <target state="new">Run Quick Query 1</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run10">
+        <source xml:lang="en">Run Quick Query 10</source>
+        <target state="new">Run Quick Query 10</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run2">
+        <source xml:lang="en">Run Quick Query 2</source>
+        <target state="new">Run Quick Query 2</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run3">
+        <source xml:lang="en">Run Quick Query 3</source>
+        <target state="new">Run Quick Query 3</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run4">
+        <source xml:lang="en">Run Quick Query 4</source>
+        <target state="new">Run Quick Query 4</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run5">
+        <source xml:lang="en">Run Quick Query 5</source>
+        <target state="new">Run Quick Query 5</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run6">
+        <source xml:lang="en">Run Quick Query 6</source>
+        <target state="new">Run Quick Query 6</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run7">
+        <source xml:lang="en">Run Quick Query 7</source>
+        <target state="new">Run Quick Query 7</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run8">
+        <source xml:lang="en">Run Quick Query 8</source>
+        <target state="new">Run Quick Query 8</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.run9">
+        <source xml:lang="en">Run Quick Query 9</source>
+        <target state="new">Run Quick Query 9</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
         <source xml:lang="en">Run a SQL Query</source>
         <target state="translated">Ausführen einer SQL-Abfrage</target>
@@ -11279,6 +11712,10 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.sqlToolsMcp.serverLabel">
         <source xml:lang="en">SQL Tools (MSSQL)</source>
         <target state="translated">SQL Tools (MSSQL)</target>
+      </trans-unit>
+      <trans-unit id="mssql.quickQueries.query">
+        <source xml:lang="en">SQL text for this Quick Query.</source>
+        <target state="new">SQL text for this Quick Query.</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -11325,8 +11762,8 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <target state="translated">Legen Sie die Schriftgröße für das Ergebnisraster fest. Lassen Sie die Einstellung leer, um die Editor-Größe zu verwenden.</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
-        <source xml:lang="en">Shortcuts related to the results window</source>
-        <target state="translated">Tastenkombinationen für das Ergebnisfenster</target>
+        <source xml:lang="en">Shortcuts handled inside MSSQL views</source>
+        <target state="new">Shortcuts handled inside MSSQL views</target>
       </trans-unit>
       <trans-unit id="mssql.query.displayBitAsNumber">
         <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'</source>
