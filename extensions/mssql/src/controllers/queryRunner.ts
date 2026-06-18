@@ -726,7 +726,7 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
         selection: ISlickRange[],
-    ): Promise<boolean> {
+    ): Promise<void> {
         let copyString = "";
         let firstCol: number;
         let lastCol: number;
@@ -756,8 +756,6 @@ export default class QueryRunner {
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
-
-        return true;
     }
 
     /**
@@ -772,8 +770,8 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
         includeHeaders?: boolean,
-    ): Promise<boolean> {
-        return await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
+    ): Promise<void> {
+        await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
             includeHeaders: includeHeaders ?? false,
         });
     }
@@ -794,7 +792,7 @@ export default class QueryRunner {
             textIdentifier?: string;
             encoding?: string;
         },
-    ): Promise<boolean> {
+    ): Promise<void> {
         // Cancel any in-progress copy operation
         if (this._copyOperationCancellation) {
             this._copyOperationCancellation.cancel();
@@ -812,25 +810,23 @@ export default class QueryRunner {
             _progress?: vscode.Progress<any>,
             token?: vscode.CancellationToken,
         ) => {
-            return new Promise<boolean>(async (resolve, reject) => {
+            return new Promise<void>(async (resolve, reject) => {
                 try {
                     // Handle cancellation from the progress dialog (user clicked cancel)
                     token?.onCancellationRequested(async () => {
                         await this._client.sendNotification(CancelCopy2Notification.type);
-                        vscode.window.showInformationMessage(
-                            LocalizedConstants.QueryResult.copyingResultsCancelled,
-                        );
-                        resolve(false);
+                        vscode.window.showInformationMessage("Copying results cancelled");
+                        resolve();
                     });
 
                     // Handle internal cancellation (new copy operation started) - no notification
                     copyToken.onCancellationRequested(async () => {
-                        resolve(false);
+                        resolve();
                     });
 
                     // Check if already cancelled before starting
                     if (copyToken.isCancellationRequested) {
-                        resolve(false);
+                        resolve();
                         return;
                     }
 
@@ -858,7 +854,7 @@ export default class QueryRunner {
 
                     // Check if cancelled while waiting for the request
                     if (copyToken.isCancellationRequested) {
-                        resolve(false);
+                        resolve();
                         return;
                     }
 
@@ -866,11 +862,11 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    resolve(true);
+                    resolve();
                 } catch (error) {
                     // Don't show error if cancelled
                     if (copyToken.isCancellationRequested) {
-                        resolve(false);
+                        resolve();
                         return;
                     }
                     vscode.window.showErrorMessage(
@@ -882,7 +878,7 @@ export default class QueryRunner {
         };
 
         if (showProgress) {
-            return await vscode.window.withProgress(
+            await vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
                     title: LocalizedConstants.copyingResults,
@@ -891,7 +887,7 @@ export default class QueryRunner {
                 executeCopy,
             );
         } else {
-            return await executeCopy();
+            await executeCopy();
         }
     }
 
@@ -955,7 +951,7 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<boolean> {
+    ): Promise<void> {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         const csvConfig = config[Constants.configSaveAsCsv] || {};
 
@@ -965,7 +961,7 @@ export default class QueryRunner {
         const encoding = csvConfig.encoding;
         const includeHeaders = csvConfig.includeHeaders;
 
-        return await this.copyResults2(selection, batchId, resultId, CopyType.CSV, {
+        await this.copyResults2(selection, batchId, resultId, CopyType.CSV, {
             includeHeaders: includeHeaders,
             delimiter,
             textIdentifier,
@@ -985,8 +981,8 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<boolean> {
-        return await this.copyResults2(selection, batchId, resultId, CopyType.JSON, {
+    ): Promise<void> {
+        await this.copyResults2(selection, batchId, resultId, CopyType.JSON, {
             includeHeaders: true,
         });
     }
@@ -995,16 +991,16 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<boolean> {
-        return await this.copyResults2(selection, batchId, resultId, CopyType.IN);
+    ): Promise<void> {
+        await this.copyResults2(selection, batchId, resultId, CopyType.IN);
     }
 
     public async copyResultsAsInsertInto(
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<boolean> {
-        return await this.copyResults2(selection, batchId, resultId, CopyType.INSERT, {
+    ): Promise<void> {
+        await this.copyResults2(selection, batchId, resultId, CopyType.INSERT, {
             includeHeaders: true,
         });
     }

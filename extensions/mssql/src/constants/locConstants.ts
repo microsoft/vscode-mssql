@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { l10n } from "vscode";
+import * as os from "os";
 
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
@@ -1619,7 +1620,7 @@ export class QueryResult {
                 args: [sum],
                 comment: ["{0} is the sum"],
             }),
-        ].join("\n");
+        ].join(os.EOL);
     };
     public static nonNumericSelectionSummaryTooltip = (
         count: number,
@@ -1642,7 +1643,7 @@ export class QueryResult {
                 args: [nullCount],
                 comment: ["{0} is the null count"],
             }),
-        ].join("\n");
+        ].join(os.EOL);
     };
     public static copyError = (error: string) =>
         l10n.t({
@@ -1683,7 +1684,6 @@ export class QueryResult {
     public static queryResultPanelFailedToLoad = l10n.t(
         "The query results panel failed to load. Please try running the query again.",
     );
-    public static copyingResultsCancelled = l10n.t("Copying results cancelled");
 }
 
 export class LocalContainers {

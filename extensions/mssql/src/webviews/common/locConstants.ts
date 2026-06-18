@@ -700,8 +700,6 @@ export class LocConstants {
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
-            copied: l10n.t("Copied"),
-            copiedToClipboard: l10n.t("Copied to clipboard"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
             showplanXML: l10n.t("Showplan XML"),

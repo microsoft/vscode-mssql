@@ -211,122 +211,69 @@ export class SqlOutputContentProvider {
         this.openLink(content, columnName, linkType);
     }
 
-    public async copyHeadersRequestHandler(
+    public copyHeadersRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): Promise<void> {
-        const result = this._queryResultsMap.get(uri);
-        if (!result) {
-            return;
-        }
-
-        const copied = await result.queryRunner.copyHeaders(batchId, resultId, selection);
-
-        if (copied) {
-            await this._queryResultWebviewController.notifyCopySuccess(uri);
-        }
+    ): void {
+        void this._queryResultsMap.get(uri).queryRunner.copyHeaders(batchId, resultId, selection);
     }
 
-    public async copyRequestHandler(
+    public copyRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
         includeHeaders?: boolean,
-    ): Promise<void> {
-        const result = this._queryResultsMap.get(uri);
-        if (!result) {
-            return;
-        }
-
-        const copied = await result.queryRunner.copyResults(
-            selection,
-            batchId,
-            resultId,
-            includeHeaders,
-        );
-
-        if (copied) {
-            await this._queryResultWebviewController.notifyCopySuccess(uri);
-        }
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResults(selection, batchId, resultId, includeHeaders);
     }
 
-    public async copyAsCsvRequestHandler(
+    public copyAsCsvRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): Promise<void> {
-        const result = this._queryResultsMap.get(uri);
-        if (!result) {
-            return;
-        }
-
-        const copied = await result.queryRunner.copyResultsAsCsv(selection, batchId, resultId);
-
-        if (copied) {
-            await this._queryResultWebviewController.notifyCopySuccess(uri);
-        }
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsCsv(selection, batchId, resultId);
     }
 
-    public async copyAsJsonRequestHandler(
+    public copyAsJsonRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): Promise<void> {
-        const result = this._queryResultsMap.get(uri);
-        if (!result) {
-            return;
-        }
-
-        const copied = await result.queryRunner.copyResultsAsJson(selection, batchId, resultId);
-
-        if (copied) {
-            await this._queryResultWebviewController.notifyCopySuccess(uri);
-        }
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsJson(selection, batchId, resultId);
     }
 
-    public async copyAsInClauseRequestHandler(
+    public copyAsInClauseRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): Promise<void> {
-        const result = this._queryResultsMap.get(uri);
-        if (!result) {
-            return;
-        }
-
-        const copied = await result.queryRunner.copyResultsAsInClause(selection, batchId, resultId);
-
-        if (copied) {
-            await this._queryResultWebviewController.notifyCopySuccess(uri);
-        }
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInClause(selection, batchId, resultId);
     }
 
-    public async copyAsInsertIntoRequestHandler(
+    public copyAsInsertIntoRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): Promise<void> {
-        const result = this._queryResultsMap.get(uri);
-        if (!result) {
-            return;
-        }
-
-        const copied = await result.queryRunner.copyResultsAsInsertInto(
-            selection,
-            batchId,
-            resultId,
-        );
-
-        if (copied) {
-            await this._queryResultWebviewController.notifyCopySuccess(uri);
-        }
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
     }
 
     public generateSelectionSummaryData(

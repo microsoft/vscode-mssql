@@ -13,7 +13,6 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import { QueryResultWebviewController } from "../../src/queryResult/queryResultWebViewController";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import * as qr from "../../src/sharedInterfaces/queryResult";
 import { stubExtensionContext, stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
@@ -118,7 +117,7 @@ suite("QueryResultWebviewController", () => {
         expect(createPanelControllerStub).to.have.been.calledOnceWithExactly(testUri);
     });
 
-    test("notifies the active webview when messages are copied to the clipboard", async () => {
+    test("copies messages to the clipboard", async () => {
         controller.setQueryResultState(testUri, {
             ...controller.getQueryResultState(testUri),
             messages: [
@@ -127,16 +126,11 @@ suite("QueryResultWebviewController", () => {
             ],
         });
         controller.state = controller.getQueryResultState(testUri);
-        const sendNotificationStub = sandbox.stub(controller, "sendNotification").resolves();
 
         await controller.copyAllMessagesToClipboard(testUri);
 
         expect(vscodeWrapper.clipboardWriteText).to.have.been.calledOnceWithExactly(
             "first message\nsecond message",
-        );
-        expect(sendNotificationStub).to.have.been.calledOnceWithExactly(
-            qr.ShowCopySuccessNotification.type,
-            undefined,
         );
     });
 });

@@ -955,7 +955,6 @@
         "comment": ["{0} is the error message"]
     },
     "The query results panel failed to load. Please try running the query again.": "The query results panel failed to load. Please try running the query again.",
-    "Copying results cancelled": "Copying results cancelled",
     "{0} stopped successfully./{0} stopped successfully.": {
         "message": "{0} stopped successfully.",
         "comment": ["{0} stopped successfully."]

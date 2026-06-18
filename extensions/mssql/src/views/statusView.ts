@@ -81,7 +81,7 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
                         this.showStatusBarItem(fileUri, bar.statusQuery);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
-                        if (!this.isQueryResultsFooterEnabled) {
+                        if (!this.isInWebviewFooterEnabled) {
                             this.showStatusBarItem(fileUri, bar.rowCount);
                             this.showStatusBarItem(fileUri, bar.executionTime);
                         }
@@ -121,7 +121,7 @@ export default class StatusView implements vscode.Disposable {
      * row count and execution time status bar items (and the query progress indicator) are
      * suppressed because the footer surfaces that information inside the results view.
      */
-    private get isQueryResultsFooterEnabled(): boolean {
+    private get isInWebviewFooterEnabled(): boolean {
         return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
@@ -200,7 +200,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
         this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
-        if (!this.isQueryResultsFooterEnabled) {
+        if (!this.isInWebviewFooterEnabled) {
             this.showStatusBarItem(fileUri, bar.rowCount);
             this.showStatusBarItem(fileUri, bar.executionTime);
         }
@@ -349,7 +349,7 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public executingQuery(fileUri: string): void {
-        if (this.isQueryResultsFooterEnabled) {
+        if (this.isInWebviewFooterEnabled) {
             return;
         }
         let bar = this.getStatusBar(fileUri);
@@ -360,7 +360,7 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public executedQuery(fileUri: string): void {
-        if (this.isQueryResultsFooterEnabled) {
+        if (this.isInWebviewFooterEnabled) {
             return;
         }
         let bar = this.getStatusBar(fileUri);
@@ -374,7 +374,7 @@ export default class StatusView implements vscode.Disposable {
     public setExecutionTime(fileUri: string, time: string): void {
         let bar = this.getStatusBar(fileUri);
         clearInterval(bar.queryTimer);
-        if (this.isQueryResultsFooterEnabled) {
+        if (this.isInWebviewFooterEnabled) {
             return;
         }
         bar.executionTime.text = time;
@@ -382,7 +382,7 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public cancelingQuery(fileUri: string): void {
-        if (this.isQueryResultsFooterEnabled) {
+        if (this.isInWebviewFooterEnabled) {
             return;
         }
         let bar = this.getStatusBar(fileUri);
@@ -425,7 +425,7 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public showRowCount(fileUri: string, message?: string): void {
-        if (this.isQueryResultsFooterEnabled) {
+        if (this.isInWebviewFooterEnabled) {
             return;
         }
         let bar = this.getStatusBar(fileUri);
