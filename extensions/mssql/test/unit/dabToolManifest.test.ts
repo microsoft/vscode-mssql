@@ -61,13 +61,14 @@ suite("DAB LM tool manifest schema", () => {
         expect(tool.inputSchema?.properties).to.include.keys(
             "operation",
             "connectionId",
+            "connectionName",
             "payload",
             "options",
         );
         expect(tool.inputSchema?.required).to.deep.equal(["operation"]);
     });
 
-    test("validates top-level operation enum and show connectionId guidance", () => {
+    test("validates top-level operation enum and show connection guidance", () => {
         const tool = getTool();
         expect(tool.inputSchema?.properties?.operation?.enum).to.deep.equal([
             "get_state",
@@ -79,6 +80,16 @@ suite("DAB LM tool manifest schema", () => {
             "show operation only",
         );
         expect(tool.inputSchema?.properties?.connectionId?.description).to.contain(
+            "Do not include for get_state/apply_changes",
+        );
+        expect(tool.inputSchema?.properties?.connectionId?.description).to.contain(
+            "Do not use this field for a ConnectionId returned by a SQL Tools MCP tool",
+        );
+        expect(tool.inputSchema?.properties?.connectionName?.minLength).to.equal(1);
+        expect(tool.inputSchema?.properties?.connectionName?.description).to.contain(
+            "Pass a ConnectionId returned by a SQL Tools MCP tool",
+        );
+        expect(tool.inputSchema?.properties?.connectionName?.description).to.contain(
             "Do not include for get_state/apply_changes",
         );
     });
