@@ -453,6 +453,10 @@
         <source xml:lang="en">Always show in new tab</source>
         <target state="translated">항상 새 탭에 표시</target>
       </trans-unit>
+      <trans-unit id="++CODE++c8adc945cb73b3f301ba86327f4b6758f8a2a5a7f3a232e892b441a177ce75ff">
+        <source xml:lang="en">Ambiguous connection reference. Please provide only one of connectionId or connectionName.</source>
+        <target state="new">Ambiguous connection reference. Please provide only one of connectionId or connectionName.</target>
+      </trans-unit>
       <trans-unit id="++CODE++df50fadac20ad5c3b190a9af94532fd84c01e0787f15b55212fa2f41de09a091">
         <source xml:lang="en">An active connection is required for GitHub Copilot to understand your database schema and proceed.
 Select "{0}" to establish a connection.</source>
@@ -5757,13 +5761,9 @@ Error:
         <note>{0} is the min</note>
         <target state="translated">최소: {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++42c869c9cf0bc65de28be00cb8d74e9103e69df8251055669978ecbc7b656d71">
-        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open Data API builder.</source>
-        <target state="translated">connectionId가 없습니다. 데이터 API 작성기를 열려면 connectionId를 제공해 주세요.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
-        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
-        <target state="translated">connectionId가 없습니다. 스키마 디자이너를 열려면 connectionId를 제공해 주세요.</target>
+      <trans-unit id="++CODE++c4cb38118e976f2ec6af215b6206c1aeadd0a3a1a95b4ab00681c97e9a276753">
+        <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
+        <target state="new">Missing connection reference. Please provide exactly one of connectionId or connectionName.</target>
       </trans-unit>
       <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
         <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
@@ -6014,6 +6014,11 @@ Error:
       <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">사용 가능한 쿼리 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51376cb4a62d2ba04bbfabe2409c9957f6d4839845b43a39b01d38c368d1912b">
+        <source xml:lang="en">No SQL Tools MCP connection found for connectionName: {0}</source>
+        <note>{0} is the SQL Tools MCP registered connection name</note>
+        <target state="new">No SQL Tools MCP connection found for connectionName: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
         <source xml:lang="en">No account selected</source>
