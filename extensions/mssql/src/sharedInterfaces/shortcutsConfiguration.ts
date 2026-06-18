@@ -22,15 +22,16 @@ export interface QuickQuerySlot {
 
 export type QuickQueryKeybindings = Record<string, string>;
 
-export interface ShortcutsConfigurationWebviewState {
+export interface ShortcutsConfigurationData {
     quickQueries: QuickQuerySlot[];
     quickQueryKeybindings: QuickQueryKeybindings;
     webviewShortcuts: Record<string, string>;
+}
+
+export interface ShortcutsConfigurationWebviewState {
     focusedQuickQuerySlot?: number;
     focusNonce?: number;
-    message?: string;
     errorMessage?: string;
-    isSaving?: boolean;
 }
 
 export interface SaveShortcutsConfigurationChangedSections {
@@ -46,10 +47,37 @@ export interface SaveShortcutsConfigurationPayload {
     changedSections?: SaveShortcutsConfigurationChangedSections;
 }
 
-export interface ShortcutsConfigurationReducers {
-    saveConfiguration: SaveShortcutsConfigurationPayload;
-    saveAndCloseConfiguration: SaveShortcutsConfigurationPayload;
-    closeDialog: {};
+export interface SaveShortcutsConfigurationResult {
+    message?: string;
+    errorMessage?: string;
+}
+
+export interface ShortcutsConfigurationReducers {}
+
+export namespace ReadShortcutsConfigurationRequest {
+    export const type = new RequestType<void, ShortcutsConfigurationData, void>(
+        "shortcutsConfiguration/readConfiguration",
+    );
+}
+
+export namespace SaveShortcutsConfigurationRequest {
+    export const type = new RequestType<
+        SaveShortcutsConfigurationPayload,
+        SaveShortcutsConfigurationResult,
+        void
+    >("shortcutsConfiguration/saveConfiguration");
+}
+
+export namespace SaveAndCloseShortcutsConfigurationRequest {
+    export const type = new RequestType<
+        SaveShortcutsConfigurationPayload,
+        SaveShortcutsConfigurationResult,
+        void
+    >("shortcutsConfiguration/saveAndCloseConfiguration");
+}
+
+export namespace CloseShortcutsConfigurationRequest {
+    export const type = new RequestType<void, void, void>("shortcutsConfiguration/closeDialog");
 }
 
 export namespace ReadClipboardTextRequest {
@@ -65,8 +93,13 @@ export namespace WriteClipboardTextRequest {
 }
 
 export interface ShortcutsConfigurationContextProps extends CoreRPCs {
-    saveConfiguration: (payload: SaveShortcutsConfigurationPayload) => Promise<void>;
-    saveAndCloseConfiguration: (payload: SaveShortcutsConfigurationPayload) => Promise<void>;
+    readConfiguration: () => Promise<ShortcutsConfigurationData>;
+    saveConfiguration: (
+        payload: SaveShortcutsConfigurationPayload,
+    ) => Promise<SaveShortcutsConfigurationResult>;
+    saveAndCloseConfiguration: (
+        payload: SaveShortcutsConfigurationPayload,
+    ) => Promise<SaveShortcutsConfigurationResult>;
     closeDialog: () => Promise<void>;
     readClipboardText: () => Promise<string>;
     writeClipboardText: (text: string) => Promise<void>;

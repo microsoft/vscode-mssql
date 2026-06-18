@@ -7,7 +7,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import {
-    KeybindingsService,
+    keybindingsService,
     parseKeybindingsText,
     updateKeybindingsText,
 } from "../../src/keybindings/keybindingsService";
@@ -132,9 +132,7 @@ suite("Keybindings Service", () => {
             ...vscode.workspace.fs,
             readFile: sandbox.stub().rejects(error),
         } as unknown as typeof vscode.workspace.fs);
-        const service = new KeybindingsService();
-
-        const result = await service.getCommandKeybindings(["mssql.quickQueries.run1"]);
+        const result = await keybindingsService.getCommandKeybindings(["mssql.quickQueries.run1"]);
 
         expect(result).to.deep.equal({ "mssql.quickQueries.run1": "" });
     });

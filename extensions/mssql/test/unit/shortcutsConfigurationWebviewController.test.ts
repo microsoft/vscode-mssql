@@ -18,8 +18,9 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { parseKeybindingsText } from "../../src/keybindings/keybindingsService";
 import {
     getQuickQueryCommandId,
-    ShortcutsConfigurationReducers,
-    ShortcutsConfigurationWebviewState,
+    SaveShortcutsConfigurationPayload,
+    SaveShortcutsConfigurationResult,
+    ShortcutsConfigurationData,
     normalizeQuickQueries,
     QuickQueryExecutionMode,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
@@ -122,25 +123,23 @@ suite("shortcutsConfiguration Webview Controller", () => {
         }
     });
 
-    function getReducer<Method extends keyof ShortcutsConfigurationReducers>(method: Method) {
-        return (
-            controller as unknown as {
-                _reducerHandlers: Map<
-                    Method,
-                    (
-                        state: ShortcutsConfigurationWebviewState,
-                        payload: ShortcutsConfigurationReducers[Method],
-                    ) => Promise<ShortcutsConfigurationWebviewState>
-                >;
-            }
-        )._reducerHandlers.get(method);
+    function getControllerSaveMethods() {
+        return controller as unknown as {
+            readConfiguration: () => Promise<ShortcutsConfigurationData>;
+            saveConfiguration: (
+                payload: SaveShortcutsConfigurationPayload,
+            ) => Promise<SaveShortcutsConfigurationResult>;
+            saveAndCloseConfiguration: (
+                payload: SaveShortcutsConfigurationPayload,
+            ) => Promise<SaveShortcutsConfigurationResult>;
+        };
     }
 
     test("saveConfiguration persists normalized Quick Queries and webview shortcuts", async () => {
         const commandId = getQuickQueryCommandId(1);
-        const reducer = getReducer("saveConfiguration");
+        const saveMethods = getControllerSaveMethods();
 
-        const result = await reducer(controller.state, {
+        const result = await saveMethods.saveConfiguration({
             quickQueries: [
                 {
                     name: "  Health Check  ",
@@ -173,9 +172,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
             executionMode: QuickQueryExecutionMode.Open,
         });
         expect(result.message).to.equal(Loc.shortcutsConfigurationSaved);
-        expect(result.webviewShortcuts).to.deep.equal({
-            [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a",
-        });
+        expect(result.errorMessage).to.equal(undefined);
         expect(parseKeybindingsText(keybindingsText)).to.deep.equal([
             {
                 key: "ctrl+alt+1",
@@ -196,9 +193,9 @@ suite("shortcutsConfiguration Webview Controller", () => {
         "command": "workbench.action.keep"
     }
 ]`;
-        const reducer = getReducer("saveConfiguration");
+        const saveMethods = getControllerSaveMethods();
 
-        const result = await reducer(controller.state, {
+        const result = await saveMethods.saveConfiguration({
             quickQueries: normalizeQuickQueries(undefined),
             quickQueryKeybindings: {
                 [commandId]: "",
@@ -209,9 +206,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
         });
 
         expect(result.errorMessage).to.equal(undefined);
-        expect(result.webviewShortcuts).to.deep.equal({
-            [WebviewAction.ResultGridCopySelection]: "ctrl+c",
-        });
         expect(parseKeybindingsText(keybindingsText)).to.deep.equal([
             {
                 key: "ctrl+k",
@@ -222,9 +216,9 @@ suite("shortcutsConfiguration Webview Controller", () => {
 
     test("saveConfiguration writes webview shortcuts to workspace when workspace setting is effective", async () => {
         shortcutsInspectValue = { workspaceValue: webviewShortcutsSetting };
-        const reducer = getReducer("saveConfiguration");
+        const saveMethods = getControllerSaveMethods();
 
-        await reducer(controller.state, {
+        await saveMethods.saveConfiguration({
             quickQueries: normalizeQuickQueries(undefined),
             quickQueryKeybindings: {},
             webviewShortcuts: {
@@ -243,9 +237,9 @@ suite("shortcutsConfiguration Webview Controller", () => {
     });
 
     test("saveAndCloseConfiguration disposes the panel after a successful save", async () => {
-        const reducer = getReducer("saveAndCloseConfiguration");
+        const saveMethods = getControllerSaveMethods();
 
-        const result = await reducer(controller.state, {
+        const result = await saveMethods.saveAndCloseConfiguration({
             quickQueries: normalizeQuickQueries(undefined),
             quickQueryKeybindings: {},
             webviewShortcuts: {
@@ -258,5 +252,47 @@ suite("shortcutsConfiguration Webview Controller", () => {
 
         expect(result.errorMessage).to.equal(undefined);
         expect(webviewPanel.dispose).to.have.been.called;
+    });
+
+    test("readConfiguration returns persisted Quick Queries, keybindings, and webview shortcuts", async () => {
+        const commandId = getQuickQueryCommandId(1);
+        quickQueriesSetting = normalizeQuickQueries([
+            {
+                name: "Health Check",
+                query: "select 1",
+                executionMode: QuickQueryExecutionMode.Open,
+            },
+        ]);
+        webviewShortcutsSetting = {
+            [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a",
+        };
+        keybindingsText = `[
+    {
+        "key": "ctrl+alt+1",
+        "command": "${commandId}"
+    }
+]`;
+        const saveMethods = getControllerSaveMethods();
+
+        const result = await saveMethods.readConfiguration();
+
+        expect(result.quickQueries[0]).to.deep.equal({
+            name: "Health Check",
+            query: "select 1",
+            executionMode: QuickQueryExecutionMode.Open,
+        });
+        expect(result.quickQueryKeybindings).to.deep.equal({
+            [commandId]: "ctrl+alt+1",
+            [getQuickQueryCommandId(2)]: "",
+            [getQuickQueryCommandId(3)]: "",
+            [getQuickQueryCommandId(4)]: "",
+            [getQuickQueryCommandId(5)]: "",
+            [getQuickQueryCommandId(6)]: "",
+            [getQuickQueryCommandId(7)]: "",
+            [getQuickQueryCommandId(8)]: "",
+            [getQuickQueryCommandId(9)]: "",
+            [getQuickQueryCommandId(10)]: "",
+        });
+        expect(result.webviewShortcuts).to.deep.equal(webviewShortcutsSetting);
     });
 });

@@ -7,11 +7,18 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as Loc from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
-import { KeybindingsService } from "../keybindings/keybindingsService";
+import { KeybindingsService, keybindingsService } from "../keybindings/keybindingsService";
 import { WebviewAction } from "../sharedInterfaces/webview";
 import {
+    CloseShortcutsConfigurationRequest,
     getQuickQueryCommandId,
     ReadClipboardTextRequest,
+    ReadShortcutsConfigurationRequest,
+    SaveAndCloseShortcutsConfigurationRequest,
+    SaveShortcutsConfigurationResult,
+    SaveShortcutsConfigurationPayload,
+    SaveShortcutsConfigurationRequest,
+    ShortcutsConfigurationData,
     ShortcutsConfigurationReducers,
     ShortcutsConfigurationWebviewState,
     normalizeQuickQueries,
@@ -40,9 +47,6 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             "shortcutsConfiguration",
             "shortcutsConfiguration",
             {
-                quickQueries: normalizeQuickQueries(undefined),
-                quickQueryKeybindings: {},
-                webviewShortcuts: {},
                 focusedQuickQuerySlot,
                 focusNonce: focusedQuickQuerySlot ? 1 : undefined,
             },
@@ -64,34 +68,25 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             },
         );
 
-        this.keybindingsService = new KeybindingsService();
+        this.keybindingsService = keybindingsService;
         this.registerRpcHandlers();
-        this.registerDisposable(
-            vscode.workspace.onDidChangeConfiguration((event) => {
-                if (event.affectsConfiguration("mssql")) {
-                    void this.refreshState();
-                }
-            }),
-        );
-        void this.refreshState(undefined, undefined, focusedQuickQuerySlot);
     }
 
     private registerRpcHandlers(): void {
-        this.registerReducer("closeDialog", async (state) => {
+        this.onRequest(ReadShortcutsConfigurationRequest.type, async () => {
+            return await this.readConfiguration();
+        });
+
+        this.onRequest(SaveShortcutsConfigurationRequest.type, async (payload) => {
+            return await this.saveConfiguration(payload);
+        });
+
+        this.onRequest(SaveAndCloseShortcutsConfigurationRequest.type, async (payload) => {
+            return await this.saveAndCloseConfiguration(payload);
+        });
+
+        this.onRequest(CloseShortcutsConfigurationRequest.type, async () => {
             this.panel.dispose();
-            return state;
-        });
-
-        this.registerReducer("saveConfiguration", async (state, payload) => {
-            return await this.saveConfiguration(state, payload);
-        });
-
-        this.registerReducer("saveAndCloseConfiguration", async (state, payload) => {
-            const nextState = await this.saveConfiguration(state, payload);
-            if (!nextState.errorMessage) {
-                this.panel.dispose();
-            }
-            return nextState;
         });
 
         this.onRequest(ReadClipboardTextRequest.type, async () => {
@@ -103,11 +98,20 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
         });
     }
 
+    private async saveAndCloseConfiguration(
+        payload: SaveShortcutsConfigurationPayload,
+    ): Promise<SaveShortcutsConfigurationResult> {
+        const result = await this.saveConfiguration(payload);
+        if (!result.errorMessage) {
+            this.panel.dispose();
+        }
+        return result;
+    }
+
     private async saveConfiguration(
-        state: ShortcutsConfigurationWebviewState,
-        payload: ShortcutsConfigurationReducers["saveConfiguration"],
-    ): Promise<ShortcutsConfigurationWebviewState> {
-        this.state = { ...state, isSaving: true, message: undefined, errorMessage: undefined };
+        payload: SaveShortcutsConfigurationPayload,
+    ): Promise<SaveShortcutsConfigurationResult> {
+        this.state = { ...this.state, errorMessage: undefined };
         const quickQueries = normalizeQuickQueries(payload.quickQueries);
         const webviewShortcuts = sanitizeWebviewShortcuts(payload.webviewShortcuts ?? {});
         const changedSections = payload.changedSections ?? {
@@ -152,47 +156,24 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                     );
             }
 
-            return await this.getConfigurationState(Loc.shortcutsConfigurationSaved);
+            return { message: Loc.shortcutsConfigurationSaved };
         } catch (error) {
+            const errorMessage = getErrorMessage(error);
+            this.state = { ...this.state, errorMessage };
             return {
-                ...state,
-                quickQueries,
-                webviewShortcuts,
-                quickQueryKeybindings: payload.quickQueryKeybindings ?? {},
-                isSaving: false,
-                message: undefined,
-                errorMessage: getErrorMessage(error),
+                errorMessage,
             };
         }
-    }
-
-    private async refreshState(
-        message?: string,
-        errorMessage?: string,
-        focusedQuickQuerySlot?: number,
-    ): Promise<void> {
-        this.state = await this.getConfigurationState(message, errorMessage, focusedQuickQuerySlot);
     }
 
     public focusQuickQuerySlot(focusedQuickQuerySlot?: number): void {
         this.state = { ...this.state, focusedQuickQuerySlot, focusNonce: this.nextFocusNonce() };
     }
 
-    private async getConfigurationState(
-        message?: string,
-        errorMessage?: string,
-        focusedQuickQuerySlot?: number,
-    ): Promise<ShortcutsConfigurationWebviewState> {
-        let keybindings: Record<string, string> = {};
-        let stateErrorMessage = errorMessage;
-
-        try {
-            keybindings = await this.keybindingsService.getCommandKeybindings(
-                this.getQuickQueryCommandIds(),
-            );
-        } catch (error) {
-            stateErrorMessage = getErrorMessage(error);
-        }
+    private async readConfiguration(): Promise<ShortcutsConfigurationData> {
+        const keybindings = await this.keybindingsService.getCommandKeybindings(
+            this.getQuickQueryCommandIds(),
+        );
 
         return {
             quickQueries: normalizeQuickQueries(
@@ -203,11 +184,6 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                 vscode.workspace
                     .getConfiguration()
                     .get<Record<string, string>>(Constants.configShortcuts) ?? {},
-            focusedQuickQuerySlot,
-            focusNonce: focusedQuickQuerySlot ? this.nextFocusNonce() : this.state.focusNonce,
-            message,
-            errorMessage: stateErrorMessage,
-            isSaving: false,
         };
     }
 

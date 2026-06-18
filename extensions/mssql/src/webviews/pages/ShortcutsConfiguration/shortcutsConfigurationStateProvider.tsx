@@ -5,7 +5,11 @@
 
 import { createContext, ReactNode, useMemo } from "react";
 import {
+    CloseShortcutsConfigurationRequest,
     ReadClipboardTextRequest,
+    ReadShortcutsConfigurationRequest,
+    SaveAndCloseShortcutsConfigurationRequest,
+    SaveShortcutsConfigurationRequest,
     ShortcutsConfigurationContextProps,
     ShortcutsConfigurationReducers,
     ShortcutsConfigurationWebviewState,
@@ -28,14 +32,23 @@ const ShortcutsConfigurationStateProvider = ({ children }: { children: ReactNode
     const commands = useMemo<ShortcutsConfigurationContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
+            readConfiguration: async () => {
+                return await extensionRpc.sendRequest(ReadShortcutsConfigurationRequest.type);
+            },
             saveConfiguration: async (payload: SaveShortcutsConfigurationPayload) => {
-                await extensionRpc.actionRequest("saveConfiguration", payload);
+                return await extensionRpc.sendRequest(
+                    SaveShortcutsConfigurationRequest.type,
+                    payload,
+                );
             },
             saveAndCloseConfiguration: async (payload: SaveShortcutsConfigurationPayload) => {
-                await extensionRpc.actionRequest("saveAndCloseConfiguration", payload);
+                return await extensionRpc.sendRequest(
+                    SaveAndCloseShortcutsConfigurationRequest.type,
+                    payload,
+                );
             },
             closeDialog: async () => {
-                await extensionRpc.actionRequest("closeDialog", {});
+                await extensionRpc.sendRequest(CloseShortcutsConfigurationRequest.type);
             },
             readClipboardText: async () => {
                 return await extensionRpc.sendRequest(ReadClipboardTextRequest.type);

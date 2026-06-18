@@ -405,17 +405,11 @@ export const ShortcutsConfigurationPage = () => {
     const common = locConstants.common;
     const context = useContext(ShortcutsConfigurationContext);
     const { themeKind } = useVscodeWebview();
-    const stateQuickQueries = useShortcutsConfigurationSelector((s) => s.quickQueries);
-    const stateQuickQueryKeybindings = useShortcutsConfigurationSelector(
-        (s) => s.quickQueryKeybindings,
-    );
-    const stateWebviewShortcuts = useShortcutsConfigurationSelector((s) => s.webviewShortcuts);
     const stateFocusedQuickQuerySlot = useShortcutsConfigurationSelector(
         (s) => s.focusedQuickQuerySlot,
     );
     const stateFocusNonce = useShortcutsConfigurationSelector((s) => s.focusNonce);
     const stateErrorMessage = useShortcutsConfigurationSelector((s) => s.errorMessage);
-    const stateIsSaving = useShortcutsConfigurationSelector((s) => s.isSaving);
     const [activeTab, setActiveTab] = useState<ConfigurationTab>("queries");
     const [editingQueryIndex, setEditingQueryIndex] = useState<number | undefined>(undefined);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
@@ -432,6 +426,7 @@ export const ShortcutsConfigurationPage = () => {
         quickQueryKeybindings,
         webviewShortcuts,
         saveState,
+        errorMessage: saveErrorMessage,
         updateQuickQuery,
         updateQuickQueryShortcut,
         clearQuickQueryValues,
@@ -439,11 +434,6 @@ export const ShortcutsConfigurationPage = () => {
         saveAndClose,
     } = useShortcutsConfigurationSave({
         context,
-        stateQuickQueries,
-        stateQuickQueryKeybindings,
-        stateWebviewShortcuts,
-        stateErrorMessage,
-        stateIsSaving,
     });
 
     useEffect(() => {
@@ -704,7 +694,7 @@ export const ShortcutsConfigurationPage = () => {
             icon={<Settings24Regular aria-label={loc.title} />}
             title={loc.title}
             subtitle={loc.subtitle}
-            errorMessage={stateErrorMessage}
+            errorMessage={saveErrorMessage ?? stateErrorMessage}
             maxContentWidth={1040}
             iconSize={40}
             headerEnd={<SaveIndicator state={saveState} />}

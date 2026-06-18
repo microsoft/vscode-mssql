@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import debounce from "lodash/debounce";
+import { getErrorMessage } from "../../common/utils";
 import {
     normalizeQuickQueries,
     QuickQueryExecutionMode,
@@ -48,11 +49,6 @@ function getPayloadDataKey(payload: SaveShortcutsConfigurationPayload): string {
 
 export interface UseShortcutsConfigurationSaveParams {
     context: ShortcutsConfigurationContextProps | undefined;
-    stateQuickQueries: QuickQuerySlot[];
-    stateQuickQueryKeybindings: Record<string, string>;
-    stateWebviewShortcuts: Record<string, string>;
-    stateErrorMessage: string | undefined;
-    stateIsSaving: boolean | undefined;
 }
 
 export interface UseShortcutsConfigurationSaveResult {
@@ -60,6 +56,7 @@ export interface UseShortcutsConfigurationSaveResult {
     quickQueryKeybindings: Record<string, string>;
     webviewShortcuts: Record<string, string>;
     saveState: SaveState;
+    errorMessage: string | undefined;
     updateQuickQuery: (index: number, value: QuickQuerySlot) => void;
     updateQuickQueryShortcut: (commandId: string, value: string) => void;
     clearQuickQueryValues: (index: number, commandId: string) => void;
@@ -74,22 +71,14 @@ export interface UseShortcutsConfigurationSaveResult {
  */
 export function useShortcutsConfigurationSave({
     context,
-    stateQuickQueries,
-    stateQuickQueryKeybindings,
-    stateWebviewShortcuts,
-    stateErrorMessage,
-    stateIsSaving,
 }: UseShortcutsConfigurationSaveParams): UseShortcutsConfigurationSaveResult {
     const [saveState, setSaveState] = useState<SaveState>("idle");
     const [quickQueries, setQuickQueries] = useState<QuickQuerySlot[]>(() =>
-        normalizeQuickQueries(stateQuickQueries),
+        normalizeQuickQueries(undefined),
     );
-    const [quickQueryKeybindings, setQuickQueryKeybindings] = useState<Record<string, string>>(
-        stateQuickQueryKeybindings ?? {},
-    );
-    const [webviewShortcuts, setWebviewShortcuts] = useState<Record<string, string>>(
-        stateWebviewShortcuts ?? {},
-    );
+    const [quickQueryKeybindings, setQuickQueryKeybindings] = useState<Record<string, string>>({});
+    const [webviewShortcuts, setWebviewShortcuts] = useState<Record<string, string>>({});
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const lastSavedPayloadRef = useRef("");
     const pendingPayloadRef = useRef("");
@@ -103,60 +92,43 @@ export function useShortcutsConfigurationSave({
     const hasLocalChangesRef = useRef(false);
 
     useEffect(() => {
-        if (stateIsSaving) {
+        if (!context) {
             return;
         }
 
-        const normalizedQuickQueries = normalizeQuickQueries(stateQuickQueries);
-        const normalizedKeybindings = stateQuickQueryKeybindings ?? {};
-        const normalizedShortcuts = stateWebviewShortcuts ?? {};
-        const statePayloadKey = getPayloadDataKey(
-            buildPayload(
-                normalizedQuickQueries,
-                normalizedKeybindings,
-                normalizedShortcuts,
-                pendingChangedSectionsRef.current,
-            ),
-        );
+        let isDisposed = false;
+        void context
+            .readConfiguration()
+            .then((configuration) => {
+                if (isDisposed || hasLocalChangesRef.current) {
+                    return;
+                }
 
-        const isExpectedSaveResponse =
-            pendingPayloadRef.current.length > 0 &&
-            pendingPayloadRef.current === statePayloadKey &&
-            pendingSaveVersionRef.current === localChangeVersionRef.current;
+                const normalizedQuickQueries = normalizeQuickQueries(configuration.quickQueries);
+                const normalizedKeybindings = configuration.quickQueryKeybindings ?? {};
+                const normalizedShortcuts = configuration.webviewShortcuts ?? {};
+                setQuickQueries(normalizedQuickQueries);
+                setQuickQueryKeybindings(normalizedKeybindings);
+                setWebviewShortcuts(normalizedShortcuts);
+                setErrorMessage(undefined);
+                lastSavedPayloadRef.current = getPayloadDataKey(
+                    buildPayload(
+                        normalizedQuickQueries,
+                        normalizedKeybindings,
+                        normalizedShortcuts,
+                    ),
+                );
+            })
+            .catch((error) => {
+                if (!isDisposed) {
+                    setErrorMessage(error instanceof Error ? error.message : String(error));
+                }
+            });
 
-        if (!hasLocalChangesRef.current || isExpectedSaveResponse || stateErrorMessage) {
-            setQuickQueries(normalizedQuickQueries);
-            setQuickQueryKeybindings(normalizedKeybindings);
-            setWebviewShortcuts(normalizedShortcuts);
-        }
-
-        if (stateErrorMessage) {
-            setSaveState("idle");
-            pendingPayloadRef.current = "";
-            pendingChangedSectionsRef.current = undefined;
-            return;
-        }
-
-        if (isExpectedSaveResponse) {
-            hasLocalChangesRef.current = false;
-            pendingPayloadRef.current = "";
-            pendingChangedSectionsRef.current = undefined;
-            lastSavedPayloadRef.current = statePayloadKey;
-            setSaveState("saved");
-            if (savedTimerRef.current) {
-                clearTimeout(savedTimerRef.current);
-            }
-            savedTimerRef.current = setTimeout(() => setSaveState("idle"), 2500);
-        } else if (!hasLocalChangesRef.current) {
-            lastSavedPayloadRef.current = statePayloadKey;
-        }
-    }, [
-        stateErrorMessage,
-        stateIsSaving,
-        stateQuickQueries,
-        stateQuickQueryKeybindings,
-        stateWebviewShortcuts,
-    ]);
+        return () => {
+            isDisposed = true;
+        };
+    }, [context]);
 
     const dispatchSave = useCallback(
         async (payload: SaveShortcutsConfigurationPayload, payloadDataKey: string) => {
@@ -172,7 +144,40 @@ export function useShortcutsConfigurationSave({
             pendingPayloadRef.current = payloadDataKey;
             pendingChangedSectionsRef.current = payload.changedSections;
             pendingSaveVersionRef.current = localChangeVersionRef.current;
-            const savePromise = context.saveConfiguration(payload);
+            const savePromise = context
+                .saveConfiguration(payload)
+                .then((result) => {
+                    if (result.errorMessage) {
+                        setErrorMessage(result.errorMessage);
+                        setSaveState("idle");
+                        pendingPayloadRef.current = "";
+                        pendingChangedSectionsRef.current = undefined;
+                        return;
+                    }
+
+                    if (
+                        pendingPayloadRef.current === payloadDataKey &&
+                        pendingSaveVersionRef.current === localChangeVersionRef.current
+                    ) {
+                        hasLocalChangesRef.current = false;
+                        pendingPayloadRef.current = "";
+                        pendingChangedSectionsRef.current = undefined;
+                        lastSavedPayloadRef.current = payloadDataKey;
+                        setErrorMessage(undefined);
+                        setSaveState("saved");
+                        if (savedTimerRef.current) {
+                            clearTimeout(savedTimerRef.current);
+                        }
+                        savedTimerRef.current = setTimeout(() => setSaveState("idle"), 2500);
+                    }
+                })
+                .catch((error) => {
+                    setErrorMessage(getErrorMessage(error));
+                    setSaveState("idle");
+                    pendingPayloadRef.current = "";
+                    pendingChangedSectionsRef.current = undefined;
+                    throw error;
+                });
             activeSaveRef.current = savePromise;
             try {
                 await savePromise;
@@ -221,7 +226,16 @@ export function useShortcutsConfigurationSave({
         pendingPayloadRef.current = payloadDataKey;
         pendingChangedSectionsRef.current = payload.changedSections;
         pendingSaveVersionRef.current = localChangeVersionRef.current;
-        await context.saveAndCloseConfiguration(payload);
+        try {
+            const result = await context.saveAndCloseConfiguration(payload);
+            if (result.errorMessage) {
+                setErrorMessage(result.errorMessage);
+                setSaveState("idle");
+            }
+        } catch (error) {
+            setErrorMessage(getErrorMessage(error));
+            setSaveState("idle");
+        }
     }, [context, debouncedDispatchSave]);
 
     useEffect(
@@ -247,6 +261,7 @@ export function useShortcutsConfigurationSave({
             }
 
             setSaveState("saving");
+            setErrorMessage(undefined);
             if (savedTimerRef.current) {
                 clearTimeout(savedTimerRef.current);
             }
@@ -366,6 +381,7 @@ export function useShortcutsConfigurationSave({
         quickQueryKeybindings,
         webviewShortcuts,
         saveState,
+        errorMessage,
         updateQuickQuery,
         updateQuickQueryShortcut,
         clearQuickQueryValues,

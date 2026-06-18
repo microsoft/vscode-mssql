@@ -153,6 +153,17 @@ export function updateKeybindingsText(text: string, updates: CommandKeybindingUp
 }
 
 export class KeybindingsService {
+    private static _instance: KeybindingsService;
+
+    private constructor() {}
+
+    public static getInstance(): KeybindingsService {
+        if (!KeybindingsService._instance) {
+            KeybindingsService._instance = new KeybindingsService();
+        }
+        return KeybindingsService._instance;
+    }
+
     public async getCommandKeybindings(commandIds: string[]): Promise<Record<string, string>> {
         const rules = parseKeybindingsText(await this.readKeybindingsText());
         const result: Record<string, string> = {};
@@ -201,3 +212,5 @@ export class KeybindingsService {
         await vscode.workspace.fs.writeFile(this.keybindingsUri, new TextEncoder().encode(text));
     }
 }
+
+export const keybindingsService = KeybindingsService.getInstance();
