@@ -2434,6 +2434,9 @@
     "Auto-execute": "Auto-execute",
     "Clear Quick Query": "Clear Quick Query",
     "Clear this Quick Query": "Clear this Quick Query",
+    "Managed in VS Code": "Managed in VS Code",
+    "Show All": "Show All",
+    "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts": "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
     "Query {0}/{0} is the Quick Query slot number": {
         "message": "Query {0}",
         "comment": ["{0} is the Quick Query slot number"]
@@ -2532,7 +2535,6 @@
     "Filter by keyword": "Filter by keyword",
     "Filter": "Filter",
     "Filter by type": "Filter by type",
-    "Show All": "Show All",
     "SQL Analytics Endpoint": "SQL Analytics Endpoint",
     "SQL Database": "SQL Database",
     "Warehouse": "Warehouse",

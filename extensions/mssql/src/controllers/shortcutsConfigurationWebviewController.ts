@@ -12,6 +12,9 @@ import { WebviewAction } from "../sharedInterfaces/webview";
 import {
     CloseShortcutsConfigurationRequest,
     getQuickQueryCommandId,
+    quickQueryCommandPrefix,
+    OpenQuickQueryKeybindingRequest,
+    OpenQuickQueryKeybindingsRequest,
     ReadClipboardTextRequest,
     ReadShortcutsConfigurationRequest,
     SaveAndCloseShortcutsConfigurationRequest,
@@ -95,6 +98,14 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
 
         this.onRequest(WriteClipboardTextRequest.type, async (text) => {
             await vscode.env.clipboard.writeText(text);
+        });
+
+        this.onRequest(OpenQuickQueryKeybindingRequest.type, async (commandId) => {
+            await this.openQuickQueryKeybinding(commandId);
+        });
+
+        this.onRequest(OpenQuickQueryKeybindingsRequest.type, async () => {
+            await this.openQuickQueryKeybindings();
         });
     }
 
@@ -190,6 +201,24 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
     private getQuickQueryCommandIds(): string[] {
         return Array.from({ length: quickQueryCount }, (_unused, index) =>
             getQuickQueryCommandId(index + 1),
+        );
+    }
+
+    private async openQuickQueryKeybinding(commandId: string): Promise<void> {
+        if (!this.getQuickQueryCommandIds().includes(commandId)) {
+            return;
+        }
+
+        await vscode.commands.executeCommand(
+            "workbench.action.openGlobalKeybindings",
+            `@command:${commandId}`,
+        );
+    }
+
+    private async openQuickQueryKeybindings(): Promise<void> {
+        await vscode.commands.executeCommand(
+            "workbench.action.openGlobalKeybindings",
+            quickQueryCommandPrefix,
         );
     }
 

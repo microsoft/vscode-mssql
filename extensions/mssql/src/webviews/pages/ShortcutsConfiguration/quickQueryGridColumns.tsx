@@ -18,7 +18,6 @@ import {
     QuickQueryExecutionMode,
     QuickQuerySlot,
 } from "../../../sharedInterfaces/shortcutsConfiguration";
-import { formatShortcut } from "./shortcutKeyboardUtils";
 
 const shortcutKeyboardIconMarkup = renderToStaticMarkup(<Keyboard16Regular aria-hidden />);
 const clearIconMarkup = renderToStaticMarkup(<EraserRegular aria-hidden />);
@@ -84,6 +83,7 @@ export interface UseQuickQueryColumnsParams {
     classes: Record<string, string>;
     loc: typeof locConstants.shortcutsConfiguration;
     onRecordShortcut: (commandId: string) => void;
+    onShowAllShortcuts: () => void;
     onEditQuery: (index: number) => void;
     updateQuickQuery: (index: number, value: QuickQuerySlot) => void;
     clearQuickQueryValues: (index: number, commandId: string) => void;
@@ -97,6 +97,7 @@ export function useQuickQueryColumns({
     classes,
     loc,
     onRecordShortcut,
+    onShowAllShortcuts,
     onEditQuery,
     updateQuickQuery,
     clearQuickQueryValues,
@@ -109,6 +110,32 @@ export function useQuickQueryColumns({
             const cell = document.createElement("div");
             cell.className = mergeClasses(classes.quickQueryCell, className);
             return cell;
+        };
+
+        const createShortcutHeader = () => {
+            const header = document.createElement("span");
+            header.className = classes.quickQueryShortcutHeader;
+            header.title = loc.managedInVsCode;
+
+            const label = document.createElement("span");
+            label.className = classes.quickQueryShortcutHeaderText;
+            label.textContent = loc.shortcut;
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = classes.quickQueryShortcutHeaderButton;
+            button.textContent = loc.showAllShortcuts;
+            button.title = loc.showAllQuickQueryShortcutsTooltip;
+            button.setAttribute("aria-label", loc.showAllQuickQueryShortcutsTooltip);
+            button.addEventListener("mousedown", (event) => event.stopPropagation());
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onShowAllShortcuts();
+            });
+
+            header.append(label, button);
+            return header;
         };
 
         return [
@@ -178,22 +205,19 @@ export function useQuickQueryColumns({
             },
             {
                 id: "shortcut",
-                name: loc.shortcut,
+                name: createShortcutHeader(),
                 field: "shortcut",
                 editor: {
                     model: ShortcutDialogEditor,
                     ariaLabel: loc.recordShortcut,
                 },
-                minWidth: 205,
+                minWidth: 180,
                 width: 230,
-                formatter: (_row, _cell, _value, _column, row) => {
+                formatter: (_row, _cell, _value, _column, _rowData) => {
                     const cell = createCell(classes.quickQueryShortcutCell);
-                    const displayValue = formatShortcut(row.shortcut) || loc.noShortcut;
+                    const displayValue = loc.managedInVsCode;
                     const display = document.createElement("span");
-                    display.className = mergeClasses(
-                        classes.quickQueryShortcutDisplay,
-                        !row.shortcut && classes.quickQueryEmpty,
-                    );
+                    display.className = classes.quickQueryShortcutDisplay;
                     display.title = displayValue;
                     const icon = document.createElement("span");
                     icon.className = classes.quickQueryShortcutIcon;
@@ -244,7 +268,6 @@ export function useQuickQueryColumns({
                     const button = document.createElement("button");
                     const isEmpty =
                         row.query.trim().length === 0 &&
-                        row.shortcut.trim().length === 0 &&
                         row.slot.executionMode === QuickQueryExecutionMode.Open;
                     button.type = "button";
                     button.className = classes.quickQueryClearButton;
@@ -263,5 +286,13 @@ export function useQuickQueryColumns({
                 },
             },
         ];
-    }, [classes, clearQuickQueryValues, loc, onEditQuery, onRecordShortcut, updateQuickQuery]);
+    }, [
+        classes,
+        clearQuickQueryValues,
+        loc,
+        onEditQuery,
+        onRecordShortcut,
+        onShowAllShortcuts,
+        updateQuickQuery,
+    ]);
 }

@@ -41,6 +41,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
     let webviewShortcutsSetting: Record<string, string>;
     let shortcutsInspectValue: Partial<vscode.WorkspaceConfiguration>;
     let webviewPanel: vscode.WebviewPanel;
+    let executeCommandStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -56,19 +57,24 @@ suite("shortcutsConfiguration Webview Controller", () => {
         tempUserDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-config-test-"));
         const globalStoragePath = path.join(tempUserDataPath, "globalStorage", "ms-mssql.mssql");
         fs.mkdirSync(globalStoragePath, { recursive: true });
-        sandbox.stub(vscode.workspace.fs, "readFile").callsFake(async (uri) => {
+        const readFile = sandbox.stub().callsFake(async (uri: vscode.Uri) => {
             if (uri.scheme === "vscode-userdata" && uri.path === "/User/keybindings.json") {
                 return new TextEncoder().encode(keybindingsText);
             }
             throw new Error(`Unexpected readFile URI: ${uri.toString()}`);
         });
-        sandbox.stub(vscode.workspace.fs, "writeFile").callsFake(async (uri, content) => {
+        const writeFile = sandbox.stub().callsFake(async (uri: vscode.Uri, content: Uint8Array) => {
             if (uri.scheme === "vscode-userdata" && uri.path === "/User/keybindings.json") {
                 keybindingsText = new TextDecoder("utf-8").decode(content);
                 return;
             }
             throw new Error(`Unexpected writeFile URI: ${uri.toString()}`);
         });
+        sandbox.stub(vscode.workspace, "fs").value({
+            ...vscode.workspace.fs,
+            readFile,
+            writeFile,
+        } as unknown as typeof vscode.workspace.fs);
 
         quickQueriesSetting = normalizeQuickQueries(undefined);
         webviewShortcutsSetting = {};
@@ -102,7 +108,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
             }),
         } as unknown as vscode.WorkspaceConfiguration);
 
-        sandbox.stub(vscode.commands, "executeCommand").resolves();
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
 
         vscodeWrapper = stubVscodeWrapper(sandbox);
         controller = new ShortcutsConfigurationWebviewController(
@@ -132,6 +138,8 @@ suite("shortcutsConfiguration Webview Controller", () => {
             saveAndCloseConfiguration: (
                 payload: SaveShortcutsConfigurationPayload,
             ) => Promise<SaveShortcutsConfigurationResult>;
+            openQuickQueryKeybinding: (commandId: string) => Promise<void>;
+            openQuickQueryKeybindings: () => Promise<void>;
         };
     }
 
@@ -252,6 +260,40 @@ suite("shortcutsConfiguration Webview Controller", () => {
 
         expect(result.errorMessage).to.equal(undefined);
         expect(webviewPanel.dispose).to.have.been.called;
+    });
+
+    test("openQuickQueryKeybinding opens Keyboard Shortcuts filtered to the command", async () => {
+        const commandId = getQuickQueryCommandId(1);
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openQuickQueryKeybinding(commandId);
+
+        expect(executeCommandStub).to.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            `@command:${commandId}`,
+        );
+    });
+
+    test("openQuickQueryKeybinding ignores non-Quick Query commands", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openQuickQueryKeybinding("workbench.action.closeActiveEditor");
+
+        expect(executeCommandStub).to.not.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            sinon.match.string,
+        );
+    });
+
+    test("openQuickQueryKeybindings opens Keyboard Shortcuts filtered to Quick Query commands", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openQuickQueryKeybindings();
+
+        expect(executeCommandStub).to.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            "mssql.quickQueries.run",
+        );
     });
 
     test("readConfiguration returns persisted Quick Queries, keybindings, and webview shortcuts", async () => {

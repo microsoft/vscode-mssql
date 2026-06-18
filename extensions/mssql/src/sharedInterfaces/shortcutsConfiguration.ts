@@ -92,6 +92,18 @@ export namespace WriteClipboardTextRequest {
     );
 }
 
+export namespace OpenQuickQueryKeybindingRequest {
+    export const type = new RequestType<string, void, void>(
+        "shortcutsConfiguration/openQuickQueryKeybinding",
+    );
+}
+
+export namespace OpenQuickQueryKeybindingsRequest {
+    export const type = new RequestType<void, void, void>(
+        "shortcutsConfiguration/openQuickQueryKeybindings",
+    );
+}
+
 export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     readConfiguration: () => Promise<ShortcutsConfigurationData>;
     saveConfiguration: (
@@ -103,6 +115,8 @@ export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     closeDialog: () => Promise<void>;
     readClipboardText: () => Promise<string>;
     writeClipboardText: (text: string) => Promise<void>;
+    openQuickQueryKeybinding: (commandId: string) => Promise<void>;
+    openQuickQueryKeybindings: () => Promise<void>;
 }
 
 export function getQuickQueryCommandId(slotNumber: number): string {

@@ -39,20 +39,35 @@ export function resolveQuickQueryConnectionOptions(): Pick<NewQueryOptions, "con
 }
 
 export class QuickQueryService {
-    constructor(private readonly dependencies: QuickQueryExecutionDependencies) {}
+    private static _instance: QuickQueryService;
+    private dependencies: QuickQueryExecutionDependencies | undefined;
+
+    private constructor() {}
+
+    public static getInstance(): QuickQueryService {
+        if (!QuickQueryService._instance) {
+            QuickQueryService._instance = new QuickQueryService();
+        }
+        return QuickQueryService._instance;
+    }
+
+    public configure(dependencies: QuickQueryExecutionDependencies): void {
+        this.dependencies = dependencies;
+    }
 
     public async run(slotNumber: number): Promise<QuickQueryRunResult> {
+        const dependencies = this.getDependencies();
         if (slotNumber < 1 || slotNumber > quickQueryCount) {
             throw new Error(Loc.quickQuerySlotOutOfRange(quickQueryCount));
         }
 
-        const slot = getQuickQuerySlot(this.dependencies.readQuickQueries(), slotNumber);
+        const slot = getQuickQuerySlot(dependencies.readQuickQueries(), slotNumber);
         if (slot.query.trim().length === 0) {
-            this.dependencies.openConfiguration(slotNumber);
+            dependencies.openConfiguration(slotNumber);
             return QuickQueryRunResult.OpenedConfiguration;
         }
 
-        const editor = await this.dependencies.createSqlEditor({
+        const editor = await dependencies.createSqlEditor({
             content: slot.query,
             ...resolveQuickQueryConnectionOptions(),
         });
@@ -61,11 +76,21 @@ export class QuickQueryService {
             return QuickQueryRunResult.Opened;
         }
 
-        if (!this.dependencies.isSqlEditorConnected(editor)) {
+        if (!dependencies.isSqlEditorConnected(editor)) {
             return QuickQueryRunResult.OpenedWithoutConnection;
         }
 
-        await this.dependencies.runSqlEditorQuery(editor);
+        await dependencies.runSqlEditorQuery(editor);
         return QuickQueryRunResult.OpenedAndRan;
     }
+
+    private getDependencies(): QuickQueryExecutionDependencies {
+        if (!this.dependencies) {
+            throw new Error("QuickQueryService has not been configured.");
+        }
+
+        return this.dependencies;
+    }
 }
+
+export const quickQueryService = QuickQueryService.getInstance();

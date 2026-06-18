@@ -259,6 +259,48 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
         width: "100%",
     },
+    quickQueryShortcutHeader: {
+        alignItems: "center",
+        display: "flex",
+        gap: "8px",
+        justifyContent: "space-between",
+        minWidth: 0,
+        width: "100%",
+    },
+    quickQueryShortcutHeaderText: {
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    quickQueryShortcutHeaderButton: {
+        backgroundColor: "transparent",
+        border: "none",
+        borderRadius: "2px",
+        color: "var(--vscode-textLink-foreground)",
+        cursor: "pointer",
+        flex: "0 0 auto",
+        font: "inherit",
+        fontSize: "11px",
+        lineHeight: "16px",
+        margin: 0,
+        maxWidth: "72px",
+        minWidth: 0,
+        overflow: "hidden",
+        padding: "0 2px",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        ":hover": {
+            color: "var(--vscode-textLink-activeForeground)",
+            textDecorationLine: "underline",
+        },
+        ":focus": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "1px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+    },
     quickQueryShortcutIcon: {
         color: "inherit",
         display: "inline-flex",
@@ -414,9 +456,7 @@ export const ShortcutsConfigurationPage = () => {
     const [editingQueryIndex, setEditingQueryIndex] = useState<number | undefined>(undefined);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
     const [shortcutSearch, setShortcutSearch] = useState("");
-    const [recording, setRecording] = useState<
-        { kind: "quickQuery"; commandId: string } | { kind: "webview"; action: WebviewAction }
-    >();
+    const [recording, setRecording] = useState<{ kind: "webview"; action: WebviewAction }>();
     const quickQueryGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const quickQueryRowsRef = useRef<QuickQueryGridRow[]>([]);
     const handledFocusNonceRef = useRef<number | undefined>(undefined);
@@ -428,7 +468,6 @@ export const ShortcutsConfigurationPage = () => {
         saveState,
         errorMessage: saveErrorMessage,
         updateQuickQuery,
-        updateQuickQueryShortcut,
         clearQuickQueryValues,
         updateWebviewShortcut,
         saveAndClose,
@@ -515,7 +554,12 @@ export const ShortcutsConfigurationPage = () => {
     const quickQueryColumns = useQuickQueryColumns({
         classes,
         loc,
-        onRecordShortcut: (commandId) => setRecording({ kind: "quickQuery", commandId }),
+        onRecordShortcut: (commandId) => {
+            void context?.openQuickQueryKeybinding(commandId);
+        },
+        onShowAllShortcuts: () => {
+            void context?.openQuickQueryKeybindings();
+        },
         onEditQuery: (index) => setEditingQueryIndex(index),
         updateQuickQuery,
         clearQuickQueryValues,
@@ -665,16 +709,6 @@ export const ShortcutsConfigurationPage = () => {
             return undefined;
         }
 
-        for (let index = 0; index < quickQueries.length; index++) {
-            const commandId = getQuickQueryCommandId(index + 1);
-            if (recording.kind === "quickQuery" && recording.commandId === commandId) {
-                continue;
-            }
-            if ((quickQueryKeybindings[commandId] ?? "").trim().toLowerCase() === normalized) {
-                return loc.quickQuerySlotName(index + 1);
-            }
-        }
-
         for (const group of shortcutGroups) {
             for (const item of group.items) {
                 if (recording.kind === "webview" && recording.action === item.action) {
@@ -723,11 +757,7 @@ export const ShortcutsConfigurationPage = () => {
                     findConflict={findShortcutConflict}
                     onClose={() => setRecording(undefined)}
                     onSave={(value) => {
-                        if (recording.kind === "quickQuery") {
-                            updateQuickQueryShortcut(recording.commandId, value);
-                        } else {
-                            updateWebviewShortcut(recording.action, value);
-                        }
+                        updateWebviewShortcut(recording.action, value);
                     }}
                 />
             )}

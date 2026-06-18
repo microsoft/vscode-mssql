@@ -131,7 +131,7 @@ import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvi
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
 import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
-import { QuickQueryService } from "../quickQueries/quickQueryService";
+import { quickQueryService } from "../quickQueries/quickQueryService";
 import {
     getQuickQueryCommandId,
     normalizeQuickQueries,
@@ -302,7 +302,7 @@ export default class MainController implements vscode.Disposable {
                     if (!this.isShortcutsConfigurationEnabled()) {
                         return;
                     }
-                    void this.runAndLogErrors(this.createQuickQueryService().run(slotNumber));
+                    void this.runAndLogErrors(quickQueryService.run(slotNumber));
                 });
             }
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -1090,6 +1090,7 @@ export default class MainController implements vscode.Disposable {
         );
 
         this._sqlDocumentService = new SqlDocumentService(this);
+        this.configureQuickQueryService();
 
         this._outputContentProvider.queryResultWebviewController.sqlDocumentService =
             this._sqlDocumentService;
@@ -2973,8 +2974,8 @@ export default class MainController implements vscode.Disposable {
         return previewService.isFeatureEnabled(PreviewFeature.ShortcutsConfiguration);
     }
 
-    private createQuickQueryService(): QuickQueryService {
-        return new QuickQueryService({
+    private configureQuickQueryService(): void {
+        quickQueryService.configure({
             readQuickQueries: () =>
                 normalizeQuickQueries(
                     vscode.workspace.getConfiguration().get(Constants.configQuickQueries),

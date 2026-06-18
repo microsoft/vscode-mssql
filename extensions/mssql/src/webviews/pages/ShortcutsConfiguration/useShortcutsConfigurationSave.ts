@@ -58,7 +58,6 @@ export interface UseShortcutsConfigurationSaveResult {
     saveState: SaveState;
     errorMessage: string | undefined;
     updateQuickQuery: (index: number, value: QuickQuerySlot) => void;
-    updateQuickQueryShortcut: (commandId: string, value: string) => void;
     clearQuickQueryValues: (index: number, commandId: string) => void;
     updateWebviewShortcut: (action: WebviewAction, value: string) => void;
     saveAndClose: () => Promise<void>;
@@ -309,29 +308,11 @@ export function useShortcutsConfigurationSave({
         [markLocalChange, quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
     );
 
-    const updateQuickQueryShortcut = useCallback(
-        (commandId: string, value: string) => {
-            const nextKeybindings = {
-                ...quickQueryKeybindings,
-                [commandId]: value,
-            };
-            setQuickQueryKeybindings(nextKeybindings);
-            markLocalChange();
-            saveWith(quickQueries, nextKeybindings, webviewShortcuts, {
-                quickQueryKeybindings: true,
-            });
-        },
-        [markLocalChange, quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
-    );
-
     const clearQuickQueryValues = useCallback(
-        (index: number, commandId: string) => {
+        (index: number, _commandId: string) => {
             const slot = quickQueries[index];
-            const shortcut = quickQueryKeybindings[commandId] ?? "";
             const hasValues =
-                slot.query.trim().length > 0 ||
-                shortcut.trim().length > 0 ||
-                slot.executionMode !== QuickQueryExecutionMode.Open;
+                slot.query.trim().length > 0 || slot.executionMode !== QuickQueryExecutionMode.Open;
             if (!hasValues) {
                 return;
             }
@@ -345,17 +326,11 @@ export function useShortcutsConfigurationSave({
                       }
                     : current,
             );
-            const nextKeybindings = {
-                ...quickQueryKeybindings,
-                [commandId]: "",
-            };
 
             setQuickQueries(nextQuickQueries);
-            setQuickQueryKeybindings(nextKeybindings);
             markLocalChange();
-            saveWith(nextQuickQueries, nextKeybindings, webviewShortcuts, {
+            saveWith(nextQuickQueries, quickQueryKeybindings, webviewShortcuts, {
                 quickQueries: true,
-                quickQueryKeybindings: true,
             });
         },
         [markLocalChange, quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
@@ -383,7 +358,6 @@ export function useShortcutsConfigurationSave({
         saveState,
         errorMessage,
         updateQuickQuery,
-        updateQuickQueryShortcut,
         clearQuickQueryValues,
         updateWebviewShortcut,
         saveAndClose,

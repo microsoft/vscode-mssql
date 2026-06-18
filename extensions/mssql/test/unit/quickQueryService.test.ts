@@ -18,8 +18,10 @@ import {
     quickQueryCount,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import {
+    QuickQueryExecutionDependencies,
     QuickQueryRunResult,
     QuickQueryService,
+    quickQueryService,
     resolveQuickQueryConnectionOptions,
 } from "../../src/quickQueries/quickQueryService";
 import { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
@@ -43,6 +45,21 @@ suite("Quick Query Service", () => {
     teardown(() => {
         sandbox.restore();
     });
+
+    function configureService(
+        dependencies: Partial<QuickQueryExecutionDependencies>,
+    ): QuickQueryService {
+        quickQueryService.configure({
+            readQuickQueries: () => normalizeQuickQueries(undefined),
+            openConfiguration: sandbox.stub(),
+            createSqlEditor: sandbox.stub(),
+            isSqlEditorConnected: sandbox.stub(),
+            runSqlEditorQuery: sandbox.stub(),
+            ...dependencies,
+        });
+
+        return quickQueryService;
+    }
 
     test("normalizes Quick Query config to ten slots", () => {
         const quickQueries = normalizeQuickQueries([
@@ -98,14 +115,14 @@ suite("Quick Query Service", () => {
         });
     });
 
+    test("returns the singleton instance", () => {
+        expect(QuickQueryService.getInstance()).to.equal(quickQueryService);
+    });
+
     test("opens configuration for an empty slot", async () => {
         const openConfiguration = sandbox.stub();
-        const service = new QuickQueryService({
-            readQuickQueries: () => normalizeQuickQueries(undefined),
+        const service = configureService({
             openConfiguration,
-            createSqlEditor: sandbox.stub(),
-            isSqlEditorConnected: sandbox.stub(),
-            runSqlEditorQuery: sandbox.stub(),
         });
 
         const result = await service.run(3);
@@ -117,7 +134,7 @@ suite("Quick Query Service", () => {
     test("opens without running when execution mode is open", async () => {
         const createSqlEditor = sandbox.stub().resolves(editor);
         const runSqlEditorQuery = sandbox.stub().resolves();
-        const service = new QuickQueryService({
+        const service = configureService({
             readQuickQueries: () =>
                 normalizeQuickQueries([
                     {
@@ -127,7 +144,6 @@ suite("Quick Query Service", () => {
                         connectionMode: "activeOrPrompt",
                     },
                 ]),
-            openConfiguration: sandbox.stub(),
             createSqlEditor,
             isSqlEditorConnected: sandbox.stub().returns(true),
             runSqlEditorQuery,
@@ -144,7 +160,7 @@ suite("Quick Query Service", () => {
 
     test("runs when execution mode is openAndRun and editor is connected", async () => {
         const runSqlEditorQuery = sandbox.stub().resolves();
-        const service = new QuickQueryService({
+        const service = configureService({
             readQuickQueries: () =>
                 normalizeQuickQueries([
                     {
@@ -153,7 +169,6 @@ suite("Quick Query Service", () => {
                         executionMode: QuickQueryExecutionMode.OpenAndRun,
                     },
                 ]),
-            openConfiguration: sandbox.stub(),
             createSqlEditor: sandbox.stub().resolves(editor),
             isSqlEditorConnected: sandbox.stub().returns(true),
             runSqlEditorQuery,

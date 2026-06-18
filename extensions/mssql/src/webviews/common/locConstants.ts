@@ -367,6 +367,11 @@ export class LocConstants {
             autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
+            managedInVsCode: l10n.t("Managed in VS Code"),
+            showAllShortcuts: l10n.t("Show All"),
+            showAllQuickQueryShortcutsTooltip: l10n.t(
+                "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
+            ),
             quickQuerySlotName: (slotNumber: number) =>
                 l10n.t({
                     message: "Query {0}",

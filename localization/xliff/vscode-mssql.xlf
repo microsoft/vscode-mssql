@@ -4412,6 +4412,9 @@
     <trans-unit id="++CODE++5ae5256284272a7585c1b275ef82e5d337ca3353c8e608120019177aad6a26c6">
       <source xml:lang="en">Manage relationships</source>
     </trans-unit>
+    <trans-unit id="++CODE++92c20a4c9f9605c5118291b8c16272a3732ad73f2293593fd9136db4837d93cf">
+      <source xml:lang="en">Managed in VS Code</source>
+    </trans-unit>
     <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
       <source xml:lang="en">Mandatory (Recommended)</source>
     </trans-unit>
@@ -6736,6 +6739,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
       <source xml:lang="en">Show a random table definition</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e003a6ddd41b59eec63e1e129d92668798116d9cf37d1d07d9b64c94fe2e872e">
+      <source xml:lang="en">Show all Quick Query shortcuts in VS Code Keyboard Shortcuts</source>
     </trans-unit>
     <trans-unit id="++CODE++87e6b9fe0c51b9ad481c1e47b40fbc5a13ea3464c5131908b81cb2b21cd33822">
       <source xml:lang="en">Show all columns</source>
