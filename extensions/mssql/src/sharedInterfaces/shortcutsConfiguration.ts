@@ -20,11 +20,8 @@ export interface QuickQuerySlot {
     executionMode: QuickQueryExecutionMode;
 }
 
-export type QuickQueryKeybindings = Record<string, string>;
-
 export interface ShortcutsConfigurationData {
     quickQueries: QuickQuerySlot[];
-    quickQueryKeybindings: QuickQueryKeybindings;
     webviewShortcuts: Record<string, string>;
 }
 
@@ -36,13 +33,11 @@ export interface ShortcutsConfigurationWebviewState {
 
 export interface SaveShortcutsConfigurationChangedSections {
     quickQueries?: boolean;
-    quickQueryKeybindings?: boolean;
     webviewShortcuts?: boolean;
 }
 
 export interface SaveShortcutsConfigurationPayload {
     quickQueries: QuickQuerySlot[];
-    quickQueryKeybindings: QuickQueryKeybindings;
     webviewShortcuts: Record<string, string>;
     changedSections?: SaveShortcutsConfigurationChangedSections;
 }

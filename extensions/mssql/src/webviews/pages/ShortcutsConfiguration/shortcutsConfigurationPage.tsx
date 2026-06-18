@@ -463,7 +463,6 @@ export const ShortcutsConfigurationPage = () => {
 
     const {
         quickQueries,
-        quickQueryKeybindings,
         webviewShortcuts,
         saveState,
         errorMessage: saveErrorMessage,
@@ -503,11 +502,10 @@ export const ShortcutsConfigurationPage = () => {
                     slot,
                     name: slot.name,
                     query: slot.query,
-                    shortcut: quickQueryKeybindings[commandId] ?? "",
                     autoExecute: slot.executionMode === QuickQueryExecutionMode.OpenAndRun,
                 };
             }),
-        [quickQueries, quickQueryKeybindings],
+        [quickQueries],
     );
     const syncQuickQueryGridRows = useCallback((rows: QuickQueryGridRow[]) => {
         const reactGrid = quickQueryGridRef.current;

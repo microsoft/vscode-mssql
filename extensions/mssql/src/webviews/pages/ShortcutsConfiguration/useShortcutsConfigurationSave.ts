@@ -19,13 +19,11 @@ import { SaveState } from "./shortcutComponents";
 
 function buildPayload(
     quickQueries: QuickQuerySlot[],
-    quickQueryKeybindings: Record<string, string>,
     webviewShortcuts: Record<string, string>,
     changedSections?: SaveShortcutsConfigurationChangedSections,
 ): SaveShortcutsConfigurationPayload {
     return {
         quickQueries,
-        quickQueryKeybindings,
         webviewShortcuts,
         changedSections,
     };
@@ -36,10 +34,6 @@ function getPayloadDataKey(payload: SaveShortcutsConfigurationPayload): string {
     return JSON.stringify({
         quickQueries:
             !changedSections || changedSections.quickQueries ? payload.quickQueries : undefined,
-        quickQueryKeybindings:
-            !changedSections || changedSections.quickQueryKeybindings
-                ? payload.quickQueryKeybindings
-                : undefined,
         webviewShortcuts:
             !changedSections || changedSections.webviewShortcuts
                 ? payload.webviewShortcuts
@@ -53,7 +47,6 @@ export interface UseShortcutsConfigurationSaveParams {
 
 export interface UseShortcutsConfigurationSaveResult {
     quickQueries: QuickQuerySlot[];
-    quickQueryKeybindings: Record<string, string>;
     webviewShortcuts: Record<string, string>;
     saveState: SaveState;
     errorMessage: string | undefined;
@@ -75,15 +68,11 @@ export function useShortcutsConfigurationSave({
     const [quickQueries, setQuickQueries] = useState<QuickQuerySlot[]>(() =>
         normalizeQuickQueries(undefined),
     );
-    const [quickQueryKeybindings, setQuickQueryKeybindings] = useState<Record<string, string>>({});
     const [webviewShortcuts, setWebviewShortcuts] = useState<Record<string, string>>({});
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const lastSavedPayloadRef = useRef("");
     const pendingPayloadRef = useRef("");
-    const pendingChangedSectionsRef = useRef<SaveShortcutsConfigurationChangedSections | undefined>(
-        undefined,
-    );
     const pendingSaveVersionRef = useRef(0);
     const localChangeVersionRef = useRef(0);
     const scheduledPayloadRef = useRef<SaveShortcutsConfigurationPayload | undefined>(undefined);
@@ -104,18 +93,12 @@ export function useShortcutsConfigurationSave({
                 }
 
                 const normalizedQuickQueries = normalizeQuickQueries(configuration.quickQueries);
-                const normalizedKeybindings = configuration.quickQueryKeybindings ?? {};
                 const normalizedShortcuts = configuration.webviewShortcuts ?? {};
                 setQuickQueries(normalizedQuickQueries);
-                setQuickQueryKeybindings(normalizedKeybindings);
                 setWebviewShortcuts(normalizedShortcuts);
                 setErrorMessage(undefined);
                 lastSavedPayloadRef.current = getPayloadDataKey(
-                    buildPayload(
-                        normalizedQuickQueries,
-                        normalizedKeybindings,
-                        normalizedShortcuts,
-                    ),
+                    buildPayload(normalizedQuickQueries, normalizedShortcuts),
                 );
             })
             .catch((error) => {
@@ -141,7 +124,6 @@ export function useShortcutsConfigurationSave({
             }
 
             pendingPayloadRef.current = payloadDataKey;
-            pendingChangedSectionsRef.current = payload.changedSections;
             pendingSaveVersionRef.current = localChangeVersionRef.current;
             const savePromise = context
                 .saveConfiguration(payload)
@@ -150,7 +132,6 @@ export function useShortcutsConfigurationSave({
                         setErrorMessage(result.errorMessage);
                         setSaveState("idle");
                         pendingPayloadRef.current = "";
-                        pendingChangedSectionsRef.current = undefined;
                         return;
                     }
 
@@ -160,7 +141,6 @@ export function useShortcutsConfigurationSave({
                     ) {
                         hasLocalChangesRef.current = false;
                         pendingPayloadRef.current = "";
-                        pendingChangedSectionsRef.current = undefined;
                         lastSavedPayloadRef.current = payloadDataKey;
                         setErrorMessage(undefined);
                         setSaveState("saved");
@@ -174,7 +154,6 @@ export function useShortcutsConfigurationSave({
                     setErrorMessage(getErrorMessage(error));
                     setSaveState("idle");
                     pendingPayloadRef.current = "";
-                    pendingChangedSectionsRef.current = undefined;
                     throw error;
                 });
             activeSaveRef.current = savePromise;
@@ -223,7 +202,6 @@ export function useShortcutsConfigurationSave({
         scheduledPayloadRef.current = undefined;
         const payloadDataKey = getPayloadDataKey(payload);
         pendingPayloadRef.current = payloadDataKey;
-        pendingChangedSectionsRef.current = payload.changedSections;
         pendingSaveVersionRef.current = localChangeVersionRef.current;
         try {
             const result = await context.saveAndCloseConfiguration(payload);
@@ -273,20 +251,12 @@ export function useShortcutsConfigurationSave({
     const saveWith = useCallback(
         (
             nextQuickQueries = quickQueries,
-            nextQuickQueryKeybindings = quickQueryKeybindings,
             nextWebviewShortcuts = webviewShortcuts,
             changedSections?: SaveShortcutsConfigurationChangedSections,
         ) => {
-            scheduleSave(
-                buildPayload(
-                    nextQuickQueries,
-                    nextQuickQueryKeybindings,
-                    nextWebviewShortcuts,
-                    changedSections,
-                ),
-            );
+            scheduleSave(buildPayload(nextQuickQueries, nextWebviewShortcuts, changedSections));
         },
-        [quickQueries, quickQueryKeybindings, scheduleSave, webviewShortcuts],
+        [quickQueries, scheduleSave, webviewShortcuts],
     );
 
     const markLocalChange = useCallback(() => {
@@ -301,11 +271,11 @@ export function useShortcutsConfigurationSave({
             );
             setQuickQueries(nextQuickQueries);
             markLocalChange();
-            saveWith(nextQuickQueries, quickQueryKeybindings, webviewShortcuts, {
+            saveWith(nextQuickQueries, webviewShortcuts, {
                 quickQueries: true,
             });
         },
-        [markLocalChange, quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
+        [markLocalChange, quickQueries, saveWith, webviewShortcuts],
     );
 
     const clearQuickQueryValues = useCallback(
@@ -329,11 +299,11 @@ export function useShortcutsConfigurationSave({
 
             setQuickQueries(nextQuickQueries);
             markLocalChange();
-            saveWith(nextQuickQueries, quickQueryKeybindings, webviewShortcuts, {
+            saveWith(nextQuickQueries, webviewShortcuts, {
                 quickQueries: true,
             });
         },
-        [markLocalChange, quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
+        [markLocalChange, quickQueries, saveWith, webviewShortcuts],
     );
 
     const updateWebviewShortcut = useCallback(
@@ -344,16 +314,15 @@ export function useShortcutsConfigurationSave({
             };
             setWebviewShortcuts(nextShortcuts);
             markLocalChange();
-            saveWith(quickQueries, quickQueryKeybindings, nextShortcuts, {
+            saveWith(quickQueries, nextShortcuts, {
                 webviewShortcuts: true,
             });
         },
-        [markLocalChange, quickQueries, quickQueryKeybindings, saveWith, webviewShortcuts],
+        [markLocalChange, quickQueries, saveWith, webviewShortcuts],
     );
 
     return {
         quickQueries,
-        quickQueryKeybindings,
         webviewShortcuts,
         saveState,
         errorMessage,

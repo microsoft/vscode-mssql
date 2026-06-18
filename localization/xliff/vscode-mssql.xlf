@@ -1788,14 +1788,6 @@
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++69c9abac2cb0439eac9a7d06a17d87d5324dc2bbb0b4b1a84e7658ee174e98e2">
-      <source xml:lang="en">Could not parse keybindings.json: root value must be an array.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++417840012ba6cc2c27ca7fe8f6afc3c0bea2646a4ff7766d21f33a3af6241d9f">
-      <source xml:lang="en">Could not parse keybindings.json: {0} at offset {1}.</source>
-      <note>{0} is the parse error description
-{1} is the character offset of the error</note>
-    </trans-unit>
     <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
       <source xml:lang="en">Count: {0}</source>
       <note>{0} is the count</note>
@@ -7292,9 +7284,6 @@
     <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
       <note>{0} is the list of display names for the connections that have been ignored</note>
-    </trans-unit>
-    <trans-unit id="++CODE++ef3e06f1f4b57a660476e7a2a516027891eaead6d659bccee660c7e1c8229550">
-      <source xml:lang="en">The keybindings file has been opened for manual editing.</source>
     </trans-unit>
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>

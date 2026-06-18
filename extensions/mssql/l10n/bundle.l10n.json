@@ -25,15 +25,6 @@
     "Rename Database": "Rename Database",
     "Shortcuts Configuration": "Shortcuts Configuration",
     "Configuration saved.": "Configuration saved.",
-    "The keybindings file has been opened for manual editing.": "The keybindings file has been opened for manual editing.",
-    "Could not parse keybindings.json: {0} at offset {1}./{0} is the parse error description{1} is the character offset of the error": {
-        "message": "Could not parse keybindings.json: {0} at offset {1}.",
-        "comment": [
-            "{0} is the parse error description",
-            "{1} is the character offset of the error"
-        ]
-    },
-    "Could not parse keybindings.json: root value must be an array.": "Could not parse keybindings.json: root value must be an array.",
     "Quick Query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
         "message": "Quick Query slot must be between 1 and {0}.",
         "comment": ["{0} is the maximum Quick Query slot number"]

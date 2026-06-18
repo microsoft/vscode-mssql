@@ -29,7 +29,6 @@ export interface QuickQueryGridRow {
     slot: QuickQuerySlot;
     name: string;
     query: string;
-    shortcut: string;
     autoExecute: boolean;
 }
 
@@ -206,7 +205,7 @@ export function useQuickQueryColumns({
             {
                 id: "shortcut",
                 name: createShortcutHeader(),
-                field: "shortcut",
+                field: "commandId",
                 editor: {
                     model: ShortcutDialogEditor,
                     ariaLabel: loc.recordShortcut,

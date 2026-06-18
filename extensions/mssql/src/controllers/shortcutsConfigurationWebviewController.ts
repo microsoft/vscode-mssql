@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as Loc from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
-import { KeybindingsService, keybindingsService } from "../keybindings/keybindingsService";
 import { WebviewAction } from "../sharedInterfaces/webview";
 import {
     CloseShortcutsConfigurationRequest,
@@ -36,7 +35,6 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
     ShortcutsConfigurationReducers,
     void
 > {
-    private readonly keybindingsService: KeybindingsService;
     private focusNonce = 1;
 
     constructor(
@@ -71,7 +69,6 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             },
         );
 
-        this.keybindingsService = keybindingsService;
         this.registerRpcHandlers();
     }
 
@@ -127,27 +124,10 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
         const webviewShortcuts = sanitizeWebviewShortcuts(payload.webviewShortcuts ?? {});
         const changedSections = payload.changedSections ?? {
             quickQueries: true,
-            quickQueryKeybindings: true,
             webviewShortcuts: true,
         };
 
         try {
-            if (changedSections.quickQueryKeybindings) {
-                try {
-                    await this.keybindingsService.updateCommandKeybindings(
-                        this.getQuickQueryCommandIds().map((command) => ({
-                            command,
-                            key: payload.quickQueryKeybindings?.[command] ?? "",
-                        })),
-                    );
-                } catch (error) {
-                    await this.keybindingsService.openKeybindingsFile();
-                    throw new Error(
-                        `${getErrorMessage(error)} ${Loc.keybindingsFileOpenedForManualEditing}`,
-                    );
-                }
-            }
-
             if (changedSections.quickQueries) {
                 await vscode.workspace
                     .getConfiguration()
@@ -182,15 +162,10 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
     }
 
     private async readConfiguration(): Promise<ShortcutsConfigurationData> {
-        const keybindings = await this.keybindingsService.getCommandKeybindings(
-            this.getQuickQueryCommandIds(),
-        );
-
         return {
             quickQueries: normalizeQuickQueries(
                 vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
             ),
-            quickQueryKeybindings: keybindings,
             webviewShortcuts:
                 vscode.workspace
                     .getConfiguration()
