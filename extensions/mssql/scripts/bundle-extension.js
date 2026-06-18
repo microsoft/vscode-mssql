@@ -5,7 +5,6 @@
 
 const logger = require("../../../scripts/terminal-logger");
 const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
-const path = require("path");
 
 // Parse arguments
 const args = process.argv.slice(2);

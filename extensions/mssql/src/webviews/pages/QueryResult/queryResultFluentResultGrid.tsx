@@ -676,6 +676,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         selection,
                         includeHeaders: false,
                     });
+                    context.showCopyIndicator();
                     break;
                 case FluentResultGridCommand.CopyWithHeaders:
                     await context.extensionRpc.sendRequest(qr.CopySelectionRequest.type, {
@@ -685,6 +686,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         selection,
                         includeHeaders: true,
                     });
+                    context.showCopyIndicator();
                     break;
                 case FluentResultGridCommand.CopyHeaders:
                     await context.extensionRpc.sendRequest(qr.CopyHeadersRequest.type, {
@@ -693,6 +695,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                     });
+                    context.showCopyIndicator();
                     break;
                 case FluentResultGridCommand.CopyAsCsv:
                     await context.extensionRpc.sendRequest(qr.CopyAsCsvRequest.type, {
@@ -701,6 +704,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                     });
+                    context.showCopyIndicator();
                     break;
                 case FluentResultGridCommand.CopyAsJson:
                     await context.extensionRpc.sendRequest(qr.CopyAsJsonRequest.type, {
@@ -710,6 +714,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         selection,
                         includeHeaders: true,
                     });
+                    context.showCopyIndicator();
                     break;
                 case FluentResultGridCommand.CopyAsInClause:
                     await context.extensionRpc.sendRequest(qr.CopyAsInClauseRequest.type, {
@@ -718,6 +723,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                     });
+                    context.showCopyIndicator();
                     break;
                 case FluentResultGridCommand.CopyAsInsertInto:
                     await context.extensionRpc.sendRequest(qr.CopyAsInsertIntoRequest.type, {
@@ -726,12 +732,14 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                     });
+                    context.showCopyIndicator();
                     break;
                 case FluentResultGridCommand.CopyColumnName: {
                     const rawName = event.column?.columnName ?? event.columnId ?? "";
                     await context.extensionRpc.sendRequest(qr.CopyColumnNameRequest.type, {
                         columnName: `[${rawName.replace(/\]/g, "]]")}]`,
                     });
+                    context.showCopyIndicator();
                     break;
                 }
                 case FluentResultGridCommand.SaveAsCsv:

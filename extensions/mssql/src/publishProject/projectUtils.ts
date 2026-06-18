@@ -436,8 +436,9 @@ export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: strin
 export function readRefactorLogPath(sqlprojText: string): string | undefined {
     // Match the Include attribute regardless of its position among other attributes
     // (e.g. <RefactorLog Condition="..." Include="..." />).
-    const match = sqlprojText.match(/<RefactorLog\b[^>]*?\bInclude\s*=\s*"([^"]+)"/i);
-    return match ? match[1] : undefined;
+    // Support both single and double quotes for MSBuild/XML compatibility.
+    const match = sqlprojText.match(/<RefactorLog\b[^>]*?\bInclude\s*=\s*(['"])([^'"]+)\1/i);
+    return match ? match[2] : undefined;
 }
 
 /**

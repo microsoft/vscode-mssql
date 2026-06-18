@@ -41,6 +41,14 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
+export let quickQuerySlotOutOfRange = (maxSlot: number) =>
+    l10n.t({
+        message: "Quick Query slot must be between 1 and {0}.",
+        args: [maxSlot],
+        comment: ["{0} is the maximum Quick Query slot number"],
+    });
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -824,7 +832,6 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
-export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -2619,17 +2626,24 @@ export class MssqlChatAgent {
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
-    public static dabToolMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open Data API builder.",
+    public static toolMissingConnectionReference = l10n.t(
+        "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     );
+    public static toolAmbiguousConnectionReference = l10n.t(
+        "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
+    );
+    public static noSqlToolsMcpConnectionName = (connectionName: string) => {
+        return l10n.t({
+            message: "No SQL Tools MCP connection found for connectionName: {0}",
+            args: [connectionName],
+            comment: ["{0} is the SQL Tools MCP registered connection name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
     public static schemaDesignerStaleState = l10n.t(
         "Schema designer state changed. Fetch the latest schema and retry the operation.",
-    );
-    public static schemaDesignerMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open the schema designer.",
     );
     public static schemaDesignerAddTableSuccess = l10n.t(
         "Table added to schema designer successfully.",
