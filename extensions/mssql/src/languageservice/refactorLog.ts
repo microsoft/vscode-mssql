@@ -20,12 +20,10 @@ function isSqlWordChar(c: string): boolean {
 }
 
 /**
- * Scans a SQL identifier — bracket-quoted (`[name]`) or bare word (`name`) — from `text` at `pos`.
- * `pos` may be anywhere on the identifier: inside `[...]`, on `[`, on `]`, or on a word character.
- * Returns `{ value, start, end }` (end is the index of the last character, inclusive),
- * or `undefined` when `pos` is not on an identifier.
+ * Core scan logic for a single position — does not retry. Returns `undefined` when `pos` is not
+ * on an identifier character.
  */
-function scanSqlIdentifier(
+function tryScanSqlIdentifierAt(
     text: string,
     pos: number,
 ): { value: string; start: number; end: number } | undefined {
@@ -65,6 +63,30 @@ function scanSqlIdentifier(
         end++;
     }
     return { value: text.slice(start, end + 1), start, end };
+}
+
+/**
+ * Scans a SQL identifier — bracket-quoted (`[name]`) or bare word (`name`) — from `text` at `pos`.
+ * `pos` may be anywhere on the identifier: inside `[...]`, on `[`, on `]`, or on a word character.
+ * Also handles `pos` being one position past the end of an identifier, which is the common VS Code
+ * case when the cursor is positioned *between* characters (e.g. at the end of a word).
+ * Returns `{ value, start, end }` (end is the index of the last character, inclusive),
+ * or `undefined` when `pos` is not on (or immediately after) an identifier.
+ */
+function scanSqlIdentifier(
+    text: string,
+    pos: number,
+): { value: string; start: number; end: number } | undefined {
+    const result = tryScanSqlIdentifierAt(text, pos);
+    if (result !== undefined) {
+        return result;
+    }
+    // Fallback: cursor may be just past the end of an identifier (VS Code positions the cursor
+    // *between* characters, so clicking after "foo" gives character = pos + 1).
+    if (pos > 0) {
+        return tryScanSqlIdentifierAt(text, pos - 1);
+    }
+    return undefined;
 }
 
 /**
@@ -254,8 +276,10 @@ export function applyRefactorLogEdit(
         // Escape the path so project names/paths containing & < > " stay valid XML.
         const includeValue = escapeXmlAttribute(target.refactorlogRelPath);
         const itemGroupEntry = `\n  <ItemGroup>\n    <RefactorLog Include="${includeValue}" />\n  </ItemGroup>`;
-        const projectCloseTag = "</Project>";
-        const projectCloseIdx = target.sqlprojContent.lastIndexOf(projectCloseTag);
+        // Use a regex to find </Project> so it handles optional whitespace (e.g. </Project >) and
+        // case variations, avoiding the brittle case-sensitive lastIndexOf approach.
+        const projectCloseMatch = /<\/Project\s*>/i.exec(target.sqlprojContent);
+        const projectCloseIdx = projectCloseMatch?.index ?? -1;
         const newSqlprojContent =
             projectCloseIdx >= 0
                 ? target.sqlprojContent.slice(0, projectCloseIdx) +
@@ -321,9 +345,8 @@ export async function addTempFileAsPreviewTrigger(
 }
 
 /**
- * Builds a `WorkspaceEdit` from the text-edit changes returned by STS (rename or move-to-schema)
- * and optionally appends the refactorlog write. Shared by both `SqlSymbolRenameProvider` and
- * `SqlMoveToSchemaProvider` to avoid duplicating the same loop.
+ * Builds a `WorkspaceEdit` from the text-edit changes returned by STS (move-to-schema) and
+ * optionally appends the refactorlog write. Used by `SqlMoveToSchemaProvider`.
  */
 export function buildRefactorWorkspaceEdit(
     changes: Record<string, SqlSymbolRenameTextEdit[]>,

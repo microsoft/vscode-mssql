@@ -205,9 +205,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 isRefactoring: true,
             });
             if (!applied) {
-                void this.vscodeWrapper.showErrorMessage(
-                    loc.moveToSchemaRequestFailed(loc.applyEditFailed),
-                );
+                void this.vscodeWrapper.showErrorMessage(loc.applyEditFailed);
             }
         } finally {
             if (tempUri) {
