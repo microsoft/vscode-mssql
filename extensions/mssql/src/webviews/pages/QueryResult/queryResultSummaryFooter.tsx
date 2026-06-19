@@ -140,7 +140,12 @@ function formatMillisecondsCompact(milliseconds: number): string {
     if (milliseconds < 60000) {
         const seconds = milliseconds / 1000;
         return locConstants.queryResult.compactSeconds(
-            seconds < 10 ? seconds.toFixed(1) : Math.round(seconds),
+            seconds < 10
+                ? seconds.toLocaleString(undefined, {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                  })
+                : Math.round(seconds),
         );
     }
 

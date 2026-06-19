@@ -354,6 +354,8 @@ export default class StatusView implements vscode.Disposable {
 
     public executingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        clearInterval(bar.queryTimer);
+        this.hideStatusBarItem(fileUri, bar.executionTime);
         if (this.isInWebviewFooterEnabled) {
             bar.statusQuery.hide();
             return;

@@ -565,31 +565,14 @@ suite("SqlOutputProvider Tests using mocks", () => {
     test("runQuery updates footer execution state on start, message, and complete", async () => {
         const uri = "test_uri";
         const title = "test_title";
-        const startEmitter = new vscode.EventEmitter<string>();
-        const messageEmitter = new vscode.EventEmitter<any>();
-        const completeEmitter = new vscode.EventEmitter<any>();
-
-        const mockRunner = {
-            uri,
-            runQuery: sandbox.stub().resolves(),
-            resetHasCompleted: sandbox.stub(),
-            onStartFailed: new vscode.EventEmitter<string>().event,
-            onStart: startEmitter.event,
-            onResultSetAvailable: new vscode.EventEmitter<any>().event,
-            onResultSetUpdated: new vscode.EventEmitter<any>().event,
-            onResultSetComplete: new vscode.EventEmitter<any>().event,
-            onBatchStart: new vscode.EventEmitter<any>().event,
-            onMessage: messageEmitter.event,
-            onComplete: completeEmitter.event,
-            onExecutionPlan: new vscode.EventEmitter<any>().event,
-            onSummaryChanged: new vscode.EventEmitter<any>().event,
-            isExecutingQuery: false,
-        } as unknown as QueryRunner;
-
-        sandbox.stub(contentProvider, "createQueryRunner").resolves(mockRunner);
+        sandbox.stub(QueryRunner.prototype, "runQuery").callsFake(async function (selection) {
+            this.setupQueryExecution(selection);
+            (this as unknown as { _startEmitter: vscode.EventEmitter<string> })._startEmitter.fire(
+                this.uri,
+            );
+        });
 
         await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
-        startEmitter.fire(uri);
 
         let state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
         expect(state.isExecuting).to.equal(true);
@@ -597,30 +580,42 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(state.executionElapsedMilliseconds).to.equal(undefined);
         expect(state.rowsAffected).to.equal(undefined);
 
-        messageEmitter.fire({
-            message: "(7 rows affected)",
-            isError: false,
-            time: "10:00:00 AM",
-            rowsAffected: 7,
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleMessage({
+            ownerUri: uri,
+            message: {
+                message: "(7 rows affected)",
+                isError: false,
+                time: "10:00:00 AM",
+                rowsAffected: 7,
+                batchId: -1,
+            },
         });
 
         state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
         expect(state.rowsAffected).to.equal(7);
 
-        completeEmitter.fire({
-            totalMilliseconds: "00:00:03",
-            totalElapsedMilliseconds: 3000,
-            hasError: false,
+        runner.handleBatchComplete({
+            ownerUri: uri,
+            batchSummary: {
+                hasError: false,
+                id: 0,
+                selection: undefined,
+                resultSetSummaries: [],
+                executionElapsed: "00:00:03",
+                executionEnd: new Date().toISOString(),
+                executionStart: new Date().toISOString(),
+            },
+        });
+        runner.handleQueryComplete({
+            ownerUri: uri,
+            batchSummaries: [],
         });
 
         state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
         expect(state.isExecuting).to.equal(false);
         expect(state.executionStartTime).to.equal(undefined);
         expect(state.executionElapsedMilliseconds).to.equal(3000);
-
-        startEmitter.dispose();
-        messageEmitter.dispose();
-        completeEmitter.dispose();
     });
 
     test("runQuery should prevent concurrent execution dispatch for same URI", async () => {
