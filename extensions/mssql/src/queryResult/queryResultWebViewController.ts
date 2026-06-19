@@ -38,6 +38,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     >();
     private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
         new Map<string, QueryResultWebviewPanelController>();
+    private _selectionSummaryContinuations: Map<string, Deferred<void>> = new Map();
     private _correlationId: string = randomUUID();
     /**
      * Editor status bar item used to show the grid selection summary when the query results
@@ -174,7 +175,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                 if (!state) {
                     return;
                 }
-                (state.selectionSummary?.continue as Deferred<void> | undefined)?.resolve();
+                this._selectionSummaryContinuations.get(uri)?.resolve();
             }),
         );
     }
@@ -487,6 +488,14 @@ export class QueryResultWebviewController extends WebviewViewController<
         this._queryResultStateMap.set(uri, state);
     }
 
+    public setSelectionSummaryContinuation(uri: string, continuation?: Deferred<void>): void {
+        if (continuation) {
+            this._selectionSummaryContinuations.set(uri, continuation);
+        } else {
+            this._selectionSummaryContinuations.delete(uri);
+        }
+    }
+
     public updateSelectionState(
         uri: string,
         gridId: string,
@@ -518,6 +527,7 @@ export class QueryResultWebviewController extends WebviewViewController<
 
     public deleteQueryResultState(uri: string): void {
         this._queryResultStateMap.delete(uri);
+        this._selectionSummaryContinuations.delete(uri);
     }
 
     public updatePanelState(uri: string): void {

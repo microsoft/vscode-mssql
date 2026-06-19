@@ -47,6 +47,10 @@ class ResultsConfig implements Interfaces.IResultsConfig {
     resultsFontFamily: string;
 }
 
+function getSelectionSummaryDisplayText(text?: string): string | undefined {
+    return text?.replace(/\$\([^)]+\)\s*/g, "").trim();
+}
+
 export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
@@ -711,12 +715,16 @@ export class SqlOutputContentProvider {
                 state.selectionSummary = {
                     stats: e.stats,
                     text: e.text,
+                    displayText: getSelectionSummaryDisplayText(e.text),
                     command: e.command,
                     tooltip: e.tooltip,
-                    continue: e.continue,
                     batchId: e.batchId,
                     resultId: e.resultId,
                 };
+                this._queryResultWebviewController.setSelectionSummaryContinuation(
+                    e.uri,
+                    e.continue as Deferred<void> | undefined,
+                );
                 this.updateWebviewState(e.uri, state);
                 // Refresh the editor status bar summary, which is shown when the results footer
                 // preview is disabled.

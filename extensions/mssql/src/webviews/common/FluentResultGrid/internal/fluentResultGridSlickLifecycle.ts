@@ -16,6 +16,7 @@ import type { ReactGridInstanceWithSharedService } from "./fluentResultGridContr
 import type { FluentResultGridDataRow, FluentResultGridDataView } from "./fluentResultGridDataView";
 import { makeFluentResultGridMenuButtonsUntabbable } from "./fluentResultGridDomUtils";
 import { getFluentResultGridDataSelectionsFromRanges } from "./fluentResultGridSelection";
+import { FluentResultGridSelectionModel } from "./fluentResultGridSelectionModel";
 
 export interface FluentResultGridSlickLifecycleController {
     handleReactGridCreated: (event: CustomEvent<SlickgridReactInstance>) => void;
@@ -76,6 +77,12 @@ export function useFluentResultGridSlickLifecycle({
             reactGridRef.current = reactGrid;
             dataViewRef.current?.setGrid(grid);
             attachFrozenPaneWheelHandler(grid);
+            grid.setSelectionModel(
+                new FluentResultGridSelectionModel({
+                    ...grid.getOptions().selectionOptions,
+                    selectionType: "cell",
+                }),
+            );
 
             selectionEventHandlerRef.current?.unsubscribeAll();
             selectionEventHandlerRef.current = new SlickEventHandler();

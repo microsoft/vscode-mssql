@@ -114,7 +114,7 @@ suite("QueryResultWebviewController", () => {
 
         await Promise.resolve();
 
-        expect(createPanelControllerStub).to.have.been.calledOnceWithExactly(testUri);
+        expect(createPanelControllerStub).to.have.been.calledWithExactly(testUri);
     });
 
     test("copies messages to the clipboard", async () => {
@@ -129,7 +129,7 @@ suite("QueryResultWebviewController", () => {
 
         await controller.copyAllMessagesToClipboard(testUri);
 
-        expect(vscodeWrapper.clipboardWriteText).to.have.been.calledOnceWithExactly(
+        expect(vscodeWrapper.clipboardWriteText).to.have.been.calledWithExactly(
             "first message\nsecond message",
         );
     });

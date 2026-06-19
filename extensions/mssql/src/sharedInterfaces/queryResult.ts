@@ -105,13 +105,13 @@ export interface SelectionSummaryMetrics {
 export interface SelectionSummary {
     stats?: SelectionSummaryMetrics;
     text?: string;
+    displayText?: string;
     command?: {
         title: string;
         command: string;
         arguments: unknown[];
     };
     tooltip?: string;
-    continue?: unknown;
     batchId?: number;
     resultId?: number;
 }

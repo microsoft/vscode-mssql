@@ -83,6 +83,7 @@ export interface ExecutionPlanEvent {
 
 export interface SummaryChanged extends SelectionSummary {
     uri: string;
+    continue?: Deferred<void>;
 }
 
 function getRowsAffectedFromMessage(message: string): number | undefined {

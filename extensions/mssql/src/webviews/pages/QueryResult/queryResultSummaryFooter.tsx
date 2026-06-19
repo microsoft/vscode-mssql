@@ -132,13 +132,6 @@ const useStyles = makeStyles({
     },
 });
 
-function normalizeStatusText(text?: string): string {
-    if (!text) {
-        return "";
-    }
-    return text.replace(/\$\([^)]+\)\s*/g, "").trim();
-}
-
 function formatMillisecondsCompact(milliseconds: number): string {
     if (milliseconds < 1000) {
         return locConstants.queryResult.compactMilliseconds(milliseconds);
@@ -406,7 +399,7 @@ export const QueryResultSummaryFooter = ({
             : compactExecutionText;
     const selectionStats = selectionSummary?.stats;
     const selectionCommand = selectionSummary?.command;
-    const selectionStatusText = normalizeStatusText(selectionSummary?.text);
+    const selectionStatusText = selectionSummary?.displayText ?? selectionSummary?.text ?? "";
     const selectionDisplayContent = selectionStats
         ? renderSelectionMetricsInline(selectionStats, classes)
         : (selectionStatusText ?? "") || locConstants.queryResult.noSelectionSummary;
@@ -442,7 +435,9 @@ export const QueryResultSummaryFooter = ({
                             </span>
                         </Tooltip>
                     </div>
-                    <span className={classes.divider}>|</span>
+                    <span className={classes.divider} aria-hidden="true">
+                        |
+                    </span>
                     <div className={classes.metric}>
                         <span className={classes.label}>{locConstants.queryResult.timeLabel}</span>
                         <Tooltip
@@ -458,7 +453,9 @@ export const QueryResultSummaryFooter = ({
             )}
             <div className={classes.spacer} />
             <div className={classes.selectionSegment}>
-                <span className={classes.divider}>|</span>
+                <span className={classes.divider} aria-hidden="true">
+                    |
+                </span>
                 <Tooltip
                     withArrow
                     relationship="description"
