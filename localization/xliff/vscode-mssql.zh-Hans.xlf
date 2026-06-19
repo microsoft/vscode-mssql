@@ -111,9 +111,25 @@
         <source xml:lang="en">-</source>
         <target state="translated">-</target>
       </trans-unit>
+      <trans-unit id="++CODE++14b36d7e04c3dc59133b74857a6bc90ca1805b3090ae3509207bcc78db9ecc1a">
+        <source xml:lang="en">0 rows</source>
+        <target state="new">0 rows</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80a41573cb27298c3f1de53e45274d1be6f8e381835bc8cd84b24f0e1bbf873e">
+        <source xml:lang="en">0 rows returned</source>
+        <target state="new">0 rows returned</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b">
         <source xml:lang="en">1</source>
         <target state="translated">1</target>
+      </trans-unit>
+      <trans-unit id="++CODE++07c30a3a0d752e12c0b2a23084bf77b6747f3b7fa00b7e9d820a3bc18040418a">
+        <source xml:lang="en">1 row</source>
+        <target state="new">1 row</target>
+      </trans-unit>
+      <trans-unit id="++CODE++41cf433995f12e73203aa3213ef1239975fae6486ddfbac3758709f815d0f57b">
+        <source xml:lang="en">1 row returned</source>
+        <target state="new">1 row returned</target>
       </trans-unit>
       <trans-unit id="++CODE++88af2fae162f54cc7b5d4efe02c132217c5bccb05fd1b82cbbfee5b450dc9a44">
         <source xml:lang="en">100K vCore seconds</source>
@@ -757,6 +773,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
         <note>{0} is the average, {1} is the count, {2} is the sum</note>
         <target state="translated">平均值: {0} 计数: {1} 总和: {2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++41835ff14ac6b8c789e93c4f3af5fdda54d093c45144a3cce1bb907e9c222162">
+        <source xml:lang="en">Avg</source>
+        <target state="new">Avg</target>
       </trans-unit>
       <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
         <source xml:lang="en">Azure (China)</source>
@@ -2355,6 +2375,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Could not load restore plan</source>
         <target state="translated">无法加载还原计划</target>
       </trans-unit>
+      <trans-unit id="++CODE++37bac4952becf21ac5838d3c9ba82811bc421c857571e89634dcbe346681d54c">
+        <source xml:lang="en">Count</source>
+        <target state="new">Count</target>
+      </trans-unit>
       <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
         <source xml:lang="en">Count: {0}</source>
         <note>{0} is the count</note>
@@ -3002,6 +3026,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
         <source xml:lang="en">Dissatisfied</source>
         <target state="translated">不满意</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b4bfe61839a600599613aa10df8a2444841a6b45fb221f51570a6a0c774bf64d">
+        <source xml:lang="en">Distinct</source>
+        <target state="new">Distinct</target>
       </trans-unit>
       <trans-unit id="++CODE++5aa581a11dd95f698fe9aa92dc7a36755c462342f790df3b8054f328cde4b94b">
         <source xml:lang="en">Distinct Count: {0}</source>
@@ -3678,6 +3706,14 @@ Error:
       <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">执行计划</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f93991ad07957c41dfc5212f2709590b0a723ccb5f5c397fb7c681b218de236d">
+        <source xml:lang="en">Execution cancelled</source>
+        <target state="new">Execution cancelled</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
+        <source xml:lang="en">Execution time unavailable</source>
+        <target state="new">Execution time unavailable</target>
       </trans-unit>
       <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
         <source xml:lang="en">Existing Database</source>
@@ -5789,6 +5825,10 @@ Error:
         <source xml:lang="en">Mandatory (True)</source>
         <target state="translated">强制(True)</target>
       </trans-unit>
+      <trans-unit id="++CODE++a1a5936d3b0f8a69fd62c91ed9990d3bd414c5e78c603e2837c65c9f46a93eb8">
+        <source xml:lang="en">Max</source>
+        <target state="new">Max</target>
+      </trans-unit>
       <trans-unit id="++CODE++5493d99b17c225af455b0fdaa53425c8fadd62f34935b8c02b8c1504f281acba">
         <source xml:lang="en">Max 10 databases / subscription</source>
         <target state="translated">最多 10 个数据库/订阅</target>
@@ -5928,6 +5968,10 @@ Error:
       <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
         <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
         <target state="translated">将保存的连接、连接组和连接设置从 Azure Data Studio 迁移到 MSSQL 扩展。此外，还可以安装 MSSQL 数据管理键映射，添加 Azure Data Studio 中熟悉的快捷键。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dea79332147ffe1fb2a81cf9a5bdf0066ddcc625699996ede0ce140e5cb004b1">
+        <source xml:lang="en">Min</source>
+        <target state="new">Min</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -6487,6 +6531,10 @@ Error:
         <source xml:lang="en">No results to display</source>
         <target state="translated">没有可显示的结果</target>
       </trans-unit>
+      <trans-unit id="++CODE++cdc59fbd2074445096076c2b3d3684fcc816879138cd2ac7b66627df573c4ab4">
+        <source xml:lang="en">No rows affected</source>
+        <target state="new">No rows affected</target>
+      </trans-unit>
       <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
         <source xml:lang="en">No rules match the current filter.</source>
         <target state="translated">没有符合当前筛选条件的规则。</target>
@@ -6514,6 +6562,10 @@ Error:
       <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
         <source xml:lang="en">No script generated.</source>
         <target state="translated">未生成脚本。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++211f6bbe2c56c016d33be98e6d3d9d9c7552182cfd0652284a2eaa30f71981cf">
+        <source xml:lang="en">No selection</source>
+        <target state="new">No selection</target>
       </trans-unit>
       <trans-unit id="++CODE++71e873a7b235e16960c8ae5cae169f48638a136d88236664fdd7f82cf88ce2c8">
         <source xml:lang="en">No servers found</source>
@@ -6664,6 +6716,10 @@ Error:
       <trans-unit id="++CODE++07b555a4dd9446c56aae7bbe326905f8aabc205d5eee96191a71e15510fbb53f">
         <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
         <target state="translated">注意: 自签名证书仅提供有限的保护，不建议用于生产环境。是否要在此连接上启用“信任服务器证书”并重试?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fa1d2db62d4d952e2031452e1bc1ddcad0b192c2e29a706f11ce426ae5acddea">
+        <source xml:lang="en">Null</source>
+        <target state="new">Null</target>
       </trans-unit>
       <trans-unit id="++CODE++00faa1559589415a5c6ecf98b61606f4ab0b254a38471dd99f9182e638997a52">
         <source xml:lang="en">Null Count: {0}</source>
@@ -7849,6 +7905,10 @@ Error:
         <source xml:lang="en">Row marked for removal.</source>
         <target state="translated">行标记为待移除。</target>
       </trans-unit>
+      <trans-unit id="++CODE++101f2ff3de22441fcab3e15ca0b09ac3428642cf628558f16fa404fc3137baea">
+        <source xml:lang="en">Rows</source>
+        <target state="new">Rows</target>
+      </trans-unit>
       <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
         <source xml:lang="en">Rows per page</source>
         <target state="translated">行数/页</target>
@@ -7909,6 +7969,11 @@ Query: {2}</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
         <target state="translated">正在连接 ‘{0}’ (ID: {1})上运行查询</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
+        <source xml:lang="en">Running: {0}</source>
+        <note>{0} is how long the query has been running</note>
+        <target state="new">Running: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
         <source xml:lang="en">SQL</source>
@@ -8617,6 +8682,10 @@ Query: {2}</source>
         <source xml:lang="en">Select the entire current row</source>
         <target state="new">Select the entire current row</target>
       </trans-unit>
+      <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
+        <source xml:lang="en">Selected</source>
+        <target state="new">Selected</target>
+      </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
         <target state="translated">已成功移除所选 Microsoft Entra 帐户。</target>
@@ -9229,6 +9298,10 @@ Query: {2}</source>
         <note>{0} is the file path</note>
         <target state="translated">已成功将结果保存到 {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++a21d7df04c33f5076ceee7d9b9c58339aa8c29bb9a53808233ba5b480fffd0e3">
+        <source xml:lang="en">Sum</source>
+        <target state="new">Sum</target>
+      </trans-unit>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
         <note>{0} is the sum</note>
@@ -9713,6 +9786,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
         <source xml:lang="en">This will reset all rules to their default severity and disable 'Enable Code Analysis on Build'. This cannot be undone. Would you like to continue?</source>
         <target state="translated">此操作会将所有规则重置为其默认严重性，并禁用“在生成时启用 Code Analysis”。此操作无法撤消。是否要继续?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
+        <source xml:lang="en">Time</source>
+        <target state="new">Time</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -10786,6 +10863,16 @@ Query: {2}</source>
         <note>{0} is the Quick Query shortcut name</note>
         <target state="new">{0} query</target>
       </trans-unit>
+      <trans-unit id="++CODE++08d28ae712434acde7968129899d99a2085a2a11f46288f0ae410bbc1d7af999">
+        <source xml:lang="en">{0} rows</source>
+        <note>{0} is the number of rows</note>
+        <target state="new">{0} rows</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8ee34f773802f0ec867cf584065e36d56b282d2ebb2e0fa202e912e2adb41307">
+        <source xml:lang="en">{0} rows returned</source>
+        <note>{0} is the number of rows returned</note>
+        <target state="new">{0} rows returned</target>
+      </trans-unit>
       <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
         <source xml:lang="en">{0} rows selected, click to load summary</source>
         <note>{0} is the number of rows to fetch summary statistics for</note>
@@ -10903,11 +10990,33 @@ Query: {2}</source>
 {1} is the remaining elapsed time in hours</note>
         <target state="translated">{0} 天 {1} 小时</target>
       </trans-unit>
+      <trans-unit id="++CODE++9caae5190284d627d3cc46861495b1395bc8c08d2783793102fcd0049c9db305">
+        <source xml:lang="en">{0}h</source>
+        <note>{0} is the number of hours</note>
+        <target state="new">{0}h</target>
+      </trans-unit>
+      <trans-unit id="++CODE++426016e0e4d63d9581ac0dd57c0cb2c983f34914d3fb7fc18de3615d8429ec8f">
+        <source xml:lang="en">{0}h {1}m</source>
+        <note>{0} is the number of hours
+{1} is the number of minutes</note>
+        <target state="new">{0}h {1}m</target>
+      </trans-unit>
       <trans-unit id="++CODE++ef2447cbc8c31cb68e92410fbddc126ba7a4d3b2448d8b55891fd110f2629c4d">
         <source xml:lang="en">{0}h {1}m</source>
         <note>{0} is the elapsed time in hours
 {1} is the remaining elapsed time in minutes</note>
         <target state="translated">{0} 小时 {1} 分</target>
+      </trans-unit>
+      <trans-unit id="++CODE++16ff17bef313e350fc12173186c0f2b3ee6d787af958508065b0c86eb55cfd2c">
+        <source xml:lang="en">{0}m</source>
+        <note>{0} is the number of minutes</note>
+        <target state="new">{0}m</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a9ffc34f0aecc6149b216774fdc8fd6b566c1ff479428416a498e39a55e4645">
+        <source xml:lang="en">{0}m {1}s</source>
+        <note>{0} is the number of minutes
+{1} is the number of seconds</note>
+        <target state="new">{0}m {1}s</target>
       </trans-unit>
       <trans-unit id="++CODE++b61200fec7f541d54e2092ce39398345e943a9190baac3c9191b540fb359fc41">
         <source xml:lang="en">{0}m {1}s</source>
@@ -10915,10 +11024,20 @@ Query: {2}</source>
 {1} is the remaining elapsed time in seconds</note>
         <target state="translated">{0} 分钟 {1} 秒</target>
       </trans-unit>
+      <trans-unit id="++CODE++f2e199e4d3247663cbae8e6da87ec6f29249db389c0816f1b7410e125cc06cf4">
+        <source xml:lang="en">{0}ms</source>
+        <note>{0} is the number of milliseconds</note>
+        <target state="new">{0}ms</target>
+      </trans-unit>
       <trans-unit id="++CODE++7225167ed5e4103e8208032eadc0cd8c8a50960a1d64a94da29046dc04100582">
         <source xml:lang="en">{0}ms</source>
         <note>{0} is the elapsed time in milliseconds</note>
         <target state="translated">{0} 毫秒</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0aac006567cda8611398b29728a0306562cd8434f36cf24018e7120f617f7602">
+        <source xml:lang="en">{0}s</source>
+        <note>{0} is the number of seconds</note>
+        <target state="new">{0}s</target>
       </trans-unit>
       <trans-unit id="++CODE++6798a9a353a86e591c7e67d0de13cc1b13216c95a1d38821b319d1f21823e3b1">
         <source xml:lang="en">{0}s</source>
