@@ -155,6 +155,8 @@ export interface SqlSymbolRenameParams {
     textDocument: { uri: string };
     position: { line: number; character: number };
     newName: string;
+    /** Current content of the project's .refactorlog file, or null/empty if none exists yet. */
+    existingRefactorLogContent: string | null;
 }
 
 export interface SqlSymbolRenameTextEdit {
@@ -167,8 +169,11 @@ export interface SqlSymbolRenameTextEdit {
 
 export interface SqlSymbolRenameResponse {
     changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
-    /** Original unqualified element name (brackets stripped), for .refactorlog. */
-    elementName: string | null;
+    /**
+     * Full content of the .refactorlog file with the new rename operation appended, ready to write.
+     * Null when the renamed symbol does not require a refactorlog entry.
+     */
+    refactorLogContent: string | null;
     newName: string;
 }
 

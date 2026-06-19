@@ -21,6 +21,7 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as telemetry from "../../src/telemetry/telemetry";
+import { sqlToolsMcpConnectionRegistry } from "../../src/sqlToolsMcp/sqlToolsMcpConnectionRegistry";
 
 chai.use(sinonChai);
 
@@ -32,6 +33,7 @@ suite("DabTool Tests", () => {
     let dabTool: DabTool;
 
     const sampleConnectionId = "connection-dab-123";
+    const sampleConnectionName = "McpDabConnection";
     const sampleDatabase = "AdventureWorks";
     const sampleServer = "localhost";
 
@@ -133,16 +135,18 @@ suite("DabTool Tests", () => {
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockToken = {} as vscode.CancellationToken;
         showDabStub = sandbox.stub();
+        sqlToolsMcpConnectionRegistry.clear();
         dabTool = new DabTool(mockConnectionManager, showDabStub as any);
         sandbox.stub(telemetry, "sendActionEvent");
     });
 
     teardown(() => {
+        sqlToolsMcpConnectionRegistry.clear();
         sandbox.restore();
     });
 
     suite("Tool behavior", () => {
-        test("returns invalid_request when show is missing connectionId", async () => {
+        test("returns invalid_request when show is missing connection reference", async () => {
             const options = {
                 input: {
                     operation: "show",
@@ -152,7 +156,23 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(false);
             expect(parsed.reason).to.equal("invalid_request");
-            expect(parsed.message).to.equal(loc.dabToolMissingConnectionId);
+            expect(parsed.message).to.equal(loc.toolMissingConnectionReference);
+            expect(showDabStub.called).to.equal(false);
+        });
+
+        test("returns invalid_request when show has both connectionId and connectionName", async () => {
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: sampleConnectionId,
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(false);
+            expect(parsed.reason).to.equal("invalid_request");
+            expect(parsed.message).to.equal(loc.toolAmbiguousConnectionReference);
             expect(showDabStub.called).to.equal(false);
         });
 
@@ -170,6 +190,21 @@ suite("DabTool Tests", () => {
             expect(parsed.success).to.equal(false);
             expect(parsed.reason).to.equal("invalid_request");
             expect(parsed.message).to.equal(loc.noConnectionError(sampleConnectionId));
+            expect(showDabStub.called).to.equal(false);
+        });
+
+        test("returns invalid_request when show connectionName is not registered", async () => {
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(false);
+            expect(parsed.reason).to.equal("invalid_request");
+            expect(parsed.message).to.equal(loc.noSqlToolsMcpConnectionName(sampleConnectionName));
             expect(showDabStub.called).to.equal(false);
         });
 
@@ -209,6 +244,85 @@ suite("DabTool Tests", () => {
             expect(parsed).to.not.have.property("config");
             expect(parsed).to.not.have.property("version");
             expect(parsed).to.not.have.property("summary");
+            expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
+            expect(mockDesigner.getDabToolState.called).to.equal(false);
+        });
+
+        test("show opens DAB from registered SQL Tools MCP connectionName", async () => {
+            const mockCredentials = {
+                database: sampleDatabase,
+            } as IConnectionProfile;
+
+            const mockConnectionInfo = {
+                connectionId: sampleConnectionId,
+                credentials: mockCredentials,
+            } as unknown as ConnectionInfo;
+
+            sqlToolsMcpConnectionRegistry.set(sampleConnectionName, {
+                connectionHandle: "connection-handle",
+                ownerUri: sampleConnectionId,
+                platformContext: { contextSettings: {} },
+                disposed: false,
+                queryTail: Promise.resolve(),
+            });
+            mockConnectionManager.getConnectionInfo.returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            showDabStub.resolves(mockDesigner);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(true);
+            expect(parsed.message).to.equal(loc.dabToolShowSuccessMessage);
+            expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
+            expect(mockDesigner.getDabToolState.called).to.equal(false);
+        });
+
+        test("show opens DAB when MCP connectionName is passed as connectionId", async () => {
+            const mcpConnectionId = "conn_dab_mcp_123";
+            const mockCredentials = {
+                database: sampleDatabase,
+            } as IConnectionProfile;
+
+            const mockConnectionInfo = {
+                connectionId: sampleConnectionId,
+                credentials: mockCredentials,
+            } as unknown as ConnectionInfo;
+
+            sqlToolsMcpConnectionRegistry.set(mcpConnectionId, {
+                connectionHandle: "connection-handle",
+                ownerUri: sampleConnectionId,
+                platformContext: { contextSettings: {} },
+                disposed: false,
+                queryTail: Promise.resolve(),
+            });
+            mockConnectionManager.getConnectionInfo.withArgs(mcpConnectionId).returns(undefined);
+            mockConnectionManager.getConnectionInfo
+                .withArgs(sampleConnectionId)
+                .returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            showDabStub.resolves(mockDesigner);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: mcpConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(true);
             expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
             expect(mockDesigner.getDabToolState.called).to.equal(false);
         });
