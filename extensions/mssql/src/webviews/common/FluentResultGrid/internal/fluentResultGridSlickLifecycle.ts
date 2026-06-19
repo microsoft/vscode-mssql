@@ -32,6 +32,7 @@ export function useFluentResultGridSlickLifecycle({
     persistScrollPosition,
     reactGridRef,
     restoreCurrentInitialState,
+    shouldSuppressSelectionSummaryChange,
 }: {
     attachFrozenPaneWheelHandler: (grid: SlickGrid) => void;
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
@@ -43,6 +44,7 @@ export function useFluentResultGridSlickLifecycle({
     persistScrollPosition: (grid: SlickGrid) => void;
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
     restoreCurrentInitialState: (grid: SlickGrid) => void;
+    shouldSuppressSelectionSummaryChange: () => boolean;
 }): FluentResultGridSlickLifecycleController {
     const selectionEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const gridStateEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
@@ -91,7 +93,9 @@ export function useFluentResultGridSlickLifecycle({
                     selectionModel.onSelectedRangesChanged,
                     (_event, ranges: SlickRange[]) => {
                         const selection = getFluentResultGridDataSelectionsFromRanges(ranges);
-                        void onSelectionSummaryChange?.(selection);
+                        if (!shouldSuppressSelectionSummaryChange()) {
+                            void onSelectionSummaryChange?.(selection);
+                        }
                         emitStateChange(grid);
                     },
                 );
@@ -128,6 +132,7 @@ export function useFluentResultGridSlickLifecycle({
             persistScrollPosition,
             reactGridRef,
             restoreCurrentInitialState,
+            shouldSuppressSelectionSummaryChange,
         ],
     );
 
