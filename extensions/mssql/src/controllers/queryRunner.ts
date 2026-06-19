@@ -629,6 +629,7 @@ export default class QueryRunner {
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
         });
+        this._statusView.executedQuery(this._ownerUri);
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {

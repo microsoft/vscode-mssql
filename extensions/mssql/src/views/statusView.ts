@@ -79,11 +79,13 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
                         this.showStatusBarItem(fileUri, bar.statusConnection);
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-                        this.showStatusBarItem(fileUri, bar.statusQuery);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
                         if (!this.isInWebviewFooterEnabled) {
+                            this.showStatusBarItem(fileUri, bar.statusQuery);
                             this.showStatusBarItem(fileUri, bar.rowCount);
                             this.showStatusBarItem(fileUri, bar.executionTime);
+                        } else {
+                            bar.statusQuery.hide();
                         }
                         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
                     }
@@ -198,11 +200,13 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-        this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         if (!this.isInWebviewFooterEnabled) {
+            this.showStatusBarItem(fileUri, bar.statusQuery);
             this.showStatusBarItem(fileUri, bar.rowCount);
             this.showStatusBarItem(fileUri, bar.executionTime);
+        } else {
+            bar.statusQuery.hide();
         }
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }
@@ -349,10 +353,11 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public executingQuery(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
         if (this.isInWebviewFooterEnabled) {
+            bar.statusQuery.hide();
             return;
         }
-        let bar = this.getStatusBar(fileUri);
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.executeQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
@@ -360,10 +365,11 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public executedQuery(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
         if (this.isInWebviewFooterEnabled) {
+            bar.statusQuery.hide();
             return;
         }
-        let bar = this.getStatusBar(fileUri);
         bar.statusQuery.text = LocalizedConstants.QueryExecutedLabel;
         // hide the status bar item with a delay so that the change can be announced by screen reader.
         setTimeout(() => {
@@ -382,10 +388,11 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public cancelingQuery(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
         if (this.isInWebviewFooterEnabled) {
+            bar.statusQuery.hide();
             return;
         }
-        let bar = this.getStatusBar(fileUri);
         bar.statusQuery.hide();
 
         bar.statusQuery.command = undefined;
