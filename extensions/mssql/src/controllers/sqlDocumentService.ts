@@ -741,6 +741,10 @@ export default class SqlDocumentService implements vscode.Disposable {
      */
     private async updateUri(oldUri: string, newUri: string) {
         this._logger.debug("Updating tracked URI", { oldUri, newUri });
+        // Transfer the status bar items to the new URI so they survive the rename/save. This is done
+        // before the connection transfer so that connect() updates the same status bar in place.
+        this._statusview?.associateWithExisting(oldUri, newUri);
+
         // Transfer the connection to the new URI
         await this._connectionMgr?.transferConnectionToFile(oldUri, newUri);
 

@@ -12,9 +12,29 @@ import { IConnectionGroup, IConnectionProfile } from "../../src/models/interface
 import { expect } from "chai";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
+import * as Utils from "../../src/models/utils";
 
 suite("Status View Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    function createMockStatusBarItem(): vscode.StatusBarItem {
+        return {
+            show: sandbox.stub(),
+            hide: sandbox.stub(),
+            dispose: sandbox.stub(),
+        } as unknown as vscode.StatusBarItem;
+    }
+
     test("updateStatusMessage should not immediately update status message for definition request", async () => {
         let statusView = new StatusView();
         let newStatus = LocalizedConstants.definitionRequestedStatus;
@@ -116,8 +136,26 @@ suite("Status View Tests", () => {
         statusView.dispose();
     });
 
+    test("executingQuery hides previous execution time", () => {
+        sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
+            return createMockStatusBarItem();
+        });
+        sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: sandbox.stub().returns("off"),
+        } as unknown as vscode.WorkspaceConfiguration);
+
+        const statusView = new StatusView();
+        const fileUri = "test_uri";
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
+        const executionTime = statusView["getStatusBar"](fileUri).executionTime;
+
+        statusView.executingQuery(fileUri);
+
+        expect(executionTime.hide).to.have.been.called;
+        statusView.dispose();
+    });
+
     suite("Colorization tests", () => {
-        let sandbox: sinon.SinonSandbox;
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
         const testFileUri = "untitledFile";
@@ -140,12 +178,7 @@ suite("Status View Tests", () => {
         const testServerInfo = {} as IServerInfo;
 
         setup(() => {
-            sandbox = sinon.createSandbox();
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        });
-
-        teardown(() => {
-            sandbox.restore();
         });
 
         test("should not colorize if no connection store", async () => {
