@@ -123,6 +123,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Plain-text column names for callers that need a label without HTML.
         const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
         const [vectorTooltip, setVectorTooltip] = useState<{ x: number; y: number } | null>(null);
+        const tooltipOpenCountRef = useRef(0);
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -438,7 +439,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     },
                 };
 
-                const isVector = colInfo.dataTypeName?.toLowerCase() === "vector";
+                const isVector =
+                    colInfo.dataTypeName?.trim().toLowerCase().startsWith("vector") ?? false;
                 if (colInfo.isEditable && !isVector) {
                     column.editor = {
                         model: Editors.text,
@@ -867,6 +869,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (!isVectorCol(column)) {
                 return;
             }
+            tooltipOpenCountRef.current += 1;
             setVectorTooltip({ x: e.clientX, y: e.clientY });
         }
 
@@ -980,6 +983,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const cellNode = grid.getCellNode(activeCell.row, activeCell.cell);
                 const rect = cellNode?.getBoundingClientRect();
                 if (rect) {
+                    tooltipOpenCountRef.current += 1;
                     setVectorTooltip({ x: rect.left, y: rect.bottom });
                 }
                 e.preventDefault();
@@ -1528,8 +1532,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         handleDblClick($event.detail.eventData, $event.detail.args)
                     }
                 />
+                <div aria-live="polite" aria-atomic="true" className="sr-only">
+                    {vectorTooltip && (
+                        <span key={tooltipOpenCountRef.current}>
+                            {loc.tableExplorer.vectorReadonlyTooltip}
+                        </span>
+                    )}
+                </div>
                 {vectorTooltip && (
                     <div
+                        role="tooltip"
                         className="vector-readonly-tooltip"
                         style={{ left: vectorTooltip.x + 12, top: vectorTooltip.y + 12 }}>
                         {loc.tableExplorer.vectorReadonlyTooltip}
