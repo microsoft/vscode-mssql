@@ -2231,6 +2231,7 @@
     "No schemas were found in the project.": "No schemas were found in the project.",
     "No object that can be moved to another schema was found at the cursor.": "No object that can be moved to another schema was found at the cursor.",
     "Move to Schema request failed: {0}": "Move to Schema request failed: {0}",
+    "Failed to resolve the refactor log for this file: {0}": "Failed to resolve the refactor log for this file: {0}",
     "Move to schema '{0}'": "Move to schema '{0}'",
     "Failed to apply the Move to Schema changes. Check that the files are writable and try again.": "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
     "Close": "Close",

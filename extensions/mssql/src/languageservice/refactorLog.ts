@@ -336,12 +336,20 @@ export async function addTempFileAsPreviewTrigger(
         ),
     );
     await vscode.workspace.fs.writeFile(tempUri, new Uint8Array());
-    const tempDoc = await vscode.workspace.openTextDocument(tempUri);
-    workspaceEdit.replace(tempUri, fullDocumentRange(tempDoc), "", {
-        needsConfirmation: true,
-        label,
-    });
-    return tempUri;
+    try {
+        const tempDoc = await vscode.workspace.openTextDocument(tempUri);
+        workspaceEdit.replace(tempUri, fullDocumentRange(tempDoc), "", {
+            needsConfirmation: true,
+            label,
+        });
+        return tempUri;
+    } catch (err) {
+        await vscode.workspace.fs.delete(tempUri, { useTrash: false }).then(
+            () => undefined,
+            () => undefined,
+        );
+        throw err;
+    }
 }
 
 /**

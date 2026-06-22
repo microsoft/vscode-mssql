@@ -4180,6 +4180,8 @@ export class SqlMoveToSchema {
     );
     public static moveToSchemaRequestFailed = (message: string): string =>
         l10n.t("Move to Schema request failed: {0}", message);
+    public static resolveRefactorLogFailed = (message: string): string =>
+        l10n.t("Failed to resolve the refactor log for this file: {0}", message);
     public static previewLabel = (targetSchema: string): string =>
         l10n.t("Move to schema '{0}'", targetSchema);
     public static applyEditFailed = l10n.t(

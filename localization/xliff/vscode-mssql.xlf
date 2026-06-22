@@ -3272,6 +3272,9 @@
 {1} is the new database name
 {2} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++537dc4696903542ac2dabf4ddc71d8e1410dd1dca3adb30f90a2fe488e981623">
+      <source xml:lang="en">Failed to resolve the refactor log for this file: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888">
       <source xml:lang="en">Failed to revert cell: {0}</source>
       <note>{0} is the error message</note>

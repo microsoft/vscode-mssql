@@ -151,7 +151,15 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         position: vscode.Position,
         targetSchema: string,
     ): Promise<void> {
-        const refactorTarget = await resolveRefactorLogTarget(document);
+        let refactorTarget;
+        try {
+            refactorTarget = await resolveRefactorLogTarget(document);
+        } catch (err) {
+            void this.vscodeWrapper.showErrorMessage(
+                loc.resolveRefactorLogFailed(err instanceof Error ? err.message : String(err)),
+            );
+            return;
+        }
         if (!refactorTarget) {
             void this.vscodeWrapper.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;
