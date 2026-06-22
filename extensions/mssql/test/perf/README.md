@@ -67,5 +67,7 @@ Each JSON report includes:
 - `mountFirstPaint`: grid mount to first paint.
 - `firstDataPaint`: grid mount to first visible data paint.
 - `getRowsResponsePaint`: fetch response to painted rows.
+- `requestedRows`: total rows requested across `GetRowsRequest` calls.
+- `paintedResponseRows`: rows represented by response-to-paint events; useful for paint instrumentation, not total fetch volume.
 - `rowCountChangePaint`: row-count update to paint, when the SQL tools service emits incremental result-set updates.
 - `scroll.vertical` / `scroll.horizontal`: p50/p95/max frame gaps and dropped-frame percentage during scripted scrolling.

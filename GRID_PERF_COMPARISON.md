@@ -18,7 +18,7 @@ Lower values are better for all timing columns. The result is a single local run
 
 BetaGrid wins the user-visible rendering path in every tested scenario. It reaches first data paint 13% to 61% faster than the legacy grid, with the largest gains in wide and heavy-cell cases.
 
-Legacy grid wins the raw `GetRowsRequest` p95 timing. This is not a pure apples-to-apples throughput result: the legacy grid issues many more smaller fetches, while BetaGrid issues far fewer larger windowed fetches. From a user perspective, BetaGrid still paints data sooner despite slower per-call fetch p95.
+Legacy grid wins the raw `GetRowsRequest` p95 timing. This is not a pure apples-to-apples throughput result: the legacy grid issues many more fetches and requests more total rows during scripted scroll, while BetaGrid issues far fewer larger windowed fetches. From a user perspective, BetaGrid still paints data sooner despite slower per-call fetch p95.
 
 Scripted scroll performance was effectively tied. Both grids stayed around a 16.8 ms p95 frame gap with 0% dropped frames in vertical and horizontal scroll scenarios.
 
@@ -44,21 +44,21 @@ Meaningful takeaways:
 
 ## Fetch Behavior
 
-`getRows p95` measures the extension RPC duration for row fetches. This is useful, but it should be interpreted with fetch count and returned-row shape.
+`getRows p95` measures the extension RPC duration for row fetches. This is useful, but it should be interpreted with fetch count and requested-row shape.
 
-| Scenario  | Legacy getRows p95 | Beta getRows p95 | Legacy calls | Beta calls | Legacy fetched rows recorded | Beta fetched rows recorded |
-| --------- | -----------------: | ---------------: | -----------: | ---------: | ---------------------------: | -------------------------: |
-| small     |            51.7 ms |          75.9 ms |           20 |          6 |                           50 |                        300 |
-| vertical  |            10.1 ms |          35.4 ms |          242 |          5 |                            1 |                        103 |
-| wide      |            41.5 ms |          53.1 ms |          242 |          5 |                            1 |                        103 |
-| heavy     |            19.5 ms |          52.6 ms |          242 |          5 |                            1 |                        103 |
-| streaming |             6.2 ms |          43.9 ms |          242 |          5 |                            1 |                        103 |
+| Scenario  | Legacy getRows p95 | Beta getRows p95 | Legacy calls | Beta calls | Legacy requested rows | Beta requested rows |
+| --------- | -----------------: | ---------------: | -----------: | ---------: | --------------------: | ------------------: |
+| small     |            51.7 ms |          75.9 ms |           20 |          6 |                 1,000 |                 300 |
+| vertical  |            10.1 ms |          35.4 ms |          242 |          5 |                12,038 |                 103 |
+| wide      |            41.5 ms |          53.1 ms |          242 |          5 |                12,038 |                 103 |
+| heavy     |            19.5 ms |          52.6 ms |          242 |          5 |                12,038 |                 103 |
+| streaming |             6.2 ms |          43.9 ms |          242 |          5 |                12,039 |                 103 |
 
 Meaningful takeaways:
 
-- Legacy performs many small fetches. Its p95 per call is lower, but it makes far more calls during the same scenario.
-- BetaGrid performs fewer larger windowed fetches. Its per-call p95 is higher, but the grid still reaches first data paint faster.
-- The `fetchedRows` values are useful as instrumentation signals, not complete row-count totals. They reflect recorded response-paint events, and the two grids currently record those events at different points in their fetch pipelines.
+- Legacy performs many small fetches. Its p95 per call is lower, but it makes far more calls and requests more total rows during scripted scroll.
+- BetaGrid performs fewer larger windowed fetches. Its per-call p95 is higher, but total requested rows are lower in these smoke runs and the grid still reaches first data paint faster.
+- The initial draft of this comparison used response-paint row counts, which made BetaGrid appear to fetch more rows. The comparable signal is the `get-rows` request metadata: `count` summed across all fetch events.
 
 ## Scrolling Performance
 
@@ -95,6 +95,7 @@ The `streaming` scenario uses 200,000 rows to exercise large-result behavior. In
 Meaningful takeaways:
 
 - BetaGrid paints first data faster in the large-result scenario.
+- The higher BetaGrid `getRows p95` does not mean BetaGrid fetched more rows. In the raw smoke-test events, BetaGrid made only 5 fetches in this scenario: three startup `offset=0,count=1` requests and two 50-row window requests. With only 5 samples, p95 is effectively the slowest startup request. Legacy made 242 fetches, so its p95 is dominated by many warmed 50-row requests.
 - This run did not validate incremental row-count repaint behavior because no row-count change events were emitted.
 - To measure "new data arrives while the grid is open" more directly, add a scenario that forces incremental service updates, for example a delayed/chunked SQL workload, a temp table populated in batches, or a mocked result service that emits row-count changes deterministically.
 

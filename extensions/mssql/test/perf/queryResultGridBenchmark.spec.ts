@@ -106,7 +106,8 @@ type ScenarioReport = {
         rowCountChangePaint: DurationSummary;
         getRowsResponsePaint: DurationSummary;
         getRowsCallCount: number;
-        fetchedRows: number;
+        requestedRows: number;
+        paintedResponseRows: number;
         rowCountChangeCount: number;
     };
     scroll?: {
@@ -666,7 +667,11 @@ function summarizePerf(events: PerfEvent[]): ScenarioReport["summary"] {
         ),
         getRowsResponsePaint: summarizeDurations(getRowsResponsePaintEvents),
         getRowsCallCount: getRowsEvents.length,
-        fetchedRows: getRowsResponsePaintEvents.reduce(
+        requestedRows: getRowsEvents.reduce(
+            (sum, event) => sum + getNumericMetadata(event, "count"),
+            0,
+        ),
+        paintedResponseRows: getRowsResponsePaintEvents.reduce(
             (sum, event) => sum + getNumericMetadata(event, "returnedRows"),
             0,
         ),
