@@ -16,6 +16,7 @@ import { getUriKey } from "../utils/utils";
 import { ConnectionInfo } from "../controllers/connectionManager";
 import { uriOwnershipCoordinator } from "../extension";
 import { getLogger } from "../models/logger";
+import { PreviewFeature, previewService } from "../previews/previewService";
 
 const logger = getLogger("StatusView");
 
@@ -38,8 +39,6 @@ class FileStatusBar {
     // Item for execution time
     public executionTime: vscode.StatusBarItem;
 
-    // Timer used for displaying a progress indicator on queries
-    public progressTimerId: NodeJS.Timeout;
     public currentLanguageServiceStatus: string;
     public queryTimer: NodeJS.Timeout;
     public connectionId: string;
@@ -81,9 +80,14 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusConnection);
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
+                        if (!this.isInWebviewFooterEnabled) {
+                            this.showStatusBarItem(fileUri, bar.statusQuery);
+                            this.showStatusBarItem(fileUri, bar.rowCount);
+                            this.showStatusBarItem(fileUri, bar.executionTime);
+                        } else {
+                            bar.statusQuery.hide();
+                        }
                         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-                        this.showStatusBarItem(fileUri, bar.rowCount);
-                        this.showStatusBarItem(fileUri, bar.executionTime);
                     }
                 }
             });
@@ -98,11 +102,12 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusChangeDatabase.dispose();
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
-                this._statusBars[bar].sqlCmdMode.dispose();
-                this._statusBars[bar].rowCount.dispose();
                 this._statusBars[bar].executionTime.dispose();
-                clearInterval(this._statusBars[bar].progressTimerId);
-                clearInterval(this._statusBars[bar].queryTimer);
+                this._statusBars[bar].rowCount.dispose();
+                if (this._statusBars[bar].queryTimer) {
+                    clearInterval(this._statusBars[bar].queryTimer);
+                }
+                this._statusBars[bar].sqlCmdMode.dispose();
                 delete this._statusBars[bar];
             }
         }
@@ -111,6 +116,15 @@ export default class StatusView implements vscode.Disposable {
 
     public setConnectionStore(connectionStore: ConnectionStore): void {
         this._connectionStore = connectionStore;
+    }
+
+    /**
+     * Whether the in-webview query results footer preview is enabled. When enabled, the
+     * row count and execution time status bar items (and the query progress indicator) are
+     * suppressed because the footer surfaces that information inside the results view.
+     */
+    private get isInWebviewFooterEnabled(): boolean {
+        return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
     // Create status bar item if needed
@@ -154,9 +168,6 @@ export default class StatusView implements vscode.Disposable {
             if (bar.statusLanguageService) {
                 bar.statusLanguageService.dispose();
             }
-            if (bar.progressTimerId) {
-                clearInterval(bar.progressTimerId);
-            }
             if (bar.queryTimer) {
                 clearInterval(bar.queryTimer);
             }
@@ -181,9 +192,6 @@ export default class StatusView implements vscode.Disposable {
         }
 
         let bar = this._statusBars[fileUri];
-        if (bar.progressTimerId) {
-            clearInterval(bar.progressTimerId);
-        }
         return bar;
     }
 
@@ -192,11 +200,15 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-        this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
+        if (!this.isInWebviewFooterEnabled) {
+            this.showStatusBarItem(fileUri, bar.statusQuery);
+            this.showStatusBarItem(fileUri, bar.rowCount);
+            this.showStatusBarItem(fileUri, bar.executionTime);
+        } else {
+            bar.statusQuery.hide();
+        }
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-        this.showStatusBarItem(fileUri, bar.rowCount);
-        this.showStatusBarItem(fileUri, bar.executionTime);
     }
 
     public setNotConnected(fileUri: string): void {
@@ -342,6 +354,12 @@ export default class StatusView implements vscode.Disposable {
 
     public executingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        clearInterval(bar.queryTimer);
+        this.hideStatusBarItem(fileUri, bar.executionTime);
+        if (this.isInWebviewFooterEnabled) {
+            bar.statusQuery.hide();
+            return;
+        }
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.executeQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
@@ -350,6 +368,10 @@ export default class StatusView implements vscode.Disposable {
 
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        if (this.isInWebviewFooterEnabled) {
+            bar.statusQuery.hide();
+            return;
+        }
         bar.statusQuery.text = LocalizedConstants.QueryExecutedLabel;
         // hide the status bar item with a delay so that the change can be announced by screen reader.
         setTimeout(() => {
@@ -359,13 +381,20 @@ export default class StatusView implements vscode.Disposable {
 
     public setExecutionTime(fileUri: string, time: string): void {
         let bar = this.getStatusBar(fileUri);
+        clearInterval(bar.queryTimer);
+        if (this.isInWebviewFooterEnabled) {
+            return;
+        }
         bar.executionTime.text = time;
         this.showStatusBarItem(fileUri, bar.executionTime);
-        clearInterval(bar.queryTimer);
     }
 
     public cancelingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        if (this.isInWebviewFooterEnabled) {
+            bar.statusQuery.hide();
+            return;
+        }
         bar.statusQuery.hide();
 
         bar.statusQuery.command = undefined;
@@ -405,6 +434,9 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public showRowCount(fileUri: string, message?: string): void {
+        if (this.isInWebviewFooterEnabled) {
+            return;
+        }
         let bar = this.getStatusBar(fileUri);
         if (message && message.includes("row")) {
             // Remove parentheses from start and end
@@ -452,22 +484,35 @@ export default class StatusView implements vscode.Disposable {
     }
 
     /**
-     * Associate a new uri with an existing Uri's status bar
+     * Re-associate ("move") an existing URI's status bar with a new URI.
      *
-     * @param existingUri The already existing URI's status bar you want to associated
-     * @param newUri The new URI you want to associate with the existing status bar
-     * @return True or False whether the association was able to be made. False indicated the exitingUri specified
-     * did not exist
+     * Used when a document's URI changes — e.g. saving an untitled query or renaming a file —
+     * so the status bar items (connection, database, SQLCMD mode, language service, etc.) follow
+     * the document to its new URI instead of disappearing.
+     *
+     * The old URI key is removed so the shared status bar is not disposed when the original
+     * document is closed as part of the rename/save.
+     *
+     * @param existingUri The URI whose status bar should be transferred.
+     * @param newUri The URI to associate the existing status bar with.
+     * @returns True if the existing URI had a status bar that was transferred; otherwise false.
      */
-
     public associateWithExisting(existingUri: string, newUri: string): boolean {
-        let bar = this.getStatusBar(existingUri);
-        if (bar) {
-            this._statusBars[newUri] = bar;
-            return true;
-        } else {
+        if (!existingUri || !newUri || existingUri === newUri) {
             return false;
         }
+
+        const bar = this._statusBars[existingUri];
+        if (!bar) {
+            return false;
+        }
+
+        // Dispose any status bar that already exists for the new URI to avoid leaking its items.
+        this.destroyStatusBar(newUri);
+
+        this._statusBars[newUri] = bar;
+        delete this._statusBars[existingUri];
+        return true;
     }
 
     public hideLastShownStatusBar(): void {
@@ -477,9 +522,9 @@ export default class StatusView implements vscode.Disposable {
             this._lastShownStatusBar.statusChangeDatabase.hide();
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
-            this._lastShownStatusBar.sqlCmdMode.hide();
-            this._lastShownStatusBar.rowCount.hide();
             this._lastShownStatusBar.executionTime.hide();
+            this._lastShownStatusBar.rowCount.hide();
+            this._lastShownStatusBar.sqlCmdMode.hide();
         }
     }
 
@@ -567,25 +612,21 @@ export default class StatusView implements vscode.Disposable {
         statusText: string,
         statusBarItem: vscode.StatusBarItem,
     ): void {
-        // Do not use the text based in progress indicator when screen reader is on, it is not user friendly to announce the changes every 200 ms.
         const screenReaderOptimized = vscode.workspace
             .getConfiguration("editor")
             .get("accessibilitySupport");
         if (screenReaderOptimized === "on") {
             return;
         }
-        const self = this;
-        let bar = this.getStatusBar(fileUri);
 
-        // Clear any existing timer first
+        let bar = this.getStatusBar(fileUri);
         clearInterval(bar.queryTimer);
 
         let milliseconds = 0;
         bar.queryTimer = setInterval(() => {
             milliseconds += 1000;
-            const timeString = self.formatMillisecondsToTimeString(milliseconds);
-            statusBarItem.text = statusText + " " + timeString;
-            self.showStatusBarItem(fileUri, statusBarItem);
+            statusBarItem.text = `${statusText} ${this.formatMillisecondsToTimeString(milliseconds)}`;
+            this.showStatusBarItem(fileUri, statusBarItem);
         }, 1000);
     }
 
