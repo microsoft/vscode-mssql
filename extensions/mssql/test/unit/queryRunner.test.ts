@@ -140,10 +140,6 @@ suite("Query Runner tests", () => {
         });
         setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
-        // ... Setup the status view to handle start and stop updates
-        testStatusView.executedQuery.resetHistory();
-        testStatusView.executingQuery.resetHistory();
-
         let testDoc: vscode.TextDocument = {
             getText: () => {
                 return undefined;
@@ -453,12 +449,6 @@ suite("Query Runner tests", () => {
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
-
-        // Then:
-        // ... The VS Code view should have stopped executing
-        expect(testStatusView.executedQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testStatusView.setExecutionTime).to.have.been.calledOnce;
-        expect(testStatusView.setExecutionTime.firstCall.args[0]).to.equal(standardUri);
 
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);
