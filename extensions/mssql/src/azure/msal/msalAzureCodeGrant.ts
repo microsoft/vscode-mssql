@@ -202,6 +202,8 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
             return params;
         };
 
+        const authResponses = new Map<string, URLSearchParams>();
+
         server.on("/landing.css", (req, reqUrl, res) => {
             sendFile(res, path.join(mediaPath, "landing.css"), "text/css; charset=utf-8").catch(
                 this.logger.error,
@@ -244,8 +246,11 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                         }
 
                         const port = split[0];
+                        const callbackId = this.cryptoProvider.createNewGuid();
+                        authResponses.set(callbackId, params);
+
                         res.writeHead(302, {
-                            Location: `http://127.0.0.1:${port}/callback?${params.toString()}`,
+                            Location: `http://127.0.0.1:${port}/callback?callbackId=${encodeURIComponent(callbackId)}`,
                         });
                         res.end();
                     })
@@ -259,8 +264,20 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
             });
 
             server.on("/callback", (req, reqUrl, res) => {
-                const state = (reqUrl.query.state as string) ?? "";
-                const code = (reqUrl.query.code as string) ?? "";
+                const callbackId = (reqUrl.query.callbackId as string) ?? "";
+                const authResponseParams = authResponses.get(callbackId);
+                authResponses.delete(callbackId);
+
+                if (!authResponseParams) {
+                    res.writeHead(400, { "content-type": "text/html" });
+                    res.write(LocalizedConstants.azureAuthStateError);
+                    res.end();
+                    reject(new Error("Callback ID mismatch"));
+                    return;
+                }
+
+                const state = authResponseParams.get("state") ?? "";
+                const code = authResponseParams.get("code") ?? "";
 
                 const stateSplit = state.split(",");
                 if (stateSplit.length !== 2) {
