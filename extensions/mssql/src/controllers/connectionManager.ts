@@ -1249,18 +1249,23 @@ export default class ConnectionManager {
         // 2. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token.
         // STS cannot read VS Code auth sessions, so this path still needs to pass a token.
         if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
+
             if (
                 AzureController.isTokenValid(
                     connectionInfo.azureAccountToken,
                     connectionInfo.expiresOn,
                 )
             ) {
-                const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
                 this._logger?.debug(
                     `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}). No refresh needed.`,
                 );
                 return;
             }
+
+            this._logger?.debug(
+                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
+            );
 
             const tokenInfo = await acquireTokenFromVscodeAccountForResource(
                 getCloudResourceEndpoint("sqlResource"),
