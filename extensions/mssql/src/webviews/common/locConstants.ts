@@ -2424,7 +2424,7 @@ export class LocConstants {
             filterOpIsNull: l10n.t("is null"),
             filterOpIsNotNull: l10n.t("is not null"),
             vectorReadonlyTooltip: l10n.t(
-                "Vector values are usually generated embeddings and may be high-dimensional. Use T-SQL or regenerate the embedding to modify this value.",
+                "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
             ),
         };
     }

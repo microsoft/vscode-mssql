@@ -3573,7 +3573,7 @@
     "less than": "less than",
     "is null": "is null",
     "is not null": "is not null",
-    "Vector values are usually generated embeddings and may be high-dimensional. Use T-SQL or regenerate the embedding to modify this value.": "Vector values are usually generated embeddings and may be high-dimensional. Use T-SQL or regenerate the embedding to modify this value.",
+    "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.": "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
     "Search Database Objects": "Search Database Objects",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
