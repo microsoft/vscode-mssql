@@ -69,6 +69,7 @@ export interface IResultSet {
 
 export interface QueryExecutionCompleteEvent {
     totalMilliseconds: string;
+    totalElapsedMilliseconds: number;
     hasError: boolean;
     isRefresh?: boolean;
 }
@@ -82,6 +83,17 @@ export interface ExecutionPlanEvent {
 
 export interface SummaryChanged extends SelectionSummary {
     uri: string;
+    continue?: Deferred<void>;
+}
+
+function getRowsAffectedFromMessage(message: string): number | undefined {
+    const rowsAffectedMatch = message.match(/\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i);
+    if (!rowsAffectedMatch?.[1]) {
+        return undefined;
+    }
+
+    const rowsAffected = Number(rowsAffectedMatch[1]);
+    return Number.isNaN(rowsAffected) ? undefined : rowsAffected;
 }
 
 export const editorEol =
@@ -466,6 +478,7 @@ export default class QueryRunner {
             totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
                 format: "clock",
             }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError,
         });
         sendActionEvent(
@@ -555,6 +568,7 @@ export default class QueryRunner {
     public handleMessage(obj: QueryExecuteMessageParams): void {
         let message = obj.message;
         message.time = new Date(message.time).toLocaleTimeString();
+        message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
         // save the message into the batch summary so it can be restored on view refresh
         if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
@@ -613,10 +627,10 @@ export default class QueryRunner {
             totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
                 format: "clock",
             }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
         });
         this._statusView.executedQuery(this._ownerUri);
-
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {
@@ -850,11 +864,6 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    if (this.shouldShowCopyNotification()) {
-                        vscode.window.showInformationMessage(
-                            LocalizedConstants.resultsCopiedToClipboard,
-                        );
-                    }
                     resolve();
                 } catch (error) {
                     // Don't show error if cancelled
@@ -1001,14 +1010,6 @@ export default class QueryRunner {
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
 
-    private shouldShowCopyNotification(): boolean {
-        const config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-            this.uri,
-        );
-        return config.get<boolean>(Constants.configResultsShowCopyNotification, true);
-    }
-
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,
@@ -1031,6 +1032,8 @@ export default class QueryRunner {
                 text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
             await proceed.promise;
         };
@@ -1046,6 +1049,8 @@ export default class QueryRunner {
                 text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
         };
 
@@ -1112,10 +1117,23 @@ export default class QueryRunner {
                 return;
             }
 
-            let text = "";
-            let tooltip = "";
+            const stats: NonNullable<SelectionSummary["stats"]> = {
+                count: result.count,
+                distinctCount: result.distinctCount,
+                nullCount: result.nullCount,
+            };
 
-            // the selection is numeric
+            if (result.average !== undefined && result.average !== null) {
+                stats.average = result.average;
+                stats.sum = result.sum;
+                stats.max = result.max;
+                stats.min = result.min;
+            }
+
+            // Build a textual summary used by the editor status bar when the query results footer
+            // preview is disabled. The footer ignores these fields and renders from `stats`.
+            let text: string;
+            let tooltip: string;
             if (result.average !== undefined && result.average !== null) {
                 const average = result.average.toFixed(2);
                 text = LocalizedConstants.QueryResult.numericSelectionSummary(
@@ -1143,7 +1161,6 @@ export default class QueryRunner {
                     result.distinctCount,
                     result.nullCount,
                 );
-                tooltip = text;
             }
 
             // Resolve the cancel confirmation to clean up
@@ -1152,11 +1169,14 @@ export default class QueryRunner {
             }
 
             this.fireSummaryChangedEvent(requestId, {
+                stats,
                 text,
                 tooltip,
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
         } catch (error) {
             // Clean up on error
@@ -1172,6 +1192,8 @@ export default class QueryRunner {
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
             throw error;
         }

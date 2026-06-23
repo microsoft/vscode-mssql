@@ -6,6 +6,11 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-07-15
+
+- Added **Rename Symbol** refactoring support for SQL project files.
+- Added **Move to Schema** refactoring support for SQL project files.
+
 ## [1.6.1] - 2026-06-03
 
 - Fixed an issue where SQL Database projects would fail when being built into a dacpac

@@ -148,3 +148,87 @@ export namespace CompletionExtLoadRequest {
         "completion/extLoad",
     );
 }
+
+// ------------------------------- < SQL Symbol Rename > ------------------------------------
+
+export interface SqlSymbolRenameParams {
+    textDocument: { uri: string };
+    position: { line: number; character: number };
+    newName: string;
+    /** Current content of the project's .refactorlog file, or null/empty if none exists yet. */
+    existingRefactorLogContent: string | null;
+}
+
+export interface SqlSymbolRenameTextEdit {
+    range: {
+        start: { line: number; character: number };
+        end: { line: number; character: number };
+    };
+    newText: string;
+}
+
+export interface SqlSymbolRenameResponse {
+    changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
+    /**
+     * Full content of the .refactorlog file with the new rename operation appended, ready to write.
+     * Null when the renamed symbol does not require a refactorlog entry.
+     */
+    refactorLogContent: string | null;
+    newName: string;
+}
+
+export namespace SqlSymbolRenameRequest {
+    export const type = new RequestType<SqlSymbolRenameParams, SqlSymbolRenameResponse, void>(
+        "sql/rename",
+    );
+}
+
+// ------------------------------- </ SQL Symbol Rename > ----------------------------------
+
+// ------------------------------- < SQL Move To Schema > ------------------------------------
+
+export interface SqlMoveToSchemaParams {
+    textDocument: { uri: string };
+    position: { line: number; character: number };
+    /** The target schema the object is moved to, as picked by the user. */
+    targetSchema: string;
+    /** Current content of the project's .refactorlog file, or null/empty if none exists yet. */
+    existingRefactorLogContent: string | null;
+}
+
+export interface SqlMoveToSchemaResponse {
+    changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
+    /**
+     * Full content of the .refactorlog file with the new move-schema operation appended, ready to
+     * write. Null when the moved object does not require a refactorlog entry.
+     */
+    refactorLogContent: string | null;
+    targetSchema: string;
+}
+
+export namespace SqlMoveToSchemaRequest {
+    export const type = new RequestType<SqlMoveToSchemaParams, SqlMoveToSchemaResponse, void>(
+        "sql/moveToSchema",
+    );
+}
+
+// ------------------------------- </ SQL Move To Schema > ----------------------------------
+
+// ------------------------------- < List Project Schemas > ------------------------------------
+
+export interface ListProjectSchemasParams {
+    textDocument: { uri: string };
+}
+
+export interface ListProjectSchemasResponse {
+    /** The distinct schema names defined in the project, sorted case-insensitively. */
+    schemas: string[];
+}
+
+export namespace ListProjectSchemasRequest {
+    export const type = new RequestType<ListProjectSchemasParams, ListProjectSchemasResponse, void>(
+        "sql/listSchemas",
+    );
+}
+
+// ------------------------------- </ List Project Schemas > ----------------------------------

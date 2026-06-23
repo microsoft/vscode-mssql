@@ -38,6 +38,7 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
                 },
                 executionPlanState: {},
                 fontSettings: {},
+                isExecuting: false,
             },
             {
                 title: title,
@@ -71,7 +72,7 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
             if (params.webviewPanel.viewColumn) {
                 this._viewColumn = params.webviewPanel.viewColumn;
             }
-
+            // Refresh the editor status bar selection summary for the newly active/inactive panel.
             this._queryResultWebviewViewController.updateSelectionSummary();
         });
     }

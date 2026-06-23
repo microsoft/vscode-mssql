@@ -41,6 +41,14 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
+export let quickQuerySlotOutOfRange = (maxSlot: number) =>
+    l10n.t({
+        message: "Quick Query slot must be between 1 and {0}.",
+        args: [maxSlot],
+        comment: ["{0} is the maximum Quick Query slot number"],
+    });
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -824,7 +832,6 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
-export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -2619,17 +2626,24 @@ export class MssqlChatAgent {
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
-    public static dabToolMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open Data API builder.",
+    public static toolMissingConnectionReference = l10n.t(
+        "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     );
+    public static toolAmbiguousConnectionReference = l10n.t(
+        "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
+    );
+    public static noSqlToolsMcpConnectionName = (connectionName: string) => {
+        return l10n.t({
+            message: "No SQL Tools MCP connection found for connectionName: {0}",
+            args: [connectionName],
+            comment: ["{0} is the SQL Tools MCP registered connection name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
     public static schemaDesignerStaleState = l10n.t(
         "Schema designer state changed. Fetch the latest schema and retry the operation.",
-    );
-    public static schemaDesignerMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open the schema designer.",
     );
     public static schemaDesignerAddTableSuccess = l10n.t(
         "Table added to schema designer successfully.",
@@ -4137,3 +4151,40 @@ export const foreignKeys2 = l10n.t("Foreign Keys");
 export const checkConstraints2 = l10n.t("Check Constraints");
 
 export const advancedOptions = l10n.t("Advanced Options");
+
+export class SqlSymbolRename {
+    public static renameNotSupportedAtPosition = l10n.t(
+        "Rename is not supported at this position.",
+    );
+    public static renameOnlyInProjectFiles = l10n.t(
+        "Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static renameNotSupportedForSymbol = l10n.t("Please select a valid symbol.");
+    public static renameRequestFailed = (message: string): string =>
+        l10n.t("Rename request failed: {0}", message);
+    public static noRenameableSymbolAtCursor = l10n.t("No renameable symbol found at cursor.");
+}
+
+export class SqlMoveToSchema {
+    public static moveToSchemaTitle = l10n.t("Move to Schema...");
+    public static moveToSchemaOnlyInProjectFiles = l10n.t(
+        "Move to Schema is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static selectTargetSchemaPlaceholder = (currentSchema?: string): string =>
+        currentSchema
+            ? l10n.t("Current Schema: {0}, Select the new schema:", currentSchema)
+            : l10n.t("Select the target schema");
+    public static noSchemasFound = l10n.t("No schemas were found in the project.");
+    public static noMovableSymbolAtCursor = l10n.t(
+        "No object that can be moved to another schema was found at the cursor.",
+    );
+    public static moveToSchemaRequestFailed = (message: string): string =>
+        l10n.t("Move to Schema request failed: {0}", message);
+    public static resolveRefactorLogFailed = (message: string): string =>
+        l10n.t("Failed to resolve the refactor log for this file: {0}", message);
+    public static previewLabel = (targetSchema: string): string =>
+        l10n.t("Move to schema '{0}'", targetSchema);
+    public static applyEditFailed = l10n.t(
+        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    );
+}

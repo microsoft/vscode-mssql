@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
+import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
     private static _instance = new LocConstants();
@@ -86,6 +87,7 @@ export class LocConstants {
             learnMore: l10n.t("Learn more"),
             moveUp: l10n.t("Move Up"),
             moveDown: l10n.t("Move Down"),
+            copied: l10n.t("Copied"),
         };
     }
 
@@ -342,6 +344,186 @@ export class LocConstants {
                 message: "To",
                 comment: ["Label for the end IP address in the firewall rule IP range"],
             }),
+        };
+    }
+
+    public get shortcutsConfiguration() {
+        return {
+            title: l10n.t("Shortcuts Configuration"),
+            pageAriaLabel: l10n.t("Shortcuts configuration page"),
+            configurationSections: l10n.t("Configuration sections"),
+            subtitle: l10n.t("Configure Quick Query and in-app shortcuts."),
+            quickQueries: l10n.t("Quick Queries"),
+            quickQueriesDescription: l10n.t(
+                "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
+            ),
+            webviewShortcuts: l10n.t("In-App Shortcuts"),
+            webviewShortcutsDescription: l10n.t(
+                "Configure shortcuts that are handled inside MSSQL views.",
+            ),
+            name: l10n.t("Name"),
+            query: l10n.t("Query"),
+            shortcut: l10n.t("Shortcut"),
+            autoExecute: l10n.t("Auto-execute"),
+            clearQuickQuery: l10n.t("Clear Quick Query"),
+            clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
+            managedInVsCode: l10n.t("Managed in VS Code"),
+            showAllShortcuts: l10n.t("Show All"),
+            showAllQuickQueryShortcutsTooltip: l10n.t(
+                "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
+            ),
+            quickQuerySlotName: (slotNumber: number) =>
+                l10n.t({
+                    message: "Query {0}",
+                    args: [slotNumber],
+                    comment: ["{0} is the Quick Query slot number"],
+                }),
+            queryDialogTitle: (name: string) =>
+                l10n.t({
+                    message: "{0} query",
+                    args: [name],
+                    comment: ["{0} is the Quick Query shortcut name"],
+                }),
+            queryEditorAriaLabel: (name: string) =>
+                l10n.t({
+                    message: "Query editor for {0}",
+                    args: [name],
+                    comment: ["{0} is the Quick Query shortcut name"],
+                }),
+            noShortcut: l10n.t("No shortcut"),
+            noQuerySet: l10n.t("No query set"),
+            searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
+            recordShortcut: l10n.t("Record shortcut"),
+            recordShortcutDescription: l10n.t(
+                "Press desired key combination and then press ENTER.",
+            ),
+            recordingShortcut: l10n.t("Recording shortcut"),
+            shortcutConflict: (target: string) =>
+                l10n.t({
+                    message: "Already used by {0}",
+                    args: [target],
+                    comment: ["{0} is the name of the command that already uses this shortcut"],
+                }),
+            saving: l10n.t("Saving..."),
+            saved: l10n.t("Saved"),
+            shortcutGroupNavigation: l10n.t("Navigation"),
+            shortcutGroupNavigationDescription: l10n.t("Switch between result panes and tabs"),
+            shortcutGroupResults: l10n.t("Results"),
+            shortcutGroupResultsDescription: l10n.t("Control the results grid display"),
+            shortcutGroupSelection: l10n.t("Selection"),
+            shortcutGroupSelectionDescription: l10n.t("Move and expand the active grid selection"),
+            shortcutGroupCopyExport: l10n.t("Copy & Export"),
+            shortcutGroupCopyExportDescription: l10n.t("Copy data and save results to files"),
+            webviewShortcutLabels: {
+                [WebviewAction.QueryResultSwitchToResultsTab]: l10n.t("Switch to Results tab"),
+                [WebviewAction.QueryResultSwitchToMessagesTab]: l10n.t("Switch to Messages tab"),
+                [WebviewAction.QueryResultSwitchToQueryPlanTab]: l10n.t("Switch to Query Plan tab"),
+                [WebviewAction.QueryResultPrevGrid]: l10n.t("Previous result grid"),
+                [WebviewAction.QueryResultNextGrid]: l10n.t("Next result grid"),
+                [WebviewAction.QueryResultSwitchToTextView]: l10n.t("Switch results view"),
+                [WebviewAction.QueryResultMaximizeGrid]: l10n.t("Maximize results grid"),
+                [WebviewAction.ResultGridSelectAll]: l10n.t("Select all"),
+                [WebviewAction.ResultGridSelectRow]: l10n.t("Select row"),
+                [WebviewAction.ResultGridSelectColumn]: l10n.t("Select column"),
+                [WebviewAction.ResultGridToggleSort]: l10n.t("Toggle sort"),
+                [WebviewAction.ResultGridChangeColumnWidth]: l10n.t("Change column width"),
+                [WebviewAction.ResultGridOpenColumnMenu]: l10n.t("Open column menu"),
+                [WebviewAction.ResultGridOpenFilterMenu]: l10n.t("Open filter menu"),
+                [WebviewAction.ResultGridExpandSelectionLeft]: l10n.t("Expand selection left"),
+                [WebviewAction.ResultGridExpandSelectionRight]: l10n.t("Expand selection right"),
+                [WebviewAction.ResultGridExpandSelectionUp]: l10n.t("Expand selection up"),
+                [WebviewAction.ResultGridExpandSelectionDown]: l10n.t("Expand selection down"),
+                [WebviewAction.ResultGridMoveToRowStart]: l10n.t("Move to row start"),
+                [WebviewAction.ResultGridMoveToRowEnd]: l10n.t("Move to row end"),
+                [WebviewAction.ResultGridCopySelection]: l10n.t("Copy selection"),
+                [WebviewAction.ResultGridCopyWithHeaders]: l10n.t("Copy with headers"),
+                [WebviewAction.ResultGridCopyAllHeaders]: l10n.t("Copy all with headers"),
+                [WebviewAction.ResultGridCopyAsCsv]: l10n.t("Copy as CSV"),
+                [WebviewAction.ResultGridCopyAsJson]: l10n.t("Copy as JSON"),
+                [WebviewAction.ResultGridCopyAsInsert]: l10n.t("Copy as INSERT"),
+                [WebviewAction.ResultGridCopyAsInClause]: l10n.t("Copy as IN clause"),
+                [WebviewAction.QueryResultSaveAsJson]: l10n.t("Save results as JSON"),
+                [WebviewAction.QueryResultSaveAsCsv]: l10n.t("Save results as CSV"),
+                [WebviewAction.QueryResultSaveAsExcel]: l10n.t("Save results as Excel"),
+                [WebviewAction.QueryResultSaveAsInsert]: l10n.t("Save results as INSERT"),
+            },
+            webviewShortcutDescriptions: {
+                [WebviewAction.QueryResultSwitchToResultsTab]: l10n.t(
+                    "Focus the Results tab in the query results panel",
+                ),
+                [WebviewAction.QueryResultSwitchToMessagesTab]: l10n.t("Focus the Messages tab"),
+                [WebviewAction.QueryResultSwitchToQueryPlanTab]: l10n.t("Focus the Query Plan tab"),
+                [WebviewAction.QueryResultPrevGrid]: l10n.t(
+                    "Move focus to the previous result set grid",
+                ),
+                [WebviewAction.QueryResultNextGrid]: l10n.t(
+                    "Move focus to the next result set grid",
+                ),
+                [WebviewAction.QueryResultSwitchToTextView]: l10n.t(
+                    "Toggle between grid and text view",
+                ),
+                [WebviewAction.QueryResultMaximizeGrid]: l10n.t(
+                    "Expand the active grid to fill the panel",
+                ),
+                [WebviewAction.ResultGridSelectAll]: l10n.t("Select all cells in the active grid"),
+                [WebviewAction.ResultGridSelectRow]: l10n.t("Select the entire current row"),
+                [WebviewAction.ResultGridSelectColumn]: l10n.t("Select the entire current column"),
+                [WebviewAction.ResultGridToggleSort]: l10n.t(
+                    "Toggle sorting for the active column",
+                ),
+                [WebviewAction.ResultGridChangeColumnWidth]: l10n.t(
+                    "Resize the active result grid column",
+                ),
+                [WebviewAction.ResultGridOpenColumnMenu]: l10n.t("Open the active column menu"),
+                [WebviewAction.ResultGridOpenFilterMenu]: l10n.t(
+                    "Open the active column filter menu",
+                ),
+                [WebviewAction.ResultGridExpandSelectionLeft]: l10n.t(
+                    "Extend the current selection one cell left",
+                ),
+                [WebviewAction.ResultGridExpandSelectionRight]: l10n.t(
+                    "Extend the current selection one cell right",
+                ),
+                [WebviewAction.ResultGridExpandSelectionUp]: l10n.t(
+                    "Extend the current selection one cell up",
+                ),
+                [WebviewAction.ResultGridExpandSelectionDown]: l10n.t(
+                    "Extend the current selection one cell down",
+                ),
+                [WebviewAction.ResultGridMoveToRowStart]: l10n.t(
+                    "Move selection to the first cell in the row",
+                ),
+                [WebviewAction.ResultGridMoveToRowEnd]: l10n.t(
+                    "Move selection to the last cell in the row",
+                ),
+                [WebviewAction.ResultGridCopySelection]: l10n.t(
+                    "Copy selected cells to the clipboard",
+                ),
+                [WebviewAction.ResultGridCopyWithHeaders]: l10n.t(
+                    "Copy selected cells including column headers",
+                ),
+                [WebviewAction.ResultGridCopyAllHeaders]: l10n.t(
+                    "Copy all cells including column headers",
+                ),
+                [WebviewAction.ResultGridCopyAsCsv]: l10n.t(
+                    "Copy selection formatted as comma-separated values",
+                ),
+                [WebviewAction.ResultGridCopyAsJson]: l10n.t("Copy selection formatted as JSON"),
+                [WebviewAction.ResultGridCopyAsInsert]: l10n.t(
+                    "Copy selection formatted as INSERT statements",
+                ),
+                [WebviewAction.ResultGridCopyAsInClause]: l10n.t(
+                    "Copy selection formatted as a SQL IN clause",
+                ),
+                [WebviewAction.QueryResultSaveAsJson]: l10n.t("Export all results to a JSON file"),
+                [WebviewAction.QueryResultSaveAsCsv]: l10n.t("Export all results to a CSV file"),
+                [WebviewAction.QueryResultSaveAsExcel]: l10n.t(
+                    "Export all results to an Excel file",
+                ),
+                [WebviewAction.QueryResultSaveAsInsert]: l10n.t(
+                    "Export all results as INSERT statements",
+                ),
+            },
         };
     }
 
@@ -664,11 +846,27 @@ export class LocConstants {
                 }
                 return l10n.t("Results");
             },
+            resultBetaTabTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Results Preview ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the preview results tab"],
+                    });
+                }
+                return l10n.t("Results Preview");
+            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
+                }),
+            resultsBeta: (count: number) =>
+                l10n.t({
+                    message: "Results Preview ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of preview results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
@@ -684,6 +882,7 @@ export class LocConstants {
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
+            resultsToolbar: l10n.t("Results toolbar"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {
@@ -844,6 +1043,91 @@ export class LocConstants {
                         });
                 }
             },
+            rowsReturned: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows returned");
+                    case 1:
+                        return l10n.t("1 row returned");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows returned",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows returned"],
+                        });
+                }
+            },
+            rowsCount: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows");
+                    case 1:
+                        return l10n.t("1 row");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows"],
+                        });
+                }
+            },
+            noRowsAffected: l10n.t("No rows affected"),
+            selectedItemLabel: l10n.t("Selected"),
+            rowsAffectedLabel: l10n.t("Rows"),
+            timeLabel: l10n.t("Time"),
+            runningLabel: l10n.t("Running"),
+            noSelectionSummary: l10n.t("No selection"),
+            selectionSummaryCountLabel: l10n.t("Count"),
+            selectionSummaryAverageLabel: l10n.t("Avg"),
+            selectionSummarySumLabel: l10n.t("Sum"),
+            selectionSummaryMinLabel: l10n.t("Min"),
+            selectionSummaryMaxLabel: l10n.t("Max"),
+            selectionSummaryDistinctLabel: l10n.t("Distinct"),
+            selectionSummaryNullLabel: l10n.t("Null"),
+            executionCancelled: l10n.t("Execution cancelled"),
+            executionTimeUnavailable: l10n.t("Execution time unavailable"),
+            runningWithDuration: (duration: string) =>
+                l10n.t({
+                    message: "Running: {0}",
+                    args: [duration],
+                    comment: ["{0} is how long the query has been running"],
+                }),
+            compactMilliseconds: (milliseconds: number) =>
+                l10n.t({
+                    message: "{0}ms",
+                    args: [milliseconds],
+                    comment: ["{0} is the number of milliseconds"],
+                }),
+            compactSeconds: (seconds: number | string) =>
+                l10n.t({
+                    message: "{0}s",
+                    args: [seconds],
+                    comment: ["{0} is the number of seconds"],
+                }),
+            compactMinutes: (minutes: number) =>
+                l10n.t({
+                    message: "{0}m",
+                    args: [minutes],
+                    comment: ["{0} is the number of minutes"],
+                }),
+            compactMinutesSeconds: (minutes: number, seconds: number) =>
+                l10n.t({
+                    message: "{0}m {1}s",
+                    args: [minutes, seconds],
+                    comment: ["{0} is the number of minutes", "{1} is the number of seconds"],
+                }),
+            compactHours: (hours: number) =>
+                l10n.t({
+                    message: "{0}h",
+                    args: [hours],
+                    comment: ["{0} is the number of hours"],
+                }),
+            compactHoursMinutes: (hours: number, minutes: number) =>
+                l10n.t({
+                    message: "{0}h {1}m",
+                    args: [hours, minutes],
+                    comment: ["{0} is the number of hours", "{1} is the number of minutes"],
+                }),
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
                     message: "Result Set Batch {0} - Query {1}",
@@ -1752,6 +2036,13 @@ export class LocConstants {
             addServerConnection: l10n.t("Add Server Connection"),
             noDifferences: l10n.t("No schema differences were found."),
             initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            applyingChanges: l10n.t("Applying changes, this might take a while..."),
+            applySucceededRunAgain: l10n.t(
+                "Changes applied successfully. Run Schema Compare again to see updated differences.",
+            ),
+            applyFailedRunAgain: l10n.t(
+                "Apply failed. Fix the error and retry, or run Schema Compare again.",
+            ),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
             defaultUserName: l10n.t("default"),
@@ -1964,6 +2255,9 @@ export class LocConstants {
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
             configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
+            verifyContainerImageNotationCli: l10n.t(
+                "Verify a container image by using the Notation CLI",
+            ),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),
             checkingPrerequisites: l10n.t("Checking pre-requisites"),
             createContainer: l10n.t("Create Container"),
@@ -2541,6 +2835,7 @@ export class LocConstants {
             removeSort: l10n.t("Remove sort"),
             save: l10n.t("Save"),
             selectAll: l10n.t("Select all"),
+            showAllColumns: l10n.t("Show all columns"),
             sortAscending: l10n.t("Sort ascending"),
             sortDescending: l10n.t("Sort descending"),
             synchronousResize: l10n.t("Synchronous resize"),

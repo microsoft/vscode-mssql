@@ -77,24 +77,43 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
     selection?: ISlickRange[];
+    gridSelections?: Record<string, ISlickRange[]>;
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;
     gridSettings?: GridSettings;
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
+    isBetaResultsGridEnabled?: boolean;
     initializationError?: string;
     selectionSummary?: SelectionSummary;
+    isExecuting?: boolean;
+    executionStartTime?: number;
+    executionElapsedMilliseconds?: number;
+    rowsAffected?: number;
+}
+
+export interface SelectionSummaryMetrics {
+    average?: number;
+    count: number;
+    distinctCount: number;
+    max?: number;
+    min?: number;
+    nullCount: number;
+    sum?: number;
 }
 
 export interface SelectionSummary {
-    text: string;
-    command: {
+    stats?: SelectionSummaryMetrics;
+    text?: string;
+    displayText?: string;
+    command?: {
         title: string;
         command: string;
-        arguments: any[];
+        arguments: unknown[];
     };
-    tooltip: string;
-    continue?: any;
+    tooltip?: string;
+    batchId?: number;
+    resultId?: number;
 }
 
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
@@ -141,6 +160,7 @@ export interface IMessage {
     isError: boolean;
     link?: IMessageLink;
     selection?: ISelectionData;
+    rowsAffected?: number;
 }
 
 export interface ResultSetSummary {
@@ -260,6 +280,33 @@ export namespace SetColumnWidthsRequest {
     export const type = new RequestType<SetColumnWidthsParams, void, void>("setColumnWidths");
 }
 
+export interface GridViewState {
+    hiddenColumnIds?: string[];
+    frozenColumnIndex?: number;
+    selection?: ISlickRange[];
+}
+
+export interface GetGridViewStateParams {
+    uri: string;
+    gridId: string;
+}
+
+export namespace GetGridViewStateRequest {
+    export const type = new RequestType<GetGridViewStateParams, GridViewState | undefined, void>(
+        "getGridViewState",
+    );
+}
+
+export interface SetGridViewStateParams {
+    uri: string;
+    gridId: string;
+    gridViewState: GridViewState;
+}
+
+export namespace SetGridViewStateRequest {
+    export const type = new RequestType<SetGridViewStateParams, void, void>("setGridViewState");
+}
+
 export namespace ShowFilterDisabledMessageRequest {
     export const type = new RequestType<void, void, void>("showFilterDisabledMessage");
 }
@@ -341,9 +388,11 @@ export namespace CopyColumnNameRequest {
 
 export interface SetSelectionSummary {
     uri: string;
+    gridId: string;
     batchId: number;
     resultId: number;
     selection: ISlickRange[];
+    displaySelection: ISlickRange[];
 }
 export namespace SetSelectionSummaryRequest {
     export const type = new NotificationType<SetSelectionSummary>("setSelectionSummary");

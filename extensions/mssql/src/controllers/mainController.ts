@@ -63,7 +63,7 @@ import {
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -113,9 +113,12 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvider";
+import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
+import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { HttpClient } from "../http/httpClient";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -129,6 +132,12 @@ import { BackgroundTasksProvider } from "../backgroundTasks/backgroundTasksProvi
 import { BackgroundTaskNode } from "../backgroundTasks/backgroundTaskNode";
 import { BackgroundTaskLogContentProvider } from "../backgroundTasks/backgroundTaskLogContentProvider";
 import { BackgroundTasksService } from "../backgroundTasks/backgroundTasksService";
+import { quickQueryService } from "../quickQueries/quickQueryService";
+import {
+    getQuickQueryCommandId,
+    normalizeQuickQueries,
+    quickQueryCount,
+} from "../sharedInterfaces/shortcutsConfiguration";
 
 /**
  * The main controller class that initializes the extension
@@ -153,6 +162,7 @@ export default class MainController implements vscode.Disposable {
     private _logger: ILogger;
     private _lastBackgroundTaskClickTime = 0;
     private _lastBackgroundTaskId: string | undefined;
+    private _shortcutsConfigurationController: ShortcutsConfigurationWebviewController | undefined;
 
     public sqlTasksService: SqlTasksService;
     public backgroundTasksService: BackgroundTasksService;
@@ -249,6 +259,8 @@ export default class MainController implements vscode.Disposable {
     public async deactivate(): Promise<void> {
         this._logger.debug("Extension de-activated.");
         await this.onDisconnect();
+        this._shortcutsConfigurationController?.dispose();
+        this._shortcutsConfigurationController = undefined;
         this._statusview.dispose();
     }
 
@@ -280,6 +292,20 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
             this._event.on(Constants.cmdRunQueryWithUriOwnership, () => this.onRunQueryCommand());
+            this.registerCommand(Constants.cmdOpenShortcutsConfiguration);
+            this._event.on(Constants.cmdOpenShortcutsConfiguration, () => {
+                this.openShortcutsConfiguration();
+            });
+            for (let slotNumber = 1; slotNumber <= quickQueryCount; slotNumber++) {
+                const commandId = getQuickQueryCommandId(slotNumber);
+                this.registerCommand(commandId);
+                this._event.on(commandId, () => {
+                    if (!this.isShortcutsConfigurationEnabled()) {
+                        return;
+                    }
+                    void this.runAndLogErrors(quickQueryService.run(slotNumber));
+                });
+            }
             this.registerCommand(Constants.cmdManageConnectionProfiles);
             this._event.on(Constants.cmdManageConnectionProfiles, async () => {
                 await this.onManageProfiles();
@@ -358,6 +384,19 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearAzureTokenCache, () =>
                 this.connectionManager.onClearAzureTokenCache(),
             );
+            // Register the RenameProvider so F2 / "Rename Symbol" uses our STS backend.
+            // This gives the native inline rename textbox + VS Code's preview panel.
+            const renameProvider = new SqlSymbolRenameProvider();
+            this._context.subscriptions.push(
+                vscode.languages.registerRenameProvider({ language: "sql" }, renameProvider),
+            );
+
+            // Register the "Move to Schema..." refactor action (under the Refactor... menu) plus its
+            // backing command. Picking it shows a QuickPick to choose the target schema.
+            this._context.subscriptions.push(
+                ...SqlMoveToSchemaProvider.register(this._vscodeWrapper),
+            );
+
             this.registerCommand(Constants.cmdShowEstimatedPlan);
             this._event.on(Constants.cmdShowEstimatedPlan, () => {
                 void this.onRunQuery({
@@ -1056,6 +1095,7 @@ export default class MainController implements vscode.Disposable {
         );
 
         this._sqlDocumentService = new SqlDocumentService(this);
+        this.configureQuickQueryService();
 
         this._outputContentProvider.queryResultWebviewController.sqlDocumentService =
             this._sqlDocumentService;
@@ -2906,6 +2946,67 @@ export default class MainController implements vscode.Disposable {
         } catch (err) {
             this._logger.warn(`Unexpected error running query: ${getErrorMessage(err)}`);
         }
+    }
+
+    public openShortcutsConfiguration(focusedQuickQuerySlot?: number): void {
+        if (!this.isShortcutsConfigurationEnabled()) {
+            return;
+        }
+        if (
+            this._shortcutsConfigurationController &&
+            !this._shortcutsConfigurationController.isDisposed
+        ) {
+            this._shortcutsConfigurationController.focusQuickQuerySlot(focusedQuickQuerySlot);
+            this._shortcutsConfigurationController.revealToForeground();
+            return;
+        }
+
+        const controller = new ShortcutsConfigurationWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            focusedQuickQuerySlot,
+        );
+        controller.onDisposed(() => {
+            if (this._shortcutsConfigurationController === controller) {
+                this._shortcutsConfigurationController = undefined;
+            }
+        });
+        this._shortcutsConfigurationController = controller;
+        controller.revealToForeground();
+    }
+
+    private isShortcutsConfigurationEnabled(): boolean {
+        return previewService.isFeatureEnabled(PreviewFeature.ShortcutsConfiguration);
+    }
+
+    private configureQuickQueryService(): void {
+        quickQueryService.configure({
+            readQuickQueries: () =>
+                normalizeQuickQueries(
+                    vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
+                ),
+            openConfiguration: (focusedQuickQuerySlot) =>
+                this.openShortcutsConfiguration(focusedQuickQuerySlot),
+            createSqlEditor: async (options) => await this.sqlDocumentService.newQuery(options),
+            isSqlEditorConnected: (editor) =>
+                this._connectionMgr.isConnected(getUriKey(editor.document.uri)),
+            runSqlEditorQuery: async (editor) => {
+                const uri = getUriKey(editor.document.uri);
+                if (!this._connectionMgr.isConnected(uri)) {
+                    return;
+                }
+
+                await this._connectionMgr.refreshAzureAccountToken(uri);
+                store.deleteUriState(uri);
+                await this._outputContentProvider.runQuery(
+                    this._statusview,
+                    uri,
+                    undefined,
+                    path.basename(editor.document.fileName),
+                    {},
+                );
+            },
+        });
     }
 
     /**
