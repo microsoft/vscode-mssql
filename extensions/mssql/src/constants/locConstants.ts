@@ -4159,7 +4159,32 @@ export class SqlSymbolRename {
     public static renameOnlyInProjectFiles = l10n.t(
         "Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
     );
+    public static renameNotSupportedForSymbol = l10n.t("Please select a valid symbol.");
     public static renameRequestFailed = (message: string): string =>
         l10n.t("Rename request failed: {0}", message);
     public static noRenameableSymbolAtCursor = l10n.t("No renameable symbol found at cursor.");
+}
+
+export class SqlMoveToSchema {
+    public static moveToSchemaTitle = l10n.t("Move to Schema...");
+    public static moveToSchemaOnlyInProjectFiles = l10n.t(
+        "Move to Schema is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static selectTargetSchemaPlaceholder = (currentSchema?: string): string =>
+        currentSchema
+            ? l10n.t("Current Schema: {0}, Select the new schema:", currentSchema)
+            : l10n.t("Select the target schema");
+    public static noSchemasFound = l10n.t("No schemas were found in the project.");
+    public static noMovableSymbolAtCursor = l10n.t(
+        "No object that can be moved to another schema was found at the cursor.",
+    );
+    public static moveToSchemaRequestFailed = (message: string): string =>
+        l10n.t("Move to Schema request failed: {0}", message);
+    public static resolveRefactorLogFailed = (message: string): string =>
+        l10n.t("Failed to resolve the refactor log for this file: {0}", message);
+    public static previewLabel = (targetSchema: string): string =>
+        l10n.t("Move to schema '{0}'", targetSchema);
+    public static applyEditFailed = l10n.t(
+        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    );
 }

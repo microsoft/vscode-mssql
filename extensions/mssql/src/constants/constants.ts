@@ -149,6 +149,7 @@ export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
+export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";

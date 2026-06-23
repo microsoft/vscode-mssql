@@ -10,9 +10,18 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import { SqlSymbolRenameProvider } from "../../src/languageservice/sqlSymbolRenameProvider";
+import { SqlMoveToSchemaProvider } from "../../src/languageservice/sqlMoveToSchemaProvider";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { SqlSymbolRenameRequest } from "../../src/models/contracts/languageService";
-import { SqlSymbolRename as loc } from "../../src/constants/locConstants";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import {
+    ListProjectSchemasRequest,
+    SqlMoveToSchemaRequest,
+    SqlSymbolRenameRequest,
+} from "../../src/models/contracts/languageService";
+import {
+    SqlSymbolRename as loc,
+    SqlMoveToSchema as moveLoc,
+} from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 
@@ -22,6 +31,47 @@ const projectDir = path.dirname(
 );
 const defaultSqlFile = path.join(projectDir, "file.sql");
 const defaultProjFile = path.join(projectDir, "proj.sqlproj");
+
+// ---------------------------------------------------------------------------
+// Helpers shared across rename and move-to-schema suites
+// ---------------------------------------------------------------------------
+
+/** Builds a minimal stubbed VscodeWrapper. */
+function makeVscodeWrapper(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<VscodeWrapper> {
+    const wrapper = sandbox.createStubInstance(VscodeWrapper);
+    wrapper.showInformationMessage.resolves(undefined);
+    wrapper.showErrorMessage.resolves(undefined);
+    return wrapper;
+}
+
+/** Builds a line-based stubbed TextDocument used by SqlMoveToSchemaProvider tests. */
+function makeMoveDocument(
+    sandbox: sinon.SinonSandbox,
+    opts: { fsPath?: string; lineText?: string } = {},
+): vscode.TextDocument {
+    const fsPath = opts.fsPath ?? defaultSqlFile;
+    const lineText = opts.lineText ?? "CREATE TABLE [dbo].[MyTable]";
+    const uri = vscode.Uri.file(fsPath);
+    const uriString = uri.toString();
+    return {
+        uri: Object.assign(uri, { toString: () => uriString }),
+        lineAt: sandbox.stub().callsFake((lineOrPos: number | vscode.Position) => {
+            const lineNum =
+                typeof lineOrPos === "number" ? lineOrPos : (lineOrPos as vscode.Position).line;
+            return {
+                text: lineNum === 0 ? lineText : "",
+                range: new vscode.Range(
+                    new vscode.Position(lineNum, 0),
+                    new vscode.Position(lineNum, (lineNum === 0 ? lineText : "").length),
+                ),
+            };
+        }),
+        getText: sandbox.stub().callsFake((range?: vscode.Range) => {
+            if (!range) return lineText;
+            return lineText.slice(range.start.character, range.end.character);
+        }),
+    } as unknown as vscode.TextDocument;
+}
 
 // Helper to build a minimal stubbed TextDocument
 function makeDocument(
@@ -466,7 +516,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
             // Non-data object (e.g. stored procedure) — STS returns no refactorlog content.
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 ...refactorResponse(),
-                refactorLogContent: null,
+                refactorLogContent: undefined,
             });
 
             const doc = makeDocument(sandbox);
@@ -488,6 +538,210 @@ suite("SqlSymbolRenameProvider Tests", () => {
                         (c.args[0] as vscode.Uri).fsPath.endsWith(".sqlproj"),
                 );
             expect(refactorReplace).to.be.undefined;
+        });
+    });
+});
+
+// ===========================================================================
+// SqlMoveToSchemaProvider
+// ===========================================================================
+
+suite("SqlMoveToSchemaProvider Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let provider: SqlMoveToSchemaProvider;
+    let findFilesStub: sinon.SinonStub;
+    let sendRequestStub: sinon.SinonStub;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        vscodeWrapper = makeVscodeWrapper(sandbox);
+        provider = new SqlMoveToSchemaProvider(vscodeWrapper as unknown as VscodeWrapper);
+        findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
+        sendRequestStub = sandbox
+            .stub(SqlToolsServerClient.instance, "sendRequest")
+            .resolves(undefined);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    // -------------------------------------------------------------------------
+    suite("provideCodeActions", () => {
+        test("returns empty array when file is not in any SQL project", async () => {
+            const doc = makeMoveDocument(sandbox);
+            const actions = await provider.provideCodeActions(
+                doc,
+                new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+            );
+            expect(actions).to.deep.equal([]);
+        });
+
+        test("returns Move to Schema action when in project and cursor is on an identifier", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            const doc = makeMoveDocument(sandbox, { lineText: "SELECT [MyTable]" });
+            const actions = await provider.provideCodeActions(
+                doc,
+                new vscode.Range(new vscode.Position(0, 8), new vscode.Position(0, 8)),
+            );
+            expect(actions).to.have.length(1);
+            expect(actions[0].title).to.equal(moveLoc.moveToSchemaTitle);
+            expect(actions[0].kind).to.deep.equal(vscode.CodeActionKind.Refactor);
+        });
+    });
+
+    // -------------------------------------------------------------------------
+    suite("runMoveToSchema", () => {
+        test("shows message when file is not in a SQL project", async () => {
+            const doc = makeMoveDocument(sandbox);
+            await provider.runMoveToSchema(doc, new vscode.Position(0, 0));
+            expect(vscodeWrapper.showInformationMessage).to.have.been.calledWith(
+                moveLoc.moveToSchemaOnlyInProjectFiles,
+            );
+        });
+
+        test("shows message when the project has no schemas", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: [] });
+            const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+            await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+            expect(vscodeWrapper.showInformationMessage).to.have.been.calledWith(
+                moveLoc.noSchemasFound,
+            );
+        });
+
+        test("shows error when ListProjectSchemasRequest throws", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            sendRequestStub
+                .withArgs(ListProjectSchemasRequest.type)
+                .rejects(new Error("STS error"));
+            const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+            await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+            expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                moveLoc.moveToSchemaRequestFailed("STS error"),
+            );
+        });
+
+        test("returns early without sending move request when user cancels QuickPick", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            sendRequestStub
+                .withArgs(ListProjectSchemasRequest.type)
+                .resolves({ schemas: ["dbo", "hr"] });
+            vscodeWrapper.showQuickPick.resolves(undefined);
+            const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+            await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+            expect(sendRequestStub).to.not.have.been.calledWith(
+                SqlMoveToSchemaRequest.type,
+                sinon.match.any,
+            );
+        });
+
+        // -------------------------------------------------------------------
+        suite("applyMove", () => {
+            let openTextDocumentStub: sinon.SinonStub;
+            let applyEditStub: sinon.SinonStub;
+
+            const sampleRefactorLog = [
+                '<?xml version="1.0" encoding="utf-8"?>',
+                '<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">',
+                "</Operations>",
+            ].join("\n");
+
+            setup(() => {
+                findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+                vscodeWrapper.showQuickPick.resolves({ label: "hr" });
+                openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
+                openTextDocumentStub.callsFake((_uri: vscode.Uri) => {
+                    const content = "<Project>\n</Project>";
+                    const lines = content.split("\n");
+                    return Promise.resolve({
+                        uri: _uri,
+                        getText: () => content,
+                        lineCount: lines.length,
+                        lineAt: (i: number) => ({
+                            range: new vscode.Range(
+                                new vscode.Position(i, 0),
+                                new vscode.Position(i, lines[i].length),
+                            ),
+                        }),
+                    } as unknown as vscode.TextDocument);
+                });
+                sandbox.stub(vscode.workspace, "fs").value({
+                    stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()),
+                    writeFile: sandbox.stub().resolves(),
+                    delete: sandbox.stub().resolves(),
+                });
+                applyEditStub = sandbox.stub(vscode.workspace, "applyEdit").resolves(true);
+            });
+
+            test("shows error when SqlMoveToSchemaRequest throws", async () => {
+                sendRequestStub
+                    .withArgs(ListProjectSchemasRequest.type)
+                    .resolves({ schemas: ["hr"] });
+                sendRequestStub
+                    .withArgs(SqlMoveToSchemaRequest.type)
+                    .rejects(new Error("STS move failed"));
+                const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+                await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+                expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                    moveLoc.moveToSchemaRequestFailed("STS move failed"),
+                );
+            });
+
+            test("calls applyEdit with isRefactoring flag on a successful move", async () => {
+                const fileUri = vscode.Uri.file(defaultSqlFile).toString();
+                sendRequestStub
+                    .withArgs(ListProjectSchemasRequest.type)
+                    .resolves({ schemas: ["hr"] });
+                sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
+                    changes: {
+                        [fileUri]: [
+                            {
+                                range: {
+                                    start: { line: 0, character: 7 },
+                                    end: { line: 0, character: 14 },
+                                },
+                                newText: "[hr].[MyTable]",
+                            },
+                        ],
+                    },
+                    refactorLogContent: sampleRefactorLog,
+                });
+                const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+                await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+                expect(applyEditStub).to.have.been.calledWith(
+                    sinon.match.instanceOf(vscode.WorkspaceEdit),
+                    sinon.match({ isRefactoring: true }),
+                );
+            });
+
+            test("shows error message when applyEdit returns false", async () => {
+                applyEditStub.resolves(false);
+                const fileUri = vscode.Uri.file(defaultSqlFile).toString();
+                sendRequestStub
+                    .withArgs(ListProjectSchemasRequest.type)
+                    .resolves({ schemas: ["hr"] });
+                sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
+                    changes: {
+                        [fileUri]: [
+                            {
+                                range: {
+                                    start: { line: 0, character: 7 },
+                                    end: { line: 0, character: 14 },
+                                },
+                                newText: "[hr].[MyTable]",
+                            },
+                        ],
+                    },
+                    refactorLogContent: undefined,
+                });
+                const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+                await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+                expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                    moveLoc.applyEditFailed,
+                );
+            });
         });
     });
 });

@@ -114,6 +114,7 @@ import { ITableExplorerService, TableExplorerService } from "../services/tableEx
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvider";
+import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
@@ -385,11 +386,15 @@ export default class MainController implements vscode.Disposable {
             );
             // Register the RenameProvider so F2 / "Rename Symbol" uses our STS backend.
             // This gives the native inline rename textbox + VS Code's preview panel.
+            const renameProvider = new SqlSymbolRenameProvider();
             this._context.subscriptions.push(
-                vscode.languages.registerRenameProvider(
-                    { language: "sql" },
-                    new SqlSymbolRenameProvider(),
-                ),
+                vscode.languages.registerRenameProvider({ language: "sql" }, renameProvider),
+            );
+
+            // Register the "Move to Schema..." refactor action (under the Refactor... menu) plus its
+            // backing command. Picking it shows a QuickPick to choose the target schema.
+            this._context.subscriptions.push(
+                ...SqlMoveToSchemaProvider.register(this._vscodeWrapper),
             );
 
             this.registerCommand(Constants.cmdShowEstimatedPlan);
