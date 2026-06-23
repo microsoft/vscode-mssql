@@ -2552,6 +2552,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the error message</note>
         <target state="translated">認證錯誤: 嘗試重新整理帳戶憑證時發生錯誤。請重新驗證。錯誤: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++31471ef54c94fd1a0ed4fcd85c62277d98a6119305f1ea0862fab2f0aa4a1c3b">
+        <source xml:lang="en">Current Schema: {0}, Select the new schema:</source>
+        <target state="new">Current Schema: {0}, Select the new schema:</target>
+      </trans-unit>
       <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
         <source xml:lang="en">Currently signed in as:</source>
         <target state="translated">目前登入身分:</target>
@@ -4005,6 +4009,10 @@ Error:
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">無法套用變更: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++6c64dac05dd8918aa9678f62042470c0ac3b232e4ac9ddc1f8423a5ab9800514">
+        <source xml:lang="en">Failed to apply the Move to Schema changes. Check that the files are writable and try again.</source>
+        <target state="new">Failed to apply the Move to Schema changes. Check that the files are writable and try again.</target>
+      </trans-unit>
       <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
         <source xml:lang="en">Failed to change database</source>
         <target state="translated">變更資料庫失敗</target>
@@ -4281,6 +4289,10 @@ Error:
 {1} is the new database name
 {2} is the error message</note>
         <target state="translated">無法將資料庫 '{0}' 重新命名為 '{1}'。{2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++537dc4696903542ac2dabf4ddc71d8e1410dd1dca3adb30f90a2fe488e981623">
+        <source xml:lang="en">Failed to resolve the refactor log for this file: {0}</source>
+        <target state="new">Failed to resolve the refactor log for this file: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888">
         <source xml:lang="en">Failed to revert cell: {0}</source>
@@ -6083,6 +6095,18 @@ Error:
         <source xml:lang="en">Move to Root</source>
         <target state="translated">移至根目錄</target>
       </trans-unit>
+      <trans-unit id="++CODE++e3136d5a3627c9695c28f91c8d471a55d4ab34dc54549b40e1437d59326621ff">
+        <source xml:lang="en">Move to Schema is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.</source>
+        <target state="new">Move to Schema is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ad38fd5dcb7838ac6ad371776b4bfa218df126c9956bcaf7ebc4cf3e7e5f2ca">
+        <source xml:lang="en">Move to Schema request failed: {0}</source>
+        <target state="new">Move to Schema request failed: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fe0dad1261929f0cdda4d6bd309f42a6f17272b4135246f2be62eea84b0edac">
+        <source xml:lang="en">Move to Schema...</source>
+        <target state="new">Move to Schema...</target>
+      </trans-unit>
       <trans-unit id="++CODE++3a27763b5955826a714f69acc938b88a67ed38cc9845144d2119cf34c95292e5">
         <source xml:lang="en">Move to row end</source>
         <target state="new">Move to row end</target>
@@ -6090,6 +6114,10 @@ Error:
       <trans-unit id="++CODE++aa4fe9eaec5e94afba7d6d4e933234da72e1f9c63d4416d5b14f20886807bc6b">
         <source xml:lang="en">Move to row start</source>
         <target state="new">Move to row start</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b34e3a5a7a4eb6d296f62a5c74f344f47a570e9777c3576f7c5004fcc3a5f3c2">
+        <source xml:lang="en">Move to schema '{0}'</source>
+        <target state="new">Move to schema '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
         <source xml:lang="en">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
@@ -6477,6 +6505,10 @@ Error:
 {1} is the uri</note>
         <target state="translated">不需要為 URI 為 {1} 的連線 {0} 重新整理 Microsoft Entra 帳戶權杖</target>
       </trans-unit>
+      <trans-unit id="++CODE++70c1ecc8ac186a3778f50cff6c80adfd34578711eb09eaf3f48c7a820485b1fd">
+        <source xml:lang="en">No object that can be moved to another schema was found at the cursor.</source>
+        <target state="new">No object that can be moved to another schema was found at the cursor.</target>
+      </trans-unit>
       <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
         <source xml:lang="en">No objects found</source>
         <target state="translated">找不到任何物件</target>
@@ -6554,6 +6586,10 @@ Error:
       <trans-unit id="++CODE++db1fdd083d2ee48c5a7d1d3998a8421b63f0810c496428e3b4168399952e2683">
         <source xml:lang="en">No schemas found</source>
         <target state="translated">找不到任何結構描述</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5cae8a6e5cc3daff7f777899b62f915f3d5c2f362e14ea6995dee88ad7f2155c">
+        <source xml:lang="en">No schemas were found in the project.</source>
+        <target state="new">No schemas were found in the project.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
         <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
@@ -7112,6 +7148,10 @@ Error:
       <trans-unit id="++CODE++c3b03607c2bb1ba12950e5d6e40b67962fbaf476154b4ce14c11d5d918d9df58">
         <source xml:lang="en">Please select a server node in Object Explorer to create a database.</source>
         <target state="translated">請在物件總管中選取伺服器節點以建立資料庫。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c2c33e3a869ce52f39421ecb3ba91be590c4b2c0349a000b4253df8155b28cc2">
+        <source xml:lang="en">Please select a valid symbol.</source>
+        <target state="new">Please select a valid symbol.</target>
       </trans-unit>
       <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
         <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
@@ -8681,6 +8721,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++9ecda0247fcac26fa6b5b650012315b4faeaf853a3d1147f243e0af310d6c1da">
         <source xml:lang="en">Select the entire current row</source>
         <target state="new">Select the entire current row</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21f736a51b932eed3aed712f5cc2cd8ca7fd204ad2690df8c6d8d1f6cd926e1a">
+        <source xml:lang="en">Select the target schema</source>
+        <target state="new">Select the target schema</target>
       </trans-unit>
       <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
         <source xml:lang="en">Selected</source>
