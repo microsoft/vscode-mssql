@@ -383,6 +383,12 @@ export function registerAzureSqlDatabaseReducers(
                 cachedLogger?.error(
                     `Azure SQL Database provisioning failed: ${azureSqlState.errorMessage}`,
                 );
+                sendErrorEvent(
+                    TelemetryViews.AzureSqlDatabase,
+                    TelemetryActions.ProvisionAzureSqlDatabase,
+                    error,
+                    false,
+                );
             }
 
             state.deploymentTypeState = azureSqlState;
