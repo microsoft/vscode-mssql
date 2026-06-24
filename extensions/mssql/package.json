@@ -579,6 +579,11 @@
             ],
             "view/item/context": [
                 {
+                    "command": "mssql.openInMssqlExtension",
+                    "when": "view == azureResourceGroups && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "group": "1_MSSQL_primary@0"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -1051,6 +1056,10 @@
                 },
                 {
                     "command": "mssql.toggleActualPlan",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.openInMssqlExtension",
                     "when": "false"
                 }
             ],
@@ -1636,6 +1645,11 @@
             {
                 "command": "mssql.notebooks.copyCellMessages",
                 "title": "%mssql.notebooks.copyCellMessages%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openInMssqlExtension",
+                "title": "%mssql.openInMssqlExtension%",
                 "category": "MS SQL"
             }
         ],
