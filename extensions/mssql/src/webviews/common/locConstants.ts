@@ -2707,6 +2707,9 @@ export class LocConstants {
             filterOpLessThan: l10n.t("less than"),
             filterOpIsNull: l10n.t("is null"),
             filterOpIsNotNull: l10n.t("is not null"),
+            vectorReadonlyTooltip: l10n.t(
+                "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
+            ),
         };
     }
 

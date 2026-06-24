@@ -7806,6 +7806,9 @@
     <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
       <source xml:lang="en">Value is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++020047fc73e369f164014c46ff59e909f16aa48075f1646315b139843c2dcfbc">
+      <source xml:lang="en">Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.</source>
+    </trans-unit>
     <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
       <source xml:lang="en">Verify a container image by using the Notation CLI</source>
     </trans-unit>
