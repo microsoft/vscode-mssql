@@ -386,7 +386,7 @@ export function registerAzureSqlDatabaseReducers(
                 sendErrorEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
-                    error,
+                    error instanceof Error ? error : new Error(String(error)),
                     false,
                 );
             }
