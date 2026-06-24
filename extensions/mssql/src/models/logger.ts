@@ -234,7 +234,8 @@ export default logger;
  * Exported for unit tests to isolate the cached default channel.
  */
 export function resetLoggerDefaultChannelForTest(): void {
-    defaultChannel?.dispose();
+    // Keep the channel alive to avoid race conditions with late async log callbacks
+    // that can run after test teardown and throw "Channel has been closed".
     defaultChannel = undefined;
     defaultChannelState.cachedChannel = undefined;
 }

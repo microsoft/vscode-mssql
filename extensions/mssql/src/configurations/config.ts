@@ -7,7 +7,7 @@ export const config = {
     service: {
         downloadUrl:
             "https://github.com/Microsoft/sqltoolsservice/releases/download/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
-        version: "6.0.20260609.3",
+        version: "6.0.20260623.1",
         downloadFileNames: {
             Windows_64: "win-x64-net10.0.zip",
             Windows_ARM64: "win-arm64-net10.0.zip",
@@ -21,7 +21,7 @@ export const config = {
     },
     sqlToolsMcp: {
         packageId: "Microsoft.SqlServer.SQLtools.MCPserver",
-        version: "2.0.24",
+        version: "2.0.35",
         installDir: "./sqltools-mcp/{#version#}/{#platform#}",
         packageRuntimeIds: {
             Windows_64: "win-x64",

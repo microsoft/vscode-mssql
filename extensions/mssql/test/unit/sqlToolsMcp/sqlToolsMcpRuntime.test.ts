@@ -21,6 +21,7 @@ import { BridgeErrorCode, BridgeRequestError } from "../../../src/sqlToolsMcp/co
 import { SqlToolsMcpRuntime } from "../../../src/sqlToolsMcp/sqlToolsMcpRuntime";
 import { DbCellValue } from "../../../src/models/contracts/queryExecute";
 import { stubTelemetry } from "../utils";
+import { sqlToolsMcpConnectionRegistry } from "../../../src/sqlToolsMcp/sqlToolsMcpConnectionRegistry";
 
 chai.use(sinonChai);
 
@@ -45,9 +46,11 @@ suite("SQL Tools MCP runtime", () => {
         sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
         connectionManager.connect.resolves(true);
         connectionManager.disconnect.resolves(true);
+        sqlToolsMcpConnectionRegistry.clear();
     });
 
     teardown(() => {
+        sqlToolsMcpConnectionRegistry.clear();
         sandbox.restore();
     });
 
