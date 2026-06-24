@@ -856,6 +856,9 @@
       <source xml:lang="en">Canceling the query failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d09d0b9c54e5b4f0d495d4ecb562baa57fced06448e89522241c5b6e1b8641a4">
+      <source xml:lang="en">Cannot access the Docker socket. Your user may not be in the &apos;docker&apos; group, or VS Code was started before group membership took effect. Run &apos;sudo usermod -aG docker $USER&apos; and then log out and back in (or reboot) before relaunching VS Code.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
       <source xml:lang="en">Cannot cancel query as no query is running.</source>
     </trans-unit>
