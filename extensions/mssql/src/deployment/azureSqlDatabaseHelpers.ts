@@ -714,7 +714,7 @@ export async function connectToAzureSqlDatabase(
             );
 
         const connectionProfile: IConnectionDialogProfile =
-            await ConnectionCredentials.createConnectionInfo(connectionDetails);
+            ConnectionCredentials.createConnectionInfo(connectionDetails);
         connectionProfile.profileName = state.formState.profileName || state.formState.databaseName;
         connectionProfile.groupId = state.formState.groupId;
         connectionProfile.authenticationType =
