@@ -7,8 +7,44 @@ import { expect } from "chai";
 import * as l10n from "@vscode/l10n";
 import * as path from "path";
 import * as fs from "fs/promises";
+import * as sinon from "sinon";
+import * as vscode from "vscode";
+import { resetLoggerDefaultChannelForTest } from "../../src/models/logger";
 
 suite("Localization Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        resetLoggerDefaultChannelForTest();
+
+        const disposable = { dispose: sandbox.stub() } as vscode.Disposable;
+        const outputChannel = {
+            name: "MSSQL",
+            logLevel: vscode.LogLevel.Info,
+            onDidChangeLogLevel: sandbox.stub().returns(disposable),
+            append: sandbox.stub(),
+            appendLine: sandbox.stub(),
+            clear: sandbox.stub(),
+            show: sandbox.stub(),
+            replace: sandbox.stub(),
+            hide: sandbox.stub(),
+            trace: sandbox.stub(),
+            debug: sandbox.stub(),
+            info: sandbox.stub(),
+            warn: sandbox.stub(),
+            error: sandbox.stub(),
+            dispose: sandbox.stub(),
+        } as unknown as vscode.LogOutputChannel;
+
+        sandbox.stub(vscode.window, "createOutputChannel").returns(outputChannel);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+        resetLoggerDefaultChannelForTest();
+    });
+
     let setLocLang = async (lang: string) => {
         let filePath = path.resolve(
             __dirname,
@@ -44,7 +80,7 @@ suite("Localization Tests", () => {
         expect(testLocalizationConstant).to.equal("prueba");
     });
 
-    teardown(async () => {
+    suiteTeardown(async () => {
         await setLocLang("en");
     });
 });
