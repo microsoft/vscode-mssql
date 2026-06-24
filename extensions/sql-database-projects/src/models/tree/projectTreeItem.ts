@@ -136,6 +136,16 @@ export class ProjectRootTreeItem extends BaseProjectTreeItem {
             this.addNode(newNode, noneEntry);
         }
 
+        // refactor log items
+        for (const refactorLogEntry of this.project.refactorLogItems) {
+            const newNode = new fileTree.RefactorLogNode(
+                refactorLogEntry.fsUri,
+                this.projectFileUri,
+                refactorLogEntry.relativePath,
+            );
+            this.addNode(newNode, refactorLogEntry);
+        }
+
         // publish profiles
         for (const publishProfile of this.project.publishProfiles) {
             const newNode = new fileTree.PublishProfileNode(

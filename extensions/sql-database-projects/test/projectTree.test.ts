@@ -14,6 +14,7 @@ import {
     FileNode,
     sortFileFolderNodes,
     SqlObjectFileNode,
+    RefactorLogNode,
 } from "../src/models/tree/fileFolderTreeItem";
 import { ProjectRootTreeItem } from "../src/models/tree/projectTreeItem";
 import { DatabaseProjectItemType } from "../src/common/constants";
@@ -189,5 +190,52 @@ suite("Project Tree tests", function (): void {
             "/TestProj/MyFile1.sql",
             "/TestProj/MyFile2.sql",
         ]);
+    });
+
+    test("Should render RefactorLog items as RefactorLogNodes with correct context value", function (): void {
+        const root = os.platform() === "win32" ? "Z:\\" : "/";
+        const proj = new Project(vscode.Uri.file(`${root}TestProj.sqlproj`).fsPath);
+
+        proj.refactorLogItems.push(
+            proj.createFileProjectEntry("TestProj.refactorlog", EntryType.File),
+        );
+        proj.refactorLogItems.push(
+            proj.createFileProjectEntry(
+                path.join("Refactoring", "OldRenames.refactorlog"),
+                EntryType.File,
+            ),
+        );
+        proj.folders.push(proj.createFileProjectEntry("Refactoring", EntryType.Folder));
+
+        const tree = new ProjectRootTreeItem(proj);
+
+        expect(tree.children.map((x) => x.relativeProjectUri.path)).to.deep.equal([
+            "/TestProj/Database References",
+            "/TestProj/SQLCMD Variables",
+            "/TestProj/Refactoring",
+            "/TestProj/TestProj.refactorlog",
+        ]);
+
+        const refactorLogNode = tree.children.find(
+            (x) => x.relativeProjectUri.path === "/TestProj/TestProj.refactorlog",
+        );
+        expect(refactorLogNode, "Root RefactorLog node should exist").to.not.be.undefined;
+        expect(refactorLogNode).to.be.instanceOf(RefactorLogNode);
+        expect(refactorLogNode?.treeItem.contextValue).to.equal(
+            DatabaseProjectItemType.refactorLogFile,
+        );
+
+        const refactoringFolder = tree.children.find(
+            (x) => x.relativeProjectUri.path === "/TestProj/Refactoring",
+        ) as FolderNode;
+        expect(refactoringFolder, "Refactoring folder node should exist").to.not.be.undefined;
+        const nestedRefactorLogNode = refactoringFolder.children.find(
+            (x) => x.relativeProjectUri.path === "/TestProj/Refactoring/OldRenames.refactorlog",
+        );
+        expect(nestedRefactorLogNode, "Nested RefactorLog node should exist").to.not.be.undefined;
+        expect(nestedRefactorLogNode).to.be.instanceOf(RefactorLogNode);
+        expect(nestedRefactorLogNode?.treeItem.contextValue).to.equal(
+            DatabaseProjectItemType.refactorLogFile,
+        );
     });
 });

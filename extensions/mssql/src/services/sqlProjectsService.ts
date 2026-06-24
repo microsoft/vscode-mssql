@@ -713,4 +713,42 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
         };
         return this._client.sendRequest(contracts.MoveNoneItemRequest.type, params);
     }
+
+    /**
+     * Get all RefactorLog items in a project
+     * @param projectUri Absolute path of the project, including .sqlproj
+     */
+    public async getRefactorLogItems(projectUri: string): Promise<mssql.GetScriptsResult> {
+        const params: mssql.SqlProjectParams = { projectUri: projectUri };
+        return this._client.sendRequest(contracts.GetRefactorLogItemsRequest.type, params);
+    }
+
+    /**
+     * Add a RefactorLog item to a project
+     * @param projectUri Absolute path of the project, including .sqlproj
+     * @param path Path of the .refactorlog file, relative to the .sqlproj
+     */
+    public async addRefactorLogItem(projectUri: string, path: string): Promise<mssql.ResultStatus> {
+        const params: mssql.SqlProjectScriptParams = {
+            projectUri: projectUri,
+            path: path,
+        };
+        return this._client.sendRequest(contracts.AddRefactorLogItemRequest.type, params);
+    }
+
+    /**
+     * Delete a RefactorLog item from a project
+     * @param projectUri Absolute path of the project, including .sqlproj
+     * @param path Path of the .refactorlog file, relative to the .sqlproj
+     */
+    public async deleteRefactorLogItem(
+        projectUri: string,
+        path: string,
+    ): Promise<mssql.ResultStatus> {
+        const params: mssql.SqlProjectScriptParams = {
+            projectUri: projectUri,
+            path: path,
+        };
+        return this._client.sendRequest(contracts.DeleteRefactorLogItemRequest.type, params);
+    }
 }
