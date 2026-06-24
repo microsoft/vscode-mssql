@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IQuestion, IPrompter, IPromptCallback } from "../../src/prompts/question";
+import * as sinon from "sinon";
 import * as vscode from "vscode";
 
 // Dummy implementation to simplify mocking
@@ -17,6 +18,30 @@ class TestPrompter implements IPrompter {
     public promptCallback(_questions: IQuestion[], callback: IPromptCallback): void {
         callback({});
     }
+}
+
+function createLogOutputChannelStub(
+    stubber: sinon.SinonSandbox | typeof sinon = sinon,
+): vscode.LogOutputChannel {
+    const disposable = { dispose: stubber.stub() } as vscode.Disposable;
+
+    return {
+        name: "MSSQL",
+        logLevel: vscode.LogLevel.Info,
+        onDidChangeLogLevel: stubber.stub().returns(disposable),
+        append: stubber.stub(),
+        appendLine: stubber.stub(),
+        clear: stubber.stub(),
+        show: stubber.stub(),
+        replace: stubber.stub(),
+        hide: stubber.stub(),
+        trace: stubber.stub(),
+        debug: stubber.stub(),
+        info: stubber.stub(),
+        warn: stubber.stub(),
+        error: stubber.stub(),
+        dispose: stubber.stub(),
+    } as unknown as vscode.LogOutputChannel;
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -121,4 +146,10 @@ class ExpressRequest {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export { TestPrompter, createWorkspaceConfiguration, ExpressRequest, ExpressResult };
+export {
+    TestPrompter,
+    createLogOutputChannelStub,
+    createWorkspaceConfiguration,
+    ExpressRequest,
+    ExpressResult,
+};

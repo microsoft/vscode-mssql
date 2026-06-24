@@ -1292,6 +1292,16 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         suite("loadFromConnectionString", () => {
+            setup(() => {
+                // Pin the preview feature to a deterministic value so the Azure MFA
+                // path uses the stubbed azureAccountService instead of waiting on the
+                // background VS Code Entra data load (`_entraDataLoaded`), which depends
+                // on real `vscode.authentication` APIs and hangs in CI.
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
+            });
+
             async function runConnectionStringScenario(
                 mockOutput: ConnectionDetails,
                 errorMessage?: string,
