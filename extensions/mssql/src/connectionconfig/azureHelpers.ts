@@ -67,10 +67,21 @@ import {
     getCloudResourceEndpoint,
     VscodeEntraSqlTokenInfo,
 } from "../azure/vscodeEntraMfaUtils";
+import { IConnectionInfo } from "vscode-mssql";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
 const azureHelperLogger = getLogger("AzureHelpers");
+const azureSqlServerSuffix = ".database.";
+
+export const serverlessDatabaseWakingStatuses = new Set(["Paused", "Pausing", "Resuming"]);
+
+export interface AzureSqlDatabaseStatusResult {
+    status: string;
+    isWaking: boolean;
+    subscriptionId: string;
+    resourceGroupName: string;
+}
 
 //#region VS Code integration
 
@@ -267,6 +278,18 @@ export class VsCodeAzureHelper {
         return subs;
     }
 
+    public static async getSubscriptionsForAccount(
+        account: vscode.AuthenticationSessionAccountInformation | string,
+    ): Promise<AzureSubscription[]> {
+        const accountInfo =
+            typeof account === "string" ? await this.getAccountById(account) : account;
+        const tenants = await this.getTenantsForAccount(accountInfo);
+        const subscriptions = await Promise.all(
+            tenants.map((tenant) => this.getSubscriptionsForTenant(tenant)),
+        );
+        return subscriptions.flat();
+    }
+
     /**
      * Gets the resource groups available for a specific Azure subscription
      * @param subscription The subscription to get resource groups for
@@ -398,6 +421,72 @@ export class VsCodeAzureHelper {
             );
             return [];
         }
+    }
+
+    public static async getAzureSqlDatabaseStatusForConnection(
+        connection: IConnectionInfo,
+    ): Promise<AzureSqlDatabaseStatusResult | undefined> {
+        const databaseName = connection.database;
+        const serverName = this.getAzureSqlServerName(connection.server);
+        const accountId = connection.accountId;
+
+        if (!accountId || !serverName || !databaseName) {
+            return undefined;
+        }
+
+        const subscriptions = await this.getSubscriptionsForAccount(accountId);
+
+        for (const subscription of subscriptions) {
+            const sql = new SqlManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
+            );
+
+            const servers = await listAllIterator(sql.servers.list());
+            const matchingServer = servers.find(
+                (server) => server.name?.toLowerCase() === serverName.toLowerCase(),
+            );
+
+            if (!matchingServer?.id) {
+                continue;
+            }
+
+            const resourceGroupName = extractFromResourceId(matchingServer.id, "resourceGroups");
+            if (!resourceGroupName) {
+                continue;
+            }
+
+            const database = await sql.databases.get(resourceGroupName, serverName, databaseName);
+            const status = database.status;
+
+            if (!status) {
+                return undefined;
+            }
+
+            return {
+                status,
+                isWaking: serverlessDatabaseWakingStatuses.has(status),
+                subscriptionId: subscription.subscriptionId,
+                resourceGroupName,
+            };
+        }
+
+        return undefined;
+    }
+
+    private static getAzureSqlServerName(server: string | undefined): string | undefined {
+        if (!server) {
+            return undefined;
+        }
+
+        const serverWithoutPort = server.split(",")[0].trim().toLowerCase();
+        const azureSqlSuffixIndex = serverWithoutPort.indexOf(azureSqlServerSuffix);
+        return azureSqlSuffixIndex > 0
+            ? serverWithoutPort.substring(0, azureSqlSuffixIndex)
+            : undefined;
     }
 
     /**

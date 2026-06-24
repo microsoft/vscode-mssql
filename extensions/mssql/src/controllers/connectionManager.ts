@@ -55,11 +55,13 @@ import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewContro
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import { getServerTypes } from "../models/connectionInfo";
+import { getServerTypes, ServerType } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
+
+const serverlessDatabaseWakeTimeoutIncrement = 60;
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1436,6 +1438,8 @@ export default class ConnectionManager {
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
 
+        await this.extendTimeoutForWakingServerlessDatabaseIfNeeded(credentials);
+
         // Add the connection to the active connections list
         let connectionInfo: ConnectionInfo = new ConnectionInfo();
         connectionInfo.credentials = credentials;
@@ -1591,6 +1595,40 @@ export default class ConnectionManager {
                 undefined,
                 connectionInfo.credentials,
                 result.serverInfo,
+            );
+            return false;
+        }
+    }
+
+    public async extendTimeoutForWakingServerlessDatabaseIfNeeded(
+        credentials: IConnectionInfo,
+    ): Promise<boolean> {
+        if (
+            credentials.authenticationType !== Constants.azureMfa ||
+            !getServerTypes(credentials).includes(ServerType.Azure)
+        ) {
+            return false;
+        }
+
+        try {
+            const databaseStatus =
+                await VsCodeAzureHelper.getAzureSqlDatabaseStatusForConnection(credentials);
+
+            if (!databaseStatus?.isWaking) {
+                return false;
+            }
+
+            credentials.connectTimeout =
+                (credentials.connectTimeout ?? Constants.defaultConnectionTimeout) +
+                serverlessDatabaseWakeTimeoutIncrement;
+
+            this._logger.info(
+                `Azure SQL database "${credentials.database}" on server "${credentials.server}" is ${databaseStatus.status}; increased connection timeout by ${serverlessDatabaseWakeTimeoutIncrement} seconds.`,
+            );
+            return true;
+        } catch (error) {
+            this._logger.error(
+                `Failed to check Azure SQL database serverless status. Proceeding with default connection timeout. Error: ${getErrorMessage(error)}`,
             );
             return false;
         }

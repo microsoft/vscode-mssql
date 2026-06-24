@@ -629,6 +629,16 @@ export class ObjectExplorerService {
             return undefined;
         }
 
+        const isServerlessDatabaseWaking =
+            await this._connectionManager.extendTimeoutForWakingServerlessDatabaseIfNeeded(
+                connectionProfile,
+            );
+        const connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
+        if (isServerlessDatabaseWaking && connectionNode) {
+            connectionNode.loadingLabel = LocalizedConstants.ObjectExplorer.WakingDatabase;
+            void this.setLoadingUiForNode(connectionNode);
+        }
+
         const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
 
         const sessionIdResponse: GetSessionIdResponse =

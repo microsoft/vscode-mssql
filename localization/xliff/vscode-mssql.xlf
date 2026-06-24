@@ -7839,6 +7839,9 @@
     <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
       <source xml:lang="en">WHERE</source>
     </trans-unit>
+    <trans-unit id="++CODE++ebb229f7898d284cc8634e9cdf1d92c0cfd4ae03103250f7f2be681f17006957">
+      <source xml:lang="en">Waking database</source>
+    </trans-unit>
     <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
       <source xml:lang="en">Warehouse</source>
     </trans-unit>
