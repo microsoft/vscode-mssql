@@ -2,7 +2,7 @@
 
 ## Version 1.43.0
 
-- Release date: June 2, 2026
+- Release date: June 2, 2026 
 - Release status: GA
 
 ### What's new in 1.43.0
