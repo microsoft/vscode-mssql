@@ -17,6 +17,7 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { languageId } from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
@@ -33,6 +34,20 @@ chai.use(sinonChai);
 
 let sandbox: sinon.SinonSandbox;
 let extensionContext: vscode.ExtensionContext;
+
+function createQueryTextEditor(uri: string, text: string): vscode.TextEditor {
+    const selection = new vscode.Selection(0, 0, 0, 0);
+    return {
+        document: {
+            uri: vscode.Uri.parse(uri),
+            fileName: uri,
+            languageId,
+            getText: () => text,
+        },
+        selection,
+        selections: [selection],
+    } as unknown as vscode.TextEditor;
+}
 
 suite("Per File Connection Tests", () => {
     let manager: ConnectionManager;
@@ -284,9 +299,13 @@ suite("Per File Connection Tests", () => {
     });
 
     test("Prompts for new connection before running query if disconnected", async () => {
+        const testFile = "file://my/test/file.sql";
         const vscodeWrapperStub = stubVscodeWrapper(sandbox);
         sandbox.stub(vscodeWrapperStub, "isEditingSqlFile").get(() => true);
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => "file://my/test/file.sql");
+        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
+        sandbox
+            .stub(vscodeWrapperStub, "activeTextEditor")
+            .get(() => createQueryTextEditor(testFile, "SELECT 1"));
 
         const connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         connectionManagerStub.isConnected.returns(false);
