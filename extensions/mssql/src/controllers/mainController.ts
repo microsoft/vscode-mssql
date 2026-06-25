@@ -2817,11 +2817,6 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
-            // check if we're connected and editing a SQL file
-            if (!(await this.ensureReadyToExecuteQuery())) {
-                return;
-            }
-
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
             let title = path.basename(editor.document.fileName);
@@ -2840,19 +2835,37 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
+            let querySelection: ISelectionData;
+            let shouldRunSelection = false;
             if (!editor.selection.isEmpty) {
                 if (editor.document.getText(editor.selection).trim().length === 0) {
                     return;
                 }
 
                 let selection = editor.selection;
-                let querySelection: ISelectionData = {
+                querySelection = {
                     startLine: selection.start.line,
                     startColumn: selection.start.character,
                     endLine: selection.end.line,
                     endColumn: selection.end.character,
                 };
+                shouldRunSelection = true;
+            } else {
+                // only the start line and column are used to determine the current statement
+                querySelection = {
+                    startLine: editor.selection.start.line,
+                    startColumn: editor.selection.start.character,
+                    endLine: 0,
+                    endColumn: 0,
+                };
+            }
 
+            // check if we're connected and editing a SQL file
+            if (!(await this.ensureReadyToExecuteQuery())) {
+                return;
+            }
+
+            if (shouldRunSelection) {
                 await self._outputContentProvider.runQuery(
                     self._statusview,
                     uri,
@@ -2861,14 +2874,6 @@ export default class MainController implements vscode.Disposable {
                 );
                 return;
             }
-
-            // only the start line and column are used to determine the current statement
-            let querySelection: ISelectionData = {
-                startLine: editor.selection.start.line,
-                startColumn: editor.selection.start.character,
-                endLine: 0,
-                endColumn: 0,
-            };
 
             await self._outputContentProvider.runCurrentStatement(
                 self._statusview,
@@ -2889,11 +2894,6 @@ export default class MainController implements vscode.Disposable {
     public async onRunQuery(executionPlanOptions?: ExecutionPlanOptions): Promise<void> {
         try {
             if (!this.canRunCommand() || !this.validateTextDocumentHasFocus()) {
-                return;
-            }
-
-            // check if we're connected and editing a SQL file
-            if (!(await this.ensureReadyToExecuteQuery())) {
                 return;
             }
 
@@ -2928,6 +2928,11 @@ export default class MainController implements vscode.Disposable {
                     endLine: selection.end.line,
                     endColumn: selection.end.character,
                 };
+            }
+
+            // check if we're connected and editing a SQL file
+            if (!(await this.ensureReadyToExecuteQuery())) {
+                return;
             }
 
             // check if current connection is still valid / active - if not, refresh azure account token
