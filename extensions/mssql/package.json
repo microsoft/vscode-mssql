@@ -1816,6 +1816,12 @@
                     "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
                     "scope": "application"
                 },
+                "mssql.preview.queryResultsList": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.queryResultsList.description%",
+                    "scope": "application"
+                },
                 "mssql.openQueryResultsInTabByDefault": {
                     "type": "boolean",
                     "default": false,

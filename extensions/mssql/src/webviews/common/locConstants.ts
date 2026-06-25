@@ -883,6 +883,19 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
+            resultsList: l10n.t("Query results"),
+            followActiveEditor: l10n.t("Follow active editor"),
+            resizeResultsList: l10n.t("Resize query results list"),
+            resultsOpenInTabHeader: l10n.t("Results opened in a tab"),
+            resultsOpenInTabMessage: l10n.t(
+                "These results are shown in a separate editor tab. Close the tab to bring them back here.",
+            ),
+            showResultsInTab: l10n.t("Show results tab"),
+            sessionOpenInTab: l10n.t("Open in a tab"),
+            sessionExecuting: l10n.t("Running"),
+            sessionSucceeded: l10n.t("Succeeded"),
+            sessionFailed: l10n.t("Failed"),
+            activeEditorSession: l10n.t("Active editor"),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {

@@ -14,12 +14,18 @@ import {
     Spinner,
     Toolbar,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useState } from "react";
-import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
+import { ReactNode, useContext, useEffect, useState } from "react";
+import {
+    ArrowSyncRegular,
+    DatabaseSearch24Regular,
+    ErrorCircle24Regular,
+    OpenRegular,
+} from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { hasResultsOrMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
+import { QueryResultsList } from "./queryResultsList";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { ExecuteCommandRequest, WebviewAction } from "../../../sharedInterfaces/webview";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
@@ -38,6 +44,19 @@ const useStyles = makeStyles({
         height: "100%",
         display: "flex",
         flexDirection: "column",
+    },
+    resultsListLayout: {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "row",
+        minHeight: 0,
+    },
+    resultsListMain: {
+        flex: 1,
+        minWidth: 0,
+        height: "100%",
+        position: "relative",
     },
     ribbon: {
         width: "100%",
@@ -134,6 +153,16 @@ export const QueryResultPane = () => {
     );
     const messages = useQueryResultSelector<qr.IMessage[]>((s) => s.messages);
     const uri = useQueryResultSelector<string | undefined>((s) => s.uri);
+    const sessions = useQueryResultSelector<qr.QueryResultSession[] | undefined>((s) => s.sessions);
+    const isQueryResultsListEnabled = useQueryResultSelector<boolean | undefined>(
+        (s) => s.isQueryResultsListEnabled,
+    );
+    const isFollowingActiveEditor = useQueryResultSelector<boolean | undefined>(
+        (s) => s.isFollowingActiveEditor,
+    );
+    const isSelectedSessionInTab = useQueryResultSelector<boolean | undefined>(
+        (s) => s.isSelectedSessionInTab,
+    );
     const tabStates = useQueryResultSelector<qr.QueryResultTabStates | undefined>(
         (s) => s.tabStates,
     );
@@ -206,8 +235,50 @@ export const QueryResultPane = () => {
         });
     }, []);
 
-    if (initilizationError) {
+    // When the results rail is enabled, wrap the results content with the vertical session list
+    // on the right. The rail is shown whenever there is at least one session.
+    const showResultsList = !!isQueryResultsListEnabled && (sessions?.length ?? 0) > 0;
+    const wrap = (content: ReactNode): ReactNode => {
+        if (!showResultsList) {
+            return content;
+        }
         return (
+            <div className={classes.resultsListLayout}>
+                <div className={classes.resultsListMain}>{content}</div>
+                <QueryResultsList
+                    sessions={sessions!}
+                    selectedUri={uri}
+                    onSelect={(sessionUri) => context.selectResultSession(sessionUri)}
+                />
+            </div>
+        );
+    };
+
+    if (isSelectedSessionInTab) {
+        return wrap(
+            <div className={classes.root}>
+                <div className={classes.noResultsContainer}>
+                    <div className={classes.noResultsScrollablePane}>
+                        <div className={classes.noResultsIcon} aria-hidden>
+                            <OpenRegular />
+                        </div>
+                        <Title3>{locConstants.queryResult.resultsOpenInTabHeader}</Title3>
+                        <Text>{locConstants.queryResult.resultsOpenInTabMessage}</Text>
+                        <Button
+                            appearance="secondary"
+                            icon={<OpenRegular />}
+                            onClick={() => uri && context.revealResultTab(uri)}>
+                            {locConstants.queryResult.showResultsInTab}
+                        </Button>
+                    </div>
+                </div>
+                {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
+            </div>,
+        );
+    }
+
+    if (initilizationError) {
+        return wrap(
             <div className={classes.root}>
                 <div className={classes.noResultsContainer}>
                     <div className={classes.noResultsScrollablePane}>
@@ -219,12 +290,12 @@ export const QueryResultPane = () => {
                     </div>
                 </div>
                 {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
-            </div>
+            </div>,
         );
     }
 
     if (!uri || !hasResultsOrMessages(resultSetSummaries, messages)) {
-        return (
+        return wrap(
             <div className={classes.root}>
                 <div className={classes.noResultsContainer}>
                     <div className={classes.noResultsScrollablePane}>
@@ -258,11 +329,11 @@ export const QueryResultPane = () => {
                     </div>
                 </div>
                 {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
-            </div>
+            </div>,
         );
     }
 
-    return (
+    return wrap(
         <div className={classes.root}>
             <div className={classes.ribbon}>
                 <TabList
@@ -318,6 +389,17 @@ export const QueryResultPane = () => {
 
                 <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
                     <CopyIndicator visible={context.copyIndicatorVisible} />
+                    {showResultsList && isFollowingActiveEditor === false && (
+                        <Button
+                            icon={<ArrowSyncRegular />}
+                            iconPosition="after"
+                            appearance="subtle"
+                            onClick={() => context.followActiveEditor()}
+                            title={locConstants.queryResult.followActiveEditor}
+                            style={{ marginTop: "4px", marginBottom: "4px" }}>
+                            {locConstants.queryResult.followActiveEditor}
+                        </Button>
+                    )}
                     {webviewLocation === qr.QueryResultWebviewLocation.Panel && (
                         <Button
                             icon={<OpenRegular />}
@@ -377,6 +459,6 @@ export const QueryResultPane = () => {
                 </div>
             </div>
             {isBetaResultsGridEnabled && <QueryResultSummaryFooter />}
-        </div>
+        </div>,
     );
 };

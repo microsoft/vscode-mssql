@@ -179,6 +179,9 @@
     <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
       <source xml:lang="en">Actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++fae8b7624a2017c1d4a09d43f6958f8028d5be94ef6bddfaf067f190012fb3ae">
+      <source xml:lang="en">Active editor</source>
+    </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
     </trans-unit>
@@ -3555,6 +3558,9 @@
     <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
       <source xml:lang="en">Folder path is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++54fc75ab3bf5f819a6001d013eb0baaa63fc2c384e835852d42d7062fcb8f7d7">
+      <source xml:lang="en">Follow active editor</source>
+    </trans-unit>
     <trans-unit id="++CODE++52742c9dc235ecbc2154d3bef091d1e39dd0b8b542ebac8031331a146b83242d">
       <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.</source>
     </trans-unit>
@@ -5253,6 +5259,9 @@
     <trans-unit id="++CODE++f0ee00f28c5dbe68c0c0dd2a5ebab46d19dda4d81627953d3f8e32be33904842">
       <source xml:lang="en">Open in SQL Editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++6f3a857852cf96a8fc3783765f56c29e0ba1d7a112452eda7ffc488bb82eface">
+      <source xml:lang="en">Open in a tab</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
@@ -5694,6 +5703,9 @@
     <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
       <source xml:lang="en">Query failed</source>
     </trans-unit>
+    <trans-unit id="++CODE++b55ac51f0872253bf11aebfd286d8ab4a7336ef413bc96093f0a08020e3c664f">
+      <source xml:lang="en">Query results</source>
+    </trans-unit>
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
     </trans-unit>
@@ -5921,6 +5933,9 @@
       <source xml:lang="en">Resize column &apos;{0}&apos;</source>
       <note>{0} is the name of the column</note>
     </trans-unit>
+    <trans-unit id="++CODE++85418c9fa1b01ef2875fc942ce657fef36615a885529033d6a10ee3fc2ad9627">
+      <source xml:lang="en">Resize query results list</source>
+    </trans-unit>
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
     </trans-unit>
@@ -5994,6 +6009,9 @@
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++46d3824c86e5452ae52ac465d35827153d3fa598aee58f234e34b004a60855f7">
+      <source xml:lang="en">Results opened in a tab</source>
     </trans-unit>
     <trans-unit id="++CODE++307ea97b854d629bc8febac31e69d61ee13fcdeca467abf549e7a3258bce347e">
       <source xml:lang="en">Results toolbar</source>
@@ -6836,6 +6854,9 @@
     <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
       <source xml:lang="en">Show password</source>
     </trans-unit>
+    <trans-unit id="++CODE++0ff99c55c345b681d11abaa9f547fd2a1e40fcb6cf40505ee6a5dd8942b1b932">
+      <source xml:lang="en">Show results tab</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a9a8d46a1ea0067cbcb2a7f0f2d4e8c8d9c974f5e8cc08b3089f8d8a696fec3">
       <source xml:lang="en">Show schema for connection &apos;{0}&apos; (ID: {1})?</source>
       <note>{0} is the connection display name
@@ -7446,6 +7467,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++427a09f0ac777c2a965ed0226d4e14fe476857e67bbba308ffb81c255318d3a8">
+      <source xml:lang="en">These results are shown in a separate editor tab. Close the tab to bring them back here.</source>
     </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
@@ -9133,6 +9157,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.queryResultsList.description">
+      <source xml:lang="en">Shows open query results as a list on the side of the results panel so you can switch between them without changing the active editor.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
       <source xml:lang="en">Sort and Filter Query Results</source>

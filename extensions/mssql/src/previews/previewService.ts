@@ -14,6 +14,7 @@ export enum PreviewFeature {
     BetaResultsGrid = "betaResultsGrid",
     ShortcutsConfiguration = "shortcutsConfiguration",
     UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
+    QueryResultsList = "queryResultsList",
 }
 
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";

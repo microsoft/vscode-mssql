@@ -54,6 +54,20 @@ export interface QueryResultReactProvider
     extensionRpc: WebviewRpc<QueryResultReducers>;
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     setResultViewMode: (viewMode: QueryResultViewMode) => void;
+    /**
+     * Selects a query result session in the results rail without changing the active editor.
+     * @param uri the uri of the session to show
+     */
+    selectResultSession: (uri: string) => void;
+    /**
+     * Resumes following the active editor (auto-sync) after a session has been pinned.
+     */
+    followActiveEditor: () => void;
+    /**
+     * Reveals the editor tab that holds a popped-out session's results.
+     * @param uri the uri of the session whose tab to reveal
+     */
+    revealResultTab: (uri: string) => void;
     // Grid context menu control
     showGridContextMenu: (
         x: number,
@@ -173,6 +187,15 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
             setResultViewMode: (viewMode: QueryResultViewMode) => {
                 extensionRpc.action("setResultViewMode", { viewMode });
+            },
+            selectResultSession: (uri: string) => {
+                extensionRpc.action("selectResultSession", { uri });
+            },
+            followActiveEditor: () => {
+                extensionRpc.action("followActiveEditor", {});
+            },
+            revealResultTab: (uri: string) => {
+                extensionRpc.action("revealResultTab", { uri });
             },
 
             // Grid context menu API

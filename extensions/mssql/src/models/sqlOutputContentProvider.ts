@@ -997,6 +997,12 @@ export class SqlOutputContentProvider {
             this._queryResultWebviewController.getQueryResultState(uri);
         }
 
+        // In rail mode, revealing a result selects its session (auto-select on run) so it
+        // becomes the shown entry without changing the active editor.
+        if (this._queryResultWebviewController.isQueryResultsListEnabled && hasState) {
+            this._queryResultWebviewController.setSelectedSession(uri);
+        }
+
         const shouldFocus =
             (notFoundBehavior === "emptyPanel" && !hasState) ||
             (hasState && !this._queryResultWebviewController.hasPanel(uri));
@@ -1078,6 +1084,10 @@ export class SqlOutputContentProvider {
         // Set the state to the right webview.
         if (this._queryResultWebviewController.hasPanel(uri)) {
             this._queryResultWebviewController.updatePanelState(uri);
+        } else if (this._queryResultWebviewController.isQueryResultsListEnabled) {
+            // Rail mode keeps the session roster fresh and only swaps the shown grid when this
+            // is the selected session (handled inside the controller).
+            this._queryResultWebviewController.handleSessionUpdate();
         } else {
             /**
              * If the user is working on some other editor, do not display the results

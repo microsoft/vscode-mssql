@@ -51,6 +51,33 @@ export enum QueryResultWebviewLocation {
     Document = "document", // VSCode document area (editor area)
 }
 
+/**
+ * Status of a query result session shown in the results rail.
+ */
+export enum QueryResultSessionStatus {
+    Executing = "executing",
+    Success = "success",
+    Error = "error",
+}
+
+/**
+ * Lightweight descriptor for a single query result session rendered as an entry in the
+ * vertical results rail. The full result state is fetched lazily for the selected session
+ * only; this roster is intentionally small so it can be pushed on every update.
+ */
+export interface QueryResultSession {
+    /** The document URI the results belong to. */
+    uri: string;
+    /** Display label for the rail entry (typically the document file name). */
+    title: string;
+    /** Execution status used to render the entry's status indicator. */
+    status: QueryResultSessionStatus;
+    /** Whether this session corresponds to the currently active editor. */
+    isActiveEditor: boolean;
+    /** Whether this session's results are currently popped out to their own editor tab. */
+    isOpenInTab: boolean;
+}
+
 export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
     resultViewMode?: QueryResultViewMode;
@@ -90,6 +117,23 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     executionStartTime?: number;
     executionElapsedMilliseconds?: number;
     rowsAffected?: number;
+    /**
+     * Roster of all query result sessions shown in the vertical results rail.
+     * Only populated for the panel results view when the results rail preview is enabled.
+     */
+    sessions?: QueryResultSession[];
+    /** Whether the vertical results rail is enabled. */
+    isQueryResultsListEnabled?: boolean;
+    /**
+     * Whether the panel is currently following the active editor (auto-sync). When false the user
+     * has pinned a specific session and the "Follow active editor" affordance is shown.
+     */
+    isFollowingActiveEditor?: boolean;
+    /**
+     * Whether the selected rail session's results are currently shown in a separate editor tab.
+     * When true the panel shows an "open in a new tab" placeholder instead of the results grid.
+     */
+    isSelectedSessionInTab?: boolean;
 }
 
 export interface SelectionSummaryMetrics {
@@ -122,6 +166,23 @@ export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExe
     };
     setResultViewMode: {
         viewMode: QueryResultViewMode;
+    };
+    /**
+     * Selects a query result session in the results rail, switching the shown results
+     * without changing the active editor.
+     */
+    selectResultSession: {
+        uri: string;
+    };
+    /**
+     * Resumes following the active editor (auto-sync) after the user has pinned a session.
+     */
+    followActiveEditor: Record<string, never>;
+    /**
+     * Reveals the editor tab that holds a popped-out session's results.
+     */
+    revealResultTab: {
+        uri: string;
     };
     /**
      * Gets the execution plan graph from the provider for given uri
