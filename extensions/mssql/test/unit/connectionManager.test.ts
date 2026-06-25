@@ -284,6 +284,30 @@ suite("ConnectionManager Tests", () => {
 
             expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
         });
+
+        test("parseConnectionString sends object params to the service", async () => {
+            const testConnectionString =
+                "Server=localhost,14335;User Id=sa;Password=Aasimkhan30@a;TrustServerCertificate=True;\n";
+            const expectedResult = {
+                options: {
+                    server: "localhost,14335",
+                    user: "sa",
+                    password: "Aasimkhan30@a",
+                    authenticationType: "SqlLogin",
+                    trustServerCertificate: true,
+                },
+            } as ConnectionDetails;
+
+            mockServiceClient.sendRequest
+                .withArgs(ParseConnectionStringRequest.type, {
+                    connectionString: testConnectionString,
+                })
+                .resolves(expectedResult);
+
+            const result = await connectionManager.parseConnectionString(testConnectionString);
+
+            expect(result).to.equal(expectedResult);
+        });
     });
 
     suite("Token request handling", () => {
