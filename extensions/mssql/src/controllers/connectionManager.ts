@@ -145,6 +145,8 @@ export default class ConnectionManager {
 
     public initialized: Deferred<void> = new Deferred<void>();
 
+    private _entraLogger: ILogger;
+
     constructor(
         private context: vscode.ExtensionContext,
         statusView: StatusView,
@@ -175,6 +177,8 @@ export default class ConnectionManager {
         if (!this._logger) {
             this._logger = logger.withPrefix("ConnectionManager");
         }
+
+        this._entraLogger = logger.withPrefix("Entra Auth");
 
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
@@ -1257,13 +1261,13 @@ export default class ConnectionManager {
                     connectionInfo.expiresOn,
                 )
             ) {
-                this._logger?.debug(
+                this._entraLogger?.debug(
                     `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}). No refresh needed.`,
                 );
                 return;
             }
 
-            this._logger?.debug(
+            this._entraLogger?.debug(
                 `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
             );
 
@@ -2247,11 +2251,7 @@ export default class ConnectionManager {
      *
      * 1. **Entra MFA via VS Code accounts** (`params.accountId` present): STS is running in
      *    `--request-mfa-token-from-client` mode (`useVscodeAccountsForEntraMFA` enabled) and
-     *    needs an access token for the given Entra account + tenant. The target audience comes
-     *    from `params.resource` (populated by STS from
-     *    `SqlAuthenticationParameters.Resource`, e.g. `https://database.windows.net/` for
-     *    Azure SQL or `https://<org>.crm.dynamics.com/` for a Dataverse TDS endpoint) and
-     *    falls back to the SQL resource for backward compatibility with older STS builds.
+     *    needs an access token for the given Entra account + tenant + resource.
      *
      * 2. **Always Encrypted / Azure Key Vault** (`params.accountId` absent): STS needs a token
      *    for `https://vault.azure.net/` to decrypt a Column Encryption Key protected by an
@@ -2264,7 +2264,7 @@ export default class ConnectionManager {
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
-            this._logger.info(
+            this._entraLogger.info(
                 `VS Code accounts token request received for ${params.resource} with accountId '${params.accountId}' and tenantId '${params.tenantId}'`,
             );
             try {
@@ -2278,7 +2278,7 @@ export default class ConnectionManager {
                 const expiry = Utils.epochToDisplay(
                     tokenInfo.token.expiresOn ? tokenInfo.token.expiresOn * 1000 : undefined,
                 );
-                this._logger.info(
+                this._entraLogger.info(
                     `VS Code accounts token acquired successfully for ${resourceEndpoint} with accountId '${params.accountId}' and tenantId '${params.tenantId}'; expires on ${tokenInfo.token.expiresOn} (${expiry.iso}, ${expiry.relative})`,
                 );
 

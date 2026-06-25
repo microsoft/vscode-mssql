@@ -14,6 +14,7 @@ import { ConnectionNode } from "./nodes/connectionNode";
 import { serverLabel } from "../constants/constants";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
+import { getNodeDescriptor } from "./nodes/nodeUtils";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -46,9 +47,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public refresh(nodeInfo?: TreeNodeInfo): void {
-        this._logger.info(
-            `[refresh-diag] provider.refresh fired for ${this.describeNode(nodeInfo)}`,
-        );
+        this._logger.trace(`refresh fired for ${getNodeDescriptor(nodeInfo)}`);
         this._onDidChangeTreeData.fire(nodeInfo);
     }
 
@@ -57,9 +56,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        this._logger.info(
-            `[refresh-diag] provider.getChildren called for ${this.describeNode(element)}`,
-        );
+        this._logger.trace(`getChildren called for ${getNodeDescriptor(element)}`);
         const children = await this._objectExplorerService.getChildren(element);
         if (children) {
             return children;
@@ -115,9 +112,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public async refreshNode(node: TreeNodeInfo): Promise<void> {
-        this._logger.info(
-            `[refresh-diag] provider.refreshNode invoked (user clicked refresh button) for ${this.describeNode(node)}`,
-        );
+        this._logger.trace(`refreshNode called for ${getNodeDescriptor(node)}`);
         node.shouldRefresh = true;
         this._onDidChangeTreeData.fire(node);
     }
@@ -150,12 +145,5 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     /* Only for testing purposes */
     public set objectExplorerService(value: ObjectExplorerService) {
         this._objectExplorerService = value;
-    }
-
-    private describeNode(node?: TreeNodeInfo): string {
-        if (!node) {
-            return "<root>";
-        }
-        return `'${node.label}' (type=${node.nodeType}, nodePath=${node.nodePath}, sessionId=${node.sessionId}, shouldRefresh=${node.shouldRefresh})`;
     }
 }

@@ -438,10 +438,6 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("Should acquire token for the resource specified by STS when one is supplied (e.g. Dynamics/Dataverse)", async () => {
-            // STS in --request-mfa-token-from-client mode forwards SqlAuthenticationParameters.Resource
-            // via RequestSecurityTokenParams.resource. For Dataverse TDS endpoints this is the org URL,
-            // not https://database.windows.net/, so we must honor what STS asked for instead of
-            // hardcoding sqlResource (which causes login failures against *.crm.dynamics.com).
             const expiresOn = Math.floor(Date.now() / 1000) + 3600;
             acquireTokenStub.resolves({ token: { token: "dataverse-token", expiresOn } });
 
