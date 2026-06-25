@@ -10257,6 +10257,10 @@ Query: {2}</source>
         <source xml:lang="en">Value is required</source>
         <target state="translated">Требуется значение</target>
       </trans-unit>
+      <trans-unit id="++CODE++020047fc73e369f164014c46ff59e909f16aa48075f1646315b139843c2dcfbc">
+        <source xml:lang="en">Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.</source>
+        <target state="new">Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.</target>
+      </trans-unit>
       <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
         <source xml:lang="en">Verify a container image by using the Notation CLI</source>
         <target state="translated">Проверьте образ контейнера с помощью CLI Notation</target>
