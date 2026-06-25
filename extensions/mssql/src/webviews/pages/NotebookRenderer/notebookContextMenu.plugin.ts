@@ -9,14 +9,17 @@
  * This is intentionally separate from QueryResult's ContextMenu because
  * the two share very little implementation:
  *  - QueryResult renders its menu via React (queryResultContext.showGridContextMenu)
- *    and delegates copy/format to the extension host via RPC;
- *  - The notebook renderer runs inside a VS Code notebook output iframe that
- *    has no access to extension host RPC, so it builds the menu with raw DOM
- *    and copies locally via the clipboard API using in-memory data.
+ *    and delegates copy/format to the extension host via RPC, since it requires
+ *    live SQL Tools Service result set IDs for server-side formatting;
+ *  - The notebook renderer builds the menu with raw DOM and formats data
+ *    client-side using in-memory row data, then writes via the clipboard API.
+ *    (A renderer↔extension-host messaging channel exists via RendererContext
+ *    but offers no advantage here since the data is already in memory.)
  */
 
 import { locConstants } from "../../common/locConstants";
 import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
+import type { IDbColumn } from "../../../sharedInterfaces/queryResult";
 
 /** Actions available in the notebook grid context menu. */
 enum NotebookContextMenuAction {
@@ -24,12 +27,19 @@ enum NotebookContextMenuAction {
     CopySelection = "copy-selection",
     CopyWithHeaders = "copy-with-headers",
     CopyHeaders = "copy-headers",
+    CopyAsCsv = "copy-as-csv",
+    CopyAsJson = "copy-as-json",
+    CopyAsInClause = "copy-as-in-clause",
+    CopyAsInsertInto = "copy-as-insert-into",
 }
 
 export class NotebookContextMenu<T extends Slick.SlickData> {
+    constructor(private readonly columnInfo: IDbColumn[] = []) {}
+
     private grid!: Slick.Grid<T>;
     private handler = new Slick.EventHandler();
     private menuElement: HTMLElement | null = null;
+    private submenuElement: HTMLElement | null = null;
     private dismissHandler: ((e: MouseEvent) => void) | null = null;
     private escapeHandler: ((e: KeyboardEvent) => void) | null = null;
     private scrollHandler: (() => void) | null = null;
@@ -68,9 +78,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         menu.style.left = `${x}px`;
         menu.style.top = `${y}px`;
 
-        // Dismiss on outside click
+        // Dismiss on outside click (also allow clicks inside the submenu panel)
         this.dismissHandler = (evt: MouseEvent) => {
-            if (!menu.contains(evt.target as Node)) {
+            const target = evt.target as Node;
+            if (!menu.contains(target) && !this.submenuElement?.contains(target)) {
                 this.dismiss();
             }
         };
@@ -96,6 +107,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         if (this.menuElement) {
             this.menuElement.remove();
             this.menuElement = null;
+        }
+        if (this.submenuElement) {
+            this.submenuElement.remove();
+            this.submenuElement = null;
         }
         if (this.dismissHandler) {
             document.removeEventListener("mousedown", this.dismissHandler);
@@ -149,7 +164,98 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             NotebookContextMenuAction.CopyHeaders,
         );
 
+        this.addSeparator(menu);
+
+        this.addSubmenuItem(menu, locConstants.queryResult.copyAs, [
+            {
+                label: locConstants.queryResult.copyAsCsv,
+                action: NotebookContextMenuAction.CopyAsCsv,
+            },
+            {
+                label: locConstants.queryResult.copyAsJson,
+                action: NotebookContextMenuAction.CopyAsJson,
+            },
+            {
+                label: locConstants.queryResult.copyAsInsertInto,
+                action: NotebookContextMenuAction.CopyAsInsertInto,
+            },
+            {
+                label: locConstants.queryResult.copyAsInClause,
+                action: NotebookContextMenuAction.CopyAsInClause,
+            },
+        ]);
+
         return menu;
+    }
+
+    private addSubmenuItem(
+        parent: HTMLElement,
+        label: string,
+        subItems: Array<{ label: string; action: NotebookContextMenuAction }>,
+    ): void {
+        const item = document.createElement("div");
+        item.className = "nb-context-menu-item";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "nb-context-menu-label";
+        labelSpan.textContent = label;
+        item.appendChild(labelSpan);
+
+        const arrow = document.createElement("span");
+        arrow.textContent = "›";
+        item.appendChild(arrow);
+
+        const submenu = document.createElement("div");
+        submenu.className = "nb-context-menu";
+        submenu.style.display = "none";
+
+        for (const subItem of subItems) {
+            const subMenuItem = document.createElement("div");
+            subMenuItem.className = "nb-context-menu-item";
+            const subLabelSpan = document.createElement("span");
+            subLabelSpan.className = "nb-context-menu-label";
+            subLabelSpan.textContent = subItem.label;
+            subMenuItem.appendChild(subLabelSpan);
+            subMenuItem.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.dismiss();
+                void this.handleAction(subItem.action);
+            });
+            submenu.appendChild(subMenuItem);
+        }
+
+        document.body.appendChild(submenu);
+        this.submenuElement = submenu;
+
+        const showSubmenu = () => {
+            const rect = item.getBoundingClientRect();
+            submenu.style.display = "flex";
+            submenu.style.flexDirection = "column";
+            const submenuRect = submenu.getBoundingClientRect();
+            const margin = 4;
+            let left = rect.right + margin;
+            if (left + submenuRect.width > window.innerWidth - 8) {
+                left = rect.left - submenuRect.width - margin;
+            }
+            submenu.style.left = `${left}px`;
+            submenu.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - submenuRect.height - 8))}px`;
+        };
+
+        const hideSubmenu = (e: MouseEvent) => {
+            if (
+                !submenu.contains(e.relatedTarget as Node) &&
+                !item.contains(e.relatedTarget as Node)
+            ) {
+                submenu.style.display = "none";
+            }
+        };
+
+        item.addEventListener("mouseenter", showSubmenu);
+        item.addEventListener("mouseleave", hideSubmenu);
+        submenu.addEventListener("mouseleave", hideSubmenu);
+
+        parent.appendChild(item);
     }
 
     private addMenuItem(
@@ -214,6 +320,18 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 break;
             case NotebookContextMenuAction.CopyHeaders:
                 await this.copyToClipboard(this.formatHeaders(ranges, columns));
+                break;
+            case NotebookContextMenuAction.CopyAsCsv:
+                await this.copyToClipboard(this.formatAsCsv(ranges, columns, dataProvider));
+                break;
+            case NotebookContextMenuAction.CopyAsJson:
+                await this.copyToClipboard(this.formatAsJson(ranges, columns, dataProvider));
+                break;
+            case NotebookContextMenuAction.CopyAsInClause:
+                await this.copyToClipboard(this.formatAsInClause(ranges, columns, dataProvider));
+                break;
+            case NotebookContextMenuAction.CopyAsInsertInto:
+                await this.copyToClipboard(this.formatAsInsertInto(ranges, columns, dataProvider));
                 break;
         }
     }
@@ -322,5 +440,149 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             headers.push(dataCols.map((c) => c.name ?? "").join("\t"));
         }
         return headers.join("\n");
+    }
+
+    private formatAsCsv(
+        ranges: Slick.Range[],
+        columns: Slick.Column<T>[],
+        dataProvider: IDisposableDataProvider<T>,
+    ): string {
+        const quote = (v: string): string => {
+            if (v.includes('"') || v.includes(",") || v.includes("\n") || v.includes("\r")) {
+                return '"' + v.replace(/"/g, '""') + '"';
+            }
+            return v;
+        };
+        const lines: string[] = [];
+        for (const range of ranges) {
+            const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
+            if (dataCols.length === 0) {
+                continue;
+            }
+            lines.push(dataCols.map((c) => quote(c.toolTip ?? c.name ?? "")).join(","));
+            for (let r = range.fromRow; r <= range.toRow; r++) {
+                lines.push(
+                    dataCols
+                        .map((col) => quote(this.getCellDisplayValue(dataProvider, r, col.field!)))
+                        .join(","),
+                );
+            }
+        }
+        return lines.join("\r\n");
+    }
+
+    private formatAsJson(
+        ranges: Slick.Range[],
+        columns: Slick.Column<T>[],
+        dataProvider: IDisposableDataProvider<T>,
+    ): string {
+        const objects: Record<string, string | null>[] = [];
+        for (const range of ranges) {
+            const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
+            if (dataCols.length === 0) {
+                continue;
+            }
+            for (let r = range.fromRow; r <= range.toRow; r++) {
+                const obj: Record<string, string | null> = {};
+                for (const col of dataCols) {
+                    const item = dataProvider.getItem(r) as Slick.SlickData;
+                    const cellVal = item?.[col.field!];
+                    obj[col.toolTip ?? col.name ?? col.field!] = cellVal?.isNull
+                        ? null
+                        : (cellVal?.displayValue ?? null);
+                }
+                objects.push(obj);
+            }
+        }
+        return JSON.stringify(objects, null, 2);
+    }
+
+    private formatAsInClause(
+        ranges: Slick.Range[],
+        columns: Slick.Column<T>[],
+        dataProvider: IDisposableDataProvider<T>,
+    ): string {
+        const sqlStr = (v: string) => "'" + v.replace(/'/g, "''") + "'";
+        const rows: string[] = [];
+        for (const range of ranges) {
+            const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
+            if (dataCols.length === 0) {
+                continue;
+            }
+            for (let r = range.fromRow; r <= range.toRow; r++) {
+                const values = dataCols.map((col) => {
+                    const item = dataProvider.getItem(r) as Slick.SlickData;
+                    const cellVal = item?.[col.field!];
+                    return cellVal?.isNull ? "NULL" : sqlStr(cellVal?.displayValue ?? "");
+                });
+                rows.push(dataCols.length === 1 ? values[0] : `(${values.join(", ")})`);
+            }
+        }
+        return rows.join(",\n");
+    }
+
+    private formatAsInsertInto(
+        ranges: Slick.Range[],
+        columns: Slick.Column<T>[],
+        dataProvider: IDisposableDataProvider<T>,
+    ): string {
+        const sqlStr = (v: string) => "'" + v.replace(/'/g, "''") + "'";
+
+        let dataCols: Slick.Column<T>[] = [];
+        const valueRows: string[] = [];
+
+        for (const range of ranges) {
+            const rangeCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
+            if (rangeCols.length === 0) {
+                continue;
+            }
+            if (dataCols.length === 0) {
+                dataCols = rangeCols;
+            }
+            for (let r = range.fromRow; r <= range.toRow; r++) {
+                const values = dataCols.map((col) => {
+                    const item = dataProvider.getItem(r) as Slick.SlickData;
+                    const cellVal = item?.[col.field!];
+                    if (cellVal?.isNull) {
+                        return "NULL";
+                    }
+                    const val = cellVal?.displayValue ?? "";
+                    const colIndex = parseInt(col.field!, 10);
+                    const colInfo = !isNaN(colIndex) ? this.columnInfo[colIndex] : undefined;
+                    return this.isNumericSqlType(colInfo?.dataTypeName) ? val : sqlStr(val);
+                });
+                valueRows.push(`    (${values.join(", ")})`);
+            }
+        }
+
+        if (dataCols.length === 0 || valueRows.length === 0) {
+            return "";
+        }
+
+        const colNames = dataCols.map((c) => c.toolTip ?? c.name ?? c.field ?? "").join(", ");
+        const lastIdx = valueRows.length - 1;
+        const rowLines = valueRows.map((row, i) => row + (i < lastIdx ? "," : ";"));
+
+        return [`INSERT INTO table_name (${colNames})`, "VALUES", ...rowLines].join("\n");
+    }
+
+    private isNumericSqlType(dataTypeName: string | undefined): boolean {
+        if (!dataTypeName) {
+            return false;
+        }
+        const numericTypes = new Set([
+            "int",
+            "bigint",
+            "smallint",
+            "tinyint",
+            "decimal",
+            "numeric",
+            "float",
+            "real",
+            "money",
+            "smallmoney",
+            "bit",
+        ]);
+        return numericTypes.has(dataTypeName.toLowerCase());
     }
 }

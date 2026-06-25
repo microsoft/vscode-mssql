@@ -230,7 +230,7 @@ export function NotebookResultGrid({
         grid.setSelectionModel(selectionModel);
 
         // Register context menu (right-click) with copy operations
-        const contextMenu = new NotebookContextMenu<Slick.SlickData>();
+        const contextMenu = new NotebookContextMenu<Slick.SlickData>(columnInfo);
         grid.registerPlugin(contextMenu);
 
         // Reuse Query Result auto-size behavior for double-clicking a resize handle.
