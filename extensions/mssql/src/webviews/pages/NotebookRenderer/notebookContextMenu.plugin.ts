@@ -236,10 +236,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             submenu.style.display = "flex";
             submenu.style.flexDirection = "column";
             const submenuRect = submenu.getBoundingClientRect();
-            const margin = 4;
-            let left = rect.right + margin;
+            let left = rect.right;
             if (left + submenuRect.width > window.innerWidth - 8) {
-                left = rect.left - submenuRect.width - margin;
+                left = rect.left - submenuRect.width;
             }
             submenu.style.left = `${left}px`;
             submenu.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - submenuRect.height - 8))}px`;
