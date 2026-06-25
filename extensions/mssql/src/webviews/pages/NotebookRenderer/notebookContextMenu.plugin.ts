@@ -43,14 +43,19 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
     private handler = new Slick.EventHandler();
     private menuElement: HTMLElement | null = null;
     private submenuElement: HTMLElement | null = null;
+    private submenuShowFn: (() => void) | null = null;
     private dismissHandler: ((e: MouseEvent) => void) | null = null;
     private escapeHandler: ((e: KeyboardEvent) => void) | null = null;
     private scrollHandler: (() => void) | null = null;
+    private debugKeyHandler: ((e: KeyboardEvent) => void) | null = null;
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
         this.handler.subscribe(this.grid.onContextMenu, (e: Event) => this.handleContextMenu(e));
         this.handler.subscribe(this.grid.onHeaderClick, () => this.dismiss());
+        this.handler.subscribe(this.grid.onClick, () => {
+            if (this.menuElement) this.dismiss();
+        });
     }
 
     public destroy(): void {
@@ -81,6 +86,95 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         menu.style.left = `${x}px`;
         menu.style.top = `${y}px`;
 
+        // Keyboard navigation — focus the container; track active item via CSS class
+        // so individual items don't need tabIndex and the dismiss handler is unaffected.
+        menu.tabIndex = -1;
+        let focusedIdx = -1;
+        const getMenuItems = () =>
+            Array.from(menu.querySelectorAll<HTMLElement>(".nb-context-menu-item"));
+        const setMenuFocus = (items: HTMLElement[], next: number) => {
+            if (focusedIdx >= 0) {
+                items[focusedIdx]?.classList.remove("nb-context-menu-item--focused");
+            }
+            focusedIdx = (next + items.length) % items.length;
+            items[focusedIdx]?.classList.add("nb-context-menu-item--focused");
+        };
+
+        menu.addEventListener("focus", () => {
+            console.log(
+                "[ctx-menu] menu received focus, activeElement:",
+                document.activeElement?.className,
+            );
+        });
+
+        menu.addEventListener("keydown", (e: KeyboardEvent) => {
+            console.log(
+                "[ctx-menu] menu keydown:",
+                e.key,
+                "activeElement:",
+                document.activeElement?.className,
+                "menuHasFocus:",
+                document.activeElement === menu,
+            );
+            const items = getMenuItems();
+            switch (e.key) {
+                case "ArrowDown":
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("[ctx-menu] ArrowDown handled, stopPropagation called");
+                    setMenuFocus(items, focusedIdx < 0 ? 0 : focusedIdx + 1);
+                    break;
+                case "ArrowUp":
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setMenuFocus(items, focusedIdx < 0 ? items.length - 1 : focusedIdx - 1);
+                    break;
+                case "ArrowRight":
+                    if (focusedIdx >= 0 && items[focusedIdx]?.dataset.hasSubmenu) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.submenuShowFn?.();
+                    }
+                    break;
+                case "Enter":
+                case " ":
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (focusedIdx >= 0) items[focusedIdx]?.click();
+                    break;
+            }
+        });
+
+        // Capture-phase listener on document to see if any keydown escapes the menu handler
+        this.debugKeyHandler = (e: KeyboardEvent) => {
+            if (["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Enter", " "].includes(e.key)) {
+                console.log(
+                    "[ctx-menu] document keydown (capture):",
+                    e.key,
+                    "activeElement:",
+                    document.activeElement?.className,
+                    "defaultPrevented:",
+                    e.defaultPrevented,
+                );
+            }
+        };
+        document.addEventListener("keydown", this.debugKeyHandler, true);
+
+        menu.addEventListener("mousemove", () => {
+            if (focusedIdx >= 0) {
+                getMenuItems()[focusedIdx]?.classList.remove("nb-context-menu-item--focused");
+                focusedIdx = -1;
+            }
+        });
+
+        setTimeout(() => {
+            menu.focus();
+            console.log(
+                "[ctx-menu] focus called, activeElement now:",
+                document.activeElement?.className,
+            );
+        }, 0);
+
         // Dismiss on outside click (also allow clicks inside the submenu panel)
         this.dismissHandler = (evt: MouseEvent) => {
             const target = evt.target as Node;
@@ -93,9 +187,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             document.addEventListener("mousedown", this.dismissHandler!);
         }, 0);
 
-        // Dismiss on Escape
+        // Dismiss on Escape (skip if submenu is handling it via stopPropagation)
         this.escapeHandler = (evt: KeyboardEvent) => {
-            if (evt.key === "Escape") {
+            if (evt.key === "Escape" && !this.submenuElement?.contains(document.activeElement)) {
                 this.dismiss();
             }
         };
@@ -126,6 +220,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         if (this.scrollHandler) {
             this.grid?.getCanvasNode()?.removeEventListener("scroll", this.scrollHandler);
             this.scrollHandler = null;
+        }
+        if (this.debugKeyHandler) {
+            document.removeEventListener("keydown", this.debugKeyHandler, true);
+            this.debugKeyHandler = null;
         }
     }
 
@@ -198,6 +296,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
     ): void {
         const item = document.createElement("div");
         item.className = "nb-context-menu-item";
+        item.dataset.hasSubmenu = "true";
 
         const labelSpan = document.createElement("span");
         labelSpan.className = "nb-context-menu-label";
@@ -211,6 +310,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         const submenu = document.createElement("div");
         submenu.className = "nb-context-menu";
         submenu.style.display = "none";
+        submenu.tabIndex = -1;
 
         for (const subItem of subItems) {
             const subMenuItem = document.createElement("div");
@@ -231,7 +331,18 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         document.body.appendChild(submenu);
         this.submenuElement = submenu;
 
-        const showSubmenu = () => {
+        let submenuFocusedIdx = -1;
+        const getSubmenuItems = () =>
+            Array.from(submenu.querySelectorAll<HTMLElement>(".nb-context-menu-item"));
+        const setSubmenuFocus = (items: HTMLElement[], next: number) => {
+            if (submenuFocusedIdx >= 0) {
+                items[submenuFocusedIdx]?.classList.remove("nb-context-menu-item--focused");
+            }
+            submenuFocusedIdx = (next + items.length) % items.length;
+            items[submenuFocusedIdx]?.classList.add("nb-context-menu-item--focused");
+        };
+
+        const positionSubmenu = () => {
             const rect = item.getBoundingClientRect();
             submenu.style.display = "flex";
             submenu.style.flexDirection = "column";
@@ -244,18 +355,77 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             submenu.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - submenuRect.height - 8))}px`;
         };
 
+        this.submenuShowFn = () => {
+            positionSubmenu();
+            const items = getSubmenuItems();
+            submenuFocusedIdx = -1;
+            setSubmenuFocus(items, 0);
+            submenu.focus();
+        };
+
         const hideSubmenu = (e: MouseEvent) => {
             if (
                 !submenu.contains(e.relatedTarget as Node) &&
                 !item.contains(e.relatedTarget as Node)
             ) {
                 submenu.style.display = "none";
+                if (submenuFocusedIdx >= 0) {
+                    getSubmenuItems()[submenuFocusedIdx]?.classList.remove(
+                        "nb-context-menu-item--focused",
+                    );
+                    submenuFocusedIdx = -1;
+                }
             }
         };
 
-        item.addEventListener("mouseenter", showSubmenu);
+        submenu.addEventListener("mousemove", () => {
+            if (submenuFocusedIdx >= 0) {
+                getSubmenuItems()[submenuFocusedIdx]?.classList.remove(
+                    "nb-context-menu-item--focused",
+                );
+                submenuFocusedIdx = -1;
+            }
+        });
+
+        item.addEventListener("mouseenter", positionSubmenu);
         item.addEventListener("mouseleave", hideSubmenu);
         submenu.addEventListener("mouseleave", hideSubmenu);
+
+        submenu.addEventListener("keydown", (e: KeyboardEvent) => {
+            const items = getSubmenuItems();
+            switch (e.key) {
+                case "ArrowDown":
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSubmenuFocus(items, submenuFocusedIdx < 0 ? 0 : submenuFocusedIdx + 1);
+                    break;
+                case "ArrowUp":
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSubmenuFocus(
+                        items,
+                        submenuFocusedIdx < 0 ? items.length - 1 : submenuFocusedIdx - 1,
+                    );
+                    break;
+                case "ArrowLeft":
+                case "Escape":
+                    e.preventDefault();
+                    e.stopPropagation();
+                    submenu.style.display = "none";
+                    if (submenuFocusedIdx >= 0) {
+                        items[submenuFocusedIdx]?.classList.remove("nb-context-menu-item--focused");
+                        submenuFocusedIdx = -1;
+                    }
+                    parent.focus();
+                    break;
+                case "Enter":
+                case " ":
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (submenuFocusedIdx >= 0) items[submenuFocusedIdx]?.click();
+                    break;
+            }
+        });
 
         parent.appendChild(item);
     }

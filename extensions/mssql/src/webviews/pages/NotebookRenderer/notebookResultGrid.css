@@ -314,7 +314,12 @@
     gap: 16px;
 }
 
-.nb-context-menu-item:hover {
+.nb-context-menu:focus {
+    outline: none;
+}
+
+.nb-context-menu-item:hover,
+.nb-context-menu-item--focused {
     background-color: var(
         --vscode-menu-selectionBackground,
         var(--vscode-list-hoverBackground, #094771)
