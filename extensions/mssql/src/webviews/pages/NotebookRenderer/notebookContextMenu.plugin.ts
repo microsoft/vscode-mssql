@@ -34,7 +34,10 @@ enum NotebookContextMenuAction {
 }
 
 export class NotebookContextMenu<T extends Slick.SlickData> {
-    constructor(private readonly columnInfo: IDbColumn[] = []) {}
+    constructor(
+        private readonly columnInfo: IDbColumn[] = [],
+        private readonly postMessage?: (message: unknown) => void,
+    ) {}
 
     private grid!: Slick.Grid<T>;
     private handler = new Slick.EventHandler();
@@ -327,9 +330,15 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             case NotebookContextMenuAction.CopyAsJson:
                 await this.copyToClipboard(this.formatAsJson(ranges, columns, dataProvider));
                 break;
-            case NotebookContextMenuAction.CopyAsInClause:
-                await this.copyToClipboard(this.formatAsInClause(ranges, columns, dataProvider));
+            case NotebookContextMenuAction.CopyAsInClause: {
+                const inClause = this.formatAsInClause(ranges, columns, dataProvider);
+                if (inClause === null) {
+                    this.showError(locConstants.queryResult.copyAsInClauseRequiresSingleColumn);
+                } else {
+                    await this.copyToClipboard(inClause);
+                }
                 break;
+            }
             case NotebookContextMenuAction.CopyAsInsertInto:
                 await this.copyToClipboard(this.formatAsInsertInto(ranges, columns, dataProvider));
                 break;
@@ -497,28 +506,48 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return JSON.stringify(objects, null, 2);
     }
 
+    /** Returns null when more than one data column is selected (caller shows error). */
     private formatAsInClause(
         ranges: Slick.Range[],
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
-    ): string {
-        const sqlStr = (v: string) => "'" + v.replace(/'/g, "''") + "'";
-        const rows: string[] = [];
+    ): string | null {
         for (const range of ranges) {
-            const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
-            if (dataCols.length === 0) {
-                continue;
-            }
-            for (let r = range.fromRow; r <= range.toRow; r++) {
-                const values = dataCols.map((col) => {
-                    const item = dataProvider.getItem(r) as Slick.SlickData;
-                    const cellVal = item?.[col.field!];
-                    return cellVal?.isNull ? "NULL" : sqlStr(cellVal?.displayValue ?? "");
-                });
-                rows.push(dataCols.length === 1 ? values[0] : `(${values.join(", ")})`);
+            if (this.getDataColumnsInRange(columns, range.fromCell, range.toCell).length !== 1) {
+                return null;
             }
         }
-        return rows.join(",\n");
+
+        const sqlStr = (v: string) => "'" + v.replace(/'/g, "''") + "'";
+        const valueLines: string[] = [];
+
+        for (const range of ranges) {
+            const col = this.getDataColumnsInRange(columns, range.fromCell, range.toCell)[0];
+            const colIndex = parseInt(col.field!, 10);
+            const colInfo = !isNaN(colIndex) ? this.columnInfo[colIndex] : undefined;
+            const isNumeric = this.isNumericSqlType(colInfo?.dataTypeName);
+
+            for (let r = range.fromRow; r <= range.toRow; r++) {
+                const item = dataProvider.getItem(r) as Slick.SlickData;
+                const cellVal = item?.[col.field!];
+                const val = cellVal?.isNull
+                    ? "NULL"
+                    : isNumeric
+                      ? (cellVal?.displayValue ?? "")
+                      : sqlStr(cellVal?.displayValue ?? "");
+                valueLines.push(val);
+            }
+        }
+
+        const lastIdx = valueLines.length - 1;
+        const indented = valueLines.map((v, i) => `    ${v}${i < lastIdx ? "," : ""}`);
+        return ["IN", "(", ...indented, ")"].join("\n");
+    }
+
+    private showError(message: string): void {
+        if (this.postMessage) {
+            this.postMessage({ type: "showError", message });
+        }
     }
 
     private formatAsInsertInto(
