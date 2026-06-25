@@ -216,16 +216,26 @@ export class ObjectExplorerService {
                 filters: node.filters,
             };
             const pendingKey = `${sessionId}${node.nodePath}`;
-            if (this._pendingExpands.has(pendingKey)) {
-                this._logger.trace(
-                    `expandNode: overwriting previous pending expand for key '${pendingKey}':`,
-                );
+            const existingPendingExpand = this._pendingExpands.get(pendingKey);
+            const expandResponse = existingPendingExpand ?? new Deferred<ExpandResponse>();
+
+            if (!existingPendingExpand) {
+                this._pendingExpands.set(pendingKey, expandResponse);
+                void expandResponse.promise.finally(() => {
+                    if (this._pendingExpands.get(pendingKey) === expandResponse) {
+                        this._pendingExpands.delete(pendingKey);
+                    }
+                });
             }
-            const expandResponse = new Deferred<ExpandResponse>();
-            this._pendingExpands.set(pendingKey, expandResponse);
 
             let response: boolean;
-            if (node.shouldRefresh) {
+            if (existingPendingExpand) {
+                // A request for this node is already in flight; await its result rather than issuing a duplicate request.
+                this._logger.trace(
+                    `expandNode: reusing in-flight expand for ${getNodeDescriptor(node)}`,
+                );
+                response = true;
+            } else if (node.shouldRefresh) {
                 this._logger.trace(
                     `expandNode: sending RefreshRequest for ${getNodeDescriptor(node)}`,
                 );
@@ -287,13 +297,15 @@ export class ObjectExplorerService {
                 this._logger.error(
                     `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
                 );
+
+                if (!expandResponse.isCompleted) {
+                    expandResponse.resolve(undefined);
+                }
+
                 await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
                 return undefined;
             }
         } finally {
-            this._logger.info(
-                `[refresh-diag] expandNode finally: ${getNodeDescriptor(node)} — clearing shouldRefresh`,
-            );
             node.shouldRefresh = false;
         }
     }
