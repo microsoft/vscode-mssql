@@ -334,6 +334,12 @@
     flex: 1;
 }
 
+.nb-context-menu-item[data-has-submenu]::after {
+    content: "❯";
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
 .nb-context-menu-shortcut {
     flex-shrink: 0;
     opacity: 0.7;

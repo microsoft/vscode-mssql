@@ -303,10 +303,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         labelSpan.textContent = label;
         item.appendChild(labelSpan);
 
-        const arrow = document.createElement("span");
-        arrow.textContent = "›";
-        item.appendChild(arrow);
-
         const submenu = document.createElement("div");
         submenu.className = "nb-context-menu";
         submenu.style.display = "none";
