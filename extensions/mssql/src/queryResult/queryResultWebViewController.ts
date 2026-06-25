@@ -41,13 +41,13 @@ export class QueryResultWebviewController extends WebviewViewController<
     private _selectionSummaryContinuations: Map<string, Deferred<void>> = new Map();
     private _correlationId: string = randomUUID();
     /**
-     * URI of the result session the user has pinned in the vertical results rail. Only consulted
+     * URI of the result session the user has pinned in the query results list. Only consulted
      * when {@link _followActiveEditor} is false.
      */
     private _selectedSessionUri: string | undefined;
     /**
      * Whether the results panel auto-follows the active editor. True by default; set to false when
-     * the user pins a different session from the rail, and restored when they resume following or
+     * the user pins a different session from the list, and restored when they resume following or
      * run a query in the active editor.
      */
     private _followActiveEditor: boolean = true;
@@ -98,7 +98,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                 }
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
-                    // Keep the results rail roster in sync when a session's document closes.
+                    // Keep the query results list roster in sync when a session's document closes.
                     if (this._selectedSessionUri === uri) {
                         this._selectedSessionUri = undefined;
                     }
@@ -107,9 +107,9 @@ export class QueryResultWebviewController extends WebviewViewController<
             }),
         );
 
-        // Closing an editor tab should drop its rail entry immediately. The document-close event
+        // Closing an editor tab should drop its list entry immediately. The document-close event
         // above can be deferred by VS Code (especially for background tabs), so we also refresh
-        // the rail whenever the set of open tabs changes.
+        // the list whenever the set of open tabs changes.
         context.subscriptions.push(
             vscode.window.tabGroups.onDidChangeTabs(() => {
                 this.refreshResultsList();
@@ -164,7 +164,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                     if (this.isQueryResultsListEnabled) {
                         this.refreshResultsList();
                     } else {
-                        // Rail disabled: restore the legacy "follow the active editor" view.
+                        // List disabled: restore the legacy "follow the active editor" view.
                         this.updateResultsOnActiveEditorChange(this.vscodeWrapper.activeTextEditor);
                     }
                 }
@@ -220,8 +220,9 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Whether the vertical results rail preview is enabled. When enabled, the panel results
-     * view shows a sticky, browsable list of sessions instead of following the active editor.
+     * Whether the query results list preview is enabled. When enabled, the panel shows a
+     * browsable list of query result sessions on the side that follows the active editor by
+     * default and can be pinned to a specific session.
      */
     public get isQueryResultsListEnabled(): boolean {
         return previewService.isFeatureEnabled(PreviewFeature.QueryResultsList);
@@ -230,9 +231,8 @@ export class QueryResultWebviewController extends WebviewViewController<
     public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
         this.updateSelectionSummary();
 
-        // In rail mode the results view is decoupled from the active editor: switching editors
-        // never swaps the shown session. We only refresh the roster so the rail can mark the
-        // active editor entry and surface the "sync to active editor" affordance.
+        // When the query results list is enabled, refresh it so it tracks the active editor (in
+        // follow mode) or keeps the pinned session and updates the active-editor marker.
         if (this.isQueryResultsListEnabled) {
             this.refreshResultsList();
             return;
@@ -396,7 +396,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Computes the rail status indicator for a session from its result state.
+     * Computes the status indicator for a session from its result state.
      */
     private computeSessionStatus(state: qr.QueryResultWebviewState): qr.QueryResultSessionStatus {
         if (state.isExecuting) {
@@ -409,8 +409,8 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Collects the URIs of documents currently open in any editor tab. Used to prune the results
-     * rail so that closing an editor removes its session entry.
+     * Collects the URIs of documents currently open in any editor tab. Used to prune the query
+     * results list so that closing an editor removes its session entry.
      */
     public getOpenEditorUris(): Set<string> {
         const openUris = new Set<string>();
@@ -426,8 +426,8 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Builds the lightweight roster of sessions shown in the results rail. Sessions that have
-     * been popped out to their own editor tab are excluded since they no longer live in the
+     * Builds the lightweight roster of sessions shown in the query results list. Sessions that
+     * have been popped out to their own editor tab are excluded since they no longer live in the
      * shared panel view, as are sessions whose editor is no longer open.
      */
     private buildSessionRoster(
@@ -438,7 +438,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         for (const [uri, state] of this._queryResultStateMap) {
             const isOpenInTab = this.hasPanel(uri);
             // Drop sessions whose editor has been closed, unless their results are popped out to
-            // their own tab (in which case they remain available from the rail).
+            // their own tab (in which case they remain available from the list).
             if (!isOpenInTab && !openUris.has(uri)) {
                 continue;
             }
@@ -472,10 +472,10 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Builds the state pushed to the panel results view when the rail is enabled: the selected
-     * session's results augmented with the session roster and active editor hint. The selected
-     * session's state is shallow-copied so the rail-only fields are never persisted into the
-     * per-uri state map.
+     * Builds the state pushed to the panel results view when the query results list is enabled:
+     * the selected session's results augmented with the session roster. The selected session's
+     * state is shallow-copied so the list-only fields are never persisted into the per-uri state
+     * map.
      */
     private getResultsListState(): qr.QueryResultWebviewState {
         const activeEditorUri = this.getActiveSessionUri();
@@ -520,8 +520,8 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Pushes the current rail view state to the panel results view. No-op when the rail is
-     * disabled so legacy behavior is untouched.
+     * Pushes the current query results list state to the panel results view. No-op when the list
+     * is disabled so legacy behavior is untouched.
      */
     public refreshResultsList(): void {
         if (!this.isQueryResultsListEnabled) {
@@ -531,7 +531,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Applies a rail selection: follow the active editor when `uri` is the active editor's
+     * Applies a session selection: follow the active editor when `uri` is the active editor's
      * session, otherwise pin to `uri`. Does not push state; callers refresh as needed.
      */
     private applySessionSelection(uri: string): void {
@@ -548,8 +548,9 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Selects a session in the rail and refreshes the view. Used when running a query and when
-     * revealing a specific result: following resumes when the session is the active editor.
+     * Selects a session in the query results list and refreshes the view. Used when running a
+     * query and when revealing a specific result: following resumes when the session is the
+     * active editor.
      */
     public setSelectedSession(uri: string): void {
         if (!this.isQueryResultsListEnabled) {
@@ -571,8 +572,8 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     /**
-     * Handles a streamed update to a session while the rail is enabled by refreshing the roster
-     * and the shown results.
+     * Handles a streamed update to a session while the query results list is enabled by refreshing
+     * the roster and the shown results.
      */
     public handleSessionUpdate(): void {
         if (!this.isQueryResultsListEnabled) {
@@ -627,7 +628,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         if (this.isQueryResultsListEnabled) {
-            // Keep the rail visible; the popped-out session now shows the "open in a tab"
+            // Keep the list visible; the popped-out session now shows the "open in a tab"
             // placeholder when it is the one being followed or pinned.
             this.refreshResultsList();
         } else {
@@ -870,7 +871,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
 
-            // Refresh the rail so the closed tab's session reappears (or is dropped) in the list.
+            // Refresh the list so the closed tab's session reappears (or is dropped).
             this.refreshResultsList();
             this.updateSelectionSummary();
         }

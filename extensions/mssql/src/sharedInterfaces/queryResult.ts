@@ -52,7 +52,7 @@ export enum QueryResultWebviewLocation {
 }
 
 /**
- * Status of a query result session shown in the results rail.
+ * Status of a query result session shown in the query results list.
  */
 export enum QueryResultSessionStatus {
     Executing = "executing",
@@ -62,13 +62,13 @@ export enum QueryResultSessionStatus {
 
 /**
  * Lightweight descriptor for a single query result session rendered as an entry in the
- * vertical results rail. The full result state is fetched lazily for the selected session
+ * query results list. The full result state is fetched lazily for the selected session
  * only; this roster is intentionally small so it can be pushed on every update.
  */
 export interface QueryResultSession {
     /** The document URI the results belong to. */
     uri: string;
-    /** Display label for the rail entry (typically the document file name). */
+    /** Display label for the list entry (typically the document file name). */
     title: string;
     /** Execution status used to render the entry's status indicator. */
     status: QueryResultSessionStatus;
@@ -118,11 +118,11 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     executionElapsedMilliseconds?: number;
     rowsAffected?: number;
     /**
-     * Roster of all query result sessions shown in the vertical results rail.
-     * Only populated for the panel results view when the results rail preview is enabled.
+     * Roster of all query result sessions shown in the query results list.
+     * Only populated for the panel results view when the query results list preview is enabled.
      */
     sessions?: QueryResultSession[];
-    /** Whether the vertical results rail is enabled. */
+    /** Whether the query results list is enabled. */
     isQueryResultsListEnabled?: boolean;
     /**
      * Whether the panel is currently following the active editor (auto-sync). When false the user
@@ -130,7 +130,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
      */
     isFollowingActiveEditor?: boolean;
     /**
-     * Whether the selected rail session's results are currently shown in a separate editor tab.
+     * Whether the selected session's results are currently shown in a separate editor tab.
      * When true the panel shows an "open in a new tab" placeholder instead of the results grid.
      */
     isSelectedSessionInTab?: boolean;
@@ -168,7 +168,7 @@ export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExe
         viewMode: QueryResultViewMode;
     };
     /**
-     * Selects a query result session in the results rail, switching the shown results
+     * Selects a query result session in the query results list, switching the shown results
      * without changing the active editor.
      */
     selectResultSession: {

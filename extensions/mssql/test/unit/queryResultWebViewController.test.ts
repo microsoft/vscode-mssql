@@ -137,16 +137,16 @@ suite("QueryResultWebviewController", () => {
         );
     });
 
-    suite("results rail", () => {
+    suite("query results list", () => {
         const testUriB = "file:///test-b.sql";
 
-        // Enable the results rail preview for the controller under test. The getter reads from
-        // the global preview service, so it is stubbed directly on the instance.
+        // Enable the query results list preview for the controller under test. The getter reads
+        // from the global preview service, so it is stubbed directly on the instance.
         function enableResultsList(): void {
-            sandbox.stub(controller, "isResultsRailEnabled").get(() => true);
+            sandbox.stub(controller, "isQueryResultsListEnabled").get(() => true);
         }
 
-        // Treat the given URIs as currently open editor tabs so they appear in the rail roster.
+        // Treat the given URIs as currently open editor tabs so they appear in the results list.
         function stubOpenTabs(...uris: string[]): void {
             sandbox.stub(controller, "getOpenEditorUris").returns(new Set(uris));
         }
@@ -250,7 +250,7 @@ suite("QueryResultWebviewController", () => {
             expect(controller.state.uri).to.equal(testUri);
         });
 
-        test("removes a session from the rail when its editor is closed", () => {
+        test("removes a session from the list when its editor is closed", () => {
             enableResultsList();
             controller.addQueryResultState(testUriB, "B");
             // Only testUri remains open; testUriB's editor has been closed.
@@ -262,7 +262,7 @@ suite("QueryResultWebviewController", () => {
             expect(rosterUris).to.deep.equal([testUri]);
         });
 
-        test("keeps a popped-out session in the rail and shows the in-tab placeholder", () => {
+        test("keeps a popped-out session in the list and shows the in-tab placeholder", () => {
             enableResultsList();
             // The active editor's results are popped out to a tab.
             stubOpenTabs();
@@ -310,7 +310,7 @@ suite("QueryResultWebviewController", () => {
             expect(controller.state.sessions).to.have.lengthOf(1);
         });
 
-        test("does not populate the roster when the rail is disabled", () => {
+        test("does not populate the roster when the list is disabled", () => {
             controller.refreshResultsList();
 
             expect(controller.state.sessions).to.equal(undefined);

@@ -74,7 +74,7 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
             }
             // Refresh the editor status bar selection summary for the newly active/inactive panel.
             this._queryResultWebviewViewController.updateSelectionSummary();
-            // Keep the results rail in sync so focusing or blurring a result tab updates the panel
+            // Keep the query results list in sync so focusing or blurring a result tab updates
             // (e.g. showing the "results opened in a tab" placeholder while the tab is focused).
             this._queryResultWebviewViewController.refreshResultsList();
         });

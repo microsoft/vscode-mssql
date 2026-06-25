@@ -105,7 +105,7 @@ export const QueryResultsList = ({ sessions, selectedUri, onSelect }: QueryResul
     const startResize = (startX: number) => {
         const startWidth = listWidth;
         const onMouseMove = (event: MouseEvent) => {
-            // The handle sits on the left edge of the right-docked rail, so dragging left widens it.
+            // The handle sits on the left edge of the right-docked list, so dragging left widens it.
             const delta = event.clientX - startX;
             setListWidth(clampListWidth(startWidth - delta));
         };
