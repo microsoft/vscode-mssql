@@ -577,6 +577,12 @@ export function isBoolean(obj: any): obj is boolean {
     return obj === true || obj === false;
 }
 
+export type EpochDisplay = {
+    epochMilliseconds: number;
+    iso: string;
+    relative: string;
+};
+
 /**
  * Breaks a Unix-epoch-milliseconds timestamp into the pieces a caller usually wants for
  * human-friendly logs. When `epochMilliseconds` is omitted, formats "now" instead.
@@ -599,7 +605,7 @@ export function isBoolean(obj: any): obj is boolean {
 export function epochToDisplay(
     epochMilliseconds?: number,
     { includeTimezone = false, includeMilliseconds = true } = {},
-): { epochMilliseconds: number; iso: string; relative: string } {
+): EpochDisplay {
     // capture "now"
     const now = Date.now();
     const resolvedMs = epochMilliseconds ?? now;
