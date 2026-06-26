@@ -20,6 +20,9 @@
 import { locConstants } from "../../common/locConstants";
 import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
 import type { IDbColumn } from "../../../sharedInterfaces/queryResult";
+import { isMac } from "../../common/utils";
+
+const MOD_KEY_LABEL = isMac() ? "⌘" : "Ctrl+";
 
 /** Actions available in the notebook grid context menu. */
 enum NotebookContextMenuAction {
@@ -46,6 +49,19 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         "money",
         "smallmoney",
         "bit",
+    ]);
+
+    private static readonly JSON_NUMBER_TYPES = new Set([
+        "int",
+        "bigint",
+        "smallint",
+        "tinyint",
+        "decimal",
+        "numeric",
+        "float",
+        "real",
+        "money",
+        "smallmoney",
     ]);
 
     constructor(
@@ -108,13 +124,19 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             focusedIdx = (next + menuItems.length) % menuItems.length;
             menuItems[focusedIdx]?.classList.add("nb-context-menu-item--focused");
         };
+        const clearMainFocus = () => {
+            if (focusedIdx >= 0) {
+                menuItems[focusedIdx]?.classList.remove("nb-context-menu-item--focused");
+                focusedIdx = -1;
+            }
+        };
 
         menu.addEventListener("keydown", (evt: KeyboardEvent) => {
             switch (evt.key) {
                 case "ArrowDown":
                     evt.preventDefault();
                     evt.stopPropagation();
-                    setMenuFocus(focusedIdx < 0 ? 0 : focusedIdx + 1);
+                    setMenuFocus(focusedIdx + 1);
                     break;
                 case "ArrowUp":
                     evt.preventDefault();
@@ -137,14 +159,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             }
         });
 
-        menu.addEventListener("mousemove", () => {
-            if (focusedIdx >= 0) {
-                menuItems[focusedIdx]?.classList.remove("nb-context-menu-item--focused");
-                focusedIdx = -1;
-            }
-        });
-
-        setTimeout(() => menu.focus(), 0);
+        menu.addEventListener("mousemove", clearMainFocus);
 
         // Dismiss on outside click (also allow clicks inside the submenu panel)
         this.dismissHandler = (evt: MouseEvent) => {
@@ -153,8 +168,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 this.dismiss();
             }
         };
-        // Use setTimeout so the current right-click event doesn't immediately dismiss
+        // Use setTimeout so the current right-click event doesn't immediately dismiss the menu
         setTimeout(() => {
+            menu.focus();
             document.addEventListener("mousedown", this.dismissHandler!);
         }, 0);
 
@@ -197,14 +213,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         const menu = document.createElement("div");
         menu.className = "nb-context-menu";
 
-        const isMac =
-            typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
-        const modKey = isMac ? "⌘" : "Ctrl+";
-
         this.addMenuItem(
             menu,
             locConstants.queryResult.selectAll,
-            `${modKey}A`,
+            `${MOD_KEY_LABEL}A`,
             NotebookContextMenuAction.SelectAll,
         );
 
@@ -213,7 +225,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         this.addMenuItem(
             menu,
             locConstants.queryResult.copy,
-            `${modKey}C`,
+            `${MOD_KEY_LABEL}C`,
             NotebookContextMenuAction.CopySelection,
         );
         this.addMenuItem(
@@ -273,17 +285,15 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         submenu.style.flexDirection = "column";
         submenu.tabIndex = -1;
 
+        const submenuItems: HTMLElement[] = [];
         for (const subItem of subItems) {
-            this.addMenuItem(submenu, subItem.label, undefined, subItem.action);
+            submenuItems.push(this.addMenuItem(submenu, subItem.label, undefined, subItem.action));
         }
 
         document.body.appendChild(submenu);
         this.submenuElement = submenu;
 
         let submenuFocusedIdx = -1;
-        const submenuItems = Array.from(
-            submenu.querySelectorAll<HTMLElement>(".nb-context-menu-item"),
-        );
 
         const clearFocus = () => {
             if (submenuFocusedIdx >= 0) {
@@ -300,6 +310,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
 
         const positionSubmenu = () => {
             const rect = item.getBoundingClientRect();
+            submenu.style.visibility = "hidden";
             submenu.style.display = "flex";
             const submenuRect = submenu.getBoundingClientRect();
             let left = rect.right;
@@ -308,11 +319,11 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             }
             submenu.style.left = `${left}px`;
             submenu.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - submenuRect.height - 8))}px`;
+            submenu.style.visibility = "";
         };
 
         const show = () => {
             positionSubmenu();
-            clearFocus();
             setSubmenuFocus(0);
             submenu.focus();
         };
@@ -337,7 +348,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 case "ArrowDown":
                     evt.preventDefault();
                     evt.stopPropagation();
-                    setSubmenuFocus(submenuFocusedIdx < 0 ? 0 : submenuFocusedIdx + 1);
+                    setSubmenuFocus(submenuFocusedIdx + 1);
                     break;
                 case "ArrowUp":
                     evt.preventDefault();
@@ -372,7 +383,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         label: string,
         shortcut: string | undefined,
         action: NotebookContextMenuAction,
-    ): void {
+    ): HTMLElement {
         const item = document.createElement("div");
         item.className = "nb-context-menu-item";
 
@@ -396,6 +407,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         });
 
         parent.appendChild(item);
+        return item;
     }
 
     private addSeparator(parent: HTMLElement): void {
@@ -602,23 +614,25 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             if (dataCols.length === 0) {
                 continue;
             }
+            const colMeta = dataCols.map((col) => {
+                const typeName = this.getColumnInfo(col)?.dataTypeName?.toLowerCase();
+                return {
+                    field: col.field!,
+                    key: JSON.stringify(col.toolTip ?? col.name ?? col.field!),
+                    isJsonNumber: !!typeName && NotebookContextMenu.JSON_NUMBER_TYPES.has(typeName),
+                };
+            });
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 const item = dataProvider.getItem(r) as Slick.SlickData;
                 const pairs: string[] = [];
-                for (const col of dataCols) {
-                    const cellVal = item?.[col.field!];
-                    const key = JSON.stringify(col.toolTip ?? col.name ?? col.field!);
+                for (const { field, key, isJsonNumber } of colMeta) {
+                    const cellVal = item?.[field];
                     let val: string;
                     if (cellVal?.isNull) {
                         val = "null";
                     } else {
                         const displayVal = cellVal?.displayValue ?? "";
-                        const typeName = this.getColumnInfo(col)?.dataTypeName?.toLowerCase();
-                        if (typeName && typeName !== "bit" && this.isNumericSqlType(typeName)) {
-                            val = displayVal; // raw literal — preserves E casing from SQL Server
-                        } else {
-                            val = JSON.stringify(displayVal);
-                        }
+                        val = isJsonNumber ? displayVal : JSON.stringify(displayVal);
                     }
                     pairs.push(`    ${key}: ${val}`);
                 }
@@ -634,7 +648,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string | null {
-        const sqlStr = (v: string) => "'" + v.replace(/'/g, "''") + "'";
         const valueLines: string[] = [];
 
         for (const range of ranges) {
@@ -651,13 +664,12 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                     ? "NULL"
                     : isNumeric && !/[eE]/.test(rawVal)
                       ? rawVal
-                      : sqlStr(rawVal);
+                      : this.sqlStr(rawVal);
                 valueLines.push(val);
             }
         }
 
-        const lastIdx = valueLines.length - 1;
-        const indented = valueLines.map((v, i) => `    ${v}${i < lastIdx ? "," : ""}`);
+        const indented = valueLines.map((v, i, a) => `    ${v}${i < a.length - 1 ? "," : ""}`);
         return ["IN", "(", ...indented, ")"].join("\n");
     }
 
@@ -672,8 +684,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
-        const sqlStr = (v: string) => "'" + v.replace(/'/g, "''") + "'";
-
         let dataCols: Slick.Column<T>[] = [];
         let colMeta: Array<{ col: Slick.Column<T>; isNumeric: boolean }> = [];
         const valueRows: string[] = [];
@@ -696,7 +706,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                     const cellVal = item?.[col.field!];
                     if (cellVal?.isNull) return "NULL";
                     const val = cellVal?.displayValue ?? "";
-                    return isNumeric && !/[eE]/.test(val) ? val : sqlStr(val);
+                    return isNumeric && !/[eE]/.test(val) ? val : this.sqlStr(val);
                 });
                 valueRows.push(`    (${values.join(", ")})`);
             }
@@ -707,8 +717,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         }
 
         const colNames = dataCols.map((c) => c.toolTip ?? c.name ?? c.field ?? "").join(", ");
-        const lastIdx = valueRows.length - 1;
-        const rowLines = valueRows.map((row, i) => row + (i < lastIdx ? "," : ";"));
+        const rowLines = valueRows.map((row, i, a) => row + (i < a.length - 1 ? "," : ";"));
 
         return [`INSERT INTO table_name (${colNames})`, "VALUES", ...rowLines].join("\n");
     }
@@ -717,5 +726,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return (
             !!dataTypeName && NotebookContextMenu.NUMERIC_SQL_TYPES.has(dataTypeName.toLowerCase())
         );
+    }
+
+    private sqlStr(v: string): string {
+        return "'" + v.replace(/'/g, "''") + "'";
     }
 }
