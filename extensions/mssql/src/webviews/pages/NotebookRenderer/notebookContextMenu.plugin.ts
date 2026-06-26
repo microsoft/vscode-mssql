@@ -22,7 +22,8 @@ import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
 import type { IDbColumn } from "../../../sharedInterfaces/queryResult";
 import { isMac } from "../../common/utils";
 
-const MOD_KEY_LABEL = isMac() ? "⌘" : "Ctrl+";
+/** Get the modifier key label for keyboard shortcuts (lazy evaluation to support testing) */
+const getModKeyLabel = () => (isMac() ? "⌘" : "Ctrl+");
 
 /** Actions available in the notebook grid context menu. */
 enum NotebookContextMenuAction {
@@ -216,7 +217,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         this.addMenuItem(
             menu,
             locConstants.queryResult.selectAll,
-            `${MOD_KEY_LABEL}A`,
+            `${getModKeyLabel()}A`,
             NotebookContextMenuAction.SelectAll,
         );
 
@@ -225,7 +226,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         this.addMenuItem(
             menu,
             locConstants.queryResult.copy,
-            `${MOD_KEY_LABEL}C`,
+            `${getModKeyLabel()}C`,
             NotebookContextMenuAction.CopySelection,
         );
         this.addMenuItem(
