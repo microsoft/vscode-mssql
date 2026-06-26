@@ -635,11 +635,12 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 const item = dataProvider.getItem(r) as Slick.SlickData;
                 const cellVal = item?.[col.field!];
+                const rawVal = cellVal?.displayValue ?? "";
                 const val = cellVal?.isNull
                     ? "NULL"
-                    : isNumeric
-                      ? (cellVal?.displayValue ?? "")
-                      : sqlStr(cellVal?.displayValue ?? "");
+                    : isNumeric && !/[eE]/.test(rawVal)
+                      ? rawVal
+                      : sqlStr(rawVal);
                 valueLines.push(val);
             }
         }
@@ -684,7 +685,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                     const cellVal = item?.[col.field!];
                     if (cellVal?.isNull) return "NULL";
                     const val = cellVal?.displayValue ?? "";
-                    return isNumeric ? val : sqlStr(val);
+                    return isNumeric && !/[eE]/.test(val) ? val : sqlStr(val);
                 });
                 valueRows.push(`    (${values.join(", ")})`);
             }
