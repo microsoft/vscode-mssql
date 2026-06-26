@@ -1882,10 +1882,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // clear properties that will be unique for a cloned connection
         connectionDraft.id = undefined;
         connectionDraft.profileName = undefined;
+        delete (connectionDraft as IConnectionProfile).order;
 
         // clear management properties that aren't serialized
         delete (connectionDraft as IConnectionProfileWithSource).configSource;
-        delete (connectionDraft as IConnectionProfile).order;
 
         this._connectionBeingEdited = undefined;
         this.state.connectionProfile = connectionDraft;

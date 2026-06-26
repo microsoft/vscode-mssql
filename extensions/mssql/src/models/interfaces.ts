@@ -86,7 +86,7 @@ export interface IConnectionGroup {
     color?: string;
     description?: string;
     /**
-     * Optional sort order for display in the Object Explorer.  Set manually in config JSON
+     * Optional sort order for display in the Object Explorer. Set manually in config JSON.
      */
     order?: number;
 }

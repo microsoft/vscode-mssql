@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
 import { TreeNodeInfo } from "./treeNodeInfo";
-import { IConnectionGroup, IConnectionProfile } from "../../models/interfaces";
+import { IConnectionGroup } from "../../models/interfaces";
 
 export const CONNECTION_GROUP_NODE_TYPE = "ConnectionGroup";
 
@@ -137,8 +137,9 @@ function getNodeOrder(node: TreeNodeInfo): number | undefined {
     let candidate: unknown;
     if (node instanceof ConnectionGroupNode) {
         candidate = node.connectionGroup?.order;
-    } else if (node.connectionProfile) {
-        candidate = (node.connectionProfile as IConnectionProfile).order;
+    } else {
+        const profile = node.connectionProfile;
+        candidate = profile?.order;
     }
 
     if (typeof candidate === "number" && Number.isFinite(candidate) && candidate >= 0) {
