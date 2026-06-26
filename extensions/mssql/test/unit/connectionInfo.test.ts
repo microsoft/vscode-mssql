@@ -264,6 +264,22 @@ test("getServerTypes", () => {
             input: "test.crm.dynamics.com",
             expected: [ServerType.Dynamics, ServerType.Sql],
         },
+        {
+            input: "test.jas772hsiz.us-east-2.rds.amazonaws.com,1433",
+            expected: [ServerType.AmazonWebServices, ServerType.Sql],
+        },
+        {
+            input: "test.sql.goog.",
+            expected: [ServerType.GoogleCloudProject, ServerType.Sql],
+        },
+        {
+            input: "test.sql-psa.goog",
+            expected: [ServerType.GoogleCloudProject, ServerType.Sql],
+        },
+        {
+            input: "test.oraclevcn.com",
+            expected: [ServerType.OracleCloudInfrastructure, ServerType.Sql],
+        },
 
         { input: "localhost", expected: [ServerType.Local, ServerType.Sql] },
         { input: "localhost,1234", expected: [ServerType.Local, ServerType.Sql] },
