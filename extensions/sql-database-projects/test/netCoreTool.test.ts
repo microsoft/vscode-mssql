@@ -9,12 +9,15 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import * as https from "https";
+import { EventEmitter } from "events";
 import {
     NetCoreTool,
     DBProjectConfigurationKey,
     DotnetInstallLocationKey,
     FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
     getMicrosoftBuildSqlVersion,
+    resolveNugetVersion,
 } from "../src/tools/netcoreTool";
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
@@ -158,5 +161,80 @@ suite("NetCoreTool: Net core tests", function (): void {
             result = getMicrosoftBuildSqlVersion();
             expect(result).to.equal(FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
         });
+    });
+
+    test("resolveNugetVersion: exact version is returned as-is without calling NuGet API", async function (): Promise<void> {
+        const getSpy = sandbox.spy(https, "get");
+        // Older user-configured version must be respected — no upgrade to latest
+        expect(await resolveNugetVersion("Microsoft.Build.Sql", "2.0.0")).to.equal("2.0.0");
+        expect(await resolveNugetVersion("Microsoft.Build.Sql", "2.1.0")).to.equal("2.1.0");
+        expect(getSpy.called, "NuGet API should not be called for exact versions").to.be.false;
+    });
+
+    test("resolveNugetVersion: floating version resolves to latest stable match", async function (): Promise<void> {
+        const versions = ["2.0.0", "2.1.0", "2.2.0", "2.3.0-preview", "3.0.0"];
+        (sandbox.stub(https, "get") as sinon.SinonStub).callsFake(
+            (_url: string, callback: (res: EventEmitter) => void) => {
+                const res = new EventEmitter();
+                callback(res);
+                res.emit("data", JSON.stringify({ versions }));
+                res.emit("end");
+                return new EventEmitter();
+            },
+        );
+        expect(await resolveNugetVersion("Microsoft.Build.Sql", "2.*")).to.equal("2.2.0");
+        expect(await resolveNugetVersion("Microsoft.Build.Sql", "2.0.*")).to.equal("2.0.0");
+    });
+
+    test("resolveNugetVersion: throws when no stable versions match", async function (): Promise<void> {
+        (sandbox.stub(https, "get") as sinon.SinonStub).callsFake(
+            (_url: string, callback: (res: EventEmitter) => void) => {
+                const res = new EventEmitter();
+                callback(res);
+                res.emit("data", JSON.stringify({ versions: ["3.0.0"] }));
+                res.emit("end");
+                return new EventEmitter();
+            },
+        );
+        let threw = false;
+        try {
+            await resolveNugetVersion("Microsoft.Build.Sql", "2.*");
+        } catch {
+            threw = true;
+        }
+        expect(threw, "should throw when no versions match").to.be.true;
+    });
+
+    test("resolveNugetVersion: falls back to FALLBACK_MICROSOFT_BUILD_SQL_VERSION when configured version has no stable match", async function (): Promise<void> {
+        // Both calls go to the same NuGet index URL; versions contains only 2.x entries.
+        // First call (for "4.*") finds no 4.x match → triggers fallback.
+        // Second call (for "2.*") finds 2.2.0 → returned.
+        (sandbox.stub(https, "get") as sinon.SinonStub).callsFake(
+            (_url: string, callback: (res: EventEmitter) => void) => {
+                const res = new EventEmitter();
+                callback(res);
+                res.emit("data", JSON.stringify({ versions: ["2.0.0", "2.2.0"] }));
+                res.emit("end");
+                return new EventEmitter();
+            },
+        );
+        sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined);
+        const result = await resolveNugetVersion("Microsoft.Build.Sql", "4.*");
+        expect(result).to.equal("2.2.0");
+    });
+
+    test("resolveNugetVersion: throws when NuGet API call fails", async function (): Promise<void> {
+        (sandbox.stub(https, "get") as sinon.SinonStub).callsFake(() => {
+            const req = new EventEmitter();
+            setImmediate(() => req.emit("error", new Error("network failure")));
+            return req;
+        });
+        let threw = false;
+        try {
+            await resolveNugetVersion("Microsoft.Build.Sql", "2.*");
+        } catch {
+            threw = true;
+        }
+        expect(threw, "should throw on network error").to.be.true;
     });
 });

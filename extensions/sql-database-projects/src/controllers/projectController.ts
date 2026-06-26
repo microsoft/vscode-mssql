@@ -18,7 +18,12 @@ import { SqlDatabaseProjectTreeViewProvider } from "./databaseProjectTreeViewPro
 import { FolderNode, FileNode } from "../models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../models/tree/baseTreeItem";
 import { ImportDataModel } from "../models/api/import";
-import { NetCoreTool, DotNetError, getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
+import {
+    NetCoreTool,
+    DotNetError,
+    getMicrosoftBuildSqlVersion,
+    resolveNugetVersion,
+} from "../tools/netcoreTool";
 import { BuildHelper } from "../tools/buildHelper";
 import {
     ISystemDatabaseReferenceSettings,
@@ -138,7 +143,10 @@ export class ProjectsController {
         }
 
         const sqlProjectsService = await utils.getSqlProjectsService();
-        const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion();
+        const microsoftBuildSqlSDKStyleDefaultVersion = await resolveNugetVersion(
+            "Microsoft.Build.Sql",
+            getMicrosoftBuildSqlVersion(),
+        );
         const projectStyle = creationParams.sdkStyle
             ? mssqlVscode.ProjectType.SdkStyle
             : mssqlVscode.ProjectType.LegacyStyle;
