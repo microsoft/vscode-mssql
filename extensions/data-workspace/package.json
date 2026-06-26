@@ -13,11 +13,6 @@
         "vscode": "^1.98.0",
         "azdata": ">=1.47.0"
     },
-    "activationEvents": [
-        "onView:dataworkspace.views.main",
-        "onCommand:projects.openExisting",
-        "onCommand:projects.new"
-    ],
     "main": "./out/src/main.js",
     "l10n": "./l10n",
     "repository": {
