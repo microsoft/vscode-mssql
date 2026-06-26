@@ -754,7 +754,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
@@ -936,7 +936,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }

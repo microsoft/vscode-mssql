@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 
 import { TextDocumentShowOptions } from "vscode";
-import { AzureLoginStatus } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 
 export import TextEditor = vscode.TextEditor;
@@ -338,16 +337,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Write text to the clipboard
-     *
-     * @param text Value to write to the clipboard
-     * @return A promise that is called once the copy is complete
-     */
-    public clipboardWriteText(text: string): Thenable<void> {
-        return vscode.env.clipboard.writeText(text);
-    }
-
-    /**
      * Called when workspace settings are changed
      */
     public get onDidChangeConfiguration(): vscode.Event<vscode.ConfigurationChangeEvent> {
@@ -367,48 +356,9 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Set a context for contributing command actions
-     */
-    public async setContext(contextSection: string, value: any): Promise<void> {
-        await this.executeCommand("setContext", contextSection, value);
-    }
-
-    /**
      * Getter for the MSSQL output channel
      */
     public get outputChannel(): vscode.OutputChannel {
         return VscodeWrapper._outputChannel;
-    }
-
-    /*
-     * Called when there's a change in the extensions
-     */
-    public get onDidChangeExtensions(): vscode.Event<void> {
-        return vscode.extensions.onDidChange;
-    }
-
-    /**
-     * Gets the Azure Account extension
-     */
-    public get azureAccountExtension(): vscode.Extension<any> | undefined {
-        return vscode.extensions.getExtension(Constants.azureAccountExtensionId);
-    }
-
-    /**
-     * Returns true when the Azure Account extension is installed
-     * but not active
-     */
-    public get azureAccountExtensionActive(): boolean {
-        return this.azureAccountExtension !== undefined && this.azureAccountExtension.isActive;
-    }
-
-    /**
-     * Returns whether an azure account is signed in
-     */
-    public get isAccountSignedIn(): boolean {
-        return (
-            this.azureAccountExtensionActive &&
-            this.azureAccountExtension!.exports.status === AzureLoginStatus.LoggedIn
-        );
     }
 }

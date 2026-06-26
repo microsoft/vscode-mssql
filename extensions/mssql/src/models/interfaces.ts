@@ -290,13 +290,6 @@ export interface IGridDataRow {
 }
 
 /** Azure Account Interfaces */
-export enum AzureLoginStatus {
-    Initializing = "Initializing",
-    LoggingIn = "LoggingIn",
-    LoggedIn = "LoggedIn",
-    LoggedOut = "LoggedOut",
-}
-
 export interface IAzureSession {
     readonly environment: any;
     readonly userId: string;

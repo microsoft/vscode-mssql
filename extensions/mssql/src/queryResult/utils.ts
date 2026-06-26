@@ -206,7 +206,7 @@ export function registerCommonRequestHandlers(
     });
 
     webviewController.onRequest(qr.CopyColumnNameRequest.type, async (message) => {
-        await webviewViewController.getVsCodeWrapper().clipboardWriteText(message.columnName);
+        await vscode.env.clipboard.writeText(message.columnName);
     });
 
     // Register request handlers for query result filters

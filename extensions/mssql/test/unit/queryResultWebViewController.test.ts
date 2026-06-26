@@ -23,6 +23,7 @@ suite("QueryResultWebviewController", () => {
     let executionPlanService: sinon.SinonStubbedInstance<ExecutionPlanService>;
     let sqlOutputContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
     let controller: QueryResultWebviewController;
+    let clipboardWriteTextStub: sinon.SinonStub;
     let configuration: {
         get: sinon.SinonStub;
         update: sinon.SinonStub;
@@ -38,6 +39,9 @@ suite("QueryResultWebviewController", () => {
         vscodeWrapper = stubVscodeWrapper(sandbox);
         executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
         sqlOutputContentProvider = sandbox.createStubInstance(SqlOutputContentProvider);
+
+        clipboardWriteTextStub = sandbox.stub().resolves();
+        sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
 
         const context = stubExtensionContext(sandbox);
         const disposable = new vscode.Disposable(() => undefined);
@@ -129,7 +133,7 @@ suite("QueryResultWebviewController", () => {
 
         await controller.copyAllMessagesToClipboard(testUri);
 
-        expect(vscodeWrapper.clipboardWriteText).to.have.been.calledWithExactly(
+        expect(clipboardWriteTextStub).to.have.been.calledWithExactly(
             "first message\nsecond message",
         );
     });

@@ -50,6 +50,7 @@ suite("Query Runner tests", () => {
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
+    let clipboardWriteTextStub: sinon.SinonStub;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -83,6 +84,9 @@ suite("Query Runner tests", () => {
         (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
             stubs.createWorkspaceConfiguration({}),
         );
+
+        clipboardWriteTextStub = sandbox.stub().resolves();
+        sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
     });
 
     teardown(() => {
@@ -779,7 +783,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.copyResults(selection, 0, 0, false);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(expectedContent);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(expectedContent);
         });
 
         test("copyResults does not call clipboard fallback when content is not returned", async () => {
@@ -792,7 +796,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.copyResults(selection, 0, 0, false);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.not.have.been.called;
+            expect(clipboardWriteTextStub).to.not.have.been.called;
         });
 
         test("copyResults preserves non-monotonic selection order in the backend request", async () => {
@@ -964,7 +968,7 @@ suite("Query Runner tests", () => {
             await Promise.all([firstCopyPromise, secondCopyPromise]);
 
             // The second copy should have written to clipboard
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith("second content");
+            expect(clipboardWriteTextStub).to.have.been.calledWith("second content");
         });
 
         test("copy operation handles errors gracefully", async () => {
@@ -993,7 +997,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.writeStringToClipboard(testString);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(testString);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(testString);
         });
 
         test("sets LANG environment variable on macOS", async () => {
@@ -1014,7 +1018,7 @@ suite("Query Runner tests", () => {
             await queryRunner.writeStringToClipboard(testString);
 
             // Verify the clipboard was called
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(testString);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(testString);
 
             // Restore original platform
             Object.defineProperty(process, "platform", {
@@ -1031,7 +1035,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.writeStringToClipboard("");
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith("");
+            expect(clipboardWriteTextStub).to.have.been.calledWith("");
         });
 
         test("handles special characters", async () => {
@@ -1040,7 +1044,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.writeStringToClipboard(specialContent);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(specialContent);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(specialContent);
         });
     });
 

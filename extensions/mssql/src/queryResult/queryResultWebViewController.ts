@@ -709,7 +709,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         }
 
         const messageText = messages.join("\n");
-        await this.vscodeWrapper.clipboardWriteText(messageText);
+        await vscode.env.clipboard.writeText(messageText);
     }
 
     public getNumExecutionPlanResultSets(

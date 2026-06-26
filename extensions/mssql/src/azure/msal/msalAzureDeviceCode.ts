@@ -90,7 +90,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
             LocalizedConstants.msgCopyAndOpenWebpage,
         );
         if (selection === LocalizedConstants.msgCopyAndOpenWebpage) {
-            this.vscodeWrapper.clipboardWriteText(userCode);
+            await vscode.env.clipboard.writeText(userCode);
             await vscode.env.openExternal(vscode.Uri.parse(verificationUrl));
             this.logger.debug("Opened device code verification URL.");
         }

@@ -2125,7 +2125,7 @@ export default class MainController implements vscode.Disposable {
                     }
                     const name = ObjectExplorerUtils.getQualifiedName(node);
                     if (name) {
-                        await this._vscodeWrapper.clipboardWriteText(name);
+                        await vscode.env.clipboard.writeText(name);
                     }
                 },
             ),
