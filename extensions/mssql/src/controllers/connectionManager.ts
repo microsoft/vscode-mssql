@@ -465,10 +465,9 @@ export default class ConnectionManager {
      * Parses the connection string into a ConnectionDetails object
      */
     public async parseConnectionString(connectionString: string): Promise<ConnectionDetails> {
-        return await this.client.sendRequest(
-            ConnectionContracts.ParseConnectionStringRequest.type,
+        return this.client.sendRequest(ConnectionContracts.ParseConnectionStringRequest.type, {
             connectionString,
-        );
+        });
     }
 
     /**
