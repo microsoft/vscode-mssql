@@ -596,7 +596,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
-        const objects: Record<string, string | null>[] = [];
+        const rows: string[] = [];
         for (const range of ranges) {
             const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
             if (dataCols.length === 0) {
@@ -604,17 +604,28 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             }
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 const item = dataProvider.getItem(r) as Slick.SlickData;
-                const obj: Record<string, string | null> = {};
+                const pairs: string[] = [];
                 for (const col of dataCols) {
                     const cellVal = item?.[col.field!];
-                    obj[col.toolTip ?? col.name ?? col.field!] = cellVal?.isNull
-                        ? null
-                        : (cellVal?.displayValue ?? null);
+                    const key = JSON.stringify(col.toolTip ?? col.name ?? col.field!);
+                    let val: string;
+                    if (cellVal?.isNull) {
+                        val = "null";
+                    } else {
+                        const displayVal = cellVal?.displayValue ?? "";
+                        const typeName = this.getColumnInfo(col)?.dataTypeName?.toLowerCase();
+                        if (typeName && typeName !== "bit" && this.isNumericSqlType(typeName)) {
+                            val = displayVal; // raw literal — preserves E casing from SQL Server
+                        } else {
+                            val = JSON.stringify(displayVal);
+                        }
+                    }
+                    pairs.push(`    ${key}: ${val}`);
                 }
-                objects.push(obj);
+                rows.push(`  {\n${pairs.join(",\n")}\n  }`);
             }
         }
-        return JSON.stringify(objects, null, 2);
+        return `[\n${rows.join(",\n")}\n]`;
     }
 
     /** Returns null when more than one data column is selected (caller shows error). */
