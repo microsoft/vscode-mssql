@@ -29,6 +29,7 @@ suite("save results tests", () => {
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
+    let executeCommandStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -36,6 +37,7 @@ suite("save results tests", () => {
         vscodeWrapper = stubVscodeWrapper(sandbox);
         vscodeWindow = stubVscodeWindow(sandbox);
         vscodeWorkspace = stubVscodeWorkspace(sandbox);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
         (vscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(
             (extensionName: string, resource?: vscode.ConfigurationScope) => {
                 return vscode.workspace.getConfiguration(extensionName, resource);
@@ -196,7 +198,7 @@ suite("save results tests", () => {
         await waitForPendingPromises();
 
         expect(openSavedFileStub).to.not.have.been.called;
-        expect(vscodeWrapper.executeCommand).to.have.been.calledOnceWith(
+        expect(executeCommandStub).to.have.been.calledOnceWith(
             "revealFileInOS",
             sinon.match.has("fsPath", fileUri.fsPath),
         );

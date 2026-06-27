@@ -236,7 +236,7 @@ export class ConnectionUI {
         const value = await this._prompter.promptSingle(question);
 
         if (value) {
-            await this._vscodeWrapper.executeCommand("workbench.action.editor.changeLanguageMode");
+            await vscode.commands.executeCommand("workbench.action.editor.changeLanguageMode");
             const result = await this.waitForLanguageModeToBeSql();
             return result;
         } else {
@@ -537,7 +537,7 @@ export class ConnectionUI {
             return false;
         }
 
-        await this._vscodeWrapper.executeCommand(constants.cmdEditConnection, profile);
+        await vscode.commands.executeCommand(constants.cmdEditConnection, profile);
         return true;
     }
 

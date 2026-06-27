@@ -236,7 +236,7 @@ export default class ResultsSerializer {
                 if (action === openFileAction) {
                     this.openSavedFile(filePath, format);
                 } else if (action === revealFileAction) {
-                    void this._vscodeWrapper.executeCommand(
+                    void vscode.commands.executeCommand(
                         "revealFileInOS",
                         vscode.Uri.file(filePath),
                     );

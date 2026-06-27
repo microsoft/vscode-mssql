@@ -46,7 +46,7 @@ suite("SqlTasksService Tests", () => {
         showInformationMessageStub = messageBoxes.showInformationMessage;
         showErrorMessageStub = messageBoxes.showErrorMessage;
         showWarningMessageStub = messageBoxes.showWarningMessage;
-        executeCommandStub = vscodeWrapperStub.executeCommand;
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
 
         // Stub telemetry
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");

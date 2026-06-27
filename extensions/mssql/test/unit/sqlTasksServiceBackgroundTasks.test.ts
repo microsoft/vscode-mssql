@@ -38,6 +38,7 @@ suite("SqlTasksService Background Tasks Tests", () => {
     let sqlTasksService: SqlTasksService;
     let taskCreatedHandler: (taskInfo: TaskInfo) => void;
     let taskStatusChangedHandler: (progressInfo: TaskProgressInfo) => Promise<void>;
+    let executeCommandStub: sinon.SinonStub;
 
     const baseTaskInfo: TaskInfo = {
         taskId: "task-1",
@@ -71,6 +72,7 @@ suite("SqlTasksService Background Tasks Tests", () => {
         );
         sqlToolsClientStub.onNotification.returnsThis();
         sqlToolsClientStub.sendRequest.resolves(true);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
 
         sqlTasksService = new SqlTasksService(
             sqlToolsClientStub,
@@ -172,7 +174,7 @@ suite("SqlTasksService Background Tasks Tests", () => {
         expect(update.open).to.be.a("function");
 
         await update.open!();
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledWith(
+        expect(executeCommandStub).to.have.been.calledWith(
             "revealFileInOS",
             sinon.match.instanceOf(vscode.Uri),
         );

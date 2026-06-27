@@ -358,7 +358,7 @@ export class SqlTasksService {
                                 taskInfo.taskInfo,
                                 targetLocation,
                             );
-                            void this._vscodeWrapper.executeCommand(command, ...args);
+                            void vscode.commands.executeCommand(command, ...args);
                         }
                     });
                 } else {
@@ -471,7 +471,7 @@ export class SqlTasksService {
 
         return () =>
             Promise.resolve(
-                this._vscodeWrapper.executeCommand(
+                vscode.commands.executeCommand(
                     handler.actionCommand!,
                     ...handler.getActionCommandArgs!(taskInfo, targetLocation),
                 ),

@@ -46,6 +46,7 @@ suite("Connection UI tests", () => {
     let quickPickShowStub: sinon.SinonStub;
     let quickPickHideStub: sinon.SinonStub;
     let quickPickDisposeStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
     let onDidChangeSelectionEmitter: vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>;
     let onDidHideEmitter: vscode.EventEmitter<void>;
 
@@ -79,7 +80,7 @@ suite("Connection UI tests", () => {
 
         vscodeWrapperStub.createQuickPick.returns(quickPick);
         messageBoxes.showErrorMessage.resolves(undefined);
-        vscodeWrapperStub.executeCommand.resolves(undefined);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
 
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
         accountStoreStub = sandbox.createStubInstance(AccountStore);
@@ -186,7 +187,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToChangeLanguageMode();
 
         expect(promptSingleStub).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledOnceWithExactly(
+        expect(executeCommandStub).to.have.been.calledOnceWithExactly(
             "workbench.action.editor.changeLanguageMode",
         );
     });
@@ -197,7 +198,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToChangeLanguageMode();
 
         expect(promptSingleStub).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.not.have.been.called;
+        expect(executeCommandStub).to.not.have.been.called;
     });
 
     test("removeProfile should prompt for a profile and remove it", async () => {
@@ -265,7 +266,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToManageProfiles();
 
         expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledWithExactly(
+        expect(executeCommandStub).to.have.been.calledWithExactly(
             "mssql.editConnection",
             selectedProfileItem.connectionCreds,
         );
@@ -280,9 +281,7 @@ suite("Connection UI tests", () => {
         expect(messageBoxes.showErrorMessage).to.have.been.calledOnceWithExactly(
             LocConstants.msgNoProfilesToEdit,
         );
-        expect(vscodeWrapperStub.executeCommand).to.not.have.been.calledWith(
-            "mssql.editConnection",
-        );
+        expect(executeCommandStub).to.not.have.been.calledWith("mssql.editConnection");
     });
 
     test("getConnectionGroupOptions", async () => {

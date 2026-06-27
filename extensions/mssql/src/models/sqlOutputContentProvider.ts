@@ -637,7 +637,7 @@ export class SqlOutputContentProvider {
                 const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
-                    this._vscodeWrapper.executeCommand(
+                    vscode.commands.executeCommand(
                         Constants.cmdRefreshQueryHistory,
                         queryRunner.uri,
                         hasError,
