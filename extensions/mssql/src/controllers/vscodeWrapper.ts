@@ -20,7 +20,10 @@ export default class VscodeWrapper {
      */
     public constructor() {
         if (typeof VscodeWrapper._outputChannel === "undefined") {
-            VscodeWrapper._outputChannel = this.createOutputChannel(Constants.outputChannelName);
+            VscodeWrapper._outputChannel = vscode.window.createOutputChannel(
+                Constants.outputChannelName,
+                { log: true },
+            );
         }
     }
 
@@ -56,13 +59,6 @@ export default class VscodeWrapper {
             return vscode.window.activeTextEditor.document.uri.toString();
         }
         return undefined;
-    }
-
-    /**
-     * Create an output channel in vscode.
-     */
-    public createOutputChannel(channelName: string): vscode.OutputChannel {
-        return vscode.window.createOutputChannel(channelName, { log: true });
     }
 
     /**
@@ -126,37 +122,6 @@ export default class VscodeWrapper {
      */
     public openExternal(link: string): Thenable<boolean> {
         return vscode.env.openExternal(vscode.Uri.parse(link));
-    }
-
-    /**
-     * Returns a array of the text editors currently visible in the window
-     */
-    public get visibleEditors(): readonly vscode.TextEditor[] {
-        return vscode.window.visibleTextEditors;
-    }
-
-    /**
-     * Create an URI from a file system path. The [scheme](#Uri.scheme)
-     * will be `file`.
-     *
-     * @param path A file system or UNC path.
-     * @return A new Uri instance.
-     * @see vscode.Uri.file
-     */
-    public uriFile(path: string): vscode.Uri {
-        return vscode.Uri.file(path);
-    }
-
-    /**
-     * Create an URI from a string. Will throw if the given value is not
-     * valid.
-     *
-     * @param value The string value of an Uri.
-     * @return A new Uri instance.
-     * @see vscode.Uri.parse
-     */
-    public uriParse(value: string): vscode.Uri {
-        return vscode.Uri.parse(value);
     }
 
     /**

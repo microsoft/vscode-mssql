@@ -54,7 +54,6 @@ suite("Connection UI tests", () => {
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
-        const outputChannel = vscodeWrapperStub.outputChannel;
 
         quickPickShowStub = sandbox.stub();
         quickPickHideStub = sandbox.stub();
@@ -78,7 +77,6 @@ suite("Connection UI tests", () => {
             onDidHide: onDidHideEmitter.event,
         } as unknown as vscode.QuickPick<IConnectionCredentialsQuickPickItem>;
 
-        vscodeWrapperStub.createOutputChannel.returns(outputChannel);
         vscodeWrapperStub.createQuickPick.returns(quickPick);
         messageBoxes.showErrorMessage.resolves(undefined);
         vscodeWrapperStub.executeCommand.resolves(undefined);
