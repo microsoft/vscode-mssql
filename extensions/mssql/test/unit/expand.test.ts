@@ -8,7 +8,6 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ExpandPrompt from "../../src/prompts/expand";
 import { stubVscodeWindow } from "./utils";
 
@@ -32,10 +31,9 @@ suite("Test Expand Prompt", () => {
             choices: [{ name: "test", value: "test" }],
             validate: () => false,
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves("test");
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
+        const expand = new ExpandPrompt(question);
         await expand.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
@@ -47,10 +45,9 @@ suite("Test Expand Prompt", () => {
             choices: [{ name: "test", value: "test" }],
             validate: () => true,
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(undefined);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
+        const expand = new ExpandPrompt(question);
         await expand.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
@@ -64,10 +61,9 @@ suite("Test Expand Prompt", () => {
             choices: [quickPickItem],
             validate: () => true,
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(quickPickItem);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
+        const expand = new ExpandPrompt(question);
         await expand.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
@@ -81,10 +77,9 @@ suite("Test Expand Prompt", () => {
             choices: [quickPickItem],
             validate: () => false,
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(undefined);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
+        const expand = new ExpandPrompt(question);
         await expand.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;

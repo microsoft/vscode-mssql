@@ -67,7 +67,6 @@ suite("ConnectionStore Tests", () => {
                 mockCredentialStore,
                 mockLogger,
                 mockConnectionConfig,
-                mockVscodeWrapper,
             );
         }).to.not.throw();
 
@@ -120,7 +119,6 @@ suite("ConnectionStore Tests", () => {
             mockCredentialStore,
             mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;
@@ -170,7 +168,6 @@ suite("ConnectionStore Tests", () => {
             mockCredentialStore,
             mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;
@@ -199,7 +196,6 @@ suite("ConnectionStore Tests", () => {
             mockCredentialStore,
             mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;
@@ -238,7 +234,6 @@ suite("ConnectionStore Tests", () => {
             mockCredentialStore,
             mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;
@@ -283,7 +278,6 @@ suite("ConnectionStore Tests", () => {
             mockCredentialStore,
             mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;
@@ -320,7 +314,6 @@ suite("ConnectionStore Tests", () => {
             mockCredentialStore,
             mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;
@@ -370,7 +363,6 @@ suite("ConnectionStore Tests", () => {
             mockCredentialStore,
             mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;

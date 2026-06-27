@@ -12,7 +12,6 @@ import * as vscode from "vscode";
 import { SqlSymbolRenameProvider } from "../../src/languageservice/sqlSymbolRenameProvider";
 import { SqlMoveToSchemaProvider } from "../../src/languageservice/sqlMoveToSchemaProvider";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     ListProjectSchemasRequest,
     SqlMoveToSchemaRequest,
@@ -36,12 +35,6 @@ const defaultProjFile = path.join(projectDir, "proj.sqlproj");
 // ---------------------------------------------------------------------------
 // Helpers shared across rename and move-to-schema suites
 // ---------------------------------------------------------------------------
-
-/** Builds a minimal stubbed VscodeWrapper. */
-function makeVscodeWrapper(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<VscodeWrapper> {
-    const wrapper = sandbox.createStubInstance(VscodeWrapper);
-    return wrapper;
-}
 
 /** Builds a line-based stubbed TextDocument used by SqlMoveToSchemaProvider tests. */
 function makeMoveDocument(
@@ -550,16 +543,14 @@ suite("SqlMoveToSchemaProvider Tests", () => {
     let provider: SqlMoveToSchemaProvider;
     let findFilesStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let showQuickPickStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = makeVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
-        provider = new SqlMoveToSchemaProvider(vscodeWrapper as unknown as VscodeWrapper);
+        provider = new SqlMoveToSchemaProvider();
         findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
         sendRequestStub = sandbox
             .stub(SqlToolsServerClient.instance, "sendRequest")

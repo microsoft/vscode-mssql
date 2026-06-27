@@ -16,8 +16,8 @@ import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvid
 import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubVscodeEnv, stubVscodeWrapper } from "./utils";
+import { Logger } from "../../src/models/logger";
+import { stubTelemetry, stubVscodeEnv } from "./utils";
 
 chai.use(sinonChai);
 
@@ -39,7 +39,7 @@ suite("Service Client tests", () => {
     let sandbox: sinon.SinonSandbox;
     let testServiceProvider: sinon.SinonStubbedInstance<ServerProvider>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let loggerShowStub: sinon.SinonStub;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
     let originalStsOverride: string | undefined;
 
@@ -47,7 +47,7 @@ suite("Service Client tests", () => {
         sandbox = sinon.createSandbox();
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
         testStatusView = sandbox.createStubInstance(StatusView);
-        vscodeWrapper = stubVscodeWrapper(sandbox);
+        loggerShowStub = sandbox.stub(Logger.prototype, "show");
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
         stubTelemetry(sandbox);
         originalStsOverride = process.env.MSSQL_SQLTOOLSSERVICE;
@@ -67,13 +67,12 @@ suite("Service Client tests", () => {
         return new SqlToolsServiceClient(
             testServiceProvider,
             testStatusView,
-            vscodeWrapper,
             dotnetRuntimeProvider,
         );
     }
 
     function outputChannelShowStub(): sinon.SinonStub {
-        return vscodeWrapper.outputChannel.show as sinon.SinonStub;
+        return loggerShowStub;
     }
 
     function setupMocks(fixture: IFixture): void {

@@ -7,6 +7,8 @@ import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
+import * as figures from "figures";
+import * as vscode from "vscode";
 import CodeAdapter from "../../src/prompts/adapter";
 import { IQuestion } from "../../src/prompts/question";
 import { createStubLogger, stubMessageBoxes } from "./utils";
@@ -71,6 +73,7 @@ suite("Code Adapter Tests", () => {
     });
 
     test("prompting a checkbox question should call fixQuestion", async () => {
+        sandbox.stub(vscode.window, "showQuickPick").resolves(figures.tick);
         const formattedQuestion: IQuestion = {
             type: "checkbox",
             message: "test",

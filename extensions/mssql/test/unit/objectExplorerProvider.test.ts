@@ -139,23 +139,16 @@ suite("Object Explorer Provider Tests", function () {
 
         connectionManager = connectionManagerStub as unknown as ConnectionManager;
 
-        objectExplorerProvider = new ObjectExplorerProvider(
-            vscodeWrapperStub as unknown as VscodeWrapper,
-            connectionManager,
-        );
+        objectExplorerProvider = new ObjectExplorerProvider(connectionManager);
         expect(objectExplorerProvider, "Object Explorer Provider is initialized properly").to.exist;
 
         objectExplorerServiceStub = sandbox.createStubInstance(ObjectExplorerService);
         objectExplorerProvider.objectExplorerService =
             objectExplorerServiceStub as unknown as ObjectExplorerService;
 
-        testObjectExplorerService = new ObjectExplorerService(
-            vscodeWrapperStub as unknown as VscodeWrapper,
-            connectionManager,
-            () => {
-                /* no-op */
-            },
-        );
+        testObjectExplorerService = new ObjectExplorerService(connectionManager, () => {
+            /* no-op */
+        });
         testObjectExplorerService.initialized.resolve();
     });
 

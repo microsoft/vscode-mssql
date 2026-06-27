@@ -7,7 +7,6 @@ import {
     QueryRunnerState,
     SqlOutputContentProvider,
 } from "../../src/models/sqlOutputContentProvider";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as stubs from "./stubs";
 import * as Constants from "../../src/constants/constants";
@@ -34,7 +33,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
     };
 
     let sandbox: sinon.SinonSandbox;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let contentProvider: SqlOutputContentProvider;
     let mockContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
@@ -45,10 +43,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let mockMap: Map<string, MockRunnerEntry>;
     let setSplitPaneSelectionConfig: (value: string) => void;
     let setCurrentEditorColumn: (column: number) => void;
+    let getConfigurationStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         messageBoxes = stubMessageBoxes(sandbox);
         statusView = sandbox.createStubInstance(StatusView);
         statusViewInstance = statusView as unknown as StatusView;
@@ -61,23 +59,22 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         const disposable = { dispose: () => {} } as vscode.Disposable;
         stubVscodeWorkspace(sandbox);
+        getConfigurationStub = sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(stubs.createWorkspaceConfiguration({}));
         sandbox.stub(vscode.window, "registerWebviewViewProvider").returns(disposable);
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
 
         contentProvider = new SqlOutputContentProvider(
             context,
             statusViewInstance,
-            vscodeWrapper as unknown as VscodeWrapper,
             executionPlanService as unknown as ExecutionPlanService,
         );
-        contentProvider.setVscodeWrapper = vscodeWrapper as unknown as VscodeWrapper;
-        vscodeWrapper.getConfiguration.callsFake(() => stubs.createWorkspaceConfiguration({}));
-
         setSplitPaneSelectionConfig = (value: string): void => {
             const configResult: { [key: string]: unknown } = {};
             configResult[Constants.configSplitPaneSelection] = value;
             const config = stubs.createWorkspaceConfiguration(configResult);
-            vscodeWrapper.getConfiguration.callsFake(() => config);
+            getConfigurationStub.returns(config);
         };
 
         let currentEditor: vscode.TextEditor | undefined;
@@ -447,11 +444,9 @@ suite("SqlOutputProvider Tests using mocks", () => {
     });
 
     test("A query runner should only exist if a query is run", async () => {
-        vscodeWrapper.getConfiguration.callsFake(() => {
-            const configResult: { [key: string]: unknown } = {};
-            configResult[Constants.configPersistQueryResultTabs] = false;
-            return stubs.createWorkspaceConfiguration(configResult);
-        });
+        const configResult: { [key: string]: unknown } = {};
+        configResult[Constants.configPersistQueryResultTabs] = false;
+        getConfigurationStub.returns(stubs.createWorkspaceConfiguration(configResult));
 
         contentProvider.queryResultWebviewController.createPanelController = sandbox
             .stub()

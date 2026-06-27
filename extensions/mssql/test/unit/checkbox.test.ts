@@ -8,7 +8,6 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as figures from "figures";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import CheckboxPrompt from "../../src/prompts/checkbox";
 import { stubVscodeWindow } from "./utils";
 
@@ -35,10 +34,9 @@ suite("Test Checkbox prompt", () => {
                 { name: "test2", checked: false },
             ],
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(figures.tick);
 
-        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+        const checkbox = new CheckboxPrompt(question);
         await checkbox.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
@@ -51,10 +49,9 @@ suite("Test Checkbox prompt", () => {
                 { name: "test2", checked: false },
             ],
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(undefined);
 
-        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+        const checkbox = new CheckboxPrompt(question);
         await checkbox.render().catch(() => undefined);
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
@@ -67,10 +64,9 @@ suite("Test Checkbox prompt", () => {
                 { name: "test2", checked: false },
             ],
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(figures.tick);
 
-        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+        const checkbox = new CheckboxPrompt(question);
         await checkbox.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;

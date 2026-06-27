@@ -7,7 +7,6 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import ConfirmPrompt from "../../src/prompts/confirm";
 import { stubVscodeWindow } from "./utils";
@@ -31,10 +30,9 @@ suite("Test Confirm Prompt", () => {
         const question = {
             name: "test",
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(LocalizedConstants.msgYes);
 
-        const confirm = new ConfirmPrompt(question, vscodeWrapper);
+        const confirm = new ConfirmPrompt(question);
         await confirm.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
@@ -44,10 +42,9 @@ suite("Test Confirm Prompt", () => {
         const question = {
             name: "test",
         };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showQuickPick.resolves(undefined);
 
-        const confirm = new ConfirmPrompt(question, vscodeWrapper);
+        const confirm = new ConfirmPrompt(question);
 
         await confirm.render().catch(() => undefined);
 

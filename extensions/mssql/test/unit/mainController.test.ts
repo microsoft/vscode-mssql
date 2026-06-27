@@ -10,8 +10,7 @@ import * as chai from "chai";
 import * as vscode from "vscode";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubExtensionContext, stubVscodeWrapper, stubMessageBoxes } from "./utils";
+import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
 import * as Constants from "../../src/constants/constants";
 import { HttpClient } from "../../src/http/httpClient";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -50,7 +49,6 @@ suite("MainController Tests", function () {
     let sandbox: sinon.SinonSandbox;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let context: vscode.ExtensionContext;
 
@@ -89,11 +87,9 @@ suite("MainController Tests", function () {
 
         // Setting up a stubbed connectionManager
         connectionManager = sandbox.createStubInstance(ConnectionManager);
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
         context = stubExtensionContext(sandbox);
-        mainController = new MainController(context, connectionManager, vscodeWrapper);
+        mainController = new MainController(context, connectionManager);
     });
 
     teardown(() => {
@@ -101,12 +97,10 @@ suite("MainController Tests", function () {
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
         sandbox.stub(Utils, "getActiveTextEditorUri").returns(undefined);
         const controller: MainController = new MainController(
             context,
             undefined, // ConnectionManager
-            vscodeWrapper,
         );
         const controllerAccess = accessMainController(controller);
 
@@ -119,12 +113,10 @@ suite("MainController Tests", function () {
     });
 
     test("validateTextDocumentHasFocus returns true if there is an active text document", () => {
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
         sandbox.stub(Utils, "getActiveTextEditorUri").returns("test_uri");
         const controller: MainController = new MainController(
             context,
             undefined, // ConnectionManager
-            vscodeWrapper,
         );
         const controllerAccess = accessMainController(controller);
 
@@ -137,14 +129,9 @@ suite("MainController Tests", function () {
     });
 
     test("onManageProfiles should call the connection manager to manage profiles", async () => {
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
         connectionManager.onManageProfiles.resolves();
 
-        const controller: MainController = new MainController(
-            context,
-            connectionManager,
-            vscodeWrapper,
-        );
+        const controller: MainController = new MainController(context, connectionManager);
 
         await controller.onManageProfiles();
 
@@ -391,7 +378,7 @@ suite("MainController Tests", function () {
     test("Proxy settings are checked on initialization", async () => {
         const httpHelperWarnSpy = sandbox.spy(HttpClient.prototype, "warnOnInvalidProxySettings");
 
-        new MainController(context, connectionManager, vscodeWrapper);
+        new MainController(context, connectionManager);
 
         expect(
             httpHelperWarnSpy.calledOnce,
@@ -592,12 +579,10 @@ suite("MainController Tests", function () {
     suite("Schema Designer Copilot Agent Command", () => {
         const createIsolatedController = () => {
             const isolatedConnectionManager = sandbox.createStubInstance(ConnectionManager);
-            const isolatedVscodeWrapper = stubVscodeWrapper(sandbox);
             const isolatedContext = stubExtensionContext(sandbox);
             const isolatedController = new MainController(
                 isolatedContext,
                 isolatedConnectionManager,
-                isolatedVscodeWrapper,
             );
             return { isolatedController };
         };
@@ -753,7 +738,6 @@ suite("MainController Tests", function () {
                 .stub(vscode.lm, "registerTool")
                 .returns({ dispose: sandbox.stub() } as vscode.Disposable);
             const isolatedConnectionManager = sandbox.createStubInstance(ConnectionManager);
-            const isolatedVscodeWrapper = stubVscodeWrapper(sandbox);
             const isolatedContext = stubExtensionContext(sandbox);
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             const getSchemaDesignerStub = sandbox.stub().resolves(mockDesigner);
@@ -768,7 +752,6 @@ suite("MainController Tests", function () {
             const isolatedController = new MainController(
                 isolatedContext,
                 isolatedConnectionManager,
-                isolatedVscodeWrapper,
             );
             const controllerAccess = accessMainController(isolatedController);
             controllerAccess.registerLanguageModelTools();
@@ -795,7 +778,6 @@ suite("MainController Tests", function () {
             expect(result.success).to.equal(true);
             expect(getSchemaDesignerStub).to.have.been.calledOnceWith(
                 isolatedContext,
-                isolatedVscodeWrapper,
                 isolatedController,
                 isolatedController.schemaDesignerService,
                 "AdventureWorks",
@@ -819,7 +801,7 @@ suite("MainController Tests", function () {
         let sendErrorEvent: sinon.SinonStub;
 
         setup(() => {
-            controller = new MainController(context, connectionManager, vscodeWrapper);
+            controller = new MainController(context, connectionManager);
             controllerAccess = accessMainController(controller);
 
             ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));

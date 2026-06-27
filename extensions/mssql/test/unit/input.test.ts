@@ -7,7 +7,6 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import InputPrompt from "../../src/prompts/input";
 import { stubVscodeWindow } from "./utils";
 
@@ -27,14 +26,13 @@ suite("Input Prompt Tests", () => {
     });
 
     test("Test list prompt render simple question", async () => {
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showInputBox.resolves("test");
         const question = {
             message: "test",
             placeHolder: "test",
             choices: [{ name: "test", value: "test" }],
         };
-        const listPrompt = new InputPrompt(question, vscodeWrapper);
+        const listPrompt = new InputPrompt(question);
 
         await listPrompt.render();
 
@@ -42,13 +40,12 @@ suite("Input Prompt Tests", () => {
     });
 
     test.skip("Test prompt an error question should throw", async () => {
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         const errorQuestion = {
             default: new Error("test"),
             placeHolder: undefined,
         };
         vscodeWindow.showInputBox.resolves(undefined);
-        const listPrompt = new InputPrompt(errorQuestion, vscodeWrapper);
+        const listPrompt = new InputPrompt(errorQuestion);
 
         await listPrompt.render();
 
@@ -56,12 +53,11 @@ suite("Input Prompt Tests", () => {
     });
 
     test("Test prompt question with default message", async () => {
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         const defaultQuestion = {
             default: "test_default",
         };
         vscodeWindow.showInputBox.resolves("");
-        const listPrompt = new InputPrompt(defaultQuestion, vscodeWrapper);
+        const listPrompt = new InputPrompt(defaultQuestion);
 
         await listPrompt.render();
 
@@ -69,7 +65,6 @@ suite("Input Prompt Tests", () => {
     });
 
     test("Test prompt question with validation error", async () => {
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWindow.showInputBox.onFirstCall().resolves("");
         vscodeWindow.showInputBox.onSecondCall().resolves("valid");
         let attempts = 0;
@@ -80,7 +75,7 @@ suite("Input Prompt Tests", () => {
                 return attempts === 1 ? "validation error" : undefined;
             },
         };
-        const listPrompt = new InputPrompt(validationQuestion, vscodeWrapper);
+        const listPrompt = new InputPrompt(validationQuestion);
 
         await listPrompt.render();
 

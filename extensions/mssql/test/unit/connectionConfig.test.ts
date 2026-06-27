@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
@@ -14,7 +13,7 @@ import { IConnectionGroup, IConnectionProfile } from "../../src/models/interface
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { deepClone } from "../../src/models/utils";
-import { stubVscodeWrapper, stubMessageBoxes } from "./utils";
+import { stubMessageBoxes } from "./utils";
 
 const { expect } = chai;
 
@@ -22,11 +21,12 @@ chai.use(sinonChai);
 
 suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let showWarningStub: sinon.SinonStub;
     let showQuickPickStub: sinon.SinonStub;
     let workspaceConfiguration: vscode.WorkspaceConfiguration;
+    let updateConfigurationStub: sinon.SinonStub;
+    let rootConfigurationGetStub: sinon.SinonStub;
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     let mockGlobalConfigData: Map<string, any> = new Map();
@@ -38,11 +38,20 @@ suite("ConnectionConfig Tests", () => {
 
         mockGlobalConfigData = new Map();
         mockWorkspaceConfigData = new Map();
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
+        rootConfigurationGetStub = sandbox.stub();
+        updateConfigurationStub = sandbox.stub().callsFake(async (key, value, target) => {
+            const targetStore =
+                target === ConfigurationTarget.Workspace ||
+                target === ConfigurationTarget.WorkspaceFolder
+                    ? mockWorkspaceConfigData
+                    : mockGlobalConfigData;
+            targetStore.set(key, deepClone(value));
+        });
 
         const mockConfiguration = {
+            get: (setting: string) => mockGlobalConfigData.get(setting),
             inspect: (setting: string) => {
                 let result;
                 if (setting === Constants.connectionsArrayName) {
@@ -65,20 +74,15 @@ suite("ConnectionConfig Tests", () => {
                 }
                 return deepClone(result);
             },
+            update: updateConfigurationStub,
         };
-        workspaceConfiguration = mockConfiguration as vscode.WorkspaceConfiguration;
+        workspaceConfiguration = mockConfiguration as unknown as vscode.WorkspaceConfiguration;
 
-        mockVscodeWrapper.getConfiguration.callsFake((section: string) =>
-            section === Constants.extensionName ? workspaceConfiguration : undefined,
-        );
-
-        mockVscodeWrapper.setConfiguration.callsFake(async (_section, key, value, target) => {
-            const targetStore =
-                target === ConfigurationTarget.Workspace ||
-                target === ConfigurationTarget.WorkspaceFolder
-                    ? mockWorkspaceConfigData
-                    : mockGlobalConfigData;
-            targetStore.set(key, deepClone(value));
+        sandbox.stub(vscode.workspace, "getConfiguration").callsFake((section?: string) => {
+            if (section === Constants.extensionName) {
+                return workspaceConfiguration;
+            }
+            return { get: rootConfigurationGetStub } as unknown as vscode.WorkspaceConfiguration;
         });
 
         sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
@@ -93,7 +97,7 @@ suite("ConnectionConfig Tests", () => {
 
     suite("Initialization", () => {
         test("Initialization creates ROOT group when it doesn't exist", async () => {
-            const config = new ConnectionConfig(mockVscodeWrapper);
+            const config = new ConnectionConfig();
             await config.initialized;
 
             const savedGroups = mockGlobalConfigData.get(
@@ -122,7 +126,7 @@ suite("ConnectionConfig Tests", () => {
                 } as IConnectionProfile,
             ]);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
 
             const savedGroups = mockGlobalConfigData.get(
@@ -147,7 +151,7 @@ suite("ConnectionConfig Tests", () => {
                 { name: "Group without ID" } as IConnectionGroup, // Missing ID
             ]);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
 
             const savedGroups = mockGlobalConfigData.get(
@@ -180,7 +184,7 @@ suite("ConnectionConfig Tests", () => {
                 } as IConnectionProfile,
             ]);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
 
             const savedProfiles = mockGlobalConfigData.get(
@@ -211,11 +215,11 @@ suite("ConnectionConfig Tests", () => {
                 } as IConnectionProfile,
             ]);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
 
             // Verify setConfiguration was not called since no changes needed
-            expect(mockVscodeWrapper.setConfiguration).to.not.have.been.called;
+            expect(updateConfigurationStub).to.not.have.been.called;
         });
     });
 
@@ -246,7 +250,7 @@ suite("ConnectionConfig Tests", () => {
 
         suite("Connections", () => {
             test("addConnection adds a new connection to profiles", async () => {
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 // Add a connection
@@ -287,7 +291,7 @@ suite("ConnectionConfig Tests", () => {
 
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const result = await connConfig.removeConnection(testConnProfile);
@@ -318,7 +322,7 @@ suite("ConnectionConfig Tests", () => {
                     } as IConnectionProfile,
                 ]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 // Try to remove a profile that doesn't exist in the config
@@ -333,7 +337,7 @@ suite("ConnectionConfig Tests", () => {
                 );
 
                 // Verify setConfiguration was not called
-                expect(mockVscodeWrapper.setConfiguration).to.not.have.been.called;
+                expect(updateConfigurationStub).to.not.have.been.called;
             });
 
             test("getConnections populates IDs for workspace connections that are missing them", async () => {
@@ -359,7 +363,7 @@ suite("ConnectionConfig Tests", () => {
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, testConnProfiles);
                 messageBoxes.showErrorMessage.resolves(undefined);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const result = await connConfig.getConnections();
@@ -383,10 +387,9 @@ suite("ConnectionConfig Tests", () => {
 
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
 
-                mockVscodeWrapper;
                 messageBoxes.showErrorMessage.resolves(undefined);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const result = await connConfig.getConnections();
@@ -410,7 +413,7 @@ suite("ConnectionConfig Tests", () => {
 
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const updatedProfile: IConnectionProfile = {
@@ -431,7 +434,7 @@ suite("ConnectionConfig Tests", () => {
 
         suite("Connection Groups", () => {
             test("addGroup adds a new connection group", async () => {
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const newGroup: IConnectionGroup = {
@@ -465,7 +468,7 @@ suite("ConnectionConfig Tests", () => {
                     testGroup,
                 ]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const result = await connConfig.removeGroup(testGroup.id, "delete");
@@ -514,7 +517,7 @@ suite("ConnectionConfig Tests", () => {
 
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [conn1, conn2]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 // Remove Group A
@@ -572,7 +575,7 @@ suite("ConnectionConfig Tests", () => {
 
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [conn1, conn2]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 // Remove Group A with move option
@@ -619,7 +622,7 @@ suite("ConnectionConfig Tests", () => {
 
                 mockGlobalConfigData.set(Constants.connectionGroupsArrayName, testGroups);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const groups = await connConfig.getGroups();
@@ -640,7 +643,7 @@ suite("ConnectionConfig Tests", () => {
 
                 mockGlobalConfigData.set(Constants.connectionGroupsArrayName, testGroups);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const group = await connConfig.getGroupById("test-group-id");
@@ -651,7 +654,7 @@ suite("ConnectionConfig Tests", () => {
             });
 
             test("getGroupById returns undefined for non-existent group", async () => {
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const group = await connConfig.getGroupById("non-existent-id");
@@ -673,7 +676,7 @@ suite("ConnectionConfig Tests", () => {
                     },
                 ]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const groups = await connConfig.getGroups();
@@ -713,7 +716,7 @@ suite("ConnectionConfig Tests", () => {
                     } as IConnectionProfile,
                 ]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const allConnections = connConfig.getConnectionsFromSettings();
@@ -741,7 +744,7 @@ suite("ConnectionConfig Tests", () => {
                     } as IConnectionProfile,
                 ]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const connections = connConfig.getConnectionsFromSettings();
@@ -750,7 +753,7 @@ suite("ConnectionConfig Tests", () => {
             });
 
             test("addConnection respects configSource parameter and strips configSource before persisting", async () => {
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const globalProfile = {
@@ -797,7 +800,7 @@ suite("ConnectionConfig Tests", () => {
                     } as IConnectionProfile,
                 ]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const updatedProfile: IConnectionProfile = {
@@ -819,7 +822,7 @@ suite("ConnectionConfig Tests", () => {
             });
 
             test("addGroup writes to requested config source and strips configSource", async () => {
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 const newGroup: IConnectionGroup = {
@@ -863,7 +866,7 @@ suite("ConnectionConfig Tests", () => {
                     } as IConnectionProfile,
                 ]);
 
-                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
                 let connections = await connConfig.getConnections();
@@ -882,12 +885,7 @@ suite("ConnectionConfig Tests", () => {
             getStub.withArgs(Constants.configNewEditorConnectionBehavior).returns(behavior);
             getStub.withArgs(Constants.configDefaultConnectionId).returns(defaultId);
 
-            mockVscodeWrapper.getConfiguration.callsFake((section?: string) => {
-                if (section === Constants.extensionName) {
-                    return workspaceConfiguration;
-                }
-                return { get: getStub } as unknown as vscode.WorkspaceConfiguration;
-            });
+            rootConfigurationGetStub = getStub;
         }
 
         setup(() => {
@@ -897,7 +895,7 @@ suite("ConnectionConfig Tests", () => {
         test("prompts when behavior is defaultConnection but defaultConnectionId is empty", async () => {
             stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
@@ -909,7 +907,7 @@ suite("ConnectionConfig Tests", () => {
         test("prompts when behavior is defaultConnection but defaultConnectionId is undefined", async () => {
             stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, undefined);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
@@ -920,7 +918,7 @@ suite("ConnectionConfig Tests", () => {
             const unknownId = "not-a-real-guid";
             stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, unknownId);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
@@ -932,7 +930,7 @@ suite("ConnectionConfig Tests", () => {
         test("prompt buttons include 'Select Connection' and 'Change Setting'", async () => {
             stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
@@ -950,7 +948,7 @@ suite("ConnectionConfig Tests", () => {
         test("does not prompt when behavior is not defaultConnection", async () => {
             stubRootConfig(Constants.NewEditorConnectionBehavior.TransferActive, "some-id");
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
@@ -970,7 +968,7 @@ suite("ConnectionConfig Tests", () => {
                 } as IConnectionProfile,
             ]);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
@@ -980,7 +978,7 @@ suite("ConnectionConfig Tests", () => {
         test("only shows the prompt once per session", async () => {
             stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
@@ -1006,12 +1004,11 @@ suite("ConnectionConfig Tests", () => {
             );
             showQuickPickStub.resolves({ profile: savedProfile } as any);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 50));
 
-            expect(mockVscodeWrapper.setConfiguration).to.have.been.calledWith(
-                Constants.extensionName,
+            expect(updateConfigurationStub).to.have.been.calledWith(
                 "defaultConnectionId",
                 savedProfile.id,
                 vscode.ConfigurationTarget.Global,
@@ -1028,12 +1025,11 @@ suite("ConnectionConfig Tests", () => {
                 value: Constants.NewEditorConnectionBehavior.TransferActive,
             } as any);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 50));
 
-            expect(mockVscodeWrapper.setConfiguration).to.have.been.calledWith(
-                Constants.extensionName,
+            expect(updateConfigurationStub).to.have.been.calledWith(
                 "newEditorConnectionBehavior",
                 Constants.NewEditorConnectionBehavior.TransferActive,
                 vscode.ConfigurationTarget.Global,
@@ -1050,12 +1046,11 @@ suite("ConnectionConfig Tests", () => {
                 value: Constants.NewEditorConnectionBehavior.None,
             } as any);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 50));
 
-            expect(mockVscodeWrapper.setConfiguration).to.have.been.calledWith(
-                Constants.extensionName,
+            expect(updateConfigurationStub).to.have.been.calledWith(
                 "newEditorConnectionBehavior",
                 Constants.NewEditorConnectionBehavior.None,
                 vscode.ConfigurationTarget.Global,
@@ -1066,18 +1061,16 @@ suite("ConnectionConfig Tests", () => {
             stubRootConfig(Constants.NewEditorConnectionBehavior.DefaultConnection, "");
             showWarningAdvancedStub.resolves(undefined);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            const connConfig = new ConnectionConfig();
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 50));
 
-            expect(mockVscodeWrapper.setConfiguration).to.not.have.been.calledWith(
-                Constants.extensionName,
+            expect(updateConfigurationStub).to.not.have.been.calledWith(
                 "defaultConnectionId",
                 sinon.match.any,
                 sinon.match.any,
             );
-            expect(mockVscodeWrapper.setConfiguration).to.not.have.been.calledWith(
-                Constants.extensionName,
+            expect(updateConfigurationStub).to.not.have.been.calledWith(
                 "newEditorConnectionBehavior",
                 sinon.match.any,
                 sinon.match.any,

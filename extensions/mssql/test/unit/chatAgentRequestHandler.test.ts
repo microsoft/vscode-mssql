@@ -182,12 +182,7 @@ suite("Chat Agent Request Handler Tests", () => {
     });
 
     function createHandler(): ReturnType<typeof createSqlAgentRequestHandler> {
-        return createSqlAgentRequestHandler(
-            mockCopilotService,
-            mockVscodeWrapper,
-            mockContext,
-            mockMainController,
-        );
+        return createSqlAgentRequestHandler(mockCopilotService, mockContext, mockMainController);
     }
 
     function getMarkdownMessages(): string[] {
@@ -601,7 +596,6 @@ suite("Chat Agent Request Handler Tests", () => {
     suite("provideFollowups Tests", () => {
         let followupsSandbox: sinon.SinonSandbox;
         let followupsMainController: sinon.SinonStubbedInstance<MainController>;
-        let followupsVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let followupsConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let followupsResult: ISqlChatResult;
         let followupsConnection: ConnectionInfo;
@@ -610,7 +604,6 @@ suite("Chat Agent Request Handler Tests", () => {
             followupsSandbox = sinon.createSandbox();
 
             followupsMainController = followupsSandbox.createStubInstance(MainController);
-            followupsVscodeWrapper = followupsSandbox.createStubInstance(VscodeWrapper);
             followupsConnectionManager = followupsSandbox.createStubInstance(ConnectionManager);
 
             followupsSandbox
@@ -638,7 +631,6 @@ suite("Chat Agent Request Handler Tests", () => {
                 {} as vscode.ChatContext,
                 {} as vscode.CancellationToken,
                 followupsMainController,
-                followupsVscodeWrapper,
             );
 
             expect(followups).to.be.an("array").that.is.empty;
@@ -653,7 +645,6 @@ suite("Chat Agent Request Handler Tests", () => {
                 {} as vscode.ChatContext,
                 {} as vscode.CancellationToken,
                 followupsMainController,
-                followupsVscodeWrapper,
             );
 
             expect(followups).to.have.lengthOf(1);
@@ -678,7 +669,6 @@ suite("Chat Agent Request Handler Tests", () => {
                 {} as vscode.ChatContext,
                 {} as vscode.CancellationToken,
                 followupsMainController,
-                followupsVscodeWrapper,
             );
 
             expect(followups).to.have.lengthOf(3);

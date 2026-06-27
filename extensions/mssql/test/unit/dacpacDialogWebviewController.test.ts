@@ -46,12 +46,10 @@ import {
     stubTelemetry,
     stubLogger,
     stubUserSurvey,
-    stubVscodeWrapper,
     stubMessageBoxes,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
 } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as utils from "../../src/utils/utils";
 import { DacFxResult } from "vscode-mssql";
 import { ListDatabasesRequest } from "../../src/models/contracts/connection";
@@ -63,7 +61,6 @@ chai.use(sinonChai);
 suite("DacpacDialogWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let dacFxServiceStub: sinon.SinonStubbedInstance<DacFxService>;
@@ -104,7 +101,6 @@ suite("DacpacDialogWebviewController", () => {
             extensionPath: "/tmp/ext",
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
         // Stub showInformationMessage to return a resolved Promise
         messageBoxes.showInformationMessage.resolves(undefined);
@@ -122,7 +118,6 @@ suite("DacpacDialogWebviewController", () => {
     function createController(): DacpacDialogWebviewController {
         controller = new DacpacDialogWebviewController(
             mockContext,
-            vscodeWrapperStub,
             connectionManagerStub,
             dacFxServiceStub,
             initialState,
@@ -135,7 +130,6 @@ suite("DacpacDialogWebviewController", () => {
     ): DacpacDialogWebviewController {
         controller = new DacpacDialogWebviewController(
             mockContext,
-            vscodeWrapperStub,
             connectionManagerStub,
             dacFxServiceStub,
             state,

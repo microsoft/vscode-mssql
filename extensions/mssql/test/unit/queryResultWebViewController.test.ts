@@ -9,17 +9,15 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import { QueryResultWebviewController } from "../../src/queryResult/queryResultWebViewController";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import { stubExtensionContext, stubVscodeWrapper, stubVscodeWorkspace } from "./utils";
+import { stubExtensionContext, stubVscodeWorkspace } from "./utils";
 
 chai.use(sinonChai);
 
 suite("QueryResultWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let executionPlanService: sinon.SinonStubbedInstance<ExecutionPlanService>;
     let sqlOutputContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
     let controller: QueryResultWebviewController;
@@ -37,7 +35,6 @@ suite("QueryResultWebviewController", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
         sqlOutputContentProvider = sandbox.createStubInstance(SqlOutputContentProvider);
 
@@ -82,13 +79,12 @@ suite("QueryResultWebviewController", () => {
             update: sandbox.stub().resolves(),
         };
 
-        vscodeWrapper.getConfiguration.callsFake(() => {
-            return configuration as unknown as vscode.WorkspaceConfiguration;
-        });
+        sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(configuration as unknown as vscode.WorkspaceConfiguration);
 
         controller = new QueryResultWebviewController(
             context,
-            vscodeWrapper,
             executionPlanService as unknown as ExecutionPlanService,
             sqlOutputContentProvider as unknown as SqlOutputContentProvider,
         );

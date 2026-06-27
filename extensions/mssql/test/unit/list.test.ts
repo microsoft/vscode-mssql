@@ -8,14 +8,12 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import ListPrompt from "../../src/prompts/list";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubVscodeWindow, stubVscodeWrapper } from "./utils";
+import { stubVscodeWindow } from "./utils";
 
 chai.use(sinonChai);
 
 suite("List Prompt Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
     const question = {
         choices: [
@@ -26,7 +24,6 @@ suite("List Prompt Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         vscodeWindow = stubVscodeWindow(sandbox);
         vscodeWindow.showQuickPick.resolves("test1");
     });
@@ -36,7 +33,7 @@ suite("List Prompt Tests", () => {
     });
 
     test("Test list prompt render", async () => {
-        const listPrompt = new ListPrompt(question, vscodeWrapper);
+        const listPrompt = new ListPrompt(question);
         await listPrompt.render();
 
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnceWithExactly(
@@ -47,9 +44,8 @@ suite("List Prompt Tests", () => {
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
     test.skip("Test list prompt render with error", async () => {
-        const errorWrapper = stubVscodeWrapper(sandbox);
         vscodeWindow.showQuickPick.resolves(undefined);
-        const errorPrompt = new ListPrompt(question, errorWrapper);
+        const errorPrompt = new ListPrompt(question);
         await errorPrompt.render();
         expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });

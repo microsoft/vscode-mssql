@@ -53,7 +53,6 @@ suite("MssqlProtocolHandler Tests", () => {
         sqlToolsServiceClientMock = stubGetCapabilitiesRequest(sandbox);
 
         mssqlProtocolHandler = new MssqlProtocolHandler(
-            mockVscodeWrapper,
             mockMainController,
             sqlToolsServiceClientMock,
         );

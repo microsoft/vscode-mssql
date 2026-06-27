@@ -9,7 +9,6 @@ import * as vscode from "vscode";
 import { TableExplorerWebViewController } from "../../src/tableExplorer/tableExplorerWebViewController";
 import { TableExplorerService } from "../../src/services/tableExplorerService";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import {
     EditSubsetResult,
@@ -26,13 +25,12 @@ import {
 } from "../../src/sharedInterfaces/tableExplorer";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocConstants from "../../src/constants/locConstants";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubTelemetry } from "./utils";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 
 suite("TableExplorerWebViewController - Reducers", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: VscodeWrapper;
     let mockTableExplorerService: sinon.SinonStubbedInstance<TableExplorerService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockTargetNode: TreeNodeInfo;
@@ -134,7 +132,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
         } as unknown as vscode.ExtensionContext;
 
         // Setup mock services
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockTableExplorerService = sandbox.createStubInstance(TableExplorerService);
         // Only define stubs that need specific return values
         mockTableExplorerService.subset.resolves(createMockSubsetResult());
@@ -171,7 +168,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
         // Create controller
         controller = new TableExplorerWebViewController(
             mockContext,
-            mockVscodeWrapper,
             mockTableExplorerService,
             mockConnectionManager,
             mockTargetNode,

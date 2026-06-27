@@ -132,7 +132,6 @@ suite("TableDesignerWebviewController tests", () => {
 
         controller = new TableDesignerWebviewController(
             mockContext,
-            mockVscodeWrapper,
             mockTableDesignerService,
             mockConnectionManager,
             mockSqlDocumentService,

@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import { ConnectionUI } from "../../src/views/connectionUI";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IPrompter } from "../../src/prompts/question";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -19,7 +18,7 @@ import { AccountStore } from "../../src/azure/accountStore";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { stubVscodeWindow, stubVscodeWrapper } from "./utils";
+import { stubVscodeWindow } from "./utils";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import * as LocConstants from "../../src/constants/locConstants";
 import { CREATE_NEW_GROUP_ID } from "../../src/sharedInterfaces/connectionGroup";
@@ -31,8 +30,6 @@ chai.use(sinonChai);
 suite("Connection UI tests", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionUI: ConnectionUI;
-
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let vscodeWindowStubs: ReturnType<typeof stubVscodeWindow>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
@@ -52,8 +49,6 @@ suite("Connection UI tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         vscodeWindowStubs = stubVscodeWindow(sandbox);
 
         quickPickShowStub = sandbox.stub();
@@ -96,12 +91,7 @@ suite("Connection UI tests", () => {
             promptCallback: sandbox.stub(),
         } as unknown as IPrompter;
 
-        connectionUI = new ConnectionUI(
-            connectionManagerStub,
-            accountStoreStub,
-            prompter,
-            vscodeWrapperStub,
-        );
+        connectionUI = new ConnectionUI(connectionManagerStub, accountStoreStub, prompter);
     });
 
     teardown(() => {

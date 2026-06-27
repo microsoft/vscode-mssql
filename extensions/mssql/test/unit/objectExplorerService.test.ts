@@ -12,7 +12,6 @@ import {
     ObjectExplorerService,
 } from "../../src/objectExplorer/objectExplorerService";
 import { expect } from "chai";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager, { SqlConnectionErrorType } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { ILogger } from "../../src/sharedInterfaces/logger";
@@ -73,7 +72,6 @@ chai.use(sinonChai);
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -83,7 +81,6 @@ suite("OE Service Tests", () => {
         setup(() => {
             initializeIconUtils();
             sandbox = sinon.createSandbox();
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -92,11 +89,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
 
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -202,7 +195,6 @@ suite("OE Service Tests", () => {
     });
 
     suite("expandNode", () => {
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let messageBoxes: ReturnType<typeof stubMessageBoxes>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
@@ -215,7 +207,6 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             messageBoxes = stubMessageBoxes(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -233,11 +224,7 @@ suite("OE Service Tests", () => {
                 startTime: 0,
                 update: sandbox.stub(),
             });
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -756,7 +743,6 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
         let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
         let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -772,7 +758,6 @@ suite("OE Service Tests", () => {
                 isHandled: false,
                 updatedCredentials: undefined,
             });
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             stubMessageBoxes(sandbox);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockFirewallService = sandbox.createStubInstance(FirewallService);
@@ -792,11 +777,7 @@ suite("OE Service Tests", () => {
             };
             mockLogger = stubLogger(sandbox);
 
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
             (objectExplorerService as any).connectionUI = mockConnectionUI;
@@ -990,7 +971,6 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
         let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let objectExplorerService: ObjectExplorerService;
@@ -1000,7 +980,6 @@ suite("OE Service Tests", () => {
             sandbox = sinon.createSandbox();
             mockLogger = stubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -1009,11 +988,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
 
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
         });
@@ -1196,16 +1171,11 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             const mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             stubLogger(sandbox);
             mockConnectionManager.client = mockClient;
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -1262,7 +1232,6 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
 
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -1282,11 +1251,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             };
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivity);
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -1946,7 +1911,6 @@ suite("OE Service Tests", () => {
 
     suite("getRootNodes test", () => {
         let sandbox: sinon.SinonSandbox;
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
@@ -1957,7 +1921,6 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -1974,11 +1937,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             });
             stubLogger(sandbox);
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
         });
 
         teardown(() => {
@@ -1991,11 +1950,7 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
             // recreate service to reset any cached nodes
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
 
             // Setup getAddConnectionNodes to return a mock nodes
             const mockAddConnectionNodes = [
@@ -2249,8 +2204,6 @@ suite("OE Service Tests", () => {
         let objectExplorerService: ObjectExplorerService;
 
         let sandbox: sinon.SinonSandbox;
-
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let messageBoxes: ReturnType<typeof stubMessageBoxes>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
@@ -2271,7 +2224,6 @@ suite("OE Service Tests", () => {
             initializeIconUtils();
             sandbox = sinon.createSandbox();
             // Create stubs for dependencies
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             messageBoxes = stubMessageBoxes(sandbox);
             messageBoxes.showErrorMessage.resolves();
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -2320,7 +2272,6 @@ suite("OE Service Tests", () => {
             mockLogger.error = sandbox.stub();
 
             objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
                 mockConnectionManager,
                 mockRefreshCallback,
             );
@@ -2511,7 +2462,6 @@ suite("OE Service Tests", () => {
         () => {
             let sandbox: sinon.SinonSandbox;
             let objectExplorerService: ObjectExplorerService;
-            let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
             let messageBoxes: ReturnType<typeof stubMessageBoxes>;
             let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
             let signInStub: sinon.SinonStub;
@@ -2520,8 +2470,6 @@ suite("OE Service Tests", () => {
             setup(() => {
                 initializeIconUtils();
                 sandbox = sinon.createSandbox();
-
-                mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
                 messageBoxes = stubMessageBoxes(sandbox);
                 mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
                 mockConnectionManager.connectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -2545,11 +2493,7 @@ suite("OE Service Tests", () => {
                 // Stub vscode.commands.executeCommand for the "Edit Connection Profile" path
                 executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
 
-                objectExplorerService = new ObjectExplorerService(
-                    mockVscodeWrapper,
-                    mockConnectionManager,
-                    () => {},
-                );
+                objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
                 objectExplorerService.initialized.resolve();
             });
 

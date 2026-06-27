@@ -20,7 +20,6 @@ import {
     CancelCopy2Notification,
     CopyType,
 } from "../../src/models/contracts/queryExecute";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
@@ -28,7 +27,7 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { stubVscodeWrapper, stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -48,12 +47,12 @@ suite("Query Runner tests", () => {
     let sandbox: sinon.SinonSandbox;
     let testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
-    let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let clipboardWriteTextStub: sinon.SinonStub;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
     let showTextDocumentStub: sinon.SinonStub;
+    let getConfigurationStub: sinon.SinonStub;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -65,7 +64,6 @@ suite("Query Runner tests", () => {
             testStatusView,
             testSqlToolsServerClient,
             testQueryNotificationHandler,
-            testVscodeWrapper,
         );
     }
 
@@ -73,7 +71,6 @@ suite("Query Runner tests", () => {
         sandbox = sinon.createSandbox();
         testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
-        testVscodeWrapper = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
         vscodeWorkspace = stubVscodeWorkspace(sandbox);
         showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
@@ -84,9 +81,9 @@ suite("Query Runner tests", () => {
         messageBoxes.showInformationMessage.returns(undefined);
         vscodeWorkspace.openTextDocument.resolves({} as vscode.TextDocument);
         showTextDocumentStub.resolves({} as vscode.TextEditor);
-        (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
-            stubs.createWorkspaceConfiguration({}),
-        );
+        getConfigurationStub = sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(stubs.createWorkspaceConfiguration({}));
 
         clipboardWriteTextStub = sandbox.stub().resolves();
         sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
@@ -862,7 +859,7 @@ suite("Query Runner tests", () => {
             const configResult: { [key: string]: any } = {};
             configResult[Constants.configSaveAsCsv] = csvConfig;
             const config = stubs.createWorkspaceConfiguration(configResult);
-            (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
+            getConfigurationStub.returns(config);
 
             testSqlToolsServerClient.sendRequest
                 .withArgs(CopyResults2Request.type, sinon.match.object)
@@ -1053,7 +1050,7 @@ suite("Query Runner tests", () => {
 
     function setupWorkspaceConfig(configResult: { [key: string]: any }): void {
         let config = stubs.createWorkspaceConfiguration(configResult);
-        (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
+        getConfigurationStub.returns(config);
     }
 });
 

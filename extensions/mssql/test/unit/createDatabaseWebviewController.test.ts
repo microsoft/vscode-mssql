@@ -9,12 +9,10 @@ import { expect } from "chai";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { CreateDatabaseWebviewController } from "../../src/controllers/createDatabaseWebviewController";
 import { ObjectManagementService } from "../../src/services/objectManagementService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     stubTelemetry,
     stubLogger,
     stubMessageBoxes,
-    stubVscodeWrapper,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
 } from "./utils";
@@ -28,7 +26,6 @@ import * as utils from "../../src/utils/utils";
 suite("CreateDatabaseWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let objectManagementServiceStub: sinon.SinonStubbedInstance<ObjectManagementService>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,8 +55,6 @@ suite("CreateDatabaseWebviewController Tests", () => {
             extensionPath: "/tmp/ext",
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
         objectManagementServiceStub = sandbox.createStubInstance(ObjectManagementService);
 
@@ -76,7 +71,6 @@ suite("CreateDatabaseWebviewController Tests", () => {
     function createController(): CreateDatabaseWebviewController {
         controller = new CreateDatabaseWebviewController(
             mockContext,
-            vscodeWrapperStub,
             objectManagementServiceStub,
             connectionUri,
             serverName,

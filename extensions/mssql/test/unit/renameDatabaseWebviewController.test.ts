@@ -9,11 +9,9 @@ import { expect } from "chai";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { RenameDatabaseWebviewController } from "../../src/controllers/renameDatabaseWebviewController";
 import { ObjectManagementService } from "../../src/services/objectManagementService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     stubTelemetry,
     stubLogger,
-    stubVscodeWrapper,
     stubMessageBoxes,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
@@ -28,7 +26,6 @@ import * as utils from "../../src/utils/utils";
 suite("RenameDatabaseWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let objectManagementServiceStub: sinon.SinonStubbedInstance<ObjectManagementService>;
     let requestHandlers: Map<string, (params: unknown) => Promise<unknown>>;
@@ -63,8 +60,6 @@ suite("RenameDatabaseWebviewController Tests", () => {
             extensionPath: "/tmp/ext",
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
         objectManagementServiceStub = sandbox.createStubInstance(ObjectManagementService);
         initializeViewCalled = new Promise<void>((resolve) => {
@@ -85,7 +80,6 @@ suite("RenameDatabaseWebviewController Tests", () => {
     function createController(): RenameDatabaseWebviewController {
         return new RenameDatabaseWebviewController(
             mockContext,
-            vscodeWrapperStub,
             objectManagementServiceStub,
             connectionUri,
             serverName,
