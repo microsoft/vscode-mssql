@@ -128,34 +128,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * An event that is emitted when a [text document](#TextDocument) is disposed.
-     */
-    public get onDidCloseTextDocument(): vscode.Event<vscode.TextDocument> {
-        return vscode.workspace.onDidCloseTextDocument;
-    }
-
-    /**
-     * An event that is emitted when a [text document](#TextDocument) is opened.
-     */
-    public get onDidOpenTextDocument(): vscode.Event<vscode.TextDocument> {
-        return vscode.workspace.onDidOpenTextDocument;
-    }
-
-    /**
-     * An event that is emitted when a [text document](#TextDocument) is saved to disk.
-     */
-    public get onDidSaveTextDocument(): vscode.Event<vscode.TextDocument> {
-        return vscode.workspace.onDidSaveTextDocument;
-    }
-
-    /**
-     * An event that is emitted when a [text document change](#TextDocumentChange) is detected.
-     */
-    public get onDidChangeTextDocument(): vscode.Event<vscode.TextDocumentChangeEvent> {
-        return vscode.workspace.onDidChangeTextDocument;
-    }
-
-    /**
      * Opens the denoted document from disk. Will return early if the
      * document is already open, otherwise the document is loaded and the
      * [open document](#workspace.onDidOpenTextDocument)-event fires.
@@ -232,16 +204,6 @@ export default class VscodeWrapper {
         options?: vscode.QuickPickOptions,
     ): Thenable<T | undefined> {
         return vscode.window.showQuickPick<T>(items, options);
-    }
-
-    /**
-     * Shows a file save dialog to the user which allows to select a file for saving-purposes.
-     *
-     * @param options Configures the behavior of the save dialog
-     * @return A promise that resolves to the selected resource or `undefined`.
-     */
-    public showSaveDialog(options: vscode.SaveDialogOptions): Thenable<vscode.Uri | undefined> {
-        return vscode.window.showSaveDialog(options);
     }
 
     /**

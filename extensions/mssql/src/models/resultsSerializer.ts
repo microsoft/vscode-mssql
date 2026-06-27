@@ -68,7 +68,7 @@ export default class ResultsSerializer {
             defaultUri: defaultUri,
             filters: fileTypeFilter,
         };
-        return this._vscodeWrapper.showSaveDialog(options).then((uri) => {
+        return vscode.window.showSaveDialog(options).then((uri) => {
             if (!uri) {
                 return undefined;
             }

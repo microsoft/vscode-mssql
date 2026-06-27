@@ -64,6 +64,50 @@ export function stubMessageBoxes(sandbox: sinon.SinonSandbox): {
     };
 }
 
+/**
+ * Stubs common `vscode.window` functions and returns the created stubs so tests
+ * can configure return values and assert on calls.
+ */
+export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
+    showErrorMessage: sinon.SinonStub;
+    showInformationMessage: sinon.SinonStub;
+    showWarningMessage: sinon.SinonStub;
+    showSaveDialog: sinon.SinonStub;
+} {
+    return {
+        ...stubMessageBoxes(sandbox),
+        showSaveDialog: sandbox.stub(vscode.window, "showSaveDialog"),
+    };
+}
+
+/**
+ * Stubs common `vscode.workspace` event functions and returns the created stubs
+ * so tests can configure handlers and assert on subscriptions.
+ */
+export function stubVscodeWorkspace(sandbox: sinon.SinonSandbox): {
+    onDidCloseTextDocument: sinon.SinonStub;
+    onDidOpenTextDocument: sinon.SinonStub;
+    onDidSaveTextDocument: sinon.SinonStub;
+    onDidChangeTextDocument: sinon.SinonStub;
+} {
+    const disposable = new vscode.Disposable(() => undefined);
+
+    return {
+        onDidCloseTextDocument: sandbox
+            .stub(vscode.workspace, "onDidCloseTextDocument")
+            .returns(disposable),
+        onDidOpenTextDocument: sandbox
+            .stub(vscode.workspace, "onDidOpenTextDocument")
+            .returns(disposable),
+        onDidSaveTextDocument: sandbox
+            .stub(vscode.workspace, "onDidSaveTextDocument")
+            .returns(disposable),
+        onDidChangeTextDocument: sandbox
+            .stub(vscode.workspace, "onDidChangeTextDocument")
+            .returns(disposable),
+    };
+}
+
 export function stubGetCapabilitiesRequest(
     sandbox?: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<SqlToolsServerClient> {
