@@ -56,7 +56,7 @@ function stageFiles(files) {
         return;
     }
 
-    execFileSync("git", ["add", "--", ...files], { stdio: "inherit" });
+    execFileSync("git", ["add", "--renormalize", "--", ...files], { stdio: "inherit" });
 }
 
 function main() {
