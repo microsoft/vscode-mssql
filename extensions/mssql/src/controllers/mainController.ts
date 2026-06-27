@@ -804,7 +804,7 @@ export default class MainController implements vscode.Disposable {
             });
 
             // Add handlers for VS Code generated commands
-            this._vscodeWrapper.onDidChangeConfiguration((params) =>
+            vscode.workspace.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
             );
 

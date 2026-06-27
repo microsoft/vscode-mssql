@@ -89,6 +89,7 @@ export function stubVscodeWorkspace(sandbox: sinon.SinonSandbox): {
     onDidOpenTextDocument: sinon.SinonStub;
     onDidSaveTextDocument: sinon.SinonStub;
     onDidChangeTextDocument: sinon.SinonStub;
+    onDidChangeConfiguration: sinon.SinonStub;
 } {
     const disposable = new vscode.Disposable(() => undefined);
 
@@ -104,6 +105,9 @@ export function stubVscodeWorkspace(sandbox: sinon.SinonSandbox): {
             .returns(disposable),
         onDidChangeTextDocument: sandbox
             .stub(vscode.workspace, "onDidChangeTextDocument")
+            .returns(disposable),
+        onDidChangeConfiguration: sandbox
+            .stub(vscode.workspace, "onDidChangeConfiguration")
             .returns(disposable),
     };
 }

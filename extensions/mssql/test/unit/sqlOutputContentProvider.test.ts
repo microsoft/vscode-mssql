@@ -64,8 +64,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox.stub(vscode.window, "registerWebviewViewProvider").returns(disposable);
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
 
-        sandbox.stub(vscodeWrapper, "onDidChangeConfiguration").get(() => () => disposable);
-
         contentProvider = new SqlOutputContentProvider(
             context,
             statusViewInstance,

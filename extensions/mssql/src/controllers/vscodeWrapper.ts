@@ -236,13 +236,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Called when workspace settings are changed
-     */
-    public get onDidChangeConfiguration(): vscode.Event<vscode.ConfigurationChangeEvent> {
-        return vscode.workspace.onDidChangeConfiguration;
-    }
-
-    /**
      * Change a configuration setting
      */
     public setConfiguration(

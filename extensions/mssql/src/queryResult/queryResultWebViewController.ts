@@ -92,7 +92,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         );
 
         context.subscriptions.push(
-            this.vscodeWrapper.onDidChangeConfiguration((e) => {
+            vscode.workspace.onDidChangeConfiguration((e) => {
                 let stateChanged = false;
                 if (e.affectsConfiguration("mssql.resultsFontFamily")) {
                     const newValue = this.getFontFamilyConfig();
