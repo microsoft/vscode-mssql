@@ -5,13 +5,12 @@ import * as vscode from "vscode";
 import Prompt from "./prompt";
 import EscapeException from "../utils/escapeException";
 import { INameValueChoice } from "./question";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 
 import * as figures from "figures";
 
 export default class ExpandPrompt extends Prompt {
-    constructor(question: any, vscodeWrapper: VscodeWrapper, ignoreFocusOut?: boolean) {
-        super(question, vscodeWrapper, ignoreFocusOut);
+    constructor(question: any, ignoreFocusOut?: boolean) {
+        super(question, ignoreFocusOut);
     }
 
     public render(): any {

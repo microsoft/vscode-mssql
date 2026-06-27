@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
 import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -26,12 +25,12 @@ import { getLogger } from "../models/logger";
 export const MAX_VIEW_COLUMN = 9;
 const logger = getLogger("QueryResult");
 
-export function getNewResultPaneViewColumn(
-    uri: string,
-    vscodeWrapper: VscodeWrapper,
-): vscode.ViewColumn {
+export function getNewResultPaneViewColumn(uri: string): vscode.ViewColumn {
     // // Find configuration options
-    let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, uri);
+    let config = vscode.workspace.getConfiguration(
+        Constants.extensionConfigSectionName,
+        vscode.Uri.parse(uri),
+    );
     let splitPaneSelection = config[Constants.configSplitPaneSelection];
 
     switch (splitPaneSelection) {
@@ -351,7 +350,6 @@ export function registerCommonRequestHandlers(
             }
             openExecutionPlanWebview(
                 webviewViewController.getContext(),
-                webviewViewController.getVsCodeWrapper(),
                 webviewViewController.executionPlanService,
                 webviewViewController.sqlDocumentService,
                 payload.content,

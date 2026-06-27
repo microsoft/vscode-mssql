@@ -6,19 +6,17 @@ import * as nodeUtil from "util";
 import PromptFactory from "./factory";
 import EscapeException from "../utils/escapeException";
 import { IQuestion, IPrompter, IPromptCallback } from "./question";
-import VscodeWrapper from "../controllers/vscodeWrapper";
+import { getLogger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 
 // Supports simple pattern for prompting for user input and acting on this
 export default class CodeAdapter implements IPrompter {
-    private outChannel: vscode.OutputChannel;
     private messageLevelFormatters = {};
-    constructor(private vscodeWrapper: VscodeWrapper) {
-        this.outChannel = this.vscodeWrapper.outputChannel;
-    }
+    private logger: ILogger = getLogger("CodeAdapter");
 
     public logError(message: any): void {
         let line = `error: ${message.message}\n    Code - ${message.code}`;
-        this.outChannel.appendLine(line);
+        this.logger.error(line);
     }
 
     private formatMessage(message: any): string {
@@ -38,15 +36,11 @@ export default class CodeAdapter implements IPrompter {
             line = nodeUtil.format(arguments);
         }
 
-        this.outChannel.appendLine(line);
-    }
-
-    public clearLog(): void {
-        this.outChannel.clear();
+        this.logger.info(line);
     }
 
     public showLog(): void {
-        this.outChannel.show();
+        this.logger.show();
     }
 
     // TODO define question interface
@@ -87,11 +81,7 @@ export default class CodeAdapter implements IPrompter {
 
                 return promise
                     .then(() => {
-                        return PromptFactory.createPrompt(
-                            question,
-                            this.vscodeWrapper,
-                            ignoreFocusOut,
-                        );
+                        return PromptFactory.createPrompt(question, ignoreFocusOut);
                     })
                     .then((prompt) => {
                         // Original Code: uses jQuery patterns. Keeping for reference
