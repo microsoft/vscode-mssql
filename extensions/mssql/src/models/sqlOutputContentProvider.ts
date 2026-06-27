@@ -10,7 +10,6 @@ import * as Interfaces from "./interfaces";
 import QueryRunner from "../controllers/queryRunner";
 import ResultsSerializer from "./resultsSerializer";
 import StatusView from "../views/statusView";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
@@ -63,13 +62,8 @@ export class SqlOutputContentProvider {
     constructor(
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
-        private _vscodeWrapper: VscodeWrapper,
         private _executionPlanService: ExecutionPlanService,
     ) {
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-
         /**
          * TODO: aaskhan
          * Remove query results management code from queryResultwebviewController so
@@ -77,7 +71,6 @@ export class SqlOutputContentProvider {
          */
         this._queryResultWebviewController = new QueryResultWebviewController(
             this._context,
-            this._vscodeWrapper,
             this._executionPlanService,
             this,
         );
@@ -190,9 +183,9 @@ export class SqlOutputContentProvider {
 
     public configRequestHandler(uri: string): Promise<Interfaces.IResultsConfig> {
         let queryUri = this._queryResultsMap.get(uri).queryRunner.uri;
-        let extConfig = this._vscodeWrapper.getConfiguration(
+        let extConfig = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            queryUri,
+            vscode.Uri.parse(queryUri),
         );
         let config = new ResultsConfig();
         for (let key in Constants.extConfigResultKeys) {
@@ -1030,9 +1023,9 @@ export class SqlOutputContentProvider {
      */
     public newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
         // Find configuration options
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            queryUri,
+            vscode.Uri.parse(queryUri),
         );
         let splitPaneSelection = config[Constants.configSplitPaneSelection];
         let viewColumn: vscode.ViewColumn;
@@ -1054,10 +1047,6 @@ export class SqlOutputContentProvider {
         }
 
         return viewColumn;
-    }
-
-    set setVscodeWrapper(wrapper: VscodeWrapper) {
-        this._vscodeWrapper = wrapper;
     }
 
     get getResultsMap(): Map<string, QueryRunnerState> {

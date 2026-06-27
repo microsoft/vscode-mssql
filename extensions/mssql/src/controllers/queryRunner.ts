@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
-import VscodeWrapper from "./vscodeWrapper";
+import * as Utils from "../models/utils";
 import {
     BatchSummary,
     QueryExecuteParams,
@@ -51,7 +51,6 @@ import {
 } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import * as Utils from "../models/utils";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
@@ -171,7 +170,6 @@ export default class QueryRunner {
         private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
-        private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -179,10 +177,6 @@ export default class QueryRunner {
 
         if (!_notificationHandler) {
             this._notificationHandler = QueryNotificationHandler.instance;
-        }
-
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
         }
 
         // Store the state
@@ -952,7 +946,7 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
     ): Promise<void> {
-        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
         const csvConfig = config[Constants.configSaveAsCsv] || {};
 
         const delimiter = csvConfig.delimiter || ",";
@@ -1217,9 +1211,9 @@ export default class QueryRunner {
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this.uri,
+            vscode.Uri.parse(this.uri),
         );
         let showBatchTime: boolean = config.get(Constants.configShowBatchTime);
         if (showBatchTime) {
