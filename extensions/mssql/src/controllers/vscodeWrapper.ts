@@ -32,15 +32,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * An [event](#Event) which fires when the [active editor](#window.activeTextEditor)
-     * has changed. *Note* that the event also fires when the active editor changes
-     * to `undefined`.
-     */
-    public get onDidChangeActiveTextEditor(): vscode.Event<vscode.TextEditor | undefined> {
-        return vscode.window.onDidChangeActiveTextEditor;
-    }
-
-    /**
      * get the current textDocument; any that are open?
      */
     public get textDocuments(): ReadonlyArray<vscode.TextDocument> {
