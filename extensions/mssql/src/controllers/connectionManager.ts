@@ -34,7 +34,12 @@ import {
 import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
-import { AuthenticationTypes, EncryptOptions, IConnectionProfile } from "../models/interfaces";
+import {
+    AuthenticationTypes,
+    EncryptOptions,
+    IConnectionGroup,
+    IConnectionProfile,
+} from "../models/interfaces";
 import { PlatformInformation } from "../models/platform";
 import * as Utils from "../models/utils";
 import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
@@ -254,7 +259,7 @@ export default class ConnectionManager {
 
     private async initialize(): Promise<void> {
         await this.connectionStore.initialized;
-        await this.migrateLegacyConnectionProfiles();
+        await this.performConnectionStartupChecks();
 
         this.initialized.resolve();
     }
@@ -2124,39 +2129,65 @@ export default class ConnectionManager {
         );
     }
 
-    private async migrateLegacyConnectionProfiles(): Promise<void> {
-        this._logger.debug("Beginning migration of legacy connections");
+    /**
+     * Perform startup checks for connections:
+     * - migrates legacy connection strings
+     * - emits basic connection stats
+     */
+    private async performConnectionStartupChecks(): Promise<void> {
+        this._logger.trace("Beginning connection startup checks");
 
         const connections: IConnectionProfile[] =
             await this.connectionStore.readAllConnections(false);
-        const tally = {
+        const connectionGroups: IConnectionGroup[] =
+            await this.connectionStore.readAllConnectionGroups();
+
+        const migrationTally = {
             migrated: 0,
             notNeeded: 0,
             error: 0,
         };
 
+        const orderingTally = {
+            orderedConnections: 0,
+            orderedGroups: 0,
+        };
+
         for (const connection of connections) {
             const result = await this.migrateLegacyConnection(connection);
 
-            tally[result] = (tally[result] || 0) + 1;
+            migrationTally[result] = (migrationTally[result] || 0) + 1;
+
+            if (connection.order !== undefined) {
+                orderingTally.orderedConnections++;
+            }
         }
 
-        if (tally.migrated > 0) {
-            this._logger.debug(
-                `Completed migration of legacy Connection String connections. (${tally.migrated} migrated, ${tally.notNeeded} not needed, ${tally.error} errored)`,
+        for (const group of connectionGroups) {
+            if (group.order !== undefined) {
+                orderingTally.orderedGroups++;
+            }
+        }
+
+        if (migrationTally.migrated > 0) {
+            this._logger.info(
+                `Completed migration of legacy Connection String connections. (${migrationTally.migrated} migrated, ${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
             );
         } else {
-            this._logger.debug(
-                `No legacy Connection String connections found to migrate. (${tally.notNeeded} not needed, ${tally.error} errored)`,
+            this._logger.info(
+                `No legacy Connection String connections found to migrate. (${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
             );
         }
 
         sendActionEvent(
-            TelemetryViews.General,
-            TelemetryActions.MigrateLegacyConnections,
+            TelemetryViews.Connection,
+            TelemetryActions.Stats,
             {}, // properties
             {
-                ...tally,
+                connectionCount: connections.length,
+                connectionGroupCount: connectionGroups.length,
+                ...migrationTally,
+                ...orderingTally,
             },
         );
     }
