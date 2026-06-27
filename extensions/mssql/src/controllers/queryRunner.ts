@@ -386,9 +386,9 @@ export default class QueryRunner {
         );
         let queryString: string;
         if (selection) {
-            let range = this._vscodeWrapper.range(
-                this._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                this._vscodeWrapper.position(selection.endLine, selection.endColumn),
+            let range = new vscode.Range(
+                new vscode.Position(selection.startLine, selection.startColumn),
+                new vscode.Position(selection.endLine, selection.endColumn),
             );
             queryString = doc.getText(range);
         } else {

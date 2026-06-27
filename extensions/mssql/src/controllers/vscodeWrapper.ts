@@ -148,33 +148,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Create a vscode.Range object
-     * @param start The start position for the range
-     * @param end The end position for the range
-     */
-    public range(start: vscode.Position, end: vscode.Position): vscode.Range {
-        return new vscode.Range(start, end);
-    }
-
-    /**
-     * Create a vscode.Position object
-     * @param line The line for the position
-     * @param column The column for the position
-     */
-    public position(line: number, column: number): vscode.Position {
-        return new vscode.Position(line, column);
-    }
-
-    /**
-     * Create a vscode.Selection object
-     * @param start The start postion of the selection
-     * @param end The end position of the selection
-     */
-    public selection(start: vscode.Position, end: vscode.Position): vscode.Selection {
-        return new vscode.Selection(start, end);
-    }
-
-    /**
      * Shows an input box with given options
      */
     public showInputBox(options?: vscode.InputBoxOptions): Thenable<string | undefined> {
