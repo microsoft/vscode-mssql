@@ -32,6 +32,13 @@ suite("save results tests", () => {
         sandbox = sinon.createSandbox();
         serverClient = sandbox.createStubInstance(SqlToolsServerClient);
         vscodeWrapper = stubVscodeWrapper(sandbox);
+        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(undefined);
+        (vscodeWrapper.openTextDocument as sinon.SinonStub).resolves(
+            undefined as unknown as vscode.TextDocument,
+        );
+        (vscodeWrapper.showTextDocument as sinon.SinonStub).resolves(
+            undefined as unknown as vscode.TextEditor,
+        );
         (vscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(
             (extensionName: string, resource?: vscode.ConfigurationScope) => {
                 return vscode.workspace.getConfiguration(extensionName, resource);
@@ -278,6 +285,7 @@ suite("save results tests", () => {
     test("CSV configuration options are properly applied", (done) => {
         const customWrapper = stubVscodeWrapper(sandbox);
         (customWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
+        (customWrapper.showInformationMessage as sinon.SinonStub).resolves(undefined);
         (customWrapper.openTextDocument as sinon.SinonStub).resolves(
             undefined as unknown as vscode.TextDocument,
         );
@@ -285,6 +293,7 @@ suite("save results tests", () => {
             undefined as unknown as vscode.TextEditor,
         );
         (customWrapper.getConfiguration as sinon.SinonStub).returns({
+            get: sandbox.stub().returns(false),
             saveAsCsv: {
                 delimiter: "\t",
                 encoding: "utf-16le",
