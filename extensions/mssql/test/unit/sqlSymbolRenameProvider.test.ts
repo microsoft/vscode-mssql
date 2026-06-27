@@ -552,11 +552,13 @@ suite("SqlMoveToSchemaProvider Tests", () => {
     let sendRequestStub: sinon.SinonStub;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
+    let showQuickPickStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         vscodeWrapper = makeVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
+        showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
         provider = new SqlMoveToSchemaProvider(vscodeWrapper as unknown as VscodeWrapper);
         findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
         sendRequestStub = sandbox
@@ -629,7 +631,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             sendRequestStub
                 .withArgs(ListProjectSchemasRequest.type)
                 .resolves({ schemas: ["dbo", "hr"] });
-            vscodeWrapper.showQuickPick.resolves(undefined);
+            showQuickPickStub.resolves(undefined);
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
             await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
             expect(sendRequestStub).to.not.have.been.calledWith(
@@ -651,7 +653,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
 
             setup(() => {
                 findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
-                vscodeWrapper.showQuickPick.resolves({ label: "hr" });
+                showQuickPickStub.resolves({ label: "hr" });
                 openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
                 openTextDocumentStub.callsFake((_uri: vscode.Uri) => {
                     const content = "<Project>\n</Project>";

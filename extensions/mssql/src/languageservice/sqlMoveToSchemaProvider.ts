@@ -36,7 +36,7 @@ import {
 export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     public static readonly providedCodeActionKinds = [vscode.CodeActionKind.Refactor];
 
-    constructor(private readonly vscodeWrapper: VscodeWrapper) {}
+    constructor(_vscodeWrapper: VscodeWrapper) {}
 
     /**
      * Registers the provider and its backing command. Returns disposables for the caller to track.
@@ -130,7 +130,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
 
         // Show QuickPick with schema dropdown
         const items = schemas.map((s) => ({ label: s }));
-        const selected = await this.vscodeWrapper.showQuickPick(items, {
+        const selected = await vscode.window.showQuickPick(items, {
             placeHolder: loc.selectTargetSchemaPlaceholder(currentSchema),
             canPickMany: false,
         });

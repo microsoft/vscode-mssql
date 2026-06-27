@@ -9,14 +9,17 @@ import { expect } from "chai";
 import * as chai from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import InputPrompt from "../../src/prompts/input";
+import { stubVscodeWindow } from "./utils";
 
 chai.use(sinonChai);
 
 suite("Input Prompt Tests", () => {
     let sandbox: sinon.SinonSandbox;
+    let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        vscodeWindow = stubVscodeWindow(sandbox);
     });
 
     teardown(() => {
@@ -25,7 +28,7 @@ suite("Input Prompt Tests", () => {
 
     test("Test list prompt render simple question", async () => {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showInputBox.resolves("test");
+        vscodeWindow.showInputBox.resolves("test");
         const question = {
             message: "test",
             placeHolder: "test",
@@ -35,7 +38,7 @@ suite("Input Prompt Tests", () => {
 
         await listPrompt.render();
 
-        expect(vscodeWrapper.showInputBox).to.have.been.calledOnce;
+        expect(vscodeWindow.showInputBox).to.have.been.calledOnce;
     });
 
     test.skip("Test prompt an error question should throw", async () => {
@@ -44,12 +47,12 @@ suite("Input Prompt Tests", () => {
             default: new Error("test"),
             placeHolder: undefined,
         };
-        vscodeWrapper.showInputBox.resolves(undefined);
+        vscodeWindow.showInputBox.resolves(undefined);
         const listPrompt = new InputPrompt(errorQuestion, vscodeWrapper);
 
         await listPrompt.render();
 
-        expect(vscodeWrapper.showInputBox).to.have.been.calledOnce;
+        expect(vscodeWindow.showInputBox).to.have.been.calledOnce;
     });
 
     test("Test prompt question with default message", async () => {
@@ -57,18 +60,18 @@ suite("Input Prompt Tests", () => {
         const defaultQuestion = {
             default: "test_default",
         };
-        vscodeWrapper.showInputBox.resolves("");
+        vscodeWindow.showInputBox.resolves("");
         const listPrompt = new InputPrompt(defaultQuestion, vscodeWrapper);
 
         await listPrompt.render();
 
-        expect(vscodeWrapper.showInputBox).to.have.been.calledOnce;
+        expect(vscodeWindow.showInputBox).to.have.been.calledOnce;
     });
 
     test("Test prompt question with validation error", async () => {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showInputBox.onFirstCall().resolves("");
-        vscodeWrapper.showInputBox.onSecondCall().resolves("valid");
+        vscodeWindow.showInputBox.onFirstCall().resolves("");
+        vscodeWindow.showInputBox.onSecondCall().resolves("valid");
         let attempts = 0;
         const validationQuestion = {
             default: "test",
@@ -81,6 +84,6 @@ suite("Input Prompt Tests", () => {
 
         await listPrompt.render();
 
-        expect(vscodeWrapper.showInputBox).to.have.been.calledTwice;
+        expect(vscodeWindow.showInputBox).to.have.been.calledTwice;
     });
 });

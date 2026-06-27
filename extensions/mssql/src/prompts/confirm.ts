@@ -5,6 +5,7 @@ import Prompt from "./prompt";
 import * as LocalizedConstants from "../constants/locConstants";
 import EscapeException from "../utils/escapeException";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import * as vscode from "vscode";
 
 export default class ConfirmPrompt extends Prompt {
     constructor(question: any, vscodeWrapper: VscodeWrapper, ignoreFocusOut?: boolean) {
@@ -19,14 +20,12 @@ export default class ConfirmPrompt extends Prompt {
         let options = this.defaultQuickPickOptions;
         options.placeHolder = this._question.message;
 
-        return this._vscodeWrapper
-            .showQuickPickStrings(Object.keys(choices), options)
-            .then((result) => {
-                if (result === undefined) {
-                    throw new EscapeException();
-                }
+        return vscode.window.showQuickPick(Object.keys(choices), options).then((result) => {
+            if (result === undefined) {
+                throw new EscapeException();
+            }
 
-                return choices[result] || false;
-            });
+            return choices[result] || false;
+        });
     }
 }

@@ -25,6 +25,7 @@ suite("ConnectionConfig Tests", () => {
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let showWarningStub: sinon.SinonStub;
+    let showQuickPickStub: sinon.SinonStub;
     let workspaceConfiguration: vscode.WorkspaceConfiguration;
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -39,6 +40,7 @@ suite("ConnectionConfig Tests", () => {
         mockWorkspaceConfigData = new Map();
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
+        showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
 
         const mockConfiguration = {
             inspect: (setting: string) => {
@@ -1002,7 +1004,7 @@ suite("ConnectionConfig Tests", () => {
             showWarningAdvancedStub.resolves(
                 LocalizedConstants.Connection.defaultConnectionSelectConnection,
             );
-            mockVscodeWrapper.showQuickPick.resolves({ profile: savedProfile } as any);
+            showQuickPickStub.resolves({ profile: savedProfile } as any);
 
             const connConfig = new ConnectionConfig(mockVscodeWrapper);
             await connConfig.initialized;
@@ -1022,7 +1024,7 @@ suite("ConnectionConfig Tests", () => {
             showWarningAdvancedStub.resolves(
                 LocalizedConstants.Connection.defaultConnectionChangeSetting,
             );
-            mockVscodeWrapper.showQuickPick.resolves({
+            showQuickPickStub.resolves({
                 value: Constants.NewEditorConnectionBehavior.TransferActive,
             } as any);
 
@@ -1044,7 +1046,7 @@ suite("ConnectionConfig Tests", () => {
             showWarningAdvancedStub.resolves(
                 LocalizedConstants.Connection.defaultConnectionChangeSetting,
             );
-            mockVscodeWrapper.showQuickPick.resolves({
+            showQuickPickStub.resolves({
                 value: Constants.NewEditorConnectionBehavior.None,
             } as any);
 

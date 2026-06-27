@@ -126,7 +126,7 @@ export class ConnectionConfig implements IConnectionConfig {
             profile,
         }));
 
-        const selected = await this._vscodeWrapper.showQuickPick<ConnectionQuickPickItem>(items, {
+        const selected = await vscode.window.showQuickPick<ConnectionQuickPickItem>(items, {
             placeHolder: LocalizedConstants.Connection.defaultConnectionSelectConnectionPlaceholder,
         });
 
@@ -157,7 +157,7 @@ export class ConnectionConfig implements IConnectionConfig {
             },
         ];
 
-        const selected = await this._vscodeWrapper.showQuickPick<BehaviorQuickPickItem>(items, {
+        const selected = await vscode.window.showQuickPick<BehaviorQuickPickItem>(items, {
             placeHolder: LocalizedConstants.Connection.defaultConnectionChangeSettingPlaceholder,
         });
 

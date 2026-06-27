@@ -147,36 +147,8 @@ export default class VscodeWrapper {
         return doc;
     }
 
-    /**
-     * Shows an input box with given options
-     */
-    public showInputBox(options?: vscode.InputBoxOptions): Thenable<string | undefined> {
-        return vscode.window.showInputBox(options);
-    }
-
-    public showQuickPickStrings(
-        items: string[] | Thenable<string[]>,
-        options?: vscode.QuickPickOptions,
-    ): Thenable<string | undefined> {
-        return vscode.window.showQuickPick(items, options);
-    }
-
     public createQuickPick<T extends vscode.QuickPickItem>(): vscode.QuickPick<T> {
         return vscode.window.createQuickPick<T>();
-    }
-
-    /**
-     * Shows a selection list.
-     *
-     * @param items An array of items, or a promise that resolves to an array of items.
-     * @param options Configures the behavior of the selection list.
-     * @return A promise that resolves to the selected item or undefined.
-     */
-    public showQuickPick<T extends vscode.QuickPickItem>(
-        items: T[] | Thenable<T[]>,
-        options?: vscode.QuickPickOptions,
-    ): Thenable<T | undefined> {
-        return vscode.window.showQuickPick<T>(items, options);
     }
 
     /**

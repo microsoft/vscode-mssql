@@ -10,14 +10,17 @@ import * as chai from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import ConfirmPrompt from "../../src/prompts/confirm";
+import { stubVscodeWindow } from "./utils";
 
 chai.use(sinonChai);
 
 suite("Test Confirm Prompt", () => {
     let sandbox: sinon.SinonSandbox;
+    let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        vscodeWindow = stubVscodeWindow(sandbox);
     });
 
     teardown(() => {
@@ -29,12 +32,12 @@ suite("Test Confirm Prompt", () => {
             name: "test",
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(LocalizedConstants.msgYes);
+        vscodeWindow.showQuickPick.resolves(LocalizedConstants.msgYes);
 
         const confirm = new ConfirmPrompt(question, vscodeWrapper);
         await confirm.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 
     test("Test Checkbox prompt with error", async () => {
@@ -42,12 +45,12 @@ suite("Test Confirm Prompt", () => {
             name: "test",
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(undefined);
+        vscodeWindow.showQuickPick.resolves(undefined);
 
         const confirm = new ConfirmPrompt(question, vscodeWrapper);
 
         await confirm.render().catch(() => undefined);
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 });

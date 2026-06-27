@@ -10,14 +10,17 @@ import * as chai from "chai";
 import * as vscode from "vscode";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ExpandPrompt from "../../src/prompts/expand";
+import { stubVscodeWindow } from "./utils";
 
 chai.use(sinonChai);
 
 suite("Test Expand Prompt", () => {
     let sandbox: sinon.SinonSandbox;
+    let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        vscodeWindow = stubVscodeWindow(sandbox);
     });
 
     teardown(() => {
@@ -30,12 +33,12 @@ suite("Test Expand Prompt", () => {
             validate: () => false,
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves("test");
+        vscodeWindow.showQuickPick.resolves("test");
 
         const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
@@ -45,12 +48,12 @@ suite("Test Expand Prompt", () => {
             validate: () => true,
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(undefined);
+        vscodeWindow.showQuickPick.resolves(undefined);
 
         const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 
     test.skip("Test expand prompt with quick pick item", async () => {
@@ -62,12 +65,12 @@ suite("Test Expand Prompt", () => {
             validate: () => true,
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPick.resolves(quickPickItem);
+        vscodeWindow.showQuickPick.resolves(quickPickItem);
 
         const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
-        expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 
     test.skip("Test expand prompt with error quick pick item", async () => {
@@ -79,11 +82,11 @@ suite("Test Expand Prompt", () => {
             validate: () => false,
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPick.resolves(undefined);
+        vscodeWindow.showQuickPick.resolves(undefined);
 
         const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
-        expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 });

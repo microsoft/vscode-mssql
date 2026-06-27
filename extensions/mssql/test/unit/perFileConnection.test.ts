@@ -213,7 +213,9 @@ suite("Per File Connection Tests", () => {
         };
 
         const vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        vscodeWrapperStub.showQuickPick.resolves(newDatabaseChoice);
+        const showQuickPickStub = sandbox
+            .stub(vscode.window, "showQuickPick")
+            .resolves(newDatabaseChoice);
         sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
 
         manager.client = serviceClientStub;
@@ -237,7 +239,7 @@ suite("Per File Connection Tests", () => {
             .getCalls()
             .filter((call) => call.args[0] === ConnectionContracts.ListDatabasesRequest.type);
         expect(listDbCalls).to.have.lengthOf(1);
-        expect(vscodeWrapperStub.showQuickPick).to.have.been.calledOnce;
+        expect(showQuickPickStub).to.have.been.calledOnce;
 
         expect(manager.isConnected(testFile)).to.equal(true);
         expect(manager.getConnectionInfo(testFile).credentials.database).to.equal("master");
@@ -263,14 +265,14 @@ suite("Per File Connection Tests", () => {
             .resolves(createTestListDatabasesResult());
 
         const vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
-        vscodeWrapperStub.showQuickPick.callsFake(
-            async (options: Interfaces.IConnectionCredentialsQuickPickItem[]) => {
+        sandbox
+            .stub(vscode.window, "showQuickPick")
+            .callsFake(async (options: Interfaces.IConnectionCredentialsQuickPickItem[]) => {
                 return options.find(
                     (option) => option.label === LocalizedConstants.disconnectOptionLabel,
                 );
-            },
-        );
+            });
+        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
 
         manager.client = serviceClientStub;
         manager.vscodeWrapper = vscodeWrapperStub;

@@ -10,15 +10,18 @@ import * as chai from "chai";
 import * as figures from "figures";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import CheckboxPrompt from "../../src/prompts/checkbox";
+import { stubVscodeWindow } from "./utils";
 
 chai.use(sinonChai);
 
 // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
 suite("Test Checkbox prompt", () => {
     let sandbox: sinon.SinonSandbox;
+    let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        vscodeWindow = stubVscodeWindow(sandbox);
     });
 
     teardown(() => {
@@ -33,12 +36,12 @@ suite("Test Checkbox prompt", () => {
             ],
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
+        vscodeWindow.showQuickPick.resolves(figures.tick);
 
         const checkbox = new CheckboxPrompt(question, vscodeWrapper);
         await checkbox.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 
     test("Test Checkbox prompt with error", async () => {
@@ -49,12 +52,12 @@ suite("Test Checkbox prompt", () => {
             ],
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(undefined);
+        vscodeWindow.showQuickPick.resolves(undefined);
 
         const checkbox = new CheckboxPrompt(question, vscodeWrapper);
         await checkbox.render().catch(() => undefined);
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 
     test("Test Checkbox prompt with checked answer", async () => {
@@ -65,11 +68,11 @@ suite("Test Checkbox prompt", () => {
             ],
         };
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
+        vscodeWindow.showQuickPick.resolves(figures.tick);
 
         const checkbox = new CheckboxPrompt(question, vscodeWrapper);
         await checkbox.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+        expect(vscodeWindow.showQuickPick).to.have.been.calledOnce;
     });
 });

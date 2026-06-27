@@ -27,7 +27,7 @@ export default class ExpandPrompt extends Prompt {
         let options = this.defaultQuickPickOptions;
         options.placeHolder = this._question.message;
 
-        return this._vscodeWrapper.showQuickPick(choices, options).then((result) => {
+        return vscode.window.showQuickPick(choices, options).then((result) => {
             if (result === undefined) {
                 throw new EscapeException();
             }
@@ -44,17 +44,15 @@ export default class ExpandPrompt extends Prompt {
         let options = this.defaultQuickPickOptions;
         options.placeHolder = this._question.message;
 
-        return this._vscodeWrapper
-            .showQuickPickStrings(Object.keys(choiceMap), options)
-            .then((result) => {
-                if (result === undefined) {
-                    throw new EscapeException();
-                }
+        return vscode.window.showQuickPick(Object.keys(choiceMap), options).then((result) => {
+            if (result === undefined) {
+                throw new EscapeException();
+            }
 
-                // Note: cannot be used with 0 or false responses
-                let returnVal = choiceMap[result] || false;
-                return this.validateAndReturn(returnVal);
-            });
+            // Note: cannot be used with 0 or false responses
+            let returnVal = choiceMap[result] || false;
+            return this.validateAndReturn(returnVal);
+        });
     }
 
     private validateAndReturn(value: any): any {

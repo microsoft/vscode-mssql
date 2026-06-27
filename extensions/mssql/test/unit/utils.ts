@@ -73,10 +73,14 @@ export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
     showInformationMessage: sinon.SinonStub;
     showWarningMessage: sinon.SinonStub;
     showSaveDialog: sinon.SinonStub;
+    showInputBox: sinon.SinonStub;
+    showQuickPick: sinon.SinonStub;
 } {
     return {
         ...stubMessageBoxes(sandbox),
         showSaveDialog: sandbox.stub(vscode.window, "showSaveDialog"),
+        showInputBox: sandbox.stub(vscode.window, "showInputBox"),
+        showQuickPick: sandbox.stub(vscode.window, "showQuickPick"),
     };
 }
 

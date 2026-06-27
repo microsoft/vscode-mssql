@@ -280,7 +280,7 @@ export class ConnectionUI {
             };
 
             // show database picklist, and modify the current connection to switch the active database
-            self.vscodeWrapper
+            vscode.window
                 .showQuickPick<vscode.QuickPickItem>(pickListItems, pickListOptions)
                 .then((selection) => {
                     if (selection === disconnectItem) {
