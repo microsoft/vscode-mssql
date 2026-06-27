@@ -270,6 +270,8 @@ suite("ConnectionManager Tests", () => {
                 id: "00000000-1111-2222-3333-444444444444",
             } as IConnectionProfile;
 
+            throw new Error("Test error!");
+
             mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
             mockServiceClient.sendRequest
