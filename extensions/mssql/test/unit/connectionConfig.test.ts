@@ -64,8 +64,10 @@ suite("ConnectionConfig Tests", () => {
         };
         workspaceConfiguration = mockConfiguration as vscode.WorkspaceConfiguration;
 
-        mockVscodeWrapper.getConfiguration.callsFake((section: string) =>
-            section === Constants.extensionName ? workspaceConfiguration : undefined,
+        mockVscodeWrapper.getConfiguration.callsFake((section?: string) =>
+            section === Constants.extensionName
+                ? workspaceConfiguration
+                : ({ get: () => undefined } as unknown as vscode.WorkspaceConfiguration),
         );
 
         mockVscodeWrapper.setConfiguration.callsFake(async (_section, key, value, target) => {

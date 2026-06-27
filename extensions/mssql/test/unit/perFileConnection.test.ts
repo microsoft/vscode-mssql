@@ -19,6 +19,7 @@ import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { languageId } from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import { Deferred } from "../../src/protocol";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
@@ -53,10 +54,11 @@ suite("Per File Connection Tests", () => {
     let manager: ConnectionManager;
     let prompterStub: sinon.SinonStubbedInstance<IPrompter>;
 
-    setup(() => {
+    setup(async () => {
         sandbox = sinon.createSandbox();
         extensionContext = stubExtensionContext(sandbox);
         manager = createTestConnectionManager();
+        await manager.initialized;
     });
 
     teardown(() => {
@@ -326,6 +328,7 @@ suite("Per File Connection Tests", () => {
         const testFile = "file:///my/test/file.sql";
 
         let connectionManager: ConnectionManager = createTestConnectionManager();
+        await connectionManager.initialized;
 
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest
@@ -534,6 +537,11 @@ suite("Per File Connection Tests", () => {
         } else {
             const stubConnectionStore = sandbox.createStubInstance(ConnectionStore);
             stubConnectionStore.addRecentlyUsed.resolves();
+            const initializedDeferred = new Deferred<void>();
+            initializedDeferred.resolve();
+            sandbox.stub(stubConnectionStore, "initialized").get(() => initializedDeferred);
+            stubConnectionStore.readAllConnections.resolves([]);
+            stubConnectionStore.readAllConnectionGroups.resolves([]);
             connectionStoreInstance = stubConnectionStore;
         }
 
