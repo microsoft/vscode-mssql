@@ -95,13 +95,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Formats and shows a vscode warning message
-     */
-    public openExternal(link: string): Thenable<boolean> {
-        return vscode.env.openExternal(vscode.Uri.parse(link));
-    }
-
-    /**
      * Change a configuration setting
      */
     public setConfiguration(

@@ -17,7 +17,7 @@ import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubTelemetry, stubVscodeEnv, stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -322,7 +322,7 @@ suite("Service Client tests", () => {
                 "showErrorMessage",
             ) as sinon.SinonStub;
             showErrorMessageStub.resolves(ServiceClientLoc.downloadOfflineVsix);
-            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const openExternalStub = stubVscodeEnv(sandbox).openExternal.resolves(true);
 
             setupMocks(fixture);
             const serviceClient = createServiceClient();

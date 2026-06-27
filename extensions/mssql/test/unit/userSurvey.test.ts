@@ -27,6 +27,7 @@ import {
     stubExtensionContext,
     stubPreviewService,
     stubTelemetry,
+    stubVscodeEnv,
     stubVscodeWrapper,
 } from "./utils";
 import * as constants from "../../src/constants/constants";
@@ -232,7 +233,7 @@ suite("UserSurvey Tests", () => {
         });
 
         test("should open GitHub issue when NPS is below 7", async () => {
-            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const openExternalStub = stubVscodeEnv(sandbox).openExternal.resolves(true);
             const expectedIssueBody = encodeURIComponent(
                 getGithubIssueText("this feature has issues", mockVersion),
             );
@@ -251,7 +252,7 @@ suite("UserSurvey Tests", () => {
         });
 
         test("should open Marketplace review when NPS is 7 or higher", async () => {
-            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const openExternalStub = stubVscodeEnv(sandbox).openExternal.resolves(true);
             const expectedReviewUrl =
                 `https://marketplace.visualstudio.com/items?` +
                 encodeURIComponent(`itemName=${constants.extensionId}&ssr=false`) +

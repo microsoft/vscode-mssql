@@ -858,7 +858,7 @@ export default class ConnectionManager {
             profile.trustServerCertificate = true;
             await reconnectAction(profile);
         } else if (selection === LocalizedConstants.readMore) {
-            this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
+            void vscode.env.openExternal(vscode.Uri.parse(Constants.encryptionBlogLink));
             await this.showInstructionTextAsWarning(profile, reconnectAction);
         } else if (selection === LocalizedConstants.Common.cancel) {
             await reconnectAction(undefined);

@@ -206,7 +206,7 @@ export abstract class ObjectManagementWebviewController<
         });
 
         this.onNotification(ObjectManagementHelpNotification.type, () => {
-            void this.vscodeWrapper.openExternal(this.helpLink);
+            void vscode.env.openExternal(vscode.Uri.parse(this.helpLink));
         });
     }
 

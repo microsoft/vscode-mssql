@@ -89,6 +89,18 @@ export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
 }
 
 /**
+ * Stubs common `vscode.env` functions and returns the created stubs so tests
+ * can configure return values and assert on calls.
+ */
+export function stubVscodeEnv(sandbox: sinon.SinonSandbox): {
+    openExternal: sinon.SinonStub;
+} {
+    return {
+        openExternal: sandbox.stub(vscode.env, "openExternal"),
+    };
+}
+
+/**
  * Stubs common `vscode.workspace` event functions and returns the created stubs
  * so tests can configure handlers and assert on subscriptions.
  */

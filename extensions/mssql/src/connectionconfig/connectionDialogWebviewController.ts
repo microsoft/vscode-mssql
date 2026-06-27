@@ -908,7 +908,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             const url = infoLinkMap[payload.option.value as AuthenticationType];
             if (url) {
-                void this.vscodeWrapper.openExternal(url);
+                void vscode.env.openExternal(vscode.Uri.parse(url));
             }
         });
 
