@@ -133,6 +133,20 @@ suite("Docker Utilities", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
+
+        // execDockerCommand() calls fixPath() (the "fix-path" package) on every invocation, which
+        // synchronously spawns a real login shell via child_process.spawnSync to resolve $PATH.
+        // That is not covered by the spawn stub and adds ~0.6-1.2s per call. Stub spawnSync so the
+        // PATH fix-up is a no-op and tests don't shell out for real.
+        sandbox.stub(childProcess, "spawnSync").returns({
+            pid: 0,
+            output: [],
+            stdout: Buffer.from(""),
+            stderr: Buffer.from(""),
+            status: 0,
+            signal: null,
+        } as unknown as ReturnType<typeof childProcess.spawnSync>);
+
         node = {
             connectionProfile: {
                 containerName: "testContainer",
@@ -568,7 +582,12 @@ suite("Docker Utilities", () => {
             return createSpawnSuccessProcess("");
         });
 
-        const result = await dockerUtils.startDocker();
+        // startDocker() polls for readiness via setInterval(2000ms). Use fake timers so the test
+        // advances through the poll instead of waiting ~2s in real time.
+        const clock = sandbox.useFakeTimers();
+        const resultPromise = dockerUtils.startDocker();
+        await clock.tickAsync(2100);
+        const result = await resultPromise;
         expect(result.error).to.equal(undefined);
         expect(result.success, "Docker should start successfully on Windows").to.be.true;
         expect(spawnStub.callCount).to.be.greaterThanOrEqual(4);
@@ -595,7 +614,12 @@ suite("Docker Utilities", () => {
             return createSpawnSuccessProcess("");
         });
 
-        const result = await dockerUtils.startDocker();
+        // startDocker() polls for readiness via setInterval(2000ms). Use fake timers so the test
+        // advances through the poll instead of waiting ~2s in real time.
+        const clock = sandbox.useFakeTimers();
+        const resultPromise = dockerUtils.startDocker();
+        await clock.tickAsync(2100);
+        const result = await resultPromise;
         expect(result.success, "Docker should start successfully on Linux").to.be.true;
         expect(spawnStub.callCount).to.be.greaterThanOrEqual(3);
     });
