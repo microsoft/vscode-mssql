@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
 import { WebviewPanelController } from "../../src/controllers/webviewPanelController";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { observeWebviewReady, stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 chai.use(sinonChai);
@@ -89,6 +89,7 @@ suite("WebviewPanelController", () => {
             ...defaultOptions,
             ...options,
         });
+        observeWebviewReady(controller);
         return controller;
     }
 
