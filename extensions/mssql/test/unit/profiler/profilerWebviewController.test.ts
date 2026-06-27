@@ -18,6 +18,7 @@ import {
     TEMPLATE_ID_STANDARD_ONPREM,
 } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
+import { observeWebviewReady } from "../utils";
 import VscodeWrapper from "../../../src/controllers/vscodeWrapper";
 import { uuid } from "../../../src/utils/utils";
 
@@ -155,7 +156,7 @@ suite("ProfilerWebviewController Tests", () => {
         sessionName?: string,
         templateId: string = TEMPLATE_ID_STANDARD_ONPREM,
     ): ProfilerWebviewController {
-        return new ProfilerWebviewController(
+        const controller = new ProfilerWebviewController(
             mockContext,
             mockVscodeWrapper,
             mockSessionManager,
@@ -163,6 +164,8 @@ suite("ProfilerWebviewController Tests", () => {
             sessionName,
             templateId,
         );
+        observeWebviewReady(controller);
+        return controller;
     }
 
     suite("constructor", () => {

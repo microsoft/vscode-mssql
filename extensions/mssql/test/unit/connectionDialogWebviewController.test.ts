@@ -46,6 +46,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import {
     initializeIconUtils,
+    observeWebviewReady,
     stubGetCapabilitiesRequest,
     stubPreviewService,
     stubTelemetry,
@@ -178,6 +179,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             undefined /* connection to edit */,
         );
 
+        observeWebviewReady(controller);
         await controller.initialized;
     });
 
@@ -295,6 +297,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -331,6 +334,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -368,6 +372,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -405,6 +410,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -427,6 +433,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 editedConnection,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller["_connectionBeingEdited"]).to.deep.equal(
@@ -460,6 +467,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 editedConnection,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller["_connectionBeingEdited"]).to.deep.equal(

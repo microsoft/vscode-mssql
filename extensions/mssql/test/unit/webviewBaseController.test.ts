@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
 import { WebviewBaseController } from "../../src/controllers/webviewBaseController";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { observeWebviewReady, stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     ColorThemeChangeNotification,
@@ -80,6 +80,7 @@ suite("WebviewController Tests", () => {
         controller = new TestWebviewController(mockContext, "testSource", {
             count: 0,
         });
+        observeWebviewReady(controller);
         // Stubs for methods
         onRequestStub = sandbox.stub();
         onNotificationStub = sandbox.stub();

@@ -21,7 +21,7 @@ import {
     QuickQueryExecutionMode,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../src/sharedInterfaces/webview";
-import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
+import { observeWebviewReady, stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -90,6 +90,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
             } as vscode.ExtensionContext,
             vscodeWrapper,
         );
+        observeWebviewReady(controller);
     });
 
     teardown(() => {

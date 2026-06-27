@@ -286,3 +286,17 @@ export function stubPreviewService(
         .stub(previewService, "isFeatureEnabled")
         .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
 }
+
+/**
+ * Observes a webview controller's internal "webview ready" promise so the rejection produced
+ * when the controller is disposed before its webview becomes ready (see
+ * WebviewBaseController.dispose) is handled instead of surfacing as an unhandled promise
+ * rejection during unit tests. Safe to call on any controller; it is a no-op if the promise
+ * is already settled or absent.
+ */
+export function observeWebviewReady(controller: unknown): void {
+    const ready = (controller as { _webviewReady?: { promise?: Promise<void> } })?._webviewReady;
+    void ready?.promise?.catch(() => {
+        /* Swallow the disposed-before-ready rejection in tests. */
+    });
+}

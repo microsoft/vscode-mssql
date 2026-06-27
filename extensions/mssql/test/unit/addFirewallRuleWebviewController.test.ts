@@ -13,7 +13,7 @@ import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as azureHelperStubs from "./azureHelperStubs";
-import { stubVscodeWrapper } from "./utils";
+import { observeWebviewReady, stubVscodeWrapper } from "./utils";
 
 suite("AddFirewallRuleWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -134,6 +134,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             },
             mockFirewallService,
         );
+        observeWebviewReady(controller);
 
         return await controller.initialized;
     }
