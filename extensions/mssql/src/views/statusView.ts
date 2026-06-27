@@ -55,7 +55,7 @@ export default class StatusView implements vscode.Disposable {
             this._vscodeWrapper = new VscodeWrapper();
         }
         this._statusBars = {};
-        this._onDidCloseTextDocumentEvent = this._vscodeWrapper.onDidCloseTextDocument((params) =>
+        this._onDidCloseTextDocumentEvent = vscode.workspace.onDidCloseTextDocument((params) =>
             this.onDidCloseTextDocument(params),
         );
 

@@ -80,7 +80,7 @@ export class QueryResultWebviewController extends WebviewViewController<
 
         // not the best api but it's the best we can do in VSCode
         context.subscriptions.push(
-            this.vscodeWrapper.onDidCloseTextDocument((document) => {
+            vscode.workspace.onDidCloseTextDocument((document) => {
                 const uri = getUriKey(document.uri);
                 if (this._sqlDocumentService?.isUriBeingRenamedOrSaved(uri)) {
                     return;

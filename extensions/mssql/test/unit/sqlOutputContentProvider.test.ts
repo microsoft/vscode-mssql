@@ -19,7 +19,7 @@ import { ISelectionData } from "../../src/models/interfaces";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import QueryRunner from "../../src/controllers/queryRunner";
 import store from "../../src/queryResult/singletonStore";
-import { stubMessageBoxes } from "./utils";
+import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
 const { expect } = chai;
 
@@ -60,10 +60,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockMap = new Map();
 
         const disposable = { dispose: () => {} } as vscode.Disposable;
+        stubVscodeWorkspace(sandbox);
         sandbox.stub(vscode.window, "registerWebviewViewProvider").returns(disposable);
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
 
-        sandbox.stub(vscodeWrapper, "onDidOpenTextDocument").get(() => () => disposable);
         sandbox.stub(vscodeWrapper, "onDidChangeConfiguration").get(() => () => disposable);
 
         contentProvider = new SqlOutputContentProvider(

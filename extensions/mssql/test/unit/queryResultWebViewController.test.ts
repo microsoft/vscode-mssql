@@ -13,7 +13,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import { QueryResultWebviewController } from "../../src/queryResult/queryResultWebViewController";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import { stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubVscodeWrapper, stubVscodeWorkspace } from "./utils";
 
 chai.use(sinonChai);
 
@@ -45,6 +45,7 @@ suite("QueryResultWebviewController", () => {
 
         const context = stubExtensionContext(sandbox);
         const disposable = new vscode.Disposable(() => undefined);
+        stubVscodeWorkspace(sandbox);
 
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
         sandbox.stub(vscode.window, "createStatusBarItem").returns({
@@ -55,10 +56,6 @@ suite("QueryResultWebviewController", () => {
             hide: sandbox.stub(),
             dispose: sandbox.stub(),
         } as unknown as vscode.StatusBarItem);
-
-        sandbox.stub(vscodeWrapper, "onDidCloseTextDocument").get(() => {
-            return () => disposable;
-        });
 
         sandbox.stub(vscodeWrapper, "onDidChangeConfiguration").get(() => {
             return (handler: (e: vscode.ConfigurationChangeEvent) => void) => {
