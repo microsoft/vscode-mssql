@@ -19,6 +19,7 @@ import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
+import { createLogOutputChannelStub } from "./stubs";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -39,17 +40,7 @@ export function stubVscodeWrapper(
 
     const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
 
-    const outputChannel: vscode.OutputChannel = {
-        name: "MSSQL",
-        append: stubber.stub(),
-        appendLine: stubber.stub(),
-        clear: stubber.stub(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        show: stubber.stub() as any,
-        replace: stubber.stub(),
-        hide: stubber.stub(),
-        dispose: stubber.stub(),
-    };
+    const outputChannel: vscode.OutputChannel = createLogOutputChannelStub(stubber);
 
     stubber.stub(vscodeWrapper, "outputChannel").get(() => outputChannel);
 

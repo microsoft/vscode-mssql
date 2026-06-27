@@ -145,6 +145,8 @@ export default class ConnectionManager {
 
     public initialized: Deferred<void> = new Deferred<void>();
 
+    private _entraLogger: ILogger;
+
     constructor(
         private context: vscode.ExtensionContext,
         statusView: StatusView,
@@ -175,6 +177,8 @@ export default class ConnectionManager {
         if (!this._logger) {
             this._logger = logger.withPrefix("ConnectionManager");
         }
+
+        this._entraLogger = logger.withPrefix("Entra Auth");
 
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
@@ -465,10 +469,9 @@ export default class ConnectionManager {
      * Parses the connection string into a ConnectionDetails object
      */
     public async parseConnectionString(connectionString: string): Promise<ConnectionDetails> {
-        return await this.client.sendRequest(
-            ConnectionContracts.ParseConnectionStringRequest.type,
+        return this.client.sendRequest(ConnectionContracts.ParseConnectionStringRequest.type, {
             connectionString,
-        );
+        });
     }
 
     /**
@@ -1249,17 +1252,23 @@ export default class ConnectionManager {
         // 2. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token.
         // STS cannot read VS Code auth sessions, so this path still needs to pass a token.
         if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
+
             if (
                 AzureController.isTokenValid(
                     connectionInfo.azureAccountToken,
                     connectionInfo.expiresOn,
                 )
             ) {
-                this._logger?.debug(
-                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
+                this._entraLogger?.debug(
+                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}). No refresh needed.`,
                 );
                 return;
             }
+
+            this._entraLogger?.debug(
+                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
+            );
 
             const tokenInfo = await acquireTokenFromVscodeAccountForResource(
                 getCloudResourceEndpoint("sqlResource"),
@@ -2241,8 +2250,7 @@ export default class ConnectionManager {
      *
      * 1. **Entra MFA via VS Code accounts** (`params.accountId` present): STS is running in
      *    `--request-mfa-token-from-client` mode (`useVscodeAccountsForEntraMFA` enabled) and
-     *    needs a SQL access token for the given Entra account + tenant. Returns a token acquired
-     *    from VS Code's authentication provider for `https://database.windows.net/`.
+     *    needs an access token for the given Entra account + tenant + resource.
      *
      * 2. **Always Encrypted / Azure Key Vault** (`params.accountId` absent): STS needs a token
      *    for `https://vault.azure.net/` to decrypt a Column Encryption Key protected by an
@@ -2255,14 +2263,24 @@ export default class ConnectionManager {
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
-            this._logger.debug("VS Code accounts token request received");
+            this._entraLogger.info(
+                `VS Code accounts token request received for ${params.resource} with accountId '${params.accountId}' and tenantId '${params.tenantId}'`,
+            );
             try {
+                const resourceEndpoint = params.resource || getCloudResourceEndpoint("sqlResource");
                 const tokenInfo = await acquireTokenFromVscodeAccountForResource(
-                    getCloudResourceEndpoint("sqlResource"),
+                    resourceEndpoint,
                     params.accountId,
                     params.tenantId,
                 );
-                this._logger.debug("VS Code accounts token acquired successfully");
+
+                const expiry = Utils.epochToDisplay(
+                    tokenInfo.token.expiresOn ? tokenInfo.token.expiresOn * 1000 : undefined,
+                );
+                this._entraLogger.info(
+                    `VS Code accounts token acquired successfully for ${resourceEndpoint} with accountId '${params.accountId}' and tenantId '${params.tenantId}'; expires on ${tokenInfo.token.expiresOn} (${expiry.iso}, ${expiry.relative})`,
+                );
+
                 return {
                     accountKey: params.accountId,
                     token: tokenInfo.token.token,

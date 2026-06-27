@@ -161,11 +161,14 @@ suite("MainController Tests", function () {
         let controllerAccess: MainControllerTestAccess;
         let runCurrentStatementStub: sinon.SinonStub;
         let runQueryStub: sinon.SinonStub;
+        let ensureReadyToExecuteQueryStub: sinon.SinonStub;
         let statusView: unknown;
 
         setup(() => {
             controllerAccess = accessMainController(mainController);
-            sandbox.stub(mainController, "ensureReadyToExecuteQuery").resolves(true);
+            ensureReadyToExecuteQueryStub = sandbox
+                .stub(mainController, "ensureReadyToExecuteQuery")
+                .resolves(true);
             sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
 
             runCurrentStatementStub = sandbox.stub().resolves();
@@ -224,6 +227,66 @@ suite("MainController Tests", function () {
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
 
+        test("runs the originally selected text when selection changes while connecting", async () => {
+            const originalSelection = new vscode.Selection(0, 0, 0, 11);
+            const changedSelection = new vscode.Selection(1, 0, 1, 11);
+            let activeEditor = createQueryTextEditor(
+                originalSelection,
+                "select 'a';\nselect 'b';",
+                "select 'a';",
+            );
+            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            ensureReadyToExecuteQueryStub.callsFake(async () => {
+                activeEditor = createQueryTextEditor(
+                    changedSelection,
+                    "select 'a';\nselect 'b';",
+                    "select 'b';",
+                );
+                return true;
+            });
+
+            await mainController.onRunCurrentStatement();
+
+            expect(runQueryStub).to.have.been.calledOnceWithExactly(
+                statusView,
+                "file:///test/query.sql",
+                {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: 11,
+                },
+                "query.sql",
+            );
+            expect(runCurrentStatementStub).to.not.have.been.called;
+        });
+
+        test("runs the original current statement when cursor changes while connecting", async () => {
+            const originalSelection = new vscode.Selection(0, 7, 0, 7);
+            const changedSelection = new vscode.Selection(1, 7, 1, 7);
+            let activeEditor = createQueryTextEditor(originalSelection, "select 'a';\nselect 'b';");
+            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            ensureReadyToExecuteQueryStub.callsFake(async () => {
+                activeEditor = createQueryTextEditor(changedSelection, "select 'a';\nselect 'b';");
+                return true;
+            });
+
+            await mainController.onRunCurrentStatement();
+
+            expect(runCurrentStatementStub).to.have.been.calledOnceWithExactly(
+                statusView,
+                "file:///test/query.sql",
+                {
+                    startLine: 0,
+                    startColumn: 7,
+                    endLine: 0,
+                    endColumn: 0,
+                },
+                "query.sql",
+            );
+            expect(runQueryStub).to.not.have.been.called;
+        });
+
         test("does not execute when the selection contains only whitespace", async () => {
             const selection = new vscode.Selection(0, 0, 0, 4);
             sandbox
@@ -267,6 +330,67 @@ suite("MainController Tests", function () {
 
             expect(runQueryStub).to.not.have.been.called;
             expect(runCurrentStatementStub).to.not.have.been.called;
+        });
+    });
+
+    suite("onRunQuery Tests", () => {
+        let controllerAccess: MainControllerTestAccess;
+        let runQueryStub: sinon.SinonStub;
+        let ensureReadyToExecuteQueryStub: sinon.SinonStub;
+        let statusView: unknown;
+
+        setup(() => {
+            controllerAccess = accessMainController(mainController);
+            ensureReadyToExecuteQueryStub = sandbox
+                .stub(mainController, "ensureReadyToExecuteQuery")
+                .resolves(true);
+            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
+
+            runQueryStub = sandbox.stub().resolves();
+            controllerAccess._outputContentProvider = {
+                runCurrentStatement: sandbox.stub().resolves(),
+                runQuery: runQueryStub,
+            };
+            statusView = {};
+            controllerAccess._statusview = statusView;
+            connectionManager.refreshAzureAccountToken.resolves();
+        });
+
+        test("runs the originally selected query when selection changes while connecting", async () => {
+            const originalSelection = new vscode.Selection(0, 0, 0, 11);
+            const changedSelection = new vscode.Selection(1, 0, 1, 11);
+            let activeEditor = createQueryTextEditor(
+                originalSelection,
+                "select 'a';\nselect 'b';",
+                "select 'a';",
+            );
+            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            ensureReadyToExecuteQueryStub.callsFake(async () => {
+                activeEditor = createQueryTextEditor(
+                    changedSelection,
+                    "select 'a';\nselect 'b';",
+                    "select 'b';",
+                );
+                return true;
+            });
+
+            await mainController.onRunQuery();
+
+            expect(connectionManager.refreshAzureAccountToken).to.have.been.calledOnceWithExactly(
+                "file:///test/query.sql",
+            );
+            expect(runQueryStub).to.have.been.calledOnceWithExactly(
+                statusView,
+                "file:///test/query.sql",
+                {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: 11,
+                },
+                "query.sql",
+                undefined,
+            );
         });
     });
 
@@ -400,6 +524,34 @@ suite("MainController Tests", function () {
     });
 
     suite("ensureReadyToExecuteQuery Tests", () => {
+        test("returns true when the active SQL editor is already connected", async () => {
+            const testUri = "file:///test/connected.sql";
+            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
+            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            connectionManager.isConnected.withArgs(testUri).returns(true);
+
+            const result = await mainController.ensureReadyToExecuteQuery();
+
+            expect(result).to.equal(true);
+            expect(connectionManager.isConnecting).to.not.have.been.called;
+        });
+
+        test("returns true after prompting and connecting", async () => {
+            const testUri = "file:///test/notConnected.sql";
+            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
+            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            connectionManager.isConnected.withArgs(testUri).returns(false);
+            connectionManager.isConnecting.withArgs(testUri).returns(false);
+            const promptToConnectStub = sandbox
+                .stub(mainController, "promptToConnect")
+                .resolves(true);
+
+            const result = await mainController.ensureReadyToExecuteQuery();
+
+            expect(result).to.equal(true);
+            expect(promptToConnectStub).to.have.been.calledOnce;
+        });
+
         test("returns false and shows info message when connection is in progress", async () => {
             const testUri = "file:///test/connecting.sql";
             const controllerAccess = accessMainController(mainController);

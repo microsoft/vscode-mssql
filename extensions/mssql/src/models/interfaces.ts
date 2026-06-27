@@ -164,6 +164,7 @@ export interface IResultMessage {
     isError: boolean;
     time: string;
     message: string;
+    rowsAffected?: number;
 }
 
 export interface IGridBatchMetaData {
