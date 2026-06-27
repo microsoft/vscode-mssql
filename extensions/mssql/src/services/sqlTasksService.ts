@@ -9,7 +9,6 @@ import { NotificationType, RequestType } from "vscode-languageclient";
 import * as localizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../enums";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
@@ -179,7 +178,6 @@ export class SqlTasksService {
     constructor(
         private _client: SqlToolsServiceClient,
         private _sqlDocumentService: SqlDocumentService,
-        private _vscodeWrapper: VscodeWrapper,
         private _backgroundTasksService?: BackgroundTasksService,
     ) {
         this._logger = logger.withPrefix("SqlTasksService");

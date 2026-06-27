@@ -672,7 +672,6 @@ export default class MainController implements vscode.Disposable {
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
                 this._sqlDocumentService,
-                this._vscodeWrapper,
                 this.backgroundTasksService,
             );
             this.dacFxService = new DacFxService(

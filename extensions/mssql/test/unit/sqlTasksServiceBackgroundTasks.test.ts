@@ -10,7 +10,6 @@ import * as chai from "chai";
 import { expect } from "chai";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     SqlTasksService,
     TaskCompletionHandler,
@@ -24,7 +23,6 @@ import {
     BackgroundTasksService,
     BackgroundTaskState,
 } from "../../src/backgroundTasks/backgroundTasksService";
-import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -32,7 +30,6 @@ suite("SqlTasksService Background Tasks Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let sqlDocumentServiceStub: sinon.SinonStubbedInstance<SqlDocumentService>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let backgroundTasksServiceStub: sinon.SinonStubbedInstance<BackgroundTasksService>;
     let backgroundTaskHandle: sinon.SinonStubbedInstance<BackgroundTaskHandle>;
     let sqlTasksService: SqlTasksService;
@@ -58,7 +55,6 @@ suite("SqlTasksService Background Tasks Tests", () => {
         sandbox = sinon.createSandbox();
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         backgroundTasksServiceStub = sandbox.createStubInstance(BackgroundTasksService);
         backgroundTaskHandle = {
             id: "background-task-1",
@@ -77,7 +73,6 @@ suite("SqlTasksService Background Tasks Tests", () => {
         sqlTasksService = new SqlTasksService(
             sqlToolsClientStub,
             sqlDocumentServiceStub,
-            vscodeWrapperStub,
             backgroundTasksServiceStub,
         );
 
