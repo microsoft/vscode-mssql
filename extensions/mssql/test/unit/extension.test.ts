@@ -88,9 +88,13 @@ suite("Extension API Tests", () => {
         sandbox.stub(UserSurvey, "createInstance").returns();
         sandbox.stub(HttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
-        sandbox
-            .stub(SqlToolsServerClient, "instance")
-            .get(() => ({ sqlToolsServicePath: "test/sqltoolsservice" }) as SqlToolsServerClient);
+        sandbox.stub(SqlToolsServerClient, "instance").get(
+            () =>
+                ({
+                    sqlToolsServicePath: "test/sqltoolsservice",
+                    onNotification: sandbox.stub(), // handler stub necessary depending on test execution order
+                }) as unknown as SqlToolsServerClient,
+        );
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
             isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
@@ -114,11 +118,18 @@ suite("Extension API Tests", () => {
     });
 
     teardown(() => {
-        // restore mocked properties
-        mainController.connectionManager = originalConnectionManager;
-        (Extension as any).controller = undefined;
-        (Extension as any).uriOwnershipCoordinator = undefined;
-        sandbox.restore();
+        try {
+            /* eslint-disable @typescript-eslint/no-explicit-any */
+            (Extension as any).controller = undefined;
+            (Extension as any).uriOwnershipCoordinator = undefined;
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+
+            if (mainController) {
+                mainController.connectionManager = originalConnectionManager;
+            }
+        } finally {
+            sandbox.restore();
+        }
     });
 
     test("Gets sqlToolsServicePath", async () => {
