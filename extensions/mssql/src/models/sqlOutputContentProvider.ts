@@ -24,6 +24,7 @@ import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../que
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import { getLogger } from "./logger";
+import * as Utils from "./utils";
 // Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
@@ -121,7 +122,7 @@ export class SqlOutputContentProvider {
          */
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdToggleActualPlan, async () => {
-                const uri = this._vscodeWrapper.activeTextEditorUri;
+                const uri = Utils.getActiveTextEditorUri();
 
                 if (!uri) {
                     return;
@@ -144,7 +145,7 @@ export class SqlOutputContentProvider {
                     return;
                 }
 
-                const uri = this._vscodeWrapper.activeTextEditorUri;
+                const uri = Utils.getActiveTextEditorUri();
                 if (!uri) {
                     return;
                 }
@@ -900,7 +901,7 @@ export class SqlOutputContentProvider {
     }
 
     public onToggleActualPlan(isEnable: boolean): void {
-        const uri = this._vscodeWrapper.activeTextEditorUri;
+        const uri = Utils.getActiveTextEditorUri();
         let actualPlanStatuses = this._actualPlanStatuses;
 
         // adds the current uri to the list of uris with actual plan enabled

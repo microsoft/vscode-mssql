@@ -11,6 +11,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionStore } from "../models/connectionStore";
+import * as Utils from "../models/utils";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
@@ -162,7 +163,7 @@ export class ConnectionUI {
     private waitForLanguageModeToBeSqlHelper(resolve: any, timer: Timer): void {
         if (timer.getDuration() > constants.timeToWaitForLanguageModeChange) {
             resolve(false);
-        } else if (this.vscodeWrapper.isEditingSqlFile) {
+        } else if (Utils.isEditingSqlFile()) {
             resolve(true);
         } else {
             setTimeout(this.waitForLanguageModeToBeSqlHelper.bind(this, resolve, timer), 50);

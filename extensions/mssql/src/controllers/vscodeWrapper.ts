@@ -28,19 +28,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Get the URI string for the current active text editor
-     */
-    public get activeTextEditorUri(): string | undefined {
-        if (
-            typeof vscode.window.activeTextEditor !== "undefined" &&
-            typeof vscode.window.activeTextEditor.document !== "undefined"
-        ) {
-            return vscode.window.activeTextEditor.document.uri.toString();
-        }
-        return undefined;
-    }
-
-    /**
      * Get the configuration for a extensionName
      * @param extensionName The string name of the extension to get the configuration for
      * @param resource The optional URI, as a URI object or a string, to use to get resource-scoped configurations
@@ -57,20 +44,6 @@ export default class VscodeWrapper {
             }
         }
         return vscode.workspace.getConfiguration(extensionName, resource as vscode.Uri);
-    }
-
-    /**
-     * @return 'true' if the active editor window has a .sql file, false otherwise
-     */
-    public get isEditingSqlFile(): boolean {
-        let sqlFile = false;
-        let editor = vscode.window.activeTextEditor;
-        if (editor) {
-            if (editor.document.languageId === Constants.languageId) {
-                sqlFile = true;
-            }
-        }
-        return sqlFile;
     }
 
     /**

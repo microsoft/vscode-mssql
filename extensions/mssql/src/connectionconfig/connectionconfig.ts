@@ -1031,7 +1031,7 @@ export class ConnectionConfig implements IConnectionConfig {
     ): T[] {
         let configuration = this._vscodeWrapper.getConfiguration(
             Constants.extensionName,
-            this._vscodeWrapper.activeTextEditorUri,
+            Utils.getActiveTextEditorUri(),
         );
 
         let configValue = configuration.inspect<T[]>(configSection);

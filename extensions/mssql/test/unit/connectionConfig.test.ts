@@ -81,7 +81,7 @@ suite("ConnectionConfig Tests", () => {
             targetStore.set(key, deepClone(value));
         });
 
-        sandbox.stub(mockVscodeWrapper, "activeTextEditorUri").get(() => undefined);
+        sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
 
         messageBoxes.showErrorMessage.resolves(undefined);
         showWarningStub = messageBoxes.showWarningMessage.resolves(undefined);

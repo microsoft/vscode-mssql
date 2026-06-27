@@ -1103,7 +1103,7 @@ export default class MainController implements vscode.Disposable {
 
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = vscode.window.activeTextEditor;
-        if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
+        if (activeTextEditor && Utils.isEditingSqlFile()) {
             await this.sqlDocumentService.onDidOpenTextDocument(activeTextEditor.document);
         }
         await this.sanitizeConnectionProfiles();
@@ -1202,7 +1202,7 @@ export default class MainController implements vscode.Disposable {
         const profileMapping = new Map<vscode.ConfigurationTarget, IConnectionProfile[]>();
         const configuration = this._vscodeWrapper.getConfiguration(
             Constants.extensionName,
-            this._vscodeWrapper.activeTextEditorUri,
+            Utils.getActiveTextEditorUri(),
         );
         const configValue = configuration.inspect<IConnectionProfile[]>(
             Constants.connectionsArrayName,
@@ -2546,7 +2546,7 @@ export default class MainController implements vscode.Disposable {
      */
     private async onToggleSqlCmd(): Promise<void> {
         let isSqlCmd: boolean;
-        const uri = this._vscodeWrapper.activeTextEditorUri;
+        const uri = Utils.getActiveTextEditorUri();
         const queryRunner = this._outputContentProvider.getQueryRunner(uri);
         // if a query runner exists, use it
         if (queryRunner) {
@@ -2558,9 +2558,9 @@ export default class MainController implements vscode.Disposable {
             const title = path.basename(editor.document.fileName);
             await this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
         }
-        await this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri);
+        await this._outputContentProvider.toggleSqlCmd(Utils.getActiveTextEditorUri());
         await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
-        this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
+        this._statusview.sqlCmdModeChanged(Utils.getActiveTextEditorUri(), !isSqlCmd);
     }
 
     /**
@@ -2571,7 +2571,7 @@ export default class MainController implements vscode.Disposable {
             return;
         }
         try {
-            let uri = this._vscodeWrapper.activeTextEditorUri;
+            let uri = Utils.getActiveTextEditorUri();
             await this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
             this._logger.warn(`Unexpected error cancelling query: ${getErrorMessage(err)}`);
@@ -2595,8 +2595,8 @@ export default class MainController implements vscode.Disposable {
      */
     private async onChooseLanguageFlavor(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            const fileUri = this._vscodeWrapper.activeTextEditorUri;
-            if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+            const fileUri = Utils.getActiveTextEditorUri();
+            if (fileUri && Utils.isEditingSqlFile()) {
                 void this._connectionMgr.onChooseLanguageFlavor();
             } else {
                 vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
@@ -2610,7 +2610,7 @@ export default class MainController implements vscode.Disposable {
      */
     private async onDisconnect(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            let fileUri = this._vscodeWrapper.activeTextEditorUri;
+            let fileUri = Utils.getActiveTextEditorUri();
             let queryRunner = this._outputContentProvider.getQueryRunner(fileUri);
             if (queryRunner && queryRunner.isExecutingQuery) {
                 await this._outputContentProvider.cancelQuery(fileUri);
@@ -2774,8 +2774,8 @@ export default class MainController implements vscode.Disposable {
      */
     public onRebuildIntelliSense(): void {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            const fileUri = this._vscodeWrapper.activeTextEditorUri;
-            if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+            const fileUri = Utils.getActiveTextEditorUri();
+            if (fileUri && Utils.isEditingSqlFile()) {
                 this._statusview.languageServiceStatusChanged(
                     fileUri,
                     LocalizedConstants.updatingIntelliSenseStatus,
@@ -2815,7 +2815,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             let editor = vscode.window.activeTextEditor;
-            let uri = self._vscodeWrapper.activeTextEditorUri;
+            let uri = Utils.getActiveTextEditorUri();
             let title = path.basename(editor.document.fileName);
 
             // return early if the document does contain any text
@@ -2895,7 +2895,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             let editor = vscode.window.activeTextEditor;
-            let uri = this._vscodeWrapper.activeTextEditorUri;
+            let uri = Utils.getActiveTextEditorUri();
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
@@ -3021,7 +3021,7 @@ export default class MainController implements vscode.Disposable {
             return false;
         }
 
-        const uri = this._vscodeWrapper.activeTextEditorUri;
+        const uri = Utils.getActiveTextEditorUri();
         if (this._connectionMgr.isConnected(uri)) {
             return true;
         }
@@ -3094,7 +3094,7 @@ export default class MainController implements vscode.Disposable {
      * Return whether or not some text document currently has focus, and display an error message if not
      */
     private validateTextDocumentHasFocus(): boolean {
-        if (this._vscodeWrapper.activeTextEditorUri === undefined) {
+        if (Utils.getActiveTextEditorUri() === undefined) {
             Utils.showErrorMsg(LocalizedConstants.noActiveEditorMsg);
             return false;
         }
@@ -3111,7 +3111,7 @@ export default class MainController implements vscode.Disposable {
             return false;
         }
 
-        if (this._vscodeWrapper.isEditingSqlFile) {
+        if (Utils.isEditingSqlFile()) {
             return true;
         }
 

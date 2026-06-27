@@ -22,6 +22,7 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
+import * as Utils from "../../src/models/utils";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
@@ -216,7 +217,11 @@ suite("Per File Connection Tests", () => {
         const showQuickPickStub = sandbox
             .stub(vscode.window, "showQuickPick")
             .resolves(newDatabaseChoice);
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            document: {
+                uri: vscode.Uri.parse(testFile),
+            },
+        } as vscode.TextEditor);
 
         manager.client = serviceClientStub;
         manager.vscodeWrapper = vscodeWrapperStub;
@@ -272,7 +277,11 @@ suite("Per File Connection Tests", () => {
                     (option) => option.label === LocalizedConstants.disconnectOptionLabel,
                 );
             });
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            document: {
+                uri: vscode.Uri.parse(testFile),
+            },
+        } as vscode.TextEditor);
 
         manager.client = serviceClientStub;
         manager.vscodeWrapper = vscodeWrapperStub;
@@ -303,8 +312,8 @@ suite("Per File Connection Tests", () => {
     test("Prompts for new connection before running query if disconnected", async () => {
         const testFile = "file://my/test/file.sql";
         const vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        sandbox.stub(vscodeWrapperStub, "isEditingSqlFile").get(() => true);
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns(testFile);
+        sandbox.stub(Utils, "isEditingSqlFile").returns(true);
         sandbox
             .stub(vscode.window, "activeTextEditor")
             .get(() => createQueryTextEditor(testFile, "SELECT 1"));

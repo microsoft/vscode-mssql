@@ -49,6 +49,7 @@ suite("Chat Agent Request Handler Tests", () => {
     let mockToken: vscode.CancellationToken;
     let mockTextDocument: vscode.TextDocument;
     let mockConfiguration: vscode.WorkspaceConfiguration;
+    let activeTextEditor: vscode.TextEditor | undefined;
     let mockActivityObject: ActivityObject & {
         end: sinon.SinonStub;
         endFailed: sinon.SinonStub;
@@ -100,7 +101,12 @@ suite("Chat Agent Request Handler Tests", () => {
 
         // Mock VscodeWrapper
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
-        sandbox.stub(mockVscodeWrapper, "activeTextEditorUri").get(() => sampleConnectionUri);
+        activeTextEditor = {
+            document: {
+                uri: vscode.Uri.parse(sampleConnectionUri),
+            },
+        } as vscode.TextEditor;
+        sandbox.stub(vscode.window, "activeTextEditor").get(() => activeTextEditor);
 
         // Mock configuration
         configurationGet = sandbox.stub().returns(false);
@@ -640,9 +646,7 @@ suite("Chat Agent Request Handler Tests", () => {
 
         test("should return connect follow-up when disconnected", async () => {
             followupsResult.metadata.command = "help";
-            followupsSandbox
-                .stub(followupsVscodeWrapper, "activeTextEditorUri")
-                .get(() => undefined);
+            activeTextEditor = undefined;
 
             const followups = await provideFollowups(
                 followupsResult,
@@ -660,9 +664,11 @@ suite("Chat Agent Request Handler Tests", () => {
         test("should return database exploration follow-ups when connected", async () => {
             followupsResult.metadata.command = "help";
             const mockUriString = "file:///test.sql";
-            followupsSandbox
-                .stub(followupsVscodeWrapper, "activeTextEditorUri")
-                .get(() => mockUriString);
+            activeTextEditor = {
+                document: {
+                    uri: vscode.Uri.parse(mockUriString),
+                },
+            } as vscode.TextEditor;
             followupsConnectionManager.getConnectionInfo
                 .withArgs(mockUriString)
                 .returns(followupsConnection);

@@ -22,15 +22,14 @@ import { DabTool } from "../../src/copilot/tools/dabTool";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import * as Utils from "../../src/models/utils";
 
 chai.use(sinonChai);
 
 type MainControllerTestAccess = {
     validateTextDocumentHasFocus(): boolean;
     _vscodeWrapper: {
-        activeTextEditorUri?: string;
         activeTextEditor?: vscode.TextEditor;
-        isEditingSqlFile?: boolean;
     };
     _outputContentProvider: {
         runCurrentStatement: sinon.SinonStub;
@@ -103,11 +102,7 @@ suite("MainController Tests", function () {
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
         const vscodeWrapper = stubVscodeWrapper(sandbox);
-        let getterCalls = 0;
-        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => {
-            getterCalls += 1;
-            return undefined;
-        });
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns(undefined);
         const controller: MainController = new MainController(
             context,
             undefined, // ConnectionManager
@@ -121,12 +116,11 @@ suite("MainController Tests", function () {
             result,
             "Expected validateTextDocumentHasFocus to return false when the active document URI is undefined",
         ).to.be.false;
-        expect(getterCalls).to.equal(1);
     });
 
     test("validateTextDocumentHasFocus returns true if there is an active text document", () => {
         const vscodeWrapper = stubVscodeWrapper(sandbox);
-        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "test_uri");
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns("test_uri");
         const controller: MainController = new MainController(
             context,
             undefined, // ConnectionManager
@@ -169,7 +163,7 @@ suite("MainController Tests", function () {
             ensureReadyToExecuteQueryStub = sandbox
                 .stub(mainController, "ensureReadyToExecuteQuery")
                 .resolves(true);
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns("file:///test/query.sql");
 
             runCurrentStatementStub = sandbox.stub().resolves();
             runQueryStub = sandbox.stub().resolves();
@@ -344,7 +338,7 @@ suite("MainController Tests", function () {
             ensureReadyToExecuteQueryStub = sandbox
                 .stub(mainController, "ensureReadyToExecuteQuery")
                 .resolves(true);
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns("file:///test/query.sql");
 
             runQueryStub = sandbox.stub().resolves();
             controllerAccess._outputContentProvider = {
@@ -526,8 +520,8 @@ suite("MainController Tests", function () {
     suite("ensureReadyToExecuteQuery Tests", () => {
         test("returns true when the active SQL editor is already connected", async () => {
             const testUri = "file:///test/connected.sql";
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
-            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
             connectionManager.isConnected.withArgs(testUri).returns(true);
 
             const result = await mainController.ensureReadyToExecuteQuery();
@@ -538,8 +532,8 @@ suite("MainController Tests", function () {
 
         test("returns true after prompting and connecting", async () => {
             const testUri = "file:///test/notConnected.sql";
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
-            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
             connectionManager.isConnected.withArgs(testUri).returns(false);
             connectionManager.isConnecting.withArgs(testUri).returns(false);
             const promptToConnectStub = sandbox
@@ -556,13 +550,11 @@ suite("MainController Tests", function () {
             const testUri = "file:///test/connecting.sql";
             const controllerAccess = accessMainController(mainController);
 
-            // Stub the private _vscodeWrapper so ensureActiveSqlFile passes
-            // and the isConnecting path is exercised
+            // Make the active editor a SQL file so ensureActiveSqlFile passes
+            // and the isConnecting path is exercised.
             const originalWrapper = controllerAccess._vscodeWrapper;
-            controllerAccess._vscodeWrapper = {
-                activeTextEditorUri: testUri,
-                isEditingSqlFile: true,
-            };
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
 
             // connectionManager is already a stub from the outer setup
             connectionManager.isConnected.withArgs(testUri).returns(false);

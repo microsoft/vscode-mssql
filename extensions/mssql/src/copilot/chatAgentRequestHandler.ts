@@ -26,6 +26,7 @@ import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { ILogger } from "../sharedInterfaces/logger";
 import { getLogger } from "../models/logger";
+import * as Utils from "../models/utils";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,
@@ -73,7 +74,7 @@ export const createSqlAgentRequestHandler = (
         const correlationId = uuid();
         const logger = getRequestLogger();
         let conversationUri = getNextConversationUri();
-        let connectionUri = vscodeWrapper.activeTextEditorUri;
+        let connectionUri = Utils.getActiveTextEditorUri();
         logger.debug("In handler");
         logger.debug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
@@ -1096,7 +1097,7 @@ export function provideFollowups(
     _context: vscode.ChatContext,
     _token: vscode.CancellationToken,
     controller: MainController,
-    vscodeWrapper: VscodeWrapper,
+    _vscodeWrapper: VscodeWrapper,
 ): vscode.ProviderResult<vscode.ChatFollowup[]> {
     // Only show follow-ups for help command
     if ((result as ISqlChatResult).metadata?.command !== CHAT_COMMAND_NAMES.help) {
@@ -1104,7 +1105,7 @@ export function provideFollowups(
     }
 
     // Check current active editor connection directly
-    const connectionUri = vscodeWrapper.activeTextEditorUri;
+    const connectionUri = Utils.getActiveTextEditorUri();
     const connection = controller.connectionManager.getConnectionInfo(connectionUri);
     const hasConnection = !!(connectionUri && connection);
 

@@ -974,7 +974,7 @@ export default class ConnectionManager {
 
     // choose database to use on current server from UI
     public async onChooseDatabase(): Promise<boolean> {
-        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = Utils.getActiveTextEditorUri();
         if (!this.isConnected(fileUri)) {
             vscode.window.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
@@ -1033,7 +1033,7 @@ export default class ConnectionManager {
     }
 
     public async changeDatabase(newDatabaseCredentials: IConnectionInfo): Promise<boolean> {
-        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = Utils.getActiveTextEditorUri();
         if (!this.isConnected(fileUri)) {
             vscode.window.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
@@ -1054,8 +1054,8 @@ export default class ConnectionManager {
         isSqlCmdMode: boolean = false,
         isSqlCmd: boolean = false,
     ): Promise<boolean> {
-        const fileUri = this._vscodeWrapper.activeTextEditorUri;
-        if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+        const fileUri = Utils.getActiveTextEditorUri();
+        if (fileUri && Utils.isEditingSqlFile()) {
             if (isSqlCmdMode) {
                 SqlToolsServerClient.instance.sendNotification(
                     LanguageServiceContracts.LanguageFlavorChangedNotification.type,
@@ -1089,7 +1089,7 @@ export default class ConnectionManager {
 
     // close active connection, if any
     public onDisconnect(): Promise<boolean> {
-        return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
+        return this.disconnect(Utils.getActiveTextEditorUri());
     }
 
     /**
@@ -1219,14 +1219,14 @@ export default class ConnectionManager {
      * @returns the connection profile selected by the user, or undefined if canceled
      */
     public async promptToConnect(): Promise<IConnectionInfo> {
-        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = Utils.getActiveTextEditorUri();
         if (!fileUri) {
             // A text document needs to be open before we can connect
             vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return undefined;
         }
 
-        if (!this.vscodeWrapper.isEditingSqlFile) {
+        if (!Utils.isEditingSqlFile()) {
             if (!(await this.connectionUI.promptToChangeLanguageMode())) {
                 return undefined; // cancel operation
             }
@@ -1920,7 +1920,7 @@ export default class ConnectionManager {
     }
 
     public async cancelConnect(): Promise<void> {
-        let fileUri = this.vscodeWrapper.activeTextEditorUri;
+        let fileUri = Utils.getActiveTextEditorUri();
         if (!fileUri || Utils.isEmpty(fileUri)) {
             return;
         }
@@ -2317,8 +2317,10 @@ export default class ConnectionManager {
         }
 
         try {
-            const activeAccountId =
-                this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials?.accountId;
+            const activeUri = Utils.getActiveTextEditorUri();
+            const activeAccountId = activeUri
+                ? this._connections[activeUri]?.credentials?.accountId
+                : undefined;
 
             let getAccounts: () => Promise<
                 { label: string; description: string | undefined; value: string }[]
