@@ -21,19 +21,14 @@ interface LoggerChannelState {
 
 let defaultChannel: vscode.LogOutputChannel | undefined;
 const defaultChannelState: LoggerChannelState = {
-    createChannel: getDefaultChannel,
+    createChannel: () => {
+        defaultChannel ??= vscode.window.createOutputChannel(loggerOutputChannelName, {
+            log: true,
+        });
+        return defaultChannel;
+    },
     ownsChannel: false,
 };
-
-/**
- * Returns the shared MSSQL log channel, creating it on first use.
- */
-function getDefaultChannel(): vscode.LogOutputChannel {
-    defaultChannel ??= vscode.window.createOutputChannel(loggerOutputChannelName, {
-        log: true,
-    });
-    return defaultChannel;
-}
 
 /**
  * Ensures a string is normalized to a single line by replacing newlines with spaces.

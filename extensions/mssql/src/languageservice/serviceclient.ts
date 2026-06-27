@@ -19,7 +19,7 @@ import {
     type Message,
 } from "vscode-languageclient";
 import * as Utils from "../models/utils";
-import { getLogger, getMssqlOutputChannel } from "../models/logger";
+import { getLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
@@ -343,7 +343,7 @@ export default class SqlToolsServiceClient {
     }
 
     private showOutputChannelPreservingFocus(): void {
-        getMssqlOutputChannel().show(true);
+        logger.show(true);
     }
 
     private async initializeLanguageClient(

@@ -15,7 +15,6 @@ import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import SqlDocumentService from "../controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
     getNewResultPaneViewColumn,
@@ -52,11 +51,10 @@ export class QueryResultWebviewController extends WebviewViewController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
-        super(context, vscodeWrapper, "queryResult", "queryResult", {
+        super(context, "queryResult", "queryResult", {
             resultSetSummaries: {},
             messages: [],
             tabStates: {
@@ -181,7 +179,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     private get shouldAutoRevealResultsPanel(): boolean {
-        return this.vscodeWrapper.getConfiguration().get(Constants.configAutoRevealResultsPanel);
+        return vscode.workspace.getConfiguration().get(Constants.configAutoRevealResultsPanel);
     }
 
     public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
@@ -223,13 +221,13 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
-        return this.vscodeWrapper
+        return vscode.workspace
             .getConfiguration()
             .get<boolean>(Constants.configOpenQueryResultsInTabByDefault, false);
     }
 
     private get isDefaultQueryResultToDocumentDoNotShowPromptEnabled(): boolean {
-        return this.vscodeWrapper
+        return vscode.workspace
             .getConfiguration()
             .get<boolean>(Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt, false);
     }
@@ -276,7 +274,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                 );
 
                 if (response === LocalizedConstants.alwaysShowInNewTab) {
-                    await this.vscodeWrapper
+                    await vscode.workspace
                         .getConfiguration()
                         .update(
                             Constants.configOpenQueryResultsInTabByDefault,
@@ -285,7 +283,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                         );
                 }
                 // show the prompt only once
-                await this.vscodeWrapper
+                await vscode.workspace
                     .getConfiguration()
                     .update(
                         Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
@@ -350,7 +348,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     public async createPanelController(uri: string) {
-        const viewColumn = getNewResultPaneViewColumn(uri, this.vscodeWrapper);
+        const viewColumn = getNewResultPaneViewColumn(uri);
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
             return;
@@ -358,7 +356,6 @@ export class QueryResultWebviewController extends WebviewViewController<
 
         const controller = new QueryResultWebviewPanelController(
             this._context,
-            this.vscodeWrapper,
             viewColumn,
             uri,
             this._queryResultStateMap.get(uri).title,
@@ -423,7 +420,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     public getAutoSizeColumnsConfig(): qr.ResultsGridAutoSizeStyle {
-        const configValue = this.vscodeWrapper
+        const configValue = vscode.workspace
             .getConfiguration(Constants.extensionName)
             .get(Constants.configAutoColumnSizingMode) as
             | qr.ResultsGridAutoSizeStyle
@@ -446,21 +443,21 @@ export class QueryResultWebviewController extends WebviewViewController<
 
     public getFontSizeConfig(): number {
         return (
-            (this.vscodeWrapper
+            (vscode.workspace
                 .getConfiguration(Constants.extensionName)
                 .get(Constants.extConfigResultKeys.ResultsFontSize) as number) ??
-            (this.vscodeWrapper.getConfiguration("editor").get("fontSize") as number)
+            (vscode.workspace.getConfiguration("editor").get("fontSize") as number)
         );
     }
 
     public getFontFamilyConfig(): string {
-        return this.vscodeWrapper
+        return vscode.workspace
             .getConfiguration(Constants.extensionName)
             .get(Constants.extConfigResultKeys.ResultsFontFamily) as string;
     }
 
     public getGridSettingsConfig(): qr.GridSettings {
-        const config = this.vscodeWrapper.getConfiguration(Constants.extensionName);
+        const config = vscode.workspace.getConfiguration(Constants.extensionName);
         const validGridLineModes: qr.GridLinesMode[] = ["both", "horizontal", "vertical", "none"];
         const gridLinesValue = config.get(Constants.configResultsGridShowGridLines) as string;
         const showGridLines: qr.GridLinesMode = validGridLineModes.includes(
@@ -477,7 +474,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     public getDefaultViewModeConfig(): qr.QueryResultViewMode {
-        const configValue = this.vscodeWrapper
+        const configValue = vscode.workspace
             .getConfiguration(Constants.extensionName)
             .get("defaultQueryResultsViewMode") as string;
 
@@ -672,10 +669,6 @@ export class QueryResultWebviewController extends WebviewViewController<
         return this._context;
     }
 
-    public getVsCodeWrapper(): VscodeWrapper {
-        return this.vscodeWrapper;
-    }
-
     public get executionPlanService(): ExecutionPlanService {
         return this._executionPlanService;
     }
@@ -689,8 +682,11 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     private shouldCopyMessageTimestamps(uri?: string): boolean {
-        return this.vscodeWrapper
-            .getConfiguration(Constants.extensionConfigSectionName, uri)
+        return vscode.workspace
+            .getConfiguration(
+                Constants.extensionConfigSectionName,
+                uri ? vscode.Uri.parse(uri) : undefined,
+            )
             .get<boolean>(Constants.configMessagesCopyIncludeTimestamps, false);
     }
 

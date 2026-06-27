@@ -701,12 +701,12 @@ export function durationToDisplay(
     return sign + parts.join(" ");
 }
 
-function getConfiguration(): vscode.WorkspaceConfiguration {
+function getExtensionConfiguration(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
 export function getConfigTracingLevel(): string {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return config.get(configTracingLevel);
     } else {
@@ -715,7 +715,7 @@ export function getConfigTracingLevel(): string {
 }
 
 export function getConfigPiiLogging(): boolean {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return config.get(configPiiLogging);
     } else {
@@ -724,7 +724,7 @@ export function getConfigPiiLogging(): boolean {
 }
 
 export function getConfigLogFilesRemovalLimit(): number {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return Number(config.get(configLogFilesRemovalLimit, 0).toFixed(0));
     } else {
@@ -733,7 +733,7 @@ export function getConfigLogFilesRemovalLimit(): number {
 }
 
 export function getConfigLogRetentionSeconds(): number {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
     } else {
