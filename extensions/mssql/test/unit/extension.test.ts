@@ -28,6 +28,7 @@ import { UserSurvey } from "../../src/nps/userSurvey";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
 import { IconUtils } from "../../src/utils/iconUtils";
+import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
 
 const { expect } = chai;
 
@@ -88,17 +89,15 @@ suite("Extension API Tests", () => {
         sandbox.stub(UserSurvey, "createInstance").returns();
         sandbox.stub(HttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
-        sandbox.stub(SqlToolsServerClient, "instance").get(
-            () =>
-                ({
-                    sqlToolsServicePath: "test/sqltoolsservice",
-                    onNotification: sandbox.stub(), // handler stub necessary depending on test execution order
-                }) as unknown as SqlToolsServerClient,
-        );
+        const sqlToolsClient = {
+            sqlToolsServicePath: "test/sqltoolsservice",
+            onNotification: sandbox.stub().returns(disposable), // handler stub necessary depending on test execution order
+        } as unknown as SqlToolsServerClient;
+        sandbox.stub(SqlToolsServerClient, "instance").get(() => sqlToolsClient);
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
             isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
-        } as any);
+        } as UriOwnershipCoordinator);
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);
