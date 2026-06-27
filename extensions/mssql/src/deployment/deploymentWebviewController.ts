@@ -9,7 +9,6 @@ import {
     getDefaultConnectionGroupDialogProps,
 } from "../controllers/connectionGroupWebviewController";
 import MainController from "../controllers/mainController";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { FormWebviewController } from "../forms/formWebviewController";
 import { IConnectionGroup } from "../models/interfaces";
 import {
@@ -49,26 +48,18 @@ export class DeploymentWebviewController extends FormWebviewController<
     requiredInputs: DeploymentFormItemSpec[];
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
         initialConnectionGroup?: string,
     ) {
-        super(
-            context,
-            vscodeWrapper,
-            DEPLOYMENT_VIEW_ID,
-            DEPLOYMENT_VIEW_ID,
-            new DeploymentWebviewState(),
-            {
-                title: newDeployment,
-                viewColumn: vscode.ViewColumn.Active,
-                iconPath: {
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
-                },
+        super(context, DEPLOYMENT_VIEW_ID, DEPLOYMENT_VIEW_ID, new DeploymentWebviewState(), {
+            title: newDeployment,
+            viewColumn: vscode.ViewColumn.Active,
+            iconPath: {
+                dark: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
+                light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
             },
-        );
+        });
         void this.initialize(initialConnectionGroup);
     }
 

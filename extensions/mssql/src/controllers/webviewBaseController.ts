@@ -32,7 +32,6 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
 import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     AbstractMessageReader,
     AbstractMessageWriter,
@@ -151,15 +150,10 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     constructor(
         protected _context: vscode.ExtensionContext,
-        protected vscodeWrapper: VscodeWrapper,
         private _sourceFile: string,
         private _initialData: State,
         viewId?: string,
     ) {
-        if (!vscodeWrapper) {
-            vscodeWrapper = new VscodeWrapper();
-        }
-
         this.logger = logger.withPrefix(viewId ?? "WebviewBaseController");
 
         this._connectionReader = new WebviewControllerMessageReader();

@@ -48,7 +48,6 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { restartSqlServerContainer } from "../deployment/sqlServerContainer";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
@@ -122,7 +121,6 @@ export class ObjectExplorerService {
     private _inFlightChildrenFetches: Map<TreeNodeInfo, Promise<void>> = new Map();
 
     constructor(
-        _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
     ) {

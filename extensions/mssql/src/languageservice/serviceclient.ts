@@ -18,9 +18,8 @@ import {
     CloseAction,
     type Message,
 } from "vscode-languageclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Utils from "../models/utils";
-import { getLogger } from "../models/logger";
+import { getLogger, getMssqlOutputChannel } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
@@ -156,7 +155,6 @@ export default class SqlToolsServiceClient {
     constructor(
         private _server: ServerProvider,
         private _statusView: StatusView,
-        private _vscodeWrapper: VscodeWrapper,
         private _dotnetRuntimeProvider: DotnetRuntimeProvider,
     ) {}
 
@@ -164,7 +162,6 @@ export default class SqlToolsServiceClient {
     public static get instance(): SqlToolsServiceClient {
         if (SqlToolsServiceClient._instance === undefined) {
             let config = new ExtConfig();
-            let vscodeWrapper = new VscodeWrapper();
 
             let serviceLogger = getLogger("SQL Tools Service");
 
@@ -179,12 +176,11 @@ export default class SqlToolsServiceClient {
                 decompressProvider,
             );
             let serviceProvider = new ServerProvider(downloadProvider, serverStatusView);
-            let statusView = new StatusView(vscodeWrapper);
+            let statusView = new StatusView();
             let dotnetRuntimeProvider = new DotnetRuntimeProvider(serviceLogger);
             SqlToolsServiceClient._instance = new SqlToolsServiceClient(
                 serviceProvider,
                 statusView,
-                vscodeWrapper,
                 dotnetRuntimeProvider,
             );
         }
@@ -347,7 +343,7 @@ export default class SqlToolsServiceClient {
     }
 
     private showOutputChannelPreservingFocus(): void {
-        this._vscodeWrapper?.outputChannel.show(true);
+        getMssqlOutputChannel().show(true);
     }
 
     private async initializeLanguageClient(

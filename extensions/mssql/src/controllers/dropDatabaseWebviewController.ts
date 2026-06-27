@@ -14,7 +14,6 @@ import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import { ObjectManagementService } from "../services/objectManagementService";
 import { getErrorMessage } from "../utils/utils";
-import VscodeWrapper from "./vscodeWrapper";
 import { ObjectManagementWebviewController } from "./objectManagementWebviewController";
 
 interface DropDatabaseViewInfo {
@@ -27,7 +26,6 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
 
     public constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
         connectionUri: string,
         serverName: string,
@@ -39,7 +37,6 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
     ) {
         super(
             context,
-            vscodeWrapper,
             objectManagementService,
             ObjectManagementDialogType.DropDatabase,
             dialogTitle ?? LocConstants.dropDatabaseDialogTitle,

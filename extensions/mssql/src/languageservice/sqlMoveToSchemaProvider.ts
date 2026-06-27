@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import { SqlMoveToSchema as loc } from "../constants/locConstants";
 import { cmdMoveToSchema } from "../constants/constants";
 import SqlToolsServerClient from "./serviceclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     ListProjectSchemasRequest,
     SqlMoveToSchemaParams,
@@ -36,13 +35,11 @@ import {
 export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     public static readonly providedCodeActionKinds = [vscode.CodeActionKind.Refactor];
 
-    constructor(_vscodeWrapper: VscodeWrapper) {}
-
     /**
      * Registers the provider and its backing command. Returns disposables for the caller to track.
      */
-    public static register(vscodeWrapper: VscodeWrapper): vscode.Disposable[] {
-        const provider = new SqlMoveToSchemaProvider(vscodeWrapper);
+    public static register(): vscode.Disposable[] {
+        const provider = new SqlMoveToSchemaProvider();
         return [
             vscode.languages.registerCodeActionsProvider({ language: "sql" }, provider, {
                 providedCodeActionKinds: SqlMoveToSchemaProvider.providedCodeActionKinds,

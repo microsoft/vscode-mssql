@@ -13,7 +13,6 @@ import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
@@ -51,13 +50,12 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private connectionManager: ConnectionManager,
         private dacFxService: DacFxService,
         initialState: dacpacDialog.DacpacDialogWebviewState,
         ownerUri: string,
     ) {
-        super(context, vscodeWrapper, DACPAC_DIALOG_VIEW_ID, DACPAC_DIALOG_VIEW_ID, initialState, {
+        super(context, DACPAC_DIALOG_VIEW_ID, DACPAC_DIALOG_VIEW_ID, initialState, {
             title: LocConstants.DacpacDialog.Title,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {

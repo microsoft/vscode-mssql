@@ -9,7 +9,6 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as Interfaces from "./interfaces";
 import * as path from "path";
 import { RequestType } from "vscode-languageclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as Contracts from "./contracts";
 import * as Utils from "./utils";
@@ -29,21 +28,15 @@ export type SaveAsRequestParams =
  */
 export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
-    private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
     private _filePath: string;
     private _logger: ILogger = logger.withPrefix("ResultsSerializer");
 
-    constructor(client?: SqlToolsServerClient, vscodeWrapper?: VscodeWrapper) {
+    constructor(client?: SqlToolsServerClient) {
         if (client) {
             this._client = client;
         } else {
             this._client = SqlToolsServerClient.instance;
-        }
-        if (vscodeWrapper) {
-            this._vscodeWrapper = vscodeWrapper;
-        } else {
-            this._vscodeWrapper = new VscodeWrapper();
         }
     }
 
@@ -78,9 +71,9 @@ export default class ResultsSerializer {
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
         // get save results config from vscode config
-        const config = this._vscodeWrapper.getConfiguration(
+        const config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
         let saveConfig = config[Constants.configSaveAsCsv];
         let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
@@ -108,9 +101,9 @@ export default class ResultsSerializer {
 
     private getConfigForJson(): Contracts.SaveResultsAsJsonRequestParams {
         // get save results config from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
         let saveConfig = config[Constants.configSaveAsJson];
         let saveResultsParams = new Contracts.SaveResultsAsJsonRequestParams();
@@ -125,9 +118,9 @@ export default class ResultsSerializer {
         // get save results config from vscode config
         // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
         // and we want to have just 1 setting that lists this.
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
         let saveConfig = config[Constants.configSaveAsCsv];
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
@@ -145,9 +138,9 @@ export default class ResultsSerializer {
         // get save results config from vscode config
         // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
         // and we want to have just 1 setting that lists this.
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
         let saveConfig = config[Constants.configSaveAsCsv];
         let saveResultsParams = new Contracts.SaveResultsAsInsertRequestParams();
@@ -206,9 +199,9 @@ export default class ResultsSerializer {
     }
 
     private shouldOpenSavedFile(): boolean {
-        const config = this._vscodeWrapper.getConfiguration(
+        const config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
         return config.get<boolean>(Constants.configResultsOpenAfterSave, true);
     }
