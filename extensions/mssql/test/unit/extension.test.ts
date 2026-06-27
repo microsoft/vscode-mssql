@@ -89,11 +89,12 @@ suite("Extension API Tests", () => {
         sandbox.stub(UserSurvey, "createInstance").returns();
         sandbox.stub(HttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
-        const sqlToolsClient = {
-            sqlToolsServicePath: "test/sqltoolsservice",
-            onNotification: sandbox.stub().returns(disposable), // handler stub necessary depending on test execution order
-        } as unknown as SqlToolsServerClient;
-        sandbox.stub(SqlToolsServerClient, "instance").get(() => sqlToolsClient);
+
+        const sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient> =
+            sandbox.createStubInstance(SqlToolsServerClient);
+        sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
+        sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
+
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
             isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
