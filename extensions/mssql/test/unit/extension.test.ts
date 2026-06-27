@@ -124,7 +124,7 @@ suite("Extension API Tests", () => {
             (Extension as any).uriOwnershipCoordinator = undefined;
             /* eslint-enable @typescript-eslint/no-explicit-any */
 
-            if (mainController) {
+            if (mainController && originalConnectionManager) {
                 mainController.connectionManager = originalConnectionManager;
             }
         } finally {
