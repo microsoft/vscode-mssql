@@ -1,11 +1,5 @@
-import { fileURLToPath } from "url";
 import { defineConfig } from "@vscode/test-cli";
 import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-test-config.mjs";
-
-// Absolute path so the runner resolves it regardless of its own module location.
-const sourceMapSupportHook = fileURLToPath(
-    new URL("./scripts/source-map-support-register.js", import.meta.url),
-);
 
 export default defineConfig({
     tests: [
@@ -19,10 +13,6 @@ export default defineConfig({
             mocha: createMochaConfig({
                 ui: "tdd",
                 timeout: 30_000,
-                // Remap runtime error stack traces from compiled .js back to the original .ts
-                // sources (with absolute paths) so test failures in the Test Explorer link to
-                // the correct TypeScript files.
-                require: [sourceMapSupportHook],
             }),
         },
         // {

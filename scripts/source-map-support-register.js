@@ -6,6 +6,8 @@
  * `.js` files are remapped back to their original TypeScript sources, and emits the
  * remapped paths as absolute `file://` URIs.
  *
+ * Shared by every extension's `.vscode-test.mjs` (wired in through `createMochaConfig`).
+ *
  * Two problems make the plain `source-map-support/register` entry point insufficient:
  *
  *   1. The VS Code extension test host reports compiled `.js` stack frames using paths
@@ -17,7 +19,7 @@
  *      `process.cwd()` prefix, turning the absolute path back into one relative to the
  *      extension root (e.g. `test/unit/foo.test.ts`). The Extension Test Runner then
  *      resolves that relative path against the workspace root, landing on the wrong
- *      folder (`<root>/test/unit/...` instead of `<root>/extensions/mssql/test/unit/...`).
+ *      folder (`<root>/test/unit/...` instead of `<root>/extensions/<ext>/test/unit/...`).
  *
  * Emitting the source as an absolute `file://` URI solves both: the URI is absolute,
  * and Mocha's filter (which only matches a literal filesystem-path prefix) leaves it
@@ -28,7 +30,12 @@
 const fs = require("fs");
 const path = require("path");
 const { fileURLToPath, pathToFileURL } = require("url");
-const sourceMapSupport = require("source-map-support");
+
+// This helper lives in the shared workspace `scripts/` directory, but `source-map-support`
+// is installed per-extension (the monorepo does not hoist dependencies to the root). Resolve
+// it from the extension under test (the test runner's working directory) instead of from this
+// file's location so the shared helper works for every extension.
+const sourceMapSupport = require(require.resolve("source-map-support", { paths: [process.cwd()] }));
 
 /**
  * Convert a stack-frame source reference to a filesystem path.
