@@ -174,7 +174,6 @@ export class FileEncryptionHelper {
             await vscode.window
                 .showWarningMessage(
                     LocalizedConstants.msgAzureCredStoreSaveFailedError,
-                    undefined,
                     LocalizedConstants.reloadChoice,
                     LocalizedConstants.Common.cancel,
                 )
