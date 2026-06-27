@@ -75,12 +75,14 @@ export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
     showSaveDialog: sinon.SinonStub;
     showInputBox: sinon.SinonStub;
     showQuickPick: sinon.SinonStub;
+    showTextDocument: sinon.SinonStub;
 } {
     return {
         ...stubMessageBoxes(sandbox),
         showSaveDialog: sandbox.stub(vscode.window, "showSaveDialog"),
         showInputBox: sandbox.stub(vscode.window, "showInputBox"),
         showQuickPick: sandbox.stub(vscode.window, "showQuickPick"),
+        showTextDocument: sandbox.stub(vscode.window, "showTextDocument"),
     };
 }
 
@@ -94,10 +96,12 @@ export function stubVscodeWorkspace(sandbox: sinon.SinonSandbox): {
     onDidSaveTextDocument: sinon.SinonStub;
     onDidChangeTextDocument: sinon.SinonStub;
     onDidChangeConfiguration: sinon.SinonStub;
+    openTextDocument: sinon.SinonStub;
 } {
     const disposable = new vscode.Disposable(() => undefined);
 
     return {
+        openTextDocument: sandbox.stub(vscode.workspace, "openTextDocument"),
         onDidCloseTextDocument: sandbox
             .stub(vscode.workspace, "onDidCloseTextDocument")
             .returns(disposable),

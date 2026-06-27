@@ -16,7 +16,7 @@ import { SaveResultsAsCsvRequestParams } from "../../src/models/contracts";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Contracts from "../../src/models/contracts";
-import { stubVscodeWrapper, stubVscodeWindow } from "./utils";
+import { stubVscodeWrapper, stubVscodeWindow, stubVscodeWorkspace } from "./utils";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
@@ -28,12 +28,14 @@ suite("save results tests", () => {
     let serverClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
+    let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         serverClient = sandbox.createStubInstance(SqlToolsServerClient);
         vscodeWrapper = stubVscodeWrapper(sandbox);
         vscodeWindow = stubVscodeWindow(sandbox);
+        vscodeWorkspace = stubVscodeWorkspace(sandbox);
         (vscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(
             (extensionName: string, resource?: vscode.ConfigurationScope) => {
                 return vscode.workspace.getConfiguration(extensionName, resource);
@@ -59,12 +61,8 @@ suite("save results tests", () => {
         response: Partial<Contracts.SaveResultRequestResult> = {},
     ): void {
         vscodeWindow.showSaveDialog.resolves(saveDialogUri);
-        (vscodeWrapper.openTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextDocument,
-        );
-        (vscodeWrapper.showTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextEditor,
-        );
+        vscodeWorkspace.openTextDocument.resolves(undefined as unknown as vscode.TextDocument);
+        vscodeWindow.showTextDocument.resolves(undefined as unknown as vscode.TextEditor);
         vscodeWindow.showInformationMessage.resolves(undefined);
         serverClient.sendRequest.resolves({ messages: undefined, ...response });
     }
@@ -278,12 +276,8 @@ suite("save results tests", () => {
     test("CSV configuration options are properly applied", (done) => {
         const customWrapper = stubVscodeWrapper(sandbox);
         vscodeWindow.showSaveDialog.resolves(fileUri);
-        (customWrapper.openTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextDocument,
-        );
-        (customWrapper.showTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextEditor,
-        );
+        vscodeWorkspace.openTextDocument.resolves(undefined as unknown as vscode.TextDocument);
+        vscodeWindow.showTextDocument.resolves(undefined as unknown as vscode.TextEditor);
         (customWrapper.getConfiguration as sinon.SinonStub).returns({
             saveAsCsv: {
                 delimiter: "\t",

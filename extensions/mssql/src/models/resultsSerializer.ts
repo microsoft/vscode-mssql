@@ -339,7 +339,6 @@ export default class ResultsSerializer {
      * Open the saved file in a new vscode editor pane
      */
     public openSavedFile(filePath: string, format: string): void {
-        const self = this;
         if (format === "excel") {
             // This will not open in VSCode as it's treated as binary. Use the native file opener instead
             // Note: must use filePath here, URI does not open correctly
@@ -350,10 +349,10 @@ export default class ResultsSerializer {
             });
         } else {
             let uri = vscode.Uri.file(filePath);
-            self._vscodeWrapper.openTextDocument(uri).then(
+            vscode.workspace.openTextDocument(uri).then(
                 (doc: vscode.TextDocument) => {
                     // Show open document and set focus
-                    self._vscodeWrapper
+                    vscode.window
                         .showTextDocument(doc, {
                             viewColumn: vscode.ViewColumn.One,
                             preserveFocus: false,

@@ -28,7 +28,7 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { stubVscodeWrapper, stubMessageBoxes } from "./utils";
+import { stubVscodeWrapper, stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -52,6 +52,8 @@ suite("Query Runner tests", () => {
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let clipboardWriteTextStub: sinon.SinonStub;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
+    let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
+    let showTextDocumentStub: sinon.SinonStub;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -73,6 +75,8 @@ suite("Query Runner tests", () => {
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
         messageBoxes = stubMessageBoxes(sandbox);
+        vscodeWorkspace = stubVscodeWorkspace(sandbox);
+        showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
         testStatusView = sandbox.createStubInstance(StatusView);
         QueryRunner["_runningQueries"] = [];
 
@@ -81,8 +85,8 @@ suite("Query Runner tests", () => {
         );
         messageBoxes.showErrorMessage.returns(undefined);
         messageBoxes.showInformationMessage.returns(undefined);
-        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
-        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        vscodeWorkspace.openTextDocument.resolves({} as vscode.TextDocument);
+        showTextDocumentStub.resolves({} as vscode.TextEditor);
         (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
             stubs.createWorkspaceConfiguration({}),
         );
@@ -114,8 +118,8 @@ suite("Query Runner tests", () => {
                 return undefined;
             },
         } as any;
-        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves(testDoc);
-        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        vscodeWorkspace.openTextDocument.resolves(testDoc);
+        showTextDocumentStub.resolves({} as vscode.TextEditor);
 
         // If:
         // ... I create a query runner
@@ -151,8 +155,8 @@ suite("Query Runner tests", () => {
                 return undefined;
             },
         } as any;
-        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves(testDoc);
-        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        vscodeWorkspace.openTextDocument.resolves(testDoc);
+        showTextDocumentStub.resolves({} as vscode.TextEditor);
 
         // If:
         // ... I create a query runner
