@@ -4,15 +4,14 @@
 import * as vscode from "vscode";
 import Prompt from "./prompt";
 import EscapeException from "../utils/escapeException";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 
 import * as figures from "figures";
 
 export default class InputPrompt extends Prompt {
     protected _options: vscode.InputBoxOptions;
 
-    constructor(question: any, vscodeWrapper: VscodeWrapper, ignoreFocusOut?: boolean) {
-        super(question, vscodeWrapper, ignoreFocusOut);
+    constructor(question: any, ignoreFocusOut?: boolean) {
+        super(question, ignoreFocusOut);
 
         this._options = this.defaultInputBoxOptions;
         this._options.prompt = this._question.message;

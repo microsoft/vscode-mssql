@@ -6,7 +6,6 @@
 import { AuthenticationResult, DeviceCodeRequest, PublicClientApplication } from "@azure/msal-node";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../../constants/locConstants";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { AzureAuthType, IProviderSettings, ITenant } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
 import { ILogger } from "../../sharedInterfaces/logger";
@@ -17,17 +16,9 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         protected readonly providerSettings: IProviderSettings,
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
-        protected readonly vscodeWrapper: VscodeWrapper,
         protected readonly logger: ILogger,
     ) {
-        super(
-            providerSettings,
-            context,
-            clientApplication,
-            AzureAuthType.DeviceCode,
-            vscodeWrapper,
-            logger,
-        );
+        super(providerSettings, context, clientApplication, AzureAuthType.DeviceCode, logger);
     }
 
     protected async login(

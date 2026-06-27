@@ -41,7 +41,6 @@ import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
-import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import {
     ActivityObject,
@@ -153,7 +152,6 @@ export default class ConnectionManager {
         prompter: IPrompter,
         private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
-        private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
         private _credentialStore?: CredentialStore,
         private _connectionUI?: ConnectionUI,
@@ -170,10 +168,6 @@ export default class ConnectionManager {
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
         }
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
-        }
-
         if (!this._logger) {
             this._logger = logger.withPrefix("ConnectionManager");
         }
@@ -181,7 +175,7 @@ export default class ConnectionManager {
         this._entraLogger = logger.withPrefix("Entra Auth");
 
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
+            this._credentialStore = new CredentialStore(context);
         }
 
         if (!this._connectionStore) {
@@ -189,16 +183,11 @@ export default class ConnectionManager {
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context, this.vscodeWrapper);
+            this._accountStore = new AccountStore(context);
         }
 
         if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(
-                this,
-                this._accountStore,
-                prompter,
-                this.vscodeWrapper,
-            );
+            this._connectionUI = new ConnectionUI(this, this._accountStore, prompter);
         }
 
         if (!this.azureController) {
@@ -217,11 +206,7 @@ export default class ConnectionManager {
         );
         this._firewallService = new FirewallService(this._accountService);
 
-        this._changePasswordService = new ChangePasswordService(
-            this.client,
-            this.context,
-            this.vscodeWrapper,
-        );
+        this._changePasswordService = new ChangePasswordService(this.client, this.context);
 
         if (this.client !== undefined) {
             this.client.onNotification(
@@ -257,20 +242,6 @@ export default class ConnectionManager {
         await this.migrateLegacyConnectionProfiles();
 
         this.initialized.resolve();
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set vscodeWrapper(wrapper: VscodeWrapper) {
-        this._vscodeWrapper = wrapper;
     }
 
     public get activeConnections(): { [fileUri: string]: ConnectionInfo } {
@@ -518,7 +489,7 @@ export default class ConnectionManager {
         // Using a lambda here to perform variable capture on the 'this' reference
 
         return async (event: LanguageServiceContracts.NonTSqlParams): Promise<void> => {
-            const autoDisable: boolean | undefined = await this._vscodeWrapper
+            const autoDisable: boolean | undefined = await vscode.workspace
                 .getConfiguration()
                 .get(Constants.configAutoDisableNonTSqlLanguageService);
 
@@ -557,7 +528,7 @@ export default class ConnectionManager {
                         { selectedOption: LocalizedConstants.msgYes },
                     );
 
-                    await this._vscodeWrapper
+                    await vscode.workspace
                         .getConfiguration()
                         .update(
                             Constants.configAutoDisableNonTSqlLanguageService,
@@ -565,7 +536,7 @@ export default class ConnectionManager {
                             vscode.ConfigurationTarget.Global,
                         );
                 } else if (selectedOption === LocalizedConstants.msgNo) {
-                    await this._vscodeWrapper
+                    await vscode.workspace
                         .getConfiguration()
                         .update(
                             Constants.configAutoDisableNonTSqlLanguageService,
@@ -898,7 +869,6 @@ export default class ConnectionManager {
     ): Promise<boolean> {
         const addFirewallRuleController = new AddFirewallRuleWebviewController(
             this.context,
-            this._vscodeWrapper,
             {
                 serverName: credentials.server,
                 errorMessage: errorMessage,

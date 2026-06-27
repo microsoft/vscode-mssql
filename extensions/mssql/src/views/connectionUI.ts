@@ -9,7 +9,6 @@ import { AccountStore } from "../azure/accountStore";
 import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionStore } from "../models/connectionStore";
 import * as Utils from "../models/utils";
 import {
@@ -42,12 +41,7 @@ export class ConnectionUI {
         private _connectionManager: ConnectionManager,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _vscodeWrapper?: VscodeWrapper,
-    ) {
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-    }
+    ) {}
 
     private get connectionManager(): ConnectionManager {
         return this._connectionManager;
@@ -55,20 +49,6 @@ export class ConnectionUI {
 
     private get _connectionStore(): ConnectionStore {
         return this._connectionManager.connectionStore;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set vscodeWrapper(wrapper: VscodeWrapper) {
-        this._vscodeWrapper = wrapper;
     }
 
     /**

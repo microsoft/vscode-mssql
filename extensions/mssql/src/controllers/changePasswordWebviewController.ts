@@ -11,7 +11,6 @@ import {
     ChangePasswordWebviewState,
 } from "../sharedInterfaces/changePassword";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { ChangePasswordService as ChangePasswordService } from "../services/changePasswordService";
 
@@ -22,13 +21,11 @@ export class ChangePasswordWebviewController extends WebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private credentials: IConnectionInfo,
         private changePasswordService: ChangePasswordService,
     ) {
         super(
             context,
-            vscodeWrapper,
             "changePassword",
             "changePassword",
             {

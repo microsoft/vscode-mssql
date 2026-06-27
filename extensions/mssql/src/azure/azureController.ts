@@ -13,7 +13,6 @@ import { Subscription } from "@azure/arm-subscriptions";
 import { promises as fs } from "fs";
 import { IAzureAccountSession } from "vscode-mssql";
 import { getCloudProviderSettings } from "./providerSettings";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { AzureAuthType, IAADResource, IAccount, ITenant, IToken } from "../models/contracts/azure";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -23,7 +22,6 @@ import { AccountStore } from "./accountStore";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 
 export abstract class AzureController {
-    protected _vscodeWrapper: VscodeWrapper;
     protected _credentialStoreInitialized = false;
     protected logger: ILogger;
 
@@ -33,10 +31,6 @@ export abstract class AzureController {
         protected _credentialStore: ICredentialStore,
         protected _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory,
     ) {
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-
         this.logger = Logger.forChannelName(
             LocalizedConstants.azureLogChannelName,
             "AzureController",

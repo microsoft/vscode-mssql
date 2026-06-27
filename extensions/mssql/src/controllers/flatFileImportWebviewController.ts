@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import VscodeWrapper from "./vscodeWrapper";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -50,36 +49,24 @@ export class FlatFileImportWebviewController extends FormWebviewController<
     private databases: string[] = [];
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private client: SqlToolsServiceClient,
         private connectionManager: ConnectionManager,
         private profile: ConnectionProfile,
         private ownerUri: string,
         private databaseName: string,
     ) {
-        super(
-            context,
-            vscodeWrapper,
-            "flatFileImport",
-            "flatFileImport",
-            new FlatFileImportState(),
-            {
-                title: Loc.FlatFileImport.flatFileImportTitle,
-                viewColumn: vscode.ViewColumn.One,
-                iconPath: {
-                    light: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "flatFileImport_light.svg",
-                    ),
-                    dark: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "flatFileImport_dark.svg",
-                    ),
-                },
+        super(context, "flatFileImport", "flatFileImport", new FlatFileImportState(), {
+            title: Loc.FlatFileImport.flatFileImportTitle,
+            viewColumn: vscode.ViewColumn.One,
+            iconPath: {
+                light: vscode.Uri.joinPath(
+                    context.extensionUri,
+                    "media",
+                    "flatFileImport_light.svg",
+                ),
+                dark: vscode.Uri.joinPath(context.extensionUri, "media", "flatFileImport_dark.svg"),
             },
-        );
+        });
         void this.initialize()
             .then(() => {
                 this.updateState();

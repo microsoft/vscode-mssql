@@ -31,7 +31,6 @@ import { Deferred } from "../../protocol";
 import { IPrompter } from "../../prompts/question";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
 import * as azureUtils from "../utils";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { ILogger } from "../../sharedInterfaces/logger";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
@@ -83,7 +82,6 @@ export class MsalAzureController extends AzureController {
         this._cachePluginProvider = new MsalCachePluginProvider(
             Constants.msalCacheFileName,
             this._storagePath,
-            this._vscodeWrapper,
             this.logger,
             this._credentialStore,
         );
@@ -105,7 +103,6 @@ export class MsalAzureController extends AzureController {
                 this._cachePluginProvider,
                 this.getLoggerCallback(),
                 this.context,
-                this._vscodeWrapper,
                 this.logger,
             );
 
@@ -377,7 +374,6 @@ export class CloudAuthApplication {
                         getCloudProviderSettings(this.cloudId),
                         this.context,
                         this.clientApplication,
-                        this.vscodeWrapper,
                         this.logger,
                     ),
                 );
@@ -388,7 +384,6 @@ export class CloudAuthApplication {
                         getCloudProviderSettings(this.cloudId),
                         this.context,
                         this.clientApplication,
-                        this.vscodeWrapper,
                         this.logger,
                     ),
                 );
@@ -403,7 +398,6 @@ export class CloudAuthApplication {
         private _cachePluginProvider: MsalCachePluginProvider,
         private loggerCallback: ILoggerCallback,
         private readonly context: vscode.ExtensionContext,
-        private readonly vscodeWrapper: VscodeWrapper,
         private readonly logger: ILogger,
     ) {
         this._authMappings = new Map<AzureAuthType, MsalAzureAuth>();

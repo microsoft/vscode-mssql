@@ -7,7 +7,6 @@ import * as os from "os";
 import * as crypto from "crypto";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 import {
     DidChangeEncryptionIVKeyParams,
@@ -20,7 +19,6 @@ import { azureAccountProviderCredentials } from "./constants";
 export class FileEncryptionHelper {
     constructor(
         private readonly _credentialStore: ICredentialStore,
-        _vscodeWrapper: VscodeWrapper,
         protected readonly _logger: ILogger,
         protected readonly _fileName: string,
     ) {

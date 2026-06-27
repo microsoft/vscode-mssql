@@ -12,16 +12,12 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import { getErrorMessage } from "../utils/utils";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class AccountStore {
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _logger: ILogger;
 
-    constructor(
-        private _context: vscode.ExtensionContext,
-        _vscodeWrapper: VscodeWrapper,
-    ) {
+    constructor(private _context: vscode.ExtensionContext) {
         this._logger = logger.withPrefix("AccountStore");
 
         void this.initialize().then(() => {

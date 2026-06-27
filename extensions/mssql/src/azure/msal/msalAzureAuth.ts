@@ -15,7 +15,6 @@ import {
 import * as url from "url";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../../constants/locConstants";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
 import {
     AccountType,
     AzureAuthType,
@@ -52,7 +51,6 @@ export abstract class MsalAzureAuth {
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
         protected readonly authType: AzureAuthType,
-        protected readonly vscodeWrapper: VscodeWrapper,
         protected readonly logger: ILogger,
     ) {
         this.loginEndpointUrl =
