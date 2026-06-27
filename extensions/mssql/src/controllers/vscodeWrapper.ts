@@ -94,10 +94,6 @@ export default class VscodeWrapper {
         return sqlFile;
     }
 
-    public createQuickPick<T extends vscode.QuickPickItem>(): vscode.QuickPick<T> {
-        return vscode.window.createQuickPick<T>();
-    }
-
     /**
      * Formats and shows a vscode warning message
      */

@@ -76,6 +76,7 @@ export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
     showInputBox: sinon.SinonStub;
     showQuickPick: sinon.SinonStub;
     showTextDocument: sinon.SinonStub;
+    createQuickPick: sinon.SinonStub;
 } {
     return {
         ...stubMessageBoxes(sandbox),
@@ -83,6 +84,7 @@ export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
         showInputBox: sandbox.stub(vscode.window, "showInputBox"),
         showQuickPick: sandbox.stub(vscode.window, "showQuickPick"),
         showTextDocument: sandbox.stub(vscode.window, "showTextDocument"),
+        createQuickPick: sandbox.stub(vscode.window, "createQuickPick"),
     };
 }
 
