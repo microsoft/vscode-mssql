@@ -81,7 +81,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         let currentEditor: vscode.TextEditor | undefined;
-        sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => currentEditor);
+        sandbox.stub(vscode.window, "activeTextEditor").get(() => currentEditor);
 
         setCurrentEditorColumn = (column: number): void => {
             currentEditor = { viewColumn: column } as vscode.TextEditor;

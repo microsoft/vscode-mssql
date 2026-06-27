@@ -28,20 +28,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Get the current active text editor
-     */
-    public get activeTextEditor(): vscode.TextEditor {
-        return vscode.window.activeTextEditor!;
-    }
-
-    /**
-     * get the current textDocument; any that are open?
-     */
-    public get textDocuments(): ReadonlyArray<vscode.TextDocument> {
-        return vscode.workspace.textDocuments;
-    }
-
-    /**
      * Get the URI string for the current active text editor
      */
     public get activeTextEditorUri(): string | undefined {
@@ -78,7 +64,7 @@ export default class VscodeWrapper {
      */
     public get isEditingSqlFile(): boolean {
         let sqlFile = false;
-        let editor = this.activeTextEditor;
+        let editor = vscode.window.activeTextEditor;
         if (editor) {
             if (editor.document.languageId === Constants.languageId) {
                 sqlFile = true;

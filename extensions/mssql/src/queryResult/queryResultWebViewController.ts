@@ -328,7 +328,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             return stateUri;
         }
 
-        const activeEditorUri = getUriKey(this.vscodeWrapper.activeTextEditor?.document?.uri);
+        const activeEditorUri = getUriKey(vscode.window.activeTextEditor?.document?.uri);
         if (
             activeEditorUri &&
             this._queryResultStateMap.has(activeEditorUri) &&
@@ -578,7 +578,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             this._queryResultWebviewPanelControllerMap.delete(uri);
 
             // Check if we should keep the state instead of cleaning up
-            const documentStillOpen = this.vscodeWrapper.textDocuments.some(
+            const documentStillOpen = vscode.workspace.textDocuments.some(
                 (doc) => getUriKey(doc.uri) === uri,
             );
             const shouldKeepState =
@@ -586,9 +586,7 @@ export class QueryResultWebviewController extends WebviewViewController<
 
             if (shouldKeepState) {
                 // Keep the state - only show in webview view if the document is active
-                const activeDocumentUri = getUriKey(
-                    this.vscodeWrapper.activeTextEditor?.document?.uri,
-                );
+                const activeDocumentUri = getUriKey(vscode.window.activeTextEditor?.document?.uri);
                 if (activeDocumentUri === uri && this.isVisible()) {
                     this.state = this.getQueryResultState(uri);
                 }

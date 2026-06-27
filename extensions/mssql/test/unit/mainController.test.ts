@@ -184,7 +184,7 @@ suite("MainController Tests", function () {
         test("runs the current statement when there is no selection", async () => {
             const selection = new vscode.Selection(1, 7, 1, 7);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() => createQueryTextEditor(selection, "select 'a';\nselect 'b';"));
 
             await mainController.onRunCurrentStatement();
@@ -206,7 +206,7 @@ suite("MainController Tests", function () {
         test("runs selected text when there is a non-empty selection", async () => {
             const selection = new vscode.Selection(0, 0, 0, 11);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() =>
                     createQueryTextEditor(selection, "select 'a'; select 'b';", "select 'a';"),
                 );
@@ -235,7 +235,7 @@ suite("MainController Tests", function () {
                 "select 'a';\nselect 'b';",
                 "select 'a';",
             );
-            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
             ensureReadyToExecuteQueryStub.callsFake(async () => {
                 activeEditor = createQueryTextEditor(
                     changedSelection,
@@ -265,7 +265,7 @@ suite("MainController Tests", function () {
             const originalSelection = new vscode.Selection(0, 7, 0, 7);
             const changedSelection = new vscode.Selection(1, 7, 1, 7);
             let activeEditor = createQueryTextEditor(originalSelection, "select 'a';\nselect 'b';");
-            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
             ensureReadyToExecuteQueryStub.callsFake(async () => {
                 activeEditor = createQueryTextEditor(changedSelection, "select 'a';\nselect 'b';");
                 return true;
@@ -290,7 +290,7 @@ suite("MainController Tests", function () {
         test("does not execute when the selection contains only whitespace", async () => {
             const selection = new vscode.Selection(0, 0, 0, 4);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() => createQueryTextEditor(selection, "    select 'a';", "    "));
 
             await mainController.onRunCurrentStatement();
@@ -303,7 +303,7 @@ suite("MainController Tests", function () {
             const selection = new vscode.Selection(0, 0, 0, 11);
             const secondSelection = new vscode.Selection(1, 0, 1, 11);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() =>
                     createQueryTextEditor(selection, "select 'a';\nselect 'b';", "select 'a';", [
                         selection,
@@ -323,7 +323,7 @@ suite("MainController Tests", function () {
         test("does not execute when the document is empty", async () => {
             const selection = new vscode.Selection(0, 0, 0, 0);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() => createQueryTextEditor(selection, ""));
 
             await mainController.onRunCurrentStatement();
@@ -364,7 +364,7 @@ suite("MainController Tests", function () {
                 "select 'a';\nselect 'b';",
                 "select 'a';",
             );
-            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
             ensureReadyToExecuteQueryStub.callsFake(async () => {
                 activeEditor = createQueryTextEditor(
                     changedSelection,

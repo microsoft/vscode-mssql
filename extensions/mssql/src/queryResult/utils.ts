@@ -36,7 +36,7 @@ export function getNewResultPaneViewColumn(
 
     switch (splitPaneSelection) {
         case "current":
-            return vscodeWrapper.activeTextEditor.viewColumn;
+            return vscode.window.activeTextEditor.viewColumn;
         case "end":
             const visibleEditors = vscode.window.visibleTextEditors;
             const maxViewColumn = visibleEditors.reduce((max, editor) => {

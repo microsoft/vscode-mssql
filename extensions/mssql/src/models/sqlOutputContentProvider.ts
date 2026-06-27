@@ -1038,14 +1038,14 @@ export class SqlOutputContentProvider {
 
         switch (splitPaneSelection) {
             case "current":
-                viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+                viewColumn = vscode.window.activeTextEditor.viewColumn;
                 break;
             case "end":
                 viewColumn = vscode.ViewColumn.Three;
                 break;
             // default case where splitPaneSelection is next or anything else
             default:
-                if (this._vscodeWrapper.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
+                if (vscode.window.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
                     viewColumn = vscode.ViewColumn.Two;
                 } else {
                     viewColumn = vscode.ViewColumn.Three;

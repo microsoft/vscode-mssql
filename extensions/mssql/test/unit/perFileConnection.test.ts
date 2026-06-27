@@ -306,7 +306,7 @@ suite("Per File Connection Tests", () => {
         sandbox.stub(vscodeWrapperStub, "isEditingSqlFile").get(() => true);
         sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
         sandbox
-            .stub(vscodeWrapperStub, "activeTextEditor")
+            .stub(vscode.window, "activeTextEditor")
             .get(() => createQueryTextEditor(testFile, "SELECT 1"));
 
         const connectionManagerStub = sandbox.createStubInstance(ConnectionManager);

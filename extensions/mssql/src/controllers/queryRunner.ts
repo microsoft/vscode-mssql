@@ -1238,13 +1238,13 @@ export default class QueryRunner {
      * @param selection The selection range to select
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
-        const docExists = this._vscodeWrapper.textDocuments.find(
+        const docExists = vscode.workspace.textDocuments.find(
             (textDoc) => textDoc.uri.toString() === this.uri,
         );
         if (docExists) {
             let column = vscode.ViewColumn.One;
             const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this.uri));
-            const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+            const activeTextEditor = vscode.window.activeTextEditor;
             if (activeTextEditor) {
                 column = activeTextEditor.viewColumn;
             }

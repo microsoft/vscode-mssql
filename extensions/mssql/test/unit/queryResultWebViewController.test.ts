@@ -70,7 +70,7 @@ suite("QueryResultWebviewController", () => {
             },
             viewColumn: vscode.ViewColumn.One,
         } as unknown as vscode.TextEditor;
-        sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+        sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
 
         configuration = {
             get: sandbox.stub().callsFake((key: string, defaultValue?: unknown) => {

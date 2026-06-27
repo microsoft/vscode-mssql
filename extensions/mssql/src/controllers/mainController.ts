@@ -1102,7 +1102,7 @@ export default class MainController implements vscode.Disposable {
         void this.showOnLaunchPrompts();
 
         // Handle case where SQL file is the 1st opened document
-        const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+        const activeTextEditor = vscode.window.activeTextEditor;
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
             await this.sqlDocumentService.onDidOpenTextDocument(activeTextEditor.document);
         }
@@ -2554,7 +2554,7 @@ export default class MainController implements vscode.Disposable {
         } else {
             // otherwise create a new query runner
             isSqlCmd = false;
-            const editor = this._vscodeWrapper.activeTextEditor;
+            const editor = vscode.window.activeTextEditor;
             const title = path.basename(editor.document.fileName);
             await this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
         }
@@ -2814,7 +2814,7 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
-            let editor = self._vscodeWrapper.activeTextEditor;
+            let editor = vscode.window.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
             let title = path.basename(editor.document.fileName);
 
@@ -2894,7 +2894,7 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
-            let editor = this._vscodeWrapper.activeTextEditor;
+            let editor = vscode.window.activeTextEditor;
             let uri = this._vscodeWrapper.activeTextEditorUri;
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
