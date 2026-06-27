@@ -42,13 +42,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Parse uri
-     */
-    public parseUri(uri: string): vscode.Uri {
-        return vscode.Uri.parse(uri);
-    }
-
-    /**
      * Get the URI string for the current active text editor
      */
     public get activeTextEditorUri(): string | undefined {
@@ -72,7 +65,7 @@ export default class VscodeWrapper {
     ): vscode.WorkspaceConfiguration {
         if (typeof resource === "string") {
             try {
-                resource = this.parseUri(resource);
+                resource = vscode.Uri.parse(resource);
             } catch {
                 resource = undefined;
             }

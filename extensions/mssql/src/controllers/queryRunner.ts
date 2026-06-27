@@ -381,9 +381,7 @@ export default class QueryRunner {
         };
 
         // Getting query text
-        const doc = await vscode.workspace.openTextDocument(
-            this._vscodeWrapper.parseUri(this._ownerUri),
-        );
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
         let queryString: string;
         if (selection) {
             let range = new vscode.Range(
@@ -1245,9 +1243,7 @@ export default class QueryRunner {
         );
         if (docExists) {
             let column = vscode.ViewColumn.One;
-            const doc = await vscode.workspace.openTextDocument(
-                this._vscodeWrapper.parseUri(this.uri),
-            );
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this.uri));
             const activeTextEditor = this._vscodeWrapper.activeTextEditor;
             if (activeTextEditor) {
                 column = activeTextEditor.viewColumn;

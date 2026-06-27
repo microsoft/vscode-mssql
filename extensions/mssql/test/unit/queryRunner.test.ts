@@ -80,9 +80,6 @@ suite("Query Runner tests", () => {
         testStatusView = sandbox.createStubInstance(StatusView);
         QueryRunner["_runningQueries"] = [];
 
-        (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
-            vscode.Uri.parse(value),
-        );
         messageBoxes.showErrorMessage.returns(undefined);
         messageBoxes.showInformationMessage.returns(undefined);
         vscodeWorkspace.openTextDocument.resolves({} as vscode.TextDocument);
