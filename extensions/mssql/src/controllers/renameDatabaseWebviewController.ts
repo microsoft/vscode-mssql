@@ -167,7 +167,7 @@ export class RenameDatabaseWebviewController extends ObjectManagementWebviewCont
 
             if (!script) {
                 const errorMessage = response.errorMessage ?? LocConstants.msgNoScriptGenerated;
-                void this.vscodeWrapper.showWarningMessage(errorMessage);
+                void vscode.window.showWarningMessage(errorMessage);
                 return {
                     success: false,
                     errorMessage,

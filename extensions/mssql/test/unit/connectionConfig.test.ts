@@ -14,7 +14,7 @@ import { IConnectionGroup, IConnectionProfile } from "../../src/models/interface
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { deepClone } from "../../src/models/utils";
-import { stubVscodeWrapper } from "./utils";
+import { stubVscodeWrapper, stubMessageBoxes } from "./utils";
 
 const { expect } = chai;
 
@@ -23,6 +23,7 @@ chai.use(sinonChai);
 suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let showWarningStub: sinon.SinonStub;
     let workspaceConfiguration: vscode.WorkspaceConfiguration;
 
@@ -37,6 +38,7 @@ suite("ConnectionConfig Tests", () => {
         mockGlobalConfigData = new Map();
         mockWorkspaceConfigData = new Map();
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
 
         const mockConfiguration = {
             inspect: (setting: string) => {
@@ -79,8 +81,8 @@ suite("ConnectionConfig Tests", () => {
 
         sandbox.stub(mockVscodeWrapper, "activeTextEditorUri").get(() => undefined);
 
-        mockVscodeWrapper.showErrorMessage.resolves(undefined);
-        showWarningStub = mockVscodeWrapper.showWarningMessage.resolves(undefined);
+        messageBoxes.showErrorMessage.resolves(undefined);
+        showWarningStub = messageBoxes.showWarningMessage.resolves(undefined);
     });
 
     teardown(() => {
@@ -353,7 +355,7 @@ suite("ConnectionConfig Tests", () => {
                 ];
 
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, testConnProfiles);
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connConfig = new ConnectionConfig(mockVscodeWrapper);
                 await connConfig.initialized;
@@ -365,7 +367,7 @@ suite("ConnectionConfig Tests", () => {
                 expect(result[1].id).to.be.a("string").that.is.not.empty;
                 expect(result[1].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
 
-                expect(mockVscodeWrapper.showErrorMessage).to.have.not.been.called;
+                expect(messageBoxes.showErrorMessage).to.have.not.been.called;
             });
 
             test("getConnections filters out connections that are missing a server", async () => {
@@ -380,7 +382,7 @@ suite("ConnectionConfig Tests", () => {
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
 
                 mockVscodeWrapper;
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connConfig = new ConnectionConfig(mockVscodeWrapper);
                 await connConfig.initialized;
@@ -392,7 +394,7 @@ suite("ConnectionConfig Tests", () => {
                     "Connection missing server should not be returned",
                 );
 
-                expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+                expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
             });
 
             test("updateConnection updates an existing connection profile", async () => {
@@ -887,8 +889,7 @@ suite("ConnectionConfig Tests", () => {
         }
 
         setup(() => {
-            showWarningAdvancedStub =
-                mockVscodeWrapper.showWarningMessageAdvanced.resolves(undefined);
+            showWarningAdvancedStub = messageBoxes.showWarningMessage.resolves(undefined);
         });
 
         test("prompts when behavior is defaultConnection but defaultConnectionId is empty", async () => {
@@ -901,7 +902,6 @@ suite("ConnectionConfig Tests", () => {
             expect(showWarningAdvancedStub).to.have.been.calledOnce;
             const [msg] = showWarningAdvancedStub.firstCall.args;
             expect(msg).to.include("mssql.defaultConnectionId");
-            expect(showWarningStub).to.not.have.been.called;
         });
 
         test("prompts when behavior is defaultConnection but defaultConnectionId is undefined", async () => {
@@ -934,10 +934,10 @@ suite("ConnectionConfig Tests", () => {
             await connConfig.initialized;
             await new Promise((r) => setTimeout(r, 10));
 
-            const [, , items] = showWarningAdvancedStub.firstCall.args as [
+            const [, , ...items] = showWarningAdvancedStub.firstCall.args as [
                 string,
                 unknown,
-                string[],
+                ...string[],
             ];
             expect(items).to.include(
                 LocalizedConstants.Connection.defaultConnectionSelectConnection,

@@ -10,7 +10,7 @@ import * as sinon from "sinon";
 import CodeAdapter from "../../src/prompts/adapter";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IQuestion } from "../../src/prompts/question";
-import { stubVscodeWrapper } from "./utils";
+import { stubMessageBoxes, stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -18,6 +18,7 @@ suite("Code Adapter Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let adapter: CodeAdapter;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
 
     const testMessage = {
         message: "test_message",
@@ -35,8 +36,9 @@ suite("Code Adapter Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
 
-        mockVscodeWrapper.showErrorMessage.resolves(undefined);
+        messageBoxes.showErrorMessage.resolves(undefined);
 
         adapter = new CodeAdapter(mockVscodeWrapper);
     });

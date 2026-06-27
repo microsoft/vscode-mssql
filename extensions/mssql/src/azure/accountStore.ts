@@ -20,7 +20,7 @@ export class AccountStore {
 
     constructor(
         private _context: vscode.ExtensionContext,
-        private _vscodeWrapper: VscodeWrapper,
+        _vscodeWrapper: VscodeWrapper,
     ) {
         this._logger = logger.withPrefix("AccountStore");
 
@@ -153,7 +153,7 @@ export class AccountStore {
 
         if (numRemoved > 0) {
             await this._context.globalState.update(Constants.configAzureAccount, accounts);
-            this._vscodeWrapper.showInformationMessage(
+            vscode.window.showInformationMessage(
                 Loc.Accounts.invalidEntraAccountsRemoved(numRemoved),
             );
         }

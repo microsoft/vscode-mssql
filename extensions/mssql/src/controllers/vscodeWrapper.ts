@@ -203,24 +203,10 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Formats and shows a vscode error message
-     */
-    public showErrorMessage(msg: string, ...items: string[]): Thenable<string | undefined> {
-        return vscode.window.showErrorMessage(Constants.extensionName + ": " + msg, ...items);
-    }
-
-    /**
      * Shows an input box with given options
      */
     public showInputBox(options?: vscode.InputBoxOptions): Thenable<string | undefined> {
         return vscode.window.showInputBox(options);
-    }
-
-    /**
-     * Formats and shows a vscode information message
-     */
-    public showInformationMessage(msg: string, ...items: string[]): Thenable<string | undefined> {
-        return vscode.window.showInformationMessage(Constants.extensionName + ": " + msg, ...items);
     }
 
     public showQuickPickStrings(
@@ -274,28 +260,6 @@ export default class VscodeWrapper {
     ): Promise<vscode.TextEditor> {
         const editor = await vscode.window.showTextDocument(document, options);
         return editor;
-    }
-
-    /**
-     * Formats and shows a vscode warning message
-     */
-    public showWarningMessage(msg: string): Thenable<string | undefined> {
-        return vscode.window.showWarningMessage(Constants.extensionName + ": " + msg);
-    }
-
-    /**
-     * Formats and shows a vscode warning message with items
-     */
-    public showWarningMessageAdvanced(
-        msg: string,
-        messageOptions: vscode.MessageOptions,
-        items: any[],
-    ): Thenable<string> {
-        return vscode.window.showWarningMessage(
-            Constants.extensionName + ": " + msg,
-            messageOptions,
-            ...items,
-        );
     }
 
     /**

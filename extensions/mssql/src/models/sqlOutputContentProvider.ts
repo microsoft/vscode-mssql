@@ -296,11 +296,11 @@ export class SqlOutputContentProvider {
     }
 
     public showErrorRequestHandler(message: string): void {
-        this._vscodeWrapper.showErrorMessage(message);
+        vscode.window.showErrorMessage(message);
     }
 
     public showWarningRequestHandler(message: string): void {
-        this._vscodeWrapper.showWarningMessage(message);
+        vscode.window.showWarningMessage(message);
     }
 
     //#endregion
@@ -422,7 +422,7 @@ export class SqlOutputContentProvider {
 
     private tryAcquireExecutionSlot(uri: string): boolean {
         if (this._queryExecutionInFlightUris.has(uri)) {
-            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
+            vscode.window.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
             return false;
         }
 
@@ -498,9 +498,7 @@ export class SqlOutputContentProvider {
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
-                this._vscodeWrapper.showInformationMessage(
-                    LocalizedConstants.msgRunQueryInProgress,
-                );
+                vscode.window.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
                 return;
             } else {
                 // Cancel any lingering queries that haven't been disposed yet
@@ -752,7 +750,6 @@ export class SqlOutputContentProvider {
     }
 
     public async cancelQuery(input: QueryRunner | string): Promise<void> {
-        let self = this;
         let queryRunner: QueryRunner;
 
         if (typeof input === "string") {
@@ -765,7 +762,7 @@ export class SqlOutputContentProvider {
         }
 
         if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
-            self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
+            vscode.window.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
             return;
         }
 
@@ -777,7 +774,7 @@ export class SqlOutputContentProvider {
             await queryRunner.cancel();
         } catch (error) {
             // On error, show error message
-            self._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.msgCancelQueryFailed(getErrorMessage(error)),
             );
         }
@@ -921,7 +918,6 @@ export class SqlOutputContentProvider {
      * Open a xml/json link - Opens the content in a new editor pane
      */
     public openLink(content: string, columnName: string, linkType: string): void {
-        const self = this;
         if (linkType === "xml") {
             try {
                 content = pd.xml(content);
@@ -951,19 +947,19 @@ export class SqlOutputContentProvider {
                             })
                             .then((result) => {
                                 if (!result) {
-                                    self._vscodeWrapper.showErrorMessage(
+                                    vscode.window.showErrorMessage(
                                         LocalizedConstants.msgCannotOpenContent,
                                     );
                                 }
                             });
                     },
                     (error) => {
-                        self._vscodeWrapper.showErrorMessage(error);
+                        vscode.window.showErrorMessage(getErrorMessage(error));
                     },
                 );
             },
             (error) => {
-                self._vscodeWrapper.showErrorMessage(error);
+                vscode.window.showErrorMessage(getErrorMessage(error));
             },
         );
     }

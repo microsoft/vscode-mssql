@@ -19,7 +19,7 @@ import { AccountStore } from "../../src/azure/accountStore";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { stubVscodeWrapper } from "./utils";
+import { stubMessageBoxes, stubVscodeWrapper } from "./utils";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import * as LocConstants from "../../src/constants/locConstants";
 import { CREATE_NEW_GROUP_ID } from "../../src/sharedInterfaces/connectionGroup";
@@ -33,6 +33,7 @@ suite("Connection UI tests", () => {
     let connectionUI: ConnectionUI;
 
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let accountStoreStub: sinon.SinonStubbedInstance<AccountStore>;
@@ -52,6 +53,7 @@ suite("Connection UI tests", () => {
         sandbox = sinon.createSandbox();
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         const outputChannel = vscodeWrapperStub.outputChannel;
 
         quickPickShowStub = sandbox.stub();
@@ -78,7 +80,7 @@ suite("Connection UI tests", () => {
 
         vscodeWrapperStub.createOutputChannel.returns(outputChannel);
         vscodeWrapperStub.createQuickPick.returns(quickPick);
-        vscodeWrapperStub.showErrorMessage.resolves(undefined);
+        messageBoxes.showErrorMessage.resolves(undefined);
         vscodeWrapperStub.executeCommand.resolves(undefined);
 
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
@@ -231,7 +233,7 @@ suite("Connection UI tests", () => {
 
         expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(promptStub).to.not.have.been.called;
-        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnce;
+        expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
     });
 
     test("promptToManageProfiles should prompt to manage profile", async () => {
@@ -277,7 +279,7 @@ suite("Connection UI tests", () => {
         const result = await connectionUI.editProfile();
 
         expect(result).to.be.false;
-        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnceWithExactly(
+        expect(messageBoxes.showErrorMessage).to.have.been.calledOnceWithExactly(
             LocConstants.msgNoProfilesToEdit,
         );
         expect(vscodeWrapperStub.executeCommand).to.not.have.been.calledWith(

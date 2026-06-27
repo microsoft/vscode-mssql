@@ -161,7 +161,7 @@ export abstract class ObjectManagementWebviewController<
             await vscode.window.showTextDocument(document, { preview: false });
         } catch (error) {
             this.logger.error(`Failed to open script: ${getErrorMessage(error)}`);
-            void this.vscodeWrapper.showErrorMessage(LocConstants.msgScriptingEditorFailed);
+            void vscode.window.showErrorMessage(LocConstants.msgScriptingEditorFailed);
         }
     }
 

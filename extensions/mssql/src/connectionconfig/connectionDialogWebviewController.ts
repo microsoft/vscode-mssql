@@ -915,7 +915,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("messageButtonClicked", async (state, payload) => {
             if (payload.buttonId === CLEAR_TOKEN_CACHE) {
                 this._mainController.connectionManager.azureController.clearTokenCache();
-                this.vscodeWrapper.showInformationMessage(
+                vscode.window.showInformationMessage(
                     LocalizedConstants.Accounts.clearedEntraTokenCache,
                 );
                 this.state.formMessage = undefined;

@@ -89,13 +89,13 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         position: vscode.Position,
     ): Promise<void> {
         if (!(await isInSqlProject(document.uri.fsPath))) {
-            void this.vscodeWrapper.showInformationMessage(loc.moveToSchemaOnlyInProjectFiles);
+            void vscode.window.showInformationMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;
         }
 
         const wordRange = getSqlIdentifierRange(document, position);
         if (!wordRange) {
-            void this.vscodeWrapper.showInformationMessage(loc.noMovableSymbolAtCursor);
+            void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
             return;
         }
 
@@ -117,14 +117,14 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             );
             schemas = response?.schemas ?? [];
         } catch (err) {
-            void this.vscodeWrapper.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 loc.moveToSchemaRequestFailed(err instanceof Error ? err.message : String(err)),
             );
             return;
         }
 
         if (schemas.length === 0) {
-            void this.vscodeWrapper.showInformationMessage(loc.noSchemasFound);
+            void vscode.window.showInformationMessage(loc.noSchemasFound);
             return;
         }
 
@@ -155,13 +155,13 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         try {
             refactorTarget = await resolveRefactorLogTarget(document);
         } catch (err) {
-            void this.vscodeWrapper.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 loc.resolveRefactorLogFailed(err instanceof Error ? err.message : String(err)),
             );
             return;
         }
         if (!refactorTarget) {
-            void this.vscodeWrapper.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
+            void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;
         }
 
@@ -179,14 +179,14 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 params,
             );
         } catch (err) {
-            void this.vscodeWrapper.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 loc.moveToSchemaRequestFailed(err instanceof Error ? err.message : String(err)),
             );
             return;
         }
 
         if (!response || !response.changes || Object.keys(response.changes).length === 0) {
-            void this.vscodeWrapper.showInformationMessage(loc.noMovableSymbolAtCursor);
+            void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
             return;
         }
 
@@ -213,7 +213,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 isRefactoring: true,
             });
             if (!applied) {
-                void this.vscodeWrapper.showErrorMessage(loc.applyEditFailed);
+                void vscode.window.showErrorMessage(loc.applyEditFailed);
             }
         } finally {
             if (tempUri) {

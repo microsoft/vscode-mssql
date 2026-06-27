@@ -85,7 +85,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         verificationUrl: string,
     ): Promise<void> {
         // create a notification with the device code message, usercode, and verificationurl
-        const selection = await this.vscodeWrapper.showInformationMessage(
+        const selection = await vscode.window.showInformationMessage(
             msg,
             LocalizedConstants.msgCopyAndOpenWebpage,
         );

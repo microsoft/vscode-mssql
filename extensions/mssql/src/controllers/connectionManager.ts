@@ -838,16 +838,14 @@ export default class ConnectionManager {
         profile: IConnectionProfile,
         reconnectAction: IReconnectAction,
     ): Promise<void> {
-        const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
+        const selection = await vscode.window.showWarningMessage(
             LocalizedConstants.Connection.trustServerCertificateMustBeEnabledMessage +
                 " " +
                 LocalizedConstants.Connection.trustServerCertificateMustBeEnabledPrompt,
             { modal: false },
-            [
-                LocalizedConstants.enableTrustServerCertificate,
-                LocalizedConstants.readMore,
-                LocalizedConstants.Common.cancel,
-            ],
+            LocalizedConstants.enableTrustServerCertificate,
+            LocalizedConstants.readMore,
+            LocalizedConstants.Common.cancel,
         );
         if (selection === LocalizedConstants.enableTrustServerCertificate) {
             if (profile.connectionString) {
@@ -978,7 +976,7 @@ export default class ConnectionManager {
     public async onChooseDatabase(): Promise<boolean> {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         if (!this.isConnected(fileUri)) {
-            this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
+            vscode.window.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
         }
 
@@ -1037,7 +1035,7 @@ export default class ConnectionManager {
     public async changeDatabase(newDatabaseCredentials: IConnectionInfo): Promise<boolean> {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         if (!this.isConnected(fileUri)) {
-            this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
+            vscode.window.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
         }
         await this.disconnect(fileUri);
@@ -1084,7 +1082,7 @@ export default class ConnectionManager {
             );
             return true;
         } else {
-            await this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            await vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return false;
         }
     }
@@ -1224,7 +1222,7 @@ export default class ConnectionManager {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         if (!fileUri) {
             // A text document needs to be open before we can connect
-            this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return undefined;
         }
 
@@ -1784,7 +1782,7 @@ export default class ConnectionManager {
     }> {
         // Helper for "learn more" prompts
         const showWithHelp = async (message: string, helpLabel: string, helpUrl: string) => {
-            const action = await this.vscodeWrapper.showErrorMessage(message, helpLabel);
+            const action = await vscode.window.showErrorMessage(message, helpLabel);
             if (action === helpLabel) {
                 await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
             }
@@ -2071,11 +2069,11 @@ export default class ConnectionManager {
     public async addAccount(): Promise<IAccount> {
         let account = await this.connectionUI.addNewAccount();
         if (account) {
-            this.vscodeWrapper.showInformationMessage(
+            vscode.window.showInformationMessage(
                 LocalizedConstants.accountAddedSuccessfully(account.displayInfo.displayName),
             );
         } else {
-            this.vscodeWrapper.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
+            vscode.window.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
         }
         return account;
     }
@@ -2102,26 +2100,24 @@ export default class ConnectionManager {
                             await this._accountStore.pruneInvalidAccounts();
                         }
                         void this.azureController.removeAccount(answers.account);
-                        this.vscodeWrapper.showInformationMessage(
+                        vscode.window.showInformationMessage(
                             LocalizedConstants.accountRemovedSuccessfully,
                         );
                     } catch (e) {
-                        this.vscodeWrapper.showErrorMessage(
+                        vscode.window.showErrorMessage(
                             LocalizedConstants.accountRemovalFailed(e.message),
                         );
                     }
                 }
             });
         } else {
-            this.vscodeWrapper.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
+            vscode.window.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
         }
     }
 
     public onClearAzureTokenCache(): void {
         this.azureController.clearTokenCache();
-        this.vscodeWrapper.showInformationMessage(
-            LocalizedConstants.Accounts.clearedEntraTokenCache,
-        );
+        vscode.window.showInformationMessage(LocalizedConstants.Accounts.clearedEntraTokenCache);
     }
 
     private async migrateLegacyConnectionProfiles(): Promise<void> {
@@ -2213,7 +2209,7 @@ export default class ConnectionManager {
                 `Error migrating legacy connection with ID ${profile.id}: ${getErrorMessage(err)}`,
             );
 
-            this.vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.Connection.errorMigratingLegacyConnection(
                     profile.id,
                     getErrorMessage(err),
@@ -2425,7 +2421,7 @@ export default class ConnectionManager {
             return { accountKey: result.key, token: result.token, expiresOn: result.expiresOn };
         } catch (error) {
             this._logger.error(`Security token request failed: ${getErrorMessage(error)}`);
-            this.vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.Connection.securityTokenRequestFailed(
                     getErrorMessage(error),
                     "Azure Key Vault",

@@ -47,6 +47,23 @@ export function stubVscodeWrapper(
     return vscodeWrapper;
 }
 
+/**
+ * Stubs the `vscode.window` message-box functions (`showErrorMessage`,
+ * `showInformationMessage`, `showWarningMessage`) and returns the created stubs
+ * so tests can configure return values and assert on calls.
+ */
+export function stubMessageBoxes(sandbox: sinon.SinonSandbox): {
+    showErrorMessage: sinon.SinonStub;
+    showInformationMessage: sinon.SinonStub;
+    showWarningMessage: sinon.SinonStub;
+} {
+    return {
+        showErrorMessage: sandbox.stub(vscode.window, "showErrorMessage"),
+        showInformationMessage: sandbox.stub(vscode.window, "showInformationMessage"),
+        showWarningMessage: sandbox.stub(vscode.window, "showWarningMessage"),
+    };
+}
+
 export function stubGetCapabilitiesRequest(
     sandbox?: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<SqlToolsServerClient> {

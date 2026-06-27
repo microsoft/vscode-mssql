@@ -30,6 +30,7 @@ import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
 import {
     stubExtensionContext,
+    stubMessageBoxes,
     stubPreviewService,
     stubVscodeWrapper,
     createStubLogger,
@@ -52,6 +53,7 @@ suite("ConnectionManager Tests", () => {
     let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let mockServiceClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let mockStatusView: sinon.SinonStubbedInstance<StatusView>;
@@ -62,6 +64,7 @@ suite("ConnectionManager Tests", () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         mockLogger = createStubLogger(sandbox);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
@@ -270,7 +273,7 @@ suite("ConnectionManager Tests", () => {
                 id: "00000000-1111-2222-3333-444444444444",
             } as IConnectionProfile;
 
-            mockVscodeWrapper.showErrorMessage.resolves(undefined);
+            messageBoxes.showErrorMessage.resolves(undefined);
 
             mockServiceClient.sendRequest
                 .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
@@ -282,7 +285,7 @@ suite("ConnectionManager Tests", () => {
                 "error",
             );
 
-            expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
         });
     });
 

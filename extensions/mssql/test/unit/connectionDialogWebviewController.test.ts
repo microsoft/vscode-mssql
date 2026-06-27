@@ -47,6 +47,7 @@ import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureau
 import {
     initializeIconUtils,
     stubGetCapabilitiesRequest,
+    stubMessageBoxes,
     stubPreviewService,
     stubTelemetry,
     stubUserSurvey,
@@ -82,6 +83,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let controller: ConnectionDialogWebviewController;
     let mockContext: vscode.ExtensionContext;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
@@ -120,6 +122,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         } as unknown as vscode.ExtensionContext;
 
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         mockObjectExplorerProvider = sandbox.createStubInstance(ObjectExplorerProvider);
 
         connectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -1465,7 +1468,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         expect(buttons.length).to.equal(1, "Should not surface token refresh for MSAL auth");
         expect(buttons[0].id).to.equal("azureSignIn");
         expect(azureAccountService.getAccountSecurityToken).to.not.have.been.called;
-        expect(mockVscodeWrapper.showErrorMessage).to.not.have.been.called;
+        expect(messageBoxes.showErrorMessage).to.not.have.been.called;
     });
 
     suite("database loading", () => {

@@ -634,7 +634,7 @@ export default class QueryRunner {
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {
-            this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
+            vscode.window.showErrorMessage(getErrorMessage(errorMsg));
         }
     }
 
@@ -697,7 +697,7 @@ export default class QueryRunner {
             };
         } catch (error) {
             // TODO: Localize
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             rowsFetchActivity?.endFailed(error, false);

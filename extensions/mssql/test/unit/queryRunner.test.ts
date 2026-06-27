@@ -28,7 +28,7 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { stubVscodeWrapper } from "./utils";
+import { stubVscodeWrapper, stubMessageBoxes } from "./utils";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -51,6 +51,7 @@ suite("Query Runner tests", () => {
     let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let clipboardWriteTextStub: sinon.SinonStub;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -71,14 +72,15 @@ suite("Query Runner tests", () => {
         testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
         testVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         testStatusView = sandbox.createStubInstance(StatusView);
         QueryRunner["_runningQueries"] = [];
 
         (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
             vscode.Uri.parse(value),
         );
-        (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
+        messageBoxes.showErrorMessage.returns(undefined);
+        messageBoxes.showInformationMessage.returns(undefined);
         (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
         (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
         (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
@@ -542,12 +544,12 @@ suite("Query Runner tests", () => {
             .withArgs(QueryExecuteContracts.QueryExecuteSubsetRequest.type, sinon.match.object)
             .rejects(new Error("failed"));
 
-        (testVscodeWrapper.showErrorMessage as sinon.SinonStub).resetHistory();
+        messageBoxes.showErrorMessage.resetHistory();
 
         let queryRunner = createQueryRunner(testuri, testuri);
         queryRunner.uri = testuri;
         const result = await queryRunner.getRows(0, 5, 0, 0);
-        expect(testVscodeWrapper.showErrorMessage as sinon.SinonStub).to.have.been.calledOnce;
+        expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
         expect(result).to.deep.equal({
             resultSubset: {
                 rows: [],
@@ -747,7 +749,7 @@ suite("Query Runner tests", () => {
                 const tokenSource = new vscode.CancellationTokenSource();
                 await task(progress, tokenSource.token);
             });
-            sandbox.stub(vscode.window, "showInformationMessage").resolves(undefined);
+            messageBoxes.showInformationMessage.resolves(undefined);
         });
 
         test("copyResults calls copyResults2 with correct CopyType", async () => {
@@ -974,7 +976,7 @@ suite("Query Runner tests", () => {
         test("copy operation handles errors gracefully", async () => {
             const queryRunner = createQueryRunner();
             const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
-            const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
 
             testSqlToolsServerClient.sendRequest
                 .withArgs(CopyResults2Request.type, sinon.match.object)

@@ -22,6 +22,7 @@ import {
     SqlSymbolRename as loc,
     SqlMoveToSchema as moveLoc,
 } from "../../src/constants/locConstants";
+import { stubMessageBoxes } from "./utils";
 
 chai.use(sinonChai);
 
@@ -39,8 +40,6 @@ const defaultProjFile = path.join(projectDir, "proj.sqlproj");
 /** Builds a minimal stubbed VscodeWrapper. */
 function makeVscodeWrapper(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<VscodeWrapper> {
     const wrapper = sandbox.createStubInstance(VscodeWrapper);
-    wrapper.showInformationMessage.resolves(undefined);
-    wrapper.showErrorMessage.resolves(undefined);
     return wrapper;
 }
 
@@ -552,10 +551,12 @@ suite("SqlMoveToSchemaProvider Tests", () => {
     let findFilesStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         vscodeWrapper = makeVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         provider = new SqlMoveToSchemaProvider(vscodeWrapper as unknown as VscodeWrapper);
         findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
         sendRequestStub = sandbox
@@ -596,7 +597,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         test("shows message when file is not in a SQL project", async () => {
             const doc = makeMoveDocument(sandbox);
             await provider.runMoveToSchema(doc, new vscode.Position(0, 0));
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledWith(
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
                 moveLoc.moveToSchemaOnlyInProjectFiles,
             );
         });
@@ -606,7 +607,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: [] });
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
             await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledWith(
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
                 moveLoc.noSchemasFound,
             );
         });
@@ -618,7 +619,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                 .rejects(new Error("STS error"));
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
             await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-            expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+            expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                 moveLoc.moveToSchemaRequestFailed("STS error"),
             );
         });
@@ -684,7 +685,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     .rejects(new Error("STS move failed"));
                 const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
                 await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-                expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                     moveLoc.moveToSchemaRequestFailed("STS move failed"),
                 );
             });
@@ -738,7 +739,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                 });
                 const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
                 await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-                expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                     moveLoc.applyEditFailed,
                 );
             });

@@ -400,11 +400,11 @@ export class ConnectionUI {
                         const credentialsDeleted =
                             await self.connectionManager.clearRecentConnectionsList();
                         if (credentialsDeleted) {
-                            self.vscodeWrapper.showInformationMessage(
+                            vscode.window.showInformationMessage(
                                 LocalizedConstants.msgClearedRecentConnections,
                             );
                         } else {
-                            self.vscodeWrapper.showWarningMessage(
+                            vscode.window.showWarningMessage(
                                 LocalizedConstants.msgClearedRecentConnectionsWithErrors,
                             );
                         }
@@ -517,7 +517,7 @@ export class ConnectionUI {
 
         if (profileRemoved) {
             // TODO again consider moving information prompts to the prompt package
-            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+            vscode.window.showInformationMessage(LocalizedConstants.msgProfileRemoved);
         }
         return profileRemoved;
     }
@@ -550,7 +550,7 @@ export class ConnectionUI {
         const profileItems = profiles ?? (await this._connectionStore.getProfilePickListItems());
 
         if (!profileItems || profileItems.length === 0) {
-            this._vscodeWrapper.showErrorMessage(noProfilesMessage);
+            vscode.window.showErrorMessage(noProfilesMessage);
             return undefined;
         }
 

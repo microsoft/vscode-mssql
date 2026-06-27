@@ -47,6 +47,7 @@ import {
     stubLogger,
     stubUserSurvey,
     stubVscodeWrapper,
+    stubMessageBoxes,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
 } from "./utils";
@@ -63,6 +64,7 @@ suite("DacpacDialogWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let dacFxServiceStub: sinon.SinonStubbedInstance<DacFxService>;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -103,8 +105,9 @@ suite("DacpacDialogWebviewController", () => {
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         // Stub showInformationMessage to return a resolved Promise
-        vscodeWrapperStub.showInformationMessage.resolves(undefined);
+        messageBoxes.showInformationMessage.resolves(undefined);
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         dacFxServiceStub = sandbox.createStubInstance(DacFxService);
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -1022,14 +1025,14 @@ suite("DacpacDialogWebviewController", () => {
             );
             expect(confirmHandler, "Confirm handler was not registered").to.be.a("function");
             // Mock user clicking "Deploy" button
-            vscodeWrapperStub.showWarningMessageAdvanced.resolves(
+            messageBoxes.showWarningMessage.resolves(
                 LocConstants.DacpacDialog.DeployToExistingConfirm,
             );
             const response = await confirmHandler!(undefined);
-            expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWith(
                 LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacpacDialog.DeployToExistingConfirm],
+                LocConstants.DacpacDialog.DeployToExistingConfirm,
             );
             expect(response.confirmed).to.be.true;
         });
@@ -1040,12 +1043,12 @@ suite("DacpacDialogWebviewController", () => {
             );
             expect(confirmHandler, "Confirm handler was not registered").to.be.a("function");
             // Mock user clicking Cancel button (VS Code automatically adds this)
-            vscodeWrapperStub.showWarningMessageAdvanced.resolves(undefined);
+            messageBoxes.showWarningMessage.resolves(undefined);
             const response = await confirmHandler!(undefined);
-            expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWith(
                 LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacpacDialog.DeployToExistingConfirm],
+                LocConstants.DacpacDialog.DeployToExistingConfirm,
             );
             expect(response.confirmed).to.be.false;
         });
@@ -1056,12 +1059,12 @@ suite("DacpacDialogWebviewController", () => {
             );
             expect(confirmHandler, "Confirm handler was not registered").to.be.a("function");
             // Mock user dismissing dialog with ESC (returns undefined)
-            vscodeWrapperStub.showWarningMessageAdvanced.resolves(undefined);
+            messageBoxes.showWarningMessage.resolves(undefined);
             const response = await confirmHandler!(undefined);
-            expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWith(
                 LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacpacDialog.DeployToExistingConfirm],
+                LocConstants.DacpacDialog.DeployToExistingConfirm,
             );
             expect(response.confirmed).to.be.false;
         });

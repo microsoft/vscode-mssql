@@ -56,7 +56,13 @@ import {
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { createStubLogger, initializeIconUtils, stubLogger, stubPreviewService } from "./utils";
+import {
+    createStubLogger,
+    initializeIconUtils,
+    stubLogger,
+    stubMessageBoxes,
+    stubPreviewService,
+} from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
@@ -197,6 +203,7 @@ suite("OE Service Tests", () => {
 
     suite("expandNode", () => {
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+        let messageBoxes: ReturnType<typeof stubMessageBoxes>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -209,6 +216,7 @@ suite("OE Service Tests", () => {
         setup(() => {
             sandbox = sinon.createSandbox();
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            messageBoxes = stubMessageBoxes(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -575,11 +583,11 @@ suite("OE Service Tests", () => {
 
             // Verify error message was shown to user
             expect(
-                mockVscodeWrapper.showErrorMessage.calledOnce,
+                messageBoxes.showErrorMessage.calledOnce,
                 "Error message should be shown to user",
             ).to.be.true;
             expect(
-                mockVscodeWrapper.showErrorMessage.args[0][0],
+                messageBoxes.showErrorMessage.args[0][0],
                 "Error message should be mock error message",
             ).to.equal(mockErrorMessage);
 
@@ -697,11 +705,11 @@ suite("OE Service Tests", () => {
 
             // Verify error message was shown to user
             expect(
-                mockVscodeWrapper.showErrorMessage.calledOnce,
+                messageBoxes.showErrorMessage.calledOnce,
                 "Error message should be shown to user",
             ).to.be.true;
             expect(
-                mockVscodeWrapper.showErrorMessage.args[0][0],
+                messageBoxes.showErrorMessage.args[0][0],
                 "Error message should be mock error message",
             ).to.equal(LocalizedConstants.msgUnableToExpand);
         });
@@ -765,6 +773,7 @@ suite("OE Service Tests", () => {
                 updatedCredentials: undefined,
             });
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            stubMessageBoxes(sandbox);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockFirewallService = sandbox.createStubInstance(FirewallService);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -798,7 +807,6 @@ suite("OE Service Tests", () => {
         });
 
         test("handleSessionCreationFailure should handle basic error without error number", async () => {
-            mockVscodeWrapper.showErrorMessage = sandbox.stub();
             // Create a failure response with just an error message
             const failureResponse = createMockFailureResponse({
                 errorMessage: "Connection failed",
@@ -2243,6 +2251,7 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
 
         let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+        let messageBoxes: ReturnType<typeof stubMessageBoxes>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
@@ -2263,9 +2272,8 @@ suite("OE Service Tests", () => {
             sandbox = sinon.createSandbox();
             // Create stubs for dependencies
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-            mockVscodeWrapper.showErrorMessage = sandbox
-                .stub<[string, ...string[]], Thenable<string>>()
-                .resolves();
+            messageBoxes = stubMessageBoxes(sandbox);
+            messageBoxes.showErrorMessage.resolves();
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -2504,6 +2512,7 @@ suite("OE Service Tests", () => {
             let sandbox: sinon.SinonSandbox;
             let objectExplorerService: ObjectExplorerService;
             let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+            let messageBoxes: ReturnType<typeof stubMessageBoxes>;
             let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
             let signInStub: sinon.SinonStub;
             let executeCommandStub: sinon.SinonStub;
@@ -2513,6 +2522,7 @@ suite("OE Service Tests", () => {
                 sandbox = sinon.createSandbox();
 
                 mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+                messageBoxes = stubMessageBoxes(sandbox);
                 mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
                 mockConnectionManager.connectionStore = sandbox.createStubInstance(ConnectionStore);
                 mockConnectionManager.client = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -2554,7 +2564,7 @@ suite("OE Service Tests", () => {
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2566,11 +2576,11 @@ suite("OE Service Tests", () => {
                 expect(result, "Result should be undefined when user dismisses dialog").to.be
                     .undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    messageBoxes.showErrorMessage.calledOnce,
                     "showErrorMessage should be called once",
                 ).to.be.true;
 
-                const [, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
+                const [, signInButton, editButton] = messageBoxes.showErrorMessage.args[0];
                 expect(signInButton, "First button should be Sign In and Retry").to.equal(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
@@ -2599,7 +2609,7 @@ suite("OE Service Tests", () => {
                     .onSecondCall()
                     .resolves(preparedProfile);
 
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
 
@@ -2629,7 +2639,7 @@ suite("OE Service Tests", () => {
                 // Both the initial call and the retry fail
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
 
@@ -2652,7 +2662,7 @@ suite("OE Service Tests", () => {
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
                 );
 
@@ -2683,7 +2693,7 @@ suite("OE Service Tests", () => {
                 });
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2713,7 +2723,7 @@ suite("OE Service Tests", () => {
 
                 expect(result, "Result should be undefined for generic errors").to.be.undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.called,
+                    messageBoxes.showErrorMessage.called,
                     "showErrorMessage should not be called for generic errors",
                 ).to.be.false;
             });
@@ -2725,7 +2735,7 @@ suite("OE Service Tests", () => {
 
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2737,7 +2747,7 @@ suite("OE Service Tests", () => {
                 expect(result, "Result should be undefined when user dismisses dialog").to.be
                     .undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    messageBoxes.showErrorMessage.calledOnce,
                     "showErrorMessage should be called even when feature is disabled",
                 ).to.be.true;
                 expect(
@@ -2767,7 +2777,7 @@ suite("OE Service Tests", () => {
                     .resolves(preparedProfile);
 
                 mockConnectionManager.addAccount.resolves();
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
 

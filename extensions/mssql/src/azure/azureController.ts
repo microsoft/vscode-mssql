@@ -99,7 +99,7 @@ export abstract class AzureController {
     ): Promise<ConnectionProfile | undefined> {
         let account = accountStore.getAccount(accountAnswer.key.id);
         if (!account) {
-            await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
+            await vscode.window.showErrorMessage(LocalizedConstants.msgAccountNotFound);
             throw new Error(LocalizedConstants.msgAccountNotFound);
         }
         this.logger.debug(

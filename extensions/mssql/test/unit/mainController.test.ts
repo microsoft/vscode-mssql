@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { stubTelemetry, stubExtensionContext, stubVscodeWrapper, stubMessageBoxes } from "./utils";
 import * as Constants from "../../src/constants/constants";
 import { HttpClient } from "../../src/http/httpClient";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -31,8 +31,6 @@ type MainControllerTestAccess = {
         activeTextEditorUri?: string;
         activeTextEditor?: vscode.TextEditor;
         isEditingSqlFile?: boolean;
-        showInformationMessage(message: string): Thenable<unknown> | void;
-        showErrorMessage?(message: string): Thenable<unknown> | void;
     };
     _outputContentProvider: {
         runCurrentStatement: sinon.SinonStub;
@@ -54,6 +52,7 @@ suite("MainController Tests", function () {
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let context: vscode.ExtensionContext;
 
     function createMockTextEditor(
@@ -93,6 +92,7 @@ suite("MainController Tests", function () {
         connectionManager = sandbox.createStubInstance(ConnectionManager);
 
         vscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         context = stubExtensionContext(sandbox);
         mainController = new MainController(context, connectionManager, vscodeWrapper);
     });
@@ -313,7 +313,7 @@ suite("MainController Tests", function () {
 
             await mainController.onRunCurrentStatement();
 
-            expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnceWithExactly(
+            expect(messageBoxes.showErrorMessage).to.have.been.calledOnceWithExactly(
                 LocalizedConstants.msgMultipleSelectionModeNotSupported,
             );
             expect(runQueryStub).to.not.have.been.called;
@@ -559,11 +559,9 @@ suite("MainController Tests", function () {
             // Stub the private _vscodeWrapper so ensureActiveSqlFile passes
             // and the isConnecting path is exercised
             const originalWrapper = controllerAccess._vscodeWrapper;
-            const showInfoStub = sandbox.stub().resolves();
             controllerAccess._vscodeWrapper = {
                 activeTextEditorUri: testUri,
                 isEditingSqlFile: true,
-                showInformationMessage: showInfoStub,
             };
 
             // connectionManager is already a stub from the outer setup
@@ -585,7 +583,7 @@ suite("MainController Tests", function () {
                     false,
                     "Should return false when connection is in progress",
                 );
-                expect(showInfoStub).to.have.been.calledOnceWith(
+                expect(messageBoxes.showInformationMessage).to.have.been.calledOnceWith(
                     LocalizedConstants.msgConnectionInProgress,
                 );
                 expect(promptToConnectCalled).to.equal(
@@ -609,14 +607,14 @@ suite("MainController Tests", function () {
                 isolatedConnectionManager,
                 isolatedVscodeWrapper,
             );
-            return { isolatedController, isolatedVscodeWrapper };
+            return { isolatedController };
         };
 
         test("shows error when no active schema designer exists", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
             const { sendActionEvent } = stubTelemetry(sandbox);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const findChatOpenAgentCommandStub = sandbox.stub(
                 controllerAccess,
                 "findChatOpenAgentCommand",
@@ -648,9 +646,9 @@ suite("MainController Tests", function () {
         });
 
         test("shows error when chat command is unavailable", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getActiveDesigner: sandbox.stub().returns({}),
             } as unknown as SchemaDesignerWebviewManager);
@@ -667,9 +665,9 @@ suite("MainController Tests", function () {
         });
 
         test("opens chat with schema designer starter prompt when chat command is available", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);
@@ -693,10 +691,10 @@ suite("MainController Tests", function () {
         });
 
         test("opens chat with dab starter prompt and sends telemetry", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
             const { sendActionEvent } = stubTelemetry(sandbox);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);
@@ -730,9 +728,9 @@ suite("MainController Tests", function () {
         });
 
         test("opens chat with prompt override when provided", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);

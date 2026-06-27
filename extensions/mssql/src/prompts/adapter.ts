@@ -1,7 +1,7 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import { OutputChannel } from "vscode";
+import * as vscode from "vscode";
 import * as nodeUtil from "util";
 import PromptFactory from "./factory";
 import EscapeException from "../utils/escapeException";
@@ -10,7 +10,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 
 // Supports simple pattern for prompting for user input and acting on this
 export default class CodeAdapter implements IPrompter {
-    private outChannel: OutputChannel;
+    private outChannel: vscode.OutputChannel;
     private messageLevelFormatters = {};
     constructor(private vscodeWrapper: VscodeWrapper) {
         this.outChannel = this.vscodeWrapper.outputChannel;
@@ -122,7 +122,7 @@ export default class CodeAdapter implements IPrompter {
                 return undefined;
             }
 
-            this.vscodeWrapper.showErrorMessage(err.message);
+            vscode.window.showErrorMessage(err.message);
         });
     }
 

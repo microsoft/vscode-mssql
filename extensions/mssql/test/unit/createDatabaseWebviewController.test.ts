@@ -13,6 +13,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     stubTelemetry,
     stubLogger,
+    stubMessageBoxes,
     stubVscodeWrapper,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
@@ -28,6 +29,7 @@ suite("CreateDatabaseWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let objectManagementServiceStub: sinon.SinonStubbedInstance<ObjectManagementService>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let requestHandlers: Map<string, (params: any) => Promise<any>>;
@@ -58,6 +60,7 @@ suite("CreateDatabaseWebviewController Tests", () => {
         } as unknown as vscode.ExtensionContext;
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         objectManagementServiceStub = sandbox.createStubInstance(ObjectManagementService);
 
         // Stub initializeView to return view info
@@ -229,6 +232,6 @@ suite("CreateDatabaseWebviewController Tests", () => {
         });
 
         expect(result.success).to.be.false;
-        expect(vscodeWrapperStub.showWarningMessage.calledOnce).to.be.true;
+        expect(messageBoxes.showWarningMessage.calledOnce).to.be.true;
     });
 });

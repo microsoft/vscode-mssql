@@ -163,7 +163,7 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
             const script = response.script;
 
             if (!script) {
-                void this.vscodeWrapper.showWarningMessage(LocConstants.msgNoScriptGenerated);
+                void vscode.window.showWarningMessage(LocConstants.msgNoScriptGenerated);
                 return {
                     success: false,
                     errorMessage: LocConstants.msgNoScriptGenerated,

@@ -16,6 +16,7 @@ import * as Utils from "./utils";
 import opener from "opener";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "./logger";
+import { getErrorMessage } from "../utils/utils";
 
 export type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams
@@ -225,7 +226,7 @@ export default class ResultsSerializer {
     private showSaveSucceededNotification(filePath: string, format: string): void {
         const openFileAction = LocalizedConstants.Common.openFile;
         const revealFileAction = this.getRevealFileActionLabel();
-        void this._vscodeWrapper
+        void vscode.window
             .showInformationMessage(
                 LocalizedConstants.msgSaveSucceeded(filePath),
                 openFileAction,
@@ -282,7 +283,7 @@ export default class ResultsSerializer {
         return self._client.sendRequest(type, saveResultsParams).then(
             (result) => {
                 if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage(
+                    vscode.window.showErrorMessage(
                         LocalizedConstants.msgSaveFailed(result.messages),
                     );
                     self._logger.error(LocalizedConstants.msgSaveFailed(result.messages));
@@ -295,9 +296,7 @@ export default class ResultsSerializer {
                 }
             },
             (error) => {
-                self._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.msgSaveFailed(error.message),
-                );
+                vscode.window.showErrorMessage(LocalizedConstants.msgSaveFailed(error.message));
                 self._logger.error(LocalizedConstants.msgSaveFailed(error.message));
             },
         );
@@ -330,7 +329,7 @@ export default class ResultsSerializer {
                 }
             },
             (error) => {
-                self._vscodeWrapper.showErrorMessage(error.message);
+                vscode.window.showErrorMessage(error.message);
                 self._logger.error(error.message);
             },
         );
@@ -346,7 +345,7 @@ export default class ResultsSerializer {
             // Note: must use filePath here, URI does not open correctly
             opener(filePath, undefined, (error) => {
                 if (error) {
-                    self._vscodeWrapper.showErrorMessage(error);
+                    vscode.window.showErrorMessage(getErrorMessage(error));
                 }
             });
         } else {
@@ -361,11 +360,11 @@ export default class ResultsSerializer {
                             preview: false,
                         })
                         .then(undefined, (error) => {
-                            self._vscodeWrapper.showErrorMessage(error);
+                            vscode.window.showErrorMessage(getErrorMessage(error));
                         });
                 },
                 (error) => {
-                    self._vscodeWrapper.showErrorMessage(error);
+                    vscode.window.showErrorMessage(getErrorMessage(error));
                 },
             );
         }

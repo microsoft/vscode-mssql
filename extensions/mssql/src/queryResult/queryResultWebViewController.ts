@@ -250,7 +250,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             void this.createPanelController(message.uri);
 
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
-                const response = await this.vscodeWrapper.showInformationMessage(
+                const response = await vscode.window.showInformationMessage(
                     LocalizedConstants.openQueryResultsInTabByDefaultPrompt,
                     LocalizedConstants.alwaysShowInNewTab,
                     LocalizedConstants.keepInQueryPane,
@@ -381,7 +381,7 @@ export class QueryResultWebviewController extends WebviewViewController<
             );
             this._queryResultWebviewPanelControllerMap.delete(uri);
             controller.panel.dispose();
-            void this.vscodeWrapper.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
             );
             throw e;

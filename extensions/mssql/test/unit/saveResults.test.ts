@@ -16,7 +16,7 @@ import { SaveResultsAsCsvRequestParams } from "../../src/models/contracts";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Contracts from "../../src/models/contracts";
-import { stubVscodeWrapper } from "./utils";
+import { stubVscodeWrapper, stubMessageBoxes } from "./utils";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
@@ -27,11 +27,13 @@ suite("save results tests", () => {
     let fileUri: vscode.Uri;
     let serverClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         serverClient = sandbox.createStubInstance(SqlToolsServerClient);
         vscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         (vscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(
             (extensionName: string, resource?: vscode.ConfigurationScope) => {
                 return vscode.workspace.getConfiguration(extensionName, resource);
@@ -63,13 +65,13 @@ suite("save results tests", () => {
         (vscodeWrapper.showTextDocument as sinon.SinonStub).resolves(
             undefined as unknown as vscode.TextEditor,
         );
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(undefined);
+        messageBoxes.showInformationMessage.resolves(undefined);
         serverClient.sendRequest.resolves({ messages: undefined, ...response });
     }
 
     function configureFailure(message: string): void {
         (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
-        (vscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
+        messageBoxes.showErrorMessage.returns(undefined);
         serverClient.sendRequest.resolves({ messages: message });
     }
 
@@ -99,7 +101,7 @@ suite("save results tests", () => {
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(messageBoxes.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.have.been.calledOnceWith(fileUri.fsPath, format);
         });
     }
@@ -109,7 +111,7 @@ suite("save results tests", () => {
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
-            expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
         });
     }
@@ -157,7 +159,7 @@ suite("save results tests", () => {
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
         return saveResults.onSaveResults(testFile, 0, 0, "csv", undefined).then(() => {
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(messageBoxes.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
         });
     });
@@ -167,9 +169,7 @@ suite("save results tests", () => {
         (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
             get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
         } as unknown as vscode.WorkspaceConfiguration);
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(
-            LocalizedConstants.Common.openFile,
-        );
+        messageBoxes.showInformationMessage.resolves(LocalizedConstants.Common.openFile);
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
@@ -190,7 +190,7 @@ suite("save results tests", () => {
         (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
             get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
         } as unknown as vscode.WorkspaceConfiguration);
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(revealFileAction);
+        messageBoxes.showInformationMessage.resolves(revealFileAction);
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
@@ -213,7 +213,7 @@ suite("save results tests", () => {
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
         return saveResults.onSaveResults(testFile, 0, 0, "excel", undefined).then(() => {
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(messageBoxes.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
         });
     });

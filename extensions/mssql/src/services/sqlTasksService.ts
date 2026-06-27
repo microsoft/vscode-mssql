@@ -350,10 +350,7 @@ export class SqlTasksService {
                 if (actionButtonText && handler.actionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
                     void Promise.resolve(
-                        this._vscodeWrapper.showInformationMessage(
-                            successMessage,
-                            actionButtonText,
-                        ),
+                        vscode.window.showInformationMessage(successMessage, actionButtonText),
                     ).then((selection) => {
                         if (selection === actionButtonText) {
                             const command = handler.actionCommand!;
@@ -366,7 +363,7 @@ export class SqlTasksService {
                     });
                 } else {
                     // Show notification without action button
-                    void this._vscodeWrapper.showInformationMessage(successMessage);
+                    void vscode.window.showInformationMessage(successMessage);
                 }
             } else {
                 // Show generic completion message for tasks without custom handlers
@@ -492,14 +489,14 @@ export class SqlTasksService {
      */
     private showCompletionMessage(taskStatus: TaskStatus, message: string): void {
         if (taskStatus === TaskStatus.Failed) {
-            void this._vscodeWrapper.showErrorMessage(message);
+            void vscode.window.showErrorMessage(message);
         } else if (
             taskStatus === TaskStatus.Canceled ||
             taskStatus === TaskStatus.SucceededWithWarning
         ) {
-            void this._vscodeWrapper.showWarningMessage(message);
+            void vscode.window.showWarningMessage(message);
         } else {
-            void this._vscodeWrapper.showInformationMessage(message);
+            void vscode.window.showInformationMessage(message);
         }
     }
 }

@@ -18,6 +18,7 @@ import {
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubMessageBoxes } from "./utils";
 import { TaskExecutionMode } from "../../src/enums";
 import * as telemetry from "../../src/telemetry/telemetry";
 
@@ -41,9 +42,10 @@ suite("SqlTasksService Tests", () => {
         sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
         vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
 
-        showInformationMessageStub = vscodeWrapperStub.showInformationMessage;
-        showErrorMessageStub = vscodeWrapperStub.showErrorMessage;
-        showWarningMessageStub = vscodeWrapperStub.showWarningMessage;
+        const messageBoxes = stubMessageBoxes(sandbox);
+        showInformationMessageStub = messageBoxes.showInformationMessage;
+        showErrorMessageStub = messageBoxes.showErrorMessage;
+        showWarningMessageStub = messageBoxes.showWarningMessage;
         executeCommandStub = vscodeWrapperStub.executeCommand;
 
         // Stub telemetry

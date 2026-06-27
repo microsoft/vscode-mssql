@@ -14,6 +14,7 @@ import {
     stubTelemetry,
     stubLogger,
     stubVscodeWrapper,
+    stubMessageBoxes,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
 } from "./utils";
@@ -28,6 +29,7 @@ suite("RenameDatabaseWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let objectManagementServiceStub: sinon.SinonStubbedInstance<ObjectManagementService>;
     let requestHandlers: Map<string, (params: unknown) => Promise<unknown>>;
     let initializeViewCalled: Promise<void>;
@@ -63,6 +65,7 @@ suite("RenameDatabaseWebviewController Tests", () => {
         } as unknown as vscode.ExtensionContext;
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         objectManagementServiceStub = sandbox.createStubInstance(ObjectManagementService);
         initializeViewCalled = new Promise<void>((resolve) => {
             resolveInitializeViewCalled = resolve;
@@ -258,6 +261,6 @@ suite("RenameDatabaseWebviewController Tests", () => {
             success: false,
             errorMessage: "Rename script failed",
         });
-        expect(vscodeWrapperStub.showWarningMessage.calledWith("Rename script failed")).to.be.true;
+        expect(messageBoxes.showWarningMessage.calledWith("Rename script failed")).to.be.true;
     });
 });

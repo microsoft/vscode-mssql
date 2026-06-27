@@ -279,10 +279,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
         // Confirm deploy to existing database request handler
         this.onRequest(dacpacDialog.ConfirmDeployToExistingWebviewRequest.type, async () => {
-            const result = await this.vscodeWrapper.showWarningMessageAdvanced(
+            const result = await vscode.window.showWarningMessage(
                 LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacpacDialog.DeployToExistingConfirm],
+                LocConstants.DacpacDialog.DeployToExistingConfirm,
             );
 
             return {

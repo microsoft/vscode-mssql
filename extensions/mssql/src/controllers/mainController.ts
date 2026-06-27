@@ -443,7 +443,7 @@ export default class MainController implements vscode.Disposable {
                             await this.createObjectExplorerSession(profile);
                         })
                         .catch((err) => {
-                            this._vscodeWrapper.showErrorMessage(err);
+                            vscode.window.showErrorMessage(getErrorMessage(err));
                         });
                 },
             );
@@ -541,9 +541,7 @@ export default class MainController implements vscode.Disposable {
                         }
                     } else {
                         // The editor was somehow not created
-                        this._vscodeWrapper.showErrorMessage(
-                            "Chat with database: unable to open editor",
-                        );
+                        vscode.window.showErrorMessage("Chat with database: unable to open editor");
                     }
                 }
 
@@ -586,7 +584,7 @@ export default class MainController implements vscode.Disposable {
                         );
                     } else {
                         // Fallback or error handling
-                        this._vscodeWrapper.showErrorMessage(
+                        vscode.window.showErrorMessage(
                             LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
                         );
                     }
@@ -1029,7 +1027,7 @@ export default class MainController implements vscode.Disposable {
 
         if (!SchemaDesignerWebviewManager.getInstance().getActiveDesigner()) {
             sendCopilotChatEntryTelemetry(false, "noActiveDesigner");
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.MssqlChatAgent.schemaDesignerNoActiveDesigner,
             );
             return;
@@ -1038,7 +1036,7 @@ export default class MainController implements vscode.Disposable {
         const chatCommand = await this.findChatOpenAgentCommand();
         if (!chatCommand) {
             sendCopilotChatEntryTelemetry(false, "chatCommandMissing");
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
             );
             return;
@@ -1474,7 +1472,7 @@ export default class MainController implements vscode.Disposable {
                 async (node?: TreeNodeInfo) => {
                     const targetNode = resolveSelectedNode(node);
                     if (!targetNode) {
-                        void this._vscodeWrapper.showErrorMessage(
+                        void vscode.window.showErrorMessage(
                             LocalizedConstants.msgSelectServerNodeToCreateDatabase,
                         );
                         return;
@@ -1490,7 +1488,7 @@ export default class MainController implements vscode.Disposable {
                               : undefined;
 
                     if (!serverNode || serverNode.nodeType !== Constants.serverLabel) {
-                        void this._vscodeWrapper.showErrorMessage(
+                        void vscode.window.showErrorMessage(
                             LocalizedConstants.msgSelectServerNodeToCreateDatabase,
                         );
                         return;
@@ -1501,7 +1499,7 @@ export default class MainController implements vscode.Disposable {
                         connectionProfile &&
                         this._connectionMgr.getUriForConnection(connectionProfile);
                     if (!connectionUri) {
-                        void this._vscodeWrapper.showErrorMessage(
+                        void vscode.window.showErrorMessage(
                             LocalizedConstants.msgChooseDatabaseNotConnected,
                         );
                         return;
@@ -1545,7 +1543,7 @@ export default class MainController implements vscode.Disposable {
                 async (node?: TreeNodeInfo) => {
                     const targetNode = resolveSelectedNode(node);
                     if (!targetNode || targetNode.nodeType !== Constants.databaseString) {
-                        void this._vscodeWrapper.showErrorMessage(
+                        void vscode.window.showErrorMessage(
                             LocalizedConstants.msgSelectDatabaseNodeToDrop,
                         );
                         return;
@@ -1556,7 +1554,7 @@ export default class MainController implements vscode.Disposable {
                         connectionProfile &&
                         this._connectionMgr.getUriForConnection(connectionProfile);
                     if (!connectionUri) {
-                        void this._vscodeWrapper.showErrorMessage(
+                        void vscode.window.showErrorMessage(
                             LocalizedConstants.msgChooseDatabaseNotConnected,
                         );
                         return;
@@ -1592,7 +1590,7 @@ export default class MainController implements vscode.Disposable {
                 async (node?: TreeNodeInfo) => {
                     const targetNode = resolveSelectedNode(node);
                     if (!targetNode || targetNode.nodeType !== Constants.databaseString) {
-                        void this._vscodeWrapper.showErrorMessage(
+                        void vscode.window.showErrorMessage(
                             LocalizedConstants.msgSelectDatabaseNodeToRename,
                         );
                         return;
@@ -1603,7 +1601,7 @@ export default class MainController implements vscode.Disposable {
                         connectionProfile &&
                         this._connectionMgr.getUriForConnection(connectionProfile);
                     if (!connectionUri) {
-                        void this._vscodeWrapper.showErrorMessage(
+                        void vscode.window.showErrorMessage(
                             LocalizedConstants.msgChooseDatabaseNotConnected,
                         );
                         return;
@@ -1643,7 +1641,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNodeSignIn,
                 async (node: AccountSignInTreeNode) => {
-                    let choice = await this._vscodeWrapper.showErrorMessage(
+                    let choice = await vscode.window.showErrorMessage(
                         LocalizedConstants.ObjectExplorer.FailedOEConnectionError,
                         LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorRetry,
                         LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
@@ -2602,7 +2600,7 @@ export default class MainController implements vscode.Disposable {
             if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
                 void this._connectionMgr.onChooseLanguageFlavor();
             } else {
-                this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+                vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             }
         }
         return false;
@@ -2790,7 +2788,7 @@ export default class MainController implements vscode.Disposable {
                     },
                 );
             } else {
-                this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+                vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             }
         }
     }
@@ -2829,7 +2827,7 @@ export default class MainController implements vscode.Disposable {
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
             if (editor.selections?.length > 1) {
-                self._vscodeWrapper.showErrorMessage(
+                vscode.window.showErrorMessage(
                     LocalizedConstants.msgMultipleSelectionModeNotSupported,
                 );
                 return;
@@ -2903,7 +2901,7 @@ export default class MainController implements vscode.Disposable {
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
             if (editor.selections?.length > 1) {
-                this._vscodeWrapper.showErrorMessage(
+                vscode.window.showErrorMessage(
                     LocalizedConstants.msgMultipleSelectionModeNotSupported,
                 );
                 return;
@@ -3030,7 +3028,7 @@ export default class MainController implements vscode.Disposable {
         }
 
         if (this._connectionMgr.isConnecting(uri)) {
-            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgConnectionInProgress);
+            vscode.window.showInformationMessage(LocalizedConstants.msgConnectionInProgress);
             return false;
         }
 
@@ -3045,9 +3043,8 @@ export default class MainController implements vscode.Disposable {
      * Executes a callback and logs any errors raised
      */
     private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
-        let self = this;
         return promise.catch((err) => {
-            self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
+            vscode.window.showErrorMessage(LocalizedConstants.msgError + err);
             return undefined;
         });
     }
@@ -3135,7 +3132,7 @@ export default class MainController implements vscode.Disposable {
         if (!this.doesExtensionLaunchedFileExist()) {
             // ask the user to view release notes document
             let confirmText = LocalizedConstants.viewMore;
-            let promiseReleaseNotes = this._vscodeWrapper
+            let promiseReleaseNotes = vscode.window
                 .showInformationMessage(
                     LocalizedConstants.releaseNotesPromptDescription,
                     confirmText,

@@ -204,7 +204,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
             );
 
             if (!script) {
-                void this.vscodeWrapper.showWarningMessage(LocConstants.msgNoScriptGenerated);
+                void vscode.window.showWarningMessage(LocConstants.msgNoScriptGenerated);
                 return {
                     success: false,
                     errorMessage: LocConstants.msgNoScriptGenerated,

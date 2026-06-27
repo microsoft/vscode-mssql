@@ -94,10 +94,12 @@ export class ConnectionConfig implements IConnectionConfig {
         }
         this._hasDisplayedDefaultConnectionIdWarning = true;
 
-        const choice = await this._vscodeWrapper.showWarningMessageAdvanced(warningMessage, {}, [
+        const choice = await vscode.window.showWarningMessage(
+            warningMessage,
+            {},
             LocalizedConstants.Connection.defaultConnectionSelectConnection,
             LocalizedConstants.Connection.defaultConnectionChangeSetting,
-        ]);
+        );
 
         if (choice === LocalizedConstants.Connection.defaultConnectionSelectConnection) {
             await this.promptSelectDefaultConnection();
@@ -191,7 +193,7 @@ export class ConnectionConfig implements IConnectionConfig {
                         (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
                     )
                 ) {
-                    this._vscodeWrapper.showErrorMessage(
+                    vscode.window.showErrorMessage(
                         LocalizedConstants.Connection.missingConnectionInformation(conn.id),
                     );
 
@@ -292,7 +294,7 @@ export class ConnectionConfig implements IConnectionConfig {
             this._logger.error(
                 `Multiple connection groups with ID "${ConnectionConfig.ROOT_GROUP_ID}" found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.`,
             );
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.Connection.multipleRootGroupsFoundError(
                     ConnectionConfig.ROOT_GROUP_ID,
                 ),
@@ -943,7 +945,7 @@ export class ConnectionConfig implements IConnectionConfig {
                     invalidGroups.map((group) => group.name).join(", "),
                 );
 
-            void this._vscodeWrapper.showWarningMessage(orphanedGroupsMessage);
+            void vscode.window.showWarningMessage(orphanedGroupsMessage);
         }
 
         return groupsToKeep;
@@ -993,7 +995,7 @@ export class ConnectionConfig implements IConnectionConfig {
                     orphanedConnections.map((conn) => getConnectionDisplayName(conn)),
                 );
 
-            void this._vscodeWrapper.showWarningMessage(orphanedConnectionsMessage);
+            void vscode.window.showWarningMessage(orphanedConnectionsMessage);
         }
 
         return filteredConnections;

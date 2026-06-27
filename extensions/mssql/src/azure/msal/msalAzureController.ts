@@ -294,11 +294,11 @@ export class MsalAzureController extends AzureController {
                         settings,
                     );
                 } catch (ex) {
-                    this._vscodeWrapper.showErrorMessage(ex);
+                    vscode.window.showErrorMessage(getErrorMessage(ex));
                 }
             }
             if (getErrorMessage(ex).includes(AzureConstants.multiple_matching_tokens_error)) {
-                const response = await this._vscodeWrapper.showErrorMessage(
+                const response = await vscode.window.showErrorMessage(
                     LocalizedConstants.ConnectionDialog.multipleMatchingTokensError(
                         account?.displayInfo?.displayName,
                         tenantId,
@@ -311,7 +311,7 @@ export class MsalAzureController extends AzureController {
                     return await this.refreshAccessToken(account, accountStore, tenantId, settings);
                 }
             } else {
-                this._vscodeWrapper.showErrorMessage(ex);
+                vscode.window.showErrorMessage(getErrorMessage(ex));
             }
         }
     }
