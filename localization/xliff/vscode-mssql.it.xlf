@@ -125,7 +125,7 @@
       </trans-unit>
       <trans-unit id="++CODE++07c30a3a0d752e12c0b2a23084bf77b6747f3b7fa00b7e9d820a3bc18040418a">
         <source xml:lang="en">1 row</source>
-        <target state="new">1 row</target>
+        <target state="translated">1 riga</target>
       </trans-unit>
       <trans-unit id="++CODE++41cf433995f12e73203aa3213ef1239975fae6486ddfbac3758709f815d0f57b">
         <source xml:lang="en">1 row returned</source>
@@ -776,7 +776,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++41835ff14ac6b8c789e93c4f3af5fdda54d093c45144a3cce1bb907e9c222162">
         <source xml:lang="en">Avg</source>
-        <target state="new">Avg</target>
+        <target state="translated">Media</target>
       </trans-unit>
       <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
         <source xml:lang="en">Azure (China)</source>
@@ -2377,7 +2377,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++37bac4952becf21ac5838d3c9ba82811bc421c857571e89634dcbe346681d54c">
         <source xml:lang="en">Count</source>
-        <target state="new">Count</target>
+        <target state="translated">Numero</target>
       </trans-unit>
       <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
         <source xml:lang="en">Count: {0}</source>
@@ -5839,7 +5839,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++a1a5936d3b0f8a69fd62c91ed9990d3bd414c5e78c603e2837c65c9f46a93eb8">
         <source xml:lang="en">Max</source>
-        <target state="new">Max</target>
+        <target state="translated">Max</target>
       </trans-unit>
       <trans-unit id="++CODE++5493d99b17c225af455b0fdaa53425c8fadd62f34935b8c02b8c1504f281acba">
         <source xml:lang="en">Max 10 databases / subscription</source>
@@ -5983,7 +5983,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++dea79332147ffe1fb2a81cf9a5bdf0066ddcc625699996ede0ce140e5cb004b1">
         <source xml:lang="en">Min</source>
-        <target state="new">Min</target>
+        <target state="translated">Min</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -7207,7 +7207,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
         <source xml:lang="en">Press desired key combination and then press ENTER.</source>
-        <target state="new">Press desired key combination and then press ENTER.</target>
+        <target state="translated">Premere la combinazione di tasti desiderata, quindi INVIO.</target>
       </trans-unit>
       <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
         <source xml:lang="en">Preview</source>
@@ -7947,7 +7947,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++101f2ff3de22441fcab3e15ca0b09ac3428642cf628558f16fa404fc3137baea">
         <source xml:lang="en">Rows</source>
-        <target state="new">Rows</target>
+        <target state="translated">Righe</target>
       </trans-unit>
       <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
         <source xml:lang="en">Rows per page</source>
@@ -8728,7 +8728,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
         <source xml:lang="en">Selected</source>
-        <target state="new">Selected</target>
+        <target state="translated">Selezionato</target>
       </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
@@ -8744,7 +8744,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
         <source xml:lang="en">Selection</source>
-        <target state="new">Selection</target>
+        <target state="translated">Selezione</target>
       </trans-unit>
       <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
         <source xml:lang="en">Sequelize</source>
@@ -9344,7 +9344,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++a21d7df04c33f5076ceee7d9b9c58339aa8c29bb9a53808233ba5b480fffd0e3">
         <source xml:lang="en">Sum</source>
-        <target state="new">Sum</target>
+        <target state="translated">Somma</target>
       </trans-unit>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
@@ -9833,7 +9833,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
         <source xml:lang="en">Time</source>
-        <target state="new">Time</target>
+        <target state="translated">Orario</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
