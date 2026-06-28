@@ -2497,6 +2497,10 @@ export default class MainController implements vscode.Disposable {
     private async onToggleSqlCmd(): Promise<void> {
         let isSqlCmd: boolean;
         const uri = Utils.getActiveTextEditorUri();
+        if (!uri) {
+            vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            return;
+        }
         const queryRunner = this._outputContentProvider.getQueryRunner(uri);
         // if a query runner exists, use it
         if (queryRunner) {
@@ -2505,12 +2509,12 @@ export default class MainController implements vscode.Disposable {
             // otherwise create a new query runner
             isSqlCmd = false;
             const editor = vscode.window.activeTextEditor;
-            const title = path.basename(editor.document.fileName);
+            const title = path.basename(editor?.document.fileName ?? uri);
             await this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
         }
-        await this._outputContentProvider.toggleSqlCmd(Utils.getActiveTextEditorUri());
+        await this._outputContentProvider.toggleSqlCmd(uri);
         await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
-        this._statusview.sqlCmdModeChanged(Utils.getActiveTextEditorUri(), !isSqlCmd);
+        this._statusview.sqlCmdModeChanged(uri, !isSqlCmd);
     }
 
     /**

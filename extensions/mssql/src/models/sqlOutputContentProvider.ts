@@ -188,8 +188,8 @@ export class SqlOutputContentProvider {
             vscode.Uri.parse(queryUri),
         );
         let config = new ResultsConfig();
-        for (let key in Constants.extConfigResultKeys) {
-            config[key] = extConfig[key];
+        for (let key of Object.values(Constants.extConfigResultKeys)) {
+            (config as unknown as Record<string, unknown>)[key] = extConfig.get(key);
         }
         return Promise.resolve(config);
     }
@@ -1027,12 +1027,12 @@ export class SqlOutputContentProvider {
             Constants.extensionConfigSectionName,
             vscode.Uri.parse(queryUri),
         );
-        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let splitPaneSelection = config.get<string>(Constants.configSplitPaneSelection);
         let viewColumn: vscode.ViewColumn;
 
         switch (splitPaneSelection) {
             case "current":
-                viewColumn = vscode.window.activeTextEditor.viewColumn;
+                viewColumn = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
                 break;
             case "end":
                 viewColumn = vscode.ViewColumn.Three;

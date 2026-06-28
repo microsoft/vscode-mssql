@@ -72,7 +72,7 @@ export const createSqlAgentRequestHandler = (
         const correlationId = uuid();
         const logger = getRequestLogger();
         let conversationUri = getNextConversationUri();
-        let connectionUri = Utils.getActiveTextEditorUri();
+        let connectionUri = Utils.getActiveTextEditorUri() ?? "";
         logger.debug("In handler");
         logger.debug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
@@ -1103,7 +1103,9 @@ export function provideFollowups(
 
     // Check current active editor connection directly
     const connectionUri = Utils.getActiveTextEditorUri();
-    const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+    const connection = connectionUri
+        ? controller.connectionManager.getConnectionInfo(connectionUri)
+        : undefined;
     const hasConnection = !!(connectionUri && connection);
 
     // If no active connection, suggest connecting

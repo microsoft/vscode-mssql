@@ -31,11 +31,11 @@ export function getNewResultPaneViewColumn(uri: string): vscode.ViewColumn {
         Constants.extensionConfigSectionName,
         vscode.Uri.parse(uri),
     );
-    let splitPaneSelection = config[Constants.configSplitPaneSelection];
+    let splitPaneSelection = config.get<string>(Constants.configSplitPaneSelection);
 
     switch (splitPaneSelection) {
         case "current":
-            return vscode.window.activeTextEditor.viewColumn;
+            return vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
         case "end":
             const visibleEditors = vscode.window.visibleTextEditors;
             const maxViewColumn = visibleEditors.reduce((max, editor) => {

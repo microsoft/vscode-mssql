@@ -777,7 +777,7 @@ export class ConnectionStore {
     public getMaxRecentConnectionsCount(): number {
         let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 
-        let maxConnections: number = config[Constants.configMaxRecentConnections];
+        let maxConnections = config.get<number>(Constants.configMaxRecentConnections);
         if (typeof maxConnections !== "number" || maxConnections <= 0) {
             maxConnections = 5;
         }

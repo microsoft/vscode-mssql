@@ -1059,7 +1059,12 @@ export default class ConnectionManager {
 
     // close active connection, if any
     public onDisconnect(): Promise<boolean> {
-        return this.disconnect(Utils.getActiveTextEditorUri());
+        const fileUri = Utils.getActiveTextEditorUri();
+        if (!fileUri) {
+            vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            return Promise.resolve(false);
+        }
+        return this.disconnect(fileUri);
     }
 
     /**

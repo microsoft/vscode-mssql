@@ -75,7 +75,13 @@ export default class ResultsSerializer {
             Constants.extensionConfigSectionName,
             vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveConfig = config.get<{
+            includeHeaders?: boolean;
+            delimiter?: string;
+            lineSeparator?: string;
+            textIdentifier?: string;
+            encoding?: string;
+        }>(Constants.configSaveAsCsv);
         let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
 
         // if user entered config, set options
@@ -105,7 +111,7 @@ export default class ResultsSerializer {
             Constants.extensionConfigSectionName,
             vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsJson];
+        let saveConfig = config.get<Record<string, unknown>>(Constants.configSaveAsJson);
         let saveResultsParams = new Contracts.SaveResultsAsJsonRequestParams();
 
         if (saveConfig) {
@@ -122,7 +128,7 @@ export default class ResultsSerializer {
             Constants.extensionConfigSectionName,
             vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveConfig = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 
         // if user entered config, set options
@@ -142,7 +148,7 @@ export default class ResultsSerializer {
             Constants.extensionConfigSectionName,
             vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveConfig = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
         let saveResultsParams = new Contracts.SaveResultsAsInsertRequestParams();
 
         // if user entered config, set options

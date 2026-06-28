@@ -947,7 +947,14 @@ export default class QueryRunner {
         resultId: number,
     ): Promise<void> {
         const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
-        const csvConfig = config[Constants.configSaveAsCsv] || {};
+        const csvConfig =
+            config.get<{
+                delimiter?: string;
+                textIdentifier?: string;
+                lineSeperator?: string;
+                encoding?: string;
+                includeHeaders?: boolean;
+            }>(Constants.configSaveAsCsv) ?? {};
 
         const delimiter = csvConfig.delimiter || ",";
         const textIdentifier = csvConfig.textIdentifier || '"';
