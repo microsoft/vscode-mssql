@@ -16,7 +16,6 @@ import {
     updateTotalCost,
 } from "./sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import VscodeWrapper from "./vscodeWrapper";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -24,7 +23,6 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         public executionPlanService: ExecutionPlanService, // public for testing purposes
         public sqlDocumentService: SqlDocumentService,
         public executionPlanContents: string,
@@ -34,7 +32,6 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             "executionPlan",
             "executionPlan",
             {

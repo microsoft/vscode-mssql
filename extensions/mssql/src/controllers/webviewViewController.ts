@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import { WebviewBaseController } from "./webviewBaseController";
-import VscodeWrapper from "./vscodeWrapper";
 
 /**
  * WebviewViewController is a class that manages a vscode.WebviewView and provides
@@ -29,12 +28,11 @@ export class WebviewViewController<State, Reducers>
      */
     constructor(
         _context: vscode.ExtensionContext,
-        _vscodeWrapper: VscodeWrapper,
         _sourceFile: string,
         private _viewId: string,
         initialData: State,
     ) {
-        super(_context, _vscodeWrapper, _sourceFile, initialData, _viewId);
+        super(_context, _sourceFile, initialData, _viewId);
     }
 
     protected _getWebview(): vscode.Webview {

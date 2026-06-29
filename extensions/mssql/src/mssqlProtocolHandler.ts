@@ -12,7 +12,6 @@ import { IConnectionProfile } from "./models/interfaces";
 import { AuthenticationType } from "./sharedInterfaces/connectionDialog";
 import { ILogger } from "./sharedInterfaces/logger";
 import { logger } from "./models/logger";
-import VscodeWrapper from "./controllers/vscodeWrapper";
 import MainController from "./controllers/mainController";
 import { cmdAddObjectExplorer } from "./constants/constants";
 import { getConnectionDisplayName } from "./models/connectionInfo";
@@ -35,7 +34,6 @@ export class MssqlProtocolHandler {
     private _logger: ILogger;
 
     constructor(
-        vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private client: SqlToolsServiceClient,
     ) {

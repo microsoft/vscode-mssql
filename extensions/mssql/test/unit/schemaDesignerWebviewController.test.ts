@@ -13,7 +13,6 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
@@ -25,7 +24,6 @@ import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     stubExtensionContext,
     stubUserSurvey,
-    stubVscodeWrapper,
     stubWebviewPanel,
     stubWebviewConnectionRpc,
 } from "./utils";
@@ -35,7 +33,6 @@ chai.use(sinonChai);
 suite("SchemaDesignerWebviewController tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let mockSchemaDesignerService: sinon.SinonStubbedInstance<SchemaDesigner.ISchemaDesignerService>;
     let treeNode: sinon.SinonStubbedInstance<TreeNodeInfo>;
@@ -90,8 +87,6 @@ suite("SchemaDesignerWebviewController tests", () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
         stubUserSurvey(sandbox);
-
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub(),
@@ -155,7 +150,6 @@ suite("SchemaDesignerWebviewController tests", () => {
     function createController(): SchemaDesignerWebviewController {
         const ctrl = new SchemaDesignerWebviewController(
             mockContext,
-            mockVscodeWrapper,
             mockMainController,
             mockSchemaDesignerService,
             connectionString,
@@ -801,7 +795,6 @@ suite("SchemaDesignerWebviewController tests", () => {
             // Create controller without TreeNode to use connectionUri path
             new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1063,7 +1056,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 new SchemaDesignerWebviewController(
                     mockContext,
-                    mockVscodeWrapper,
                     mockMainController,
                     mockSchemaDesignerService,
                     remoteConnectionString,
@@ -1524,7 +1516,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1551,7 +1542,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1568,7 +1558,6 @@ suite("SchemaDesignerWebviewController tests", () => {
         test("should set isDabDeploymentSupported to false when no treeNode and no connectionUri", () => {
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1689,7 +1678,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1706,7 +1694,6 @@ suite("SchemaDesignerWebviewController tests", () => {
         test("should return undefined when no treeNode and no connectionUri", () => {
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,

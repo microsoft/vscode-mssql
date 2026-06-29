@@ -34,7 +34,6 @@ import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     getConnectionDisplayName,
     getServerTypes,
@@ -155,7 +154,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private _mainController: MainController,
         private _objectExplorerProvider: ObjectExplorerProvider,
         connectionToEdit?: IConnectionInfo,
@@ -163,7 +161,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ) {
         super(
             context,
-            vscodeWrapper,
             CONNECTION_DIALOG_VIEW_ID,
             CONNECTION_DIALOG_VIEW_ID,
             new ConnectionDialogWebviewState(),
@@ -908,14 +905,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             const url = infoLinkMap[payload.option.value as AuthenticationType];
             if (url) {
-                void this.vscodeWrapper.openExternal(url);
+                void vscode.env.openExternal(vscode.Uri.parse(url));
             }
         });
 
         this.registerReducer("messageButtonClicked", async (state, payload) => {
             if (payload.buttonId === CLEAR_TOKEN_CACHE) {
                 this._mainController.connectionManager.azureController.clearTokenCache();
-                this.vscodeWrapper.showInformationMessage(
+                vscode.window.showInformationMessage(
                     LocalizedConstants.Accounts.clearedEntraTokenCache,
                 );
                 this.state.formMessage = undefined;

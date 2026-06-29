@@ -48,7 +48,6 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { restartSqlServerContainer } from "../deployment/sqlServerContainer";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
@@ -122,14 +121,9 @@ export class ObjectExplorerService {
     private _inFlightChildrenFetches: Map<TreeNodeInfo, Promise<void>> = new Map();
 
     constructor(
-        private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
     ) {
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-
         this._client = this._connectionManager.client;
 
         this._logger = logger.withPrefix("ObjectExplorerService");
@@ -286,7 +280,7 @@ export class ObjectExplorerService {
                         this._logger.error(
                             `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
                         );
-                        this._vscodeWrapper.showErrorMessage(result.errorMessage);
+                        vscode.window.showErrorMessage(result.errorMessage);
                     }
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
                     this._treeNodeToChildrenMap.set(node, [errorNode]);
@@ -302,7 +296,7 @@ export class ObjectExplorerService {
                     expandResponse.resolve(undefined);
                 }
 
-                await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
+                await vscode.window.showErrorMessage(LocalizedConstants.msgUnableToExpand);
                 return undefined;
             }
         } finally {
@@ -811,7 +805,7 @@ export class ObjectExplorerService {
         } catch (error) {
             // Handle case where the user isn't signed into VS Code with the necessary auth account
             if (error instanceof MissingEntraAuthAccountError) {
-                const choice = await this._vscodeWrapper.showErrorMessage(
+                const choice = await vscode.window.showErrorMessage(
                     getErrorMessage(error),
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,

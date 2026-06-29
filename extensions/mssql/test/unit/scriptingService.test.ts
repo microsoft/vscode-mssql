@@ -11,7 +11,6 @@ import * as vscode from "vscode";
 import { IServerInfo, MetadataType, ObjectMetadata, IScriptingObject } from "vscode-mssql";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import StatusView from "../../src/views/statusView";
@@ -33,7 +32,6 @@ import {
     stubExtensionContext,
     initializeIconUtils,
     stubUserSurvey,
-    stubVscodeWrapper,
     stubWithProgress,
 } from "./utils";
 
@@ -55,7 +53,6 @@ suite("Scripting Service", () => {
     let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let sqlDocumentService: sinon.SinonStubbedInstance<SqlDocumentService>;
     let sqlOutputContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let statusView: StatusView;
     let scriptingService: ScriptingService;
     let withProgressStub: sinon.SinonStub;
@@ -225,7 +222,6 @@ suite("Scripting Service", () => {
         configureRunQueryStub();
 
         statusView = {} as StatusView;
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         objectExplorerTree = { selection: [] };
 
         sendRequestStub = client.sendRequest;
@@ -252,7 +248,6 @@ suite("Scripting Service", () => {
 
         scriptingService = new ScriptingService(
             stubExtensionContext(sandbox),
-            vscodeWrapper,
             connectionManager,
             sqlDocumentService as unknown as SqlDocumentService,
             sqlOutputContentProvider as unknown as SqlOutputContentProvider,

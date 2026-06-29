@@ -13,8 +13,7 @@ import * as vscode from "vscode";
 
 import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
 import { WebviewPanelController } from "../../src/controllers/webviewPanelController";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubTelemetry } from "./utils";
 
 chai.use(sinonChai);
 
@@ -68,8 +67,6 @@ suite("WebviewPanelController", () => {
             extensionPath: "path",
         } as unknown as vscode.ExtensionContext;
         sandbox.stub(utils, "getNonce").returns("test-nonce");
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
     });
 
     teardown(() => {
@@ -334,14 +331,12 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
-let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-
 class TestWebviewPanelController<TResult> extends WebviewPanelController<
     TestState,
     TestReducers,
     TResult
 > {
     constructor(context: vscode.ExtensionContext, options: MssqlWebviewPanelOptions) {
-        super(context, vscodeWrapper!, "testSource", "testSource", { count: 0 }, options);
+        super(context, "testSource", "testSource", { count: 0 }, options);
     }
 }

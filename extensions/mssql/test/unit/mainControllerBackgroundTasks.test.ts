@@ -9,9 +9,8 @@ import * as chai from "chai";
 import { expect } from "chai";
 import * as vscode from "vscode";
 import MainController from "../../src/controllers/mainController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext } from "./utils";
 
 chai.use(sinonChai);
 
@@ -28,8 +27,7 @@ suite("MainController Background Tasks Tests", () => {
 
     test("background task action opens only on double click", async () => {
         const context = stubExtensionContext(sandbox);
-        const vscodeWrapper = stubVscodeWrapper(sandbox) as unknown as VscodeWrapper;
-        const controller = new MainController(context, undefined, vscodeWrapper);
+        const controller = new MainController(context, undefined);
         const openTaskStub = sandbox.stub().resolves();
 
         (controller as any)._backgroundTasksProvider = {
@@ -49,8 +47,7 @@ suite("MainController Background Tasks Tests", () => {
 
     test("cancel background task prompts before canceling", async () => {
         const context = stubExtensionContext(sandbox);
-        const vscodeWrapper = stubVscodeWrapper(sandbox) as unknown as VscodeWrapper;
-        const controller = new MainController(context, undefined, vscodeWrapper);
+        const controller = new MainController(context, undefined);
         const cancelTaskStub = sandbox.stub().resolves();
 
         (controller as any)._backgroundTasksProvider = {
@@ -82,8 +79,7 @@ suite("MainController Background Tasks Tests", () => {
 
     test("cancel background task does nothing when confirmation is dismissed", async () => {
         const context = stubExtensionContext(sandbox);
-        const vscodeWrapper = stubVscodeWrapper(sandbox) as unknown as VscodeWrapper;
-        const controller = new MainController(context, undefined, vscodeWrapper);
+        const controller = new MainController(context, undefined);
         const cancelTaskStub = sandbox.stub().resolves();
 
         (controller as any)._backgroundTasksProvider = {

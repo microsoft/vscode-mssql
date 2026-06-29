@@ -11,8 +11,7 @@ import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
 import { WebviewBaseController } from "../../src/controllers/webviewBaseController";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubTelemetry } from "./utils";
 import {
     ColorThemeChangeNotification,
     ExecuteCommandRequest,
@@ -52,7 +51,6 @@ suite("WebviewController Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
-        vscodeWrapper = stubVscodeWrapper(sandbox);
 
         configChangeHandlers = [];
         getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration").callsFake(() => {
@@ -281,13 +279,11 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
-let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-
 class TestWebviewController extends WebviewBaseController<TestState, TestReducers> {
     public _webview: TestWebView;
 
     constructor(context: vscode.ExtensionContext, sourceFile: string, initialData: TestState) {
-        super(context, vscodeWrapper, sourceFile, initialData);
+        super(context, sourceFile, initialData);
         this._webview = {
             postMessage: sinon.stub(),
             options: {},

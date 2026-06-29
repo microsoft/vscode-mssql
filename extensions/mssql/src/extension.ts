@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
 import MainController from "./controllers/mainController";
-import VscodeWrapper from "./controllers/vscodeWrapper";
 import { ConnectionDetails, IConnectionInfo, IExtension } from "vscode-mssql";
 import * as utils from "./models/utils";
 import { ObjectExplorerUtils } from "./objectExplorer/objectExplorerUtils";
@@ -38,8 +37,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     // Create coordinator early so uriOwnershipApi is available for export
     uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
-    let vscodeWrapper = new VscodeWrapper();
-    controller = new MainController(context, undefined, vscodeWrapper);
+    controller = new MainController(context);
     context.subscriptions.push(controller);
     // Initialize loc cache for webviews early so that it's ready by the time any webview requests it.
     initializeWebviewLocalizationCache();
@@ -63,7 +61,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
-        createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context, controller),
+        createSqlAgentRequestHandler(controller.copilotService, context, controller),
     );
     participant.iconPath = vscode.Uri.joinPath(
         context.extensionUri,
@@ -75,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             result: vscode.ChatResult,
             context: vscode.ChatContext,
             token: vscode.CancellationToken,
-        ) => provideFollowups(result, context, token, controller, vscodeWrapper),
+        ) => provideFollowups(result, context, token, controller),
     };
 
     const receiveFeedbackDisposable = participant.onDidReceiveFeedback(

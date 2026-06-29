@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     ConnectionGroupState,
     ConnectionGroupReducers,
@@ -33,13 +32,11 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private connectionConfig: ConnectionConfig,
         private connectionGroupToEdit?: IConnectionGroup,
     ) {
         super(
             context,
-            vscodeWrapper,
             "ConnectionGroup",
             "ConnectionGroup",
             {

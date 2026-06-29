@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import { SqlMoveToSchema as loc } from "../constants/locConstants";
 import { cmdMoveToSchema } from "../constants/constants";
 import SqlToolsServerClient from "./serviceclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     ListProjectSchemasRequest,
     SqlMoveToSchemaParams,
@@ -36,13 +35,11 @@ import {
 export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     public static readonly providedCodeActionKinds = [vscode.CodeActionKind.Refactor];
 
-    constructor(private readonly vscodeWrapper: VscodeWrapper) {}
-
     /**
      * Registers the provider and its backing command. Returns disposables for the caller to track.
      */
-    public static register(vscodeWrapper: VscodeWrapper): vscode.Disposable[] {
-        const provider = new SqlMoveToSchemaProvider(vscodeWrapper);
+    public static register(): vscode.Disposable[] {
+        const provider = new SqlMoveToSchemaProvider();
         return [
             vscode.languages.registerCodeActionsProvider({ language: "sql" }, provider, {
                 providedCodeActionKinds: SqlMoveToSchemaProvider.providedCodeActionKinds,
@@ -89,13 +86,13 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         position: vscode.Position,
     ): Promise<void> {
         if (!(await isInSqlProject(document.uri.fsPath))) {
-            void this.vscodeWrapper.showInformationMessage(loc.moveToSchemaOnlyInProjectFiles);
+            void vscode.window.showInformationMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;
         }
 
         const wordRange = getSqlIdentifierRange(document, position);
         if (!wordRange) {
-            void this.vscodeWrapper.showInformationMessage(loc.noMovableSymbolAtCursor);
+            void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
             return;
         }
 
@@ -117,20 +114,20 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             );
             schemas = response?.schemas ?? [];
         } catch (err) {
-            void this.vscodeWrapper.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 loc.moveToSchemaRequestFailed(err instanceof Error ? err.message : String(err)),
             );
             return;
         }
 
         if (schemas.length === 0) {
-            void this.vscodeWrapper.showInformationMessage(loc.noSchemasFound);
+            void vscode.window.showInformationMessage(loc.noSchemasFound);
             return;
         }
 
         // Show QuickPick with schema dropdown
         const items = schemas.map((s) => ({ label: s }));
-        const selected = await this.vscodeWrapper.showQuickPick(items, {
+        const selected = await vscode.window.showQuickPick(items, {
             placeHolder: loc.selectTargetSchemaPlaceholder(currentSchema),
             canPickMany: false,
         });
@@ -155,13 +152,13 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         try {
             refactorTarget = await resolveRefactorLogTarget(document);
         } catch (err) {
-            void this.vscodeWrapper.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 loc.resolveRefactorLogFailed(err instanceof Error ? err.message : String(err)),
             );
             return;
         }
         if (!refactorTarget) {
-            void this.vscodeWrapper.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
+            void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;
         }
 
@@ -179,14 +176,14 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 params,
             );
         } catch (err) {
-            void this.vscodeWrapper.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 loc.moveToSchemaRequestFailed(err instanceof Error ? err.message : String(err)),
             );
             return;
         }
 
         if (!response || !response.changes || Object.keys(response.changes).length === 0) {
-            void this.vscodeWrapper.showInformationMessage(loc.noMovableSymbolAtCursor);
+            void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
             return;
         }
 
@@ -213,7 +210,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 isRefactoring: true,
             });
             if (!applied) {
-                void this.vscodeWrapper.showErrorMessage(loc.applyEditFailed);
+                void vscode.window.showErrorMessage(loc.applyEditFailed);
             }
         } finally {
             if (tempUri) {

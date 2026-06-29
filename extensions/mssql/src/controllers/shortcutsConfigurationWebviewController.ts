@@ -28,7 +28,6 @@ import {
     WriteClipboardTextRequest,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 
 export class ShortcutsConfigurationWebviewController extends WebviewPanelController<
     ShortcutsConfigurationWebviewState,
@@ -37,14 +36,9 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
 > {
     private focusNonce = 1;
 
-    constructor(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        focusedQuickQuerySlot?: number,
-    ) {
+    constructor(context: vscode.ExtensionContext, focusedQuickQuerySlot?: number) {
         super(
             context,
-            vscodeWrapper,
             "shortcutsConfiguration",
             "shortcutsConfiguration",
             {

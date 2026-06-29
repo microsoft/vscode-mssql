@@ -9,7 +9,6 @@ import { NotificationType, RequestType } from "vscode-languageclient";
 import * as localizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../enums";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
@@ -179,7 +178,6 @@ export class SqlTasksService {
     constructor(
         private _client: SqlToolsServiceClient,
         private _sqlDocumentService: SqlDocumentService,
-        private _vscodeWrapper: VscodeWrapper,
         private _backgroundTasksService?: BackgroundTasksService,
     ) {
         this._logger = logger.withPrefix("SqlTasksService");
@@ -350,10 +348,7 @@ export class SqlTasksService {
                 if (actionButtonText && handler.actionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
                     void Promise.resolve(
-                        this._vscodeWrapper.showInformationMessage(
-                            successMessage,
-                            actionButtonText,
-                        ),
+                        vscode.window.showInformationMessage(successMessage, actionButtonText),
                     ).then((selection) => {
                         if (selection === actionButtonText) {
                             const command = handler.actionCommand!;
@@ -361,12 +356,12 @@ export class SqlTasksService {
                                 taskInfo.taskInfo,
                                 targetLocation,
                             );
-                            void this._vscodeWrapper.executeCommand(command, ...args);
+                            void vscode.commands.executeCommand(command, ...args);
                         }
                     });
                 } else {
                     // Show notification without action button
-                    void this._vscodeWrapper.showInformationMessage(successMessage);
+                    void vscode.window.showInformationMessage(successMessage);
                 }
             } else {
                 // Show generic completion message for tasks without custom handlers
@@ -474,7 +469,7 @@ export class SqlTasksService {
 
         return () =>
             Promise.resolve(
-                this._vscodeWrapper.executeCommand(
+                vscode.commands.executeCommand(
                     handler.actionCommand!,
                     ...handler.getActionCommandArgs!(taskInfo, targetLocation),
                 ),
@@ -492,14 +487,14 @@ export class SqlTasksService {
      */
     private showCompletionMessage(taskStatus: TaskStatus, message: string): void {
         if (taskStatus === TaskStatus.Failed) {
-            void this._vscodeWrapper.showErrorMessage(message);
+            void vscode.window.showErrorMessage(message);
         } else if (
             taskStatus === TaskStatus.Canceled ||
             taskStatus === TaskStatus.SucceededWithWarning
         ) {
-            void this._vscodeWrapper.showWarningMessage(message);
+            void vscode.window.showWarningMessage(message);
         } else {
-            void this._vscodeWrapper.showInformationMessage(message);
+            void vscode.window.showInformationMessage(message);
         }
     }
 }

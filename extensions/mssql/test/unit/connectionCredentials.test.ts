@@ -4,31 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
-import * as Constants from "../../src/constants/constants";
-import * as stubs from "./stubs";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { AuthenticationTypes } from "../../src/models/interfaces";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 import { expect } from "chai";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
-import { stubVscodeWrapper } from "./utils";
 
 suite("ConnectionCredentials Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = stubVscodeWrapper(sandbox);
-
-        // setup default behavior for vscodeWrapper
-        // setup configuration to return maxRecent for the #MRU items
-        const maxRecent = 5;
-        const configResult: { [key: string]: any } = {};
-        configResult[Constants.configMaxRecentConnections] = maxRecent;
-        const config = stubs.createWorkspaceConfiguration(configResult);
-        vscodeWrapper.getConfiguration.returns(config);
     });
 
     teardown(() => {
