@@ -19,7 +19,6 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import { AccountSignInTreeNode } from "../../src/objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../../src/objectExplorer/nodes/connectTreeNode";
 import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
@@ -27,7 +26,7 @@ import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGr
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils, stubVscodeWrapper } from "./utils";
+import { initializeIconUtils } from "./utils";
 
 chai.use(sinonChai);
 
@@ -36,7 +35,6 @@ suite("Object Explorer Provider Tests", function () {
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionManager: ConnectionManager;
     let clientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let objectExplorerProvider: ObjectExplorerProvider;
     let objectExplorerServiceStub: sinon.SinonStubbedInstance<ObjectExplorerService>;
     let testObjectExplorerService: ObjectExplorerService;
@@ -90,8 +88,6 @@ suite("Object Explorer Provider Tests", function () {
         clientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         clientStub.onNotification.returnsThis();
 
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
-
         const rootGroup = {
             id: ConnectionConfig.ROOT_GROUP_ID,
             name: ConnectionConfig.ROOT_GROUP_ID,
@@ -126,8 +122,6 @@ suite("Object Explorer Provider Tests", function () {
             clientStub as unknown as SqlToolsServiceClient;
         (connectionManagerStub as unknown as { connectionStore: ConnectionStore }).connectionStore =
             connectionStore;
-        (connectionManagerStub as unknown as { vscodeWrapper: VscodeWrapper }).vscodeWrapper =
-            vscodeWrapperStub as unknown as VscodeWrapper;
 
         connectionManagerStub.disconnect.resolves();
         connectionManagerStub.connect.resolves(true);

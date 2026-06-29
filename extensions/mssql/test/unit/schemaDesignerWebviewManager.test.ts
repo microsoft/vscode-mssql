@@ -10,7 +10,6 @@ import { expect } from "chai";
 import * as chai from "chai";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
@@ -22,7 +21,6 @@ chai.use(sinonChai);
 suite("SchemaDesignerWebviewManager tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let mockSchemaDesignerService: sinon.SinonStubbedInstance<SchemaDesigner.ISchemaDesignerService>;
     let manager: SchemaDesignerWebviewManager;
@@ -57,8 +55,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         mockContext = stubExtensionContext(sandbox, { name: "mssql", version: "1.0.0" });
         stubUserSurvey(sandbox);
 
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => ({ name: "MSSQL" }) as any);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub().resolves(mockCreateSessionResponse),

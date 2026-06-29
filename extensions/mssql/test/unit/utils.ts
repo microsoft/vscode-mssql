@@ -6,7 +6,6 @@
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as jsonRpc from "vscode-jsonrpc/node";
@@ -19,7 +18,6 @@ import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
-import { createLogOutputChannelStub } from "./stubs";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -31,20 +29,6 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
         sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake(() => {}),
         sendErrorEvent: stubber.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
     };
-}
-
-export function stubVscodeWrapper(
-    sandbox?: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<VscodeWrapper> {
-    const stubber = sandbox || sinon;
-
-    const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
-
-    const outputChannel: vscode.OutputChannel = createLogOutputChannelStub(stubber);
-
-    stubber.stub(vscodeWrapper, "outputChannel").get(() => outputChannel);
-
-    return vscodeWrapper;
 }
 
 /**

@@ -433,12 +433,12 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(contentProvider.getQueryRunner("test_uri")).to.not.be.undefined;
     });
 
-    test("showErrorRequestHandler should call vscodeWrapper to show error message", () => {
+    test("showErrorRequestHandler should show error message", () => {
         contentProvider.showErrorRequestHandler("test_error");
         expect(messageBoxes.showErrorMessage).to.have.been.calledOnceWithExactly("test_error");
     });
 
-    test("showWarningRequestHandler should call vscodeWrapper to show warning message", () => {
+    test("showWarningRequestHandler should show warning message", () => {
         contentProvider.showWarningRequestHandler("test_warning");
         expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly("test_warning");
     });

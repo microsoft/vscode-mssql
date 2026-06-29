@@ -27,9 +27,6 @@ chai.use(sinonChai);
 
 type MainControllerTestAccess = {
     validateTextDocumentHasFocus(): boolean;
-    _vscodeWrapper: {
-        activeTextEditor?: vscode.TextEditor;
-    };
     _outputContentProvider: {
         runCurrentStatement: sinon.SinonStub;
         runQuery: sinon.SinonStub;
@@ -535,11 +532,9 @@ suite("MainController Tests", function () {
 
         test("returns false and shows info message when connection is in progress", async () => {
             const testUri = "file:///test/connecting.sql";
-            const controllerAccess = accessMainController(mainController);
 
             // Make the active editor a SQL file so ensureActiveSqlFile passes
             // and the isConnecting path is exercised.
-            const originalWrapper = controllerAccess._vscodeWrapper;
             sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
             sandbox.stub(Utils, "isEditingSqlFile").returns(true);
 
@@ -570,7 +565,6 @@ suite("MainController Tests", function () {
                     "promptToConnect should not be called when connection is already in progress",
                 );
             } finally {
-                controllerAccess._vscodeWrapper = originalWrapper;
                 mainController.promptToConnect = originalPromptToConnect;
             }
         });

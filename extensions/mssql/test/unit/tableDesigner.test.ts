@@ -10,7 +10,6 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as tdTab from "../../src/tableDesigner/tableDesignerTabDefinition";
 import { TableDesignerWebviewController } from "../../src/tableDesigner/tableDesignerWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as td from "../../src/sharedInterfaces/tableDesigner";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
@@ -23,7 +22,6 @@ chai.use(sinonChai);
 suite("TableDesignerWebviewController tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let controller: TableDesignerWebviewController;
     let treeNode: sinon.SinonStubbedInstance<TreeNodeInfo>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
@@ -40,19 +38,6 @@ suite("TableDesignerWebviewController tests", () => {
         mockContext = stubExtensionContext(sandbox);
         stubUserSurvey(sandbox);
 
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        const outputChannel: vscode.OutputChannel = {
-            name: "MSSQL",
-            append: sandbox.stub(),
-            appendLine: sandbox.stub(),
-            clear: sandbox.stub(),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            show: sandbox.stub() as any,
-            replace: sandbox.stub(),
-            hide: sandbox.stub(),
-            dispose: sandbox.stub(),
-        };
-        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => outputChannel);
         mockTableDesignerService = sandbox.createStubInstance(TableDesignerService);
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);

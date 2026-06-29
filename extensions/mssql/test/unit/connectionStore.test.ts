@@ -11,7 +11,6 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     CredentialsQuickPickItemType,
     IConnectionProfile,
@@ -30,7 +29,6 @@ suite("ConnectionStore Tests", () => {
     let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
     let mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let initializedDeferred: Deferred<void>;
 
     setup(async () => {
@@ -38,10 +36,6 @@ suite("ConnectionStore Tests", () => {
 
         mockContext = stubExtensionContext(sandbox);
         (mockContext.globalState.update as sinon.SinonStub).resolves();
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        mockVscodeWrapper.getConfiguration.returns({
-            [Constants.configMaxRecentConnections]: 5,
-        } as unknown as vscode.WorkspaceConfiguration);
         mockLogger = createStubLogger(sandbox);
 
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);

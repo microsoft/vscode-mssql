@@ -13,7 +13,6 @@ import {
     ISqlChatResult,
 } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as telemetry from "../../src/telemetry/telemetry";
 import {
     GetNextMessageResponse,
@@ -26,7 +25,6 @@ import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connect
 import { connectedLabelPrefix, disconnectedLabelPrefix } from "../../src/copilot/chatConstants";
 import { IConnectionInfo } from "vscode-mssql";
 import * as utils from "../../src/utils/utils";
-import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 const expect = chai.expect;
@@ -36,7 +34,6 @@ suite("Chat Agent Request Handler Tests", () => {
     let mockCopilotService: sinon.SinonStubbedInstance<CopilotService>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let connectionInfo: ConnectionInfo;
     let mockContext: vscode.ExtensionContext;
     let mockLmChat: vscode.LanguageModelChat;
@@ -48,14 +45,12 @@ suite("Chat Agent Request Handler Tests", () => {
     let mockChatContext: vscode.ChatContext;
     let mockToken: vscode.CancellationToken;
     let mockTextDocument: vscode.TextDocument;
-    let mockConfiguration: vscode.WorkspaceConfiguration;
     let activeTextEditor: vscode.TextEditor | undefined;
     let mockActivityObject: ActivityObject & {
         end: sinon.SinonStub;
         endFailed: sinon.SinonStub;
         update: sinon.SinonStub;
     };
-    let configurationGet: sinon.SinonStub;
     let startActivityStub: sinon.SinonStub;
 
     // Sample data for tests
@@ -99,21 +94,12 @@ suite("Chat Agent Request Handler Tests", () => {
             database: "database",
         } as IConnectionInfo;
 
-        // Mock VscodeWrapper
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         activeTextEditor = {
             document: {
                 uri: vscode.Uri.parse(sampleConnectionUri),
             },
         } as vscode.TextEditor;
         sandbox.stub(vscode.window, "activeTextEditor").get(() => activeTextEditor);
-
-        // Mock configuration
-        configurationGet = sandbox.stub().returns(false);
-        mockConfiguration = {
-            get: configurationGet,
-        } as unknown as vscode.WorkspaceConfiguration;
-        mockVscodeWrapper.getConfiguration.returns(mockConfiguration);
 
         // Mock ExtensionContext
         const canSendRequestStub = sandbox.stub().returns("allowed");

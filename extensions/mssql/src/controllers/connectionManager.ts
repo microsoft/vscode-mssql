@@ -946,7 +946,6 @@ export default class ConnectionManager {
     public async onChooseDatabase(): Promise<boolean> {
         const fileUri = Utils.getActiveTextEditorUri();
         if (!this.isConnected(fileUri)) {
-            vscode.window.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
         }
 
@@ -1005,7 +1004,6 @@ export default class ConnectionManager {
     public async changeDatabase(newDatabaseCredentials: IConnectionInfo): Promise<boolean> {
         const fileUri = Utils.getActiveTextEditorUri();
         if (!this.isConnected(fileUri)) {
-            vscode.window.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
         }
         await this.disconnect(fileUri);
