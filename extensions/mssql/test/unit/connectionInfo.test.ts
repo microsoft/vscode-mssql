@@ -269,7 +269,11 @@ test("getServerTypes", () => {
             expected: [ServerType.AmazonWebServices, ServerType.Sql],
         },
         {
-            input: "test.sql.goog.",
+            input: "test-with-dot.sql.goog.",
+            expected: [ServerType.GoogleCloudProject, ServerType.Sql],
+        },
+        {
+            input: "test-without-dot.sql.goog",
             expected: [ServerType.GoogleCloudProject, ServerType.Sql],
         },
         {

@@ -344,7 +344,7 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
                 ServerType.Sql,
             ],
             [".amazonaws.com"]: [ServerType.AmazonWebServices, ServerType.Sql],
-            [".sql.goog."]: [ServerType.GoogleCloudProject, ServerType.Sql],
+            [".sql.goog"]: [ServerType.GoogleCloudProject, ServerType.Sql],
             [".sql-psa.goog"]: [ServerType.GoogleCloudProject, ServerType.Sql],
             [".oraclevcn.com"]: [ServerType.OracleCloudInfrastructure, ServerType.Sql],
         };
