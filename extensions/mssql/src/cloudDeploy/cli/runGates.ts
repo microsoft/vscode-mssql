@@ -13,11 +13,13 @@
  * standard `.cdrun.zip` from a bare `node` process. No `vscode`, no
  * `ConnectionManager`, no webview.
  *
- * Scope (D2.1): static analysis only. The runner is built with no
- * `RunnerRuntimeDeps`, so no ephemeral database is provisioned; any DB-backed
- * validator the env declares is reported by the runner (Skipped / Errored)
- * rather than crashing. The Node connection seam that lets unit-tests and
- * workload run headlessly arrives in D2.2.
+ * Current scope: all four validators. The runner is wired with the full
+ * `RunnerRuntimeDeps` — the reused `DockerEphemeralDatabaseProvider` (driven by
+ * the headless `NodeMssqlEphemeralConnector`), the data generator, and the
+ * schema hasher — so it provisions a throwaway SQL container, runs connectivity
+ * / unit-tests / workload against it, and tears it down, all outside VS Code.
+ * Static-analysis-only envs still work (no container is stood up when no
+ * runtime validator is enabled).
  *
  * The impure edges (file I/O, subprocesses, env loading, the run itself) are
  * injected through `RunGatesDeps` so the orchestration — load, run, write,
@@ -37,13 +39,18 @@ import {
     resolveEnvironment,
 } from "../environments/environmentLoader";
 import { EnvironmentsFileParseError } from "../environments/environmentSchema";
-import { LocalFileProvider, FileProvider } from "../providers";
+import { LocalFileProvider, FileProvider, LocalSchemaSourceReader } from "../providers";
 import { RunArtifactWriter } from "../runs/runArtifactWriter";
+import { SchemaHasher } from "../runs/schemaHasher";
 import { RunRecord, RunStatus, RunnerIdentity } from "../runs/types";
 import { createDefaultRegistry } from "../validation/registry";
 import { Runner } from "../validation/runner";
 import { LiveArtifactProvider } from "../validation/providers/artifactProvider";
+import { DockerEphemeralDatabaseProvider } from "../validation/providers/ephemeralDatabaseProvider";
+import { DispatchingEphemeralDatabaseProvider } from "../validation/providers/dispatchingEphemeralDatabaseProvider";
 import { LiveProcessProvider } from "../validation/providers/processProvider";
+import { LiveDataGenerator } from "../validation/dataGenerator";
+import { NodeMssqlEphemeralConnector } from "../host/nodeMssqlConnection";
 import { CliUsageError, parseCliArgs, USAGE } from "./args";
 
 /** Runner identity stamped on a CLI-produced run record. */
@@ -140,9 +147,13 @@ export function exitCodeFor(status: RunStatus): number {
 }
 
 /**
- * Production dependencies: real Node file/process providers and the live
- * registry/runner composition. Built with NO `RunnerRuntimeDeps` (D2.1 scope:
- * static analysis only — no ephemeral database).
+ * Production dependencies: real Node file/process providers and the full live
+ * registry/runner composition. The runner is wired with
+ * `RunnerRuntimeDeps` — the reused `DockerEphemeralDatabaseProvider` driven by
+ * the headless `NodeMssqlEphemeralConnector`, plus the data generator and
+ * schema hasher — so runtime validators run against a throwaway SQL container.
+ * The runner stands a container up only when a runtime validator is enabled, so
+ * static-analysis-only envs incur no Docker dependency.
  */
 function liveDeps(): RunGatesDeps {
     const fileProvider = new LocalFileProvider();
@@ -150,11 +161,21 @@ function liveDeps(): RunGatesDeps {
         fileProvider,
         loadEnvironments: loadEnvironmentsFromPath,
         runValidation: (env, bus, workspaceRoot) => {
-            const registry = createDefaultRegistry({
-                process: new LiveProcessProvider(workspaceRoot),
-                artifact: new LiveArtifactProvider(fileProvider, workspaceRoot),
+            const processes = new LiveProcessProvider(workspaceRoot);
+            const artifact = new LiveArtifactProvider(fileProvider, workspaceRoot);
+            const registry = createDefaultRegistry({ process: processes, artifact });
+            const ephemeralProvider = new DispatchingEphemeralDatabaseProvider({
+                docker: new DockerEphemeralDatabaseProvider(
+                    processes,
+                    new NodeMssqlEphemeralConnector(),
+                    { workspaceRoot },
+                ),
             });
-            const runner = new Runner(registry, bus);
+            const runner = new Runner(registry, bus, {
+                ephemeralProvider,
+                dataGenerator: new LiveDataGenerator(artifact),
+                schemaHasher: new SchemaHasher(new LocalSchemaSourceReader(workspaceRoot)),
+            });
             return runner.run(env, { runner: CLI_RUNNER_IDENTITY });
         },
     };
