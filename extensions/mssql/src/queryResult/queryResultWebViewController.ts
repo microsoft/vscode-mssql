@@ -27,6 +27,8 @@ import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 
+const QUERY_RESULT_VIEW_ID = "queryResult";
+
 export class QueryResultWebviewController extends WebviewViewController<
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
@@ -54,7 +56,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
-        super(context, "queryResult", "queryResult", {
+        super(context, QUERY_RESULT_VIEW_ID, QUERY_RESULT_VIEW_ID, {
             resultSetSummaries: {},
             messages: [],
             tabStates: {

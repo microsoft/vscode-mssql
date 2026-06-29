@@ -35,6 +35,8 @@ import { Deferred } from "../protocol";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionProfile } from "../models/connectionProfile";
 
+const FLAT_FILE_IMPORT_VIEW_ID = "flatFileImport";
+
 /**
  * Controller for the Flat File Import dialog
  */
@@ -55,18 +57,28 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         private ownerUri: string,
         private databaseName: string,
     ) {
-        super(context, "flatFileImport", "flatFileImport", new FlatFileImportState(), {
-            title: Loc.FlatFileImport.flatFileImportTitle,
-            viewColumn: vscode.ViewColumn.One,
-            iconPath: {
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "flatFileImport_light.svg",
-                ),
-                dark: vscode.Uri.joinPath(context.extensionUri, "media", "flatFileImport_dark.svg"),
+        super(
+            context,
+            FLAT_FILE_IMPORT_VIEW_ID,
+            FLAT_FILE_IMPORT_VIEW_ID,
+            new FlatFileImportState(),
+            {
+                title: Loc.FlatFileImport.flatFileImportTitle,
+                viewColumn: vscode.ViewColumn.One,
+                iconPath: {
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "flatFileImport_light.svg",
+                    ),
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "flatFileImport_dark.svg",
+                    ),
+                },
             },
-        });
+        );
         void this.initialize()
             .then(() => {
                 this.updateState();

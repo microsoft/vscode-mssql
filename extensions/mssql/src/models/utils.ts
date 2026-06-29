@@ -57,7 +57,9 @@ export function getActiveTextEditor(): vscode.TextEditor {
     return editor;
 }
 
-// Retrieve the URI for the currently open file if there is one; otherwise return undefined
+/**
+ * Retrieve the URI for the currently open file if there is one; otherwise return undefined.
+ */
 export function getActiveTextEditorUri(): string | undefined {
     return vscode?.window?.activeTextEditor?.document?.uri?.toString();
 }
