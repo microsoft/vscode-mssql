@@ -13,6 +13,7 @@
         "vscode": "^1.98.0",
         "azdata": ">=1.47.0"
     },
+    "activationEvents": [],
     "main": "./out/src/main.js",
     "l10n": "./l10n",
     "repository": {

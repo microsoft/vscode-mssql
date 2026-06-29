@@ -214,6 +214,8 @@ suite("OE Service Tests", () => {
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
@@ -438,6 +440,81 @@ suite("OE Service Tests", () => {
 
             // Verify shouldRefresh was reset to false
             expect(mockNode.shouldRefresh, "Node shouldRefresh should be false").to.be.false;
+        });
+
+        test("getNodeChildren should reuse the in-flight fetch when re-entered", async () => {
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            setUpOETreeRoot(objectExplorerService, [connectionProfile]);
+
+            const connectionNode = (objectExplorerService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+
+            const loadingNode = new vscode.TreeItem(
+                "Loading",
+                vscode.TreeItemCollapsibleState.None,
+            );
+            sandbox
+                .stub(objectExplorerService as any, "setLoadingUiForNode")
+                .callsFake(async () => [loadingNode]);
+
+            mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
+
+            const firstChildrenPromise = (objectExplorerService as any).getNodeChildren(
+                connectionNode,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            const inFlightPromise = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+            expect(inFlightPromise, "First fetch should be tracked as in flight").to.exist;
+
+            const pendingExpandKey = `${connectionNode.sessionId}${connectionNode.nodePath}`;
+            const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            );
+            expect(pendingExpand, "Pending expand should exist").to.exist;
+
+            const secondChildrenPromise = (objectExplorerService as any).getNodeChildren(
+                connectionNode,
+            );
+
+            pendingExpand.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [
+                    {
+                        nodePath: `${connectionNode.nodePath}/child1`,
+                        nodeType: "table",
+                        nodeSubType: "",
+                        label: "child1",
+                    },
+                ],
+                errorMessage: "",
+            });
+
+            await inFlightPromise;
+
+            const [firstChildren, secondChildren] = await Promise.all([
+                firstChildrenPromise,
+                secondChildrenPromise,
+            ]);
+
+            expect(
+                mockClient.sendRequest,
+                "Only one expand request should be sent while the first fetch is in flight",
+            ).to.have.been.calledOnceWithExactly(ExpandRequest.type, sinon.match.any);
+            expect(firstChildren, "First call should return the loading node").to.deep.equal([
+                loadingNode,
+            ]);
+            expect(secondChildren, "Second call should also return the loading node").to.deep.equal(
+                [loadingNode],
+            );
+            expect(
+                (objectExplorerService as any)._inFlightChildrenFetches.has(connectionNode),
+                "In-flight fetch should be cleared after the expand completes",
+            ).to.be.false;
         });
 
         test("expandNode should handle error response from SQL Tools Service", async () => {
