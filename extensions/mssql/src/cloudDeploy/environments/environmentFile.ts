@@ -19,7 +19,7 @@ import { promises as fs } from "fs";
 import * as vscode from "vscode";
 
 import { ENVIRONMENTS_FILE_SCHEMA_VERSION, EnvironmentsFile } from "./types";
-import { validateEnvironmentsFile, type EnvironmentsFileIssue } from "./environmentSchema";
+import { EnvironmentsFileParseError, validateEnvironmentsFile } from "./environmentSchema";
 
 // =============================================================================
 // Constants
@@ -32,31 +32,11 @@ const ENVIRONMENTS_FILE_NAME = "environments.json";
 // Errors
 // =============================================================================
 
-/**
- * Thrown when the environments file exists but cannot be parsed (syntax error,
- * non-JSON content, or fails schema validation). Carries enough context for a
- * caller (or the diagnostic event bus) to surface a useful message.
- *
- * For schema-validation failures, `issues` lists every problem found so users
- * can fix them in one editing pass instead of one-at-a-time.
- */
-export class EnvironmentsFileParseError extends Error {
-    /**
-     * Populated for schema-validation failures (one entry per validator issue).
-     * Left `undefined` for raw JSON-syntax failures, where the only diagnostic
-     * is the underlying parser error captured in `cause` and `message`.
-     */
-    public issues?: EnvironmentsFileIssue[];
-
-    public constructor(
-        public readonly filePath: string,
-        message: string,
-        public readonly cause?: unknown,
-    ) {
-        super(message);
-        this.name = "EnvironmentsFileParseError";
-    }
-}
+// `EnvironmentsFileParseError` moved to `environmentSchema.ts` (with the
+// validator that produces it) so the schema validator carries no dependency on
+// this `vscode`-importing module — letting the headless CLI reuse
+// `validateEnvironmentsFile`. Re-exported here for API stability.
+export { EnvironmentsFileParseError };
 
 // =============================================================================
 // Path helpers

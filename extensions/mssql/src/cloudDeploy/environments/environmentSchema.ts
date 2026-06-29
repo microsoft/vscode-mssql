@@ -28,7 +28,6 @@ import {
     SourceOfTruthKind,
     ValidationType,
 } from "./types";
-import { EnvironmentsFileParseError } from "./environmentFile";
 
 // =============================================================================
 // Public types
@@ -42,6 +41,37 @@ export interface EnvironmentsFileIssue {
     path: string;
     message: string;
     severity: "error";
+}
+
+/**
+ * Thrown when the environments file exists but cannot be parsed (syntax error,
+ * non-JSON content, or fails schema validation). Carries enough context for a
+ * caller (or the diagnostic event bus) to surface a useful message.
+ *
+ * For schema-validation failures, `issues` lists every problem found so users
+ * can fix them in one editing pass instead of one-at-a-time.
+ *
+ * Lives here (with the validator that produces it) rather than in
+ * `environmentFile.ts` so the schema validator stays free of that module's
+ * `vscode` dependency — which lets the headless CLI reuse
+ * `validateEnvironmentsFile`.
+ */
+export class EnvironmentsFileParseError extends Error {
+    /**
+     * Populated for schema-validation failures (one entry per validator issue).
+     * Left `undefined` for raw JSON-syntax failures, where the only diagnostic
+     * is the underlying parser error captured in `cause` and `message`.
+     */
+    public issues?: EnvironmentsFileIssue[];
+
+    public constructor(
+        public readonly filePath: string,
+        message: string,
+        public readonly cause?: unknown,
+    ) {
+        super(message);
+        this.name = "EnvironmentsFileParseError";
+    }
 }
 
 // =============================================================================
