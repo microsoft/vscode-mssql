@@ -175,6 +175,11 @@ export interface SqlSymbolRenameResponse {
      */
     refactorLogContent: string | null;
     newName: string;
+    /**
+     * When non-null, the rename was rejected for a specific reason.
+     * Display this message to the user instead of any generic fallback.
+     */
+    errorMessage: string | null;
 }
 
 export namespace SqlSymbolRenameRequest {

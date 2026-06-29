@@ -152,6 +152,10 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             throw new Error(loc.renameOnlyInProjectFiles);
         }
 
+        if (response.errorMessage) {
+            throw new Error(response.errorMessage);
+        }
+
         const workspaceEdit = new vscode.WorkspaceEdit();
 
         if (!response.changes || Object.keys(response.changes).length === 0) {
