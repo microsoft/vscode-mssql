@@ -245,6 +245,28 @@ export namespace MoveNoneItemRequest {
 
 //#endregion
 
+//#region RefactorLog functions
+
+export namespace GetRefactorLogItemsRequest {
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void>(
+        "sqlProjects/getRefactorLogItems",
+    );
+}
+
+export namespace AddRefactorLogItemRequest {
+    export const type = new RequestType<mssql.SqlProjectScriptParams, mssql.ResultStatus, void>(
+        "sqlProjects/addRefactorLogItem",
+    );
+}
+
+export namespace DeleteRefactorLogItemRequest {
+    export const type = new RequestType<mssql.SqlProjectScriptParams, mssql.ResultStatus, void>(
+        "sqlProjects/deleteRefactorLogItem",
+    );
+}
+
+//#endregion
+
 //#endregion
 
 //#region SQLCMD variable functions

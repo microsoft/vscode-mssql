@@ -144,6 +144,19 @@ export class NoneNode extends FileNode {
     }
 }
 
+export class RefactorLogNode extends FileNode {
+    public override get treeItem(): vscode.TreeItem {
+        const treeItem = super.treeItem;
+        treeItem.contextValue = this.type;
+
+        return treeItem;
+    }
+
+    public get type(): DatabaseProjectItemType {
+        return DatabaseProjectItemType.refactorLogFile;
+    }
+}
+
 export class PublishProfileNode extends FileNode {
     public override get treeItem(): vscode.TreeItem {
         const treeItem = super.treeItem;

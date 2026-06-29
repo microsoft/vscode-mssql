@@ -1670,6 +1670,62 @@ suite("Project: publish profiles", function (): void {
     });
 });
 
+suite("Project: RefactorLog items", function (): void {
+    suiteSetup(async function (): Promise<void> {
+        await baselines.loadBaselines();
+    });
+
+    suiteTeardown(async function (): Promise<void> {
+        await testUtils.deleteGeneratedTestFolder();
+    });
+
+    test("Should read RefactorLog items from sqlproj", async function (): Promise<void> {
+        const projFilePath = await testUtils.createTestSqlProjFile(
+            this.test,
+            baselines.openSqlProjectWithRefactorLogBaseline,
+        );
+        const project = await Project.openProject(projFilePath);
+
+        expect(project.refactorLogItems.length, "refactorLogItems should be loaded").to.equal(2);
+        expect(
+            project.refactorLogItems.find((f) => f.relativePath === "TestProjectName.refactorlog"),
+            "TestProjectName.refactorlog not read",
+        ).to.not.equal(undefined);
+        expect(
+            project.refactorLogItems.find(
+                (f) => f.relativePath === "Refactoring\\OldRenames.refactorlog",
+            ),
+            "Refactoring\\OldRenames.refactorlog not read",
+        ).to.not.equal(undefined);
+    });
+
+    test("Should add and delete RefactorLog item", async function (): Promise<void> {
+        const projFilePath = await testUtils.createTestSqlProjFile(
+            this.test,
+            baselines.openProjectFileBaseline,
+        );
+        const project = await Project.openProject(projFilePath);
+        expect(project.refactorLogItems.length, "Baseline number of RefactorLog items").to.equal(0);
+
+        // Create the file on disk so STS can add it
+        const refactorLogName = "TestProject.refactorlog";
+        const refactorLogPath = path.join(project.projectFolderPath, refactorLogName);
+        await fs.writeFile(refactorLogPath, "<Operations></Operations>");
+
+        await project.addRefactorLogItem(refactorLogName);
+        expect(project.refactorLogItems.length, "RefactorLog item count after add").to.equal(1);
+        expect(
+            project.refactorLogItems.find((f) => f.relativePath === refactorLogName),
+            `${refactorLogName} should be in refactorLogItems`,
+        ).to.not.equal(undefined);
+
+        await project.deleteRefactorLogItem(refactorLogName);
+        expect(project.refactorLogItems.length, "RefactorLog item count after delete").to.equal(0);
+        expect(await exists(refactorLogPath), "RefactorLog file should have been deleted from disk")
+            .to.be.false;
+    });
+});
+
 suite("Project: properties", function (): void {
     let sandbox: sinon.SinonSandbox;
 

@@ -780,6 +780,7 @@ export enum DatabaseProjectItemType {
     noneFile = "databaseProject.itemType.file.noneFile",
     sqlObjectScript = "databaseProject.itemType.file.sqlObjectScript",
     publishProfile = "databaseProject.itemType.file.publishProfile",
+    refactorLogFile = "databaseProject.itemType.file.refactorLogFile",
 }
 
 //#endregion

@@ -73,6 +73,7 @@ export class Project implements ISqlProject {
     private _preDeployScripts: FileProjectEntry[] = [];
     private _postDeployScripts: FileProjectEntry[] = [];
     private _noneDeployScripts: FileProjectEntry[] = [];
+    private _refactorLogItems: FileProjectEntry[] = [];
     private _sqlProjStyle: ProjectType;
     private _isCrossPlatformCompatible: boolean = false;
     private _outputPath: string = "";
@@ -136,6 +137,10 @@ export class Project implements ISqlProject {
 
     public get noneDeployScripts(): FileProjectEntry[] {
         return this._noneDeployScripts;
+    }
+
+    public get refactorLogItems(): FileProjectEntry[] {
+        return this._refactorLogItems;
     }
 
     public get sqlProjStyle(): ProjectType {
@@ -347,6 +352,7 @@ export class Project implements ISqlProject {
         await this.readPostDeployScripts(true);
 
         await this.readNoneItems(); // also populates list of publish profiles, determined by file extension
+        await this.readRefactorLogItems();
 
         await this.readSqlObjectScripts(); // get SQL object scripts
         await this.readFolders(); // get folders
@@ -556,6 +562,23 @@ export class Project implements ISqlProject {
         }
     }
 
+    private async readRefactorLogItems(): Promise<void> {
+        const result: GetScriptsResult = await (
+            this.sqlProjService as vscodeMssql.ISqlProjectsService
+        ).getRefactorLogItems(this.projectFilePath);
+        utils.throwIfFailed(result);
+
+        this._refactorLogItems = [];
+
+        if (result.scripts?.length > 0) {
+            for (var scriptPath of result.scripts) {
+                this._refactorLogItems.push(
+                    this.createFileProjectEntry(scriptPath, EntryType.File),
+                );
+            }
+        }
+    }
+
     private async readDatabaseReferences(): Promise<void> {
         this._databaseReferences = [];
         const databaseReferencesResult = await this.sqlProjService.getDatabaseReferences(
@@ -639,6 +662,7 @@ export class Project implements ISqlProject {
         this._preDeployScripts = [];
         this._postDeployScripts = [];
         this._noneDeployScripts = [];
+        this._refactorLogItems = [];
         this._outputPath = "";
         this._configuration = Configuration.Debug;
         this._publishProfiles = [];
@@ -740,6 +764,7 @@ export class Project implements ISqlProject {
         await this.readPreDeployScripts();
         await this.readPostDeployScripts();
         await this.readNoneItems();
+        await this.readRefactorLogItems();
         await this.readFolders();
     }
 
@@ -754,6 +779,7 @@ export class Project implements ISqlProject {
         await this.readPreDeployScripts();
         await this.readPostDeployScripts();
         await this.readNoneItems();
+        await this.readRefactorLogItems();
         await this.readFolders();
     }
 
@@ -772,6 +798,7 @@ export class Project implements ISqlProject {
         await this.readPreDeployScripts();
         await this.readPostDeployScripts();
         await this.readNoneItems();
+        await this.readRefactorLogItems();
         await this.readFolders();
     }
 
@@ -845,6 +872,7 @@ export class Project implements ISqlProject {
 
         await this.readPreDeployScripts();
         await this.readNoneItems();
+        await this.readRefactorLogItems();
         await this.readFolders();
     }
 
@@ -889,6 +917,7 @@ export class Project implements ISqlProject {
 
         await this.readPostDeployScripts();
         await this.readNoneItems();
+        await this.readRefactorLogItems();
         await this.readFolders();
     }
 
@@ -944,6 +973,30 @@ export class Project implements ISqlProject {
         await this.readNoneItems();
         await this.readFolders();
     }
+
+    //#region RefactorLog items
+
+    public async addRefactorLogItem(relativePath: string): Promise<void> {
+        const result = await (
+            this.sqlProjService as vscodeMssql.ISqlProjectsService
+        ).addRefactorLogItem(this.projectFilePath, relativePath);
+        utils.throwIfFailed(result);
+
+        await this.readRefactorLogItems();
+        await this.readFolders();
+    }
+
+    public async deleteRefactorLogItem(relativePath: string): Promise<void> {
+        const result = await (
+            this.sqlProjService as vscodeMssql.ISqlProjectsService
+        ).deleteRefactorLogItem(this.projectFilePath, relativePath);
+        utils.throwIfFailed(result);
+
+        await this.readRefactorLogItems();
+        await this.readFolders();
+    }
+
+    //#endregion
 
     //#endregion
 
@@ -1018,6 +1071,7 @@ export class Project implements ISqlProject {
                 normalizedRelativeFilePath,
             );
             await this.readNoneItems();
+            await this.readRefactorLogItems();
         }
 
         utils.throwIfFailed(result);

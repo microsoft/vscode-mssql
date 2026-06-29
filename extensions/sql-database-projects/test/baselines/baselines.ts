@@ -31,6 +31,7 @@ export let openSdkStyleSqlProjectWithFilesSpecifiedBaseline: string;
 export let openSdkStyleSqlProjectWithGlobsSpecifiedBaseline: string;
 export let sqlProjPropertyReadBaseline: string;
 export let databaseReferencesReadBaseline: string;
+export let openSqlProjectWithRefactorLogBaseline: string;
 
 const baselineFolderPath = path.join(__dirname, "..", "..", "..", "test", "baselines");
 
@@ -118,6 +119,10 @@ export async function loadBaselines() {
     databaseReferencesReadBaseline = await loadBaseline(
         baselineFolderPath,
         "databaseReferencesReadBaseline.xml",
+    );
+    openSqlProjectWithRefactorLogBaseline = await loadBaseline(
+        baselineFolderPath,
+        "openSqlProjectWithRefactorLogBaseline.xml",
     );
 }
 

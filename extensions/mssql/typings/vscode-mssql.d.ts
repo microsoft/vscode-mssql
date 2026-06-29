@@ -1004,6 +1004,26 @@ declare module "vscode-mssql" {
             path: string,
             destinationPath: string,
         ): Promise<ResultStatus>;
+
+        /**
+         * Get all RefactorLog items in a project
+         * @param projectUri Absolute path of the project, including .sqlproj
+         */
+        getRefactorLogItems(projectUri: string): Promise<GetScriptsResult>;
+
+        /**
+         * Add a RefactorLog item to a project
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param path Path of the .refactorlog file, relative to the .sqlproj
+         */
+        addRefactorLogItem(projectUri: string, path: string): Promise<ResultStatus>;
+
+        /**
+         * Delete a RefactorLog item from a project
+         * @param projectUri Absolute path of the project, including .sqlproj
+         * @param path Path of the .refactorlog file, relative to the .sqlproj
+         */
+        deleteRefactorLogItem(projectUri: string, path: string): Promise<ResultStatus>;
     }
 
     /**
