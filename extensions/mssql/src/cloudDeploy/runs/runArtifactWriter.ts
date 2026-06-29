@@ -23,7 +23,7 @@
 
 import * as yazl from "yazl";
 
-import { DiagnosticEventBus } from "../diagnostics";
+import type { DiagnosticEventSink } from "../diagnostics";
 import { DiagnosticEvent } from "../diagnostics/types";
 import { FileProvider } from "../providers";
 import { RunRecord } from "./types";
@@ -55,7 +55,7 @@ export interface RunArtifactWriteResult {
 export class RunArtifactWriter {
     public constructor(
         private readonly _fileProvider: FileProvider,
-        private readonly _bus?: DiagnosticEventBus,
+        private readonly _bus?: DiagnosticEventSink,
     ) {}
 
     /**

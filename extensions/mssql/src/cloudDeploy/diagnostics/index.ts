@@ -10,6 +10,7 @@ export type {
     DiagnosticEventEnvelope,
     DiagnosticEventInput,
     DiagnosticEventSeverity,
+    DiagnosticEventSink,
     DiagnosticEventSource,
     EnvironmentsChangedEvent,
     EnvironmentsFileParseFailedEvent,

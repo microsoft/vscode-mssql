@@ -27,12 +27,12 @@
  *     the rest.
  */
 
-import { randomUUID } from "crypto";
 import * as vscode from "vscode";
 
-import { DiagnosticEvent, DiagnosticEventInput } from "./types";
+import { DiagnosticEvent, DiagnosticEventInput, DiagnosticEventSink } from "./types";
+import { stampEnvelope } from "./eventEnvelope";
 
-export class DiagnosticEventBus implements vscode.Disposable {
+export class DiagnosticEventBus implements vscode.Disposable, DiagnosticEventSink {
     private readonly _emitter = new vscode.EventEmitter<DiagnosticEvent>();
     private _disposed = false;
 
@@ -81,20 +81,4 @@ export class DiagnosticEventBus implements vscode.Disposable {
         this._disposed = true;
         this._emitter.dispose();
     }
-}
-
-/**
- * Stamps the bus-controlled envelope fields (`id`, `timestampMs`, default
- * `severity`) onto a producer-provided input and returns a fully-formed
- * `DiagnosticEvent`. The cast widens because TS can't see that the union
- * over `DiagnosticEventInput` plus stamped fields reconstructs the original
- * union exactly — but the runtime shape is correct by construction.
- */
-function stampEnvelope(input: DiagnosticEventInput): DiagnosticEvent {
-    return {
-        ...input,
-        id: randomUUID(),
-        timestampMs: Date.now(),
-        severity: input.severity ?? "info",
-    } as DiagnosticEvent;
 }

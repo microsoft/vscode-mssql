@@ -15,7 +15,7 @@
  * `validation/runner.ts`.
  */
 
-import type { DiagnosticEventBus } from "../diagnostics";
+import type { DiagnosticEventSink } from "../diagnostics";
 import type {
     Environment,
     ConnectivitySettings,
@@ -109,7 +109,7 @@ export interface Validator<TType extends ValidationType = ValidationType> {
 export interface ValidatorRunOptions {
     readonly runId: string;
     readonly signal: AbortSignal;
-    readonly bus?: DiagnosticEventBus;
+    readonly bus?: DiagnosticEventSink;
     /**
      * Connection to the per-run ephemeral database the runner provisioned and
      * seeded for this run (Scope 2, decisions D-C / M6). Present only when the

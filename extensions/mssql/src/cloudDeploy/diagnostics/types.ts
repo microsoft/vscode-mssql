@@ -272,3 +272,25 @@ export type DiagnosticEventInput = {
         readonly severity?: E["severity"];
     };
 }[DiagnosticEvent["type"]];
+
+// =============================================================================
+// Producer seam
+// =============================================================================
+
+/**
+ * The minimal producer surface the engine depends on: "publish an event." The
+ * runner, the validators, and the run-artifact writer accept a
+ * `DiagnosticEventSink` (not the concrete `DiagnosticEventBus`) so the same
+ * engine runs in the extension host — where `DiagnosticEventBus` wraps
+ * `vscode.EventEmitter` — and in a headless `node` process — where
+ * `NodeDiagnosticEventBus` implements this interface with no `vscode`
+ * dependency. Consumers that also subscribe (`onDidEmit` / `on`) keep depending
+ * on the concrete bus.
+ */
+export interface DiagnosticEventSink {
+    /**
+     * Publishes an event. The implementation stamps `id` / `timestampMs` and
+     * defaults `severity` to `"info"` when the caller omits it.
+     */
+    emit(input: DiagnosticEventInput): void;
+}

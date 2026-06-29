@@ -36,7 +36,7 @@
 
 import { randomUUID } from "crypto";
 
-import type { DiagnosticEventBus } from "../diagnostics";
+import type { DiagnosticEventSink } from "../diagnostics";
 import {
     Environment,
     RuntimeHostConfig,
@@ -123,7 +123,7 @@ export interface RunnerRuntimeDeps {
 export class Runner {
     public constructor(
         private readonly _registry: ValidatorRegistry,
-        private readonly _bus?: DiagnosticEventBus,
+        private readonly _bus?: DiagnosticEventSink,
         private readonly _runtime: RunnerRuntimeDeps = {},
     ) {}
 
