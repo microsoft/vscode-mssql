@@ -30,6 +30,7 @@ import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
 } from "../azure/vscodeEntraMfaUtils";
+import { getErrorMessage } from "../utils/utils";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -870,11 +871,11 @@ export async function connectToAzureSqlDatabase(
         UserSurvey.getInstance().promptUserForNPSFeedback(`${DEPLOYMENT_VIEW_ID}_azureSqlDatabase`);
     } catch (err) {
         state.connectionLoadState = ApiStatus.Error;
-        state.errorMessage = err instanceof Error ? err.message : String(err);
+        state.errorMessage = getErrorMessage(err);
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            err instanceof Error ? err : new Error(String(err)),
+            err,
             false,
         );
     }
