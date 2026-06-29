@@ -5,6 +5,7 @@
 
 import * as child_process from "child_process";
 import * as fs from "fs";
+import * as https from "https";
 import * as os from "os";
 import * as path from "path";
 import * as semver from "semver";
@@ -33,11 +34,110 @@ export const linuxPlatform = "linux";
 export const minSupportedNetCoreVersionForBuild = "8.0.0";
 
 /**
- * Fallback version for Microsoft.Build.Sql when the setting is not configured or invalid.
- * NOTE: Keep this in sync with the default value in package.json:
- * sqlDatabaseProjects.microsoftBuildSqlVersion.default
+ * Default Microsoft.Build.Sql version. Uses a NuGet floating version so that projects and
+ * legacy DLL downloads always target the latest 2.x release. To upgrade to 3.x in the future,
+ * change only this constant (and the matching default in package.json).
  */
-export const FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.1.0";
+export const FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.*";
+
+/**
+ * Returns true if the version string is a valid semver or a NuGet floating version (e.g. "2.*", "2.1.*").
+ */
+function isValidMicrosoftBuildSqlVersion(version: string): boolean {
+    return !!semver.valid(version) || /^\d+(\.\d+)*\.\*$/.test(version);
+}
+
+/**
+ * Returns the configured Microsoft.Build.Sql version.
+ * Accepts both exact semver versions and NuGet floating versions (e.g. "2.*").
+ * When a floating version is returned, callers that construct NuGet download URLs must resolve
+ * it to an exact version first via the NuGet v3 index API.
+ * Falls back to FALLBACK_MICROSOFT_BUILD_SQL_VERSION if the user-configured value is absent or invalid.
+ */
+export function getMicrosoftBuildSqlVersion(): string {
+    const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
+    const configured = config.get<string>(microsoftBuildSqlVersionKey)?.trim();
+    if (configured && isValidMicrosoftBuildSqlVersion(configured)) {
+        return configured;
+    }
+
+    return FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
+}
+
+/**
+ * Resolves a NuGet floating version (e.g. "2.*", "2.1.*") to the latest matching stable
+ * exact version by querying the NuGet v3 flat-container index.
+ * If the version is already exact (valid semver), it is returned as-is.
+ * If the requested floating version has no matching stable releases on NuGet, falls back to
+ * FALLBACK_MICROSOFT_BUILD_SQL_VERSION and shows a VS Code warning.
+ * Throws only if the fallback also cannot be resolved.
+ */
+export async function resolveNugetVersion(packageName: string, version: string): Promise<string> {
+    if (semver.valid(version)) {
+        return version; // Already exact — nothing to resolve.
+    }
+
+    try {
+        return await resolveFloatingVersion(packageName, version);
+    } catch {
+        // The requested version (e.g. "4.*") has no stable matches — fall back to the default.
+        if (version !== FALLBACK_MICROSOFT_BUILD_SQL_VERSION) {
+            void vscode.window.showWarningMessage(
+                `No stable versions of ${packageName} found matching ${version}. ` +
+                    `Falling back to ${FALLBACK_MICROSOFT_BUILD_SQL_VERSION}.`,
+            );
+            return resolveFloatingVersion(packageName, FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
+        }
+        throw new Error(
+            `No stable versions of ${packageName} found matching ${FALLBACK_MICROSOFT_BUILD_SQL_VERSION}.`,
+        );
+    }
+}
+
+/**
+ * Core NuGet v3 index lookup — resolves a floating version prefix to the latest stable exact
+ * version. Throws if no match is found or the network call fails.
+ */
+async function resolveFloatingVersion(packageName: string, version: string): Promise<string> {
+    // "2.*" → prefix "2."   |   "2.1.*" → prefix "2.1."
+    const prefix = version.slice(0, version.lastIndexOf("*"));
+    const indexUrl = `https://api.nuget.org/v3-flatcontainer/${packageName.toLowerCase()}/index.json`;
+
+    return new Promise<string>((resolve, reject) => {
+        https
+            .get(indexUrl, (res) => {
+                let data = "";
+                res.on("data", (chunk: string) => (data += chunk));
+                res.on("end", () => {
+                    try {
+                        const { versions } = JSON.parse(data) as { versions: string[] };
+                        // Stable versions only (no pre-release), matching the prefix, pick the last (highest).
+                        const matching = versions.filter(
+                            (v) => v.startsWith(prefix) && !v.includes("-"),
+                        );
+                        if (matching.length > 0) {
+                            resolve(matching[matching.length - 1]);
+                        } else {
+                            reject(
+                                new Error(
+                                    `No stable versions of ${packageName} found matching ${version}`,
+                                ),
+                            );
+                        }
+                    } catch (e) {
+                        reject(
+                            new Error(
+                                `Failed to parse NuGet index for ${packageName}: ${(e as Error).message}`,
+                            ),
+                        );
+                    }
+                });
+            })
+            .on("error", (e) =>
+                reject(new Error(`Failed to fetch NuGet index for ${packageName}: ${e.message}`)),
+            );
+    });
+}
 
 export const enum netCoreInstallState {
     netCoreNotPresent,
@@ -46,27 +146,6 @@ export const enum netCoreInstallState {
 }
 
 const dotnet = os.platform() === "win32" ? "dotnet.exe" : "dotnet";
-
-/**
- * Returns the configured Microsoft.Build.Sql version.
- *
- * Resolution order:
- * 1. User's configured value (global or workspace settings.json) — if it is a valid semver.
- * 2. Package.json default value — returned by config.get() when the user has not overridden the setting.
- * 3. FALLBACK_MICROSOFT_BUILD_SQL_VERSION — used only when both of the above are unavailable or
- *    not a valid semver (e.g. the extension package.json default is missing or the user typed an
- *    invalid version string).
- */
-export function getMicrosoftBuildSqlVersion(): string {
-    const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
-    const configured = config.get<string>(microsoftBuildSqlVersionKey)?.trim();
-    if (configured && semver.valid(configured)) {
-        return configured;
-    }
-
-    // Fall back to the hardcoded constant if config value is unavailable or invalid
-    return FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
-}
 
 export class NetCoreTool extends ShellExecutionHelper {
     private osPlatform: string = os.platform();

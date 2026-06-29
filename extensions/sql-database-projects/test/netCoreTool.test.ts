@@ -6,15 +6,18 @@
 import { expect } from "chai";
 import * as os from "os";
 import * as fs from "fs";
+import * as https from "https";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import { EventEmitter } from "events";
 import {
     NetCoreTool,
     DBProjectConfigurationKey,
     DotnetInstallLocationKey,
     FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
     getMicrosoftBuildSqlVersion,
+    resolveNugetVersion,
 } from "../src/tools/netcoreTool";
 import { deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
 import { createContext, TestContext } from "./testContext";
@@ -157,6 +160,85 @@ suite("NetCoreTool: Net core tests", function (): void {
                 );
             result = getMicrosoftBuildSqlVersion();
             expect(result).to.equal(FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
+        });
+    });
+
+    suite("resolveNugetVersion tests", function (): void {
+        let getStub: sinon.SinonStub;
+
+        setup(function (): void {
+            getStub = sandbox.stub(https, "get");
+        });
+
+        function stubNugetResponse(versions: string[]): void {
+            const responseEmitter = new EventEmitter() as EventEmitter & {
+                statusCode: number;
+            };
+            (responseEmitter as any).statusCode = 200;
+            const reqEmitter = new EventEmitter();
+            getStub.callsFake((_url: string, callback: (res: EventEmitter) => void) => {
+                callback(responseEmitter);
+                responseEmitter.emit("data", JSON.stringify({ versions }));
+                responseEmitter.emit("end");
+                return reqEmitter;
+            });
+        }
+
+        test("Should return exact version unchanged", async function (): Promise<void> {
+            // No network call expected for exact versions
+            const result = await resolveNugetVersion("Microsoft.Build.Sql", "2.1.0");
+            expect(result).to.equal("2.1.0");
+            expect(getStub.callCount).to.equal(0);
+        });
+
+        test("Should resolve floating version to latest matching stable", async function (): Promise<void> {
+            stubNugetResponse(["2.0.0", "2.1.0", "2.1.1", "2.1.1-preview", "3.0.0"]);
+            const result = await resolveNugetVersion("Microsoft.Build.Sql", "2.*");
+            expect(result).to.equal("2.1.1");
+        });
+
+        test("Should resolve floating minor version to latest matching stable", async function (): Promise<void> {
+            stubNugetResponse(["2.1.0", "2.1.1", "2.2.0"]);
+            const result = await resolveNugetVersion("Microsoft.Build.Sql", "2.1.*");
+            expect(result).to.equal("2.1.1");
+        });
+
+        test("Should fall back to FALLBACK version when no match found for requested version", async function (): Promise<void> {
+            // First call returns no matching versions (for "4.*")
+            // Second call (fallback to "2.*") returns matching versions
+            let callCount = 0;
+            getStub.callsFake((_url: string, callback: (res: EventEmitter) => void) => {
+                callCount++;
+                const responseEmitter = new EventEmitter();
+                const reqEmitter = new EventEmitter();
+                callback(responseEmitter);
+                const versions = callCount === 1 ? ["3.0.0"] : ["2.0.0", "2.1.0"];
+                responseEmitter.emit("data", JSON.stringify({ versions }));
+                responseEmitter.emit("end");
+                return reqEmitter;
+            });
+            const showWarnStub = sandbox.stub(vscode.window, "showWarningMessage");
+            const result = await resolveNugetVersion("Microsoft.Build.Sql", "4.*");
+            expect(result).to.equal("2.1.0");
+            expect(showWarnStub.calledOnce).to.be.true;
+        });
+
+        test("Should throw when network error occurs and no fallback available", async function (): Promise<void> {
+            const reqEmitter = new EventEmitter();
+            getStub.callsFake((_url: string, _callback: (res: EventEmitter) => void) => {
+                setImmediate(() => reqEmitter.emit("error", new Error("network failure")));
+                return reqEmitter;
+            });
+            // Use FALLBACK version so no second fallback attempt
+            try {
+                await resolveNugetVersion(
+                    "Microsoft.Build.Sql",
+                    FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
+                );
+                expect.fail("Should have thrown");
+            } catch (e: unknown) {
+                expect((e as Error).message).to.include("network failure");
+            }
         });
     });
 });

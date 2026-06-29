@@ -11,7 +11,7 @@ import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
-import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
+import { getMicrosoftBuildSqlVersion, resolveNugetVersion } from "./netcoreTool";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
@@ -131,6 +131,20 @@ export class BuildHelper {
         nugetFolderWithExpectedfiles: string,
         outputChannel: vscode.OutputChannel,
     ): Promise<boolean> {
+        // Resolve NuGet floating versions (e.g. "2.*") to an exact version via the NuGet v3 API
+        // before constructing the download URL, which requires an exact version.
+        if (/^\d+(\.\d+)*\.\*$/.test(nugetVersion)) {
+            try {
+                nugetVersion = await resolveNugetVersion(nugetName, nugetVersion);
+                outputChannel.appendLine(`Resolved ${nugetName} \u2192 ${nugetVersion}`);
+            } catch (e) {
+                const errorMessage = utils.getErrorMessage(e);
+                outputChannel.appendLine(errorMessage);
+                void vscode.window.showErrorMessage(errorMessage);
+                return false;
+            }
+        }
+
         const fullNugetName = `${nugetName}.${nugetVersion}`;
         const fullNugetPath = path.join(this.extensionBuildDir, `${fullNugetName}.nupkg`);
 
