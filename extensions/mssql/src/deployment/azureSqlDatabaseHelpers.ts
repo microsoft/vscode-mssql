@@ -380,14 +380,14 @@ export function registerAzureSqlDatabaseReducers(
                 void connectToAzureSqlDatabase(deploymentController);
             } catch (error) {
                 azureSqlState.provisionLoadState = ApiStatus.Error;
-                azureSqlState.errorMessage = error instanceof Error ? error.message : String(error);
+                azureSqlState.errorMessage = getErrorMessage(error);
                 cachedLogger?.error(
                     `Azure SQL Database provisioning failed: ${azureSqlState.errorMessage}`,
                 );
                 sendErrorEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
-                    error instanceof Error ? error : new Error(String(error)),
+                    error as Error,
                     false,
                 );
             }
@@ -875,7 +875,7 @@ export async function connectToAzureSqlDatabase(
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            err,
+            err as Error,
             false,
         );
     }
