@@ -143,6 +143,7 @@ suite("SQL Tools MCP bridge manager", () => {
 
     test("logs a warning when socket directory cleanup fails", async () => {
         await manager.prepareLaunch();
+        manager["socketDirectory"] = "test-socket-directory";
         const rmSyncStub = sandbox.stub(fs, "rmSync").throws(new Error("cleanup failed"));
 
         await manager.prepareLaunch();

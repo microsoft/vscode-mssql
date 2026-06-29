@@ -13,12 +13,11 @@ import { QueryHistoryProvider } from "../../src/queryHistory/queryHistoryProvide
 import { QueryHistoryNode, EmptyHistoryNode } from "../../src/queryHistory/queryHistoryNode";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import type { IConnectionProfile } from "../../src/models/interfaces";
-import { stubVscodeWrapper, initializeIconUtils } from "./utils";
+import { initializeIconUtils } from "./utils";
 import { createWorkspaceConfiguration } from "./stubs";
 import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
@@ -63,7 +62,6 @@ suite("QueryHistoryProvider persistence", () => {
     let provider: QueryHistoryProvider;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let outputContentProviderStub: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let sqlDocumentServiceStub: sinon.SinonStubbedInstance<SqlDocumentService>;
     let statusViewStub: sinon.SinonStubbedInstance<StatusView>;
     let prompterStub: sinon.SinonStubbedInstance<IPrompter>;
@@ -81,7 +79,6 @@ suite("QueryHistoryProvider persistence", () => {
         return new QueryHistoryProvider(
             connectionManagerStub as unknown as ConnectionManager,
             outputContentProviderStub as unknown as SqlOutputContentProvider,
-            vscodeWrapperStub as unknown as VscodeWrapper,
             sqlDocumentServiceStub as unknown as SqlDocumentService,
             statusViewStub as unknown as StatusView,
             prompterStub as unknown as IPrompter,
@@ -214,7 +211,6 @@ suite("QueryHistoryProvider persistence", () => {
 
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         outputContentProviderStub = sandbox.createStubInstance(SqlOutputContentProvider);
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
         statusViewStub = sandbox.createStubInstance(StatusView);
         prompterStub = sandbox.createStubInstance(CodeAdapter);
@@ -222,7 +218,7 @@ suite("QueryHistoryProvider persistence", () => {
         const config = createWorkspaceConfiguration({
             [Constants.configQueryHistoryLimit]: 10,
         });
-        vscodeWrapperStub.getConfiguration.returns(config);
+        sandbox.stub(vscode.workspace, "getConfiguration").returns(config);
 
         secretStorage = {
             get: sandbox

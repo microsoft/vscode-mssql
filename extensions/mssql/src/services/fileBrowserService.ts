@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     FileBrowserCloseRequest,
@@ -35,7 +34,7 @@ export class FileBrowserService {
     private _pendingFileBrowserExpands: Map<string, Deferred<fb.FileBrowserExpandResponse>> =
         new Map<string, Deferred<fb.FileBrowserExpandResponse>>();
 
-    constructor(_vscodeWrapper: VscodeWrapper, _client: SqlToolsServiceClient) {
+    constructor(_client: SqlToolsServiceClient) {
         this._client = _client;
         this._logger = logger.withPrefix("FileBrowserService");
 

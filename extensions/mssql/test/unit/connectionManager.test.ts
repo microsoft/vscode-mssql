@@ -11,7 +11,6 @@ import { expect } from "chai";
 import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
@@ -30,8 +29,8 @@ import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
 import {
     stubExtensionContext,
+    stubMessageBoxes,
     stubPreviewService,
-    stubVscodeWrapper,
     createStubLogger,
 } from "./utils";
 import { Deferred } from "../../src/protocol";
@@ -51,7 +50,7 @@ suite("ConnectionManager Tests", () => {
     let mockContext: vscode.ExtensionContext;
     let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let mockServiceClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let mockStatusView: sinon.SinonStubbedInstance<StatusView>;
@@ -61,7 +60,7 @@ suite("ConnectionManager Tests", () => {
     setup(async () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         mockLogger = createStubLogger(sandbox);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
@@ -92,7 +91,6 @@ suite("ConnectionManager Tests", () => {
                     undefined, // prompter
                     mockLogger,
                     mockServiceClient,
-                    mockVscodeWrapper,
                     mockConnectionStore,
                     mockCredentialStore,
                     undefined, // connectionUI
@@ -157,7 +155,6 @@ suite("ConnectionManager Tests", () => {
                 undefined, // prompter
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
@@ -225,7 +222,6 @@ suite("ConnectionManager Tests", () => {
                 undefined, // prompter
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
@@ -256,7 +252,6 @@ suite("ConnectionManager Tests", () => {
                 undefined, // prompter
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
@@ -270,7 +265,7 @@ suite("ConnectionManager Tests", () => {
                 id: "00000000-1111-2222-3333-444444444444",
             } as IConnectionProfile;
 
-            mockVscodeWrapper.showErrorMessage.resolves(undefined);
+            messageBoxes.showErrorMessage.resolves(undefined);
 
             mockServiceClient.sendRequest
                 .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
@@ -282,7 +277,7 @@ suite("ConnectionManager Tests", () => {
                 "error",
             );
 
-            expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
         });
     });
 
@@ -296,7 +291,6 @@ suite("ConnectionManager Tests", () => {
                 undefined, // prompter
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
@@ -398,7 +392,6 @@ suite("ConnectionManager Tests", () => {
                 undefined,
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined,
@@ -541,7 +534,6 @@ suite("ConnectionManager Tests", () => {
                 undefined,
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined,
@@ -743,7 +735,6 @@ suite("ConnectionManager Tests", () => {
                 undefined,
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined,
@@ -824,7 +815,6 @@ suite("ConnectionManager Tests", () => {
                 undefined,
                 mockLogger,
                 mockServiceClient,
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined,

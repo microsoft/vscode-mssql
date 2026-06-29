@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
-import VscodeWrapper from "./vscodeWrapper";
+import * as Utils from "../models/utils";
 import {
     BatchSummary,
     QueryExecuteParams,
@@ -51,7 +51,6 @@ import {
 } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import * as Utils from "../models/utils";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
@@ -171,7 +170,6 @@ export default class QueryRunner {
         private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
-        private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -179,10 +177,6 @@ export default class QueryRunner {
 
         if (!_notificationHandler) {
             this._notificationHandler = QueryNotificationHandler.instance;
-        }
-
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
         }
 
         // Store the state
@@ -381,14 +375,12 @@ export default class QueryRunner {
         };
 
         // Getting query text
-        const doc = await this._vscodeWrapper.openTextDocument(
-            this._vscodeWrapper.parseUri(this._ownerUri),
-        );
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
         let queryString: string;
         if (selection) {
-            let range = this._vscodeWrapper.range(
-                this._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                this._vscodeWrapper.position(selection.endLine, selection.endColumn),
+            let range = new vscode.Range(
+                new vscode.Position(selection.startLine, selection.startColumn),
+                new vscode.Position(selection.endLine, selection.endColumn),
             );
             queryString = doc.getText(range);
         } else {
@@ -634,7 +626,7 @@ export default class QueryRunner {
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {
-            this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
+            vscode.window.showErrorMessage(getErrorMessage(errorMsg));
         }
     }
 
@@ -697,7 +689,7 @@ export default class QueryRunner {
             };
         } catch (error) {
             // TODO: Localize
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             rowsFetchActivity?.endFailed(error, false);
@@ -754,7 +746,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
@@ -936,7 +928,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
@@ -954,8 +946,15 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
     ): Promise<void> {
-        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-        const csvConfig = config[Constants.configSaveAsCsv] || {};
+        const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+        const csvConfig =
+            config.get<{
+                delimiter?: string;
+                textIdentifier?: string;
+                lineSeperator?: string;
+                encoding?: string;
+                includeHeaders?: boolean;
+            }>(Constants.configSaveAsCsv) ?? {};
 
         const delimiter = csvConfig.delimiter || ",";
         const textIdentifier = csvConfig.textIdentifier || '"';
@@ -1219,9 +1218,9 @@ export default class QueryRunner {
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this.uri,
+            vscode.Uri.parse(this.uri),
         );
         let showBatchTime: boolean = config.get(Constants.configShowBatchTime);
         if (showBatchTime) {
@@ -1240,19 +1239,17 @@ export default class QueryRunner {
      * @param selection The selection range to select
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
-        const docExists = this._vscodeWrapper.textDocuments.find(
+        const docExists = vscode.workspace.textDocuments.find(
             (textDoc) => textDoc.uri.toString() === this.uri,
         );
         if (docExists) {
             let column = vscode.ViewColumn.One;
-            const doc = await this._vscodeWrapper.openTextDocument(
-                this._vscodeWrapper.parseUri(this.uri),
-            );
-            const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this.uri));
+            const activeTextEditor = vscode.window.activeTextEditor;
             if (activeTextEditor) {
                 column = activeTextEditor.viewColumn;
             }
-            let editor = await this._vscodeWrapper.showTextDocument(doc, {
+            let editor = await vscode.window.showTextDocument(doc, {
                 viewColumn: column,
                 preserveFocus: false,
                 preview: false,

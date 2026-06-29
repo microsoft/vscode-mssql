@@ -11,7 +11,6 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { WebviewBaseController } from "./webviewBaseController";
 import { sendActionEvent } from "../telemetry/telemetry";
-import VscodeWrapper from "./vscodeWrapper";
 import { Deferred } from "../protocol";
 
 /**
@@ -39,13 +38,12 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
      */
     constructor(
         _context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         sourceFile: string,
         _viewId: string,
         initialData: State,
         private _options: MssqlWebviewPanelOptions,
     ) {
-        super(_context, vscodeWrapper, sourceFile, initialData, _viewId);
+        super(_context, sourceFile, initialData, _viewId);
         this.createWebviewPanel();
         // This call sends messages to the Webview so it's called after the Webview creation.
         this.initializeBase();

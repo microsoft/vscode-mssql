@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
@@ -103,7 +102,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         private connectionString: string,
@@ -117,7 +115,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             SCHEMA_DESIGNER_VIEW_ID,
             SCHEMA_DESIGNER_VIEW_ID,
             {

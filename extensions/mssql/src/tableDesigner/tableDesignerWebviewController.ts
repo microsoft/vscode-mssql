@@ -19,7 +19,6 @@ import * as LocConstants from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
 
@@ -39,7 +38,6 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private _tableDesignerService: designer.ITableDesignerService,
         private _connectionManager: ConnectionManager,
         private _sqlDocumentService: SqlDocumentService,
@@ -49,7 +47,6 @@ export class TableDesignerWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             TABLE_DESIGNER_VIEW_ID,
             TABLE_DESIGNER_VIEW_ID,
             {

@@ -12,7 +12,6 @@ import * as vscode from "vscode";
 import { SqlSymbolRenameProvider } from "../../src/languageservice/sqlSymbolRenameProvider";
 import { SqlMoveToSchemaProvider } from "../../src/languageservice/sqlMoveToSchemaProvider";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     ListProjectSchemasRequest,
     SqlMoveToSchemaRequest,
@@ -22,6 +21,7 @@ import {
     SqlSymbolRename as loc,
     SqlMoveToSchema as moveLoc,
 } from "../../src/constants/locConstants";
+import { stubMessageBoxes } from "./utils";
 
 chai.use(sinonChai);
 
@@ -35,14 +35,6 @@ const defaultProjFile = path.join(projectDir, "proj.sqlproj");
 // ---------------------------------------------------------------------------
 // Helpers shared across rename and move-to-schema suites
 // ---------------------------------------------------------------------------
-
-/** Builds a minimal stubbed VscodeWrapper. */
-function makeVscodeWrapper(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<VscodeWrapper> {
-    const wrapper = sandbox.createStubInstance(VscodeWrapper);
-    wrapper.showInformationMessage.resolves(undefined);
-    wrapper.showErrorMessage.resolves(undefined);
-    return wrapper;
-}
 
 /** Builds a line-based stubbed TextDocument used by SqlMoveToSchemaProvider tests. */
 function makeMoveDocument(
@@ -551,12 +543,14 @@ suite("SqlMoveToSchemaProvider Tests", () => {
     let provider: SqlMoveToSchemaProvider;
     let findFilesStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
+    let showQuickPickStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = makeVscodeWrapper(sandbox);
-        provider = new SqlMoveToSchemaProvider(vscodeWrapper as unknown as VscodeWrapper);
+        messageBoxes = stubMessageBoxes(sandbox);
+        showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
+        provider = new SqlMoveToSchemaProvider();
         findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
         sendRequestStub = sandbox
             .stub(SqlToolsServerClient.instance, "sendRequest")
@@ -596,7 +590,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         test("shows message when file is not in a SQL project", async () => {
             const doc = makeMoveDocument(sandbox);
             await provider.runMoveToSchema(doc, new vscode.Position(0, 0));
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledWith(
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
                 moveLoc.moveToSchemaOnlyInProjectFiles,
             );
         });
@@ -606,7 +600,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: [] });
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
             await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledWith(
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
                 moveLoc.noSchemasFound,
             );
         });
@@ -618,7 +612,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                 .rejects(new Error("STS error"));
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
             await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-            expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+            expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                 moveLoc.moveToSchemaRequestFailed("STS error"),
             );
         });
@@ -628,7 +622,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             sendRequestStub
                 .withArgs(ListProjectSchemasRequest.type)
                 .resolves({ schemas: ["dbo", "hr"] });
-            vscodeWrapper.showQuickPick.resolves(undefined);
+            showQuickPickStub.resolves(undefined);
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
             await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
             expect(sendRequestStub).to.not.have.been.calledWith(
@@ -650,7 +644,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
 
             setup(() => {
                 findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
-                vscodeWrapper.showQuickPick.resolves({ label: "hr" });
+                showQuickPickStub.resolves({ label: "hr" });
                 openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
                 openTextDocumentStub.callsFake((_uri: vscode.Uri) => {
                     const content = "<Project>\n</Project>";
@@ -684,7 +678,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     .rejects(new Error("STS move failed"));
                 const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
                 await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-                expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                     moveLoc.moveToSchemaRequestFailed("STS move failed"),
                 );
             });
@@ -738,7 +732,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                 });
                 const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
                 await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-                expect(vscodeWrapper.showErrorMessage).to.have.been.calledWith(
+                expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                     moveLoc.applyEditFailed,
                 );
             });
