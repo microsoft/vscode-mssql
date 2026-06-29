@@ -270,15 +270,15 @@ test("getServerTypes", () => {
         },
         {
             input: "test-with-dot.sql.goog.",
-            expected: [ServerType.GoogleCloudProject, ServerType.Sql],
+            expected: [ServerType.GoogleCloudPlatform, ServerType.Sql],
         },
         {
             input: "test-without-dot.sql.goog",
-            expected: [ServerType.GoogleCloudProject, ServerType.Sql],
+            expected: [ServerType.GoogleCloudPlatform, ServerType.Sql],
         },
         {
             input: "test.sql-psa.goog",
-            expected: [ServerType.GoogleCloudProject, ServerType.Sql],
+            expected: [ServerType.GoogleCloudPlatform, ServerType.Sql],
         },
         {
             input: "test.oraclevcn.com",

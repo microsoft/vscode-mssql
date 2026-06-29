@@ -300,7 +300,7 @@ export enum ServerType {
     Fabric = "Fabric",
     Dynamics = "Dynamics",
     AmazonWebServices = "AmazonWebServices",
-    GoogleCloudProject = "GoogleCloudProject",
+    GoogleCloudPlatform = "GoogleCloudPlatform",
     OracleCloudInfrastructure = "OracleCloudInfrastructure",
     Sql = "SQL",
     DataWarehouse = "DataWarehouse",
@@ -344,8 +344,8 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
                 ServerType.Sql,
             ],
             [".amazonaws.com"]: [ServerType.AmazonWebServices, ServerType.Sql],
-            [".sql.goog"]: [ServerType.GoogleCloudProject, ServerType.Sql],
-            [".sql-psa.goog"]: [ServerType.GoogleCloudProject, ServerType.Sql],
+            [".sql.goog"]: [ServerType.GoogleCloudPlatform, ServerType.Sql],
+            [".sql-psa.goog"]: [ServerType.GoogleCloudPlatform, ServerType.Sql],
             [".oraclevcn.com"]: [ServerType.OracleCloudInfrastructure, ServerType.Sql],
         };
 
