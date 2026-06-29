@@ -10,7 +10,7 @@ import { ConnectionDetails, IServerInfo, DataProtocolServerCapabilities } from "
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
-    export const type = new RequestType<ConnectParams, boolean, void, void>("connection/connect");
+    export const type = new RequestType<ConnectParams, boolean, void>("connection/connect");
 }
 
 /**
@@ -36,7 +36,7 @@ export class ConnectParams {
  * Connection complete event callback declaration.
  */
 export namespace ConnectionCompleteNotification {
-    export const type = new NotificationType<ConnectionCompleteParams, void>("connection/complete");
+    export const type = new NotificationType<ConnectionCompleteParams>("connection/complete");
 }
 
 /**
@@ -87,7 +87,7 @@ export class ConnectionCompleteParams {
  * Cancel connect request message callback declaration
  */
 export namespace CancelConnectRequest {
-    export const type = new RequestType<CancelConnectParams, CancelConnectResult, void, void>(
+    export const type = new RequestType<CancelConnectParams, CancelConnectResult, void>(
         "connection/cancelconnect",
     );
 }
@@ -115,7 +115,7 @@ export type CancelConnectResult = boolean;
  * Connection changed event callback declaration.
  */
 export namespace ConnectionChangedNotification {
-    export const type = new NotificationType<ConnectionChangedParams, void>(
+    export const type = new NotificationType<ConnectionChangedParams>(
         "connection/connectionchanged",
     );
 }
@@ -161,7 +161,7 @@ export class ConnectionChangedParams {
 
 // Disconnect request message callback declaration
 export namespace DisconnectRequest {
-    export const type = new RequestType<DisconnectParams, DisconnectResult, void, void>(
+    export const type = new RequestType<DisconnectParams, DisconnectResult, void>(
         "connection/disconnect",
     );
 }
@@ -181,7 +181,7 @@ export type DisconnectResult = boolean;
 
 // List databases request callback declaration
 export namespace ListDatabasesRequest {
-    export const type = new RequestType<ListDatabasesParams, ListDatabasesResult, void, void>(
+    export const type = new RequestType<ListDatabasesParams, ListDatabasesResult, void>(
         "connection/listdatabases",
     );
 }
@@ -204,7 +204,7 @@ export class ListDatabasesResult {
  * Get Connection String request callback declaration
  */
 export namespace GetConnectionStringRequest {
-    export const type = new RequestType<GetConnectionStringParams, string, void, void>(
+    export const type = new RequestType<GetConnectionStringParams, string, void>(
         "connection/getconnectionstring",
     );
 }
@@ -240,11 +240,15 @@ export class GetConnectionStringParams {
 // ------------------------------- </ Get Connection String Request > --------------------------------------
 
 // ------------------------------- < Parse Connection String Request > ---------------------------------------
+export interface ParseConnectionStringParams {
+    connectionString: string;
+}
+
 /**
  * Parse Connection String request callback declaration
  */
 export namespace ParseConnectionStringRequest {
-    export const type = new RequestType<string, ConnectionDetails, void, void>(
+    export const type = new RequestType<ParseConnectionStringParams, ConnectionDetails, void>(
         "connection/parseConnectionString",
     );
 }
@@ -270,7 +274,7 @@ export class DidChangeEncryptionIVKeyParams {
  * Notification sent when the encryption keys are changed.
  */
 export namespace EncryptionKeysChangedNotification {
-    export const type = new NotificationType<DidChangeEncryptionIVKeyParams, void>(
+    export const type = new NotificationType<DidChangeEncryptionIVKeyParams>(
         "connection/encryptionKeysChanged",
     );
 }
@@ -278,9 +282,7 @@ export namespace EncryptionKeysChangedNotification {
 // ------------------------------- < Clear Pooled Connections Request > ---------------------------------------
 
 export namespace ClearPooledConnectionsRequest {
-    export const type = new RequestType<object, void, void, void>(
-        "connection/clearpooledconnections",
-    );
+    export const type = new RequestType<object, void, void>("connection/clearpooledconnections");
 }
 
 //#region Connection capabilities
@@ -289,9 +291,7 @@ export namespace ClearPooledConnectionsRequest {
  * Gets the capabilities of the data protocol server
  */
 export namespace GetCapabilitiesRequest {
-    export const type = new RequestType<object, CapabilitiesResult, void, void>(
-        "capabilities/list",
-    );
+    export const type = new RequestType<object, CapabilitiesResult, void>("capabilities/list");
 }
 
 export interface CapabilitiesResult {
@@ -317,7 +317,7 @@ export class RefreshTokenParams {
  * Notification sent from the service to request a refreshed token.
  */
 export namespace RefreshTokenNotification {
-    export const type = new NotificationType<RefreshTokenParams, void>("account/refreshToken");
+    export const type = new NotificationType<RefreshTokenParams>("account/refreshToken");
 }
 
 /**
@@ -333,7 +333,7 @@ export class TokenRefreshedParams {
  * Notification sent to the service with the refreshed token.
  */
 export namespace TokenRefreshedNotification {
-    export const type = new NotificationType<TokenRefreshedParams, void>("account/tokenRefreshed");
+    export const type = new NotificationType<TokenRefreshedParams>("account/tokenRefreshed");
 }
 
 // ------------------------------- </ Refresh Token Notification > ------------------------------------

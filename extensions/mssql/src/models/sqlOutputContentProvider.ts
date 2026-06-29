@@ -23,12 +23,14 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import { getLogger } from "./logger";
 // Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
+const logger = getLogger("SqlOutputContentProvider");
 
 // holds information about the state of a query runner
 export class QueryRunnerState {
@@ -43,6 +45,10 @@ class ResultsConfig implements Interfaces.IResultsConfig {
     messagesDefaultOpen: boolean;
     resultsFontSize: number;
     resultsFontFamily: string;
+}
+
+function getSelectionSummaryDisplayText(text?: string): string | undefined {
+    return text?.replace(/\$\([^)]+\)\s*/g, "").trim();
 }
 
 export class SqlOutputContentProvider {
@@ -213,7 +219,7 @@ export class SqlOutputContentProvider {
         uri: string,
         batchId: number,
         resultId: number,
-        selection,
+        selection: Interfaces.ISlickRange[],
     ): void {
         void this._queryResultsMap.get(uri).queryRunner.copyHeaders(batchId, resultId, selection);
     }
@@ -367,7 +373,7 @@ export class SqlOutputContentProvider {
             if (promise) {
                 promise.reject(false);
             }
-            console.log(`Error running query for ${uri}: ${getErrorMessage(error)}`);
+            logger.error(`Error running query for ${uri}: ${getErrorMessage(error)}`);
         }
     }
 
@@ -507,7 +513,7 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            queryRunner = new QueryRunner(uri, title, statusView);
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {
@@ -516,6 +522,10 @@ export class SqlOutputContentProvider {
                     executionPlanState: {},
                     messages: [],
                     fontSettings: { fontSize: 0, fontFamily: "" },
+                    isExecuting: false,
+                    executionStartTime: undefined,
+                    executionElapsedMilliseconds: undefined,
+                    rowsAffected: undefined,
                 });
             });
 
@@ -526,6 +536,10 @@ export class SqlOutputContentProvider {
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
+                resultWebviewState.isExecuting = true;
+                resultWebviewState.executionStartTime = Date.now();
+                resultWebviewState.executionElapsedMilliseconds = undefined;
+                resultWebviewState.rowsAffected = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -614,12 +628,15 @@ export class SqlOutputContentProvider {
                 );
 
                 resultWebviewState.messages.push(message);
+                if (typeof message.rowsAffected === "number") {
+                    resultWebviewState.rowsAffected = message.rowsAffected;
+                }
 
                 this.scheduleThrottledUpdate(queryRunner.uri);
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
-                const { totalMilliseconds, hasError, isRefresh } = e;
+                const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
                     this._vscodeWrapper.executeCommand(
@@ -632,9 +649,13 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                resultWebviewState.isExecuting = false;
+                resultWebviewState.executionStartTime = undefined;
+                resultWebviewState.executionElapsedMilliseconds = totalElapsedMilliseconds;
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
+                    time: new Date().toLocaleTimeString(),
                 });
                 // if there is an error, show the error message and set the tab to the messages tab
                 let tabState: QueryResultPaneTabs;
@@ -692,11 +713,21 @@ export class SqlOutputContentProvider {
                     return;
                 }
                 state.selectionSummary = {
+                    stats: e.stats,
                     text: e.text,
+                    displayText: getSelectionSummaryDisplayText(e.text),
                     command: e.command,
                     tooltip: e.tooltip,
-                    continue: e.continue,
+                    batchId: e.batchId,
+                    resultId: e.resultId,
                 };
+                this._queryResultWebviewController.setSelectionSummaryContinuation(
+                    e.uri,
+                    e.continue as Deferred<void> | undefined,
+                );
+                this.updateWebviewState(e.uri, state);
+                // Refresh the editor status bar summary, which is shown when the results footer
+                // preview is disabled.
                 this._queryResultWebviewController.updateSelectionSummary();
             });
 

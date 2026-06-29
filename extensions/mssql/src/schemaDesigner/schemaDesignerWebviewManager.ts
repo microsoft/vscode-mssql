@@ -13,6 +13,10 @@ import * as LocConstants from "../constants/locConstants";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("SchemaDesigner");
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
@@ -151,6 +155,7 @@ export class SchemaDesignerWebviewManager {
                 treeNode,
                 metadataConnectionUri,
                 isReadOnly,
+                key,
             );
             const viewStateDisposable = schemaDesigner.panel.onDidChangeViewState((event) => {
                 if (event.webviewPanel.visible) {
@@ -200,12 +205,14 @@ export class SchemaDesignerWebviewManager {
                 // Ignoring errors here as we don't want to block the disposal process
                 try {
                     if (cacheItem?.schemaDesignerDetails?.sessionId) {
-                        schemaDesignerService.disposeSession({
+                        await schemaDesignerService.disposeSession({
                             sessionId: cacheItem.schemaDesignerDetails.sessionId,
                         });
                     }
                 } catch (error) {
-                    console.error(`Error disposing schema designer session: ${error}`);
+                    logger.error(
+                        `Error disposing schema designer session: ${getErrorMessage(error)}`,
+                    );
                 }
                 this.schemaDesignerCache.delete(key);
             });

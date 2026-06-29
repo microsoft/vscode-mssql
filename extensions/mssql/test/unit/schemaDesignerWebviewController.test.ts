@@ -310,6 +310,37 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(schemaDesignerCache.size).to.equal(1);
         });
 
+        test("should coalesce concurrent initialization requests", async () => {
+            let resolveCreateSession!: (value: SchemaDesigner.CreateSessionResponse) => void;
+            const createSessionPromise = new Promise<SchemaDesigner.CreateSessionResponse>(
+                (resolve) => {
+                    resolveCreateSession = resolve;
+                },
+            );
+            mockSchemaDesignerService.createSession.returns(createSessionPromise as any);
+
+            createController();
+
+            const handler = requestHandlers.get(
+                SchemaDesigner.InitializeSchemaDesignerRequest.type.method,
+            );
+
+            const firstResultPromise = handler!({});
+            const secondResultPromise = handler!({});
+
+            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnce;
+
+            resolveCreateSession(mockCreateSessionResponse);
+            const [firstResult, secondResult] = await Promise.all([
+                firstResultPromise,
+                secondResultPromise,
+            ]);
+
+            expect(firstResult).to.deep.equal(mockCreateSessionResponse);
+            expect(secondResult).to.deep.equal(mockCreateSessionResponse);
+            expect(schemaDesignerCache.size).to.equal(1);
+        });
+
         test("should reuse cached session when available", async () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
@@ -329,6 +360,32 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(mockSchemaDesignerService.createSession).to.not.have.been.called;
             expect(result).to.deep.equal(mockCreateSessionResponse);
             expect(schemaDesignerCache.get(cacheKey)?.isDirty).to.be.true;
+        });
+
+        test("should allow retry after initialization error", async () => {
+            const error = new Error("Initialization failed");
+            mockSchemaDesignerService.createSession.onFirstCall().rejects(error);
+            mockSchemaDesignerService.createSession
+                .onSecondCall()
+                .resolves(mockCreateSessionResponse);
+
+            createController();
+
+            const handler = requestHandlers.get(
+                SchemaDesigner.InitializeSchemaDesignerRequest.type.method,
+            );
+
+            try {
+                await handler!({});
+                expect.fail("Should have thrown");
+            } catch (err) {
+                expect(err).to.equal(error);
+            }
+
+            const result = await handler!({});
+
+            expect(mockSchemaDesignerService.createSession).to.have.been.calledTwice;
+            expect(result).to.deep.equal(mockCreateSessionResponse);
         });
 
         test("should handle initialization error", async () => {

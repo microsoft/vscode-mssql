@@ -65,14 +65,12 @@ export namespace ExpandRequest {
     /**
      * Returns children of a given node as a NodeInfo array
      */
-    export const type = new RequestType<ExpandParams, boolean, void, void>("objectexplorer/expand");
+    export const type = new RequestType<ExpandParams, boolean, void>("objectexplorer/expand");
 }
 
 /**
  * Expand notification mapping entry
  */
 export namespace ExpandCompleteNotification {
-    export const type = new NotificationType<ExpandResponse, void>(
-        "objectexplorer/expandCompleted",
-    );
+    export const type = new NotificationType<ExpandResponse>("objectexplorer/expandCompleted");
 }

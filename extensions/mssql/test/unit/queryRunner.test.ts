@@ -78,9 +78,11 @@ suite("Query Runner tests", () => {
         );
         (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.logToOutputChannel as sinon.SinonStub).returns(undefined);
         (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
         (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
+            stubs.createWorkspaceConfiguration({}),
+        );
     });
 
     teardown(() => {
@@ -123,7 +125,6 @@ suite("Query Runner tests", () => {
 
         // ... The VS Code status should be updated
         expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
         expect(queryRunner.isExecutingQuery).to.equal(true);
@@ -138,10 +139,6 @@ suite("Query Runner tests", () => {
             return Promise.reject<QueryExecuteContracts.QueryExecuteResult>("failed");
         });
         setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
-
-        // ... Setup the status view to handle start and stop updates
-        testStatusView.executedQuery.resetHistory();
-        testStatusView.executingQuery.resetHistory();
 
         let testDoc: vscode.TextDocument = {
             getText: () => {
@@ -163,7 +160,6 @@ suite("Query Runner tests", () => {
         } catch {
             // Then:
             // ... The view status should have started and stopped
-            expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
             expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
             expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
@@ -241,8 +237,8 @@ suite("Query Runner tests", () => {
         setupWorkspaceConfig(configResult);
 
         let dateNow = new Date();
-        let fiveSecondsAgo = new Date(dateNow.getTime() - 5000);
-        let elapsedTimeString = Utils.parseNumAsTimeString(5000);
+        let fiveSecondsAgo = new Date(dateNow.getTime() - 5_000);
+        let elapsedTimeString = Utils.durationToDisplay(5_000, { format: "clock" });
         let batchComplete: QueryExecuteBatchNotificationParams = {
             ownerUri: "uri",
             batchSummary: {
@@ -453,12 +449,6 @@ suite("Query Runner tests", () => {
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
-
-        // Then:
-        // ... The VS Code view should have stopped executing
-        expect(testStatusView.executedQuery).to.have.been.calledOnceWithExactly(standardUri);
-        expect(testStatusView.setExecutionTime).to.have.been.calledOnce;
-        expect(testStatusView.setExecutionTime.firstCall.args[0]).to.equal(standardUri);
 
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);
@@ -753,6 +743,7 @@ suite("Query Runner tests", () => {
                 const tokenSource = new vscode.CancellationTokenSource();
                 await task(progress, tokenSource.token);
             });
+            sandbox.stub(vscode.window, "showInformationMessage").resolves(undefined);
         });
 
         test("copyResults calls copyResults2 with correct CopyType", async () => {

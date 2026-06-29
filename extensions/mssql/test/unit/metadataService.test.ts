@@ -27,21 +27,17 @@ import {
     TableMetadataResult,
     ViewMetadataResult,
 } from "../../src/sharedInterfaces/metadata";
-import { Logger } from "../../src/models/logger";
-import { stubLoggerGetter } from "./utils";
 
 chai.use(sinonChai);
 
 suite("Metadata Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
     let metadataService: MetadataService;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockLogger = stubLoggerGetter(sandbox, mockClient);
 
         metadataService = new MetadataService(mockClient);
     });
@@ -122,7 +118,7 @@ suite("Metadata Service Tests", () => {
             expect(result).to.deep.equal([]);
         });
 
-        test("should handle getMetadata error and log it", async () => {
+        test("should rethrow getMetadata errors", async () => {
             const error = new Error("Failed to retrieve metadata");
             mockClient.sendRequest
                 .withArgs(MetadataListRequest.type, sinon.match.any)
@@ -133,7 +129,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Failed to retrieve metadata");
             }
         });
     });
@@ -235,7 +230,7 @@ suite("Metadata Service Tests", () => {
             expect(result).to.deep.equal([]);
         });
 
-        test("should handle getTableInfo error and log it", async () => {
+        test("should rethrow getTableInfo errors", async () => {
             const error = new Error("Table not found");
             mockClient.sendRequest
                 .withArgs(TableMetadataRequest.type, sinon.match.any)
@@ -246,7 +241,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Table not found");
             }
         });
     });
@@ -302,7 +296,7 @@ suite("Metadata Service Tests", () => {
             });
         });
 
-        test("should handle getViewInfo error and log it", async () => {
+        test("should rethrow getViewInfo errors", async () => {
             const error = new Error("View not found");
             mockClient.sendRequest
                 .withArgs(ViewMetadataRequest.type, sinon.match.any)
@@ -313,7 +307,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("View not found");
             }
         });
     });
@@ -424,7 +417,7 @@ suite("Metadata Service Tests", () => {
             expect((callArgs[1] as any).includeDetails).to.equal(false);
         });
 
-        test("should handle getDatabases error and log it", async () => {
+        test("should rethrow getDatabases errors", async () => {
             const error = new Error("Failed to list databases");
             mockClient.sendRequest
                 .withArgs(ListDatabasesRequest.type, sinon.match.any)
@@ -435,7 +428,6 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Failed to list databases");
             }
         });
     });
@@ -498,7 +490,7 @@ suite("Metadata Service Tests", () => {
             expect((callArgs[1] as any).databaseName).to.equal("TestDB");
         });
 
-        test("should handle getServerContext error and log it", async () => {
+        test("should rethrow getServerContext errors", async () => {
             const error = new Error("Failed to generate context");
             mockClient.sendRequest
                 .withArgs(GetServerContextualizationRequest.type, sinon.match.any)
@@ -509,305 +501,12 @@ suite("Metadata Service Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error).to.have.been.calledWith("Failed to generate context");
             }
         });
     });
 
-    suite("DAB metadata helpers", () => {
-        const ownerUri = "dab-owner-uri";
-        const cell = (displayValue: string, isNull = false) => ({ displayValue, isNull });
-
-        test("should list DAB views using simple execute", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [
-                    [cell("dbo"), cell("ActiveUsers"), cell("view:dbo.ActiveUsers")],
-                    [cell("sales"), cell("OpenOrders"), cell("view:sales.OpenOrders")],
-                ],
-            }));
-
-            const result = await metadataService.listDabViews(ownerUri);
-
-            expect(result).to.deep.equal([
-                { schema: "dbo", name: "ActiveUsers", id: "view:dbo.ActiveUsers" },
-                { schema: "sales", name: "OpenOrders", id: "view:sales.OpenOrders" },
-            ]);
-            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
-                sinon.match.any,
-                sinon.match.has(
-                    "queryString",
-                    sinon.match((queryString: unknown) =>
-                        String(queryString).includes("sys.views"),
-                    ),
-                ),
-            );
-        });
-
-        test("should run DAB metadata queries in the requested database context", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [],
-            }));
-
-            await metadataService.listDabViews(ownerUri, "Sales DB");
-
-            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
-                sinon.match.any,
-                sinon.match.has(
-                    "queryString",
-                    sinon.match((queryString: unknown) =>
-                        String(queryString).includes("USE [Sales DB];"),
-                    ),
-                ),
-            );
-        });
-
-        test("should escape closing brackets in DAB database context", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [],
-            }));
-
-            await metadataService.listDabViews(ownerUri, "Sales]DB");
-
-            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
-                sinon.match.any,
-                sinon.match.has(
-                    "queryString",
-                    sinon.match((queryString: unknown) =>
-                        String(queryString).includes("USE [Sales]]DB];"),
-                    ),
-                ),
-            );
-        });
-
-        test("should list DAB stored procedures using simple execute", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [[cell("dbo"), cell("GetUsers"), cell("stored-procedure:dbo.GetUsers")]],
-            }));
-
-            const result = await metadataService.listDabStoredProcedures(ownerUri);
-
-            expect(result).to.deep.equal([
-                { schema: "dbo", name: "GetUsers", id: "stored-procedure:dbo.GetUsers" },
-            ]);
-            expect(mockClient.sendRequest).to.have.been.calledWithMatch(
-                sinon.match.any,
-                sinon.match.has(
-                    "queryString",
-                    sinon.match((queryString: unknown) =>
-                        String(queryString).includes("sys.procedures"),
-                    ),
-                ),
-            );
-        });
-
-        test("should parse DAB view columns and inferred keys", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [
-                    [
-                        cell("view:dbo.ActiveUsers:Id"),
-                        cell("Id"),
-                        cell("int"),
-                        cell("1"),
-                        cell("1"),
-                    ],
-                    [
-                        cell("view:dbo.ActiveUsers:Name"),
-                        cell("Name"),
-                        cell("nvarchar"),
-                        cell("2"),
-                        cell("0"),
-                    ],
-                ],
-            }));
-
-            const result = await metadataService.getDabViewColumns(ownerUri, "dbo", "ActiveUsers");
-
-            expect(result).to.deep.equal([
-                {
-                    id: "view:dbo.ActiveUsers:Id",
-                    name: "Id",
-                    dataType: "int",
-                    ordinal: 1,
-                    isPrimaryKey: true,
-                },
-                {
-                    id: "view:dbo.ActiveUsers:Name",
-                    name: "Name",
-                    dataType: "nvarchar",
-                    ordinal: 2,
-                    isPrimaryKey: false,
-                },
-            ]);
-        });
-
-        test("should skip DAB view columns with invalid ordinals", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [
-                    [
-                        cell("view:dbo.ActiveUsers:Id"),
-                        cell("Id"),
-                        cell("int"),
-                        cell("1"),
-                        cell("1"),
-                    ],
-                    [
-                        cell("view:dbo.ActiveUsers:Name"),
-                        cell("Name"),
-                        cell("nvarchar"),
-                        cell("not-a-number"),
-                        cell("0"),
-                    ],
-                    [
-                        cell("view:dbo.ActiveUsers:Status"),
-                        cell("Status"),
-                        cell("nvarchar"),
-                        cell("0"),
-                        cell("0"),
-                    ],
-                ],
-            }));
-
-            const result = await metadataService.getDabViewColumns(ownerUri, "dbo", "ActiveUsers");
-
-            expect(result).to.deep.equal([
-                {
-                    id: "view:dbo.ActiveUsers:Id",
-                    name: "Id",
-                    dataType: "int",
-                    ordinal: 1,
-                    isPrimaryKey: true,
-                },
-            ]);
-        });
-
-        test("should group DAB view columns by object and skip malformed rows", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [
-                    [
-                        cell("view:dbo.ActiveUsers"),
-                        cell("view:dbo.ActiveUsers:Id"),
-                        cell("Id"),
-                        cell("int"),
-                        cell("1"),
-                        cell("true"),
-                    ],
-                    [
-                        cell("view:dbo.ActiveUsers"),
-                        cell("view:dbo.ActiveUsers:Name"),
-                        cell("Name"),
-                        cell("nvarchar"),
-                        cell("2"),
-                        cell("false"),
-                    ],
-                    [cell("view:dbo.Broken"), cell("", true), cell("Name"), cell("int")],
-                    [
-                        cell("view:dbo.ActiveUsers"),
-                        cell("view:dbo.ActiveUsers:Broken"),
-                        cell("Broken"),
-                        cell("int"),
-                        cell("bad-ordinal"),
-                        cell("false"),
-                    ],
-                ],
-            }));
-
-            const result = await metadataService.getDabViewColumnsByView(ownerUri);
-
-            expect([...result.keys()]).to.deep.equal(["view:dbo.ActiveUsers"]);
-            expect(result.get("view:dbo.ActiveUsers")).to.deep.equal([
-                {
-                    id: "view:dbo.ActiveUsers:Id",
-                    name: "Id",
-                    dataType: "int",
-                    ordinal: 1,
-                    isPrimaryKey: true,
-                },
-                {
-                    id: "view:dbo.ActiveUsers:Name",
-                    name: "Name",
-                    dataType: "nvarchar",
-                    ordinal: 2,
-                    isPrimaryKey: false,
-                },
-            ]);
-        });
-
-        test("should parse stored procedure parameters", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [
-                    [cell("@userId"), cell("int"), cell("1")],
-                    [cell("@includeInactive"), cell("bit"), cell("2")],
-                ],
-            }));
-
-            const result = await metadataService.getDabStoredProcedureParameters(
-                ownerUri,
-                "dbo",
-                "GetUsers",
-            );
-
-            expect(result).to.deep.equal([
-                { name: "@userId", dataType: "int", ordinal: 1 },
-                { name: "@includeInactive", dataType: "bit", ordinal: 2 },
-            ]);
-        });
-
-        test("should skip stored procedure parameters with invalid ordinals", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [
-                    [cell("@userId"), cell("int"), cell("1")],
-                    [cell("@invalid"), cell("bit"), cell("not-a-number")],
-                    [cell("@zero"), cell("bit"), cell("0")],
-                ],
-            }));
-
-            const result = await metadataService.getDabStoredProcedureParameters(
-                ownerUri,
-                "dbo",
-                "GetUsers",
-            );
-
-            expect(result).to.deep.equal([{ name: "@userId", dataType: "int", ordinal: 1 }]);
-        });
-
-        test("should group stored procedure parameters by procedure and skip malformed rows", async () => {
-            mockClient.sendRequest.callsFake(async (_type: any, _params: any) => ({
-                rows: [
-                    [
-                        cell("stored-procedure:dbo.GetUsers"),
-                        cell("@userId"),
-                        cell("int"),
-                        cell("1"),
-                    ],
-                    [
-                        cell("stored-procedure:dbo.GetUsers"),
-                        cell("@includeInactive"),
-                        cell("bit"),
-                        cell("2"),
-                    ],
-                    [cell("stored-procedure:dbo.Broken"), cell("", true), cell("int"), cell("1")],
-                    [
-                        cell("stored-procedure:dbo.GetUsers"),
-                        cell("@invalid"),
-                        cell("int"),
-                        cell("bad-ordinal"),
-                    ],
-                ],
-            }));
-
-            const result =
-                await metadataService.getDabStoredProcedureParametersByProcedure(ownerUri);
-
-            expect([...result.keys()]).to.deep.equal(["stored-procedure:dbo.GetUsers"]);
-            expect(result.get("stored-procedure:dbo.GetUsers")).to.deep.equal([
-                { name: "@userId", dataType: "int", ordinal: 1 },
-                { name: "@includeInactive", dataType: "bit", ordinal: 2 },
-            ]);
-        });
-    });
-
     suite("error handling", () => {
-        test("should log error with proper message format", async () => {
+        test("should rethrow Error objects", async () => {
             const errorMessage = "Connection timeout";
             const error = new Error(errorMessage);
             mockClient.sendRequest.rejects(error);
@@ -815,25 +514,22 @@ suite("Metadata Service Tests", () => {
             try {
                 await metadataService.getMetadata("uri");
                 expect.fail("Should have thrown an error");
-            } catch {
-                expect(mockLogger.error).to.have.been.calledWithMatch(
-                    sinon.match(
-                        (value: unknown) =>
-                            typeof value === "string" && value.includes(errorMessage),
-                    ),
-                );
+            } catch (err) {
+                expect(err).to.equal(error);
             }
         });
 
         test("should handle non-Error objects thrown", async () => {
             const errorString = "String error";
-            mockClient.sendRequest.rejects(errorString);
+            mockClient.sendRequest.callsFake(async () => {
+                throw errorString;
+            });
 
             try {
                 await metadataService.getDatabases("uri");
                 expect.fail("Should have thrown an error");
-            } catch {
-                expect(mockLogger.error).to.have.been.called;
+            } catch (err) {
+                expect(err).to.equal(errorString);
             }
         });
     });

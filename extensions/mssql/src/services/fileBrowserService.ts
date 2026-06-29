@@ -12,13 +12,14 @@ import {
     FileBrowserOpenNotification,
     FileBrowserOpenRequest,
 } from "../models/contracts/fileBrowser";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import * as fb from "../sharedInterfaces/fileBrowser";
 
 export class FileBrowserService {
     private _client: SqlToolsServiceClient;
-    private _logger: Logger;
+    private _logger: ILogger;
     fileBrowserState: fb.FileBrowserState;
 
     /**
@@ -34,12 +35,9 @@ export class FileBrowserService {
     private _pendingFileBrowserExpands: Map<string, Deferred<fb.FileBrowserExpandResponse>> =
         new Map<string, Deferred<fb.FileBrowserExpandResponse>>();
 
-    constructor(
-        private _vscodeWrapper: VscodeWrapper,
-        _client: SqlToolsServiceClient,
-    ) {
+    constructor(_vscodeWrapper: VscodeWrapper, _client: SqlToolsServiceClient) {
         this._client = _client;
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "FileBrowserService");
+        this._logger = logger.withPrefix("FileBrowserService");
 
         this._client.onNotification(FileBrowserOpenNotification.type, (e) =>
             this.handleFileBrowserOpenNotification(e),
@@ -111,7 +109,7 @@ export class FileBrowserService {
         if (openFileBrowserResponse) {
             const fileBrowserResult = await fileBrowserOpenedResponse;
             if (fileBrowserResult.succeeded) {
-                this._logger.verbose(
+                this._logger.debug(
                     `File browser opened successfully with owner uri ${fileBrowserResult.ownerUri}`,
                 );
                 this._pendingFileBrowserOpens.delete(fileBrowserResult.ownerUri);
@@ -167,7 +165,7 @@ export class FileBrowserService {
         if (expandFileBrowserResponse) {
             const fileBrowserResult = await fileBrowserExpandedResponse;
             if (fileBrowserResult.succeeded) {
-                this._logger.verbose(
+                this._logger.debug(
                     `File browser expanded successfully with owner uri ${fileBrowserResult.ownerUri}`,
                 );
                 this._pendingFileBrowserExpands.delete(fileBrowserResult.ownerUri);
@@ -210,7 +208,7 @@ export class FileBrowserService {
             this.fileBrowserState = undefined;
             return result;
         } catch (e) {
-            this._client.logger.error(e);
+            this._logger.error("Failed to close file browser", e);
             throw e;
         }
     }

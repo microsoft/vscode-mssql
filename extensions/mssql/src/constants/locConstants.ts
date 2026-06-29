@@ -11,6 +11,10 @@ export class Common {
     public static remindMeLater = l10n.t("Remind Me Later");
     public static dontShowAgain = l10n.t("Don't Show Again");
     public static learnMore = l10n.t("Learn More");
+    public static openFile = l10n.t("Open File");
+    public static revealInExplorer = l10n.t("Reveal in Explorer");
+    public static revealInFinder = l10n.t("Reveal in Finder");
+    public static openContainingFolder = l10n.t("Open Containing Folder");
     public static delete = l10n.t("Delete");
     public static cancel = l10n.t("Cancel");
     public static areYouSure = l10n.t("Are you sure?");
@@ -27,12 +31,24 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
+export class SqlToolsMcp {
+    public static serverLabel = l10n.t("SQL Tools (MSSQL)");
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
+export let quickQuerySlotOutOfRange = (maxSlot: number) =>
+    l10n.t({
+        message: "Quick Query slot must be between 1 and {0}.",
+        args: [maxSlot],
+        comment: ["{0} is the maximum Quick Query slot number"],
+    });
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -176,6 +192,7 @@ export let authTypeIntegrated = l10n.t("Integrated");
 export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
 export let authTypeAzureActiveDirectoryDefault = l10n.t("Microsoft Entra Id - Default");
+export let authTypeAzureServicePrincipal = l10n.t("Microsoft Entra Id - Service Principal");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
@@ -261,9 +278,27 @@ export let msgSavePassword = l10n.t(
 );
 export let profileNamePrompt = l10n.t("Profile Name");
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
-export let msgSaveStarted = l10n.t("Started saving results to ");
-export let msgSaveFailed = l10n.t("Failed to save results. ");
-export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
+export function msgSaveStarted(filePath: string) {
+    return l10n.t({
+        message: "Started saving results to {0}",
+        args: [filePath],
+        comment: ["{0} is the file path"],
+    });
+}
+export function msgSaveFailed(error: string) {
+    return l10n.t({
+        message: "Failed to save results. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
+export function msgSaveSucceeded(filePath: string) {
+    return l10n.t({
+        message: "Successfully saved results to {0}",
+        args: [filePath],
+        comment: ["{0} is the file path"],
+    });
+}
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
 export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
@@ -500,6 +535,7 @@ export let saveExcelLabel = l10n.t("Save as Excel");
 export let fileTypeCSVLabel = l10n.t("CSV");
 export let fileTypeJSONLabel = l10n.t("JSON");
 export let fileTypeExcelLabel = l10n.t("Excel");
+export let fileTypeAllFilesLabel = l10n.t("All files");
 export let resultPaneLabel = l10n.t("Results");
 export let selectAll = l10n.t("Select all");
 export let copyLabel = l10n.t("Copy");
@@ -796,7 +832,6 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
-export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -926,6 +961,25 @@ export class Notebooks {
 
     // Renderer
     public static parseError = l10n.t("Error: Failed to parse query result data.");
+
+    // Save as
+    public static saveAsCsvDialogTitle = l10n.t("Save results as CSV");
+    public static saveAsExcelDialogTitle = l10n.t("Save results as Excel");
+    public static saveAsJsonDialogTitle = l10n.t("Save results as JSON");
+    public static saveResultsFailed(message: string) {
+        return l10n.t({
+            message: "Failed to save results: {0}",
+            args: [message],
+            comment: ["{0} is the underlying error message"],
+        });
+    }
+    public static savedResultsTo(uri: string) {
+        return l10n.t({
+            message: "Saved results to {0}",
+            args: [uri],
+            comment: ["{0} is the saved file path"],
+        });
+    }
 }
 
 export class ObjectExplorer {
@@ -1023,6 +1077,20 @@ export class ConnectionDialog {
     public static entraMfaAuthTooltip = l10n.t(
         "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     );
+    public static entraServicePrincipalAuthTooltip = l10n.t(
+        "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    );
+    public static applicationClientId = l10n.t("Application (Client) ID");
+    public static applicationClientIdTooltip = l10n.t(
+        "The Application (Client) ID of your Microsoft Entra app registration.",
+    );
+    public static clientSecret = l10n.t("Client Secret");
+    public static clientSecretTooltip = l10n.t(
+        "The client secret for your Microsoft Entra app registration.",
+    );
+    public static applicationClientIdIsRequired = l10n.t("Application (Client) ID is required.");
+    public static clientSecretIsRequired = l10n.t("Client secret is required.");
+    public static saveSecret = l10n.t("Save Secret");
     public static createConnectionGroup = l10n.t("+ Create Connection Group");
     public static selectConnectionGroup = l10n.t("Select a connection group");
     public static searchConnectionGroups = l10n.t("Search connection groups");
@@ -1086,12 +1154,17 @@ export class ConnectionDialog {
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
 
+    public static noSubscriptionsFound = l10n.t(
+        "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
+    );
+
     public static selectDatabase = l10n.t("Select a database");
     public static userDatabasesGroup = l10n.t("User databases");
     public static systemDatabasesGroup = l10n.t("System databases");
     public static unableToLoadDatabaseList(errorMessage: string) {
         return l10n.t({
-            message: "Unable to load database list from server: {0}",
+            message:
+                "Unable to load database list from server: {0} You may enter the database name directly.",
             args: [errorMessage],
             comment: ["{0} is the connection error message"],
         });
@@ -1262,6 +1335,14 @@ export class Fabric {
         });
     };
 
+    public static listingWarehousesForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric Warehouses for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
     public static gettingConnectionStringForSqlEndpoint = (
         sqlEndpointId: string,
         workspaceId: string,
@@ -1386,6 +1467,89 @@ export class Accounts {
         });
     };
     public static clearedEntraTokenCache = l10n.t("Entra token cache cleared successfully.");
+}
+
+export class AzureSqlDatabase {
+    public static azureAccount = l10n.t("Azure Account");
+    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static subscription = l10n.t("Subscription");
+    public static selectASubscription = l10n.t("Select a subscription");
+    public static subscriptionIsRequired = l10n.t("Subscription is required");
+    public static resourceGroup = l10n.t("Resource Group");
+    public static selectAResourceGroup = l10n.t("Select a resource group");
+    public static resourceGroupIsRequired = l10n.t("Resource Group is required");
+    public static databaseName = l10n.t("Database Name");
+    public static enterDatabaseName = l10n.t("Enter database name");
+    public static databaseNameIsRequired = l10n.t("Database Name is required");
+    public static noAzureAccountsFound = l10n.t("No Azure accounts found");
+    public static noTenantsFound = l10n.t("No tenants found");
+    public static noSubscriptionsFound = l10n.t("No subscriptions found");
+    public static noResourceGroupsFound = l10n.t("No resource groups found");
+    public static server = l10n.t("Server");
+    public static selectAServer = l10n.t("Select a server");
+    public static serverIsRequired = l10n.t("SQL Server is required");
+    public static noServersFound = l10n.t("No servers found");
+    public static connectionFailed = l10n.t("Connection failed");
+    public static firewallRuleCreationFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to create firewall rule: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static clientIpDetectionFailed = l10n.t(
+        "Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.",
+    );
+    public static createNew = l10n.t("Create New");
+    public static enterResourceGroupName = l10n.t("Enter a name for the new resource group");
+    public static selectLocation = l10n.t("Select a location for the resource group");
+    public static resourceGroupNameIsRequired = l10n.t("Resource group name is required");
+    public static creating = l10n.t("Creating...");
+    public static enterServerName = l10n.t("Enter a name for the new server");
+    public static serverNameIsRequired = l10n.t("Server name is required");
+    public static creatingServer = l10n.t("Creating server...");
+    public static authenticationType = l10n.t("Authentication Type");
+    public static sqlLogin = l10n.t("SQL Authentication");
+    public static azureMFA = l10n.t("Microsoft Entra ID");
+    public static azureMFAAndUser = l10n.t("Both");
+    public static userName = l10n.t("Username");
+    public static enterUserName = l10n.t("Enter username");
+    public static password = l10n.t("Password");
+    public static enterPassword = l10n.t("Enter password");
+    public static savePassword = l10n.t("Save password");
+    public static userNameIsRequired = l10n.t("Username is required");
+    public static passwordIsRequired = l10n.t("Password is required");
+    public static dataSource = l10n.t("Data Source");
+    public static selectDataSource = l10n.t("Select a data source");
+    public static noDataSource = l10n.t("None (empty database)");
+    public static collation = l10n.t("Collation");
+    public static selectCollation = l10n.t("Select a collation");
+    public static loadingCollations = l10n.t("Loading collations...");
+    public static enableAlwaysEncrypted = l10n.t("Always Encrypted");
+    public static maintenanceWindow = l10n.t("Maintenance Window");
+    public static selectMaintenanceWindow = l10n.t("Select a maintenance window");
+    public static loadingMaintenanceConfigs = l10n.t("Loading maintenance windows...");
+    public static serverTooltipMFA = l10n.t(
+        "This server only supports Microsoft Entra ID authentication.",
+    );
+    public static databaseTooltipMFA = l10n.t(
+        "Use Microsoft Entra ID authentication to provision and connect to this database.",
+    );
+    public static serverTooltipMFAAndUser = l10n.t(
+        "This server supports Microsoft Entra ID and SQL Authentication.",
+    );
+    public static databaseTooltipMFAAndUser = l10n.t(
+        "Connect using either Microsoft Entra ID or SQL Authentication.",
+    );
+    public static userNameTooltip = l10n.t("[Read-only] Pre-filled from the server properties.");
+    public static serverTooltipSqlLogin = l10n.t("This server only supports SQL Authentication.");
+    public static databaseTooltipSqlLogin = l10n.t(
+        "Use SQL Authentication with a valid username and password.",
+    );
+    public static serverAuthTypeUnknown = l10n.t(
+        "Unable to determine the server authentication type.",
+    );
+    public static maxVcores = l10n.t("Max vCores");
+    public static selectMaxVcores = l10n.t("Select Max vCores");
 }
 
 export class FabricProvisioning {
@@ -2113,6 +2277,37 @@ export class Connection {
         });
     };
 
+    public static defaultConnectionIdNotFoundWarning = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection ID '{0}' set in 'mssql.defaultConnectionId' does not match any known connection profile. New editors will fall back to transferring the active connection.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID that was not found"],
+        });
+    };
+
+    public static defaultConnectionIdNotSetWarning = l10n.t(
+        "'mssql.newEditorConnectionBehavior' is set to 'defaultConnection', but 'mssql.defaultConnectionId' is not configured. New editors will fall back to transferring the active connection.",
+    );
+
+    public static defaultConnectionSelectConnection = l10n.t("Select Connection");
+
+    public static defaultConnectionChangeSetting = l10n.t("Change Setting");
+
+    public static defaultConnectionSelectConnectionPlaceholder = l10n.t(
+        "Select a connection to use as the default",
+    );
+
+    public static defaultConnectionChangeSettingPlaceholder = l10n.t(
+        "Choose the behavior for new editors",
+    );
+
+    public static defaultConnectionBehaviorTransferActive = l10n.t(
+        "Transfer active connection (Default)",
+    );
+
+    public static defaultConnectionBehaviorNone = l10n.t("Do not connect");
+
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({
             message:
@@ -2431,17 +2626,24 @@ export class MssqlChatAgent {
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
-    public static dabToolMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open Data API builder.",
+    public static toolMissingConnectionReference = l10n.t(
+        "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     );
+    public static toolAmbiguousConnectionReference = l10n.t(
+        "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
+    );
+    public static noSqlToolsMcpConnectionName = (connectionName: string) => {
+        return l10n.t({
+            message: "No SQL Tools MCP connection found for connectionName: {0}",
+            args: [connectionName],
+            comment: ["{0} is the SQL Tools MCP registered connection name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
     public static schemaDesignerStaleState = l10n.t(
         "Schema designer state changed. Fetch the latest schema and retry the operation.",
-    );
-    public static schemaDesignerMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open the schema designer.",
     );
     public static schemaDesignerAddTableSuccess = l10n.t(
         "Table added to schema designer successfully.",
@@ -2907,9 +3109,9 @@ export class DacpacDialog {
     public static InvalidApplicationVersion = l10n.t(
         "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
     );
-    public static RevealInExplorer = l10n.t("Reveal in Explorer");
-    public static RevealInFinder = l10n.t("Reveal in Finder");
-    public static OpenContainingFolder = l10n.t("Open Containing Folder");
+    public static RevealInExplorer = Common.revealInExplorer;
+    public static RevealInFinder = Common.revealInFinder;
+    public static OpenContainingFolder = Common.openContainingFolder;
     public static FailedToListDatabases = l10n.t(
         "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     );
@@ -3204,9 +3406,17 @@ export class Changelog {
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
     );
+    public static azureSqlProvisioningTitle = l10n.t("Azure SQL databases provisioning");
+    public static azureSqlProvisioningDescription = l10n.t(
+        "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
+    );
     public static dabTitle = l10n.t("Data API builder");
     public static dabDescription = l10n.t(
         "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
+    );
+    public static dabWithCopilotTitle = l10n.t("Data API builder with GitHub Copilot");
+    public static dabWithCopilotDescription = l10n.t(
+        "Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.",
     );
     public static dabCopilotTitle = l10n.t("GitHub Copilot integration in Data API builder");
     public static dabCopilotDescription = l10n.t(
@@ -3263,6 +3473,15 @@ export class Changelog {
     );
     public static mssqlWalkthrough = l10n.t("MSSQL - VS Code walkthrough");
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
+
+    // Event banner
+    public static sqlconEuDescription1 = l10n.t(
+        "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
+    );
+    public static sqlconEuDescription2 = l10n.t(
+        "Use discount code {0} to save €200 on registration.",
+    );
+    public static sqlconEuRegister = l10n.t("Register");
 }
 
 export class Profiler {
@@ -3433,7 +3652,7 @@ export class Profiler {
             args: [filePath],
             comment: ["{0} is the file path"],
         });
-    public static openFile = l10n.t("Open File");
+    public static openFile = Common.openFile;
     public static exportFailed = (error: string) =>
         l10n.t({
             message: "Failed to export profiler events: {0}",
@@ -3691,4 +3910,281 @@ export class ServiceClient {
     public static viewKnownIssues = l10n.t("View known issues");
 
     public static installFailedStatusText = l10n.t("Service installation failed.");
+}
+
+export const azureSignInFailed = l10n.t("Azure sign in failed.");
+
+export const selectSubscriptions = l10n.t("Select subscriptions");
+
+export const errorLoadingAzureSubscriptions = l10n.t("Error loading Azure subscriptions.");
+
+export const azureSubscriptionNotFoundInCache = l10n.t("Azure subscription not found in cache.");
+
+export function invalidConnectionString0(arg0: string | number | boolean) {
+    return l10n.t("Invalid connection string: {0}", arg0);
+}
+
+export const serializationFailed = l10n.t("Serialization failed");
+
+export const azureMFA = l10n.t("Azure MFA");
+
+export const windowsAuthentication = l10n.t("Windows Authentication");
+
+export const enabled = l10n.t("Enabled");
+
+export const disabled = l10n.t("Disabled");
+
+export const server = l10n.t("Server");
+
+export const database = l10n.t("Database");
+
+export const authenticationType = l10n.t("Authentication Type");
+
+export const user = l10n.t("User");
+
+export const port = l10n.t("Port");
+
+export const sqlContainerName = l10n.t("SQL Container Name");
+
+export const sqlContainerVersion = l10n.t("SQL Container Version");
+
+export const applicationIntent = l10n.t("Application Intent");
+
+export const connectionTimeout = l10n.t("Connection Timeout");
+
+export const commandTimeout = l10n.t("Command Timeout");
+
+export const alwaysEncrypted = l10n.t("Always Encrypted");
+
+export const replication = l10n.t("Replication");
+
+export function loc0Filtered(arg0: string | number | boolean) {
+    return l10n.t("{0} (filtered)", arg0);
+}
+
+export const objectExplorerFilter = l10n.t("Object Explorer Filter");
+
+export const descriptionForTheTable = l10n.t("Description for the table.");
+
+export const description = l10n.t("Description");
+
+export const theNameOfTheColumnObject = l10n.t("The name of the column object.");
+
+export const name = l10n.t("Name");
+
+export const displaysTheDescriptionOfTheColumn = l10n.t("Displays the description of the column");
+
+export const description2 = l10n.t("Description");
+
+export const displaysTheUnifiedDataTypeIncludingLength = l10n.t(
+    "Displays the unified data type (including length, scale and precision) for the column",
+);
+
+export const dataType = l10n.t("Data Type");
+
+export const displaysTheDataTypeNameForThe = l10n.t("Displays the data type name for the column");
+
+export const typeLabel = l10n.t("Type");
+
+export const theMaximumLengthInCharactersThatCan = l10n.t(
+    "The maximum length (in characters) that can be stored in this database object.",
+);
+
+export const length = l10n.t("Length");
+
+export const aPredefinedGlobalDefaultValueForThe = l10n.t(
+    "A predefined global default value for the column or binding.",
+);
+
+export const defaultValue = l10n.t("Default Value");
+
+export const specifiesWhetherTheColumnMayHaveA = l10n.t(
+    "Specifies whether the column may have a NULL value.",
+);
+
+export const allowNulls = l10n.t("Allow Nulls");
+
+export const specifiesWhetherTheColumnIsIncludedIn = l10n.t(
+    "Specifies whether the column is included in the primary key for the table.",
+);
+
+export const primaryKey = l10n.t("Primary Key");
+
+export const forNumericDataTheMaximumNumberOf = l10n.t(
+    "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
+);
+
+export const precision = l10n.t("Precision");
+
+export const forNumericDataTheMaximumNumberOf2 = l10n.t(
+    "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
+);
+
+export const scale = l10n.t("Scale");
+
+export const columns = l10n.t("Columns");
+
+export const column = l10n.t("Column");
+
+export const newColumn = l10n.t("New Column");
+
+export const theNameOfTheColumn = l10n.t("The name of the column.");
+
+export const column2 = l10n.t("Column");
+
+export const nameOfThePrimaryKey = l10n.t("Name of the primary key.");
+
+export const name2 = l10n.t("Name");
+
+export const theDescriptionOfThePrimaryKey = l10n.t("The description of the primary key.");
+
+export const description3 = l10n.t("Description");
+
+export const columnsInThePrimaryKey = l10n.t("Columns in the primary key.");
+
+export const primaryKeyColumns = l10n.t("Primary Key Columns");
+
+export const primaryKeyColumns2 = l10n.t("Primary Key Columns");
+
+export const addColumn = l10n.t("Add Column");
+
+export const theNameOfTheColumn2 = l10n.t("The name of the column.");
+
+export const column3 = l10n.t("Column");
+
+export const theNameOfTheIndex = l10n.t("The name of the index.");
+
+export const name3 = l10n.t("Name");
+
+export const theDescriptionOfTheIndex = l10n.t("The description of the index.");
+
+export const description4 = l10n.t("Description");
+
+export const theColumnsOfTheIndex = l10n.t("The columns of the index.");
+
+export const columns2 = l10n.t("Columns");
+
+export const addColumn2 = l10n.t("Add Column");
+
+export const indexes = l10n.t("Indexes");
+
+export const index = l10n.t("Index");
+
+export const newIndex = l10n.t("New Index");
+
+export const foreignColumn = l10n.t("Foreign Column");
+
+export const column4 = l10n.t("Column");
+
+export const theNameOfTheForeignKey = l10n.t("The name of the foreign key.");
+
+export const name4 = l10n.t("Name");
+
+export const theDescriptionOfTheForeignKey = l10n.t("The description of the foreign key.");
+
+export const description5 = l10n.t("Description");
+
+export const theTableWhichContainsThePrimaryOr = l10n.t(
+    "The table which contains the primary or unique key column.",
+);
+
+export const foreignTable = l10n.t("Foreign Table");
+
+export const theBehaviorWhenAUserTriesTo = l10n.t(
+    "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
+);
+
+export const onUpdateAction = l10n.t("On Update Action");
+
+export const theBehaviorWhenAUserTriesTo2 = l10n.t(
+    "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
+);
+
+export const onDeleteAction = l10n.t("On Delete Action");
+
+export const theMappingBetweenForeignKeyColumnsAnd = l10n.t(
+    "The mapping between foreign key columns and primary key columns.",
+);
+
+export const columns3 = l10n.t("Columns");
+
+export const columns4 = l10n.t("Columns");
+
+export const newColumnMapping = l10n.t("New Column Mapping");
+
+export const foreignKeys = l10n.t("Foreign Keys");
+
+export const foreignKey = l10n.t("Foreign Key");
+
+export const newForeignKey = l10n.t("New Foreign Key");
+
+export const theNameOfTheCheckConstraint = l10n.t("The name of the check constraint.");
+
+export const name5 = l10n.t("Name");
+
+export const theDescriptionOfTheCheckConstraint = l10n.t(
+    "The description of the check constraint.",
+);
+
+export const description6 = l10n.t("Description");
+
+export const theExpressionDefiningTheCheckConstraint = l10n.t(
+    "The expression defining the check constraint.",
+);
+
+export const expression = l10n.t("Expression");
+
+export const checkConstraints = l10n.t("Check Constraints");
+
+export const checkConstraint = l10n.t("Check Constraint");
+
+export const newCheckConstraint = l10n.t("New Check Constraint");
+
+export const columns5 = l10n.t("Columns");
+
+export const primaryKey2 = l10n.t("Primary Key");
+
+export const indexes2 = l10n.t("Indexes");
+
+export const foreignKeys2 = l10n.t("Foreign Keys");
+
+export const checkConstraints2 = l10n.t("Check Constraints");
+
+export const advancedOptions = l10n.t("Advanced Options");
+
+export class SqlSymbolRename {
+    public static renameNotSupportedAtPosition = l10n.t(
+        "Rename is not supported at this position.",
+    );
+    public static renameOnlyInProjectFiles = l10n.t(
+        "Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static renameNotSupportedForSymbol = l10n.t("Please select a valid symbol.");
+    public static renameRequestFailed = (message: string): string =>
+        l10n.t("Rename request failed: {0}", message);
+    public static noRenameableSymbolAtCursor = l10n.t("No renameable symbol found at cursor.");
+}
+
+export class SqlMoveToSchema {
+    public static moveToSchemaTitle = l10n.t("Move to Schema...");
+    public static moveToSchemaOnlyInProjectFiles = l10n.t(
+        "Move to Schema is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static selectTargetSchemaPlaceholder = (currentSchema?: string): string =>
+        currentSchema
+            ? l10n.t("Current Schema: {0}, Select the new schema:", currentSchema)
+            : l10n.t("Select the target schema");
+    public static noSchemasFound = l10n.t("No schemas were found in the project.");
+    public static noMovableSymbolAtCursor = l10n.t(
+        "No object that can be moved to another schema was found at the cursor.",
+    );
+    public static moveToSchemaRequestFailed = (message: string): string =>
+        l10n.t("Move to Schema request failed: {0}", message);
+    public static resolveRefactorLogFailed = (message: string): string =>
+        l10n.t("Failed to resolve the refactor log for this file: {0}", message);
+    public static previewLabel = (targetSchema: string): string =>
+        l10n.t("Move to schema '{0}'", targetSchema);
+    public static applyEditFailed = l10n.t(
+        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    );
 }

@@ -36,6 +36,7 @@ export const database_red = "Database_red";
 export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunQueryWithUriOwnership = "mssql.runQueryWithUriOwnership";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";
+export const cmdOpenShortcutsConfiguration = "mssql.shortcutsConfiguration.open";
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";
@@ -148,6 +149,7 @@ export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
+export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
@@ -170,6 +172,7 @@ export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
+export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
 export const defaultPortNumber = 1433;
 export const integratedauth = "Integrated";
 export const sqlAuthentication = "SqlLogin";
@@ -273,6 +276,7 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configMessagesCopyIncludeTimestamps = "messages.copyIncludeTimestamps";
 export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
     Shortcuts = "shortcuts",
@@ -302,6 +306,7 @@ export const configResultsGridRowPadding = "resultsGrid.rowPadding";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
+export const configSelectedFabricWorkspaces = "mssql.selectedFabricWorkspaces";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
@@ -313,8 +318,24 @@ export const configSavePasswordsUntilRestart =
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
+export const configQuickQueries = "mssql.quickQueries";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
+/** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
+export const configNewEditorConnectionBehavior = "mssql.newEditorConnectionBehavior";
+export const configDefaultConnectionId = "mssql.defaultConnectionId";
+
+/**
+ * Controls how new SQL editor windows and opened SQL files are automatically connected.
+ */
+export enum NewEditorConnectionBehavior {
+    /** Do not auto-connect; the user must connect manually. */
+    None = "none",
+    /** Carry the last active editor's connection to the new document (legacy default). */
+    TransferActive = "transferActive",
+    /** Connect using the profile identified by mssql.defaultConnectionId. */
+    DefaultConnection = "defaultConnection",
+}
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
@@ -393,6 +414,8 @@ export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+export const user = "User";
+export const activeDirectory = "ActiveDirectory";
 // Regex pattern to match and replace database names in connection strings. Matches: (Initial Catalog|Database)
 export const catalogPairPattern =
     /(^|;)\s*(Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/gi;

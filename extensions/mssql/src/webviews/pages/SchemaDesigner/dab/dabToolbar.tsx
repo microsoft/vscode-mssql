@@ -11,32 +11,21 @@ import {
     Input,
     makeStyles,
     mergeClasses,
-    Menu,
-    MenuItem,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
     Popover,
     PopoverSurface,
     PopoverTrigger,
     Text,
-    ToggleButton,
     tokens,
     Tooltip,
 } from "@fluentui/react-components";
 import {
     ArrowLeft16Regular as ArrowLeftIcon,
-    CheckboxChecked16Regular as CheckboxCheckedIcon,
-    CheckboxUnchecked16Regular as CheckboxUncheckedIcon,
-    ChevronDown16Regular as ChevronDownIcon,
-    Column16Regular as ColumnIcon,
     Dismiss12Regular,
     Dismiss16Regular,
     Eye16Regular as EyeIcon,
     Filter16Regular,
     Play16Filled as PlayIcon,
     Search16Regular,
-    TableEdit16Regular as TableEditIcon,
 } from "@fluentui/react-icons";
 import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -52,6 +41,7 @@ import {
     getDabSchemaFilterKey,
     getDabEntityFilterCount,
     toggleDabEntityFilterValue,
+    isDabTableEntity,
 } from "./dabEntityFilters";
 
 const SCHEMA_FILTER_ROW_HEIGHT = 22;
@@ -307,9 +297,6 @@ export function DabToolbar({
         dabTextFilter,
         setDabTextFilter,
         openDabDeploymentDialog,
-        toggleDabEntity,
-        toggleDabEntityAction,
-        toggleDabColumnExposure,
     } = context;
 
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
@@ -318,7 +305,7 @@ export function DabToolbar({
     const schemaListRef = useRef<HTMLDivElement | null>(null);
 
     const schemaOptions = Object.values(
-        (dabConfig?.entities ?? []).reduce<
+        (dabConfig?.entities.filter(isDabTableEntity) ?? []).reduce<
             Record<string, { key: string; schemaName: string; count: number }>
         >((accumulator, entity) => {
             const key = getDabSchemaFilterKey(entity.schemaName);
@@ -362,13 +349,9 @@ export function DabToolbar({
         return <></>;
     }
 
-    const supportedEntities = dabConfig.entities.filter((e) => e.isSupported);
-    const crudEntities = supportedEntities.filter(
-        (e) =>
-            (e.sourceType ?? Dab.EntitySourceType.Table) !== Dab.EntitySourceType.StoredProcedure,
-    );
-    const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
-    const totalCount = dabConfig.entities.length;
+    const tableEntities = dabConfig.entities.filter(isDabTableEntity);
+    const enabledCount = tableEntities.filter((e) => e.isEnabled).length;
+    const totalCount = tableEntities.length;
     const activeFilterCount = getDabEntityFilterCount(entityFilters);
     const hasActiveFilters = activeFilterCount > 0;
     const schemaFilterState =
@@ -379,24 +362,10 @@ export function DabToolbar({
     const schemaFilterListHeight =
         (Math.min(schemaOptions.length, SCHEMA_FILTER_VISIBLE_ROWS) + 1) * SCHEMA_FILTER_ROW_HEIGHT;
 
-    const sourceTypeLabels: Record<Dab.EntitySourceType, string> = {
-        [Dab.EntitySourceType.Table]: locConstants.schemaDesigner.tables,
-        [Dab.EntitySourceType.View]: locConstants.schemaDesigner.views,
-        [Dab.EntitySourceType.StoredProcedure]: locConstants.schemaDesigner.storedProcedures,
-    };
     const statusFilterOptions = Object.values(DabEntityStatusFilter).map((status) => ({
         value: status,
         label: locConstants.schemaDesigner.entityStatusFilterLabel(status),
     }));
-
-    const sourceTypes = new Set(
-        dabConfig.entities.map((entity) => entity.sourceType ?? Dab.EntitySourceType.Table),
-    );
-    const sourceTypeOptions = [
-        Dab.EntitySourceType.Table,
-        Dab.EntitySourceType.View,
-        Dab.EntitySourceType.StoredProcedure,
-    ].filter((sourceType) => sourceTypes.has(sourceType));
 
     const clearFilters = () => {
         setEntityFilters({ ...defaultDabEntityFilters });
@@ -407,81 +376,6 @@ export function DabToolbar({
             ...prev,
             schemas: toggleDabEntityFilterValue(prev.schemas, schemaKey, schemaFilterKeys),
         }));
-    };
-
-    const toggleSourceTypeFilter = (sourceType: Dab.EntitySourceType) => {
-        setEntityFilters((prev) => ({
-            ...prev,
-            sourceTypes: toggleDabEntityFilterValue(
-                prev.sourceTypes,
-                sourceType,
-                sourceTypeOptions,
-            ),
-        }));
-    };
-
-    const allActions = [
-        Dab.EntityAction.Create,
-        Dab.EntityAction.Read,
-        Dab.EntityAction.Update,
-        Dab.EntityAction.Delete,
-    ];
-
-    const handleEnableAll = () => {
-        for (const entity of supportedEntities) {
-            if (!entity.isEnabled) {
-                toggleDabEntity(entity.id, true);
-            }
-        }
-    };
-
-    const handleDisableAll = () => {
-        for (const entity of supportedEntities) {
-            if (entity.isEnabled) {
-                toggleDabEntity(entity.id, false);
-            }
-        }
-    };
-
-    const handleMakeReadOnly = () => {
-        for (const entity of crudEntities) {
-            if (!entity.isEnabled) {
-                toggleDabEntity(entity.id, true);
-            }
-            for (const action of allActions) {
-                const shouldEnableAction = action === Dab.EntityAction.Read;
-                const hasActionEnabled = entity.enabledActions.includes(action);
-
-                if (shouldEnableAction && !hasActionEnabled) {
-                    toggleDabEntityAction(entity.id, action, true);
-                } else if (!shouldEnableAction && hasActionEnabled) {
-                    toggleDabEntityAction(entity.id, action, false);
-                }
-            }
-        }
-    };
-
-    const handleEnableAllCruds = () => {
-        for (const entity of crudEntities) {
-            if (!entity.isEnabled) {
-                toggleDabEntity(entity.id, true);
-            }
-            for (const action of allActions) {
-                if (!entity.enabledActions.includes(action)) {
-                    toggleDabEntityAction(entity.id, action, true);
-                }
-            }
-        }
-    };
-
-    const handleIncludeAllColumns = () => {
-        for (const entity of supportedEntities) {
-            for (const column of entity.columns) {
-                if (!column.isExposed) {
-                    toggleDabColumnExposure(entity.id, column.id, true);
-                }
-            }
-        }
     };
 
     const apiTypeOptions = [
@@ -522,34 +416,6 @@ export function DabToolbar({
                     <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
                 </div>
                 <div className={classes.actionsSection}>
-                    <Menu>
-                        <MenuTrigger disableButtonEnhancement>
-                            <Button appearance="subtle" icon={<ChevronDownIcon />} size="small">
-                                {locConstants.schemaDesigner.bulkActions}
-                            </Button>
-                        </MenuTrigger>
-                        <MenuPopover>
-                            <MenuList>
-                                <MenuItem icon={<CheckboxCheckedIcon />} onClick={handleEnableAll}>
-                                    {locConstants.schemaDesigner.enableAllEntities}
-                                </MenuItem>
-                                <MenuItem
-                                    icon={<CheckboxUncheckedIcon />}
-                                    onClick={handleDisableAll}>
-                                    {locConstants.schemaDesigner.disableAllEntities}
-                                </MenuItem>
-                                <MenuItem icon={<EyeIcon />} onClick={handleMakeReadOnly}>
-                                    {locConstants.schemaDesigner.makeReadOnly}
-                                </MenuItem>
-                                <MenuItem icon={<TableEditIcon />} onClick={handleEnableAllCruds}>
-                                    {locConstants.schemaDesigner.enableAllCruds}
-                                </MenuItem>
-                                <MenuItem icon={<ColumnIcon />} onClick={handleIncludeAllColumns}>
-                                    {locConstants.schemaDesigner.includeAllColumns}
-                                </MenuItem>
-                            </MenuList>
-                        </MenuPopover>
-                    </Menu>
                     <SchemaDesignerWebviewCopilotChatEntry
                         scenario="dab"
                         entryPoint="dabToolbar"
@@ -787,31 +653,6 @@ export function DabToolbar({
                                                     );
                                                 })}
                                         </div>
-                                    </div>
-                                </div>
-                                <div className={classes.filterSection}>
-                                    <Text className={classes.filterSectionTitle}>
-                                        {locConstants.schemaDesigner.objectType}
-                                    </Text>
-                                    <div className={classes.filterChipRow}>
-                                        {sourceTypeOptions.map((sourceType) => (
-                                            <ToggleButton
-                                                key={sourceType}
-                                                shape="circular"
-                                                size="small"
-                                                className={mergeClasses(
-                                                    classes.filterChip,
-                                                    entityFilters.sourceTypes.includes(
-                                                        sourceType,
-                                                    ) && classes.filterChipSelected,
-                                                )}
-                                                checked={entityFilters.sourceTypes.includes(
-                                                    sourceType,
-                                                )}
-                                                onClick={() => toggleSourceTypeFilter(sourceType)}>
-                                                {sourceTypeLabels[sourceType]}
-                                            </ToggleButton>
-                                        ))}
                                     </div>
                                 </div>
                             </div>

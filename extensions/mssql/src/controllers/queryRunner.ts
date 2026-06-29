@@ -59,6 +59,8 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export interface IResultSet {
     columns: string[];
@@ -67,6 +69,7 @@ export interface IResultSet {
 
 export interface QueryExecutionCompleteEvent {
     totalMilliseconds: string;
+    totalElapsedMilliseconds: number;
     hasError: boolean;
     isRefresh?: boolean;
 }
@@ -80,6 +83,17 @@ export interface ExecutionPlanEvent {
 
 export interface SummaryChanged extends SelectionSummary {
     uri: string;
+    continue?: Deferred<void>;
+}
+
+function getRowsAffectedFromMessage(message: string): number | undefined {
+    const rowsAffectedMatch = message.match(/\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i);
+    if (!rowsAffectedMatch?.[1]) {
+        return undefined;
+    }
+
+    const rowsAffected = Number(rowsAffectedMatch[1]);
+    return Number.isNaN(rowsAffected) ? undefined : rowsAffected;
 }
 
 export const editorEol =
@@ -147,6 +161,7 @@ export default class QueryRunner {
     private _onSummaryChangedEmitter: vscode.EventEmitter<SummaryChanged> =
         new vscode.EventEmitter<SummaryChanged>();
     public onSummaryChanged: vscode.Event<SummaryChanged> = this._onSummaryChangedEmitter.event;
+    private _logger: ILogger = logger.withPrefix("QueryRunner");
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -425,9 +440,7 @@ export default class QueryRunner {
     }
 
     public setupQueryExecution(_selection: ISelectionData): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgStartedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         // Update the status view to show that we're executing
@@ -440,9 +453,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgFinishedExecute(this._ownerUri),
-        );
+        this._logger.info(LocalizedConstants.msgFinishedExecute(this._ownerUri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
@@ -458,13 +469,16 @@ export default class QueryRunner {
         this._statusView.executedQuery(result.ownerUri);
         this._statusView.setExecutionTime(
             result.ownerUri,
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError,
         });
         sendActionEvent(
@@ -497,7 +511,10 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds += executionTime;
         if (executionTime > 0) {
             // send a time message in the format used for query complete
-            this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
+            this.sendBatchTimeMessage(
+                batch.id,
+                Utils.durationToDisplay(executionTime, { format: "clock" }),
+            );
         }
         this._batchCompleteEmitter.fire(batch);
     }
@@ -551,6 +568,7 @@ export default class QueryRunner {
     public handleMessage(obj: QueryExecuteMessageParams): void {
         let message = obj.message;
         message.time = new Date(message.time).toLocaleTimeString();
+        message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
         // save the message into the batch summary so it can be restored on view refresh
         if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
@@ -606,11 +624,13 @@ export default class QueryRunner {
         }
 
         this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                format: "clock",
+            }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
         });
         this._statusView.executedQuery(this._ownerUri);
-
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {
@@ -844,9 +864,6 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocalizedConstants.resultsCopiedToClipboard,
-                    );
                     resolve();
                 } catch (error) {
                     // Don't show error if cancelled
@@ -992,6 +1009,7 @@ export default class QueryRunner {
 
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
+
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,
@@ -1014,6 +1032,8 @@ export default class QueryRunner {
                 text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
             await proceed.promise;
         };
@@ -1029,6 +1049,8 @@ export default class QueryRunner {
                 text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
         };
 
@@ -1095,10 +1117,23 @@ export default class QueryRunner {
                 return;
             }
 
-            let text = "";
-            let tooltip = "";
+            const stats: NonNullable<SelectionSummary["stats"]> = {
+                count: result.count,
+                distinctCount: result.distinctCount,
+                nullCount: result.nullCount,
+            };
 
-            // the selection is numeric
+            if (result.average !== undefined && result.average !== null) {
+                stats.average = result.average;
+                stats.sum = result.sum;
+                stats.max = result.max;
+                stats.min = result.min;
+            }
+
+            // Build a textual summary used by the editor status bar when the query results footer
+            // preview is disabled. The footer ignores these fields and renders from `stats`.
+            let text: string;
+            let tooltip: string;
             if (result.average !== undefined && result.average !== null) {
                 const average = result.average.toFixed(2);
                 text = LocalizedConstants.QueryResult.numericSelectionSummary(
@@ -1126,7 +1161,6 @@ export default class QueryRunner {
                     result.distinctCount,
                     result.nullCount,
                 );
-                tooltip = text;
             }
 
             // Resolve the cancel confirmation to clean up
@@ -1135,11 +1169,14 @@ export default class QueryRunner {
             }
 
             this.fireSummaryChangedEvent(requestId, {
+                stats,
                 text,
                 tooltip,
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
         } catch (error) {
             // Clean up on error
@@ -1155,6 +1192,8 @@ export default class QueryRunner {
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
             throw error;
         }

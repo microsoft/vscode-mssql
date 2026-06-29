@@ -56,7 +56,7 @@ function stageFiles(files) {
         return;
     }
 
-    execFileSync("git", ["add", "--", ...files], { stdio: "inherit" });
+    execFileSync("git", ["add", "--renormalize", "--", ...files], { stdio: "inherit" });
 }
 
 function main() {
@@ -66,12 +66,21 @@ function main() {
         return;
     }
 
+    const eligibleFiles = files.filter(
+        (f) => !shouldSkipFile(f) && fs.existsSync(f) && !isBinary(fs.readFileSync(f)),
+    );
     const updated = files.filter(convertFile);
-    if (updated.length) {
-        if (runAll) {
+
+    if (runAll) {
+        if (updated.length) {
             console.log(`Converted ${updated.length} file(s) to CRLF.`);
-        } else {
-            stageFiles(updated);
+        }
+    } else {
+        // Always renormalize all staged text files so the line endings are consistent.
+        if (eligibleFiles.length) {
+            stageFiles(eligibleFiles);
+        }
+        if (updated.length) {
             console.log(`Converted ${updated.length} file(s) to CRLF and re-staged them.`);
         }
     }

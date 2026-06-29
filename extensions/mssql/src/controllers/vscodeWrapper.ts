@@ -177,24 +177,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Helper to log messages to "MSSQL" output channel.
-     */
-    public logToOutputChannel(msg: any): void {
-        let date: Date = new Date();
-        if (msg instanceof Array) {
-            msg.forEach((element) => {
-                VscodeWrapper._outputChannel.appendLine(
-                    "[" + date.toLocaleTimeString() + "] " + element.toString(),
-                );
-            });
-        } else {
-            VscodeWrapper._outputChannel.appendLine(
-                "[" + date.toLocaleTimeString() + "] " + msg.toString(),
-            );
-        }
-    }
-
-    /**
      * Create a vscode.Range object
      * @param start The start position for the range
      * @param end The end position for the range

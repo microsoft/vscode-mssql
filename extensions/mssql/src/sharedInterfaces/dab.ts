@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { SchemaDesigner } from "./schemaDesigner";
 import { ApiStatus, Status } from "./webview";
 
@@ -29,6 +29,81 @@ export namespace Dab {
         Update = "update",
         Delete = "delete",
         Execute = "execute",
+    }
+
+    export enum RestMethod {
+        Get = "get",
+        Post = "post",
+        Put = "put",
+        Patch = "patch",
+        Delete = "delete",
+    }
+
+    const restMethodSortOrder = [
+        RestMethod.Get,
+        RestMethod.Post,
+        RestMethod.Put,
+        RestMethod.Patch,
+        RestMethod.Delete,
+    ];
+    export const storedProcedureAllowedRestMethods = [RestMethod.Get, RestMethod.Post] as const;
+
+    /**
+     * Canonicalizes REST methods so semantically equivalent method sets do not
+     * produce noisy config diffs or version hash changes.
+     */
+    export function normalizeRestMethods(methods: RestMethod[]): RestMethod[] {
+        const uniqueMethods = new Set(methods);
+        return restMethodSortOrder.filter((method) => uniqueMethods.has(method));
+    }
+
+    export const maxDabEntityNameLength = 128;
+    export const maxDabRoutePathLength = 256;
+
+    const dabEntityNamePattern = /^[A-Za-z][A-Za-z0-9_]*$/;
+    const dabGraphQLTypePattern = /^[_A-Za-z][_0-9A-Za-z]*$/;
+    const dabRestPathPattern = /^\/?[A-Za-z0-9._~-]+(?:\/[A-Za-z0-9._~-]+)*$/;
+
+    export function normalizeDabIdentifier(value: string | undefined): string {
+        return (value ?? "").trim().toLowerCase();
+    }
+
+    export function validateDabEntityName(value: string): string | undefined {
+        if (value.length > maxDabEntityNameLength) {
+            return `entityName must be ${maxDabEntityNameLength} characters or fewer.`;
+        }
+        if (!dabEntityNamePattern.test(value)) {
+            return "entityName must start with a letter and contain only letters, numbers, and underscores.";
+        }
+        return undefined;
+    }
+
+    export function validateDabCustomRestPath(value: string): string | undefined {
+        if (value.length > maxDabRoutePathLength) {
+            return `customRestPath must be ${maxDabRoutePathLength} characters or fewer.`;
+        }
+        if (!dabRestPathPattern.test(value)) {
+            return "customRestPath must be a relative route path using letters, numbers, slash, dot, underscore, tilde, or hyphen.";
+        }
+        return undefined;
+    }
+
+    export function validateDabCustomGraphQLType(
+        value: string,
+        fieldName = "customGraphQLType",
+    ): string | undefined {
+        if (value.length > maxDabEntityNameLength) {
+            return `${fieldName} must be ${maxDabEntityNameLength} characters or fewer.`;
+        }
+        if (!dabGraphQLTypePattern.test(value)) {
+            return `${fieldName} must be a valid GraphQL name.`;
+        }
+        return undefined;
+    }
+
+    export enum GraphQLOperation {
+        Query = "query",
+        Mutation = "mutation",
     }
 
     /**
@@ -65,9 +140,46 @@ export namespace Dab {
          */
         customRestPath?: string;
         /**
-         * Custom GraphQL type name (overrides default entity name)
+         * Whether this entity should be exposed through REST when REST is globally enabled.
+         * Defaults to true.
+         */
+        restEnabled?: boolean;
+        /**
+         * Legacy custom GraphQL type name (overrides default entity name).
+         * Kept so older cached DAB configs continue to load.
          */
         customGraphQLType?: string;
+        /**
+         * Custom singular GraphQL type name (overrides default entity name).
+         */
+        customGraphQLSingularType?: string;
+        /**
+         * Custom plural GraphQL type name (overrides default pluralization).
+         */
+        customGraphQLPluralType?: string;
+        /**
+         * Whether this entity should be exposed through GraphQL when GraphQL is globally enabled.
+         * Defaults to true.
+         */
+        graphQLEnabled?: boolean;
+        /**
+         * Whether this table entity should be exposed through MCP DML tools.
+         * Defaults to true in DAB when omitted.
+         */
+        mcpDmlToolsEnabled?: boolean;
+        /**
+         * Stored procedure REST methods. Defaults to POST.
+         */
+        storedProcedureRestMethods?: RestMethod[];
+        /**
+         * Stored procedure GraphQL operation. Defaults to mutation.
+         */
+        storedProcedureGraphQLOperation?: GraphQLOperation;
+        /**
+         * Whether a stored procedure entity should be exposed as a dedicated MCP custom tool.
+         * Defaults to true for stored procedures.
+         */
+        exposeAsMcpCustomTool?: boolean;
     }
 
     /**
@@ -309,16 +421,6 @@ export namespace Dab {
         );
     }
 
-    export interface GetDatabaseObjectsResponse {
-        sourceObjects: DabSourceObject[];
-    }
-
-    export namespace GetDatabaseObjectsRequest {
-        export const type = new RequestType<void, GetDatabaseObjectsResponse, void>(
-            "dab/getDatabaseObjects",
-        );
-    }
-
     /**
      * Entity reference for DAB tool operations.
      * Exactly one form is supported: id OR schemaName+tableName OR schemaName+sourceName+sourceType.
@@ -331,10 +433,20 @@ export namespace Dab {
     export type DabColumnRef = { id: string } | { name: string };
 
     export type DabEntitySettingsPatch = Partial<
-        Omit<EntityAdvancedSettings, "customRestPath" | "customGraphQLType">
+        Omit<
+            EntityAdvancedSettings,
+            | "customRestPath"
+            | "customGraphQLType"
+            | "customGraphQLSingularType"
+            | "customGraphQLPluralType"
+            | "storedProcedureRestMethods"
+        >
     > & {
         customRestPath?: string | null;
-        customGraphQLType?: string | null;
+        customGraphQLType?: string | { singular: string; plural?: string | null } | null;
+        customGraphQLSingularType?: string | null;
+        customGraphQLPluralType?: string | null;
+        storedProcedureRestMethods?: RestMethod[] | null;
     };
 
     export type DabToolChange =
@@ -1154,6 +1266,7 @@ export namespace Dab {
             advancedSettings: {
                 entityName: sourceObject.sourceName,
                 authorizationRole: AuthorizationRole.Anonymous,
+                ...(isStoredProcedure ? { exposeAsMcpCustomTool: true } : {}),
             },
         };
     }
@@ -1369,7 +1482,7 @@ export namespace Dab {
 
     export function createDefaultConfigFromSources(sourceObjects: DabSourceObject[]): DabConfig {
         return {
-            apiTypes: [ApiType.Rest],
+            apiTypes: [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp],
             entities: sourceObjects.map((sourceObject) =>
                 createDefaultEntityConfigFromSource(sourceObject),
             ),

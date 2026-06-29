@@ -40,7 +40,6 @@ export namespace InitializeViewRequest {
     export const type = new RequestType<
         InitializeViewRequestParams,
         ObjectManagementViewInfo<ObjectManagementSqlObject>,
-        void,
         void
     >("objectManagement/initializeView");
 }
@@ -56,12 +55,9 @@ export interface SaveObjectRequestResponse {
 }
 
 export namespace SaveObjectRequest {
-    export const type = new RequestType<
-        SaveObjectRequestParams,
-        SaveObjectRequestResponse,
-        void,
-        void
-    >("objectManagement/save");
+    export const type = new RequestType<SaveObjectRequestParams, SaveObjectRequestResponse, void>(
+        "objectManagement/save",
+    );
 }
 
 export interface ScriptObjectRequestParams {
@@ -70,7 +66,7 @@ export interface ScriptObjectRequestParams {
 }
 
 export namespace ScriptObjectRequest {
-    export const type = new RequestType<ScriptObjectRequestParams, string, void, void>(
+    export const type = new RequestType<ScriptObjectRequestParams, string, void>(
         "objectManagement/script",
     );
 }
@@ -80,7 +76,7 @@ export interface DisposeViewRequestParams {
 }
 
 export namespace DisposeViewRequest {
-    export const type = new RequestType<DisposeViewRequestParams, void, void, void>(
+    export const type = new RequestType<DisposeViewRequestParams, void, void>(
         "objectManagement/disposeView",
     );
 }
@@ -93,7 +89,7 @@ export interface RenameObjectRequestParams {
 }
 
 export namespace RenameObjectRequest {
-    export const type = new RequestType<RenameObjectRequestParams, void, void, void>(
+    export const type = new RequestType<RenameObjectRequestParams, void, void>(
         "objectManagement/rename",
     );
 }
@@ -113,12 +109,9 @@ export interface RenameDatabaseResponse {
 }
 
 export namespace RenameDatabaseRequest {
-    export const type = new RequestType<
-        RenameDatabaseRequestParams,
-        RenameDatabaseResponse,
-        void,
-        void
-    >("objectManagement/renameDatabase");
+    export const type = new RequestType<RenameDatabaseRequestParams, RenameDatabaseResponse, void>(
+        "objectManagement/renameDatabase",
+    );
 }
 
 export interface DropDatabaseRequestParams {
@@ -136,55 +129,42 @@ export interface DropDatabaseResponse {
 }
 
 export namespace DropDatabaseRequest {
-    export const type = new RequestType<
-        DropDatabaseRequestParams,
-        DropDatabaseResponse,
-        void,
-        void
-    >("objectManagement/dropDatabase");
+    export const type = new RequestType<DropDatabaseRequestParams, DropDatabaseResponse, void>(
+        "objectManagement/dropDatabase",
+    );
 }
 
 //#region Backup Database;
 export namespace BackupRequest {
-    export const type = new RequestType<BackupParams, BackupResponse, void, void>("backup/backup");
+    export const type = new RequestType<BackupParams, BackupResponse, void>("backup/backup");
 }
 
 export namespace BackupConfigInfoRequest {
-    export const type = new RequestType<
-        DefaultDatabaseInfoParams,
-        BackupConfigInfoResponse,
-        void,
-        void
-    >("backup/backupconfiginfo");
+    export const type = new RequestType<DefaultDatabaseInfoParams, BackupConfigInfoResponse, void>(
+        "backup/backupconfiginfo",
+    );
 }
 
 //#endregion
 
 // #region Restore Database
 export namespace RestoreConfigInfoRequest {
-    export const type = new RequestType<
-        DefaultDatabaseInfoParams,
-        RestoreConfigInfoResponse,
-        void,
-        void
-    >("restore/restoreconfiginfo");
+    export const type = new RequestType<DefaultDatabaseInfoParams, RestoreConfigInfoResponse, void>(
+        "restore/restoreconfiginfo",
+    );
 }
 export namespace RestorePlanRequest {
-    export const type = new RequestType<RestoreParams, RestorePlanResponse, void, void>(
+    export const type = new RequestType<RestoreParams, RestorePlanResponse, void>(
         "restore/restoreplan",
     );
 }
 
 export namespace CancelRestorePlanRequest {
-    export const type = new RequestType<RestoreParams, boolean, void, void>(
-        "restore/cancelrestoreplan",
-    );
+    export const type = new RequestType<RestoreParams, boolean, void>("restore/cancelrestoreplan");
 }
 
 export namespace RestoreRequest {
-    export const type = new RequestType<RestoreParams, RestoreResponse, void, void>(
-        "restore/restore",
-    );
+    export const type = new RequestType<RestoreParams, RestoreResponse, void>("restore/restore");
 }
 
 // #endregion

@@ -12,8 +12,9 @@ import {
     makeStyles,
     Text,
     Spinner,
+    Toolbar,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
@@ -28,6 +29,8 @@ import { QueryExecutionPlanTab } from "./queryExecutionPlanTab";
 import { QueryResultsTab } from "./queryResultsTab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
+import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
+import { CopyIndicator } from "../../common/CopyIndicator";
 
 const useStyles = makeStyles({
     root: {
@@ -43,6 +46,11 @@ const useStyles = makeStyles({
         "> *": {
             marginRight: "10px",
         },
+    },
+    ribbonActions: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
     },
     queryResultPaneTabs: {
         flex: 1,
@@ -69,7 +77,8 @@ const useStyles = makeStyles({
     },
     noResultsContainer: {
         width: "100%",
-        height: "100%",
+        flex: 1,
+        minHeight: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -114,6 +123,7 @@ export const QueryResultPane = () => {
     if (!context) {
         return;
     }
+    const log = context.log;
 
     // Use selectors to get specific state pieces
     const resultSetSummaries = useQueryResultSelector<
@@ -131,9 +141,7 @@ export const QueryResultPane = () => {
     const executionPlanGraphs = useQueryResultSelector<ExecutionPlanGraph[] | undefined>(
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
-
-    const resultPaneParentRef = useRef<HTMLDivElement>(null);
-    const ribbonRef = useRef<HTMLDivElement>(null);
+    const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
 
     const { keyBindings } = useVscodeWebview();
 
@@ -187,11 +195,14 @@ export const QueryResultPane = () => {
         });
         setWebviewLocation(res);
     };
-    const [webviewLocation, setWebviewLocation] = useState("");
+    const [webviewLocation, setWebviewLocation] = useState<qr.QueryResultWebviewLocation>(
+        qr.QueryResultWebviewLocation.Panel,
+    );
+
     useEffect(() => {
         getWebviewLocation().catch((e) => {
-            console.error(e);
-            setWebviewLocation("panel");
+            log.error("Failed to get webview location", e);
+            setWebviewLocation(qr.QueryResultWebviewLocation.Panel);
         });
     }, []);
 
@@ -207,6 +218,7 @@ export const QueryResultPane = () => {
                         <Text className={classes.noResultMessage}>{initilizationError}</Text>
                     </div>
                 </div>
+                {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
             </div>
         );
     }
@@ -216,7 +228,7 @@ export const QueryResultPane = () => {
             <div className={classes.root}>
                 <div className={classes.noResultsContainer}>
                     <div className={classes.noResultsScrollablePane}>
-                        {webviewLocation === "document" ? (
+                        {webviewLocation === qr.QueryResultWebviewLocation.Document ? (
                             <Spinner
                                 label={locConstants.queryResult.loadingResultsMessage}
                                 labelPosition="below"
@@ -245,13 +257,14 @@ export const QueryResultPane = () => {
                         )}
                     </div>
                 </div>
+                {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
             </div>
         );
     }
 
     return (
-        <div className={classes.root} ref={resultPaneParentRef}>
-            <div className={classes.ribbon} ref={ribbonRef}>
+        <div className={classes.root}>
+            <div className={classes.ribbon}>
                 <TabList
                     size="medium"
                     selectedValue={tabStates!.resultPaneTab}
@@ -262,11 +275,25 @@ export const QueryResultPane = () => {
                     {Object.keys(resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
-                            title={locConstants.queryResult.resultTabTooltip(
-                                keyBindings[WebviewAction.QueryResultSwitchToResultsTab].label,
-                            )}
+                            title={
+                                isBetaResultsGridEnabled
+                                    ? locConstants.queryResult.resultBetaTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                                    : locConstants.queryResult.resultTabTooltip(
+                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
+                                              .label,
+                                      )
+                            }
                             key={qr.QueryResultPaneTabs.Results}>
-                            {locConstants.queryResult.results(getGridCount(resultSetSummaries))}
+                            {isBetaResultsGridEnabled
+                                ? locConstants.queryResult.resultsBeta(
+                                      getGridCount(resultSetSummaries),
+                                  )
+                                : locConstants.queryResult.results(
+                                      getGridCount(resultSetSummaries),
+                                  )}
                         </Tab>
                     )}
                     <Tab
@@ -288,21 +315,28 @@ export const QueryResultPane = () => {
                         </Tab>
                     )}
                 </TabList>
-                {webviewLocation === "panel" && (
-                    <Button
-                        icon={<OpenRegular />}
-                        iconPosition="after"
-                        appearance="subtle"
-                        onClick={async () => {
-                            await context.extensionRpc.sendRequest(qr.OpenInNewTabRequest.type, {
-                                uri: uri!,
-                            });
-                        }}
-                        title={locConstants.queryResult.openResultInNewTab}
-                        style={{ marginTop: "4px", marginBottom: "4px" }}>
-                        {locConstants.queryResult.openResultInNewTab}
-                    </Button>
-                )}
+
+                <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
+                    <CopyIndicator visible={context.copyIndicatorVisible} />
+                    {webviewLocation === qr.QueryResultWebviewLocation.Panel && (
+                        <Button
+                            icon={<OpenRegular />}
+                            iconPosition="after"
+                            appearance="subtle"
+                            onClick={async () => {
+                                await context.extensionRpc.sendRequest(
+                                    qr.OpenInNewTabRequest.type,
+                                    {
+                                        uri: uri!,
+                                    },
+                                );
+                            }}
+                            title={locConstants.queryResult.openResultInNewTab}
+                            style={{ marginTop: "4px", marginBottom: "4px" }}>
+                            {locConstants.queryResult.openResultInNewTab}
+                        </Button>
+                    )}
+                </Toolbar>
             </div>
 
             <div className={classes.tabContentContainer}>
@@ -342,6 +376,7 @@ export const QueryResultPane = () => {
                     <QueryExecutionPlanTab />
                 </div>
             </div>
+            {isBetaResultsGridEnabled && <QueryResultSummaryFooter />}
         </div>
     );
 };

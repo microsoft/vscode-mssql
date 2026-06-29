@@ -9,6 +9,7 @@ import * as constants from "../constants/constants";
 import * as path from "path";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { promises as fs } from "fs";
+import * as os from "os";
 import { DOMParser } from "@xmldom/xmldom";
 import { dockerLogger } from "../docker/dockerUtils";
 import { getSqlServerContainerVersions } from "../deployment/sqlServerContainer";
@@ -16,6 +17,9 @@ import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
 import { CodeAnalysisRuleSeverity } from "../enums";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("PublishProject");
 
 /**
  * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
@@ -254,7 +258,14 @@ export function readSqlCmdVariables(profileText: string): { [key: string]: strin
 
     try {
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(profileText, "application/xml");
+        // Strip UTF-8 BOM (\uFEFF) if present — xmldom requires the XML declaration to be
+        // at position 0 and throws if a BOM character precedes it.
+        // Also prepend an XML declaration if absent (e.g. hand-authored profiles) to ensure consistent UTF-8 parsing.
+        let normalizedXml = profileText.replace(/^\uFEFF/, "");
+        if (!normalizedXml.trimStart().startsWith("<?xml")) {
+            normalizedXml = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL + normalizedXml;
+        }
+        const xmlDoc = parser.parseFromString(normalizedXml, "application/xml");
 
         // Get all SqlCmdVariable elements
         const sqlCmdVarElements = xmlDoc.documentElement.getElementsByTagName("SqlCmdVariable");
@@ -279,7 +290,7 @@ export function readSqlCmdVariables(profileText: string): { [key: string]: strin
             }
         }
     } catch (error) {
-        console.warn("Failed to parse SQLCMD variables from XML:", error);
+        logger.warn(`Failed to parse SQLCMD variables from XML: ${getErrorMessage(error)}`);
     }
 
     return sqlCmdVariables;
@@ -367,7 +378,9 @@ export async function parsePublishProfileXml(
                     deploymentOptions = optionsResult.deploymentOptions;
                 }
             } catch (error) {
-                console.warn("Failed to load deployment options from profile:", error);
+                logger.warn(
+                    `Failed to load deployment options from profile: ${getErrorMessage(error)}`,
+                );
             }
         }
 
@@ -413,6 +426,19 @@ export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: strin
     }
 
     return Object.values(sqlCmdVariables).every((v) => v !== "" && v !== undefined);
+}
+
+/**
+ * Reads the first <RefactorLog Include="..." /> path from .sqlproj XML text.
+ * @param sqlprojText Raw XML content of the .sqlproj file
+ * @returns The relative path declared in the Include attribute, or undefined if none is present
+ */
+export function readRefactorLogPath(sqlprojText: string): string | undefined {
+    // Match the Include attribute regardless of its position among other attributes
+    // (e.g. <RefactorLog Condition="..." Include="..." />).
+    // Support both single and double quotes for MSBuild/XML compatibility.
+    const match = sqlprojText.match(/<RefactorLog\b[^>]*?\bInclude\s*=\s*(['"])([^'"]+)\1/i);
+    return match ? match[2] : undefined;
 }
 
 /**

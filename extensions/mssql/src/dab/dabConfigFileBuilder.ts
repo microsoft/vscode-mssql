@@ -49,11 +49,13 @@ interface DabEntityOutput {
         description?: string;
         "primary-key"?: boolean;
     }>;
-    rest: boolean | { path?: string } | undefined;
-    graphql: boolean | { type?: string } | undefined;
+    rest: boolean | { path?: string; methods?: string[] } | undefined;
+    graphql: boolean | { type?: DabGraphQLTypeOutput; operation?: string } | undefined;
     permissions: DabPermissionEntry[];
     mcp?: { "custom-tool"?: boolean; "dml-tools"?: boolean };
 }
+
+type DabGraphQLTypeOutput = string | { singular: string; plural?: string };
 
 interface DabPermissionEntry {
     role: string;
@@ -189,8 +191,14 @@ export class DabConfigFileBuilder {
         isGraphQLEnabled: boolean,
         isMcpEnabled: boolean,
     ): DabEntityOutput {
-        const restConfig = isRestEnabled ? this.buildRestProperty(entity) : false;
-        const graphqlConfig = isGraphQLEnabled ? this.buildGraphQLProperty(entity) : false;
+        const restConfig =
+            isRestEnabled && entity.advancedSettings.restEnabled !== false
+                ? this.buildRestProperty(entity)
+                : false;
+        const graphqlConfig =
+            isGraphQLEnabled && entity.advancedSettings.graphQLEnabled !== false
+                ? this.buildGraphQLProperty(entity)
+                : false;
         const output: DabEntityOutput = {
             source: {
                 type: entity.sourceType ?? Dab.EntitySourceType.Table,
@@ -219,14 +227,38 @@ export class DabConfigFileBuilder {
             }));
         }
 
-        if (isMcpEnabled && entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
-            output.mcp = {
-                "custom-tool": true,
-                "dml-tools": false,
-            };
+        const mcpConfig = this.buildMcpProperty(entity, isMcpEnabled);
+        if (mcpConfig) {
+            output.mcp = mcpConfig;
         }
 
         return output;
+    }
+
+    private buildMcpProperty(
+        entity: Dab.DabEntityConfig,
+        isMcpEnabled: boolean,
+    ): DabEntityOutput["mcp"] | undefined {
+        if (!isMcpEnabled) {
+            return undefined;
+        }
+
+        if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+            return entity.advancedSettings.exposeAsMcpCustomTool !== false
+                ? {
+                      "custom-tool": true,
+                      "dml-tools": false,
+                  }
+                : undefined;
+        }
+
+        if (entity.advancedSettings.mcpDmlToolsEnabled === undefined) {
+            return undefined;
+        }
+
+        return {
+            "dml-tools": entity.advancedSettings.mcpDmlToolsEnabled,
+        };
     }
 
     private buildKeyFieldsProperty(entity: Dab.DabEntityConfig): { "key-fields"?: string[] } {
@@ -249,13 +281,34 @@ export class DabConfigFileBuilder {
      * @param entity The entity configuration.
      * @returns The REST property for the entity.
      */
-    private buildRestProperty(entity: Dab.DabEntityConfig): undefined | { path?: string } {
+    private buildRestProperty(
+        entity: Dab.DabEntityConfig,
+    ): undefined | { path?: string; methods?: string[] } {
         const customPath = entity.advancedSettings.customRestPath;
+        const restMethods =
+            entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                ? this.getStoredProcedureRestMethod(
+                      entity.advancedSettings.storedProcedureRestMethods,
+                  )
+                : undefined;
+        const restConfig: { path?: string; methods?: string[] } = {};
         if (customPath) {
-            const path = customPath.startsWith("/") ? customPath : `/${customPath}`;
-            return { path };
+            restConfig.path = customPath.startsWith("/") ? customPath : `/${customPath}`;
         }
-        return undefined;
+        if (restMethods?.length) {
+            restConfig.methods = Dab.normalizeRestMethods(restMethods);
+        }
+        return Object.keys(restConfig).length > 0 ? restConfig : undefined;
+    }
+
+    private getStoredProcedureRestMethod(methods?: Dab.RestMethod[]): Dab.RestMethod[] {
+        const method =
+            methods?.find((configuredMethod) =>
+                Dab.storedProcedureAllowedRestMethods.some(
+                    (allowedMethod) => allowedMethod === configuredMethod,
+                ),
+            ) ?? Dab.RestMethod.Post;
+        return [method];
     }
 
     /**
@@ -266,12 +319,42 @@ export class DabConfigFileBuilder {
      * @param entity The entity configuration.
      * @returns The GraphQL property for the entity.
      */
-    private buildGraphQLProperty(entity: Dab.DabEntityConfig): undefined | { type?: string } {
-        const customType = entity.advancedSettings.customGraphQLType;
+    private buildGraphQLProperty(
+        entity: Dab.DabEntityConfig,
+    ): undefined | { type?: DabGraphQLTypeOutput; operation?: string } {
+        const customType = this.buildGraphQLTypeProperty(entity.advancedSettings);
+        const graphQLOperation =
+            entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                ? entity.advancedSettings.storedProcedureGraphQLOperation
+                : undefined;
+        const graphqlConfig: { type?: DabGraphQLTypeOutput; operation?: string } = {};
         if (customType) {
-            return { type: customType };
+            graphqlConfig.type = customType;
         }
-        return undefined;
+        if (graphQLOperation) {
+            graphqlConfig.operation = graphQLOperation;
+        }
+        return Object.keys(graphqlConfig).length > 0 ? graphqlConfig : undefined;
+    }
+
+    private buildGraphQLTypeProperty(
+        settings: Dab.EntityAdvancedSettings,
+    ): DabGraphQLTypeOutput | undefined {
+        const singular = settings.customGraphQLSingularType ?? settings.customGraphQLType;
+        const plural = settings.customGraphQLPluralType;
+
+        if (!singular) {
+            return undefined;
+        }
+
+        if (singular && !plural) {
+            return singular;
+        }
+
+        return {
+            singular,
+            plural,
+        };
     }
 
     private buildParameterProperty(parameter: Dab.DabParameterConfig): DabParameterOutput {

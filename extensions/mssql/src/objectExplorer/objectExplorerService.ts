@@ -46,7 +46,8 @@ import {
     GetSessionIdRequest,
     GetSessionIdResponse,
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { restartSqlServerContainer } from "../deployment/sqlServerContainer";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
@@ -60,6 +61,7 @@ import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import { getNodeDescriptor } from "./nodes/nodeUtils";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -69,7 +71,7 @@ export interface CreateSessionResult {
 
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
-    private _logger: Logger;
+    private _logger: ILogger;
     public initialized: Deferred<void> = new Deferred<void>();
 
     /**
@@ -85,7 +87,7 @@ export class ObjectExplorerService {
         const result = [];
 
         if (!this._connectionGroupNodes.has(ConnectionConfig.ROOT_GROUP_ID)) {
-            this._logger.verbose(
+            this._logger.debug(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
             );
             return [];
@@ -114,6 +116,11 @@ export class ObjectExplorerService {
         Deferred<ExpandResponse>
     >();
 
+    /**
+     * Map for deduping concurrent calls for node loading/refreshing.
+     */
+    private _inFlightChildrenFetches: Map<TreeNodeInfo, Promise<void>> = new Map();
+
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
@@ -125,7 +132,7 @@ export class ObjectExplorerService {
 
         this._client = this._connectionManager.client;
 
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ObjectExplorerService");
+        this._logger = logger.withPrefix("ObjectExplorerService");
 
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
 
@@ -201,25 +208,45 @@ export class ObjectExplorerService {
                 isRefresh: node.shouldRefresh.toString(),
             },
         );
-        this._logger.verbose(`Expanding node ${node.label} with session ID ${sessionId}`);
+        this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
         try {
             const expandParams: ExpandParams = {
                 sessionId: sessionId,
                 nodePath: node.nodePath,
                 filters: node.filters,
             };
-            const expandResponse = new Deferred<ExpandResponse>();
-            this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
+            const pendingKey = `${sessionId}${node.nodePath}`;
+            const existingPendingExpand = this._pendingExpands.get(pendingKey);
+            const expandResponse = existingPendingExpand ?? new Deferred<ExpandResponse>();
+
+            if (!existingPendingExpand) {
+                this._pendingExpands.set(pendingKey, expandResponse);
+                void expandResponse.promise.finally(() => {
+                    if (this._pendingExpands.get(pendingKey) === expandResponse) {
+                        this._pendingExpands.delete(pendingKey);
+                    }
+                });
+            }
 
             let response: boolean;
-            if (node.shouldRefresh) {
-                this._logger.verbose(`Refreshing node ${node.label} with session ID ${sessionId}`);
+            if (existingPendingExpand) {
+                // A request for this node is already in flight; await its result rather than issuing a duplicate request.
+                this._logger.trace(
+                    `expandNode: reusing in-flight expand for ${getNodeDescriptor(node)}`,
+                );
+                response = true;
+            } else if (node.shouldRefresh) {
+                this._logger.trace(
+                    `expandNode: sending RefreshRequest for ${getNodeDescriptor(node)}`,
+                );
                 response = await this._connectionManager.client.sendRequest(
                     RefreshRequest.type,
                     expandParams,
                 );
             } else {
-                this._logger.verbose(`Expanding node ${node.label} with session ID ${sessionId}`);
+                this._logger.trace(
+                    `expandNode: sending ExpandRequest for ${getNodeDescriptor(node)}`,
+                );
                 response = await this._connectionManager.client.sendRequest(
                     ExpandRequest.type,
                     expandParams,
@@ -228,7 +255,7 @@ export class ObjectExplorerService {
 
             if (response) {
                 const result = await expandResponse;
-                this._logger.verbose(
+                this._logger.debug(
                     `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
                 );
                 if (!result) {
@@ -236,7 +263,7 @@ export class ObjectExplorerService {
                 }
 
                 if (result.nodes && !result.errorMessage) {
-                    this._logger.verbose(
+                    this._logger.debug(
                         `Received ${result.nodes.length} children for node ${node.label} for sessionId ${sessionId}`,
                     );
                     // successfully received children from SQL Tools Service
@@ -270,6 +297,11 @@ export class ObjectExplorerService {
                 this._logger.error(
                     `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
                 );
+
+                if (!expandResponse.isCompleted) {
+                    expandResponse.resolve(undefined);
+                }
+
                 await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
                 return undefined;
             }
@@ -334,6 +366,7 @@ export class ObjectExplorerService {
 
     // Main method that routes to the appropriate handler
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        this._logger.trace(`getChildren called for ${getNodeDescriptor(element)}`);
         await this.initialized;
         if (!element) {
             return this.getRootNodes();
@@ -376,7 +409,7 @@ export class ObjectExplorerService {
             serverGroups.length === 1 &&
             serverGroups[0].id === ConnectionConfig.ROOT_GROUP_ID
         ) {
-            this._logger.verbose(
+            this._logger.debug(
                 "No saved connections or groups found. Showing add connection node.",
             );
             getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
@@ -488,7 +521,15 @@ export class ObjectExplorerService {
      * @returns The children of the node
      */
     private async getNodeChildren(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        if (element.shouldRefresh) {
+        const wasRefresh = element.shouldRefresh;
+        const hadCache = this._treeNodeToChildrenMap.has(element);
+        const hasInFlight = this._inFlightChildrenFetches.has(element);
+        this._logger.trace(
+            `getNodeChildren: ${getNodeDescriptor(element)}, hadCache=${hadCache}, hasInFlight=${hasInFlight}`,
+        );
+
+        if (wasRefresh) {
+            element.shouldRefresh = false;
             this.cleanNodeChildren(element);
         } else {
             if (this._treeNodeToChildrenMap.has(element)) {
@@ -514,6 +555,7 @@ export class ObjectExplorerService {
      * @returns A loading node that will be displayed in the tree
      */
     public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        this._logger.trace(`setLoadingUiForNode: ${getNodeDescriptor(element)}`);
         const loadingNode = new vscode.TreeItem(
             element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
             vscode.TreeItemCollapsibleState.None,
@@ -529,16 +571,37 @@ export class ObjectExplorerService {
      * Get or create the children of a node. If the node has a session ID, expand it.
      * If it doesn't, create a new session and expand it.
      * @param element The node to get or create children for
-     * @returns The children of the node
      */
     private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
-        if (element.sessionId) {
-            await this.expandExistingNode(element);
-        } else {
-            await this.createSessionAndExpandNode(element);
+        const existing = this._inFlightChildrenFetches.get(element);
+
+        this._logger.trace(
+            `getOrCreateNodeChildrenWithSession start: ${getNodeDescriptor(element)}: ${existing ? "reusing existing" : "creating new"}`,
+        );
+
+        if (existing) {
+            return existing;
         }
-        element.shouldRefresh = false;
-        this._refreshCallback(element);
+
+        const fetchPromise = (async () => {
+            try {
+                if (element.sessionId) {
+                    await this.expandExistingNode(element);
+                } else {
+                    await this.createSessionAndExpandNode(element);
+                }
+            } finally {
+                element.shouldRefresh = false;
+                this._inFlightChildrenFetches.delete(element);
+                this._logger.trace(
+                    `getOrCreateNodeChildrenWithSession end: ${getNodeDescriptor(element)} — refresh callback follows`,
+                );
+                this._refreshCallback(element);
+            }
+        })();
+
+        this._inFlightChildrenFetches.set(element, fetchPromise);
+        return fetchPromise;
     }
 
     /**
@@ -650,7 +713,7 @@ export class ObjectExplorerService {
         if (createSessionResponse) {
             const sessionCreationResult = await sessionCreatedResponse;
             if (sessionCreationResult.success) {
-                this._logger.verbose(
+                this._logger.debug(
                     `Session created successfully with session ID ${sessionCreationResult.sessionId}`,
                 );
                 this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
@@ -724,7 +787,7 @@ export class ObjectExplorerService {
                     containerNode,
                     this,
                 );
-                this._logger.verbose(
+                this._logger.debug(
                     successfullyRunning
                         ? `Failed to restart Docker container "${connectionProfile.containerName}".`
                         : `Docker container "${connectionProfile.containerName}" has been restarted.`,
@@ -994,7 +1057,7 @@ export class ObjectExplorerService {
     private addConnectionNode(connectionNode: ConnectionNode): void {
         const oldNode = this._connectionNodes.get(connectionNode.connectionProfile.id);
 
-        this._logger.verbose(
+        this._logger.debug(
             `${oldNode ? "Updating" : "Adding"} connection node: ${connectionNode.label}`,
         );
 
@@ -1081,7 +1144,7 @@ export class ObjectExplorerService {
         const foundNode = this._connectionNodes.get(connectionProfile.id);
 
         if (!foundNode) {
-            this._logger.verbose(
+            this._logger.debug(
                 `Connection node not found for profile with ID: ${connectionProfile.id}`,
             );
         }

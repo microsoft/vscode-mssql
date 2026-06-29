@@ -11,11 +11,16 @@ import {
     calculateSchemaDiff,
     ChangeAction,
     ChangeCategory,
+    normalizeSchemaForDiff,
     type SchemaChange,
     type SchemaChangesSummary,
     type TableChangeGroup,
 } from "../../src/webviews/pages/SchemaDesigner/diff/diffUtils";
 import { describeChange } from "../../src/webviews/pages/SchemaDesigner/diff/schemaDiff";
+import {
+    buildFlowComponentsFromSchema,
+    buildSchemaFromFlowState,
+} from "../../src/webviews/pages/SchemaDesigner/model";
 import {
     canRevertChange,
     computeRevertedSchema,
@@ -234,6 +239,65 @@ suite("SchemaDesigner diff utils", () => {
 
     test("returns no changes for identical schemas", () => {
         const summary = calculateSchemaDiff(sampleSchema, sampleSchema);
+        expect(summary.hasChanges).to.equal(false);
+        expect(summary.totalChanges).to.equal(0);
+        expect(summary.groups).to.have.length(0);
+    });
+
+    test("ignores webview defaults for non-applicable column properties", () => {
+        const updated = deepClone(sampleSchema);
+
+        for (const table of updated.tables) {
+            for (const column of table.columns) {
+                if (
+                    !["char", "varchar", "nchar", "nvarchar", "binary", "varbinary"].includes(
+                        column.dataType,
+                    )
+                ) {
+                    column.maxLength = "";
+                }
+
+                if (!["decimal", "numeric"].includes(column.dataType)) {
+                    column.precision = 0;
+                }
+
+                if (
+                    !["decimal", "numeric", "datetime2", "datetimeoffset", "time"].includes(
+                        column.dataType,
+                    )
+                ) {
+                    column.scale = 0;
+                }
+
+                if (!column.isIdentity) {
+                    column.identitySeed = 0;
+                    column.identityIncrement = 0;
+                }
+
+                column.defaultValue = "";
+
+                if (!column.isComputed) {
+                    column.computedFormula = "";
+                    column.computedPersisted = false;
+                }
+            }
+        }
+
+        const summary = calculateSchemaDiff(sampleSchema, updated);
+        expect(summary.hasChanges).to.equal(false);
+        expect(summary.totalChanges).to.equal(0);
+        expect(summary.groups).to.have.length(0);
+    });
+
+    test("normalizes schemas before diffing flow-extracted schema", () => {
+        const flow = buildFlowComponentsFromSchema(sampleSchema);
+        const extractedSchema = buildSchemaFromFlowState(flow.nodes, flow.edges);
+
+        const summary = calculateSchemaDiff(sampleSchema, extractedSchema);
+
+        expect(normalizeSchemaForDiff(extractedSchema)).to.deep.equal(
+            normalizeSchemaForDiff(sampleSchema),
+        );
         expect(summary.hasChanges).to.equal(false);
         expect(summary.totalChanges).to.equal(0);
         expect(summary.groups).to.have.length(0);

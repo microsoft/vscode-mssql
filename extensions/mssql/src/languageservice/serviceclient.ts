@@ -4,20 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node";
 import {
-    LanguageClient,
+    type CloseHandlerResult,
     LanguageClientOptions,
-    ServerOptions,
-    TransportKind,
     RequestType,
     NotificationType,
     NotificationHandler,
+    type RequestHandler,
+    type RequestParam,
     ErrorAction,
+    type ErrorHandlerResult,
     CloseAction,
+    type Message,
 } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Utils from "../models/utils";
-import { Logger } from "../models/logger";
+import { getLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
@@ -40,6 +43,7 @@ import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePath
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
+const logger = getLogger("SqlToolsServiceClient");
 
 type ServiceLaunchType =
     | "override"
@@ -47,13 +51,6 @@ type ServiceLaunchType =
     | "portableInstalled"
     | "portableDownloaded"
     | "platformDownloaded";
-
-/**
- * @interface IMessage
- */
-interface IMessage {
-    jsonrpc: string;
-}
 
 /**
  * Handle Language Service client errors
@@ -95,12 +92,16 @@ export class LanguageClientErrorHandler {
      *
      * @memberOf LanguageClientErrorHandler
      */
-    error(error: Error, _message: IMessage, _count: number): ErrorAction {
+    error(
+        error: Error,
+        _message: Message | undefined,
+        _count: number | undefined,
+    ): ErrorHandlerResult {
         this.showOnErrorPrompt(getErrorMessage(error));
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
-        return ErrorAction.Shutdown;
+        return { action: ErrorAction.Shutdown, handled: true };
     }
 
     /**
@@ -110,12 +111,12 @@ export class LanguageClientErrorHandler {
      *
      * @memberOf LanguageClientErrorHandler
      */
-    closed(): CloseAction {
+    closed(): CloseHandlerResult {
         this.showOnErrorPrompt("The service process was unexpectedly closed.");
 
         // we don't retry running the service since crashes leave the extension
         // in a bad, unrecovered state
-        return CloseAction.DoNotRestart;
+        return { action: CloseAction.DoNotRestart, handled: true };
     }
 }
 
@@ -152,13 +153,8 @@ export default class SqlToolsServiceClient {
         return this._client.diagnostics;
     }
 
-    public get logger(): Logger {
-        return this._logger;
-    }
-
     constructor(
         private _server: ServerProvider,
-        private _logger: Logger,
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
         private _dotnetRuntimeProvider: DotnetRuntimeProvider,
@@ -170,24 +166,23 @@ export default class SqlToolsServiceClient {
             let config = new ExtConfig();
             let vscodeWrapper = new VscodeWrapper();
 
-            let logger = Logger.create(vscodeWrapper.outputChannel, "SQL Tools Service");
+            let serviceLogger = getLogger("SQL Tools Service");
 
             let serverStatusView = new ServerStatusView();
             let downloadHelper = new DownloadHelper();
             let decompressProvider = new DecompressProvider();
             let downloadProvider = new ServiceDownloadProvider(
                 config,
-                logger,
+                serviceLogger,
                 serverStatusView,
                 downloadHelper,
                 decompressProvider,
             );
             let serviceProvider = new ServerProvider(downloadProvider, serverStatusView);
             let statusView = new StatusView(vscodeWrapper);
-            let dotnetRuntimeProvider = new DotnetRuntimeProvider(logger);
+            let dotnetRuntimeProvider = new DotnetRuntimeProvider(serviceLogger);
             SqlToolsServiceClient._instance = new SqlToolsServiceClient(
                 serviceProvider,
-                logger,
                 statusView,
                 vscodeWrapper,
                 dotnetRuntimeProvider,
@@ -199,7 +194,7 @@ export default class SqlToolsServiceClient {
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
     public async initialize(context: vscode.ExtensionContext): Promise<void> {
-        this._logger.verbose("Initializing SQL Tools Service Client for mssql extension");
+        logger.debug("Initializing SQL Tools Service Client for mssql extension");
         this._logPath = context.logUri.fsPath;
         const platformInfo = await PlatformInformation.getCurrent();
         return this.initializeForPlatform(platformInfo, context);
@@ -211,18 +206,15 @@ export default class SqlToolsServiceClient {
     ): Promise<void> {
         if (!platformInfo.isValidRuntime) {
             const unsupportedPlatformMessage = `Unsupported platform: ${platformInfo.platform} and architecture: ${platformInfo.architecture}`;
-            this._logger.error(unsupportedPlatformMessage);
+            logger.error(unsupportedPlatformMessage);
             throw new Error(unsupportedPlatformMessage);
         }
 
-        this._logger.verbose(
-            `Detected runtime: ${platformInfo.platform} ${platformInfo.architecture}`,
-        );
+        logger.debug(`Detected runtime: ${platformInfo.platform} ${platformInfo.architecture}`);
 
         const launchServer = async (serverInstallFolder: string, runtime: Runtime) => {
             this._sqlToolsServicePath = serverInstallFolder;
             await this.initializeLanguageClient(serverInstallFolder, runtime, context);
-            await this._client.onReady();
         };
 
         /**
@@ -241,7 +233,7 @@ export default class SqlToolsServiceClient {
                 return;
             } catch (err) {
                 const errorMessage = `Failed to launch SQL Tools Service with overridden path: ${stsFolderOverride} ${getErrorMessage(err)}`;
-                this._logger.error(errorMessage);
+                logger.error(errorMessage);
                 vscode.window.showErrorMessage(errorMessage);
                 /**
                  * We shouldn't fall back to other launch attempts if the override env variable is set,
@@ -260,7 +252,7 @@ export default class SqlToolsServiceClient {
                 platformInfo.runtimeId,
             );
             if (osSpecificServerPath) {
-                this._logger.verbose(
+                logger.debug(
                     `Found OS-specific SQL Tools Service install folder: ${osSpecificServerPath}`,
                 );
                 await launchServer(osSpecificServerPath, platformInfo.runtimeId);
@@ -272,7 +264,7 @@ export default class SqlToolsServiceClient {
                 return;
             }
         } catch (err) {
-            this._logger.error(
+            logger.error(
                 `Failed to launch SQL Tools Service with OS-specific runtime: ${getErrorMessage(err)}`,
             );
         }
@@ -287,19 +279,17 @@ export default class SqlToolsServiceClient {
                 : "portableDownloaded";
             if (!portableServerPath) {
                 this.showOutputChannelPreservingFocus();
-                this._logger.verbose(`Could not find portable SQL Tools Service executable.`);
+                logger.debug(`Could not find portable SQL Tools Service executable.`);
                 portableServerPath = await this._server.downloadAndGetServerInstallFolder(
                     Runtime.Portable,
                 );
             }
-            this._logger.verbose(
-                `Found portable SQL Tools Service install folder: ${portableServerPath}`,
-            );
+            logger.debug(`Found portable SQL Tools Service install folder: ${portableServerPath}`);
             await launchServer(portableServerPath, Runtime.Portable);
             this.sendServiceLaunchTelemetry(launchType, Runtime.Portable, platformInfo);
             return;
         } catch (err) {
-            this._logger.error(
+            logger.error(
                 `Failed to launch SQL Tools Service with portable runtime: ${getErrorMessage(err)}`,
             );
         }
@@ -321,7 +311,7 @@ export default class SqlToolsServiceClient {
             );
             return;
         } catch (err) {
-            this.logger.error(
+            logger.error(
                 `Failed to download and launch SQL Tools Service: ${getErrorMessage(err)}`,
             );
             sendErrorEvent(
@@ -366,11 +356,11 @@ export default class SqlToolsServiceClient {
         context: vscode.ExtensionContext,
     ): Promise<void> {
         if (serverFolder === undefined) {
-            this.logger.error("Service folder path is undefined.");
+            logger.error("Service folder path is undefined.");
             throw new Error("Service path is undefined.");
         }
 
-        this._logger.verbose(
+        logger.debug(
             `Attempting to launch SQL Tools Service from install folder: ${serverFolder} for runtime: ${runtime}`,
         );
 
@@ -380,9 +370,7 @@ export default class SqlToolsServiceClient {
             ServiceExecutable.MicrosoftSqlToolsServiceLayer,
         );
         if (!sqlToolsServicePath) {
-            this.logger.logDebug(
-                "Sql Tools Service executable was not found in expected location.",
-            );
+            logger.debug("Sql Tools Service executable was not found in expected location.");
             throw new Error("Sql Tools Service executable was not found in expected location.");
         }
         this.client = await this.createLanguageClient(sqlToolsServicePath);
@@ -393,7 +381,7 @@ export default class SqlToolsServiceClient {
             ServiceExecutable.SqlToolsResourceProviderService,
         );
         if (!resourceProviderServicePath) {
-            this.logger.logDebug(
+            logger.debug(
                 "Resource Provider Service executable was not found in expected location.",
             );
             throw new Error(
@@ -403,16 +391,22 @@ export default class SqlToolsServiceClient {
         this._resourceClient = await this.createResourceClient(resourceProviderServicePath);
 
         if (context !== undefined) {
-            // Create the language client and start the client.
-            let disposable = this.client.start();
-
-            // Start the resource client
-            let resourceDisposable = this._resourceClient.start();
+            // Create the language clients and start them.
+            await this.client.start();
+            await this._resourceClient.start();
 
             // Push the disposable to the context's subscriptions so that the
             // client can be deactivated on extension deactivation
-            context.subscriptions.push(disposable);
-            context.subscriptions.push(resourceDisposable);
+            context.subscriptions.push({
+                dispose: () => {
+                    void this.client.stop();
+                },
+            });
+            context.subscriptions.push({
+                dispose: () => {
+                    void this._resourceClient.stop();
+                },
+            });
         }
     }
 
@@ -430,6 +424,25 @@ export default class SqlToolsServiceClient {
                 ],
             },
             errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
+            middleware: {
+                provideCompletionItem: async (document, position, context, token, next) => {
+                    const result = await next(document, position, context, token);
+                    const count = Array.isArray(result)
+                        ? result.length
+                        : (result?.items?.length ?? 0);
+                    const scheme = document.uri.scheme;
+                    // Gate logging: only log when STS returned no completions, or
+                    // when the request came from a notebook cell. This keeps log
+                    // volume manageable while preserving the diagnostic signal
+                    // for the notebook IntelliSense issue.
+                    if (count === 0 || scheme === "vscode-notebook-cell") {
+                        logger.debug(
+                            `Completion count=${count} scheme=${scheme} triggerKind=${context.triggerKind} uri=${document.uri.toString()}`,
+                        );
+                    }
+                    return result;
+                },
+            },
         };
 
         // cache the client instance for later use
@@ -438,12 +451,10 @@ export default class SqlToolsServiceClient {
             serverOptions,
             clientOptions,
         );
-        void client.onReady().then(() => {
-            client.onNotification(
-                LanguageServiceContracts.StatusChangedNotification.type,
-                this.handleLanguageServiceStatusNotification(),
-            );
-        });
+        client.onNotification(
+            LanguageServiceContracts.StatusChangedNotification.type,
+            this.handleLanguageServiceStatusNotification(),
+        );
 
         return client;
     }
@@ -467,6 +478,18 @@ export default class SqlToolsServiceClient {
      */
     public handleLanguageServiceStatusNotification(): NotificationHandler<LanguageServiceContracts.StatusChangeParams> {
         return (event: LanguageServiceContracts.StatusChangeParams): void => {
+            const scheme = (() => {
+                try {
+                    return vscode.Uri.parse(event.ownerUri).scheme;
+                } catch {
+                    return "unknown";
+                }
+            })();
+            if (scheme === "vscode-notebook-cell" || scheme === "unknown") {
+                logger.debug(
+                    `LanguageServiceStatus scheme=${scheme} status=${event.status} ownerUri=${event.ownerUri}`,
+                );
+            }
             this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
         };
     }
@@ -476,7 +499,7 @@ export default class SqlToolsServiceClient {
         serviceRuntime: Runtime,
         platformInfo: PlatformInformation,
     ): void {
-        this._logger.verbose(
+        logger.debug(
             `Sending service launch telemetry: launchType=${launchType}, serviceRuntime=${serviceRuntime}, detectedRuntime=${platformInfo?.runtimeId}, platform=${platformInfo?.platform}, architecture=${platformInfo?.architecture}`,
         );
         sendActionEvent(SERVICE_LAUNCH_TELEMETRY_VIEW, TelemetryActions.ServiceStarted, {
@@ -515,7 +538,7 @@ export default class SqlToolsServiceClient {
                     undefined,
                     undefined,
                 );
-                this._logger.error(
+                logger.error(
                     `Failed to acquire .NET runtime for launching service: ${getErrorMessage(runtimeError)}`,
                 );
                 throw runtimeError;
@@ -545,6 +568,7 @@ export default class SqlToolsServiceClient {
                 servicePath,
                 this._logPath,
                 "sqltools.log",
+                logger,
             ),
         );
 
@@ -609,6 +633,7 @@ export default class SqlToolsServiceClient {
                 executablePath,
                 this._logPath,
                 "resourceprovider.log",
+                logger,
             ),
         ];
         return {
@@ -624,10 +649,13 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    public sendRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
+    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
-            return this.client.sendRequest(type, params);
+            return this.client.sendRequest(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send request before the language client is initialized"),
+        );
     }
 
     /**
@@ -636,13 +664,13 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    public sendResourceRequest<P, R, E, R0>(
-        type: RequestType<P, R, E, R0>,
-        params?: P,
-    ): Thenable<R> {
+    public sendResourceRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
         if (this._resourceClient !== undefined) {
-            return this._resourceClient.sendRequest(type, params);
+            return this._resourceClient.sendRequest(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send resource request before the resource client is initialized"),
+        );
     }
 
     /**
@@ -650,10 +678,13 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to send
      * @param params The params to pass with the notification
      */
-    public sendNotification<P, R0>(type: NotificationType<P, R0>, params?: P): void {
+    public sendNotification<P>(type: NotificationType<P>, params?: P): Thenable<void> {
         if (this.client !== undefined) {
-            this.client.sendNotification(type, params);
+            return this.client.sendNotification(type, params as RequestParam<P>);
         }
+        return Promise.reject(
+            new Error("Cannot send notification before the language client is initialized"),
+        );
     }
 
     /**
@@ -661,13 +692,14 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to register the handler for
      * @param handler The handler to register
      */
-    public onNotification<P, R0>(
-        type: NotificationType<P, R0>,
+    public onNotification<P>(
+        type: NotificationType<P>,
         handler: NotificationHandler<P>,
-    ): void {
+    ): vscode.Disposable {
         if (this._client !== undefined) {
             return this.client.onNotification(type, handler);
         }
+        return { dispose: () => {} };
     }
 
     /**
@@ -676,12 +708,13 @@ export default class SqlToolsServiceClient {
      * @param handler The handler to register
      * @returns void
      */
-    public onRequest<P, R, E, R0>(
-        type: RequestType<P, R, E, R0>,
+    public onRequest<P, R, E>(
+        type: RequestType<P, R, E>,
         handler: (params: P) => Thenable<R> | R,
-    ): void {
+    ): vscode.Disposable {
         if (this._client !== undefined) {
-            return this.client.onRequest(type, handler);
+            return this.client.onRequest(type, handler as RequestHandler<P, R, E>);
         }
+        return { dispose: () => {} };
     }
 }

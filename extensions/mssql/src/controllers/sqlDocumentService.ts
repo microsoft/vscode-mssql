@@ -20,7 +20,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
-import { logger2 } from "../models/logger2";
+import { logger } from "../models/logger";
 
 /**
  * Time to wait after opening a document to check if it's the
@@ -44,7 +44,7 @@ function getDocumentSignature(document: vscode.TextDocument): string {
  * Service for creating untitled documents for SQL query
  */
 export default class SqlDocumentService implements vscode.Disposable {
-    private readonly _logger = logger2.withPrefix("SqlDocumentService");
+    private readonly _logger = logger.withPrefix("SqlDocumentService");
     private _disposables: vscode.Disposable[] = [];
     // Track documents created by this service to avoid auto-connecting them on open.
     // WeakSet ensures entries are garbage collected with the documents.
@@ -122,8 +122,8 @@ export default class SqlDocumentService implements vscode.Disposable {
     /**
      * Opens a new query and creates new connection. Connection precedence is:
      * 1. User right-clicked on an OE node and selected "New Query": use that node's connection profile
-     * 2. User triggered "New Query" from command palette and the active document has a connection: copy that to the new document
-     * 3. User triggered "New Query" from command palette while they have a connected OE node selected: use that node's connection profile
+     * 2. Behavior is 'defaultConnection': use the configured default connection profile
+     * 3. Behavior is 'transferActive' and the active document has a connection: copy that to the new document
      * 4. User triggered "New Query" from command palette and there's no reasonable context: prompt for connection to use
      */
     public async handleNewQueryCommand(node?: TreeNodeInfo, content?: string): Promise<boolean> {
@@ -138,20 +138,24 @@ export default class SqlDocumentService implements vscode.Disposable {
         let nodeType: string | undefined;
         let sourceNode: TreeNodeInfo | undefined;
 
+        const behavior = this.getNewEditorConnectionBehavior();
+
         if (node) {
             // Case 1: User right-clicked on an OE node and selected "New Query"
             nodeType = node.nodeType;
             connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
             sourceNode = node;
-        } else if (this._lastActiveConnectionInfo) {
-            // Case 2: User triggered "New Query" from command palette and the active document has a connection
+        } else if (behavior === Constants.NewEditorConnectionBehavior.DefaultConnection) {
+            // Case 2: Use the configured default connection
+            nodeType = "defaultConnection";
+            connectionStrategy = ConnectionStrategy.UseDefaultConnection;
+        } else if (
+            behavior === Constants.NewEditorConnectionBehavior.TransferActive &&
+            this._lastActiveConnectionInfo
+        ) {
+            // Case 3: User triggered "New Query" from command palette and the active document has a connection
             nodeType = "previousEditor";
             connectionStrategy = ConnectionStrategy.CopyLastActive;
-        } else if (this.objectExplorerTree.selection?.length === 1) {
-            // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
-            sourceNode = this.objectExplorerTree.selection[0];
-            nodeType = sourceNode.nodeType;
-            connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
         } else {
             // Case 4: User triggered "New Query" from command palette and there's no reasonable context
             connectionStrategy = ConnectionStrategy.PromptForConnection;
@@ -382,15 +386,11 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
-        // This becomes a no-op if there is no last active connection.
-        if (!this._lastActiveConnectionInfo) {
+        const behavior = this.getNewEditorConnectionBehavior();
+
+        if (behavior === Constants.NewEditorConnectionBehavior.None) {
             return;
         }
-
-        // Check if the transfer active editor connections setting is enabled
-        const transferConnectionToOpenedDoc = vscode.workspace
-            .getConfiguration()
-            .get<boolean>(Constants.configTransferActiveEditorConnections);
 
         /**
          * If the document is connected now, because the user didn't waitForOngoingCreates
@@ -398,19 +398,34 @@ export default class SqlDocumentService implements vscode.Disposable {
          * auto-connecting. So we skip it.
          */
         if (
-            transferConnectionToOpenedDoc &&
-            !this._ownedDocuments.has(doc) &&
-            !this._connectionMgr.isConnected(docUri) &&
-            !this._connectionMgr.isConnecting(docUri)
+            this._ownedDocuments.has(doc) ||
+            this._connectionMgr.isConnected(docUri) ||
+            this._connectionMgr.isConnecting(docUri)
         ) {
-            this._logger.info("Auto-connecting opened SQL document from last active connection", {
-                uri: docUri,
-            });
-            await this._connectionMgr.connect(
-                docUri,
-                Utils.deepClone(this._lastActiveConnectionInfo),
-            );
+            return;
         }
+
+        if (behavior === Constants.NewEditorConnectionBehavior.DefaultConnection) {
+            const defaultProfile = await this.getDefaultConnectionProfile();
+            if (defaultProfile) {
+                this._logger.info("Auto-connecting opened SQL document from default connection", {
+                    uri: docUri,
+                });
+                await this._connectionMgr.connect(docUri, Utils.deepClone(defaultProfile));
+                return;
+            }
+            // Default connection is not configured or invalid — fall through to transferActive
+        }
+
+        // behavior === TransferActive (or defaultConnection fallback): requires a last active connection
+        if (!this._lastActiveConnectionInfo) {
+            return;
+        }
+
+        this._logger.info("Auto-connecting opened SQL document from last active connection", {
+            uri: docUri,
+        });
+        await this._connectionMgr.connect(docUri, Utils.deepClone(this._lastActiveConnectionInfo));
     }
 
     /**
@@ -664,17 +679,29 @@ export default class SqlDocumentService implements vscode.Disposable {
                  * show a new query editor without a connection. The user can then manually
                  * connect if they want to.
                  */
-
-                const transferConnectionToOpenedDoc = vscode.workspace
-                    .getConfiguration()
-                    .get<boolean>(Constants.configTransferActiveEditorConnections);
-
-                return this._lastActiveConnectionInfo && transferConnectionToOpenedDoc
+                return this._lastActiveConnectionInfo
                     ? {
                           shouldConnect: true,
                           connectionInfo: Utils.deepClone(this._lastActiveConnectionInfo),
                       }
                     : { shouldConnect: false };
+
+            case ConnectionStrategy.UseDefaultConnection: {
+                const defaultProfile = await this.getDefaultConnectionProfile();
+                if (defaultProfile) {
+                    return {
+                        shouldConnect: true,
+                        connectionInfo: Utils.deepClone(defaultProfile),
+                    };
+                }
+                // Default connection is not configured or invalid — fall back to transferActive
+                return this._lastActiveConnectionInfo
+                    ? {
+                          shouldConnect: true,
+                          connectionInfo: Utils.deepClone(this._lastActiveConnectionInfo),
+                      }
+                    : { shouldConnect: false };
+            }
 
             case ConnectionStrategy.PromptForConnection:
             default:
@@ -714,6 +741,10 @@ export default class SqlDocumentService implements vscode.Disposable {
      */
     private async updateUri(oldUri: string, newUri: string) {
         this._logger.debug("Updating tracked URI", { oldUri, newUri });
+        // Transfer the status bar items to the new URI so they survive the rename/save. This is done
+        // before the connection transfer so that connect() updates the same status bar in place.
+        this._statusview?.associateWithExisting(oldUri, newUri);
+
         // Transfer the connection to the new URI
         await this._connectionMgr?.transferConnectionToFile(oldUri, newUri);
 
@@ -723,6 +754,45 @@ export default class SqlDocumentService implements vscode.Disposable {
 
     private isNotebookCell(doc: vscode.TextDocument): boolean {
         return doc.uri.scheme === "vscode-notebook-cell";
+    }
+
+    /**
+     * Returns the resolved NewEditorConnectionBehavior from settings.
+     */
+    private getNewEditorConnectionBehavior(): Constants.NewEditorConnectionBehavior {
+        const value = vscode.workspace
+            .getConfiguration()
+            .get<string>(Constants.configNewEditorConnectionBehavior);
+
+        switch (value) {
+            case Constants.NewEditorConnectionBehavior.None:
+                return Constants.NewEditorConnectionBehavior.None;
+            case Constants.NewEditorConnectionBehavior.DefaultConnection:
+                return Constants.NewEditorConnectionBehavior.DefaultConnection;
+            default:
+                return Constants.NewEditorConnectionBehavior.TransferActive;
+        }
+    }
+
+    /**
+     * Returns the connection profile for the configured default connection ID, or undefined
+     * if the setting is unset or does not match any known profile.
+     */
+    private async getDefaultConnectionProfile(): Promise<vscodeMssql.IConnectionInfo | undefined> {
+        const defaultId = vscode.workspace
+            .getConfiguration()
+            .get<string>(Constants.configDefaultConnectionId);
+
+        if (!defaultId) {
+            return undefined;
+        }
+
+        const connectionConfig = this._connectionMgr?.connectionStore?.connectionConfig;
+        if (!connectionConfig) {
+            return undefined;
+        }
+
+        return connectionConfig.getConnectionById(defaultId);
     }
 }
 
@@ -746,6 +816,10 @@ export enum ConnectionStrategy {
      * Copy connection from another document identified by URI
      */
     CopyFromUri = "copyFromUri",
+    /**
+     * Use the connection profile identified by mssql.defaultConnectionId
+     */
+    UseDefaultConnection = "useDefaultConnection",
     /**
      * Prompt the user to select a connection
      */

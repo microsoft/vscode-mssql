@@ -23,20 +23,10 @@ import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
-import type { IMetadataService } from "../services/metadataService";
-import type {
-    DabDatabaseObjectMetadata,
-    DabStoredProcedureParameterMetadata,
-    DabViewColumnMetadata,
-} from "../sharedInterfaces/metadata";
 import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
 } from "../sharedInterfaces/schemaDesignerDefinitionOutput";
-import logger2 from "../models/logger2";
-
-const logger = logger2.withPrefix("SchemaDesignerWebviewController");
-
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
@@ -105,6 +95,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _messageListener:
         | ((message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void)
         | undefined;
+    private _initializeSchemaDesignerPromise:
+        | Promise<SchemaDesigner.CreateSessionResponse>
+        | undefined;
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
@@ -120,6 +113,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
         isReadOnly: boolean = false,
+        cacheKey?: string,
     ) {
         super(
             context,
@@ -154,7 +148,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             },
         );
 
-        this._key = `${this.connectionString}-${this.databaseName}`;
+        this._key = cacheKey ?? `${this.connectionString}-${this.databaseName}`;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
@@ -183,51 +177,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
     private setupRequestHandlers() {
         this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
-            const schemaDesignerInitActivity = startActivity(
-                TelemetryViews.SchemaDesigner,
-                TelemetryActions.Initialize,
-                undefined, // correlationId
-                undefined, // startActivityAdditionalProps
-                undefined, // startActivityAdditionalMeasurements
-                undefined, // connectionInfo
-                undefined, // serverInfo
-                true, // include callstack in telemetry
-            );
+            if (!this._initializeSchemaDesignerPromise) {
+                this._initializeSchemaDesignerPromise = this.initializeSchemaDesignerSession();
+            }
+
             try {
-                let sessionResponse: SchemaDesigner.CreateSessionResponse;
-                const cacheItem = this.schemaDesignerCache.get(this._key);
-                const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
-
-                if (!hasCachedSession) {
-                    this._sessionId = uuid();
-                    sessionResponse = await this.schemaDesignerService.createSession({
-                        sessionId: this._sessionId,
-                        connectionString: this.connectionString,
-                        accessToken: this.accessToken,
-                        databaseName: this.databaseName,
-                    });
-                    this.baselineSchema = sessionResponse.schema;
-                    this.schemaDesignerCache.set(this._key, {
-                        schemaDesignerDetails: sessionResponse,
-                        baselineSchema: sessionResponse.schema,
-                        dabConfig: cacheItem?.dabConfig,
-                        isDirty: cacheItem?.isDirty ?? false,
-                    });
-                } else {
-                    sessionResponse = cacheItem.schemaDesignerDetails;
-                    this.baselineSchema = cacheItem.baselineSchema;
-                    this._sessionId = sessionResponse.sessionId;
-                }
-
-                this.schemaDesignerDetails = sessionResponse;
-                this._sessionId = sessionResponse.sessionId;
-                schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: sessionResponse?.schema?.tables?.length,
-                });
-                return sessionResponse;
-            } catch (error) {
-                schemaDesignerInitActivity.endFailed(toError(error), false);
-                throw error;
+                return await this._initializeSchemaDesignerPromise;
+            } finally {
+                this._initializeSchemaDesignerPromise = undefined;
             }
         });
 
@@ -514,12 +471,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         // DAB request handlers
-        this.onRequest(Dab.GetDatabaseObjectsRequest.type, async () => {
-            return {
-                sourceObjects: await this.getDabDatabaseObjects(),
-            };
-        });
-
         this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
             return this._dabService.generateConfig(payload.config, {
                 connectionString: this.connectionString,
@@ -677,148 +628,53 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
     }
 
-    private async getDabDatabaseObjects(): Promise<Dab.DabSourceObject[]> {
-        if (!this.connectionUri) {
-            return [];
-        }
-
-        const metadataService = this.mainController.metadataService;
-        const [views, storedProcedures] = await Promise.all([
-            metadataService.listDabViews(this.connectionUri, this.databaseName),
-            metadataService.listDabStoredProcedures(this.connectionUri, this.databaseName),
-        ]);
-        const [viewColumnsByView, parametersByProcedure] = await Promise.all([
-            this.getDabViewColumnsByView(metadataService, this.connectionUri, views),
-            this.getDabStoredProcedureParametersByProcedure(
-                metadataService,
-                this.connectionUri,
-                storedProcedures,
-            ),
-        ]);
-
-        const viewObjects = views.map((view) => {
-            const columns = viewColumnsByView.get(view.id) ?? [];
-            return {
-                id: view.id,
-                sourceType: Dab.EntitySourceType.View,
-                schemaName: view.schema,
-                sourceName: view.name,
-                columns: columns.map((column) => ({
-                    id: column.id,
-                    name: column.name,
-                    dataType: column.dataType,
-                    isPrimaryKey: column.isPrimaryKey,
-                    isSupported: Dab.isDataTypeSupportedForDab(column.dataType),
-                    isExposed: true,
-                })),
-                fields: columns.map((column) => ({
-                    name: column.name,
-                    ...(column.isPrimaryKey ? { isPrimaryKey: true } : {}),
-                })),
-            };
-        });
-
-        const storedProcedureObjects = storedProcedures.map((procedure) => {
-            const parameters = parametersByProcedure.get(procedure.id) ?? [];
-            return {
-                id: procedure.id,
-                sourceType: Dab.EntitySourceType.StoredProcedure,
-                schemaName: procedure.schema,
-                sourceName: procedure.name,
-                columns: [],
-                parameters: parameters.map((parameter) => ({
-                    name: parameter.name.replace(/^@/, ""),
-                    dataType: parameter.dataType,
-                })),
-            };
-        });
-
-        return [...viewObjects, ...storedProcedureObjects];
-    }
-
-    private async getDabViewColumnsByView(
-        metadataService: IMetadataService,
-        ownerUri: string,
-        views: DabDatabaseObjectMetadata[],
-    ): Promise<Map<string, DabViewColumnMetadata[]>> {
-        if (views.length === 0) {
-            return new Map();
-        }
-
-        try {
-            return await metadataService.getDabViewColumnsByView(ownerUri, this.databaseName);
-        } catch (error) {
-            logger.warn(
-                `Failed to load DAB view columns in bulk. Falling back to per-view metadata. ${getErrorMessage(error)}`,
-            );
-        }
-
-        return new Map(
-            await Promise.all(
-                views.map(async (view) => {
-                    try {
-                        return [
-                            view.id,
-                            await metadataService.getDabViewColumns(
-                                ownerUri,
-                                view.schema,
-                                view.name,
-                                this.databaseName,
-                            ),
-                        ] as const;
-                    } catch (error) {
-                        logger.warn(
-                            `Failed to load DAB view columns for ${view.schema}.${view.name}. ${getErrorMessage(error)}`,
-                        );
-                        return [view.id, [] as DabViewColumnMetadata[]] as const;
-                    }
-                }),
-            ),
+    private async initializeSchemaDesignerSession(): Promise<SchemaDesigner.CreateSessionResponse> {
+        const schemaDesignerInitActivity = startActivity(
+            TelemetryViews.SchemaDesigner,
+            TelemetryActions.Initialize,
+            undefined, // correlationId
+            undefined, // startActivityAdditionalProps
+            undefined, // startActivityAdditionalMeasurements
+            undefined, // connectionInfo
+            undefined, // serverInfo
+            true, // include callstack in telemetry
         );
-    }
-
-    private async getDabStoredProcedureParametersByProcedure(
-        metadataService: IMetadataService,
-        ownerUri: string,
-        storedProcedures: DabDatabaseObjectMetadata[],
-    ): Promise<Map<string, DabStoredProcedureParameterMetadata[]>> {
-        if (storedProcedures.length === 0) {
-            return new Map();
-        }
-
         try {
-            return await metadataService.getDabStoredProcedureParametersByProcedure(
-                ownerUri,
-                this.databaseName,
-            );
-        } catch (error) {
-            logger.warn(
-                `Failed to load DAB stored procedure parameters in bulk. Falling back to per-procedure metadata. ${getErrorMessage(error)}`,
-            );
-        }
+            let sessionResponse: SchemaDesigner.CreateSessionResponse;
+            const cacheItem = this.schemaDesignerCache.get(this._key);
+            const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
 
-        return new Map(
-            await Promise.all(
-                storedProcedures.map(async (procedure) => {
-                    try {
-                        return [
-                            procedure.id,
-                            await metadataService.getDabStoredProcedureParameters(
-                                ownerUri,
-                                procedure.schema,
-                                procedure.name,
-                                this.databaseName,
-                            ),
-                        ] as const;
-                    } catch (error) {
-                        logger.warn(
-                            `Failed to load DAB stored procedure parameters for ${procedure.schema}.${procedure.name}. ${getErrorMessage(error)}`,
-                        );
-                        return [procedure.id, [] as DabStoredProcedureParameterMetadata[]] as const;
-                    }
-                }),
-            ),
-        );
+            if (!hasCachedSession) {
+                this._sessionId = uuid();
+                sessionResponse = await this.schemaDesignerService.createSession({
+                    sessionId: this._sessionId,
+                    connectionString: this.connectionString,
+                    accessToken: this.accessToken,
+                    databaseName: this.databaseName,
+                });
+                this.baselineSchema = sessionResponse.schema;
+                this.schemaDesignerCache.set(this._key, {
+                    schemaDesignerDetails: sessionResponse,
+                    baselineSchema: sessionResponse.schema,
+                    dabConfig: cacheItem?.dabConfig,
+                    isDirty: cacheItem?.isDirty ?? false,
+                });
+            } else {
+                sessionResponse = cacheItem.schemaDesignerDetails;
+                this.baselineSchema = cacheItem.baselineSchema;
+                this._sessionId = sessionResponse.sessionId;
+            }
+
+            this.schemaDesignerDetails = sessionResponse;
+            this._sessionId = sessionResponse.sessionId;
+            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
+                tableCount: sessionResponse?.schema?.tables?.length,
+            });
+            return sessionResponse;
+        } catch (error) {
+            schemaDesignerInitActivity.endFailed(toError(error), false);
+            throw error;
+        }
     }
 
     private setupReducers() {
@@ -848,7 +704,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            logger.info("Progress", progress);
+            this.logger.info("Progress", progress);
 
             try {
                 void this.sendNotification(
@@ -865,7 +721,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            logger.info("Message", message);
+            this.logger.info("Message", message);
 
             try {
                 void this.sendNotification(

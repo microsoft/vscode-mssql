@@ -427,7 +427,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.permissions).to.deep.equal([
                     { role: "anonymous", actions: ["execute"] },
                 ]);
-                expect(entity.rest).to.be.undefined;
+                expect(entity.rest).to.deep.equal({ methods: ["post"] });
                 expect(entity.graphql).to.be.undefined;
                 expect(entity.mcp).to.deep.equal({
                     "custom-tool": true,
@@ -458,6 +458,96 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
 
                 expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
+            });
+
+            test("should not emit stored procedure MCP custom tool settings when disabled", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            id: "sp-dbo-GetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            sourceName: "GetUsers",
+                            tableName: "GetUsers",
+                            columns: [],
+                            enabledActions: [Dab.EntityAction.Execute],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                exposeAsMcpCustomTool: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
+            });
+
+            test("should emit table MCP DML tools setting when enabled explicitly", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: true,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    "dml-tools": true,
+                });
+            });
+
+            test("should emit table MCP DML tools setting when disabled explicitly", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    "dml-tools": false,
+                });
+            });
+
+            test("should not emit table MCP DML tools setting when MCP is disabled", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].mcp).to.be.undefined;
             });
         });
 
@@ -520,6 +610,52 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["Users"].rest.path).to.equal("/already-prefixed");
             });
+
+            test("should disable REST for an entity when restEnabled is false", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                restEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                expect(parsed.entities["Users"].rest).to.equal(false);
+            });
+
+            test("should emit stored procedure REST methods", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest],
+                    entities: [
+                        createTestEntity({
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            sourceName: "GetUsers",
+                            tableName: "GetUsers",
+                            columns: [],
+                            enabledActions: [Dab.EntityAction.Execute],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                storedProcedureRestMethods: [
+                                    Dab.RestMethod.Get,
+                                    Dab.RestMethod.Post,
+                                ],
+                            },
+                        }),
+                    ],
+                });
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                expect(parsed.entities["GetUsers"].rest).to.deep.equal({
+                    methods: ["get"],
+                });
+            });
         });
 
         suite("entity GraphQL property", () => {
@@ -551,6 +687,49 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
                 expect(parsed.entities["Users"].graphql).to.deep.equal({
                     type: "UserType",
+                });
+            });
+
+            test("should disable GraphQL for an entity when graphQLEnabled is false", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                graphQLEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                expect(parsed.entities["Users"].graphql).to.equal(false);
+            });
+
+            test("should emit stored procedure GraphQL operation", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            sourceName: "GetUsers",
+                            tableName: "GetUsers",
+                            columns: [],
+                            enabledActions: [Dab.EntityAction.Execute],
+                            advancedSettings: {
+                                entityName: "GetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                storedProcedureGraphQLOperation: Dab.GraphQLOperation.Query,
+                            },
+                        }),
+                    ],
+                });
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                expect(parsed.entities["GetUsers"].graphql).to.deep.equal({
+                    operation: "query",
                 });
             });
         });

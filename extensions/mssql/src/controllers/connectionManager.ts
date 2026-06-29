@@ -49,12 +49,12 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { ApiStatus, isStatus, Status } from "../sharedInterfaces/webview";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage, uuid } from "../utils/utils";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
@@ -128,11 +128,6 @@ export default class ConnectionManager {
         Deferred<ConnectionContracts.ConnectionCompleteParams>
     >;
     private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
-    private _entraSqlTokenCache: Map<string, IToken> = new Map<string, IToken>();
-    private _entraSqlTokenRefreshInFlight: Map<string, Promise<IToken>> = new Map<
-        string,
-        Promise<IToken>
-    >();
     private _accountService: AccountService;
     private _firewallService: FirewallService;
     public azureController: AzureController;
@@ -150,11 +145,13 @@ export default class ConnectionManager {
 
     public initialized: Deferred<void> = new Deferred<void>();
 
+    private _entraLogger: ILogger;
+
     constructor(
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        private _logger?: Logger,
+        private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
@@ -178,8 +175,10 @@ export default class ConnectionManager {
         }
 
         if (!this._logger) {
-            this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionManager");
+            this._logger = logger.withPrefix("ConnectionManager");
         }
+
+        this._entraLogger = logger.withPrefix("Entra Auth");
 
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
@@ -470,10 +469,9 @@ export default class ConnectionManager {
      * Parses the connection string into a ConnectionDetails object
      */
     public async parseConnectionString(connectionString: string): Promise<ConnectionDetails> {
-        return await this.client.sendRequest(
-            ConnectionContracts.ParseConnectionStringRequest.type,
+        return this.client.sendRequest(ConnectionContracts.ParseConnectionStringRequest.type, {
             connectionString,
-        );
+        });
     }
 
     /**
@@ -492,10 +490,7 @@ export default class ConnectionManager {
      * @param params The params to pass with the request
      * @returns A promise object for when the request receives a response
      */
-    public async sendRequest<P, R, E, R0>(
-        requestType: RequestType<P, R, E, R0>,
-        params?: P,
-    ): Promise<R> {
+    public async sendRequest<P, R, E>(requestType: RequestType<P, R, E>, params?: P): Promise<R> {
         return await this.client.sendRequest(requestType, params);
     }
 
@@ -617,7 +612,7 @@ export default class ConnectionManager {
                     event.ownerUri,
                 );
 
-                self.vscodeWrapper.logToOutputChannel(logMessage);
+                self._logger.info(logMessage);
             }
         };
     }
@@ -659,7 +654,7 @@ export default class ConnectionManager {
                         expiresOn = tokenInfo.token.expiresOn;
                     } else {
                         if (!params.accountId) {
-                            self._logger?.verbose(
+                            self._logger?.debug(
                                 `Cannot refresh token: no accountId provided in refresh request for URI ${params.uri}`,
                             );
                             sendErrorEvent(
@@ -686,7 +681,7 @@ export default class ConnectionManager {
 
                         const account = await self.accountStore.getAccount(params.accountId);
                         if (!account) {
-                            self._logger?.verbose(
+                            self._logger?.debug(
                                 `Cannot refresh token: account ${params.accountId} not found in account store`,
                             );
                             sendErrorEvent(
@@ -798,7 +793,7 @@ export default class ConnectionManager {
                         },
                     );
                 } catch (error) {
-                    self._logger?.verbose(
+                    self._logger?.debug(
                         `Failed to refresh token for URI ${params.uri}: ${getErrorMessage(error)}`,
                     );
 
@@ -1000,7 +995,7 @@ export default class ConnectionManager {
             result.databaseNames,
         );
         if (newDatabaseCredentials) {
-            this.vscodeWrapper.logToOutputChannel(
+            this._logger.info(
                 LocalizedConstants.msgChangingDatabase(
                     newDatabaseCredentials.database,
                     newDatabaseCredentials.server,
@@ -1009,7 +1004,7 @@ export default class ConnectionManager {
             );
             await this.disconnect(fileUri);
             await this.connect(fileUri, newDatabaseCredentials);
-            this.vscodeWrapper.logToOutputChannel(
+            this._logger.info(
                 LocalizedConstants.msgChangedDatabase(
                     newDatabaseCredentials.database,
                     newDatabaseCredentials.server,
@@ -1047,7 +1042,7 @@ export default class ConnectionManager {
         }
         await this.disconnect(fileUri);
         await this.connect(fileUri, newDatabaseCredentials);
-        this.vscodeWrapper.logToOutputChannel(
+        this._logger.info(
             LocalizedConstants.msgChangedDatabase(
                 newDatabaseCredentials.database,
                 newDatabaseCredentials.server,
@@ -1117,7 +1112,7 @@ export default class ConnectionManager {
                 this.statusView.setNotConnected(fileUri);
             }
             if (result) {
-                this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
+                this._logger.info(LocalizedConstants.msgDisconnected(fileUri));
             }
 
             this.removeActiveConnection(fileUri);
@@ -1254,19 +1249,27 @@ export default class ConnectionManager {
             return;
         }
 
-        // 2. Validate that the token needs refreshing (isn't expired)
-        if (
-            AzureController.isTokenValid(connectionInfo.azureAccountToken, connectionInfo.expiresOn)
-        ) {
-            this._logger?.verbose(
-                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn}. No refresh needed.`,
-            );
-            return;
-        }
-
-        // 3. Refresh the token
-        // A3. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token
+        // 2. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token.
+        // STS cannot read VS Code auth sessions, so this path still needs to pass a token.
         if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
+
+            if (
+                AzureController.isTokenValid(
+                    connectionInfo.azureAccountToken,
+                    connectionInfo.expiresOn,
+                )
+            ) {
+                this._entraLogger?.debug(
+                    `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) is still valid until ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}). No refresh needed.`,
+                );
+                return;
+            }
+
+            this._entraLogger?.debug(
+                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
+            );
+
             const tokenInfo = await acquireTokenFromVscodeAccountForResource(
                 getCloudResourceEndpoint("sqlResource"),
                 connectionInfo.accountId,
@@ -1284,14 +1287,12 @@ export default class ConnectionManager {
             return;
         }
 
-        // B3. Otherwise, use the MSAL flow to refresh the token
-        // B3.1 Collect Entra account information
+        // 3. Otherwise, use the MSAL flow. STS registers a SqlAuthenticationProvider
+        // and reads the shared MSAL cache, so do not pass a pre-acquired SQL token.
         let account: IAccount | undefined;
-        let profile: ConnectionProfile;
 
         if (connectionInfo.accountId) {
             account = await this.accountStore.getAccount(connectionInfo.accountId);
-            profile = new ConnectionProfile(connectionInfo);
         } else {
             // Send telemetry to identify code paths where accountId is missing
             sendErrorEvent(
@@ -1304,7 +1305,7 @@ export default class ConnectionManager {
         }
 
         if (!account) {
-            this._logger?.verbose(
+            this._logger?.debug(
                 `No account found in account store for accountId ${connectionInfo.accountId}. Cannot refresh Entra token.`,
             );
 
@@ -1317,150 +1318,29 @@ export default class ConnectionManager {
             //LocalizedConstants.msgAccountNotFound
         }
 
-        connectionInfo.user = account.displayInfo.displayName;
+        connectionInfo.user =
+            account.displayInfo.email ??
+            account.displayInfo.userId ??
+            account.displayInfo.displayName;
         connectionInfo.email = account.displayInfo.email;
-        profile.user = account.displayInfo.displayName;
-        profile.email = account.displayInfo.email;
+        connectionInfo.tenantId ??= account.properties?.owningTenant?.id;
 
-        // B4. Use cached token if present and valid/unexpired
-        const cacheKey = this.getEntraSqlTokenCacheKey(
-            connectionInfo,
-            account.properties?.owningTenant?.id,
-        );
-        const cachedToken = this._entraSqlTokenCache.get(cacheKey);
-
-        this._logger?.verbose(
-            `Cached token ${cachedToken ? "found" : "not found"} for cache key ${cacheKey}.`,
+        // Keep the MSAL account cache fresh before handing SQL token acquisition to STS.
+        // This may prompt for sign-in if the account can no longer refresh silently,
+        // but the returned non-SQL token is intentionally not sent to SqlClient.
+        await this.azureController.refreshAccessToken(
+            account,
+            this.accountStore,
+            connectionInfo.tenantId,
+            getCloudProviderSettings(account.key.providerId).settings.armResource,
         );
 
-        if (cachedToken) {
-            // If there's a cached token, use it if still valid, or remove it from cache if expired
-            if (AzureController.isTokenValid(cachedToken.token, cachedToken.expiresOn)) {
-                this.applyEntraToken(connectionInfo, cachedToken);
-                this._logger?.verbose(
-                    `Using cached Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Cached token expires on ${cachedToken.expiresOn}. (currently ${Date.now() / 1000})`,
-                );
+        connectionInfo.azureAccountToken = undefined;
+        connectionInfo.expiresOn = undefined;
 
-                return;
-            } else {
-                this._logger?.verbose(
-                    `Cached token for cache key ${cacheKey} is expired. Removing from cache. (currently ${Date.now() / 1000})`,
-                );
-                this._entraSqlTokenCache.delete(cacheKey);
-            }
-        }
-
-        // B5. Lastly, refresh the token, cache the new token, and update the connection info with it
-        const refreshTask = async () => {
-            return await this.azureController.refreshAccessToken(
-                account,
-                this.accountStore,
-                profile.tenantId,
-                getCloudProviderSettings(account.key.providerId).settings.sqlResource!,
-            );
-        };
-
-        // Dedupe concurrent token refresh requests for the same account into a single request, and share the result
-        let refreshPromise = this._entraSqlTokenRefreshInFlight.get(cacheKey);
-        if (!refreshPromise) {
-            // Token refresh code cannot figure out if the user closed the browser window,
-            // so we wrap it in a cancellable progress dialog to allow the user to cancel
-            // the operation.
-            refreshPromise = new Promise<IToken>((resolve, reject) => {
-                void vscode.window.withProgress(
-                    {
-                        location: vscode.ProgressLocation.Notification,
-                        title: LocalizedConstants.ObjectExplorer.AzureSignInMessage(
-                            account.displayInfo.displayName || account.displayInfo.email,
-                        ),
-                        cancellable: true,
-                    },
-                    async (_progress, token) => {
-                        token.onCancellationRequested(() => {
-                            reject({
-                                status: ApiStatus.Cancelled,
-                                message: "Azure sign in cancelled by user.",
-                            } as Status);
-                        });
-                        try {
-                            const refreshedToken = await refreshTask();
-                            if (!refreshedToken) {
-                                reject({
-                                    status: ApiStatus.Error,
-                                    message: LocalizedConstants.msgAccountRefreshFailed(),
-                                } as Status);
-                                return;
-                            }
-                            this._logger?.verbose(
-                                `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}; now expires on ${refreshedToken.expiresOn} (currently ${Date.now() / 1000}).`,
-                            );
-                            resolve(refreshedToken);
-                        } catch (error) {
-                            const refreshErrorStatus: Status = {
-                                status: ApiStatus.Error,
-                                message: getErrorMessage(error),
-                            };
-                            this._logger?.error(
-                                `Error refreshing Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}: ${refreshErrorStatus.message}`,
-                            );
-                            reject(refreshErrorStatus);
-                        }
-                    },
-                );
-            }).finally(() => {
-                this._entraSqlTokenRefreshInFlight.delete(cacheKey);
-            });
-            this._entraSqlTokenRefreshInFlight.set(cacheKey, refreshPromise);
-        }
-
-        try {
-            const azureAccountToken = await refreshPromise;
-            this.applyEntraToken(connectionInfo, azureAccountToken);
-            // Save refreshed token so other connections for the same account+tenant can reuse it.
-            this._entraSqlTokenCache.set(cacheKey, azureAccountToken);
-            this._logger?.verbose(
-                `Successfully refreshed Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Cached token for future use with cache key ${cacheKey}.`,
-            );
-        } catch (error) {
-            this._logger?.verbose(
-                `Failed to refresh Entra token for account ${account.displayInfo.displayName} (${account.displayInfo.email}) and tenant ${profile.tenantId}. Error: ${getErrorMessage(error)}`,
-            );
-            if (isStatus(error)) {
-                if (error.status === ApiStatus.Cancelled) {
-                    this._logger.verbose("Refresh cancelled: " + error.message);
-                    throw new Error(LocalizedConstants.cannotConnect);
-                }
-
-                if (error.status === ApiStatus.Error) {
-                    const message = LocalizedConstants.msgAccountRefreshFailed(error.message);
-                    this._logger.error("Error refreshing account: " + message);
-                    await this.vscodeWrapper.showErrorMessage(message);
-                    throw new Error(message);
-                }
-            }
-
-            throw error;
-        }
-    }
-
-    private getEntraSqlTokenCacheKey(
-        connectionInfo: IConnectionInfo,
-        defaultTenantId?: string,
-    ): string {
-        return `${connectionInfo.accountId ?? ""}|${connectionInfo.tenantId ?? defaultTenantId ?? ""}`;
-    }
-
-    private applyEntraToken(connectionInfo: IConnectionInfo, token: IToken): void {
-        connectionInfo.azureAccountToken = token.token;
-        connectionInfo.expiresOn = token.expiresOn;
-    }
-
-    /**
-     * Clears both token entries and any in-flight refresh promises.
-     */
-    private clearEntraSqlTokenCache(): void {
-        this._entraSqlTokenCache.clear();
-        this._entraSqlTokenRefreshInFlight.clear();
+        this._logger?.debug(
+            `Using SQL Authentication Provider for MSAL Entra account ${connectionInfo.user} and tenant ${connectionInfo.tenantId}.`,
+        );
     }
 
     /**
@@ -1581,9 +1461,7 @@ export default class ConnectionManager {
             this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
         }
 
-        this.vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgConnecting(credentials.server, fileUri),
-        );
+        this._logger.info(LocalizedConstants.msgConnecting(credentials.server, fileUri));
 
         // Create connection request params
         const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
@@ -1702,7 +1580,7 @@ export default class ConnectionManager {
             connectionInfo.connecting = false;
 
             this.statusView.setConnectionError(fileUri, connectionInfo.credentials, result);
-            this.vscodeWrapper.logToOutputChannel(
+            this._logger.error(
                 LocalizedConstants.msgConnectionFailed(
                     connectionInfo.credentials.server,
                     result.errorMessage ? result.errorMessage : result.messages,
@@ -1859,7 +1737,7 @@ export default class ConnectionManager {
             fileUri: fileUri,
         });
 
-        this._vscodeWrapper.logToOutputChannel(
+        this._logger.info(
             LocalizedConstants.msgConnectedServerInfo(
                 connectionInfo?.credentials?.server,
                 fileUri,
@@ -2241,14 +2119,13 @@ export default class ConnectionManager {
 
     public onClearAzureTokenCache(): void {
         this.azureController.clearTokenCache();
-        this.clearEntraSqlTokenCache();
         this.vscodeWrapper.showInformationMessage(
             LocalizedConstants.Accounts.clearedEntraTokenCache,
         );
     }
 
     private async migrateLegacyConnectionProfiles(): Promise<void> {
-        this._logger.logDebug("Beginning migration of legacy connections");
+        this._logger.debug("Beginning migration of legacy connections");
 
         const connections: IConnectionProfile[] =
             await this.connectionStore.readAllConnections(false);
@@ -2265,11 +2142,11 @@ export default class ConnectionManager {
         }
 
         if (tally.migrated > 0) {
-            this._logger.verbose(
+            this._logger.debug(
                 `Completed migration of legacy Connection String connections. (${tally.migrated} migrated, ${tally.notNeeded} not needed, ${tally.error} errored)`,
             );
         } else {
-            this._logger.verbose(
+            this._logger.debug(
                 `No legacy Connection String connections found to migrate. (${tally.notNeeded} not needed, ${tally.error} errored)`,
             );
         }
@@ -2373,8 +2250,7 @@ export default class ConnectionManager {
      *
      * 1. **Entra MFA via VS Code accounts** (`params.accountId` present): STS is running in
      *    `--request-mfa-token-from-client` mode (`useVscodeAccountsForEntraMFA` enabled) and
-     *    needs a SQL access token for the given Entra account + tenant. Returns a token acquired
-     *    from VS Code's authentication provider for `https://database.windows.net/`.
+     *    needs an access token for the given Entra account + tenant + resource.
      *
      * 2. **Always Encrypted / Azure Key Vault** (`params.accountId` absent): STS needs a token
      *    for `https://vault.azure.net/` to decrypt a Column Encryption Key protected by an
@@ -2387,14 +2263,24 @@ export default class ConnectionManager {
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
-            this._logger.verbose("VS Code accounts token request received");
+            this._entraLogger.info(
+                `VS Code accounts token request received for ${params.resource} with accountId '${params.accountId}' and tenantId '${params.tenantId}'`,
+            );
             try {
+                const resourceEndpoint = params.resource || getCloudResourceEndpoint("sqlResource");
                 const tokenInfo = await acquireTokenFromVscodeAccountForResource(
-                    getCloudResourceEndpoint("sqlResource"),
+                    resourceEndpoint,
                     params.accountId,
                     params.tenantId,
                 );
-                this._logger.verbose("VS Code accounts token acquired successfully");
+
+                const expiry = Utils.epochToDisplay(
+                    tokenInfo.token.expiresOn ? tokenInfo.token.expiresOn * 1000 : undefined,
+                );
+                this._entraLogger.info(
+                    `VS Code accounts token acquired successfully for ${resourceEndpoint} with accountId '${params.accountId}' and tenantId '${params.tenantId}'; expires on ${tokenInfo.token.expiresOn} (${expiry.iso}, ${expiry.relative})`,
+                );
+
                 return {
                     accountKey: params.accountId,
                     token: tokenInfo.token.token,
@@ -2446,7 +2332,7 @@ export default class ConnectionManager {
             let onSignIn: () => Promise<string | undefined>;
 
             if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-                this._logger.verbose("AKV token request received (VS Code accounts path)");
+                this._logger.debug("AKV token request received (VS Code accounts path)");
                 getAccounts = async () => {
                     const accounts = await VsCodeAzureHelper.getAccounts();
                     return accounts.map((a) => ({

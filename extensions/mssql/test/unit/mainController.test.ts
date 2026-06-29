@@ -42,6 +42,7 @@ type MainControllerTestAccess = {
     openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void>;
     findChatOpenAgentCommand(): Promise<string | undefined>;
     registerLanguageModelTools(): void;
+    migrateTransferActiveEditorConnectionsSetting(): Promise<void>;
 };
 
 function accessMainController(controller: MainController): MainControllerTestAccess {
@@ -160,11 +161,14 @@ suite("MainController Tests", function () {
         let controllerAccess: MainControllerTestAccess;
         let runCurrentStatementStub: sinon.SinonStub;
         let runQueryStub: sinon.SinonStub;
+        let ensureReadyToExecuteQueryStub: sinon.SinonStub;
         let statusView: unknown;
 
         setup(() => {
             controllerAccess = accessMainController(mainController);
-            sandbox.stub(mainController, "ensureReadyToExecuteQuery").resolves(true);
+            ensureReadyToExecuteQueryStub = sandbox
+                .stub(mainController, "ensureReadyToExecuteQuery")
+                .resolves(true);
             sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
 
             runCurrentStatementStub = sandbox.stub().resolves();
@@ -223,6 +227,66 @@ suite("MainController Tests", function () {
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
 
+        test("runs the originally selected text when selection changes while connecting", async () => {
+            const originalSelection = new vscode.Selection(0, 0, 0, 11);
+            const changedSelection = new vscode.Selection(1, 0, 1, 11);
+            let activeEditor = createQueryTextEditor(
+                originalSelection,
+                "select 'a';\nselect 'b';",
+                "select 'a';",
+            );
+            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            ensureReadyToExecuteQueryStub.callsFake(async () => {
+                activeEditor = createQueryTextEditor(
+                    changedSelection,
+                    "select 'a';\nselect 'b';",
+                    "select 'b';",
+                );
+                return true;
+            });
+
+            await mainController.onRunCurrentStatement();
+
+            expect(runQueryStub).to.have.been.calledOnceWithExactly(
+                statusView,
+                "file:///test/query.sql",
+                {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: 11,
+                },
+                "query.sql",
+            );
+            expect(runCurrentStatementStub).to.not.have.been.called;
+        });
+
+        test("runs the original current statement when cursor changes while connecting", async () => {
+            const originalSelection = new vscode.Selection(0, 7, 0, 7);
+            const changedSelection = new vscode.Selection(1, 7, 1, 7);
+            let activeEditor = createQueryTextEditor(originalSelection, "select 'a';\nselect 'b';");
+            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            ensureReadyToExecuteQueryStub.callsFake(async () => {
+                activeEditor = createQueryTextEditor(changedSelection, "select 'a';\nselect 'b';");
+                return true;
+            });
+
+            await mainController.onRunCurrentStatement();
+
+            expect(runCurrentStatementStub).to.have.been.calledOnceWithExactly(
+                statusView,
+                "file:///test/query.sql",
+                {
+                    startLine: 0,
+                    startColumn: 7,
+                    endLine: 0,
+                    endColumn: 0,
+                },
+                "query.sql",
+            );
+            expect(runQueryStub).to.not.have.been.called;
+        });
+
         test("does not execute when the selection contains only whitespace", async () => {
             const selection = new vscode.Selection(0, 0, 0, 4);
             sandbox
@@ -266,6 +330,67 @@ suite("MainController Tests", function () {
 
             expect(runQueryStub).to.not.have.been.called;
             expect(runCurrentStatementStub).to.not.have.been.called;
+        });
+    });
+
+    suite("onRunQuery Tests", () => {
+        let controllerAccess: MainControllerTestAccess;
+        let runQueryStub: sinon.SinonStub;
+        let ensureReadyToExecuteQueryStub: sinon.SinonStub;
+        let statusView: unknown;
+
+        setup(() => {
+            controllerAccess = accessMainController(mainController);
+            ensureReadyToExecuteQueryStub = sandbox
+                .stub(mainController, "ensureReadyToExecuteQuery")
+                .resolves(true);
+            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
+
+            runQueryStub = sandbox.stub().resolves();
+            controllerAccess._outputContentProvider = {
+                runCurrentStatement: sandbox.stub().resolves(),
+                runQuery: runQueryStub,
+            };
+            statusView = {};
+            controllerAccess._statusview = statusView;
+            connectionManager.refreshAzureAccountToken.resolves();
+        });
+
+        test("runs the originally selected query when selection changes while connecting", async () => {
+            const originalSelection = new vscode.Selection(0, 0, 0, 11);
+            const changedSelection = new vscode.Selection(1, 0, 1, 11);
+            let activeEditor = createQueryTextEditor(
+                originalSelection,
+                "select 'a';\nselect 'b';",
+                "select 'a';",
+            );
+            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            ensureReadyToExecuteQueryStub.callsFake(async () => {
+                activeEditor = createQueryTextEditor(
+                    changedSelection,
+                    "select 'a';\nselect 'b';",
+                    "select 'b';",
+                );
+                return true;
+            });
+
+            await mainController.onRunQuery();
+
+            expect(connectionManager.refreshAzureAccountToken).to.have.been.calledOnceWithExactly(
+                "file:///test/query.sql",
+            );
+            expect(runQueryStub).to.have.been.calledOnceWithExactly(
+                statusView,
+                "file:///test/query.sql",
+                {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: 11,
+                },
+                "query.sql",
+                undefined,
+            );
         });
     });
 
@@ -399,6 +524,34 @@ suite("MainController Tests", function () {
     });
 
     suite("ensureReadyToExecuteQuery Tests", () => {
+        test("returns true when the active SQL editor is already connected", async () => {
+            const testUri = "file:///test/connected.sql";
+            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
+            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            connectionManager.isConnected.withArgs(testUri).returns(true);
+
+            const result = await mainController.ensureReadyToExecuteQuery();
+
+            expect(result).to.equal(true);
+            expect(connectionManager.isConnecting).to.not.have.been.called;
+        });
+
+        test("returns true after prompting and connecting", async () => {
+            const testUri = "file:///test/notConnected.sql";
+            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
+            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            connectionManager.isConnected.withArgs(testUri).returns(false);
+            connectionManager.isConnecting.withArgs(testUri).returns(false);
+            const promptToConnectStub = sandbox
+                .stub(mainController, "promptToConnect")
+                .resolves(true);
+
+            const result = await mainController.ensureReadyToExecuteQuery();
+
+            expect(result).to.equal(true);
+            expect(promptToConnectStub).to.have.been.calledOnce;
+        });
+
         test("returns false and shows info message when connection is in progress", async () => {
             const testUri = "file:///test/connecting.sql";
             const controllerAccess = accessMainController(mainController);
@@ -664,5 +817,213 @@ suite("MainController Tests", function () {
             );
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
         });
+    });
+
+    suite("migrateTransferActiveEditorConnectionsSetting", () => {
+        let controller: MainController;
+        let controllerAccess: MainControllerTestAccess;
+        let configStub: sinon.SinonStub;
+        let inspectStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
+        let sendActionEvent: sinon.SinonStub;
+        let sendErrorEvent: sinon.SinonStub;
+
+        setup(() => {
+            controller = new MainController(context, connectionManager, vscodeWrapper);
+            controllerAccess = accessMainController(controller);
+
+            ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
+
+            inspectStub = sandbox.stub();
+            updateStub = sandbox.stub().resolves();
+
+            // WorkspaceConfiguration is an interface — plain stub object is required
+            const mockConfig = {
+                inspect: inspectStub,
+                update: updateStub,
+            } as unknown as vscode.WorkspaceConfiguration;
+
+            configStub = sandbox.stub(vscode.workspace, "getConfiguration").returns(mockConfig);
+        });
+        /* eslint-disable @typescript-eslint/no-deprecated */
+        test("migrates true → transferActive at Global scope and clears old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: true, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.TransferActive,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Global,
+            );
+            // workspace scope was undefined — no workspace writes
+            expect(
+                updateStub.args.filter(
+                    ([, , scope]) => scope === vscode.ConfigurationTarget.Workspace,
+                ),
+            ).to.have.lengthOf(0);
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                {
+                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                    scope: "global",
+                },
+            );
+            expect(sendErrorEvent).to.not.have.been.called;
+        });
+
+        test("migrates false → none at Global scope and clears old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: false, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.None,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                { migratedValue: Constants.NewEditorConnectionBehavior.None, scope: "global" },
+            );
+        });
+
+        test("migrates true → transferActive at Workspace scope and clears old setting", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: undefined, workspaceValue: true });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.TransferActive,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            // global scope was undefined — no global writes
+            expect(
+                updateStub.args.filter(
+                    ([, , scope]) => scope === vscode.ConfigurationTarget.Global,
+                ),
+            ).to.have.lengthOf(0);
+            expect(sendActionEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                {
+                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                    scope: "workspace",
+                },
+            );
+        });
+
+        test("migrates both Global and Workspace scopes when both are explicitly set", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: true, workspaceValue: false });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.TransferActive,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configNewEditorConnectionBehavior,
+                Constants.NewEditorConnectionBehavior.None,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            expect(updateStub).to.have.been.calledWith(
+                Constants.configTransferActiveEditorConnections,
+                undefined,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            expect(sendActionEvent).to.have.been.calledTwice;
+            expect(sendActionEvent.firstCall).to.have.been.calledWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                {
+                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                    scope: "global",
+                },
+            );
+            expect(sendActionEvent.secondCall).to.have.been.calledWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                { migratedValue: Constants.NewEditorConnectionBehavior.None, scope: "workspace" },
+            );
+        });
+
+        test("is a no-op when the old setting was never explicitly set", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: undefined, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(updateStub).to.not.have.been.called;
+            expect(sendActionEvent).to.not.have.been.called;
+            expect(sendErrorEvent).to.not.have.been.called;
+        });
+
+        test("sends error telemetry and does not throw when config.update fails", async () => {
+            const writeError = new Error("write failed");
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: true, workspaceValue: undefined });
+
+            updateStub.rejects(writeError);
+
+            // Should not throw
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(sendActionEvent).to.not.have.been.called;
+            expect(sendErrorEvent).to.have.been.calledOnceWith(
+                TelemetryViews.General,
+                TelemetryActions.MigrateEditorConnectionBehavior,
+                writeError,
+                false,
+                undefined,
+                undefined,
+                { scope: "global" },
+            );
+        });
+
+        test("uses getConfiguration() without a section argument", async () => {
+            inspectStub
+                .withArgs(Constants.configTransferActiveEditorConnections)
+                .returns({ globalValue: undefined, workspaceValue: undefined });
+
+            await controllerAccess.migrateTransferActiveEditorConnectionsSetting();
+
+            expect(configStub).to.have.been.calledWithExactly();
+        });
+        /* eslint-enable @typescript-eslint/no-deprecated */
     });
 });

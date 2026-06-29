@@ -21,6 +21,7 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as telemetry from "../../src/telemetry/telemetry";
+import { sqlToolsMcpConnectionRegistry } from "../../src/sqlToolsMcp/sqlToolsMcpConnectionRegistry";
 
 chai.use(sinonChai);
 
@@ -32,6 +33,7 @@ suite("DabTool Tests", () => {
     let dabTool: DabTool;
 
     const sampleConnectionId = "connection-dab-123";
+    const sampleConnectionName = "McpDabConnection";
     const sampleDatabase = "AdventureWorks";
     const sampleServer = "localhost";
 
@@ -133,16 +135,18 @@ suite("DabTool Tests", () => {
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockToken = {} as vscode.CancellationToken;
         showDabStub = sandbox.stub();
+        sqlToolsMcpConnectionRegistry.clear();
         dabTool = new DabTool(mockConnectionManager, showDabStub as any);
         sandbox.stub(telemetry, "sendActionEvent");
     });
 
     teardown(() => {
+        sqlToolsMcpConnectionRegistry.clear();
         sandbox.restore();
     });
 
     suite("Tool behavior", () => {
-        test("returns invalid_request when show is missing connectionId", async () => {
+        test("returns invalid_request when show is missing connection reference", async () => {
             const options = {
                 input: {
                     operation: "show",
@@ -152,7 +156,23 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(false);
             expect(parsed.reason).to.equal("invalid_request");
-            expect(parsed.message).to.equal(loc.dabToolMissingConnectionId);
+            expect(parsed.message).to.equal(loc.toolMissingConnectionReference);
+            expect(showDabStub.called).to.equal(false);
+        });
+
+        test("returns invalid_request when show has both connectionId and connectionName", async () => {
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: sampleConnectionId,
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(false);
+            expect(parsed.reason).to.equal("invalid_request");
+            expect(parsed.message).to.equal(loc.toolAmbiguousConnectionReference);
             expect(showDabStub.called).to.equal(false);
         });
 
@@ -170,6 +190,21 @@ suite("DabTool Tests", () => {
             expect(parsed.success).to.equal(false);
             expect(parsed.reason).to.equal("invalid_request");
             expect(parsed.message).to.equal(loc.noConnectionError(sampleConnectionId));
+            expect(showDabStub.called).to.equal(false);
+        });
+
+        test("returns invalid_request when show connectionName is not registered", async () => {
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(false);
+            expect(parsed.reason).to.equal("invalid_request");
+            expect(parsed.message).to.equal(loc.noSqlToolsMcpConnectionName(sampleConnectionName));
             expect(showDabStub.called).to.equal(false);
         });
 
@@ -209,6 +244,85 @@ suite("DabTool Tests", () => {
             expect(parsed).to.not.have.property("config");
             expect(parsed).to.not.have.property("version");
             expect(parsed).to.not.have.property("summary");
+            expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
+            expect(mockDesigner.getDabToolState.called).to.equal(false);
+        });
+
+        test("show opens DAB from registered SQL Tools MCP connectionName", async () => {
+            const mockCredentials = {
+                database: sampleDatabase,
+            } as IConnectionProfile;
+
+            const mockConnectionInfo = {
+                connectionId: sampleConnectionId,
+                credentials: mockCredentials,
+            } as unknown as ConnectionInfo;
+
+            sqlToolsMcpConnectionRegistry.set(sampleConnectionName, {
+                connectionHandle: "connection-handle",
+                ownerUri: sampleConnectionId,
+                platformContext: { contextSettings: {} },
+                disposed: false,
+                queryTail: Promise.resolve(),
+            });
+            mockConnectionManager.getConnectionInfo.returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            showDabStub.resolves(mockDesigner);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(true);
+            expect(parsed.message).to.equal(loc.dabToolShowSuccessMessage);
+            expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
+            expect(mockDesigner.getDabToolState.called).to.equal(false);
+        });
+
+        test("show opens DAB when MCP connectionName is passed as connectionId", async () => {
+            const mcpConnectionId = "conn_dab_mcp_123";
+            const mockCredentials = {
+                database: sampleDatabase,
+            } as IConnectionProfile;
+
+            const mockConnectionInfo = {
+                connectionId: sampleConnectionId,
+                credentials: mockCredentials,
+            } as unknown as ConnectionInfo;
+
+            sqlToolsMcpConnectionRegistry.set(mcpConnectionId, {
+                connectionHandle: "connection-handle",
+                ownerUri: sampleConnectionId,
+                platformContext: { contextSettings: {} },
+                disposed: false,
+                queryTail: Promise.resolve(),
+            });
+            mockConnectionManager.getConnectionInfo.withArgs(mcpConnectionId).returns(undefined);
+            mockConnectionManager.getConnectionInfo
+                .withArgs(sampleConnectionId)
+                .returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            showDabStub.resolves(mockDesigner);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: mcpConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(true);
             expect(showDabStub.calledOnceWith(sampleConnectionId, sampleDatabase)).to.equal(true);
             expect(mockDesigner.getDabToolState.called).to.equal(false);
         });
@@ -908,7 +1022,7 @@ suite("DabTool Tests", () => {
             expect(unsupportedReturnState.message).to.include("Unsupported returnState");
         });
 
-        test("apply_changes validates set_api_types and fails at index 0 with partial receipt", async () => {
+        test("apply_changes validates set_api_types and fails at index 0 without committing", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],
                 dabConfig: null,
@@ -934,7 +1048,7 @@ suite("DabTool Tests", () => {
             expect(result.message).to.equal("apiTypes must be unique.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes validates set_entity_actions payload", async () => {
@@ -962,7 +1076,7 @@ suite("DabTool Tests", () => {
             }
             expect(emptyActions.reason).to.equal("validation_error");
             expect(emptyActions.message).to.equal("enabledActions must be a non-empty array.");
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
             harness.commitSpy.resetHistory();
 
             const result = await harness.applyChanges({
@@ -984,7 +1098,7 @@ suite("DabTool Tests", () => {
             expect(result.message).to.equal("enabledActions contains unsupported values.");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes updates column exposure by column name", async () => {
@@ -1069,14 +1183,7 @@ suite("DabTool Tests", () => {
             }
             expect(result.reason).to.equal("validation_error");
             expect(result.message).to.equal("Primary key columns must remain exposed.");
-            expect(harness.commitSpy).to.have.been.calledWithMatch(
-                sinon.match((config: Dab.DabConfig) => {
-                    const entity = config.entities.find((candidate) => candidate.id === "t1");
-                    return (
-                        entity?.columns.find((column) => column.id === "t1-id")?.isExposed === true
-                    );
-                }),
-            );
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes supports add/remove aliases and source refs for views", async () => {
@@ -1215,6 +1322,8 @@ suite("DabTool Tests", () => {
             }
             expect(duplicateName.reason).to.equal("validation_error");
             expect(duplicateName.message).to.include("entityName must be unique");
+            expect(harness.getConfig()?.entities[0].advancedSettings.entityName).to.equal("Users");
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes patch_entity_settings rejects whitespace-only strings and trims accepted values", async () => {
@@ -1304,7 +1413,313 @@ suite("DabTool Tests", () => {
             expect(settings).to.exist;
             expect(settings?.entityName).to.equal("UsersApi");
             expect(settings?.customRestPath).to.equal("/users");
-            expect(settings?.customGraphQLType).to.equal("UsersType");
+            expect(settings?.customGraphQLType).to.equal(undefined);
+            expect(settings?.customGraphQLSingularType).to.equal("UsersType");
+            expect(settings?.customGraphQLPluralType).to.equal(undefined);
+        });
+
+        test("apply_changes patch_entity_settings rejects unsafe string values", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            let currentState = await harness.getState();
+
+            const scriptEntityName = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { entityName: "<script>alert('xss')</script>" },
+                    },
+                ],
+            });
+            expect(scriptEntityName.success).to.equal(false);
+            if (scriptEntityName.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(scriptEntityName.reason).to.equal("invalid_request");
+            expect(scriptEntityName.message).to.include("entityName must start with a letter");
+
+            currentState = await harness.getState();
+            const unsafeRestPath = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { customRestPath: "'; DROP TABLE dbo.Todos; --" },
+                    },
+                ],
+            });
+            expect(unsafeRestPath.success).to.equal(false);
+            if (unsafeRestPath.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(unsafeRestPath.reason).to.equal("invalid_request");
+            expect(unsafeRestPath.message).to.include(
+                "customRestPath must be a relative route path",
+            );
+
+            currentState = await harness.getState();
+            const unsafeGraphQLType = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { customGraphQLType: "こんにちは" },
+                    },
+                ],
+            });
+            expect(unsafeGraphQLType.success).to.equal(false);
+            if (unsafeGraphQLType.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(unsafeGraphQLType.reason).to.equal("invalid_request");
+            expect(unsafeGraphQLType.message).to.equal(
+                "customGraphQLType must be a valid GraphQL name.",
+            );
+
+            currentState = await harness.getState();
+            const tooLongEntityName = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { entityName: `A${"a".repeat(500)}` },
+                    },
+                ],
+            });
+            expect(tooLongEntityName.success).to.equal(false);
+            if (tooLongEntityName.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(tooLongEntityName.message).to.include("128 characters or fewer");
+        });
+
+        test("apply_changes lets Copilot patch stored procedure MCP custom tool setting", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+                parameters: [{ name: "userId", dataType: "int" }],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig: null,
+            });
+            let currentState = await harness.getState();
+            expect(
+                currentState.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
+            ).to.equal(true);
+
+            const disableResult = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "stored-procedure:dbo.GetUsers" },
+                        set: { exposeAsMcpCustomTool: false },
+                    },
+                ],
+            });
+
+            expect(disableResult.success).to.equal(true);
+            if (!disableResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                disableResult.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
+            ).to.equal(false);
+
+            currentState = await harness.getState();
+            const enableResult = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: {
+                            schemaName: "dbo",
+                            sourceName: "GetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                        },
+                        set: { exposeAsMcpCustomTool: true },
+                    },
+                ],
+            });
+
+            expect(enableResult.success).to.equal(true);
+            if (!enableResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                enableResult.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
+            ).to.equal(true);
+        });
+
+        test("apply_changes lets Copilot patch entity REST and GraphQL exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: {
+                            restEnabled: false,
+                            graphQLEnabled: false,
+                        },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            expect(result.config?.entities[0].advancedSettings.restEnabled).to.equal(false);
+            expect(result.config?.entities[0].advancedSettings.graphQLEnabled).to.equal(false);
+        });
+
+        test("apply_changes lets Copilot patch table MCP DML tools exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: {
+                            mcpDmlToolsEnabled: false,
+                        },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            expect(result.config?.entities[0].advancedSettings.mcpDmlToolsEnabled).to.equal(false);
+        });
+
+        test("apply_changes lets Copilot patch stored procedure REST methods and GraphQL operation", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+                parameters: [{ name: "userId", dataType: "int" }],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "stored-procedure:dbo.GetUsers" },
+                        set: {
+                            storedProcedureRestMethods: [Dab.RestMethod.Get],
+                            storedProcedureGraphQLOperation: Dab.GraphQLOperation.Query,
+                        },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            if (!result.success) {
+                throw new Error("Expected success response");
+            }
+            const settings = result.config?.entities[0].advancedSettings;
+            expect(settings?.storedProcedureRestMethods).to.deep.equal(["get"]);
+            expect(settings?.storedProcedureGraphQLOperation).to.equal("query");
+        });
+
+        test("apply_changes rejects stored procedure MCP custom tool setting for non-procedure entities", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { exposeAsMcpCustomTool: false },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(false);
+            if (result.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(result.reason).to.equal("invalid_request");
+            expect(result.message).to.equal(
+                "exposeAsMcpCustomTool can only be set for stored procedure entities.",
+            );
+        });
+
+        test("apply_changes rejects table MCP DML tools setting for non-table entities", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "stored-procedure:dbo.GetUsers" },
+                        set: { mcpDmlToolsEnabled: false },
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(false);
+            if (result.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(result.reason).to.equal("invalid_request");
+            expect(result.message).to.equal(
+                "mcpDmlToolsEnabled can only be set for table entities.",
+            );
         });
 
         test("apply_changes validates set_only_enabled_entities and unknown change types", async () => {
@@ -1599,7 +2014,7 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(settingsResult.reason).to.equal("entity_not_supported");
-            expect(harness.commitSpy.callCount).to.equal(3);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes allows disabling unsupported entities", async () => {
@@ -1669,7 +2084,7 @@ suite("DabTool Tests", () => {
             ).to.deep.equal([Dab.EntityAction.Read, Dab.EntityAction.Create]);
         });
 
-        test("apply_changes failure path uses fail-fast prefix commit semantics", async () => {
+        test("apply_changes failure path is atomic and does not commit partial changes", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users"), createTable("t2", "sales", "Orders")],
                 dabConfig: null,
@@ -1677,6 +2092,7 @@ suite("DabTool Tests", () => {
 
             const currentState = await harness.getState();
             harness.commitSpy.resetHistory();
+            const originalVersion = currentState.version;
 
             const result = await harness.applyChanges({
                 expectedVersion: currentState.version,
@@ -1695,10 +2111,59 @@ suite("DabTool Tests", () => {
                 throw new Error("Expected failure response");
             }
             expect(result.failedChangeIndex).to.equal(1);
-            expect(result.appliedChanges).to.equal(1);
-            expect(result.version).to.match(/^dabcfg_[a-f0-9]{64}$/);
-            expect(result.summary?.apiTypes).to.deep.equal([Dab.ApiType.Rest, Dab.ApiType.GraphQL]);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(result.appliedChanges).to.equal(0);
+            expect(result.version).to.equal(originalVersion);
+            expect(result.summary?.apiTypes).to.deep.equal([
+                Dab.ApiType.Rest,
+                Dab.ApiType.GraphQL,
+                Dab.ApiType.Mcp,
+            ]);
+            expect(harness.getConfig()?.apiTypes).to.deep.equal([
+                Dab.ApiType.Rest,
+                Dab.ApiType.GraphQL,
+                Dab.ApiType.Mcp,
+            ]);
+            expect(harness.commitSpy.called).to.equal(false);
+        });
+
+        test("apply_changes preserves entity enablement across immediate sequential calls", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users"), createTable("t2", "sales", "Orders")],
+                dabConfig: null,
+            });
+
+            const currentState = await harness.getState();
+            const disableResult = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [{ type: "set_entity_enabled", entity: { id: "t1" }, isEnabled: false }],
+            });
+
+            expect(disableResult.success).to.equal(true);
+            if (!disableResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                disableResult.config?.entities.find((entity) => entity.id === "t1")?.isEnabled,
+            ).to.equal(false);
+
+            const secondResult = await harness.applyChanges({
+                expectedVersion: disableResult.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t2" },
+                        set: { customRestPath: "orders" },
+                    },
+                ],
+            });
+
+            expect(secondResult.success).to.equal(true);
+            if (!secondResult.success) {
+                throw new Error("Expected success response");
+            }
+            expect(
+                secondResult.config?.entities.find((entity) => entity.id === "t1")?.isEnabled,
+            ).to.equal(false);
         });
 
         test("apply_changes defaults to full returnState and auto-downgrades to summary when entityCount > 100", async () => {
@@ -1803,7 +2268,7 @@ suite("DabTool Tests", () => {
             expect(result.reason).to.equal("entity_not_supported");
             expect(result.failedChangeIndex).to.equal(0);
             expect(result.appliedChanges).to.equal(0);
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.called).to.equal(false);
         });
 
         test("apply_changes set_all_entities_enabled(true) leaves unsupported entities disabled", async () => {

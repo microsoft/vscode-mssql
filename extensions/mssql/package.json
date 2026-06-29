@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.43.0",
+    "version": "1.44.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/mssql/README.md",
     "engines": {
-        "vscode": "^1.98.0"
+        "vscode": "^1.101.0"
     },
     "categories": [
         "Programming Languages",
@@ -77,6 +77,7 @@
         "smoketest": "npm run instrument && npm run e2eTest",
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
+        "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
@@ -105,21 +106,21 @@
         "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
         "@types/tunnel": "0.0.1",
-        "@types/vscode": "1.98.0",
+        "@types/vscode": "1.101.0",
         "@types/vscode-webview": "^1.57.5",
         "@types/xmldom": "^0.1.34",
         "@typescript/native-preview": "^7.0.0-dev.20260507.1",
         "@vscode/l10n": "^0.0.18",
         "@vscode/l10n-dev": "^0.0.35",
-        "@vscode/test-cli": "^0.0.12",
-        "@vscode/test-electron": "^2.5.2",
+        "@vscode/test-cli": "^0.0.15",
+        "@vscode/test-electron": "^3.0.0",
         "@vscode/vsce": "^3.9.1",
         "@xyflow/react": "^12.4.4",
         "assert": "^1.4.1",
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.139",
         "chai": "^5.3.3",
         "cli-color": "^2.0.4",
-        "esbuild": "^0.25.0",
+        "esbuild": "^0.28.1",
         "html-to-image": "1.11.11",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
@@ -134,7 +135,7 @@
         "sinon": "^21.0.3",
         "sinon-chai": "^4.0.1",
         "slickgrid": "github:Microsoft/SlickGrid.ADS#v2.3.51",
-        "slickgrid-react": "10.7.0",
+        "slickgrid-react": "10.8.2",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
@@ -144,18 +145,19 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "@azure/arm-maintenance": "^1.0.0-beta.2",
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^10.0.0",
+        "@azure/arm-sql": "^11.0.0-beta.4",
         "@azure/arm-storage": "^19.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
-        "@azure/msal-common": "^14.14.0",
-        "@azure/msal-node": "^2.12.0",
+        "@azure/msal-common": "^16.9.0",
+        "@azure/msal-node": "^5.2.5",
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@xmldom/xmldom": "^0.9.10",
-        "axios": "^1.15.2",
+        "axios": "^1.16.0",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -172,14 +174,14 @@
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
-        "tar": "^7.5.11",
-        "tmp": "^0.2.4",
+        "tar": "^7.5.16",
+        "tmp": "^0.2.7",
         "tunnel": "0.0.6",
-        "vscode-jsonrpc": "^8.2.1",
-        "vscode-languageclient": "5.2.1",
+        "vscode-jsonrpc": "^9.0.0",
+        "vscode-languageclient": "10.0.0",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.2.1"
+        "yauzl": "^3.3.1"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -193,6 +195,13 @@
         "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
+        "mcpServerDefinitionProviders": [
+            {
+                "id": "mssql-sqltools-mcp",
+                "when": "config.mssql.copilot.enableSqlToolsMcp",
+                "label": "%mssql.sqlToolsMcp.serverLabel%"
+            }
+        ],
         "viewsContainers": {
             "activitybar": [
                 {
@@ -339,7 +348,8 @@
                 "entrypoint": "./dist/notebookRenderer.js",
                 "mimeTypes": [
                     "application/vnd.mssql.query-result"
-                ]
+                ],
+                "requiresMessaging": "optional"
             }
         ],
         "languages": [
@@ -565,6 +575,12 @@
                     "when": "view == objectExplorer",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
+                },
+                {
+                    "command": "mssql.shortcutsConfiguration.open",
+                    "when": "view == objectExplorer && (config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures)",
+                    "title": "%mssql.shortcutsConfiguration.open%",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [
@@ -696,12 +712,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@2"
                 },
                 {
@@ -716,7 +732,7 @@
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
@@ -781,12 +797,12 @@
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@1"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
-                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table)\\b/",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database|Table|HistoryTable)\\b/",
                     "group": "6_MSSQL_copilot@2"
                 },
                 {
@@ -917,6 +933,50 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.shortcutsConfiguration.open",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run1",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run2",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run3",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run4",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run5",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run6",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run7",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run8",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run9",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
+                    "command": "mssql.quickQueries.run10",
+                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                },
+                {
                     "command": "mssql.notebooks.copyCellMessages",
                     "when": "false"
                 },
@@ -946,15 +1006,15 @@
                 },
                 {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/"
+                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|HistoryTable|View)\\b/"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
                 },
                 {
                     "command": "mssql.scriptExecute",
@@ -1070,6 +1130,62 @@
             {
                 "command": "mssql.runCurrentStatement",
                 "title": "%mssql.runCurrentStatement%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.shortcutsConfiguration.open",
+                "title": "%mssql.shortcutsConfiguration.open%",
+                "category": "MS SQL",
+                "icon": "$(settings-gear)"
+            },
+            {
+                "command": "mssql.quickQueries.run1",
+                "title": "%mssql.quickQueries.run1%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run2",
+                "title": "%mssql.quickQueries.run2%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run3",
+                "title": "%mssql.quickQueries.run3%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run4",
+                "title": "%mssql.quickQueries.run4%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run5",
+                "title": "%mssql.quickQueries.run5%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run6",
+                "title": "%mssql.quickQueries.run6%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run7",
+                "title": "%mssql.quickQueries.run7%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run8",
+                "title": "%mssql.quickQueries.run8%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run9",
+                "title": "%mssql.quickQueries.run9%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.quickQueries.run10",
+                "title": "%mssql.quickQueries.run10%",
                 "category": "MS SQL"
             },
             {
@@ -1676,6 +1792,21 @@
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },
+                "mssql.preview.betaResultsGrid": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.betaResultsGrid.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.shortcutsConfiguration": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "%mssql.preview.shortcutsConfiguration.description%",
+                    "scope": "application"
+                },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [
                         "boolean",
@@ -1711,15 +1842,44 @@
                     "description": "%mssql.defaultQueryResultsViewMode.description%",
                     "scope": "application"
                 },
+                "mssql.newEditorConnectionBehavior": {
+                    "type": "string",
+                    "default": "transferActive",
+                    "enum": [
+                        "none",
+                        "transferActive",
+                        "defaultConnection"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.newEditorConnectionBehavior.none.description%",
+                        "%mssql.newEditorConnectionBehavior.transferActive.description%",
+                        "%mssql.newEditorConnectionBehavior.defaultConnection.description%"
+                    ],
+                    "description": "%mssql.newEditorConnectionBehavior.description%",
+                    "scope": "application"
+                },
+                "mssql.defaultConnectionId": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.defaultConnectionId.description%",
+                    "scope": "application"
+                },
                 "mssql.transferActiveEditorConnections": {
                     "type": "boolean",
-                    "default": true,
                     "description": "%mssql.transferActiveEditorConnections.description%",
+                    "deprecationMessage": "%mssql.transferActiveEditorConnections.deprecationMessage%",
                     "scope": "application"
                 },
                 "mssql.selectedAzureSubscriptions": {
                     "type": "array",
                     "description": "%mssql.selectedAzureSubscriptions%",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mssql.selectedFabricWorkspaces": {
+                    "type": "array",
+                    "description": "%mssql.selectedFabricWorkspaces%",
                     "items": {
                         "type": "string"
                     }
@@ -1836,7 +1996,8 @@
                                 "enum": [
                                     "Integrated",
                                     "SqlLogin",
-                                    "AzureMFA"
+                                    "AzureMFA",
+                                    "ActiveDirectoryServicePrincipal"
                                 ],
                                 "description": "%mssql.connection.authenticationType%"
                             },
@@ -1997,6 +2158,91 @@
                     },
                     "scope": "resource"
                 },
+                "mssql.quickQueries": {
+                    "type": "array",
+                    "description": "%mssql.quickQueries%",
+                    "default": [
+                        {
+                            "name": "Query 1",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 2",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 3",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 4",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 5",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 6",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 7",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 8",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 9",
+                            "query": "",
+                            "executionMode": "open"
+                        },
+                        {
+                            "name": "Query 10",
+                            "query": "",
+                            "executionMode": "open"
+                        }
+                    ],
+                    "minItems": 0,
+                    "maxItems": 10,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "%mssql.quickQueries.name%"
+                            },
+                            "query": {
+                                "type": "string",
+                                "description": "%mssql.quickQueries.query%"
+                            },
+                            "executionMode": {
+                                "type": "string",
+                                "enum": [
+                                    "open",
+                                    "openAndRun"
+                                ],
+                                "enumDescriptions": [
+                                    "%mssql.quickQueries.executionMode.open%",
+                                    "%mssql.quickQueries.executionMode.openAndRun%"
+                                ],
+                                "description": "%mssql.quickQueries.executionMode%"
+                            }
+                        }
+                    },
+                    "scope": "application"
+                },
                 "mssql.shortcuts": {
                     "type": "object",
                     "description": "%mssql.shortcuts%",
@@ -2040,6 +2286,12 @@
                     "type": "boolean",
                     "description": "%mssql.messagesDefaultOpen%",
                     "default": true,
+                    "scope": "resource"
+                },
+                "mssql.messages.copyIncludeTimestamps": {
+                    "type": "boolean",
+                    "description": "%mssql.messages.copyIncludeTimestamps%",
+                    "default": false,
                     "scope": "resource"
                 },
                 "mssql.resultsFontFamily": {
@@ -2701,7 +2953,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_schema_designer",
-                "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer for a connectionId when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
+                "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer with exactly one of connectionId or connectionName when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2724,8 +2976,13 @@
                             ]
                         },
                         "connectionId": {
-                            "description": "Connection ID to use when opening the schema designer (show operation only).",
+                            "description": "VS Code runtime connection ID to use when opening the schema designer (show operation only). Do not use this field for a ConnectionId returned by a SQL Tools MCP tool. Provide exactly one of connectionId or connectionName.",
                             "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "connectionName": {
+                            "description": "SQL Tools MCP registered connection name to use when opening the schema designer (show operation only). Pass a ConnectionId returned by a SQL Tools MCP tool in this connectionName field. Provide exactly one of connectionId or connectionName.",
+                            "title": "Connection Name",
                             "type": "string"
                         },
                         "payload": {
@@ -3645,8 +3902,17 @@
                                     ]
                                 }
                             },
-                            "required": [
-                                "connectionId"
+                            "oneOf": [
+                                {
+                                    "required": [
+                                        "connectionId"
+                                    ]
+                                },
+                                {
+                                    "required": [
+                                        "connectionName"
+                                    ]
+                                }
                             ]
                         },
                         {
@@ -3738,7 +4004,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view for a connectionId when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }.",
+                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view with exactly one of connectionId or connectionName when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled }, { type: 'set_entity_actions', entity, enabledActions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, authorizationRole, customRestPath, restEnabled, customGraphQLType, graphQLEnabled, table-only mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -3870,6 +4136,10 @@
                                         }
                                     ]
                                 },
+                                "restEnabled": {
+                                    "description": "When true, exposes the entity through REST if REST is globally enabled.",
+                                    "type": "boolean"
+                                },
                                 "customGraphQLType": {
                                     "description": "Entity GraphQL type override. Use null to clear.",
                                     "oneOf": [
@@ -3881,6 +4151,49 @@
                                             "type": "null"
                                         }
                                     ]
+                                },
+                                "graphQLEnabled": {
+                                    "description": "When true, exposes the entity through GraphQL if GraphQL is globally enabled.",
+                                    "type": "boolean"
+                                },
+                                "mcpDmlToolsEnabled": {
+                                    "description": "Table only. When true, exposes the table through generic MCP DML tools (create/read/update/delete) if MCP is globally enabled. When false, emits mcp { dml-tools: false } for the table.",
+                                    "type": "boolean"
+                                },
+                                "storedProcedureRestMethods": {
+                                    "description": "Stored procedure only. HTTP methods that can execute the stored procedure through REST. Use null to clear and use the DAB default.",
+                                    "oneOf": [
+                                        {
+                                            "type": "array",
+                                            "minItems": 1,
+                                            "uniqueItems": true,
+                                            "items": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "get",
+                                                    "post",
+                                                    "put",
+                                                    "patch",
+                                                    "delete"
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                },
+                                "storedProcedureGraphQLOperation": {
+                                    "description": "Stored procedure only. GraphQL operation kind for the stored procedure.",
+                                    "type": "string",
+                                    "enum": [
+                                        "query",
+                                        "mutation"
+                                    ]
+                                },
+                                "exposeAsMcpCustomTool": {
+                                    "description": "Stored procedure only. When true, exposes the stored procedure as a dedicated MCP custom tool and hides it from generic MCP DML tools.",
+                                    "type": "boolean"
                                 }
                             },
                             "minProperties": 1,
@@ -3899,8 +4212,14 @@
                             ]
                         },
                         "connectionId": {
-                            "description": "Connection ID to use when opening Data API builder (show operation only). Do not include for get_state/apply_changes when an active designer is already open.",
+                            "description": "VS Code runtime connection ID to use when opening Data API builder (show operation only). Do not use this field for a ConnectionId returned by a SQL Tools MCP tool. Provide exactly one of connectionId or connectionName. Do not include for get_state/apply_changes when an active designer is already open.",
                             "title": "Connection ID",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "connectionName": {
+                            "description": "SQL Tools MCP registered connection name to use when opening Data API builder (show operation only). Pass a ConnectionId returned by a SQL Tools MCP tool in this connectionName field. Provide exactly one of connectionId or connectionName. Do not include for get_state/apply_changes when an active designer is already open.",
+                            "title": "Connection Name",
                             "type": "string",
                             "minLength": 1
                         },
@@ -4104,7 +4423,7 @@
                                                         "$ref": "#/$defs/entityRef"
                                                     },
                                                     "set": {
-                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', customRestPath: 't_41', customGraphQLType: null }.",
+                                                        "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', restEnabled: true, customRestPath: 't_41', graphQLEnabled: true, customGraphQLType: null, mcpDmlToolsEnabled: true, storedProcedureRestMethods: ['post'], storedProcedureGraphQLOperation: 'mutation', exposeAsMcpCustomTool: true }. mcpDmlToolsEnabled is table-only. Stored procedure settings are only valid for stored procedures.",
                                                         "$ref": "#/$defs/advancedSettingsPatch"
                                                     }
                                                 },
@@ -4197,6 +4516,7 @@
             },
             {
                 "name": "mssql_connect",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
                 "tags": [
                     "databases",
@@ -4249,6 +4569,7 @@
             },
             {
                 "name": "mssql_disconnect",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "Disconnect from a server or specific database. Returns a success message.",
                 "tags": [
                     "databases",
@@ -4276,6 +4597,7 @@
             },
             {
                 "name": "mssql_list_servers",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "List all available MSSQL servers. Returns a list of server names.",
                 "tags": [
                     "databases",
@@ -4291,6 +4613,7 @@
             },
             {
                 "name": "mssql_list_databases",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "List all available databases for a connected MSSQL server. Returns a list of database names.",
                 "tags": [
                     "databases",
@@ -4318,6 +4641,7 @@
             },
             {
                 "name": "mssql_get_connection_details",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
                 "tags": [
                     "databases",
@@ -4346,6 +4670,7 @@
             },
             {
                 "name": "mssql_change_database",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
                 "tags": [
                     "databases",
@@ -4380,6 +4705,7 @@
             },
             {
                 "name": "mssql_list_tables",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "List all tables in a specific database for a connected MSSQL server. Returns a list of table names with schema information.",
                 "tags": [
                     "databases",
@@ -4407,6 +4733,7 @@
             },
             {
                 "name": "mssql_list_schemas",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "List all schemas in a specific database for a connected MSSQL server. Returns a list of schema names.",
                 "tags": [
                     "databases",
@@ -4435,6 +4762,7 @@
             },
             {
                 "name": "mssql_list_views",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "List all views in a specific database for a connected MSSQL server. Returns a list of view names with schema information.",
                 "tags": [
                     "databases",
@@ -4463,6 +4791,7 @@
             },
             {
                 "name": "mssql_list_functions",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "List all functions in a specific database for a connected MSSQL server. Returns a list of function names with schema information.",
                 "tags": [
                     "databases",
@@ -4491,6 +4820,7 @@
             },
             {
                 "name": "mssql_run_query",
+                "when": "!config.mssql.copilot.enableSqlToolsMcp",
                 "modelDescription": "Execute a SQL query against a connected MSSQL database. Returns query results including row count, column information, and data rows. Use this tool to run SELECT, INSERT, UPDATE, DELETE, or other SQL statements. IMPORTANT: This tool will execute ANY SQL statement provided - be extremely careful with write operations (INSERT, UPDATE, DELETE, CREATE, ALTER, DROP) as they will modify or destroy data. Always verify the query is safe before execution, especially for operations without WHERE clauses or that affect system objects.",
                 "tags": [
                     "databases",

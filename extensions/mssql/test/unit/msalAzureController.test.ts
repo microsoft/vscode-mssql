@@ -22,7 +22,7 @@ import { MsalCachePluginProvider } from "../../src/azure/msal/msalCachePlugin";
 import { MsalAzureCodeGrant } from "../../src/azure/msal/msalAzureCodeGrant";
 import { MsalAzureDeviceCode } from "../../src/azure/msal/msalAzureDeviceCode";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import {
     CloudAuthApplication,
     MsalAzureController,
@@ -40,7 +40,7 @@ suite("CloudAuthApplication Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCachePluginProvider: sinon.SinonStubbedInstance<MsalCachePluginProvider>;
     let loggerCallback: ILoggerCallback;
 

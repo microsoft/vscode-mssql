@@ -16,13 +16,13 @@ import * as LocalizedConstants from "../../../src/constants/locConstants";
 import { SqlNotebookController } from "../../../src/notebooks/sqlNotebookController";
 import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
-import type { NotebookQueryResult } from "../../../src/notebooks/notebookQueryExecutor";
+import type { HeadlessQueryResult } from "../../../src/queryExecution/headlessQueryExecutor";
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 import { IDbColumn } from "../../../src/models/interfaces";
 import { BatchSummary } from "../../../src/models/contracts/queryExecute";
 import type { NotebookQueryResultOutputData } from "../../../src/sharedInterfaces/notebookQueryResult";
 
-function makeQueryResult(overrides?: Partial<NotebookQueryResult>): NotebookQueryResult {
+function makeQueryResult(overrides?: Partial<HeadlessQueryResult>): HeadlessQueryResult {
     return {
         batches: [],
         canceled: false,
@@ -149,6 +149,10 @@ suite("SqlNotebookController", () => {
         sb.stub(vscode.notebooks, "createNotebookController").returns(
             mockController as unknown as vscode.NotebookController,
         );
+        sb.stub(vscode.notebooks, "createRendererMessaging").returns({
+            onDidReceiveMessage: sb.stub().returns({ dispose: sb.stub() }),
+            postMessage: sb.stub().resolves(true),
+        } as unknown as vscode.NotebookRendererMessaging);
         sb.stub(vscode.window, "createStatusBarItem").returns(
             mockStatusBarItem as unknown as vscode.StatusBarItem,
         );
@@ -465,7 +469,7 @@ suite("SqlNotebookController", () => {
             const executionTimeBlock = output.blocks[2];
             expect(executionTimeBlock).to.deep.equal({
                 type: "text",
-                text: LocalizedConstants.elapsedTimeLabel("00:00:02"),
+                text: LocalizedConstants.elapsedTimeLabel("00:00:02.000"),
             });
         });
 
@@ -876,6 +880,10 @@ suite("SqlNotebookController", () => {
             sandbox
                 .stub(vscode.notebooks, "createNotebookController")
                 .returns(mockController as unknown as vscode.NotebookController);
+            sandbox.stub(vscode.notebooks, "createRendererMessaging").returns({
+                onDidReceiveMessage: sandbox.stub().returns({ dispose: sandbox.stub() }),
+                postMessage: sandbox.stub().resolves(true),
+            } as unknown as vscode.NotebookRendererMessaging);
             sandbox
                 .stub(vscode.window, "createStatusBarItem")
                 .returns(mockStatusBarItem as unknown as vscode.StatusBarItem);

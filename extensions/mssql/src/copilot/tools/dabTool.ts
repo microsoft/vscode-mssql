@@ -15,11 +15,12 @@ import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { Dab } from "../../sharedInterfaces/dab";
 import { matchesStrictTargetHint, ToolTargetHint } from "./toolsUtils";
+import { resolveToolConnectionReference } from "./toolConnectionResolver";
 
 type DabToolOperation = "show" | "get_state" | "apply_changes";
 
 export type DabToolParams =
-    | { operation: "show"; connectionId: string }
+    | { operation: "show"; connectionId?: string; connectionName?: string }
     | { operation: "get_state" }
     | {
           operation: "apply_changes";
@@ -206,30 +207,25 @@ export class DabTool extends ToolBase<DabToolParams> {
 
         try {
             if (operation === "show") {
-                const { connectionId } = options.input;
-                if (!connectionId) {
+                const resolvedConnection = resolveToolConnectionReference(
+                    options.input,
+                    this._connectionManager,
+                );
+                if ("reason" in resolvedConnection) {
                     const err: DabToolError = {
                         success: false,
-                        reason: "invalid_request",
-                        message: loc.dabToolMissingConnectionId,
+                        reason: resolvedConnection.reason,
+                        message: resolvedConnection.message,
                     };
                     sendToolTelemetry({ operation, success: false, reason: err.reason });
                     return json(err);
                 }
 
-                const connInfo = this._connectionManager.getConnectionInfo(connectionId);
-                const connCreds = connInfo?.credentials;
-                if (!connCreds) {
-                    const err: DabToolError = {
-                        success: false,
-                        reason: "invalid_request",
-                        message: loc.noConnectionError(connectionId),
-                    };
-                    sendToolTelemetry({ operation, success: false, reason: err.reason });
-                    return json(err);
-                }
-
-                const designer = await this._showDab(connectionId, connCreds.database);
+                const connCreds = resolvedConnection.connectionInfo.credentials;
+                const designer = await this._showDab(
+                    resolvedConnection.ownerUri,
+                    connCreds.database,
+                );
                 sendToolTelemetry({
                     operation,
                     success: true,
