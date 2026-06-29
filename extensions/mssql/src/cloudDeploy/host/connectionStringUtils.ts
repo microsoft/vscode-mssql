@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — pure connection-string helpers (Scope 2).
+ * Cloud Deploy — pure connection-string helpers.
  *
  * Kept separate from the vscode-mssql host glue so the string logic can be
  * unit-tested without pulling in `ConnectionManager`.

@@ -18,7 +18,7 @@
  * validator needs streaming or richer IPC, that's a wider abstraction —
  * not a change to this surface.
  *
- * Cancellation is `AbortSignal`-based to match the rest of D2 (the runner,
+ * Cancellation is `AbortSignal`-based to match the rest of the engine (the runner,
  * the connection provider, every validator). On abort, `LiveProcessProvider`
  * sends `SIGTERM`, then `SIGKILL` after a short grace window. The resulting
  * `ProcessResult.exitCode` is `null` when the child was killed by signal;

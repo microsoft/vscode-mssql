@@ -139,7 +139,7 @@ export class RunArtifactReader {
  * The Phase-3 artifact layout is small (manifest + optional events.jsonl)
  * so buffering all entries upfront is fine; it also keeps the public
  * surface simple — neither `read()` nor `readEvents()` has to thread a
- * live zip handle around. If artifacts grow in a future deliverable (e.g.
+ * live zip handle around. If artifacts grow later (e.g.
  * per-validation files), this is the obvious extraction point for
  * a streaming entry iterator.
  */
@@ -176,7 +176,7 @@ function readZipEntries(buffer: Buffer, artifactPath: string): Promise<Map<strin
             zipfile.on("end", () => resolve(entries));
 
             zipfile.on("entry", (entry: yauzl.Entry) => {
-                // Skip directories — Phase 3 layout is flat, and a stray
+                // Skip directories — the layout is flat, and a stray
                 // directory entry in a malformed artifact must not stall
                 // the reader.
                 if (/\/$/.test(entry.fileName)) {

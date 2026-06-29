@@ -6,17 +6,16 @@
 /**
  * Cloud Deploy — host-agnostic file providers.
  *
- * Phase 3 introduces a narrow `FileProvider` interface so the run-artifact
- * writer and reader can be exercised against an in-memory fake without ever
- * touching disk. The local Node.js implementation lives here (`LocalFileProvider`)
- * and gives the production code path real fs semantics, including an atomic
- * `writeFileAtomic` (temp + rename) that mirrors the pattern already used by
- * the environments file layer.
+ * A narrow `FileProvider` interface lets the run-artifact writer and reader be
+ * exercised against an in-memory fake without ever touching disk. The local
+ * Node.js implementation lives here (`LocalFileProvider`) and gives the
+ * production code path real fs semantics, including an atomic `writeFileAtomic`
+ * (temp + rename) that mirrors the pattern already used by the environments
+ * file layer.
  *
- * The interface is intentionally small: just the few operations the writer
- * and reader need. Later phases (notably D2's Local + GitHub artifact
- * providers and Phase 4a's broader store wiring) will expand it as required;
- * additive growth keeps the contract honest.
+ * The interface is intentionally small: just the few operations the writer and
+ * reader need. Future providers (e.g. a GitHub-backed artifact provider) will
+ * expand it as required; additive growth keeps the contract honest.
  */
 
 import { promises as fs } from "fs";
@@ -115,17 +114,17 @@ function randomSuffix(): string {
 }
 
 // =============================================================================
-// LocalSchemaSourceReader (Scope 2)
+// LocalSchemaSourceReader
 // =============================================================================
 
-/** Schema source-file extensions hashed for a `.sqlproj` (decision D-A). */
+/** Schema source-file extensions hashed for a `.sqlproj`. */
 const SCHEMA_SOURCE_EXTENSIONS: ReadonlySet<string> = new Set([".sql", ".sqlproj"]);
 
-/** Build-output directories excluded from the schema hash (decision D-A). */
+/** Build-output directories excluded from the schema hash. */
 const BUILD_OUTPUT_DIRECTORIES: ReadonlySet<string> = new Set(["bin", "obj"]);
 
 /**
- * Production `SchemaSourceReader` (Scope 2, decision D-A) backed by
+ * Production `SchemaSourceReader` backed by
  * `node:fs/promises`. Recursively enumerates a `.sqlproj`'s schema source
  * files (`.sql` + `.sqlproj`), excluding `bin/` and `obj/` build output, and
  * returns each as a `SchemaFile` carrying a project-relative, forward-slash

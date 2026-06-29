@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — schema-to-dacpac resolver (Scope 2).
+ * Cloud Deploy — schema-to-dacpac resolver.
  *
  * One chokepoint that turns any `SourceOfTruth` into a `.dacpac` path the
  * ephemeral-database providers publish into the throwaway database. Shared by

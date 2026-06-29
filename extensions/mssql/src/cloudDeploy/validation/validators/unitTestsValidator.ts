@@ -8,7 +8,7 @@
  *
  * Runs the tSQLt test framework against the env's live target and produces
  * a `ValidationResult` whose `payload` is a `UnitTestsPayload`. Reuses the
- * `ConnectionProvider` abstraction shipped in commit 2 — no new provider
+ * `ConnectionProvider` abstraction — no new provider
  * surface lands here.
  *
  * Behavior summary:
@@ -89,10 +89,10 @@ export class UnitTestsValidator implements Validator<ValidationType.UnitTests> {
         // Cheap pre-check so a caller-cancelled run exits before any query.
         throwIfCancelled(opts.signal);
 
-        // Scope 2 (decision D-C): unit tests run against the per-run ephemeral
+        // Unit tests run against the per-run ephemeral
         // database the runner provisioned and seeded, handed in via
         // `opts.ephemeralConnection`. The validator no longer opens or owns a
-        // connection — the runner provisions one DB per run (M6) and disposes
+        // connection — the runner provisions one DB per run and disposes
         // it. When no ephemeral connection is present (e.g. the runtime host
         // could not be provisioned), there is nothing to run against.
         const handle = opts.ephemeralConnection;
@@ -148,7 +148,7 @@ export class UnitTestsValidator implements Validator<ValidationType.UnitTests> {
             throw err;
         }
         // No `finally` disposal: the runner owns the ephemeral database's
-        // lifecycle and disposes it once after every validator has run (M6).
+        // lifecycle and disposes it once after every validator has run.
     }
 }
 

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — runtime-host dispatcher (Scope 2).
+ * Cloud Deploy — runtime-host dispatcher.
  *
  * Routes a `provision()` call to the right `EphemeralDatabaseProvider` by the
  * runtime host the run resolved to: `docker` → the tool-managed container

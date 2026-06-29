@@ -17,7 +17,7 @@
  *      branching at the call site.
  *   2. Dispatches the run via the runner. Cancellation, timeouts, and bus
  *      events are the runner's job; this layer only hands the env in.
- *   3. Optionally persists the produced `RunRecord` via D3's
+ *   3. Optionally persists the produced `RunRecord` via the
  *      `RunArtifactWriter`. Persistence failures are surfaced via the
  *      `runArtifactPath?` field on the result; the run's own status is
  *      not downgraded — a successful validation that fails to persist is

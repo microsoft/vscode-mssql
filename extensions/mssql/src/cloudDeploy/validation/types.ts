@@ -84,7 +84,7 @@ export interface Validator<TType extends ValidationType = ValidationType> {
 
     /**
      * Run the validation against the given environment. The returned
-     * `ValidationResult` is in D3's canonical shape and is appended verbatim
+     * `ValidationResult` is in the canonical run-record shape and is appended verbatim
      * to the run's `validations` array by the runner.
      */
     run(
@@ -112,7 +112,7 @@ export interface ValidatorRunOptions {
     readonly bus?: DiagnosticEventSink;
     /**
      * Connection to the per-run ephemeral database the runner provisioned and
-     * seeded for this run (Scope 2, decisions D-C / M6). Present only when the
+     * seeded for this run. Present only when the
      * runner stood one up (i.e. a runtime validator is enabled and an ephemeral
      * provider is wired); `undefined` for static-analysis-only runs and any
      * context with no ephemeral provider. Runtime validators (unit tests,
@@ -121,8 +121,8 @@ export interface ValidatorRunOptions {
      */
     readonly ephemeralConnection?: ConnectionHandle;
     /**
-     * Per-step metrics from the run-based performance baseline (Scope 2,
-     * decision M9): the measured steps of the most-recent earlier run of this
+     * Per-step metrics from the run-based performance baseline: the measured
+     * steps of the most-recent earlier run of this
      * environment whose schema differed. The workload validator compares its
      * fresh measurements against these to flag regressions. `undefined` when
      * there is no prior run to baseline against (e.g. the first run), in which

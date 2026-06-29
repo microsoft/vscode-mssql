@@ -12,7 +12,7 @@
  * `DiagnosticEvent` is a CLOSED discriminated union. Subscribers narrow by
  * the `type` discriminator, which gives them the right `payload` shape with
  * no manual casts. The bus class (`eventBus.ts`) is generic over this union,
- * so adding a new event in a future deliverable is purely additive — only
+ * so adding a new event later is purely additive — only
  * this file changes; the bus class and barrel never do.
  *
  * Payloads carry ids and counts, not domain objects. Events end up in logs
@@ -172,11 +172,11 @@ export interface ErrorEvent extends DiagnosticEventEnvelope {
 }
 
 // =============================================================================
-// Validation runner lifecycle (D2)
+// Validation runner lifecycle
 // =============================================================================
 
 /**
- * D2's validation runner emits run- and validation-level lifecycle events so
+ * The validation runner emits run- and validation-level lifecycle events so
  * the output channel, progress UI, and future telemetry can observe a run
  * without polling. `correlationId` on every arm carries the `runId` so a
  * subscriber can stitch events from a single run together.

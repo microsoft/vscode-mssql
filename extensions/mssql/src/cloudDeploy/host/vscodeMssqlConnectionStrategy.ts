@@ -14,7 +14,7 @@
  *
  * `VsCodeMssqlEphemeralConnector.connect(params, signal)` opens a
  * `ConnectionHandle` to a freshly-provisioned per-run ephemeral database
- * (Scope 2, decision D-C) by raw connection parameters (host / port / sa
+ * by raw connection parameters (host / port / sa
  * credentials), rather than a saved connection profile — the ephemeral
  * container has no profile. It mints a per-attempt owner URI and calls
  * `ConnectionManager.connect(..., { shouldHandleErrors: false })`
@@ -56,7 +56,7 @@ const SimpleExecuteRequest = new RequestType<SimpleExecuteParams, SimpleExecuteR
 );
 
 /**
- * Production `EphemeralConnector` (Scope 2, decision D-C) backed by vscode-mssql's
+ * Production `EphemeralConnector` backed by vscode-mssql's
  * `ConnectionManager`. Opens a `ConnectionHandle` to a freshly-provisioned
  * ephemeral database by raw connection parameters (host / port / sa credentials),
  * rather than a saved connection profile — the ephemeral container has no profile.
@@ -200,7 +200,7 @@ class VsCodeMssqlConnectionHandle implements ConnectionHandle {
 const DEFAULT_SQLCMD_COMMAND = "sqlcmd";
 
 /**
- * Production `ConnectionHostGateway` (Scope 2): the host glue the connection
+ * Production `ConnectionHostGateway`: the host glue the connection
  * runtime host depends on. Turns a saved connection-profile id into the
  * concrete capabilities `ConnectionEphemeralDatabaseProvider` needs — a live
  * `ConnectionHandle` (to `master` and to the throwaway database), a connection

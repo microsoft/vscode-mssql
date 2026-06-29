@@ -30,8 +30,8 @@
  *     produces the correct `RunRecord` \u2014 the bus is the announcement
  *     channel, not the contract.
  *   - **No persistence.** The runner does not call the run-artifact writer.
- *     The service layer (commit 6) writes the returned `RunRecord` through
- *     D3's writer when the caller opts in.
+ *     The service layer writes the returned `RunRecord` through
+ *     the run-artifact writer when the caller opts in.
  */
 
 import { randomUUID } from "crypto";
@@ -86,21 +86,21 @@ export interface RunnerRunOptions {
 }
 
 /**
- * Scope 2 runtime dependencies the runner uses to build, seed, and identify the
- * per-run ephemeral database (decisions D-A / D-C / D-D). All optional: when
- * omitted the runner behaves exactly as in Scope 1 (no provisioning, no
+ * Runtime dependencies the runner uses to build, seed, and identify the
+ * per-run ephemeral database. All optional: when
+ * omitted the runner behaves as it would without them (no provisioning, no
  * source-version stamping) — so a static-analysis-only run, a test, or a CLI
  * harness needs none of them.
  */
 export interface RunnerRuntimeDeps {
-    /** Stands up / tears down the per-run ephemeral database (decision D-C). */
+    /** Stands up / tears down the per-run ephemeral database. */
     readonly ephemeralProvider?: EphemeralDatabaseProvider;
-    /** Seeds the ephemeral database from the env's data-generator script (decision D-D). */
+    /** Seeds the ephemeral database from the env's data-generator script. */
     readonly dataGenerator?: DataGenerator;
-    /** Computes the run's source-schema identity hash (decision D-A). */
+    /** Computes the run's source-schema identity hash. */
     readonly schemaHasher?: SchemaHasher;
     /**
-     * Resolves the run-based performance baseline (decision M9): the measured
+     * Resolves the run-based performance baseline: the measured
      * workload steps of the most-recent earlier run of this environment whose
      * schema hash differs from `currentSourceVersionHash`. Returns `undefined`
      * when there is no comparable predecessor (e.g. the first run), in which
@@ -142,12 +142,12 @@ export class Runner {
 
         this._emitRunStarted(runId, env, dispatchOrder);
 
-        // Scope 2 (decision D-A): identify the source schema this run validated.
+        // Identify the source schema this run validated.
         // Best-effort — an unsupported source kind leaves the run unstamped
         // rather than failing it.
         const sourceVersion = await this._computeSourceVersion(env);
 
-        // Scope 2 (decision M9): resolve the run-based performance baseline up
+        // Resolve the run-based performance baseline up
         // front (only when a workload validator is enabled) so the workload
         // validator can compare its fresh measurements against the prior run.
         const workloadBaseline = await this._resolveWorkloadBaseline(
@@ -163,8 +163,8 @@ export class Runner {
         let provisionError: unknown;
 
         try {
-            // Scope 2 (decisions D-C / M6): provision ONE ephemeral database per
-            // run when a runtime validator is enabled, then seed it once (D-D).
+            // Provision ONE ephemeral database per
+            // run when a runtime validator is enabled, then seed it once.
             // A provisioning failure is captured and surfaced on the runtime
             // validators below rather than aborting the whole run.
             if (this._needsEphemeralDatabase(dispatchOrder)) {
@@ -218,7 +218,7 @@ export class Runner {
                     continue;
                 }
 
-                // Scope 2: when provisioning failed, surface the real reason on
+                // When provisioning failed, surface the real reason on
                 // the connectivity gate (it is the provision health-check) and
                 // mark the runtime validators Errored — they have no database to
                 // run against.
@@ -291,11 +291,11 @@ export class Runner {
     }
 
     // -------------------------------------------------------------------------
-    // Scope 2 — ephemeral database + source identity
+    // Ephemeral database + source identity
     // -------------------------------------------------------------------------
 
     /**
-     * Computes the run's `SourceVersion` (decision D-A) when a schema hasher is
+     * Computes the run's `SourceVersion` when a schema hasher is
      * wired. Best-effort: an unsupported source-of-truth kind (or any hashing
      * failure) yields `undefined` so the run proceeds unstamped rather than
      * failing — the hash is metadata, not a gate.
@@ -327,7 +327,7 @@ export class Runner {
      * and seeds it with the data-generator script (when one is configured and a
      * generator is wired). The runtime host is taken from the first enabled
      * runtime validator that declares one, defaulting to a tool-managed Docker
-     * container (decision D-C).
+     * container.
      */
     private async _provisionAndSeed(
         env: Environment,
@@ -367,7 +367,7 @@ export class Runner {
     }
 
     /**
-     * Resolves the run-based performance baseline (decision M9) for this run.
+     * Resolves the run-based performance baseline for this run.
      * Only meaningful when a workload validator is enabled and a lookup is
      * wired; otherwise returns `undefined`. Best-effort: a lookup failure
      * leaves the workload validator without a baseline (it records its raw
@@ -581,11 +581,11 @@ function isPass(status: ValidationStatus): boolean {
 }
 
 // =============================================================================
-// Scope 2 — runtime-validator helpers
+// Runtime-validator helpers
 // =============================================================================
 
 /**
- * The runtime validators (decision D-C): they execute against the per-run
+ * The runtime validators: they execute against the per-run
  * ephemeral database the runner provisions. Static analysis and connectivity
  * are not runtime validators in this sense (static analysis builds the schema;
  * connectivity is the provision health-check / gate).
@@ -596,8 +596,8 @@ function isRuntimeValidator(type: ValidationType): boolean {
 
 /**
  * Validators that consume the per-run ephemeral connection: the runtime
- * validators PLUS connectivity (which, in Scope 2, is the health check that the
- * database was provisioned and is reachable — decision M7). Static analysis is
+ * validators PLUS connectivity (which is the health check that the
+ * database was provisioned and is reachable). Static analysis is
  * the only validator that needs no database, so it is excluded.
  */
 function usesEphemeralConnection(type: ValidationType): boolean {
@@ -607,7 +607,7 @@ function usesEphemeralConnection(type: ValidationType): boolean {
 /**
  * Picks the runtime host for the per-run ephemeral database: the first enabled
  * runtime validator that declares a `runtimeHost`, defaulting to a tool-managed
- * Docker container (decision D-C). One database per run (M6), so one host.
+ * Docker container. One database per run, so one host.
  */
 function resolveRuntimeHost(dispatchOrder: readonly ValidationConfig[]): RuntimeHostConfig {
     for (const config of dispatchOrder) {
@@ -646,7 +646,7 @@ function makeProvisionErroredResult(
 }
 
 /**
- * Connectivity result when provisioning failed (decision M7): connectivity is
+ * Connectivity result when provisioning failed: connectivity is
  * the provision health-check, so a provisioning failure surfaces here as a
  * `Failed` result whose finding carries the REAL underlying reason — not the
  * generic "could not be provisioned" message the validator emits when it simply

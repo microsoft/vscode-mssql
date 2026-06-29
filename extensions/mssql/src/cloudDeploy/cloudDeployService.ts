@@ -16,7 +16,7 @@
  * live at absolute paths, not under `.mssql/`, so they don't depend on a
  * workspace folder to be readable or writable.
  *
- * `validation` is the D2 surface: `service.validation.run(envId, opts)`
+ * `validation` is the validation surface: `service.validation.run(envId, opts)`
  * dispatches every enabled validation declared on the env and returns the
  * produced `RunRecord`. The service owns the registry, the runner, and
  * the output channel subscription so callers don't reconstruct any of it
@@ -65,7 +65,7 @@ import { LiveRunSummary } from "../sharedInterfaces/cloudDeployHub";
  * Run-artifact I/O surface attached to the service. The `writer` and
  * `reader` share the same `FileProvider`; the writer also shares the
  * service's diagnostic bus so success / failure events reach existing
- * subscribers automatically. `store` (D3-Part-2) is the cached projection
+ * subscribers automatically. `store` is the cached projection
  * the dashboard tree provider and hub webview consume; it is `undefined`
  * when no workspace folder is open (the runs directory is workspace-scoped).
  */
@@ -83,8 +83,8 @@ export interface CloudDeployRunsApi {
  */
 export interface CloudDeployServiceOptions {
     /**
-     * Opens a connection to a freshly-provisioned ephemeral database (Scope 2,
-     * decision D-C). Production wiring (in `mainController`) supplies
+     * Opens a connection to a freshly-provisioned ephemeral database.
+     * Production wiring (in `mainController`) supplies
      * `VsCodeMssqlEphemeralConnector`; tests omit it. When omitted, the runtime
      * validators (unit tests, workload) are skipped because no ephemeral
      * database can be stood up — the rest of the pipeline still functions.
@@ -92,7 +92,7 @@ export interface CloudDeployServiceOptions {
     readonly ephemeralConnector?: EphemeralConnector;
 
     /**
-     * Host glue for the `connection` runtime host (Scope 2): borrow an existing
+     * Host glue for the `connection` runtime host: borrow an existing
      * SQL engine reached by a saved connection profile to stand up the throwaway
      * database, instead of a tool-managed Docker container. Production wiring
      * (in `mainController`) supplies `VsCodeMssqlConnectionHostGateway`; tests
@@ -123,7 +123,7 @@ function resolveSystemDacpacsLocation(): string | undefined {
 }
 
 /**
- * Builds the runtime-host-dispatching `EphemeralDatabaseProvider` (Scope 2):
+ * Builds the runtime-host-dispatching `EphemeralDatabaseProvider`:
  * `docker` always available (tool-managed container), `connection` available
  * only when the host gateway is wired (borrow an existing SQL engine). The
  * live-database source-of-truth resolver is derived from the same gateway and
@@ -163,7 +163,7 @@ function buildEphemeralProvider(
 /**
  * Maximum number of run artifacts retained in `.mssql/runs/`. Older runs are
  * pruned by the `RunStore` on each scan so the directory does not grow without
- * bound. Resolves D3-Part-2 TBD-3 (run retention).
+ * bound.
  */
 const DEFAULT_RUN_RETENTION = 50;
 
@@ -230,7 +230,7 @@ export class CloudDeployService implements vscode.Disposable {
             staticAnalysis: { systemDacpacsLocation: resolveSystemDacpacsLocation() },
         });
 
-        // Scope 2 (decisions D-A / D-C / D-D): runtime dependencies the runner
+        // Runtime dependencies the runner
         // uses to build, seed, and identify the per-run ephemeral database. The
         // ephemeral provider is only wired when the host supplies an
         // `ephemeralConnector` (the vscode-mssql connection stack); without one
@@ -357,7 +357,7 @@ export class CloudDeployService implements vscode.Disposable {
 // =============================================================================
 
 /**
- * Builds the runner's `workloadBaselineLookup` (Scope 2, decision M9) over a
+ * Builds the runner's `workloadBaselineLookup` over a
  * `RunStore`. Given the current run's environment id and schema hash, it picks
  * the most-recent earlier run of that environment whose schema differed
  * (`selectBaselineRun`) and returns that run's measured workload steps. The

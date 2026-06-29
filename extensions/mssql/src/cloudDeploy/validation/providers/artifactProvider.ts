@@ -16,11 +16,11 @@
  * artifact as a `Buffer`, `exists(uri)` is a cheap pre-flight. There is no
  * write path: validators consume artifacts, they do not produce them. The
  * production implementation (`LiveArtifactProvider`) delegates to the same
- * `FileProvider` abstraction that backs D3's run-artifact reader / writer,
+ * `FileProvider` abstraction that backs the run-artifact reader / writer,
  * so the slice has a single I/O abstraction shared by every consumer.
  *
- * The `uri` parameter is a string-typed local file path in Scope 1. A future
- * Scope-2 `GitHubArtifactProvider` slots into the same interface and parses
+ * The `uri` parameter is a string-typed local file path. A future
+ * `GitHubArtifactProvider` slots into the same interface and parses
  * `gh://owner/repo/run/{id}/artifacts/{name}`-style URIs without any change
  * to the consumer (`WorkloadPlaybackValidator`) or the contract.
  *
@@ -78,7 +78,7 @@ export class ArtifactNotFoundError extends Error {
 /**
  * Production implementation. Treats `uri` as an absolute or workspace-relative
  * local file path and delegates I/O to the injected `FileProvider`. The
- * `FileProvider` is the same interface D3's run-artifact writer/reader uses,
+ * `FileProvider` is the same interface the run-artifact writer/reader uses,
  * so the production stack has a single fs seam.
  *
  * Relative `uri`s are resolved against `_baseDir` (the workspace-folder

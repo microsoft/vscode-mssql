@@ -82,7 +82,7 @@ export class EnvironmentsFileParseError extends Error {
 const ID_PATTERN = /^[a-z0-9][a-z0-9_-]*$/i;
 
 /**
- * Runtime-host config (Scope 2, decision D-C): where a runtime validator stands
+ * Runtime-host config: where a runtime validator stands
  * up the per-run ephemeral database. `docker` = tool-managed throwaway
  * container; `connection` = borrow an existing SQL engine by profile.
  */
@@ -100,7 +100,7 @@ const RuntimeHostSchema = z.discriminatedUnion("kind", [
 const SettingsSchema = z.object({}).passthrough();
 
 /**
- * Runtime-validator settings carry an optional `runtimeHost` (Scope 2). Other
+ * Runtime-validator settings carry an optional `runtimeHost`. Other
  * fields pass through unchanged for forward-compat.
  */
 const RuntimeValidatorSettingsSchema = z

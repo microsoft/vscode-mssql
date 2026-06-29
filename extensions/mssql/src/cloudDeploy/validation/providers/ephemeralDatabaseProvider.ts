@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — `EphemeralDatabaseProvider` abstraction (Scope 2, decision D-C).
+ * Cloud Deploy — `EphemeralDatabaseProvider` abstraction.
  *
  * Host-agnostic seam for "build a throwaway database from a schema, hand back a
- * connection to it, then destroy it." This is the shift decision D-C locked: the
+ * connection to it, then destroy it." This is the shift: the
  * user no longer maintains a live container; instead each run *conjures* a
  * database from the schema, validates against it, and disposes it. The same flow
  * runs locally (Docker present) and in CI (the platform provides the SQL host),
  * which is the "reduce code differences" payoff.
  *
- * The runner provisions ONE ephemeral database per run (decision M6), seeds it
- * with the data-generator script (decision M5, a runner step — NOT done here),
+ * The runner provisions ONE ephemeral database per run, seeds it
+ * with the data-generator script (a runner step — NOT done here),
  * then hands the connection to the runtime validators. The provider's only job
  * is `provision()` → an `EphemeralDatabase` whose `dispose()` tears everything
  * down.
@@ -176,7 +176,7 @@ const IN_CONTAINER_SQLCMD = "/opt/mssql-tools18/bin/sqlcmd";
 /**
  * Production `EphemeralDatabaseProvider` backed by a throwaway Docker container.
  *
- * `provision()` flow (decision D-C): generate a unique container name + strong
+ * `provision()` flow: generate a unique container name + strong
  * password → `docker run` the SQL image on `hostPort` → poll until the server
  * accepts connections → create the target database → build the schema into a
  * dacpac (for a `.sqlproj`) or use the dacpac directly → `sqlpackage publish`

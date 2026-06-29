@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — RunStore (D3-Part-2 / TBD-3 resolution).
+ * Cloud Deploy — RunStore.
  *
  * Cache + CRUD facade over `.mssql/runs/*.cdrun.zip`. Wraps `RunArtifactReader`
  * with an in-memory listing cache and exposes the four verbs the dashboard
@@ -92,7 +92,7 @@ export class LocalRunsDirectoryReader implements RunsDirectoryReader {
  * Retention policy for the runs directory. When `maxRuns` is a positive
  * integer, `scan()` prunes the oldest artifacts (by `startedAtMs`) so at most
  * `maxRuns` survive. A value of `0` or `undefined` disables pruning — every
- * artifact is retained. Resolves D3-Part-2 TBD-3.
+ * artifact is retained.
  */
 export interface RunRetentionPolicy {
     readonly maxRuns?: number;

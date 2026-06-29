@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — run comparison (D3-Part-2 / TBD-5 resolution).
+ * Cloud Deploy — run comparison.
  *
  * Pure, side-effect-free diff between two `RunRecord`s. Given two runs — the
  * same environment at different times, or two different environments — it

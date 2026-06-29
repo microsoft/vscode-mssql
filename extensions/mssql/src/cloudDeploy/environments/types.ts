@@ -53,7 +53,7 @@ export enum SourceOfTruthKind {
 /**
  * Where the schema for this env comes from. Discriminated union: exactly one
  * variant is set per env. Validators must reject any other shape. The schema
- * is always the source of truth (Scope 2, decision D-E) — the per-run
+ * is always the source of truth — the per-run
  * ephemeral database is built from it; a live container is no longer a source
  * of truth (it is, at most, a validator's runtime host via `RuntimeHostConfig`).
  *
@@ -68,17 +68,17 @@ export type SourceOfTruth =
     | { kind: SourceOfTruthKind.Connection; connectionProfileId: string };
 
 // =============================================================================
-// Runtime host (Scope 2)
+// Runtime host
 // =============================================================================
 
 /**
- * Where a runtime validator stands up the per-run ephemeral database (Scope 2,
- * decision D-C). This is distinct from `SourceOfTruth`: the source of truth is
+ * Where a runtime validator stands up the per-run ephemeral database. This is
+ * distinct from `SourceOfTruth`: the source of truth is
  * *what schema to build*; the runtime host is *where to run the throwaway DB
  * built from that schema*.
  *
  *   * `docker` — the tool spins up and tears down a throwaway SQL Server
- *     container itself (the D1 default; the user only needs Docker present).
+ *     container itself (the user only needs Docker present).
  *   * `connection` — the tool borrows an existing SQL engine (reached by a
  *     saved connection profile) and creates / drops a throwaway database on it.
  *
@@ -109,7 +109,7 @@ export interface StaticAnalysisSettings {
 export interface UnitTestsSettings {
     /**
      * Where to stand up the per-run ephemeral database the tSQLt suite runs
-     * against (Scope 2, decision D-C). When omitted, the runner's default host
+     * against. When omitted, the runner's default host
      * is used. Unit tests run against the same ephemeral database the runner
      * provisions once per run.
      */
@@ -119,14 +119,14 @@ export interface UnitTestsSettings {
 export interface WorkloadPlaybackSettings {
     /**
      * Where to stand up the per-run ephemeral database the workload runs
-     * against (Scope 2, decision D-C). When omitted, the runner's default host
+     * against. When omitted, the runner's default host
      * is used.
      */
     runtimeHost?: RuntimeHostConfig;
     /**
      * Workload-spec artifact location: a JSON document `{ steps: [{ id, query,
      * iterations? }] }` describing the queries to time against the per-run
-     * ephemeral database (Scope 2). In Scope 1 this is an absolute or
+     * ephemeral database. This is an absolute or
      * workspace-relative local file path (resolved by the host); a future
      * `GitHubArtifactProvider` reuses the same field with a `gh://` URI.
      */
@@ -193,8 +193,8 @@ export interface Environment {
     sourceOfTruth: SourceOfTruth;
     /**
      * Path to a hand-authored data-generator SQL script that seeds the per-run
-     * ephemeral database before the runtime validators run (Scope 2, decision
-     * D-D). One script per environment, shared by the runtime validators;
+     * ephemeral database before the runtime validators run. One script per
+     * environment, shared by the runtime validators;
      * re-run fresh on every run so workload measurements stay comparable.
      * Absolute or workspace-relative; resolved by the host. When omitted,
      * workload playback is skipped (no data to measure) and unit tests rely on

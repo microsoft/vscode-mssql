@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy Hub controller (D3-Part-2 commit 3).
+ * Cloud Deploy Hub controller.
  *
  * Owns the single shared `vscode.WebviewPanel` that renders the Cloud Deploy
  * dashboard. Subscribes to `EnvironmentStore.onDidChangeEnvironments` and

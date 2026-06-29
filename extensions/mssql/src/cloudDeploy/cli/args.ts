@@ -25,11 +25,11 @@ export interface CliArgs {
     readonly outPath: string;
     /** Source-path resolution root. Defaults to the config file's grandparent. */
     readonly workspaceRoot?: string;
-    /** Git commit SHA the run validated (stamped on the record in D2.4). */
+    /** Git commit SHA the run validated (reserved; not yet used). */
     readonly sourceCommit?: string;
-    /** PR number / ref the run validated (stamped on the record in D2.4). */
+    /** PR number / ref the run validated (reserved; not yet used). */
     readonly sourceRef?: string;
-    /** Baseline `.cdrun.zip` to diff against (wired in D2.4). */
+    /** Baseline `.cdrun.zip` to diff against (reserved; not yet used). */
     readonly baselinePath?: string;
 }
 
@@ -63,9 +63,9 @@ Required:
 
 Options:
   --workspace <dir>     Source-path root (default: the config file's grandparent)
-  --source-commit <sha> Git commit SHA the run validated (stamped in D2.4)
-  --source-ref <ref>    PR number / ref the run validated (stamped in D2.4)
-  --baseline <path>     Baseline .cdrun.zip to diff against (wired in D2.4)
+  --source-commit <sha> Git commit SHA the run validated (reserved; not yet used)
+  --source-ref <ref>    PR number / ref the run validated (reserved; not yet used)
+  --baseline <path>     Baseline .cdrun.zip to diff against (reserved; not yet used)
   -h, --help            Print this help and exit
 
 Exit codes:

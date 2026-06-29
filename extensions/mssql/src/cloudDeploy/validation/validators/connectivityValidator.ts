@@ -52,7 +52,7 @@ import { ConnectionError } from "../providers/connectionProvider";
  * The probe query. `@@VERSION` is preferred over `SELECT 1` because the
  * server-version string is itself a useful artifact (rendered by the UI as
  * "connected to SQL Server 2022 (16.0.x)") and the latency cost is small
- * (~50ms vs ~10ms — see deliverable2.md TBD-10).
+ * (~50ms vs ~10ms).
  */
 const PROBE_SQL = "SELECT @@VERSION";
 
@@ -83,11 +83,11 @@ export class ConnectivityValidator implements Validator<ValidationType.Connectiv
         // Cheap pre-check so a caller-cancelled run exits before any query.
         throwIfCancelled(opts.signal);
 
-        // Scope 2 (decision M7): connectivity is now the health check for the
+        // Connectivity is now the health check for the
         // per-run ephemeral database the runner provisioned. When the runner
         // could not stand one up, `opts.ephemeralConnection` is absent — that is
-        // the provisioning failure, surfaced here as a Failed result, which (as
-        // in Scope 1) GATES the remaining validations.
+        // the provisioning failure, surfaced here as a Failed result, which
+        // GATES the remaining validations.
         const handle = opts.ephemeralConnection;
         if (handle === undefined) {
             return buildFailedResult(

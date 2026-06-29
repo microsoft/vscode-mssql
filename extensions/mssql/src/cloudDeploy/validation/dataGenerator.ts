@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — data generator (Scope 2, decisions D-D / M5).
+ * Cloud Deploy — data generator.
  *
  * Seeds a freshly-provisioned ephemeral database with dummy data by running the
  * environment's hand-authored data-generator SQL script. Owned by the runner as
- * a step AFTER provisioning and BEFORE the runtime validators (M5): the runner
+ * a step AFTER provisioning and BEFORE the runtime validators: the runner
  * provisions once per run, seeds once, then hands the seeded connection to
  * workload playback (which needs the volume) and unit tests (which may use it).
  *
- * Re-run fresh on every run so workload measurements stay comparable (D-D): the
+ * Re-run fresh on every run so workload measurements stay comparable: the
  * same data each time means a latency difference reflects a SCHEMA change, not a
  * data change.
  *

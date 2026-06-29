@@ -98,8 +98,8 @@ const RunnerIdentitySchema = z
     .passthrough();
 
 /**
- * Mirror of `SourceVersion` (Scope 2, decision D-A). `.optional()` on the
- * record because artifacts written before Scope 2 predate the field; always
+ * Mirror of `SourceVersion`. `.optional()` on the
+ * record because older artifacts predate the field; always
  * written on new runs. Unknown fields pass through for forward-compat.
  */
 const SourceVersionSchema = z

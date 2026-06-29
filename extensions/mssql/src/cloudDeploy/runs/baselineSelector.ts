@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — baseline selector (Scope 2, decisions D-B / M8).
+ * Cloud Deploy — baseline selector.
  *
  * After a run finishes, the auto-diff feature compares it against a baseline:
  * the most recent EARLIER run of the same environment whose schema hash DIFFERS

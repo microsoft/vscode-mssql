@@ -41,7 +41,7 @@ export const RUN_RECORD_SCHEMA_VERSION = 1 as const;
  * Overall status of a run, computed by collapsing all per-validation statuses
  * via `RUN_STATUS_PRIORITY` (worst wins). Listed least- to most-severe.
  *
- * `Cancelled` was added in D2: user-cancelled and timed-out runs surface a
+ * `Cancelled` was added later: user-cancelled and timed-out runs surface a
  * real status arm instead of a string-matched `errorMessage`. Ranked between
  * `Skipped` and `Warning` — worse than skipping intentionally, better than
  * finding a real warning.
@@ -251,9 +251,9 @@ export interface WorkloadPlaybackPayload {
         readonly regressions: number;
     };
     /**
-     * The per-step metrics this run actually measured (Scope 2). Recorded so a
+     * The per-step metrics this run actually measured. Recorded so a
      * later run can use this run as its performance baseline (the run-based
-     * baseline, decision M9) — comparing "is my schema slower than the last
+     * baseline) — comparing "is my schema slower than the last
      * version I validated?" without a hand-maintained baseline file. Absent on
      * runs that predate in-process measurement.
      */
@@ -261,7 +261,7 @@ export interface WorkloadPlaybackPayload {
 }
 
 /**
- * A single step's measured metrics (Scope 2). All metric fields optional so a
+ * A single step's measured metrics. All metric fields optional so a
  * step that only timed latency compares cleanly without synthesizing data.
  */
 export interface WorkloadObservedStep {
@@ -309,7 +309,7 @@ export interface ValidationResult {
 // =============================================================================
 
 /**
- * Identity of the source schema a run validated (Scope 2, decision D-A).
+ * Identity of the source schema a run validated.
  *
  * `hash` is a content fingerprint of the schema source files (the universal
  * identity that lets runs be told apart and grouped: same schema -> same hash).
@@ -347,9 +347,9 @@ export interface RunRecord {
     readonly environmentSnapshot: Environment;
     readonly runner: RunnerIdentity;
     /**
-     * Identity of the source schema this run validated (Scope 2, decision D-A).
-     * Optional in the type because run artifacts written before Scope 2 predate
-     * the field; always written on new runs.
+     * Identity of the source schema this run validated.
+     * Optional in the type because older run artifacts predate the field;
+     * always written on new runs.
      */
     readonly sourceVersion?: SourceVersion;
     readonly startedAtMs: number;
@@ -383,7 +383,7 @@ export interface RunListEntry {
     readonly endedAtMs: number;
     readonly artifactPath: string;
     /**
-     * The schema content hash this run validated (Scope 2, decision D-A), when
+     * The schema content hash this run validated, when
      * present. Surfaced on the summary so the auto-diff baseline selector can
      * find the most recent earlier run with a different hash without re-reading
      * every artifact. Absent for runs that predate source-version stamping.

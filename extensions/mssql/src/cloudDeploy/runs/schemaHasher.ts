@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — schema hasher (Scope 2, decision D-A).
+ * Cloud Deploy — schema hasher.
  *
  * Computes a stable content fingerprint of a schema source so each run can be
  * stamped with a `SourceVersion`. The hash is the universal identity that lets
@@ -24,7 +24,7 @@
  * files: paths are sorted (project-relative, forward-slash normalized) and file
  * content is line-ending-normalized (CRLF/CR → LF, leading BOM stripped). That
  * keeps the hash identical for the same content on Windows and in CI — the
- * local↔CI bridge that decision D-A relies on.
+ * local↔CI bridge this enables.
  */
 
 import { createHash } from "crypto";

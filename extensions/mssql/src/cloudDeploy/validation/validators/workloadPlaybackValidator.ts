@@ -8,9 +8,9 @@
  *
  * Loads a workload spec via the injected `ArtifactProvider`, then measures
  * each step IN-PROCESS by timing its query against the per-run ephemeral
- * database the runner provisioned (Scope 2, decision D-C). Each step is run
+ * database the runner provisioned. Each step is run
  * a few times and the median latency is recorded. The fresh measurements are
- * compared to a RUN-BASED baseline (decision M9): the measured steps of the
+ * compared to a RUN-BASED baseline: the measured steps of the
  * most-recent earlier run of this environment whose schema differed, injected
  * by the runner via `opts.workloadBaseline`. One finding is emitted per step
  * whose latency regressed beyond its threshold.
@@ -132,7 +132,7 @@ export class WorkloadPlaybackValidator implements Validator<ValidationType.Workl
         const startedAtMs = Date.now();
         throwIfCancelled(opts.signal);
 
-        // Scope 2 (decision D-C): workload runs against the per-run ephemeral
+        // Workload runs against the per-run ephemeral
         // database the runner provisioned + seeded. No live connection means
         // there is nothing to measure.
         const connection = opts.ephemeralConnection;
@@ -201,7 +201,7 @@ export class WorkloadPlaybackValidator implements Validator<ValidationType.Workl
 
         const observedSteps = toObservedSteps(observed);
 
-        // Run-based baseline (decision M9): compare against the prior run's
+        // Run-based baseline: compare against the prior run's
         // measured steps. With no baseline (first run) we record the
         // measurements but flag no regression.
         const baseline = opts.workloadBaseline;
@@ -481,7 +481,7 @@ function buildComparisonResult(
         },
         observedSteps,
     };
-    // Decision D-? (Scope 2): a performance regression is a *signal*, not a
+    // A performance regression is a *signal*, not a
     // hard failure. Perf cost is a judgment call — a dev may knowingly add an
     // expensive feature — so we surface the delta as a Warning rather than
     // blocking the run with a Failed.

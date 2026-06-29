@@ -7,7 +7,7 @@
  * Cloud Deploy — `ConnectionHandle` abstraction.
  *
  * Host-agnostic seam for "execute a probe query against an open SQL
- * connection." Scope 2 (decision D-C) provisions a per-run ephemeral database
+ * connection." The runner provisions a per-run ephemeral database
  * and hands validators a `ConnectionHandle` to it via
  * `ValidatorRunOptions.ephemeralConnection`; the handle exposes
  * `execute(sql, signal)` for probe queries and `dispose()` for cleanup. No

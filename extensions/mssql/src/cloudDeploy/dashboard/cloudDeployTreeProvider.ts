@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — activity-bar tree provider (D3-Part-2 commit 2).
+ * Cloud Deploy — activity-bar tree provider.
  *
  * Renders a single section under the "SQL Server" activity bar:
  *
@@ -21,7 +21,7 @@
  * Invoking a leaf fires the appropriate command (defined in package.json):
  *
  *   * Environment leaf → `mssql.cloudDeploy.validateEnvironment` (existing
- *     D2 surface — runs validation on that env).
+ *     validation surface — runs validation on that env).
  *   * Run leaf → `mssql.cloudDeploy.openRun` (opens the run in the hub).
  *
  * Right-click context menus add "Refresh runs" on the view title.

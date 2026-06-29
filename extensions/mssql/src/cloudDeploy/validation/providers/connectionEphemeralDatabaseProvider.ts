@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Cloud Deploy — connection-backed `EphemeralDatabaseProvider` (Scope 2).
+ * Cloud Deploy — connection-backed `EphemeralDatabaseProvider`.
  *
  * The non-Docker runtime host: instead of spinning up a throwaway SQL Server
  * container, this provider borrows a SQL engine the developer already has
