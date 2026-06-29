@@ -12,13 +12,9 @@ import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { workspaceTargets } from "./workspace-targets.mjs";
 
-const EXTENSIONS = [
-    "mssql",
-    "sql-database-projects",
-    "data-workspace",
-    "database-management-keymap",
-];
+const EXTENSIONS = workspaceTargets.map((t) => path.basename(t.directory));
 
 const USAGE = "Usage: node scripts/stamp-prerelease-version.mjs <buildId> --label <label>";
 
@@ -77,10 +73,7 @@ function main() {
         const newVersion = `${currentVersion}-${label}.${buildId}+${shortHash}`;
         console.log(`Updating ${packagePath}: ${currentVersion} -> ${newVersion}`);
 
-        const updated = original.replace(
-            /"version"\s*:\s*"[^"]+"/,
-            `"version": "${newVersion}"`,
-        );
+        const updated = original.replace(/"version"\s*:\s*"[^"]+"/, `"version": "${newVersion}"`);
 
         if (updated === original) {
             throw new Error(`Failed to update version field in ${packagePath}`);
