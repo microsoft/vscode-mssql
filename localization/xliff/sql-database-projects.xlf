@@ -517,9 +517,6 @@
     <trans-unit id="++CODE++b8af01973b469e78a8e41c0d546c9b4010b0bfe11f9322f2a448db6a034eab48">
       <source xml:lang="en">No stable versions of {0} found matching {1}.</source>
     </trans-unit>
-    <trans-unit id="++CODE++04a45a5d991230fe59fb51f64ed9b47a612423ca42a4708999e4789ae3055f0e">
-      <source xml:lang="en">No stable versions of {0} found matching {1}. Falling back to {2}.</source>
-    </trans-unit>
     <trans-unit id="++CODE++b9594558be6542faa968aced22d890827c17bb8f852db18c8642093756b72da2">
       <source xml:lang="en">No {0} found</source>
     </trans-unit>
@@ -630,9 +627,6 @@
     </trans-unit>
     <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
       <source xml:lang="en">Reset all variables</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f80c5bc37d4b6c6c6568988e3fb4093d4bece4bca735852114ca860647d156d2">
-      <source xml:lang="en">Resolved {0} ș {1}</source>
     </trans-unit>
     <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
       <source xml:lang="en">Revert values to project defaults</source>

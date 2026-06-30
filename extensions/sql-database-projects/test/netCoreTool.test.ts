@@ -201,10 +201,8 @@ suite("NetCoreTool: Net core tests", function (): void {
                 const versions = callCount === 1 ? ["3.0.0"] : ["2.0.0", "2.1.0"];
                 return { status: 200, data: { versions } };
             });
-            const showWarnStub = sandbox.stub(vscode.window, "showWarningMessage");
             const result = await resolveNugetVersion("Microsoft.Build.Sql", "4.*");
             expect(result).to.equal("2.1.0");
-            expect(showWarnStub.calledOnce).to.be.true;
         });
 
         test("Should throw when network error occurs and no fallback available", async function (): Promise<void> {

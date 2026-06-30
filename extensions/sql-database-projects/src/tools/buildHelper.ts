@@ -135,12 +135,9 @@ export class BuildHelper {
         nugetFolderWithExpectedfiles: string,
         outputChannel: vscode.OutputChannel,
     ): Promise<boolean> {
-        // Resolve NuGet floating versions (e.g. "2.*") to an exact version via the NuGet v3 API
-        // before constructing the download URL, which requires an exact version.
         if (utils.isValidMicrosoftBuildSqlVersion(nugetVersion)) {
             try {
                 nugetVersion = await resolveNugetVersion(nugetName, nugetVersion);
-                outputChannel.appendLine(constants.nugetVersionResolved(nugetName, nugetVersion));
             } catch (e) {
                 nugetVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
                 const fallbackMessage = constants.couldNotResolveNugetVersion(

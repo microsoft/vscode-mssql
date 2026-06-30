@@ -145,7 +145,6 @@ export class ProjectsController {
 
         const sqlProjectsService = await utils.getSqlProjectsService();
 
-        // Resolve floating NuGet version to an exact version. Fall back gracefully if offline/proxy.
         let microsoftBuildSqlSDKStyleDefaultVersion: string;
         try {
             microsoftBuildSqlSDKStyleDefaultVersion = await resolveNugetVersion(

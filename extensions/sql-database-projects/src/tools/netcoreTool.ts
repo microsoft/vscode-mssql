@@ -19,7 +19,6 @@ import {
     UpdateDotnetLocation,
     loc0ErroredOut1,
     microsoftBuildSqlVersionKey,
-    nugetVersionResolutionFallbackWarning,
     nugetVersionResolutionFailed,
     nugetIndexFetchFailed,
 } from "../common/constants";
@@ -37,26 +36,13 @@ export const macPlatform = "darwin";
 export const linuxPlatform = "linux";
 export const minSupportedNetCoreVersionForBuild = "8.0.0";
 
-/**
- * Default Microsoft.Build.Sql version. Uses a NuGet floating version so that projects and
- * legacy DLL downloads always target the latest 2.x release. To upgrade to 3.x in the future,
- * change only this constant (and the matching default in package.json).
- */
+/** Default Microsoft.Build.Sql floating version. Change to target a different major. */
 export const FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.*";
 
-/**
- * Exact version used when NuGet resolution fails (offline / proxy). Kept in sync with the
- * latest known-good 2.x release so projects created offline are immediately buildable.
- */
+/** Exact fallback version used when NuGet resolution fails (offline/proxy). */
 export const OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.2.0";
 
-/**
- * Returns the configured Microsoft.Build.Sql version.
- * Accepts both exact semver versions and NuGet floating versions (e.g. "2.*").
- * When a floating version is returned, callers that construct NuGet download URLs must resolve
- * it to an exact version first via the NuGet v3 index API.
- * Falls back to FALLBACK_MICROSOFT_BUILD_SQL_VERSION if the user-configured value is absent or invalid.
- */
+/** Returns the configured Microsoft.Build.Sql version, falling back to FALLBACK_MICROSOFT_BUILD_SQL_VERSION. */
 export function getMicrosoftBuildSqlVersion(): string {
     const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
     const configured = config.get<string>(microsoftBuildSqlVersionKey)?.trim();
@@ -70,10 +56,7 @@ export function getMicrosoftBuildSqlVersion(): string {
     return FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
 }
 
-/**
- * Thrown by resolveFloatingVersion() when the package exists on NuGet but has no stable
- * releases matching the requested version prefix. Distinct from network / HTTP failures.
- */
+/** Thrown when no stable NuGet versions match the requested version prefix. */
 export class NoMatchingNugetVersionError extends Error {
     constructor(message: string) {
         super(message);
@@ -81,56 +64,29 @@ export class NoMatchingNugetVersionError extends Error {
     }
 }
 
-/**
- * Resolves a NuGet floating version (e.g. "2.*", "2.1.*") to the latest matching stable
- * exact version by querying the NuGet v3 flat-container index.
- * If the version is already exact (valid semver), it is returned as-is.
- * If the requested floating version has no matching stable releases on NuGet
- * (NoMatchingNugetVersionError), falls back to FALLBACK_MICROSOFT_BUILD_SQL_VERSION and
- * shows a VS Code warning. Network / proxy failures are re-thrown immediately without a
- * warning so callers can show a single, actionable message.
- */
+/** Resolves a floating NuGet version to the latest matching stable release. Exact versions are returned as-is. Throws on network failure. */
 export async function resolveNugetVersion(packageName: string, version: string): Promise<string> {
     if (semver.valid(version)) {
-        return version; // Already exact — nothing to resolve.
+        return version;
     }
 
     try {
         return await resolveFloatingVersion(packageName, version);
     } catch (e) {
-        // Only fall back when there are simply no matching stable versions (e.g. user entered
-        // "4.*" but only 2.x and 3.x exist). For network / proxy / HTTP errors, re-throw
-        // immediately so the caller can show a single couldNotResolveNugetVersion message.
         if (
             e instanceof NoMatchingNugetVersionError &&
             version !== FALLBACK_MICROSOFT_BUILD_SQL_VERSION
         ) {
-            void vscode.window.showWarningMessage(
-                nugetVersionResolutionFallbackWarning(
-                    packageName,
-                    version,
-                    FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
-                ),
-            );
             return resolveFloatingVersion(packageName, FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
         }
-        throw e; // Re-throw network/HTTP failures (or fallback version with no match).
+        throw e;
     }
 }
 
-/**
- * Core NuGet v3 index lookup — resolves a floating version prefix to the latest stable exact
- * version. Uses the extension's HttpClient (proxy + strictSSL aware) with a 10 s timeout.
- * Throws if no match is found or the network call fails.
- */
+/** Resolves a floating version prefix to the latest stable exact version via the NuGet v3 API. */
 async function resolveFloatingVersion(packageName: string, version: string): Promise<string> {
-    // "2.*" → prefix "2."   |   "2.1.*" → prefix "2.1."
-    const prefix = version.slice(0, version.lastIndexOf("*"));
     const indexUrl = `https://api.nuget.org/v3-flatcontainer/${packageName.toLowerCase()}/index.json`;
 
-    // Use HttpClient.setupRequest to pick up VS Code proxy + strictSSL configuration.
-    // setupRequest may return a modified URL (e.g. with an explicit port for certain proxies),
-    // so we must use the returned url rather than the original indexUrl.
     const { requestUrl: resolvedUrl, config } = new HttpClient().setupRequest(indexUrl);
     config.timeout = 10_000;
 
@@ -139,11 +95,9 @@ async function resolveFloatingVersion(packageName: string, version: string): Pro
         throw new Error(nugetIndexFetchFailed(packageName, response.status));
     }
 
-    // Stable versions only (no pre-release), matching the prefix, pick the last (highest).
-    const matching = response.data.versions.filter((v) => v.startsWith(prefix) && !v.includes("-"));
-
-    if (matching.length > 0) {
-        return matching[matching.length - 1];
+    const resolved = semver.maxSatisfying(response.data.versions, version);
+    if (resolved) {
+        return resolved;
     }
 
     throw new NoMatchingNugetVersionError(nugetVersionResolutionFailed(packageName, version));

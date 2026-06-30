@@ -18,15 +18,13 @@ import { SystemDatabase } from "./typeHelper";
 import { DeploymentScenario } from "./enums";
 
 /**
- * Returns true if the version string is a NuGet floating version ("2.*" or "2.1.*").
- * Does NOT accept exact semver — callers should check semver.valid() separately.
+ * Returns true if version is a valid NuGet floating version ("2.*" or "2.1.*").
  */
 export function isValidMicrosoftBuildSqlVersion(version: string): boolean {
-    // Accept "N.*" or "N.M.*" floating versions only.
     if (!version.endsWith(".*")) {
         return false;
     }
-    const parts = version.slice(0, -2).split("."); // strip ".*", split remainder
+    const parts = version.slice(0, -2).split(".");
     if (parts.length < 1 || parts.length > 2) {
         return false;
     }
