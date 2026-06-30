@@ -22,7 +22,6 @@ import {
     nugetVersionResolutionFallbackWarning,
 } from "../common/constants";
 import * as utils from "../common/utils";
-import { isValidMicrosoftBuildSqlVersion } from "../common/utils";
 import { ShellCommandOptions, ShellExecutionHelper } from "./shellExecutionHelper";
 
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
@@ -59,7 +58,10 @@ export const OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.2.0";
 export function getMicrosoftBuildSqlVersion(): string {
     const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
     const configured = config.get<string>(microsoftBuildSqlVersionKey)?.trim();
-    if (configured && (semver.valid(configured) || isValidMicrosoftBuildSqlVersion(configured))) {
+    if (
+        configured &&
+        (semver.valid(configured) || utils.isValidMicrosoftBuildSqlVersion(configured))
+    ) {
         return configured;
     }
 

@@ -25,7 +25,6 @@ import {
     resolveNugetVersion,
     OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
 } from "../tools/netcoreTool";
-import { couldNotResolveNugetVersion } from "../common/constants";
 import { BuildHelper } from "../tools/buildHelper";
 import {
     ISystemDatabaseReferenceSettings,
@@ -156,7 +155,7 @@ export class ProjectsController {
         } catch (e) {
             microsoftBuildSqlSDKStyleDefaultVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
             void vscode.window.showWarningMessage(
-                couldNotResolveNugetVersion(
+                constants.couldNotResolveNugetVersion(
                     utils.getErrorMessage(e),
                     microsoftBuildSqlSDKStyleDefaultVersion,
                 ),
