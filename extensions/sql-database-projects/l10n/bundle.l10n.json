@@ -305,6 +305,7 @@
     "Error extracting files from {0}. Error: {1}": "Error extracting files from {0}. Error: {1}",
     "No stable versions of {0} found matching {1}. Falling back to {2}.": "No stable versions of {0} found matching {1}. Falling back to {2}.",
     "No stable versions of {0} found matching {1}.": "No stable versions of {0} found matching {1}.",
+    "Failed to fetch NuGet index for {0}: HTTP {1}": "Failed to fetch NuGet index for {0}: HTTP {1}",
     "Resolved {0} ș {1}": "Resolved {0} ș {1}",
     "Could not resolve Microsoft.Build.Sql version from NuGet ({0}). Using {1}.": "Could not resolve Microsoft.Build.Sql version from NuGet ({0}). Using {1}.",
     "Only moving files and folders are supported": "Only moving files and folders are supported",

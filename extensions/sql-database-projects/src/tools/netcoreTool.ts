@@ -20,6 +20,8 @@ import {
     loc0ErroredOut1,
     microsoftBuildSqlVersionKey,
     nugetVersionResolutionFallbackWarning,
+    nugetVersionResolutionFailed,
+    nugetIndexFetchFailed,
 } from "../common/constants";
 import * as utils from "../common/utils";
 import { ShellCommandOptions, ShellExecutionHelper } from "./shellExecutionHelper";
@@ -69,12 +71,24 @@ export function getMicrosoftBuildSqlVersion(): string {
 }
 
 /**
+ * Thrown by resolveFloatingVersion() when the package exists on NuGet but has no stable
+ * releases matching the requested version prefix. Distinct from network / HTTP failures.
+ */
+export class NoMatchingNugetVersionError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "NoMatchingNugetVersionError";
+    }
+}
+
+/**
  * Resolves a NuGet floating version (e.g. "2.*", "2.1.*") to the latest matching stable
  * exact version by querying the NuGet v3 flat-container index.
  * If the version is already exact (valid semver), it is returned as-is.
- * If the requested floating version has no matching stable releases on NuGet, falls back to
- * FALLBACK_MICROSOFT_BUILD_SQL_VERSION and shows a VS Code warning.
- * Throws only if the fallback also cannot be resolved.
+ * If the requested floating version has no matching stable releases on NuGet
+ * (NoMatchingNugetVersionError), falls back to FALLBACK_MICROSOFT_BUILD_SQL_VERSION and
+ * shows a VS Code warning. Network / proxy failures are re-thrown immediately without a
+ * warning so callers can show a single, actionable message.
  */
 export async function resolveNugetVersion(packageName: string, version: string): Promise<string> {
     if (semver.valid(version)) {
@@ -84,8 +98,13 @@ export async function resolveNugetVersion(packageName: string, version: string):
     try {
         return await resolveFloatingVersion(packageName, version);
     } catch (e) {
-        // The requested version (e.g. "4.*") has no stable matches — fall back to the default.
-        if (version !== FALLBACK_MICROSOFT_BUILD_SQL_VERSION) {
+        // Only fall back when there are simply no matching stable versions (e.g. user entered
+        // "4.*" but only 2.x and 3.x exist). For network / proxy / HTTP errors, re-throw
+        // immediately so the caller can show a single couldNotResolveNugetVersion message.
+        if (
+            e instanceof NoMatchingNugetVersionError &&
+            version !== FALLBACK_MICROSOFT_BUILD_SQL_VERSION
+        ) {
             void vscode.window.showWarningMessage(
                 nugetVersionResolutionFallbackWarning(
                     packageName,
@@ -95,7 +114,7 @@ export async function resolveNugetVersion(packageName: string, version: string):
             );
             return resolveFloatingVersion(packageName, FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
         }
-        throw e; // Re-throw original error (network failure, parse error, etc.)
+        throw e; // Re-throw network/HTTP failures (or fallback version with no match).
     }
 }
 
@@ -110,12 +129,14 @@ async function resolveFloatingVersion(packageName: string, version: string): Pro
     const indexUrl = `https://api.nuget.org/v3-flatcontainer/${packageName.toLowerCase()}/index.json`;
 
     // Use HttpClient.setupRequest to pick up VS Code proxy + strictSSL configuration.
-    const { config } = new HttpClient().setupRequest(indexUrl);
+    // setupRequest may return a modified URL (e.g. with an explicit port for certain proxies),
+    // so we must use the returned url rather than the original indexUrl.
+    const { requestUrl: resolvedUrl, config } = new HttpClient().setupRequest(indexUrl);
     config.timeout = 10_000;
 
-    const response = await axios.get<{ versions: string[] }>(indexUrl, config);
+    const response = await axios.get<{ versions: string[] }>(resolvedUrl, config);
     if (response.status !== 200) {
-        throw new Error(`Failed to fetch NuGet index for ${packageName}: HTTP ${response.status}`);
+        throw new Error(nugetIndexFetchFailed(packageName, response.status));
     }
 
     // Stable versions only (no pre-release), matching the prefix, pick the last (highest).
@@ -125,7 +146,7 @@ async function resolveFloatingVersion(packageName: string, version: string): Pro
         return matching[matching.length - 1];
     }
 
-    throw new Error(`No stable versions of ${packageName} found matching ${version}`);
+    throw new NoMatchingNugetVersionError(nugetVersionResolutionFailed(packageName, version));
 }
 
 export const enum netCoreInstallState {

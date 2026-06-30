@@ -961,6 +961,9 @@ export function nugetVersionResolutionFallbackWarning(
 export function nugetVersionResolutionFailed(packageName: string, version: string) {
     return l10n.t("No stable versions of {0} found matching {1}.", packageName, version);
 }
+export function nugetIndexFetchFailed(packageName: string, status: number) {
+    return l10n.t("Failed to fetch NuGet index for {0}: HTTP {1}", packageName, status);
+}
 export function nugetVersionResolved(packageName: string, version: string) {
     return l10n.t("Resolved {0} \u2192 {1}", packageName, version);
 }
