@@ -9,11 +9,12 @@ import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import {
     SchemaCompareReducers,
     SchemaCompareWebViewState,
+    SchemaUpdateAction,
 } from "../../../../sharedInterfaces/schemaCompare";
-import { Divider, makeStyles, tokens } from "@fluentui/react-components";
+import { Divider, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { locConstants as loc } from "../../../common/locConstants";
 import { VscodeDiffEditor } from "../../../common/vscodeMonaco";
-import * as mssql from "vscode-mssql";
+import { getAggregatedScript, groupConstraintChildrenByAction } from "./compareDiffEditorUtils";
 import "./compareDiffEditor.css";
 
 const useStyles = makeStyles({
@@ -35,34 +36,20 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
+    affectedChildrenContainer: {
+        // Subtle banner above the diff editor that lists the names of the diff's
+        // hierarchical-child changes (constraints under a table, columns under a view, etc.)
+        // so the user can see what other objects this diff will touch when applied.
+        padding: "4px 12px",
+        backgroundColor: tokens.colorNeutralBackground2,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    affectedChildrenLine: {
+        display: "block",
+        fontSize: "12px",
+        lineHeight: "1.5",
+    },
 });
-
-const getAggregatedScript = (diff: mssql.DiffEntry, getSourceScript: boolean): string => {
-    let script = "";
-    if (diff !== null) {
-        let diffScript = getSourceScript
-            ? formatScript(diff.sourceScript)
-            : formatScript(diff.targetScript);
-        if (diffScript) {
-            script += diffScript + "\n\n";
-        }
-
-        diff.children.forEach((child) => {
-            let childScript = getAggregatedScript(child, getSourceScript);
-            script += childScript;
-        });
-    }
-
-    return script;
-};
-
-const formatScript = (script: string): string => {
-    if (!script) {
-        return "";
-    }
-
-    return script;
-};
 
 interface Props {
     selectedDiffId: number;
@@ -102,6 +89,11 @@ const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
             };
         }, []);
 
+        const affectedChildrenByAction = groupConstraintChildrenByAction(diff);
+        const hasAffectedChildren = (Object.values(affectedChildrenByAction) as string[][]).some(
+            (names) => names && names.length > 0,
+        );
+
         return (
             <div ref={ref} className={classes.editorContainer}>
                 <div className={classes.dividerContainer}>
@@ -109,6 +101,34 @@ const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
                         {loc.schemaCompare.compareDetails}
                     </Divider>
                 </div>
+                {hasAffectedChildren && (
+                    <div
+                        className={classes.affectedChildrenContainer}
+                        role="region"
+                        aria-label={loc.schemaCompare.affectedChildrenRegionLabel}>
+                        {affectedChildrenByAction[SchemaUpdateAction.Add]?.length ? (
+                            <Text className={classes.affectedChildrenLine}>
+                                {loc.schemaCompare.affectedChildrenAdded(
+                                    affectedChildrenByAction[SchemaUpdateAction.Add]!.join(", "),
+                                )}
+                            </Text>
+                        ) : null}
+                        {affectedChildrenByAction[SchemaUpdateAction.Change]?.length ? (
+                            <Text className={classes.affectedChildrenLine}>
+                                {loc.schemaCompare.affectedChildrenChanged(
+                                    affectedChildrenByAction[SchemaUpdateAction.Change]!.join(", "),
+                                )}
+                            </Text>
+                        ) : null}
+                        {affectedChildrenByAction[SchemaUpdateAction.Delete]?.length ? (
+                            <Text className={classes.affectedChildrenLine}>
+                                {loc.schemaCompare.affectedChildrenDropped(
+                                    affectedChildrenByAction[SchemaUpdateAction.Delete]!.join(", "),
+                                )}
+                            </Text>
+                        ) : null}
+                    </div>
+                )}
                 <VscodeDiffEditor
                     height="100%"
                     language="sql"
