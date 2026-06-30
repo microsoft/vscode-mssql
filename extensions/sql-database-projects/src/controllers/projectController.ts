@@ -23,7 +23,9 @@ import {
     DotNetError,
     getMicrosoftBuildSqlVersion,
     resolveNugetVersion,
+    OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
 } from "../tools/netcoreTool";
+import { couldNotResolveNugetVersion } from "../common/constants";
 import { BuildHelper } from "../tools/buildHelper";
 import {
     ISystemDatabaseReferenceSettings,
@@ -143,10 +145,23 @@ export class ProjectsController {
         }
 
         const sqlProjectsService = await utils.getSqlProjectsService();
-        const microsoftBuildSqlSDKStyleDefaultVersion = await resolveNugetVersion(
-            "Microsoft.Build.Sql",
-            getMicrosoftBuildSqlVersion(),
-        );
+
+        // Resolve floating NuGet version to an exact version. Fall back gracefully if offline/proxy.
+        let microsoftBuildSqlSDKStyleDefaultVersion: string;
+        try {
+            microsoftBuildSqlSDKStyleDefaultVersion = await resolveNugetVersion(
+                "Microsoft.Build.Sql",
+                getMicrosoftBuildSqlVersion(),
+            );
+        } catch (e) {
+            microsoftBuildSqlSDKStyleDefaultVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
+            void vscode.window.showWarningMessage(
+                couldNotResolveNugetVersion(
+                    utils.getErrorMessage(e),
+                    microsoftBuildSqlSDKStyleDefaultVersion,
+                ),
+            );
+        }
         const projectStyle = creationParams.sdkStyle
             ? mssqlVscode.ProjectType.SdkStyle
             : mssqlVscode.ProjectType.LegacyStyle;

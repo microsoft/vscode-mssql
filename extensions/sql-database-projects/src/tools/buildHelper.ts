@@ -7,11 +7,17 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { promises as fs } from "fs";
 import * as utils from "../common/utils";
+import { isValidMicrosoftBuildSqlVersion } from "../common/utils";
 import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
-import { getMicrosoftBuildSqlVersion, resolveNugetVersion } from "./netcoreTool";
+import {
+    getMicrosoftBuildSqlVersion,
+    resolveNugetVersion,
+    OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
+} from "./netcoreTool";
+import { nugetVersionResolved, couldNotResolveNugetVersion } from "../common/constants";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
@@ -133,15 +139,16 @@ export class BuildHelper {
     ): Promise<boolean> {
         // Resolve NuGet floating versions (e.g. "2.*") to an exact version via the NuGet v3 API
         // before constructing the download URL, which requires an exact version.
-        if (/^\d+(\.\d+)*\.\*$/.test(nugetVersion)) {
+        if (isValidMicrosoftBuildSqlVersion(nugetVersion)) {
             try {
                 nugetVersion = await resolveNugetVersion(nugetName, nugetVersion);
-                outputChannel.appendLine(`Resolved ${nugetName} \u2192 ${nugetVersion}`);
+                outputChannel.appendLine(nugetVersionResolved(nugetName, nugetVersion));
             } catch (e) {
-                const errorMessage = utils.getErrorMessage(e);
-                outputChannel.appendLine(errorMessage);
-                void vscode.window.showErrorMessage(errorMessage);
-                return false;
+                nugetVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
+                outputChannel.appendLine(nugetVersionResolved(nugetName, nugetVersion));
+                void vscode.window.showWarningMessage(
+                    couldNotResolveNugetVersion(utils.getErrorMessage(e), nugetVersion),
+                );
             }
         }
 

@@ -6,11 +6,10 @@
 import { expect } from "chai";
 import * as os from "os";
 import * as fs from "fs";
-import * as https from "https";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import { EventEmitter } from "events";
+import axios from "axios";
 import {
     NetCoreTool,
     DBProjectConfigurationKey,
@@ -164,31 +163,21 @@ suite("NetCoreTool: Net core tests", function (): void {
     });
 
     suite("resolveNugetVersion tests", function (): void {
-        let getStub: sinon.SinonStub;
+        let axiosGetStub: sinon.SinonStub;
 
         setup(function (): void {
-            getStub = sandbox.stub(https, "get");
+            axiosGetStub = sandbox.stub(axios, "get");
         });
 
         function stubNugetResponse(versions: string[]): void {
-            const responseEmitter = new EventEmitter() as EventEmitter & {
-                statusCode: number;
-            };
-            (responseEmitter as any).statusCode = 200;
-            const reqEmitter = new EventEmitter();
-            getStub.callsFake((_url: string, callback: (res: EventEmitter) => void) => {
-                callback(responseEmitter);
-                responseEmitter.emit("data", JSON.stringify({ versions }));
-                responseEmitter.emit("end");
-                return reqEmitter;
-            });
+            axiosGetStub.resolves({ status: 200, data: { versions } });
         }
 
         test("Should return exact version unchanged", async function (): Promise<void> {
             // No network call expected for exact versions
             const result = await resolveNugetVersion("Microsoft.Build.Sql", "2.1.0");
             expect(result).to.equal("2.1.0");
-            expect(getStub.callCount).to.equal(0);
+            expect(axiosGetStub.callCount).to.equal(0);
         });
 
         test("Should resolve floating version to latest matching stable", async function (): Promise<void> {
@@ -207,15 +196,10 @@ suite("NetCoreTool: Net core tests", function (): void {
             // First call returns no matching versions (for "4.*")
             // Second call (fallback to "2.*") returns matching versions
             let callCount = 0;
-            getStub.callsFake((_url: string, callback: (res: EventEmitter) => void) => {
+            axiosGetStub.callsFake(async () => {
                 callCount++;
-                const responseEmitter = new EventEmitter();
-                const reqEmitter = new EventEmitter();
-                callback(responseEmitter);
                 const versions = callCount === 1 ? ["3.0.0"] : ["2.0.0", "2.1.0"];
-                responseEmitter.emit("data", JSON.stringify({ versions }));
-                responseEmitter.emit("end");
-                return reqEmitter;
+                return { status: 200, data: { versions } };
             });
             const showWarnStub = sandbox.stub(vscode.window, "showWarningMessage");
             const result = await resolveNugetVersion("Microsoft.Build.Sql", "4.*");
@@ -224,11 +208,7 @@ suite("NetCoreTool: Net core tests", function (): void {
         });
 
         test("Should throw when network error occurs and no fallback available", async function (): Promise<void> {
-            const reqEmitter = new EventEmitter();
-            getStub.callsFake((_url: string, _callback: (res: EventEmitter) => void) => {
-                setImmediate(() => reqEmitter.emit("error", new Error("network failure")));
-                return reqEmitter;
-            });
+            axiosGetStub.rejects(new Error("network failure"));
             // Use FALLBACK version so no second fallback attempt
             try {
                 await resolveNugetVersion(

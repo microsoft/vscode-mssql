@@ -178,6 +178,9 @@
     <trans-unit id="++CODE++ca12a489ee27330e29481a6063c5aca387cf6eca3843f7731f588826b61b0d85">
       <source xml:lang="en">Could not build project. Error retrieving files needed to build.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a825010793e6d8794cb4b894abc9f023e00cda27bc1ba9b486c5e6dedaaa64b1">
+      <source xml:lang="en">Could not resolve Microsoft.Build.Sql version from NuGet ({0}). Using {1}.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
       <source xml:lang="en">Create</source>
     </trans-unit>
@@ -508,6 +511,12 @@
     <trans-unit id="++CODE++3579208a7b43a25bc936763f617afcbd477eca466e85cc62c381423149058572">
       <source xml:lang="en">No data sources in this project</source>
     </trans-unit>
+    <trans-unit id="++CODE++b8af01973b469e78a8e41c0d546c9b4010b0bfe11f9322f2a448db6a034eab48">
+      <source xml:lang="en">No stable versions of {0} found matching {1}.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04a45a5d991230fe59fb51f64ed9b47a612423ca42a4708999e4789ae3055f0e">
+      <source xml:lang="en">No stable versions of {0} found matching {1}. Falling back to {2}.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b9594558be6542faa968aced22d890827c17bb8f852db18c8642093756b72da2">
       <source xml:lang="en">No {0} found</source>
     </trans-unit>
@@ -618,6 +627,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
       <source xml:lang="en">Reset all variables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f80c5bc37d4b6c6c6568988e3fb4093d4bece4bca735852114ca860647d156d2">
+      <source xml:lang="en">Resolved {0} ș {1}</source>
     </trans-unit>
     <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
       <source xml:lang="en">Revert values to project defaults</source>

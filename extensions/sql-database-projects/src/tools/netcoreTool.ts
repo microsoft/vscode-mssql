@@ -5,11 +5,12 @@
 
 import * as child_process from "child_process";
 import * as fs from "fs";
-import * as https from "https";
 import * as os from "os";
 import * as path from "path";
 import * as semver from "semver";
 import * as vscode from "vscode";
+import axios from "axios";
+import { HttpClient } from "../http/httpClient";
 import {
     DoNotAskAgain,
     Install,
@@ -18,8 +19,10 @@ import {
     UpdateDotnetLocation,
     loc0ErroredOut1,
     microsoftBuildSqlVersionKey,
+    nugetVersionResolutionFallbackWarning,
 } from "../common/constants";
 import * as utils from "../common/utils";
+import { isValidMicrosoftBuildSqlVersion } from "../common/utils";
 import { ShellCommandOptions, ShellExecutionHelper } from "./shellExecutionHelper";
 
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
@@ -41,11 +44,10 @@ export const minSupportedNetCoreVersionForBuild = "8.0.0";
 export const FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.*";
 
 /**
- * Returns true if the version string is a valid semver or a NuGet floating version (e.g. "2.*", "2.1.*").
+ * Exact version used when NuGet resolution fails (offline / proxy). Kept in sync with the
+ * latest known-good 2.x release so projects created offline are immediately buildable.
  */
-function isValidMicrosoftBuildSqlVersion(version: string): boolean {
-    return !!semver.valid(version) || /^\d+(\.\d+)*\.\*$/.test(version);
-}
+export const OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.2.0";
 
 /**
  * Returns the configured Microsoft.Build.Sql version.
@@ -57,7 +59,7 @@ function isValidMicrosoftBuildSqlVersion(version: string): boolean {
 export function getMicrosoftBuildSqlVersion(): string {
     const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
     const configured = config.get<string>(microsoftBuildSqlVersionKey)?.trim();
-    if (configured && isValidMicrosoftBuildSqlVersion(configured)) {
+    if (configured && (semver.valid(configured) || isValidMicrosoftBuildSqlVersion(configured))) {
         return configured;
     }
 
@@ -79,64 +81,49 @@ export async function resolveNugetVersion(packageName: string, version: string):
 
     try {
         return await resolveFloatingVersion(packageName, version);
-    } catch {
+    } catch (e) {
         // The requested version (e.g. "4.*") has no stable matches — fall back to the default.
         if (version !== FALLBACK_MICROSOFT_BUILD_SQL_VERSION) {
             void vscode.window.showWarningMessage(
-                `No stable versions of ${packageName} found matching ${version}. ` +
-                    `Falling back to ${FALLBACK_MICROSOFT_BUILD_SQL_VERSION}.`,
+                nugetVersionResolutionFallbackWarning(
+                    packageName,
+                    version,
+                    FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
+                ),
             );
             return resolveFloatingVersion(packageName, FALLBACK_MICROSOFT_BUILD_SQL_VERSION);
         }
-        throw new Error(
-            `No stable versions of ${packageName} found matching ${FALLBACK_MICROSOFT_BUILD_SQL_VERSION}.`,
-        );
+        throw e; // Re-throw original error (network failure, parse error, etc.)
     }
 }
 
 /**
  * Core NuGet v3 index lookup — resolves a floating version prefix to the latest stable exact
- * version. Throws if no match is found or the network call fails.
+ * version. Uses the extension's HttpClient (proxy + strictSSL aware) with a 10 s timeout.
+ * Throws if no match is found or the network call fails.
  */
 async function resolveFloatingVersion(packageName: string, version: string): Promise<string> {
     // "2.*" → prefix "2."   |   "2.1.*" → prefix "2.1."
     const prefix = version.slice(0, version.lastIndexOf("*"));
     const indexUrl = `https://api.nuget.org/v3-flatcontainer/${packageName.toLowerCase()}/index.json`;
 
-    return new Promise<string>((resolve, reject) => {
-        https
-            .get(indexUrl, (res) => {
-                let data = "";
-                res.on("data", (chunk: string) => (data += chunk));
-                res.on("end", () => {
-                    try {
-                        const { versions } = JSON.parse(data) as { versions: string[] };
-                        // Stable versions only (no pre-release), matching the prefix, pick the last (highest).
-                        const matching = versions.filter(
-                            (v) => v.startsWith(prefix) && !v.includes("-"),
-                        );
-                        if (matching.length > 0) {
-                            resolve(matching[matching.length - 1]);
-                        } else {
-                            reject(
-                                new Error(
-                                    `No stable versions of ${packageName} found matching ${version}`,
-                                ),
-                            );
-                        }
-                    } catch (e) {
-                        reject(
-                            new Error(
-                                `Failed to parse NuGet index for ${packageName}: ${(e as Error).message}`,
-                            ),
-                        );
-                    }
-                });
-            })
-            .on("error", (e) =>
-                reject(new Error(`Failed to fetch NuGet index for ${packageName}: ${e.message}`)),
-            );
-    });
+    // Use HttpClient.setupRequest to pick up VS Code proxy + strictSSL configuration.
+    const { config } = new HttpClient().setupRequest(indexUrl);
+    config.timeout = 10_000;
+
+    const response = await axios.get<{ versions: string[] }>(indexUrl, config);
+    if (response.status !== 200) {
+        throw new Error(`Failed to fetch NuGet index for ${packageName}: HTTP ${response.status}`);
+    }
+
+    // Stable versions only (no pre-release), matching the prefix, pick the last (highest).
+    const matching = response.data.versions.filter((v) => v.startsWith(prefix) && !v.includes("-"));
+
+    if (matching.length > 0) {
+        return matching[matching.length - 1];
+    }
+
+    throw new Error(`No stable versions of ${packageName} found matching ${version}`);
 }
 
 export const enum netCoreInstallState {

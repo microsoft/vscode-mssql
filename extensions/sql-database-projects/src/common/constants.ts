@@ -946,6 +946,31 @@ export function errorDownloading(url: string, error: string) {
 export function errorExtracting(path: string, error: string) {
     return l10n.t("Error extracting files from {0}. Error: {1}", path, error);
 }
+export function nugetVersionResolutionFallbackWarning(
+    packageName: string,
+    version: string,
+    fallback: string,
+) {
+    return l10n.t(
+        "No stable versions of {0} found matching {1}. Falling back to {2}.",
+        packageName,
+        version,
+        fallback,
+    );
+}
+export function nugetVersionResolutionFailed(packageName: string, version: string) {
+    return l10n.t("No stable versions of {0} found matching {1}.", packageName, version);
+}
+export function nugetVersionResolved(packageName: string, version: string) {
+    return l10n.t("Resolved {0} \u2192 {1}", packageName, version);
+}
+export function couldNotResolveNugetVersion(errorMessage: string, fallback: string) {
+    return l10n.t(
+        "Could not resolve Microsoft.Build.Sql version from NuGet ({0}). Using {1}.",
+        errorMessage,
+        fallback,
+    );
+}
 
 //#endregion
 
