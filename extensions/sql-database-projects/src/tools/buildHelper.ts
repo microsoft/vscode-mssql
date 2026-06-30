@@ -143,10 +143,12 @@ export class BuildHelper {
                 outputChannel.appendLine(constants.nugetVersionResolved(nugetName, nugetVersion));
             } catch (e) {
                 nugetVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
-                outputChannel.appendLine(constants.nugetVersionResolved(nugetName, nugetVersion));
-                void vscode.window.showWarningMessage(
-                    constants.couldNotResolveNugetVersion(utils.getErrorMessage(e), nugetVersion),
+                const fallbackMessage = constants.couldNotResolveNugetVersion(
+                    utils.getErrorMessage(e),
+                    nugetVersion,
                 );
+                outputChannel.appendLine(fallbackMessage);
+                void vscode.window.showWarningMessage(fallbackMessage);
             }
         }
 
