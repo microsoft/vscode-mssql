@@ -54,7 +54,7 @@ import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+import { canCheckDatabasePauseStatus, getConnectionDisplayName } from "../models/connectionInfo";
 import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
@@ -209,25 +209,57 @@ export class ObjectExplorerService {
                 nodePath: node.nodePath,
                 filters: node.filters,
             };
-            const expandResponse = new Deferred<ExpandResponse>();
-            this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            let serverlessWakeFailedAttempts = 0;
 
-            let response: boolean;
-            if (node.shouldRefresh) {
-                this._logger.debug(`Refreshing node ${node.label} with session ID ${sessionId}`);
-                response = await this._connectionManager.client.sendRequest(
-                    RefreshRequest.type,
-                    expandParams,
-                );
-            } else {
-                this._logger.debug(`Expanding node ${node.label} with session ID ${sessionId}`);
-                response = await this._connectionManager.client.sendRequest(
-                    ExpandRequest.type,
-                    expandParams,
-                );
-            }
+            // Retry loop for paused/resuming Azure serverless databases (original attempt + 2 retries).
+            while (true) {
+                /**
+                 * For Azure + Entra MFA connections, start an ARM check (scoped to the database
+                 * being expanded) in parallel with the expand request to detect a
+                 * paused/pausing/resuming serverless database. It's only consulted on timeout.
+                 */
+                const serverlessStatusPromise = canCheckDatabasePauseStatus(
+                    node.connectionProfile,
+                    databaseName,
+                )
+                    ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(
+                          node.connectionProfile,
+                          databaseName,
+                          "OE expand",
+                      )
+                    : undefined;
 
-            if (response) {
+                const expandResponse = new Deferred<ExpandResponse>();
+                this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
+
+                let response: boolean;
+                if (node.shouldRefresh) {
+                    this._logger.debug(
+                        `Refreshing node ${node.label} with session ID ${sessionId}`,
+                    );
+                    response = await this._connectionManager.client.sendRequest(
+                        RefreshRequest.type,
+                        expandParams,
+                    );
+                } else {
+                    this._logger.debug(`Expanding node ${node.label} with session ID ${sessionId}`);
+                    response = await this._connectionManager.client.sendRequest(
+                        ExpandRequest.type,
+                        expandParams,
+                    );
+                }
+
+                if (!response) {
+                    this._logger.error(
+                        `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
+                    );
+                    await this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.msgUnableToExpand,
+                    );
+                    return undefined;
+                }
+
                 const result = await expandResponse;
                 this._logger.debug(
                     `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
@@ -254,25 +286,57 @@ export class ObjectExplorerService {
                         childrenCount: children.length,
                     });
                     return children;
-                } else {
-                    // failure to expand node; display error
-                    if (result.errorMessage) {
-                        this._logger.error(
-                            `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
-                        );
-                        this._vscodeWrapper.showErrorMessage(result.errorMessage);
-                    }
-                    const errorNode = new ExpandErrorNode(node, result.errorMessage);
-                    this._treeNodeToChildrenMap.set(node, [errorNode]);
-                    expandActivity.endFailed(new Error(result.errorMessage), false);
-                    return [errorNode];
                 }
-            } else {
-                this._logger.error(
-                    `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
-                );
-                await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
-                return undefined;
+
+                // failure to expand node
+                if (result.errorMessage) {
+                    this._logger.error(
+                        `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
+                    );
+                }
+
+                /**
+                 * Serverless pause-aware silent retry: if the expand timed out and the database
+                 * being expanded is a paused/pausing/resuming serverless database, suppress the
+                 * error and retry silently (the loading indicator remains shown).
+                 */
+                if (
+                    (result.errorCode || result.errorMessage) &&
+                    this._connectionManager.isServerlessWakeRetryableTimeout({
+                        errorCode: result.errorCode,
+                        errorMessage: result.errorMessage,
+                    })
+                ) {
+                    serverlessWakeFailedAttempts++;
+                    if (
+                        await this._connectionManager.shouldRetryForPausedServerlessDatabase(
+                            node.connectionProfile,
+                            serverlessWakeFailedAttempts,
+                            serverlessStatusPromise,
+                            databaseName,
+                        )
+                    ) {
+                        /**
+                         * Force a refresh on the retry. When the first expand times out, STS
+                         * cancels the operation but leaves the SMO node cached as "initialized"
+                         * with a stale "operation was canceled" error; a plain re-expand would
+                         * short-circuit and return that stale error. Refresh re-populates the node
+                         * (clearing the cached error), which is what lets the retry succeed once
+                         * the database finishes resuming.
+                         */
+                        node.shouldRefresh = true;
+                        continue;
+                    }
+                }
+
+                // display error
+                if (result.errorMessage) {
+                    this._vscodeWrapper.showErrorMessage(result.errorMessage);
+                }
+                const errorNode = new ExpandErrorNode(node, result.errorMessage);
+                this._treeNodeToChildrenMap.set(node, [errorNode]);
+                expandActivity.endFailed(new Error(result.errorMessage), false);
+                return [errorNode];
             }
         } finally {
             node.shouldRefresh = false;
@@ -629,42 +693,53 @@ export class ObjectExplorerService {
             return undefined;
         }
 
-        const isServerlessDatabaseWaking =
-            await this._connectionManager.extendTimeoutForWakingServerlessDatabaseIfNeeded(
-                connectionProfile,
-            );
-        const connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
-        if (isServerlessDatabaseWaking && connectionNode) {
-            connectionNode.loadingLabel = LocalizedConstants.ObjectExplorer.WakingDatabase;
-            void this.setLoadingUiForNode(connectionNode);
-        }
-
         const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
 
-        const sessionIdResponse: GetSessionIdResponse =
-            await this._connectionManager.client.sendRequest(
-                GetSessionIdRequest.type,
-                connectionDetails,
-            );
+        let serverlessWakeFailedAttempts = 0;
 
-        const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
-            new Deferred<SessionCreatedParameters>();
+        // Retry loop for paused/resuming Azure serverless databases (original attempt + 2 retries).
+        while (true) {
+            /**
+             * For Azure + Entra MFA connections, start an ARM check in parallel with the OE
+             * session creation to detect a paused/pausing/resuming serverless database. The
+             * result is only consulted if the session creation times out below.
+             */
+            const serverlessStatusPromise = canCheckDatabasePauseStatus(connectionProfile)
+                ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(
+                      connectionProfile,
+                      undefined,
+                      "OE session",
+                  )
+                : undefined;
 
-        this._pendingSessionCreations.set(sessionIdResponse.sessionId, sessionCreatedResponse);
+            const sessionIdResponse: GetSessionIdResponse =
+                await this._connectionManager.client.sendRequest(
+                    GetSessionIdRequest.type,
+                    connectionDetails,
+                );
 
-        const createSessionResponse: CreateSessionResponse =
-            await this._connectionManager.client.sendRequest(
-                CreateSessionRequest.type,
-                connectionDetails,
-            );
+            const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
+                new Deferred<SessionCreatedParameters>();
 
-        if (createSessionResponse) {
+            this._pendingSessionCreations.set(sessionIdResponse.sessionId, sessionCreatedResponse);
+
+            const createSessionResponse: CreateSessionResponse =
+                await this._connectionManager.client.sendRequest(
+                    CreateSessionRequest.type,
+                    connectionDetails,
+                );
+
+            if (!createSessionResponse) {
+                return undefined;
+            }
+
             const sessionCreationResult = await sessionCreatedResponse;
+            this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
+
             if (sessionCreationResult.success) {
                 this._logger.debug(
                     `Session created successfully with session ID ${sessionCreationResult.sessionId}`,
                 );
-                this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
                 const successResponse = await this.handleSessionCreationSuccess(
                     sessionCreationResult,
                     connectionProfile,
@@ -673,24 +748,46 @@ export class ObjectExplorerService {
                     connectionType: connectionProfile.authenticationType,
                 });
                 return successResponse;
-            } else {
-                this._logger.error(
-                    `Session creation failed with error: ${sessionCreationResult.errorMessage}`,
-                );
-                const shouldReconnect = await this.handleSessionCreationFailure(
-                    sessionCreationResult,
-                    connectionProfile,
-                    createSessionActivity,
-                );
-                createSessionActivity.endFailed();
-                return {
-                    sessionId: undefined,
-                    connectionNode: undefined,
-                    shouldRetryOnFailure: shouldReconnect,
-                };
             }
-        } else {
-            return undefined;
+
+            this._logger.error(
+                `Session creation failed with error: ${sessionCreationResult.errorMessage}`,
+            );
+
+            /**
+             * Serverless pause-aware silent retry: if the session creation timed out and the
+             * target database is a paused/pausing/resuming serverless database, suppress the
+             * error and retry silently while showing a "Waking database" indicator.
+             */
+            if (this._connectionManager.isServerlessWakeRetryableTimeout(sessionCreationResult)) {
+                serverlessWakeFailedAttempts++;
+                if (
+                    await this._connectionManager.shouldRetryForPausedServerlessDatabase(
+                        connectionProfile,
+                        serverlessWakeFailedAttempts,
+                        serverlessStatusPromise,
+                    )
+                ) {
+                    const wakingNode = this.getConnectionNodeFromProfile(connectionProfile);
+                    if (wakingNode) {
+                        wakingNode.loadingLabel = LocalizedConstants.ObjectExplorer.WakingDatabase;
+                        void this.setLoadingUiForNode(wakingNode);
+                    }
+                    continue;
+                }
+            }
+
+            const shouldReconnect = await this.handleSessionCreationFailure(
+                sessionCreationResult,
+                connectionProfile,
+                createSessionActivity,
+            );
+            createSessionActivity.endFailed();
+            return {
+                sessionId: undefined,
+                connectionNode: undefined,
+                shouldRetryOnFailure: shouldReconnect,
+            };
         }
     }
 

@@ -55,13 +55,17 @@ import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewContro
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { getServerTypes, canCheckDatabasePauseStatus } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
 
-const serverlessDatabaseWakeTimeoutIncrement = 60;
+/**
+ * Maximum number of connection retries when a target serverless Azure SQL database is a
+ * not online.
+ */
+const serverlessWakeMaxRetryAttempts = 2;
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1413,9 +1417,14 @@ export default class ConnectionManager {
         options: {
             shouldHandleErrors?: boolean;
             connectionSource?: string;
+            serverlessWakeFailedAttempts?: number;
         } = {},
     ): Promise<boolean> {
-        const { shouldHandleErrors = true, connectionSource = "" } = options;
+        const {
+            shouldHandleErrors = true,
+            connectionSource = "",
+            serverlessWakeFailedAttempts = 0,
+        } = options;
 
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
@@ -1438,8 +1447,15 @@ export default class ConnectionManager {
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
 
-        await this.extendTimeoutForWakingServerlessDatabaseIfNeeded(credentials);
+        // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
+        const isPauseAwareConnection =
+            shouldHandleErrors && canCheckDatabasePauseStatus(credentials);
 
+        // If the connection can be checked, start the serverless status check in parallel with the connection attempt.
+        // The result determines silent retry if the connection attempt times out.
+        const serverlessStatusPromise = isPauseAwareConnection
+            ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(credentials, undefined, "direct connect")
+            : undefined;
         // Add the connection to the active connections list
         let connectionInfo: ConnectionInfo = new ConnectionInfo();
         connectionInfo.credentials = credentials;
@@ -1551,6 +1567,28 @@ export default class ConnectionManager {
             return true;
         } else {
             let errorType = "";
+
+            // If the connection is pause-aware and the timeout is retryable, attempt a silent retry.
+            if (isPauseAwareConnection && this.isServerlessWakeRetryableTimeout(result)) {
+                const failedAttempts = serverlessWakeFailedAttempts + 1;
+                if (
+                    await this.shouldRetryForPausedServerlessDatabase(
+                        connectionInfo.credentials,
+                        failedAttempts,
+                        serverlessStatusPromise,
+                    )
+                ) {
+                    connectionActivity.update({ retryConnection: "true" });
+                    connectionActivity.end(ActivityStatus.Retrying);
+
+                    return await this.connect(fileUri, connectionInfo.credentials, {
+                        shouldHandleErrors,
+                        connectionSource,
+                        serverlessWakeFailedAttempts: failedAttempts,
+                    });
+                }
+            }
+
             if (shouldHandleErrors) {
                 const errorHandlingResult = await this.handleConnectionErrors(
                     result,
@@ -1600,38 +1638,62 @@ export default class ConnectionManager {
         }
     }
 
-    public async extendTimeoutForWakingServerlessDatabaseIfNeeded(
+    /**
+     * Determines whether a failed connection/expand result represents a timeout that could
+     * be caused by a paused/resuming serverless database.
+     */
+    public isServerlessWakeRetryableTimeout(error: SqlConnectionError): boolean {
+        if (!error) {
+            return false;
+        }
+
+        if (
+            error.errorCode &&
+            Constants.serverlessWakeTimeoutErrorCodes.includes(error.errorCode)
+        ) {
+            return true;
+        }
+
+        if (error.errorNumber === Constants.errorConnectionTimeout) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines whether a timed-out connection/expand attempt should be silently retried.
+     *
+     * @param credentials the connection being attempted.
+     * @param failedAttempts number of connection attempts that have already failed (including initial attempt).
+     * @param statusPromise In-flight status check promise
+     * @param databaseName optional database name override for the status check.
+     */
+    public async shouldRetryForPausedServerlessDatabase(
         credentials: IConnectionInfo,
+        failedAttempts: number,
+        statusPromise: Promise<string>,
+        databaseName?: string,
     ): Promise<boolean> {
         if (
-            credentials.authenticationType !== Constants.azureMfa ||
-            !getServerTypes(credentials).includes(ServerType.Azure)
+            failedAttempts >= serverlessWakeMaxRetryAttempts + 1 ||
+            !canCheckDatabasePauseStatus(credentials, databaseName)
         ) {
             return false;
         }
 
-        try {
-            const databaseStatus =
-                await VsCodeAzureHelper.getAzureSqlDatabaseStatusForConnection(credentials);
+        const status = await statusPromise;
 
-            if (!databaseStatus?.isWaking) {
-                return false;
-            }
-
-            credentials.connectTimeout =
-                (credentials.connectTimeout ?? Constants.defaultConnectionTimeout) +
-                serverlessDatabaseWakeTimeoutIncrement;
-
-            this._logger.info(
-                `Azure SQL database "${credentials.database}" on server "${credentials.server}" is ${databaseStatus.status}; increased connection timeout by ${serverlessDatabaseWakeTimeoutIncrement} seconds.`,
-            );
-            return true;
-        } catch (error) {
-            this._logger.error(
-                `Failed to check Azure SQL database serverless status. Proceeding with default connection timeout. Error: ${getErrorMessage(error)}`,
-            );
+        if (!status) {
             return false;
         }
+
+        this._logger.info(
+            `Serverless pause-aware retry: database "${databaseName ?? credentials.database}" on "${credentials.server}" is ${status}; suppressing the connection timeout and retrying silently (attempt ${
+                failedAttempts + 1
+            }/${serverlessWakeMaxRetryAttempts + 1}).`,
+        );
+        return true;
     }
 
     /**
@@ -2533,6 +2595,7 @@ export interface SqlConnectionError {
     message?: string;
     errorNumber?: number;
     errorMessage?: string;
+    errorCode?: string;
 }
 
 export enum SqlConnectionErrorType {

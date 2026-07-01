@@ -74,15 +74,6 @@ export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
 const azureHelperLogger = getLogger("AzureHelpers");
 const azureSqlServerSuffix = ".database.";
 
-export const serverlessDatabaseWakingStatuses = new Set(["Paused", "Pausing", "Resuming"]);
-
-export interface AzureSqlDatabaseStatusResult {
-    status: string;
-    isWaking: boolean;
-    subscriptionId: string;
-    resourceGroupName: string;
-}
-
 //#region VS Code integration
 
 let _azureProvider: VSCodeAzureSubscriptionProvider | undefined;
@@ -423,14 +414,31 @@ export class VsCodeAzureHelper {
         }
     }
 
-    public static async getAzureSqlDatabaseStatusForConnection(
+    /**
+     * Uses the Azure ARM API to check the wake status of a database. All failures are logged and
+     * swallowed, returning undefined so the caller surfaces the original connection error.
+     *
+     * @param credentials the connection being attempted.
+     * @param databaseName optional database name override, used when the database being accessed differs
+     *   from the connection's database (e.g. expanding a  database node on a server connection).
+     * @param source short label identifying the caller who initiated the check
+     */
+    public static async getAzureSqlDatabaseStatus(
         connection: IConnectionInfo,
-    ): Promise<AzureSqlDatabaseStatusResult | undefined> {
-        const databaseName = connection.database;
+        database?: string,
+        source?: string,
+    ): Promise<string | undefined> {
+        const databaseName = database ?? connection.database;
         const serverName = this.getAzureSqlServerName(connection.server);
         const accountId = connection.accountId;
 
+        const target = `"${databaseName ?? connection.database}" on "${connection.server}"`;
+        const sourceSuffix = source ? ` [${source}]` : "";
+
         if (!accountId || !serverName || !databaseName) {
+            azureHelperLogger.trace(
+                `Pause status check ${sourceSuffix}: could not determine status for ${target}`,
+            );
             return undefined;
         }
 
@@ -460,19 +468,17 @@ export class VsCodeAzureHelper {
             }
 
             const database = await sql.databases.get(resourceGroupName, serverName, databaseName);
-            const status = database.status;
 
-            if (!status) {
-                return undefined;
-            }
+            azureHelperLogger.trace(
+                `Pause check ${sourceSuffix}: database ${target} is ${database.status}`,
+            );
 
-            return {
-                status,
-                isWaking: serverlessDatabaseWakingStatuses.has(status),
-                subscriptionId: subscription.subscriptionId,
-                resourceGroupName,
-            };
+            return database?.status ?? undefined;
         }
+
+        azureHelperLogger.trace(
+            `Pause check ${sourceSuffix}: database ${target} could not be found for user ${accountId}`,
+        );
 
         return undefined;
     }
