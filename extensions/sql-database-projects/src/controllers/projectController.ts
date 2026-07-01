@@ -1669,7 +1669,6 @@ export class ProjectsController {
         workspaceApi.showProjectsView();
     }
 
-
     //#region Helper methods
 
     private async getProjectFromContext(
