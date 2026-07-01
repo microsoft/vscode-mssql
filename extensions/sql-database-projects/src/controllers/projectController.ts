@@ -1669,7 +1669,6 @@ export class ProjectsController {
         workspaceApi.showProjectsView();
     }
 
-    //#endregion
 
     //#region Helper methods
 
