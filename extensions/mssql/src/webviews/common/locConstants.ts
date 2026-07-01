@@ -359,15 +359,16 @@ export class LocConstants {
                 "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.",
             ),
             quickQueriesKeyboardShortcutsBanner: l10n.t(
-                "Quick Queries keyboard shortcuts are managed by Visual Studio Code, so configuring keybindings opens its",
+                "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
             ),
+            openKeyboardShortcutsEditor: l10n.t("Open Keyboard Shortcuts editor."),
             webviewShortcuts: l10n.t("Extension Shortcuts"),
             webviewShortcutsDescription: l10n.t(
                 "Configure keyboard shortcuts used by the MSSQL extension.",
             ),
             queryEditorShortcuts: l10n.t("Query Editor"),
             queryEditorKeyboardShortcutsBanner: l10n.t(
-                "Query Editor shortcuts are managed by Visual Studio Code, so configuring keybindings opens its",
+                "Query Editor shortcuts are managed by Visual Studio Code.",
             ),
             resultViewShortcuts: l10n.t("Result View"),
             resultViewShortcutsBanner: l10n.t(

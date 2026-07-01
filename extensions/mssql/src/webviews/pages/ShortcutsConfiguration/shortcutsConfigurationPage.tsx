@@ -681,7 +681,7 @@ export const ShortcutsConfigurationPage = () => {
                 <div className={classes.helpText}>{loc.quickQueriesDescription}</div>
                 {renderInfoBanner(
                     loc.quickQueriesKeyboardShortcutsBanner,
-                    loc.keyboardShortcutsEditor,
+                    loc.openKeyboardShortcutsEditor,
                     () => {
                         void context.openQuickQueryKeybindings();
                     },
@@ -908,7 +908,7 @@ export const ShortcutsConfigurationPage = () => {
                     <h2 className={classes.sectionTitle}>{loc.queryEditorShortcuts}</h2>
                     {renderInfoBanner(
                         loc.queryEditorKeyboardShortcutsBanner,
-                        loc.keyboardShortcutsEditor,
+                        loc.openKeyboardShortcutsEditor,
                         () => {
                             void context.openKeymapCommandKeybindings();
                         },

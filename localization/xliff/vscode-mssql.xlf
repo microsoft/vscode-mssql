@@ -5268,6 +5268,9 @@
     <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
       <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
     </trans-unit>
+    <trans-unit id="++CODE++6eea76036450348a3e6a4b9ba6a0671c1c8e40f855def50a88ac9eeae75d01bd">
+      <source xml:lang="en">Open Keyboard Shortcuts editor.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
       <source xml:lang="en">Open Nitro</source>
     </trans-unit>
@@ -5717,8 +5720,8 @@
     <trans-unit id="++CODE++5bf31bcb066ae7c0e33982f1593874fce61833581817dfb5091aa5c256b4d4d8">
       <source xml:lang="en">Query Editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++3373c479a74febcbcaabaea215897219fc50397d22f04f2f63165adf11703fc4">
-      <source xml:lang="en">Query Editor shortcuts are managed by Visual Studio Code, so configuring keybindings opens its</source>
+    <trans-unit id="++CODE++792d7034952abde81e487ac8d2b658a8dddd608968c37c9f69b19e9b8c435c37">
+      <source xml:lang="en">Query Editor shortcuts are managed by Visual Studio Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++78ce37187f269b9e700f1ffe8bfa8a246f612fe88cdc8b39aa770152712c6add">
       <source xml:lang="en">Query Execution</source>
@@ -5778,8 +5781,8 @@
     <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
       <source xml:lang="en">Quick Queries</source>
     </trans-unit>
-    <trans-unit id="++CODE++24317263561d221588f81e64c8ab3d38f208fa23105f6a7fca828c6acb0636be">
-      <source xml:lang="en">Quick Queries keyboard shortcuts are managed by Visual Studio Code, so configuring keybindings opens its</source>
+    <trans-unit id="++CODE++51296d3c3409d0fc43f3c4da5cfe61aac838f739a5bf5691479a224e36341234">
+      <source xml:lang="en">Quick Queries keyboard shortcuts are managed by Visual Studio Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d">
       <source xml:lang="en">Quick Query slot must be between 1 and {0}.</source>

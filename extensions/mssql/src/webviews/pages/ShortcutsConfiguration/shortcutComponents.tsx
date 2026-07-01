@@ -187,6 +187,8 @@ function useOutsidePointerClose(
                 return;
             }
 
+            event.preventDefault();
+            event.stopPropagation();
             onClose();
         };
 
