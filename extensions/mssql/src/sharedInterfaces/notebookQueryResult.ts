@@ -55,3 +55,8 @@ export interface NotebookSaveAsMessage {
     rows: DbCellValue[][];
     resultSetIndex: number;
 }
+
+export interface NotebookShowErrorMessage {
+    type: "showError";
+    message: string;
+}
