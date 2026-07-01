@@ -900,11 +900,6 @@ export const ShortcutsConfigurationPage = () => {
                     onChange={(_event, data) => setShortcutSearch(data.value)}
                 />
                 <section className={classes.section}>
-                    <h2 className={classes.sectionTitle}>{loc.resultViewShortcuts}</h2>
-                    {renderInfoBanner(loc.resultViewShortcutsBanner)}
-                    {renderResultViewShortcuts(searchTerm)}
-                </section>
-                <section className={classes.section}>
                     <h2 className={classes.sectionTitle}>{loc.queryEditorShortcuts}</h2>
                     {renderInfoBanner(
                         loc.queryEditorKeyboardShortcutsBanner,
@@ -914,6 +909,11 @@ export const ShortcutsConfigurationPage = () => {
                         },
                     )}
                     {renderQueryEditorShortcuts(searchTerm)}
+                </section>
+                <section className={classes.section}>
+                    <h2 className={classes.sectionTitle}>{loc.resultViewShortcuts}</h2>
+                    {renderInfoBanner(loc.resultViewShortcutsBanner)}
+                    {renderResultViewShortcuts(searchTerm)}
                 </section>
             </>
         );
