@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import { randomUUID } from "crypto";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import { registerCommonRequestHandlers } from "./utils";
@@ -19,7 +18,6 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private _viewColumn: vscode.ViewColumn,
         private _uri: string,
         title: string,
@@ -27,7 +25,6 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             "queryResult",
             "queryResult",
             {

@@ -17,7 +17,7 @@ import {
 } from "../../src/services/sqlTasksService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubMessageBoxes } from "./utils";
 import { TaskExecutionMode } from "../../src/enums";
 import * as telemetry from "../../src/telemetry/telemetry";
 
@@ -28,7 +28,6 @@ suite("SqlTasksService Tests", () => {
     let sqlTasksService: SqlTasksService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let sqlDocumentServiceStub: sinon.SinonStubbedInstance<SqlDocumentService>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let showInformationMessageStub: sinon.SinonStub;
     let showErrorMessageStub: sinon.SinonStub;
     let showWarningMessageStub: sinon.SinonStub;
@@ -39,21 +38,17 @@ suite("SqlTasksService Tests", () => {
         sandbox = sinon.createSandbox();
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
-        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
 
-        showInformationMessageStub = vscodeWrapperStub.showInformationMessage;
-        showErrorMessageStub = vscodeWrapperStub.showErrorMessage;
-        showWarningMessageStub = vscodeWrapperStub.showWarningMessage;
-        executeCommandStub = vscodeWrapperStub.executeCommand;
+        const messageBoxes = stubMessageBoxes(sandbox);
+        showInformationMessageStub = messageBoxes.showInformationMessage;
+        showErrorMessageStub = messageBoxes.showErrorMessage;
+        showWarningMessageStub = messageBoxes.showWarningMessage;
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
 
         // Stub telemetry
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
 
-        sqlTasksService = new SqlTasksService(
-            sqlToolsClientStub,
-            sqlDocumentServiceStub,
-            vscodeWrapperStub,
-        );
+        sqlTasksService = new SqlTasksService(sqlToolsClientStub, sqlDocumentServiceStub);
     });
 
     teardown(() => {

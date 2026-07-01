@@ -635,8 +635,8 @@
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
         "@vscode/l10n-dev": "^0.0.35",
-        "@vscode/test-cli": "^0.0.12",
-        "@vscode/test-electron": "^2.5.2",
+        "@vscode/test-cli": "^0.0.15",
+        "@vscode/test-electron": "^3.0.0",
         "@vscode/vsce": "^3.9.1",
         "chai": "^5.3.3",
         "eslint": "^9.32.0",
@@ -649,6 +649,7 @@
         "prettier": "^3.3.3",
         "sinon": "^21.0.3",
         "sinon-chai": "^4.0.1",
+        "source-map-support": "^0.5.21",
         "typescript": "^5.8.3"
     },
     "__metadata": {}

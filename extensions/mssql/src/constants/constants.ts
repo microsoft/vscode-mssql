@@ -149,6 +149,7 @@ export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
+export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
@@ -237,7 +238,6 @@ export const restoreDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/restore-statements-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
-export const azureAccountExtensionId = "ms-vscode.azure-account";
 export const dotnetRuntimeExtensionId = "ms-dotnettools.vscode-dotnet-runtime";
 export const dotnetAcquireCommand = "dotnet.acquire";
 export const offlineVsixUrl = "https://github.com/microsoft/vscode-mssql/releases/latest";

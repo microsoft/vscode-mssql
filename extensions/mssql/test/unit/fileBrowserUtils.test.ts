@@ -7,11 +7,9 @@ import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { FileBrowserService } from "../../src/services/fileBrowserService";
 import * as vscode from "vscode";
-import { stubVscodeWrapper } from "./utils";
 import { registerFileBrowserReducers } from "../../src/controllers/fileBrowserUtils";
 import { WebviewPanelController } from "../../src/controllers/webviewPanelController";
 import {
@@ -31,7 +29,6 @@ suite("File Browser Utilities", () => {
     let sandbox: sinon.SinonSandbox;
     let mockFileBrowserService: FileBrowserService;
     let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     let mockContext: vscode.ExtensionContext;
     let mockFileBrowserController: WebviewPanelController<
@@ -42,11 +39,9 @@ suite("File Browser Utilities", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         client = sandbox.createStubInstance(SqlToolsServiceClient);
 
-        mockFileBrowserService = new FileBrowserService(vscodeWrapper, client);
+        mockFileBrowserService = new FileBrowserService(client);
 
         mockContext = {
             extensionUri: vscode.Uri.parse("https://localhost"),
@@ -283,8 +278,6 @@ suite("File Browser Utilities", () => {
     });
 });
 
-let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-
 class TestFileBrowserWebviewController<TResult> extends WebviewPanelController<
     FileBrowserWebviewState,
     FileBrowserReducers,
@@ -293,7 +286,6 @@ class TestFileBrowserWebviewController<TResult> extends WebviewPanelController<
     constructor(context: vscode.ExtensionContext, options: MssqlWebviewPanelOptions) {
         super(
             context,
-            vscodeWrapper!,
             "testSource",
             "testSource",
             {

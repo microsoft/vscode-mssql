@@ -9,7 +9,6 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { CodeAnalysisWebViewController } from "../../src/codeAnalysis/codeAnalysisWebViewController";
 import { CodeAnalysis as ExtLoc } from "../../src/constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
@@ -21,7 +20,7 @@ import {
 } from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
 import { SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
-import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
+import { stubTelemetry, stubWebviewPanel } from "./utils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 
 chai.use(sinonChai);
@@ -80,13 +79,11 @@ suite("CodeAnalysisWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: CodeAnalysisWebViewController;
     let contextStub: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let dacFxServiceStub: sinon.SinonStubbedInstance<DacFxService>;
     let sqlProjectsServiceStub: sinon.SinonStubbedInstance<SqlProjectsService>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         dacFxServiceStub = sandbox.createStubInstance(DacFxService);
         sqlProjectsServiceStub = sandbox.createStubInstance(SqlProjectsService);
 
@@ -114,7 +111,6 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
         controller = new CodeAnalysisWebViewController(
             contextStub,
-            vscodeWrapperStub,
             projectPath,
             dacFxServiceStub,
             sqlProjectsServiceStub,

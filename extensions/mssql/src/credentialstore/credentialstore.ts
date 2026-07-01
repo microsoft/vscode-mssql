@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import { ICredentialStore, Credential } from "./icredentialstore";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /**
  * Implements a credential storage for Windows, Mac (darwin), or Linux.
@@ -17,10 +16,7 @@ export class CredentialStore implements ICredentialStore {
     private _secretStorage: vscode.SecretStorage;
     private _logger: ILogger;
 
-    constructor(
-        private _context: vscode.ExtensionContext,
-        _vscodeWrapper: VscodeWrapper,
-    ) {
+    constructor(private _context: vscode.ExtensionContext) {
         this._secretStorage = this._context.secrets;
         this._logger = logger.withPrefix("CredentialStore");
     }

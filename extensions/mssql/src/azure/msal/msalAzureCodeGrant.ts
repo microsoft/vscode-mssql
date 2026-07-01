@@ -23,7 +23,6 @@ import * as path from "path";
 import * as http from "http";
 import { UrlWithParsedQuery } from "url";
 import { promises as fs } from "fs";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
 
 export const formPostResponseMode = "form_post";
 
@@ -42,17 +41,9 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         protected readonly providerSettings: IProviderSettings,
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
-        protected readonly vscodeWrapper: VscodeWrapper,
         protected readonly logger: ILogger,
     ) {
-        super(
-            providerSettings,
-            context,
-            clientApplication,
-            AzureAuthType.AuthCodeGrant,
-            vscodeWrapper,
-            logger,
-        );
+        super(providerSettings, context, clientApplication, AzureAuthType.AuthCodeGrant, logger);
         this.cryptoProvider = new CryptoProvider();
         this.pkceCodes = {
             nonce: "",
