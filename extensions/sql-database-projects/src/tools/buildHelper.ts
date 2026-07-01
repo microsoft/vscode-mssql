@@ -11,7 +11,11 @@ import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
-import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
+import {
+    getMicrosoftBuildSqlVersion,
+    resolveNugetVersion,
+    OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
+} from "./netcoreTool";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
@@ -131,6 +135,20 @@ export class BuildHelper {
         nugetFolderWithExpectedfiles: string,
         outputChannel: vscode.OutputChannel,
     ): Promise<boolean> {
+        if (utils.isValidMicrosoftBuildSqlVersion(nugetVersion)) {
+            try {
+                nugetVersion = await resolveNugetVersion(nugetName, nugetVersion);
+            } catch (e) {
+                nugetVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
+                const fallbackMessage = constants.couldNotResolveNugetVersion(
+                    utils.getErrorMessage(e),
+                    nugetVersion,
+                );
+                outputChannel.appendLine(fallbackMessage);
+                void vscode.window.showWarningMessage(fallbackMessage);
+            }
+        }
+
         const fullNugetName = `${nugetName}.${nugetVersion}`;
         const fullNugetPath = path.join(this.extensionBuildDir, `${fullNugetName}.nupkg`);
 

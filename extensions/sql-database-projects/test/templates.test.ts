@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as semver from "semver";
 import * as templates from "../src/templates/templates";
 import { shouldThrowSpecificError, getTemplatesRootPath } from "./testUtils";
 import { ItemType } from "sqldbproj";
@@ -336,9 +337,24 @@ suite("Templates", function (): void {
             templates.newSdkSqlProjectTemplate,
             "newSdkSqlProjectTemplate should not contain unexpanded @@MICROSOFT_BUILD_SQL_VERSION@@ placeholder",
         ).to.not.include("@@MICROSOFT_BUILD_SQL_VERSION@@");
-        expect(
-            templates.newSdkSqlProjectTemplate,
-            `newSdkSqlProjectTemplate should contain the configured version "${configuredVersion}"`,
-        ).to.include(configuredVersion);
+        if (semver.valid(configuredVersion)) {
+            // Exact semver configured — the template should contain it as-is.
+            expect(
+                templates.newSdkSqlProjectTemplate,
+                `newSdkSqlProjectTemplate should contain the configured exact version "${configuredVersion}"`,
+            ).to.include(configuredVersion);
+        } else {
+            // Floating version (e.g. "2.*") — the template should contain the resolved
+            // exact semver, not the floating pattern itself.
+            const prefix = configuredVersion.slice(0, configuredVersion.lastIndexOf(".*") + 1); // "2."
+            expect(
+                templates.newSdkSqlProjectTemplate,
+                `newSdkSqlProjectTemplate should not contain unresolved floating version "${configuredVersion}"`,
+            ).to.not.include(configuredVersion);
+            expect(
+                templates.newSdkSqlProjectTemplate,
+                `newSdkSqlProjectTemplate should contain a resolved version starting with "${prefix}"`,
+            ).to.match(new RegExp(prefix.replace(".", "\\.") + "\\d"));
+        }
     });
 });
