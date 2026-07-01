@@ -4048,6 +4048,9 @@
     <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
       <source xml:lang="en">Key</source>
     </trans-unit>
+    <trans-unit id="++CODE++7e3559309c79393e239fce6e344ea80743a6e20d89012394eafbbe19206c3709">
+      <source xml:lang="en">Key Commands</source>
+    </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
@@ -4439,6 +4442,9 @@
     </trans-unit>
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eba8ee5363965aa0a23f819ccfdae076ea80f7318571374cfd35dbc672875992">
+      <source xml:lang="en">Manage command shortcuts in VS Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++5ae5256284272a7585c1b275ef82e5d337ca3353c8e608120019177aad6a26c6">
       <source xml:lang="en">Manage relationships</source>
@@ -5255,6 +5261,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a8ad6355e40f91327be152fd7e5b605d76e59b6cc1ae04e94aa2b5b0ce6cfe5">
+      <source xml:lang="en">Open keybinding</source>
     </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
@@ -6395,6 +6404,9 @@
     </trans-unit>
     <trans-unit id="++CODE++16f289fd88de8f7176a04262f13bf831d2316e26607f21d402390985e3d67643">
       <source xml:lang="en">Search in-app shortcuts</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c13c75314422cec5bdea118b4f45f2e723d7c31ceb0b0af25ea6b348cd433643">
+      <source xml:lang="en">Search key commands</source>
     </trans-unit>
     <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
       <source xml:lang="en">Search options</source>

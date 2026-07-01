@@ -25,6 +25,11 @@ export interface ShortcutsConfigurationData {
     webviewShortcuts: Record<string, string>;
 }
 
+export interface ConfigurableKeyCommand {
+    command: string;
+    label: string;
+}
+
 export interface ShortcutsConfigurationWebviewState {
     focusedQuickQuerySlot?: number;
     focusNonce?: number;
@@ -99,6 +104,18 @@ export namespace OpenQuickQueryKeybindingsRequest {
     );
 }
 
+export namespace OpenKeymapCommandKeybindingRequest {
+    export const type = new RequestType<string, void, void>(
+        "shortcutsConfiguration/openKeymapCommandKeybinding",
+    );
+}
+
+export namespace OpenKeymapCommandKeybindingsRequest {
+    export const type = new RequestType<void, void, void>(
+        "shortcutsConfiguration/openKeymapCommandKeybindings",
+    );
+}
+
 export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     readConfiguration: () => Promise<ShortcutsConfigurationData>;
     saveConfiguration: (
@@ -112,7 +129,52 @@ export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     writeClipboardText: (text: string) => Promise<void>;
     openQuickQueryKeybinding: (commandId: string) => Promise<void>;
     openQuickQueryKeybindings: () => Promise<void>;
+    openKeymapCommandKeybinding: (commandId: string) => Promise<void>;
+    openKeymapCommandKeybindings: () => Promise<void>;
 }
+
+export const configurableKeyCommands: ConfigurableKeyCommand[] = [
+    {
+        command: "mssql.runQuery",
+        label: "Execute Query",
+    },
+    {
+        command: "notebook.cell.execute",
+        label: "Execute Notebook Cell",
+    },
+    {
+        command: "mssql.runCurrentStatement",
+        label: "Execute Selection or Current Statement",
+    },
+    {
+        command: "mssql.cancelQuery",
+        label: "Cancel Query",
+    },
+    {
+        command: "mssql.showEstimatedPlan",
+        label: "Show Estimated Plan",
+    },
+    {
+        command: "mssql.toggleActualPlan",
+        label: "Toggle Actual Plan",
+    },
+    {
+        command: "mssql.newQuery",
+        label: "New Query",
+    },
+    {
+        command: "mssql.copyAll",
+        label: "Copy All",
+    },
+    {
+        command: "workbench.view.extension.objectExplorer",
+        label: "Show Object Explorer",
+    },
+    {
+        command: "mssql.toggleQueryResultPanel",
+        label: "Toggle Query Result Panel",
+    },
+];
 
 export function getQuickQueryCommandId(slotNumber: number): string {
     return `${quickQueryCommandPrefix}${slotNumber}`;

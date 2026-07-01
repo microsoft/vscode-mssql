@@ -7,6 +7,7 @@ import {
     type ClipboardEvent as ReactClipboardEvent,
     type KeyboardEvent as ReactKeyboardEvent,
     type MouseEvent as ReactMouseEvent,
+    type RefObject,
     useCallback,
     useEffect,
     useRef,
@@ -35,7 +36,10 @@ import { Checkmark12Regular, Keyboard16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { QuickQuerySlot } from "../../../sharedInterfaces/shortcutsConfiguration";
+import {
+    ConfigurableKeyCommand,
+    QuickQuerySlot,
+} from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutItem } from "./shortcutDefinitions";
 import {
     formatShortcut,
@@ -164,6 +168,31 @@ function deleteCutEdits(editor: MonacoEditor, edits: CutEdit[]): void {
         })),
     );
     editor.pushUndoStop();
+}
+
+function useOutsidePointerClose(
+    surfaceRef: RefObject<HTMLElement | null>,
+    open: boolean,
+    onClose: () => void,
+): void {
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const onPointerDown = (event: PointerEvent) => {
+            const surface = surfaceRef.current;
+            const target = event.target;
+            if (!surface || !(target instanceof Node) || surface.contains(target)) {
+                return;
+            }
+
+            onClose();
+        };
+
+        document.addEventListener("pointerdown", onPointerDown, true);
+        return () => document.removeEventListener("pointerdown", onPointerDown, true);
+    }, [onClose, open, surfaceRef]);
 }
 
 const useStyles = makeStyles({
@@ -396,6 +425,8 @@ export const ShortcutRecorder = ({
     const [liveModifiers, setLiveModifiers] = useState<string[]>([]);
     const surfaceRef = useRef<HTMLDivElement | null>(null);
 
+    useOutsidePointerClose(surfaceRef, true, onClose);
+
     useEffect(() => {
         surfaceRef.current?.focus();
     }, []);
@@ -448,7 +479,14 @@ export const ShortcutRecorder = ({
     const conflictTarget = hasPreview ? findConflict?.(preview) : undefined;
 
     return (
-        <Dialog open modalType="modal">
+        <Dialog
+            open
+            modalType="non-modal"
+            onOpenChange={(_event, data) => {
+                if (!data.open) {
+                    onClose();
+                }
+            }}>
             <DialogSurface
                 ref={surfaceRef}
                 className={classes.recorder}
@@ -569,6 +607,62 @@ export const ShortcutChip = ({
     );
 };
 
+export const ManagedInVsCodeShortcutChip = ({
+    onOpen,
+    label,
+}: {
+    onOpen: () => void;
+    label: string;
+}) => {
+    const classes = useStyles();
+
+    const onKeyDown = useCallback(
+        (event: ReactKeyboardEvent<HTMLInputElement>) => {
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            onOpen();
+        },
+        [onOpen],
+    );
+    const onIconMouseDown = useCallback((event: ReactMouseEvent<HTMLSpanElement>) => {
+        event.preventDefault();
+    }, []);
+    const onIconClick = useCallback(
+        (event: ReactMouseEvent<HTMLSpanElement>) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onOpen();
+        },
+        [onOpen],
+    );
+
+    return (
+        <Tooltip content={label} relationship="label">
+            <Input
+                aria-label={label}
+                className={classes.shortcutInput}
+                contentAfter={
+                    <span
+                        className={classes.shortcutInputIconButton}
+                        onClick={onIconClick}
+                        onMouseDown={onIconMouseDown}>
+                        <Keyboard16Regular aria-hidden className={classes.shortcutInputIcon} />
+                    </span>
+                }
+                readOnly
+                title={locConstants.shortcutsConfiguration.managedInVsCode}
+                value={locConstants.shortcutsConfiguration.managedInVsCode}
+                onClick={onOpen}
+                onKeyDown={onKeyDown}
+            />
+        </Tooltip>
+    );
+};
+
 export const QuickQueryEditorDialog = ({
     slot,
     slotName,
@@ -593,6 +687,9 @@ export const QuickQueryEditorDialog = ({
     const classes = useStyles();
     const draftRef = useRef(slot.query);
     const editorRef = useRef<MonacoEditor | null>(null);
+    const surfaceRef = useRef<HTMLDivElement | null>(null);
+
+    useOutsidePointerClose(surfaceRef, open, onClose);
 
     useEffect(() => {
         if (open) {
@@ -708,13 +805,13 @@ export const QuickQueryEditorDialog = ({
     return (
         <Dialog
             open={open}
-            modalType="modal"
+            modalType="non-modal"
             onOpenChange={(_event, data) => {
                 if (!data.open) {
                     onClose();
                 }
             }}>
-            <DialogSurface className={classes.queryDialog}>
+            <DialogSurface ref={surfaceRef} className={classes.queryDialog}>
                 <DialogBody>
                     <DialogTitle>{loc.queryDialogTitle(slotName)}</DialogTitle>
                     <DialogContent className={classes.queryDialogContent}>
@@ -829,6 +926,37 @@ export const WebviewShortcutRow = ({
                 value={value}
                 onRecord={onRecord}
                 recordLabel={`${loc.recordShortcut}: ${loc.webviewShortcutLabels[item.action]}`}
+            />
+        </div>
+    );
+};
+
+export const ConfigurableKeyCommandRow = ({
+    item,
+    onOpen,
+    loc,
+    searchTerm,
+}: {
+    item: ConfigurableKeyCommand;
+    onOpen: () => void;
+    loc: typeof locConstants.shortcutsConfiguration;
+    searchTerm: string;
+}) => {
+    const classes = useStyles();
+
+    return (
+        <div className={classes.webviewShortcutRow}>
+            <div>
+                <Text className={classes.rowLabel}>
+                    <HighlightedText text={item.label} searchTerm={searchTerm} />
+                </Text>
+                <Text className={classes.rowDescription}>
+                    <HighlightedText text={item.command} searchTerm={searchTerm} />
+                </Text>
+            </div>
+            <ManagedInVsCodeShortcutChip
+                onOpen={onOpen}
+                label={`${loc.openKeybinding}: ${item.label}`}
             />
         </div>
     );

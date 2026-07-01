@@ -13,7 +13,7 @@ import {
     TabList,
     tokens,
 } from "@fluentui/react-components";
-import { Search16Regular, Settings24Regular } from "@fluentui/react-icons";
+import { Keyboard24Regular, Search16Regular } from "@fluentui/react-icons";
 import { type GridOption, type SlickgridReactInstance } from "slickgrid-react";
 import { CollapsibleSection } from "../../common/collapsibleSection";
 import { DialogPageShell } from "../../common/dialogPageShell";
@@ -26,6 +26,7 @@ import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import {
+    configurableKeyCommands,
     getQuickQueryCommandId,
     QuickQueryExecutionMode,
     quickQueryCount,
@@ -41,13 +42,14 @@ import {
     QuickQueryEditorDialog,
     SaveIndicator,
     ShortcutRecorder,
+    ConfigurableKeyCommandRow,
     WebviewShortcutRow,
 } from "./shortcutComponents";
 import { HighlightedText, textMatchesSearch } from "./shortcutKeyboardUtils";
 import { QuickQueryGridRow, useQuickQueryColumns } from "./quickQueryGridColumns";
 import { useShortcutsConfigurationSave } from "./useShortcutsConfigurationSave";
 
-type ConfigurationTab = "queries" | "shortcuts";
+type ConfigurationTab = "queries" | "shortcuts" | "commands";
 const quickQueryGridContainerId = "shortcutsQuickQueriesGridContainer";
 const quickQueryGridId = "shortcutsQuickQueriesGrid";
 
@@ -456,6 +458,7 @@ export const ShortcutsConfigurationPage = () => {
     const [editingQueryIndex, setEditingQueryIndex] = useState<number | undefined>(undefined);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
     const [shortcutSearch, setShortcutSearch] = useState("");
+    const [commandSearch, setCommandSearch] = useState("");
     const [recording, setRecording] = useState<{ kind: "webview"; action: WebviewAction }>();
     const quickQueryGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const quickQueryRowsRef = useRef<QuickQueryGridRow[]>([]);
@@ -701,6 +704,56 @@ export const ShortcutsConfigurationPage = () => {
         </>
     );
 
+    const renderCommands = () => {
+        const searchTerm = commandSearch.trim();
+        const visibleCommands = configurableKeyCommands.filter((item) => {
+            if (!searchTerm) {
+                return true;
+            }
+
+            return (
+                textMatchesSearch(item.label, searchTerm) ||
+                textMatchesSearch(item.command, searchTerm)
+            );
+        });
+
+        return (
+            <>
+                <div className={classes.helpText}>{loc.keymapCommandsDescription}</div>
+                <div className={classes.quickQueryShortcutHeader}>
+                    <Input
+                        className={classes.searchInput}
+                        contentBefore={<Search16Regular />}
+                        value={commandSearch}
+                        placeholder={loc.searchKeymapCommands}
+                        aria-label={loc.searchKeymapCommands}
+                        onChange={(_event, data) => setCommandSearch(data.value)}
+                    />
+                    <Button
+                        appearance="secondary"
+                        onClick={() => {
+                            void context.openKeymapCommandKeybindings();
+                        }}>
+                        {loc.showAllShortcuts}
+                    </Button>
+                </div>
+                <div className={mergeClasses(classes.card, classes.webviewShortcuts)}>
+                    {visibleCommands.map((item) => (
+                        <ConfigurableKeyCommandRow
+                            key={item.command}
+                            item={item}
+                            onOpen={() => {
+                                void context.openKeymapCommandKeybinding(item.command);
+                            }}
+                            loc={loc}
+                            searchTerm={searchTerm}
+                        />
+                    ))}
+                </div>
+            </>
+        );
+    };
+
     const findShortcutConflict = (value: string): string | undefined => {
         const normalized = value.trim().toLowerCase();
         if (!normalized || !recording) {
@@ -723,7 +776,7 @@ export const ShortcutsConfigurationPage = () => {
 
     return (
         <DialogPageShell
-            icon={<Settings24Regular aria-label={loc.title} />}
+            icon={<Keyboard24Regular aria-label={loc.title} />}
             title={loc.title}
             subtitle={loc.subtitle}
             errorMessage={saveErrorMessage ?? stateErrorMessage}
@@ -747,8 +800,13 @@ export const ShortcutsConfigurationPage = () => {
                     aria-label={loc.configurationSections}>
                     <Tab value="queries">{loc.quickQueries}</Tab>
                     <Tab value="shortcuts">{loc.webviewShortcuts}</Tab>
+                    <Tab value="commands">{loc.keymapCommands}</Tab>
                 </TabList>
-                {activeTab === "queries" ? renderQueries() : renderShortcuts()}
+                {activeTab === "queries"
+                    ? renderQueries()
+                    : activeTab === "shortcuts"
+                      ? renderShortcuts()
+                      : renderCommands()}
             </div>
             {recording && (
                 <ShortcutRecorder

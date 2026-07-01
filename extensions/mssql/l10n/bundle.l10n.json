@@ -2435,6 +2435,8 @@
     "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.": "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
     "In-App Shortcuts": "In-App Shortcuts",
     "Configure shortcuts that are handled inside MSSQL views.": "Configure shortcuts that are handled inside MSSQL views.",
+    "Key Commands": "Key Commands",
+    "Manage command shortcuts in VS Code.": "Manage command shortcuts in VS Code.",
     "Query": "Query",
     "Shortcut": "Shortcut",
     "Auto-execute": "Auto-execute",
@@ -2443,6 +2445,7 @@
     "Managed in VS Code": "Managed in VS Code",
     "Show All": "Show All",
     "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts": "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
+    "Open keybinding": "Open keybinding",
     "Query {0}/{0} is the Quick Query slot number": {
         "message": "Query {0}",
         "comment": ["{0} is the Quick Query slot number"]
@@ -2458,6 +2461,7 @@
     "No shortcut": "No shortcut",
     "No query set": "No query set",
     "Search in-app shortcuts": "Search in-app shortcuts",
+    "Search key commands": "Search key commands",
     "Record shortcut": "Record shortcut",
     "Press desired key combination and then press ENTER.": "Press desired key combination and then press ENTER.",
     "Recording shortcut": "Recording shortcut",

@@ -361,6 +361,8 @@ export class LocConstants {
             webviewShortcutsDescription: l10n.t(
                 "Configure shortcuts that are handled inside MSSQL views.",
             ),
+            keymapCommands: l10n.t("Key Commands"),
+            keymapCommandsDescription: l10n.t("Manage command shortcuts in VS Code."),
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
@@ -372,6 +374,7 @@ export class LocConstants {
             showAllQuickQueryShortcutsTooltip: l10n.t(
                 "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
             ),
+            openKeybinding: l10n.t("Open keybinding"),
             quickQuerySlotName: (slotNumber: number) =>
                 l10n.t({
                     message: "Query {0}",
@@ -393,6 +396,7 @@ export class LocConstants {
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
             searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
+            searchKeymapCommands: l10n.t("Search key commands"),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
                 "Press desired key combination and then press ENTER.",
