@@ -76,6 +76,7 @@ suite("ConnectionManager Tests", () => {
         });
 
         mockConnectionStore.readAllConnections.resolves([]);
+        mockConnectionStore.readAllConnectionGroups.resolves([]);
     });
 
     teardown(() => {
