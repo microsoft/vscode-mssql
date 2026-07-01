@@ -28,7 +28,7 @@ export function isValidMicrosoftBuildSqlVersion(version: string): boolean {
     if (parts.length < 1 || parts.length > 2) {
         return false;
     }
-    return parts.every((p) => p.length > 0 && String(parseInt(p, 10)) === p);
+    return parts.every((p) => /^\d+$/.test(p));
 }
 
 /**
