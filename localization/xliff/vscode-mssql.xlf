@@ -6868,8 +6868,8 @@
     <trans-unit id="++CODE++5753ea3780f34ad1295fb9957f1575e7e7578aa0e891d89524c26ad6f504cb1d">
       <source xml:lang="en">Shortcut</source>
     </trans-unit>
-    <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
-      <source xml:lang="en">Shortcuts Configuration</source>
+    <trans-unit id="++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba">
+      <source xml:lang="en">Shortcuts Configuration (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++bf913efbcc381cf124165f3786831debf4e1caf3e8b775f07ba3b65e58534ac6">
       <source xml:lang="en">Shortcuts configuration page</source>

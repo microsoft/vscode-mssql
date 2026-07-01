@@ -23,7 +23,7 @@
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
-    "Shortcuts Configuration": "Shortcuts Configuration",
+    "Shortcuts Configuration (Preview)": "Shortcuts Configuration (Preview)",
     "Configuration saved.": "Configuration saved.",
     "Quick Query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
         "message": "Quick Query slot must be between 1 and {0}.",
