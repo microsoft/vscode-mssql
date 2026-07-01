@@ -175,7 +175,13 @@ export interface SqlSymbolRenameResponse {
      */
     refactorLogContent: string | null;
     newName: string;
-    warningMessage?: string | null;
+    /**
+     * When non-null, a message to surface to the user.
+     * If isWarning is true, show a confirmation dialog; otherwise show a blocking error.
+     */
+    message?: string | null;
+    /** True when message is a confirmation warning; false (default) when it is a hard rejection. */
+    isWarning?: boolean;
 }
 
 export namespace SqlSymbolRenameRequest {
@@ -205,7 +211,13 @@ export interface SqlMoveToSchemaResponse {
      */
     refactorLogContent: string | null;
     targetSchema: string;
-    warningMessage?: string | null;
+    /**
+     * When non-null, a message to surface to the user.
+     * If isWarning is true, show a confirmation dialog; otherwise show a blocking error.
+     */
+    message?: string | null;
+    /** True when message is a confirmation warning; false (default) when it is a hard rejection. */
+    isWarning?: boolean;
 }
 
 export namespace SqlMoveToSchemaRequest {

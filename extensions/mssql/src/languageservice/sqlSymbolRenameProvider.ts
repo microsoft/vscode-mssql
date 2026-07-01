@@ -152,10 +152,15 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             throw new Error(loc.renameOnlyInProjectFiles);
         }
 
-        // Name collision — ask the user before proceeding.
-        if (response.warningMessage) {
+        // Hard rejection — surface the error message and abort.
+        if (response.message && !response.isWarning) {
+            throw new Error(response.message);
+        }
+
+        // Name collision warning — ask the user before proceeding.
+        if (response.message && response.isWarning) {
             const choice = await vscode.window.showWarningMessage(
-                response.warningMessage,
+                response.message,
                 { modal: true },
                 msgYes,
             );

@@ -188,9 +188,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         }
 
         // Warn if an object with the same name already exists in the target schema.
-        if (response.warningMessage) {
+        if (response.message && response.isWarning) {
             const choice = await vscode.window.showWarningMessage(
-                response.warningMessage,
+                response.message,
                 { modal: true },
                 msgYes,
             );
