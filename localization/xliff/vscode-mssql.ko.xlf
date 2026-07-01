@@ -7207,7 +7207,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
         <source xml:lang="en">Press desired key combination and then press ENTER.</source>
-        <target state="new">Press desired key combination and then press ENTER.</target>
+        <target state="translated">원하는 키 조합을 누르고 &lt;ENTER&gt; 키를 누르세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
         <source xml:lang="en">Preview</source>
