@@ -74,12 +74,10 @@ suite("BuildHelper: Build Helper tests", function (): void {
         }
     });
 
-    test("Should get correct build folder", async function (): Promise<void> {
-        const testContext: TestContext = createContext();
+    test("Should get correct build folder", function (): void {
         const buildHelper = new BuildHelper();
-        await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
-        // get expected path for build
+        // extensionBuildDirPath is set in the constructor — no network calls needed.
         const extensionPath =
             vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
         expect(buildHelper.extensionBuildDirPath).to.equal(
@@ -126,6 +124,11 @@ suite("BuildHelper: Build Helper tests", function (): void {
     });
 
     test("Should have all required DLLs in build directory", async function (): Promise<void> {
+        // Stub file-existence checks so all files are considered present — no download triggered.
+        sandbox.stub(utils, "exists").resolves(true);
+        // Stub version validation so the floating-version NuGet resolution (network call) is skipped.
+        sandbox.stub(utils, "isValidMicrosoftBuildSqlVersion").returns(false);
+
         const testContext: TestContext = createContext();
         const buildHelper = new BuildHelper();
         const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
