@@ -384,6 +384,13 @@ export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
 
+/**
+ * Error substrings from Docker daemon stderr that indicate a socket permission
+ * problem (not a stopped daemon). These are system-level strings from Linux/Docker
+ * and are not locale-dependent.
+ */
+export const dockerPermissionErrorPatterns = ["permission denied", "eacces"];
+
 // SQL Database Projects Constants
 export const DSP_PREFIX = "Microsoft.Data.Tools.Schema.Sql.Sql";
 export const DSP_SUFFIX = "DatabaseSchemaProvider";

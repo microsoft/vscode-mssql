@@ -1825,6 +1825,9 @@ export class LocalContainers {
     public static linuxDockerPermissionsError = l10n.t(
         "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
     );
+    public static dockerSocketPermissionError = l10n.t(
+        "Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.",
+    );
     public static dockerFailedToStartWithinTimeout = l10n.t(
         "Docker failed to start within the timeout period. Please manually start Docker and try again.",
     );
