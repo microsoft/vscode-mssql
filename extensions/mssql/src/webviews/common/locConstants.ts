@@ -352,29 +352,54 @@ export class LocConstants {
             title: l10n.t("Shortcuts Configuration"),
             pageAriaLabel: l10n.t("Shortcuts configuration page"),
             configurationSections: l10n.t("Configuration sections"),
-            subtitle: l10n.t("Configure Quick Query and in-app shortcuts."),
+            subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
-                "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
+                "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.",
             ),
-            webviewShortcuts: l10n.t("In-App Shortcuts"),
+            quickQueriesKeyboardShortcutsBanner: l10n.t(
+                "Quick Queries keyboard shortcuts are managed by Visual Studio Code, so configuring keybindings opens its",
+            ),
+            webviewShortcuts: l10n.t("Extension Shortcuts"),
             webviewShortcutsDescription: l10n.t(
-                "Configure shortcuts that are handled inside MSSQL views.",
+                "Configure keyboard shortcuts used by the MSSQL extension.",
             ),
-            keymapCommands: l10n.t("Key Commands"),
-            keymapCommandsDescription: l10n.t("Manage command shortcuts in VS Code."),
+            queryEditorShortcuts: l10n.t("Query Editor"),
+            queryEditorKeyboardShortcutsBanner: l10n.t(
+                "Query Editor shortcuts are managed by Visual Studio Code, so configuring keybindings opens its",
+            ),
+            resultViewShortcuts: l10n.t("Result View"),
+            resultViewShortcutsBanner: l10n.t(
+                "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.",
+            ),
+            keyboardShortcutsEditor: l10n.t("Keyboard Shortcuts editor"),
+            viewConfigureKeybinding: l10n.t("View/configure keybinding"),
+            viewConfigureKeybindingTooltip: (name: string) =>
+                l10n.t({
+                    message: "View/configure keybinding for {0}",
+                    args: [name],
+                    comment: ["{0} is the command or shortcut display name"],
+                }),
+            configurableKeyCommandCategoryLabels: {
+                queryExecution: l10n.t("Query Execution"),
+                connection: l10n.t("Connection"),
+                others: l10n.t("Others"),
+            },
+            configurableKeyCommandCategoryDescriptions: {
+                queryExecution: l10n.t("Run, cancel, and create queries"),
+                connection: l10n.t("Connect and manage database connections"),
+                others: l10n.t("Extension and deployment actions"),
+            },
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
             autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
-            managedInVsCode: l10n.t("Managed in VS Code"),
             showAllShortcuts: l10n.t("Show All"),
             showAllQuickQueryShortcutsTooltip: l10n.t(
                 "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
             ),
-            openKeybinding: l10n.t("Open keybinding"),
             quickQuerySlotName: (slotNumber: number) =>
                 l10n.t({
                     message: "Query {0}",
@@ -395,8 +420,7 @@ export class LocConstants {
                 }),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
-            searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
-            searchKeymapCommands: l10n.t("Search key commands"),
+            searchWebviewShortcuts: l10n.t("Search extension shortcut"),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
                 "Press desired key combination and then press ENTER.",

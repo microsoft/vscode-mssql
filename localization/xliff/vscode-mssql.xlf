@@ -1354,8 +1354,8 @@
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
     </trans-unit>
-    <trans-unit id="++CODE++40b05867de48832993b117a3596bebf4b2bf2a99dade41af88c8dfada45469cd">
-      <source xml:lang="en">Configure Quick Query and in-app shortcuts.</source>
+    <trans-unit id="++CODE++6338b746574ee0192b5942652c89968857a7b8dc1634561c1cbd748b7261251e">
+      <source xml:lang="en">Configure Quick Query and Extension shortcuts.</source>
     </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
@@ -1366,11 +1366,8 @@
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
     </trans-unit>
-    <trans-unit id="++CODE++3135416947bed2e7934a6e4463fa842ab5b8ddc86566c9789517f8c5864c35da">
-      <source xml:lang="en">Configure command-backed SQL snippets that can open or run from keyboard shortcuts.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b0dc4fcae95361a5ae1cd5e7fc5c817848bbc8819fe5ee0d71615d064884af32">
-      <source xml:lang="en">Configure shortcuts that are handled inside MSSQL views.</source>
+    <trans-unit id="++CODE++c3601ab056586eb83c082fc146db4ff551ad914941f89ed7954a78a0618bc798">
+      <source xml:lang="en">Configure keyboard shortcuts used by the MSSQL extension.</source>
     </trans-unit>
     <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
       <source xml:lang="en">Confirm Password</source>
@@ -1395,6 +1392,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
       <source xml:lang="en">Connect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
+      <source xml:lang="en">Connect and manage database connections</source>
     </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
@@ -1502,6 +1502,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
       <source xml:lang="en">Connecting...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++639a40e82b9a96f0cbeed5f006cf5634c8d1b990b3c83753c00a910fc268d2a6">
+      <source xml:lang="en">Connection</source>
     </trans-unit>
     <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
       <source xml:lang="en">Connection Authentication</source>
@@ -2982,6 +2985,12 @@
     <trans-unit id="++CODE++312cd31b86c8f1e8bfe2bee53392337f74d6268be0bfcef0e28a57b2ef861473">
       <source xml:lang="en">Extended Events Log Files</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5bd88842b6e5ec1de5f20134b0fe52c545a289b6a491da8f09704519dabe162">
+      <source xml:lang="en">Extension Shortcuts</source>
+    </trans-unit>
+    <trans-unit id="++CODE++96ddf01f0f59ca7902524e4190abea04cc0238c67c301ccb6903254fbc790a8a">
+      <source xml:lang="en">Extension and deployment actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
       <source xml:lang="en">Extract DACPAC</source>
     </trans-unit>
@@ -3914,9 +3923,6 @@
     <trans-unit id="++CODE++353bfeffa4a99ec1426a2426a764e92e5b9c2f00db3bf837d8f5a1e4f486117a">
       <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
     </trans-unit>
-    <trans-unit id="++CODE++2574b3edc726c742a53a8c2453aa785036737b718f29576c2f31265fc691cb52">
-      <source xml:lang="en">In-App Shortcuts</source>
-    </trans-unit>
     <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
       <source xml:lang="en">Include</source>
     </trans-unit>
@@ -4048,8 +4054,8 @@
     <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
       <source xml:lang="en">Key</source>
     </trans-unit>
-    <trans-unit id="++CODE++7e3559309c79393e239fce6e344ea80743a6e20d89012394eafbbe19206c3709">
-      <source xml:lang="en">Key Commands</source>
+    <trans-unit id="++CODE++1730c13cc8d1bc6550b4f9150c1934d2bcac56f8a34d701392c057ff113bd491">
+      <source xml:lang="en">Keyboard Shortcuts editor</source>
     </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
@@ -4443,14 +4449,8 @@
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
-    <trans-unit id="++CODE++eba8ee5363965aa0a23f819ccfdae076ea80f7318571374cfd35dbc672875992">
-      <source xml:lang="en">Manage command shortcuts in VS Code.</source>
-    </trans-unit>
     <trans-unit id="++CODE++5ae5256284272a7585c1b275ef82e5d337ca3353c8e608120019177aad6a26c6">
       <source xml:lang="en">Manage relationships</source>
-    </trans-unit>
-    <trans-unit id="++CODE++92c20a4c9f9605c5118291b8c16272a3732ad73f2293593fd9136db4837d93cf">
-      <source xml:lang="en">Managed in VS Code</source>
     </trans-unit>
     <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
       <source xml:lang="en">Mandatory (Recommended)</source>
@@ -5262,9 +5262,6 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++4a8ad6355e40f91327be152fd7e5b605d76e59b6cc1ae04e94aa2b5b0ce6cfe5">
-      <source xml:lang="en">Open keybinding</source>
-    </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
     </trans-unit>
@@ -5315,6 +5312,9 @@
     </trans-unit>
     <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
       <source xml:lang="en">Original file name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ebdad9ba4c5e3ce0078ad8e8fb31e4c76176834cd2370f05bd043e4baf8d6c5a">
+      <source xml:lang="en">Others</source>
     </trans-unit>
     <trans-unit id="++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f">
       <source xml:lang="en">Output file</source>
@@ -5663,6 +5663,15 @@
     <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
       <source xml:lang="en">Query</source>
     </trans-unit>
+    <trans-unit id="++CODE++5bf31bcb066ae7c0e33982f1593874fce61833581817dfb5091aa5c256b4d4d8">
+      <source xml:lang="en">Query Editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3373c479a74febcbcaabaea215897219fc50397d22f04f2f63165adf11703fc4">
+      <source xml:lang="en">Query Editor shortcuts are managed by Visual Studio Code, so configuring keybindings opens its</source>
+    </trans-unit>
+    <trans-unit id="++CODE++78ce37187f269b9e700f1ffe8bfa8a246f612fe88cdc8b39aa770152712c6add">
+      <source xml:lang="en">Query Execution</source>
+    </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
     </trans-unit>
@@ -5717,6 +5726,9 @@
     </trans-unit>
     <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
       <source xml:lang="en">Quick Queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++24317263561d221588f81e64c8ab3d38f208fa23105f6a7fca828c6acb0636be">
+      <source xml:lang="en">Quick Queries keyboard shortcuts are managed by Visual Studio Code, so configuring keybindings opens its</source>
     </trans-unit>
     <trans-unit id="++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d">
       <source xml:lang="en">Quick Query slot must be between 1 and {0}.</source>
@@ -5978,6 +5990,12 @@
       <note>{0} is the batch number
 {1} is the query number</note>
     </trans-unit>
+    <trans-unit id="++CODE++71d5f8f0fd81ed146cb9025401639f5156d57e15633620ca2153ccdfce395b46">
+      <source xml:lang="en">Result View</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a66883c25fec3e51a96c6f97d77739a4abce1854f79266e074e7c1a5f74abf5">
+      <source xml:lang="en">Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.</source>
+    </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
     </trans-unit>
@@ -6093,6 +6111,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the SQL query</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
+      <source xml:lang="en">Run, cancel, and create queries</source>
     </trans-unit>
     <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
       <source xml:lang="en">Running</source>
@@ -6245,6 +6266,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
       <source xml:lang="en">Save connection profile changes without establishing a connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6">
+      <source xml:lang="en">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</source>
     </trans-unit>
     <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
       <source xml:lang="en">Save password</source>
@@ -6402,11 +6426,8 @@
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
     </trans-unit>
-    <trans-unit id="++CODE++16f289fd88de8f7176a04262f13bf831d2316e26607f21d402390985e3d67643">
-      <source xml:lang="en">Search in-app shortcuts</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c13c75314422cec5bdea118b4f45f2e723d7c31ceb0b0af25ea6b348cd433643">
-      <source xml:lang="en">Search key commands</source>
+    <trans-unit id="++CODE++bf02e2b6200125d467ce1c048b8124906131963d7af4568a0b538aecede4da47">
+      <source xml:lang="en">Search extension shortcut</source>
     </trans-unit>
     <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
       <source xml:lang="en">Search options</source>
@@ -7871,6 +7892,13 @@
     </trans-unit>
     <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
       <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++177048658940c95e2084e2d0605ee437382d6584321aa0073eaeb6cda6e93fe2">
+      <source xml:lang="en">View/configure keybinding</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f464bfcb8edfa7a4cf46e0942195b36ef56273a2daee217d9870793c4c5a241e">
+      <source xml:lang="en">View/configure keybinding for {0}</source>
+      <note>{0} is the command or shortcut display name</note>
     </trans-unit>
     <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
       <source xml:lang="en">View:</source>

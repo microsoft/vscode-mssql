@@ -7,8 +7,11 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 import {
     Button,
     Input,
+    Link,
     makeStyles,
     mergeClasses,
+    MessageBar,
+    MessageBarBody,
     Tab,
     TabList,
     tokens,
@@ -26,6 +29,7 @@ import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import {
+    ConfigurableKeyCommand,
     configurableKeyCommands,
     getQuickQueryCommandId,
     QuickQueryExecutionMode,
@@ -49,9 +53,15 @@ import { HighlightedText, textMatchesSearch } from "./shortcutKeyboardUtils";
 import { QuickQueryGridRow, useQuickQueryColumns } from "./quickQueryGridColumns";
 import { useShortcutsConfigurationSave } from "./useShortcutsConfigurationSave";
 
-type ConfigurationTab = "queries" | "shortcuts" | "commands";
+type ConfigurationTab = "queries" | "shortcuts";
 const quickQueryGridContainerId = "shortcutsQuickQueriesGridContainer";
 const quickQueryGridId = "shortcutsQuickQueriesGrid";
+
+const configurableKeyCommandCategoryOrder: ConfigurableKeyCommand["category"][] = [
+    "queryExecution",
+    "connection",
+    "others",
+];
 
 const useStyles = makeStyles({
     page: {
@@ -69,6 +79,22 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase300,
+    },
+    infoBanner: {
+        marginBottom: "14px",
+    },
+    section: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        minWidth: 0,
+    },
+    sectionTitle: {
+        color: "var(--vscode-foreground)",
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightSemibold,
+        lineHeight: tokens.lineHeightBase400,
+        margin: 0,
     },
     card: {
         backgroundColor: "var(--vscode-editor-background)",
@@ -236,8 +262,9 @@ const useStyles = makeStyles({
     },
     quickQueryShortcutCell: {
         alignItems: "center",
-        cursor: "pointer",
+        cursor: "default",
         display: "flex",
+        justifyContent: "flex-end",
         minWidth: 0,
         width: "100%",
         ":focus": {
@@ -316,6 +343,61 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
+    vscodeManagedShortcutAction: {
+        alignItems: "center",
+        backgroundColor: "transparent",
+        border: "none",
+        borderRadius: "3px",
+        color: "var(--vscode-descriptionForeground)",
+        cursor: "pointer",
+        display: "inline-flex",
+        font: "inherit",
+        fontSize: tokens.fontSizeBase200,
+        gap: "6px",
+        justifyContent: "flex-end",
+        margin: 0,
+        minWidth: 0,
+        padding: "0",
+        whiteSpace: "nowrap",
+        ":hover": {
+            color: "var(--vscode-foreground)",
+        },
+        ":focus-visible": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "2px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+        ":hover .vscodeManagedShortcutActionText": {
+            display: "inline-flex",
+        },
+        ":hover .vscodeManagedShortcutActionOpenIcon": {
+            display: "inline-flex",
+        },
+        ":focus-visible .vscodeManagedShortcutActionText": {
+            display: "inline-flex",
+        },
+        ":focus-visible .vscodeManagedShortcutActionOpenIcon": {
+            display: "inline-flex",
+        },
+    },
+    vscodeManagedShortcutActionText: {
+        display: "none",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    },
+    vscodeManagedShortcutActionIcon: {
+        display: "inline-flex",
+        flex: "0 0 auto",
+        height: "16px",
+        width: "16px",
+    },
+    vscodeManagedShortcutActionOpenIcon: {
+        display: "none",
+        flex: "0 0 auto",
+        height: "14px",
+        width: "14px",
+    },
     quickQueryEmpty: {
         color: "var(--vscode-disabledForeground)",
     },
@@ -385,7 +467,7 @@ const useStyles = makeStyles({
     shortcutGroups: {
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
+        gap: "12px",
     },
     shortcutGroup: {
         borderRadius: "8px",
@@ -458,7 +540,6 @@ export const ShortcutsConfigurationPage = () => {
     const [editingQueryIndex, setEditingQueryIndex] = useState<number | undefined>(undefined);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
     const [shortcutSearch, setShortcutSearch] = useState("");
-    const [commandSearch, setCommandSearch] = useState("");
     const [recording, setRecording] = useState<{ kind: "webview"; action: WebviewAction }>();
     const quickQueryGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const quickQueryRowsRef = useRef<QuickQueryGridRow[]>([]);
@@ -570,6 +651,20 @@ export const ShortcutsConfigurationPage = () => {
         return null;
     }
 
+    const renderInfoBanner = (message: string, actionLabel?: string, onAction?: () => void) => (
+        <MessageBar intent="info" className={classes.infoBanner}>
+            <MessageBarBody>
+                {message}
+                {actionLabel && onAction && (
+                    <>
+                        {" "}
+                        <Link onClick={onAction}>{actionLabel}</Link>
+                    </>
+                )}
+            </MessageBarBody>
+        </MessageBar>
+    );
+
     const renderQueries = () => {
         const editingQuery =
             editingQueryIndex !== undefined ? quickQueries[editingQueryIndex] : undefined;
@@ -577,6 +672,13 @@ export const ShortcutsConfigurationPage = () => {
         return (
             <>
                 <div className={classes.helpText}>{loc.quickQueriesDescription}</div>
+                {renderInfoBanner(
+                    loc.quickQueriesKeyboardShortcutsBanner,
+                    loc.keyboardShortcutsEditor,
+                    () => {
+                        void context.openQuickQueryKeybindings();
+                    },
+                )}
                 <div className={mergeClasses(classes.card, classes.quickQueryGridCard)}>
                     <div className={classes.quickQueryGridScroller}>
                         <div
@@ -615,37 +717,32 @@ export const ShortcutsConfigurationPage = () => {
         );
     };
 
-    const renderShortcuts = () => (
-        <>
-            <div className={classes.helpText}>{loc.webviewShortcutsDescription}</div>
-            <Input
-                className={classes.searchInput}
-                contentBefore={<Search16Regular />}
-                value={shortcutSearch}
-                placeholder={loc.searchWebviewShortcuts}
-                aria-label={loc.searchWebviewShortcuts}
-                onChange={(_event, data) => setShortcutSearch(data.value)}
-            />
+    const renderQueryEditorShortcuts = (searchTerm: string) => {
+        const groups = configurableKeyCommandCategoryOrder
+            .map((category) => ({
+                category,
+                label: loc.configurableKeyCommandCategoryLabels[category],
+                description: loc.configurableKeyCommandCategoryDescriptions[category],
+                items: configurableKeyCommands.filter((item) => item.category === category),
+            }))
+            .filter((group) => group.items.length > 0);
+
+        return (
             <div className={classes.shortcutGroups}>
-                {shortcutGroups.map((group) => {
-                    const searchTerm = shortcutSearch.trim();
-                    const groupLabel = getShortcutGroupLabel(group.id, loc);
-                    const groupDescription = getShortcutGroupDescription(group.id, loc);
+                {groups.map((group) => {
                     const groupMatches =
                         !!searchTerm &&
-                        (textMatchesSearch(groupLabel, searchTerm) ||
-                            textMatchesSearch(groupDescription, searchTerm));
+                        (textMatchesSearch(group.label, searchTerm) ||
+                            textMatchesSearch(group.description, searchTerm));
                     const visibleItems = group.items.filter((item) => {
                         if (!searchTerm || groupMatches) {
                             return true;
                         }
 
                         return (
-                            textMatchesSearch(loc.webviewShortcutLabels[item.action], searchTerm) ||
-                            textMatchesSearch(
-                                loc.webviewShortcutDescriptions[item.action],
-                                searchTerm,
-                            )
+                            textMatchesSearch(item.label, searchTerm) ||
+                            textMatchesSearch(item.command, searchTerm) ||
+                            textMatchesSearch(item.description, searchTerm)
                         );
                     });
 
@@ -655,44 +752,44 @@ export const ShortcutsConfigurationPage = () => {
 
                     return (
                         <CollapsibleSection
-                            key={group.id}
+                            key={group.category}
                             className={mergeClasses(classes.card, classes.shortcutGroup)}
                             buttonClassName={classes.groupHeader}
                             panelClassName={classes.webviewShortcuts}
-                            open={searchTerm ? true : !collapsedGroups[group.id]}
+                            open={
+                                searchTerm
+                                    ? true
+                                    : !collapsedGroups[`queryEditor:${group.category}`]
+                            }
                             onOpenChange={(open) =>
                                 setCollapsedGroups((current) => ({
                                     ...current,
-                                    [group.id]: !open,
+                                    [`queryEditor:${group.category}`]: !open,
                                 }))
                             }
                             title={
                                 <span className={classes.groupTitle}>
                                     <span className={classes.groupTitleLabel}>
                                         <HighlightedText
-                                            text={groupLabel}
+                                            text={group.label}
                                             searchTerm={searchTerm}
                                         />
                                     </span>
                                     <span className={classes.groupTitleDescription}>
                                         <HighlightedText
-                                            text={groupDescription}
+                                            text={group.description}
                                             searchTerm={searchTerm}
                                         />
                                     </span>
                                 </span>
                             }>
                             {visibleItems.map((item) => (
-                                <WebviewShortcutRow
-                                    key={item.action}
+                                <ConfigurableKeyCommandRow
+                                    key={item.command}
                                     item={item}
-                                    value={webviewShortcuts[item.action] ?? ""}
-                                    onRecord={() =>
-                                        setRecording({
-                                            kind: "webview",
-                                            action: item.action,
-                                        })
-                                    }
+                                    onOpen={() => {
+                                        void context.openKeymapCommandKeybinding(item.command);
+                                    }}
                                     loc={loc}
                                     searchTerm={searchTerm}
                                 />
@@ -701,55 +798,110 @@ export const ShortcutsConfigurationPage = () => {
                     );
                 })}
             </div>
-        </>
+        );
+    };
+
+    const renderResultViewShortcuts = (searchTerm: string) => (
+        <div className={classes.shortcutGroups}>
+            {shortcutGroups.map((group) => {
+                const groupLabel = getShortcutGroupLabel(group.id, loc);
+                const groupDescription = getShortcutGroupDescription(group.id, loc);
+                const groupMatches =
+                    !!searchTerm &&
+                    (textMatchesSearch(groupLabel, searchTerm) ||
+                        textMatchesSearch(groupDescription, searchTerm));
+                const visibleItems = group.items.filter((item) => {
+                    if (!searchTerm || groupMatches) {
+                        return true;
+                    }
+
+                    return (
+                        textMatchesSearch(loc.webviewShortcutLabels[item.action], searchTerm) ||
+                        textMatchesSearch(loc.webviewShortcutDescriptions[item.action], searchTerm)
+                    );
+                });
+
+                if (searchTerm && visibleItems.length === 0) {
+                    return undefined;
+                }
+
+                return (
+                    <CollapsibleSection
+                        key={group.id}
+                        className={mergeClasses(classes.card, classes.shortcutGroup)}
+                        buttonClassName={classes.groupHeader}
+                        panelClassName={classes.webviewShortcuts}
+                        open={searchTerm ? true : !collapsedGroups[`resultView:${group.id}`]}
+                        onOpenChange={(open) =>
+                            setCollapsedGroups((current) => ({
+                                ...current,
+                                [`resultView:${group.id}`]: !open,
+                            }))
+                        }
+                        title={
+                            <span className={classes.groupTitle}>
+                                <span className={classes.groupTitleLabel}>
+                                    <HighlightedText text={groupLabel} searchTerm={searchTerm} />
+                                </span>
+                                <span className={classes.groupTitleDescription}>
+                                    <HighlightedText
+                                        text={groupDescription}
+                                        searchTerm={searchTerm}
+                                    />
+                                </span>
+                            </span>
+                        }>
+                        {visibleItems.map((item) => (
+                            <WebviewShortcutRow
+                                key={item.action}
+                                item={item}
+                                value={webviewShortcuts[item.action] ?? ""}
+                                onRecord={() =>
+                                    setRecording({
+                                        kind: "webview",
+                                        action: item.action,
+                                    })
+                                }
+                                loc={loc}
+                                searchTerm={searchTerm}
+                            />
+                        ))}
+                    </CollapsibleSection>
+                );
+            })}
+        </div>
     );
 
-    const renderCommands = () => {
-        const searchTerm = commandSearch.trim();
-        const visibleCommands = configurableKeyCommands.filter((item) => {
-            if (!searchTerm) {
-                return true;
-            }
-
-            return (
-                textMatchesSearch(item.label, searchTerm) ||
-                textMatchesSearch(item.command, searchTerm)
-            );
-        });
+    const renderShortcuts = () => {
+        const searchTerm = shortcutSearch.trim();
 
         return (
             <>
-                <div className={classes.helpText}>{loc.keymapCommandsDescription}</div>
-                <div className={classes.quickQueryShortcutHeader}>
-                    <Input
-                        className={classes.searchInput}
-                        contentBefore={<Search16Regular />}
-                        value={commandSearch}
-                        placeholder={loc.searchKeymapCommands}
-                        aria-label={loc.searchKeymapCommands}
-                        onChange={(_event, data) => setCommandSearch(data.value)}
-                    />
-                    <Button
-                        appearance="secondary"
-                        onClick={() => {
+                <div className={classes.helpText}>{loc.webviewShortcutsDescription}</div>
+                <Input
+                    className={classes.searchInput}
+                    contentBefore={<Search16Regular />}
+                    value={shortcutSearch}
+                    placeholder={loc.searchWebviewShortcuts}
+                    aria-label={loc.searchWebviewShortcuts}
+                    onChange={(_event, data) => setShortcutSearch(data.value)}
+                />
+                <section className={classes.section}>
+                    <h2 className={classes.sectionTitle}>{loc.queryEditorShortcuts}</h2>
+                    {renderInfoBanner(
+                        loc.queryEditorKeyboardShortcutsBanner,
+                        loc.keyboardShortcutsEditor,
+                        () => {
                             void context.openKeymapCommandKeybindings();
-                        }}>
-                        {loc.showAllShortcuts}
-                    </Button>
-                </div>
-                <div className={mergeClasses(classes.card, classes.webviewShortcuts)}>
-                    {visibleCommands.map((item) => (
-                        <ConfigurableKeyCommandRow
-                            key={item.command}
-                            item={item}
-                            onOpen={() => {
-                                void context.openKeymapCommandKeybinding(item.command);
-                            }}
-                            loc={loc}
-                            searchTerm={searchTerm}
-                        />
-                    ))}
-                </div>
+                        },
+                    )}
+                    {renderQueryEditorShortcuts(searchTerm)}
+                </section>
+                <section className={classes.section}>
+                    <h2 className={classes.sectionTitle}>{loc.resultViewShortcuts}</h2>
+                    {renderInfoBanner(loc.resultViewShortcutsBanner)}
+                    {renderResultViewShortcuts(searchTerm)}
+                </section>
             </>
         );
     };
@@ -800,13 +952,8 @@ export const ShortcutsConfigurationPage = () => {
                     aria-label={loc.configurationSections}>
                     <Tab value="queries">{loc.quickQueries}</Tab>
                     <Tab value="shortcuts">{loc.webviewShortcuts}</Tab>
-                    <Tab value="commands">{loc.keymapCommands}</Tab>
                 </TabList>
-                {activeTab === "queries"
-                    ? renderQueries()
-                    : activeTab === "shortcuts"
-                      ? renderShortcuts()
-                      : renderCommands()}
+                {activeTab === "queries" ? renderQueries() : renderShortcuts()}
             </div>
             {recording && (
                 <ShortcutRecorder

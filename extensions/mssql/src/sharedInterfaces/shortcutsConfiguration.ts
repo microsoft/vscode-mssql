@@ -28,6 +28,8 @@ export interface ShortcutsConfigurationData {
 export interface ConfigurableKeyCommand {
     command: string;
     label: string;
+    description: string;
+    category: "queryExecution" | "connection" | "others";
 }
 
 export interface ShortcutsConfigurationWebviewState {
@@ -137,42 +139,50 @@ export const configurableKeyCommands: ConfigurableKeyCommand[] = [
     {
         command: "mssql.runQuery",
         label: "Execute Query",
-    },
-    {
-        command: "notebook.cell.execute",
-        label: "Execute Notebook Cell",
+        description: "Run a query for the current active SQL document",
+        category: "queryExecution",
     },
     {
         command: "mssql.runCurrentStatement",
         label: "Execute Selection or Current Statement",
+        description: "Execute only the T-SQL statement under the cursor",
+        category: "queryExecution",
     },
     {
         command: "mssql.cancelQuery",
         label: "Cancel Query",
-    },
-    {
-        command: "mssql.showEstimatedPlan",
-        label: "Show Estimated Plan",
-    },
-    {
-        command: "mssql.toggleActualPlan",
-        label: "Toggle Actual Plan",
+        description: "Cancel the query execution in progress",
+        category: "queryExecution",
     },
     {
         command: "mssql.newQuery",
         label: "New Query",
+        description: "Open a new SQL query file",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.showEstimatedPlan",
+        label: "Show Estimated Plan",
+        description: "View the estimated query execution plan",
+        category: "others",
+    },
+    {
+        command: "mssql.toggleActualPlan",
+        label: "Toggle Actual Plan",
+        description: "Toggle actual execution plan collection for SQL queries",
+        category: "others",
     },
     {
         command: "mssql.copyAll",
         label: "Copy All",
-    },
-    {
-        command: "workbench.view.extension.objectExplorer",
-        label: "Show Object Explorer",
+        description: "Copy all query result content",
+        category: "others",
     },
     {
         command: "mssql.toggleQueryResultPanel",
         label: "Toggle Query Result Panel",
+        description: "Show or hide the query result panel",
+        category: "others",
     },
 ];
 

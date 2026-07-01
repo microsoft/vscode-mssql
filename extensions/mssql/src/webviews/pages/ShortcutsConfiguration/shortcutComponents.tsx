@@ -32,7 +32,7 @@ import {
     Tooltip,
     tokens,
 } from "@fluentui/react-components";
-import { Checkmark12Regular, Keyboard16Regular } from "@fluentui/react-icons";
+import { Checkmark12Regular, Keyboard16Regular, Open16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
@@ -272,6 +272,67 @@ const useStyles = makeStyles({
         ":hover": {
             color: "var(--vscode-foreground)",
         },
+    },
+    vscodeManagedShortcutAction: {
+        alignItems: "center",
+        backgroundColor: "var(--vscode-input-background)",
+        border: "1px solid var(--vscode-input-border, var(--vscode-editorWidget-border))",
+        borderRadius: "4px",
+        color: "var(--vscode-descriptionForeground)",
+        cursor: "pointer",
+        display: "inline-flex",
+        flex: "0 0 auto",
+        font: "inherit",
+        fontSize: tokens.fontSizeBase200,
+        gap: "6px",
+        justifyContent: "flex-end",
+        minHeight: controlHeight,
+        minWidth: "190px",
+        padding: "5px 10px",
+        whiteSpace: "nowrap",
+        ":hover": {
+            backgroundColor: "var(--vscode-toolbar-hoverBackground)",
+            borderBottomColor: "var(--vscode-focusBorder)",
+            borderLeftColor: "var(--vscode-focusBorder)",
+            borderRightColor: "var(--vscode-focusBorder)",
+            borderTopColor: "var(--vscode-focusBorder)",
+            color: "var(--vscode-foreground)",
+        },
+        ":focus-visible": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "2px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+        ":hover .vscodeManagedShortcutActionText": {
+            display: "inline-flex",
+        },
+        ":hover .vscodeManagedShortcutActionOpenIcon": {
+            display: "inline-flex",
+        },
+        ":focus-visible .vscodeManagedShortcutActionText": {
+            display: "inline-flex",
+        },
+        ":focus-visible .vscodeManagedShortcutActionOpenIcon": {
+            display: "inline-flex",
+        },
+    },
+    vscodeManagedShortcutActionText: {
+        display: "none",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    },
+    vscodeManagedShortcutActionIcon: {
+        display: "inline-flex",
+        flex: "0 0 auto",
+        height: "16px",
+        width: "16px",
+    },
+    vscodeManagedShortcutActionOpenIcon: {
+        display: "none",
+        flex: "0 0 auto",
+        height: "14px",
+        width: "14px",
     },
     webviewShortcutRow: {
         alignItems: "center",
@@ -607,7 +668,7 @@ export const ShortcutChip = ({
     );
 };
 
-export const ManagedInVsCodeShortcutChip = ({
+export const VscodeManagedShortcutAction = ({
     onOpen,
     label,
 }: {
@@ -616,49 +677,33 @@ export const ManagedInVsCodeShortcutChip = ({
 }) => {
     const classes = useStyles();
 
-    const onKeyDown = useCallback(
-        (event: ReactKeyboardEvent<HTMLInputElement>) => {
-            if (event.key !== "Enter" && event.key !== " ") {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-            onOpen();
-        },
-        [onOpen],
-    );
-    const onIconMouseDown = useCallback((event: ReactMouseEvent<HTMLSpanElement>) => {
-        event.preventDefault();
-    }, []);
-    const onIconClick = useCallback(
-        (event: ReactMouseEvent<HTMLSpanElement>) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onOpen();
-        },
-        [onOpen],
-    );
-
     return (
         <Tooltip content={label} relationship="label">
-            <Input
+            <button
+                type="button"
                 aria-label={label}
-                className={classes.shortcutInput}
-                contentAfter={
-                    <span
-                        className={classes.shortcutInputIconButton}
-                        onClick={onIconClick}
-                        onMouseDown={onIconMouseDown}>
-                        <Keyboard16Regular aria-hidden className={classes.shortcutInputIcon} />
-                    </span>
-                }
-                readOnly
-                title={locConstants.shortcutsConfiguration.managedInVsCode}
-                value={locConstants.shortcutsConfiguration.managedInVsCode}
-                onClick={onOpen}
-                onKeyDown={onKeyDown}
-            />
+                className={classes.vscodeManagedShortcutAction}
+                title={label}
+                onClick={onOpen}>
+                <span
+                    className={mergeClasses(
+                        classes.vscodeManagedShortcutActionText,
+                        "vscodeManagedShortcutActionText",
+                    )}>
+                    {locConstants.shortcutsConfiguration.viewConfigureKeybinding}
+                </span>
+                <Open16Regular
+                    aria-hidden
+                    className={mergeClasses(
+                        classes.vscodeManagedShortcutActionOpenIcon,
+                        "vscodeManagedShortcutActionOpenIcon",
+                    )}
+                />
+                <Keyboard16Regular
+                    aria-hidden
+                    className={classes.vscodeManagedShortcutActionIcon}
+                />
+            </button>
         </Tooltip>
     );
 };
@@ -954,9 +999,9 @@ export const ConfigurableKeyCommandRow = ({
                     <HighlightedText text={item.command} searchTerm={searchTerm} />
                 </Text>
             </div>
-            <ManagedInVsCodeShortcutChip
+            <VscodeManagedShortcutAction
                 onOpen={onOpen}
-                label={`${loc.openKeybinding}: ${item.label}`}
+                label={loc.viewConfigureKeybindingTooltip(item.label)}
             />
         </div>
     );
