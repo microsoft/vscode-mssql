@@ -828,7 +828,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     warningMessage:
                         "A schema object with the name [hr].[MyTable] already exists. Would you like to continue?",
                 });
-                sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined); // user dismissed
+                messageBoxes.showWarningMessage.resolves(undefined); // user dismissed
 
                 const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
                 await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
@@ -856,9 +856,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     warningMessage:
                         "A schema object with the name [hr].[MyTable] already exists. Would you like to continue?",
                 });
-                sandbox
-                    .stub(vscode.window, "showWarningMessage")
-                    .resolves("Yes" as vscode.MessageItem & string);
+                messageBoxes.showWarningMessage.resolves("Yes" as vscode.MessageItem & string);
 
                 const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
                 await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
