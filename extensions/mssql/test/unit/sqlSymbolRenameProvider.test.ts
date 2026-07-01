@@ -349,6 +349,75 @@ suite("SqlSymbolRenameProvider Tests", () => {
                 }),
             );
         });
+
+        test("returns empty WorkspaceEdit when STS returns warningMessage and user cancels", async () => {
+            const projUri = vscode.Uri.file(defaultProjFile);
+            findFilesStub.resolves([projUri]);
+            const fileUri = vscode.Uri.file(defaultSqlFile).toString();
+            sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
+                changes: {
+                    [fileUri]: [
+                        {
+                            range: {
+                                start: { line: 0, character: 0 },
+                                end: { line: 0, character: 7 },
+                            },
+                            newText: "Orders",
+                        },
+                    ],
+                },
+                newName: "Orders",
+                warningMessage:
+                    "A schema object with the name [Orders] already exists. Would you like to continue?",
+            });
+            sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined); // user dismissed/cancelled
+
+            const doc = makeDocument(sandbox);
+            const edit = await provider.provideRenameEdits(
+                doc,
+                new vscode.Position(0, 0),
+                "Orders",
+                token,
+            );
+
+            expect(edit).to.be.instanceOf(vscode.WorkspaceEdit);
+            expect(edit!.entries()).to.have.length(0); // empty — no changes applied
+        });
+
+        test("applies edits when STS returns warningMessage and user confirms", async () => {
+            const projUri = vscode.Uri.file(defaultProjFile);
+            findFilesStub.resolves([projUri]);
+            const fileUri = vscode.Uri.file(defaultSqlFile).toString();
+            sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
+                changes: {
+                    [fileUri]: [
+                        {
+                            range: {
+                                start: { line: 0, character: 0 },
+                                end: { line: 0, character: 7 },
+                            },
+                            newText: "Orders",
+                        },
+                    ],
+                },
+                newName: "Orders",
+                warningMessage:
+                    "A schema object with the name [Orders] already exists. Would you like to continue?",
+            });
+            sandbox.stub(vscode.window, "showWarningMessage").resolves("Yes" as any);
+
+            const doc = makeDocument(sandbox);
+            const edit = await provider.provideRenameEdits(
+                doc,
+                new vscode.Position(0, 0),
+                "Orders",
+                token,
+            );
+
+            expect(edit).to.be.instanceOf(vscode.WorkspaceEdit);
+            expect(edit!.entries()).to.have.length(1); // edits applied
+            expect(edit!.entries()[0][0].toString()).to.equal(fileUri);
+        });
     });
 
     // -------------------------------------------------------------------------

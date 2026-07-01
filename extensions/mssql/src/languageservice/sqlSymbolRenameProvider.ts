@@ -12,7 +12,7 @@ import {
     SqlSymbolRenameRequest,
     SqlSymbolRenameTextEdit,
 } from "../models/contracts/languageService";
-import { SqlSymbolRename as loc, msgYes, msgNo } from "../constants/locConstants";
+import { SqlSymbolRename as loc, msgYes } from "../constants/locConstants";
 
 /** Escapes a string for safe use inside an XML attribute value (e.g. an Include path). */
 function escapeXmlAttribute(value: string): string {
@@ -156,8 +156,8 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         if (response.warningMessage) {
             const choice = await vscode.window.showWarningMessage(
                 response.warningMessage,
+                { modal: true },
                 msgYes,
-                msgNo,
             );
             if (choice !== msgYes) {
                 return new vscode.WorkspaceEdit(); // user declined — apply nothing silently

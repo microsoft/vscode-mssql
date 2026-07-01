@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { SqlMoveToSchema as loc, msgYes, msgNo } from "../constants/locConstants";
+import { SqlMoveToSchema as loc, msgYes } from "../constants/locConstants";
 import { cmdMoveToSchema } from "../constants/constants";
 import SqlToolsServerClient from "./serviceclient";
 import {
@@ -191,8 +191,8 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         if (response.warningMessage) {
             const choice = await vscode.window.showWarningMessage(
                 response.warningMessage,
+                { modal: true },
                 msgYes,
-                msgNo,
             );
             if (choice !== msgYes) {
                 return; // user declined — do nothing silently
