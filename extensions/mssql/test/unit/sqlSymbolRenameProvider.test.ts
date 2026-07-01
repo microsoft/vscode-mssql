@@ -404,7 +404,9 @@ suite("SqlSymbolRenameProvider Tests", () => {
                 warningMessage:
                     "A schema object with the name [Orders] already exists. Would you like to continue?",
             });
-            sandbox.stub(vscode.window, "showWarningMessage").resolves("Yes" as any);
+            sandbox
+                .stub(vscode.window, "showWarningMessage")
+                .resolves("Yes" as vscode.MessageItem & string);
 
             const doc = makeDocument(sandbox);
             const edit = await provider.provideRenameEdits(
@@ -803,6 +805,67 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                 await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
                 expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                     moveLoc.applyEditFailed,
+                );
+            });
+
+            test("does not call applyEdit when warningMessage is returned and user dismisses", async () => {
+                const fileUri = vscode.Uri.file(defaultSqlFile).toString();
+                sendRequestStub
+                    .withArgs(ListProjectSchemasRequest.type)
+                    .resolves({ schemas: ["hr"] });
+                sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
+                    changes: {
+                        [fileUri]: [
+                            {
+                                range: {
+                                    start: { line: 0, character: 7 },
+                                    end: { line: 0, character: 14 },
+                                },
+                                newText: "[hr].[MyTable]",
+                            },
+                        ],
+                    },
+                    warningMessage:
+                        "A schema object with the name [hr].[MyTable] already exists. Would you like to continue?",
+                });
+                sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined); // user dismissed
+
+                const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+                await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+
+                expect(applyEditStub).to.not.have.been.called;
+            });
+
+            test("calls applyEdit when warningMessage is returned and user confirms Yes", async () => {
+                const fileUri = vscode.Uri.file(defaultSqlFile).toString();
+                sendRequestStub
+                    .withArgs(ListProjectSchemasRequest.type)
+                    .resolves({ schemas: ["hr"] });
+                sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
+                    changes: {
+                        [fileUri]: [
+                            {
+                                range: {
+                                    start: { line: 0, character: 7 },
+                                    end: { line: 0, character: 14 },
+                                },
+                                newText: "[hr].[MyTable]",
+                            },
+                        ],
+                    },
+                    warningMessage:
+                        "A schema object with the name [hr].[MyTable] already exists. Would you like to continue?",
+                });
+                sandbox
+                    .stub(vscode.window, "showWarningMessage")
+                    .resolves("Yes" as vscode.MessageItem & string);
+
+                const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
+                await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
+
+                expect(applyEditStub).to.have.been.calledWith(
+                    sinon.match.instanceOf(vscode.WorkspaceEdit),
+                    sinon.match({ isRefactoring: true }),
                 );
             });
         });
