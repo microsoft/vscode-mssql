@@ -175,6 +175,7 @@ export interface SqlSymbolRenameResponse {
      */
     refactorLogContent: string | null;
     newName: string;
+    warningMessage?: string | null;
 }
 
 export namespace SqlSymbolRenameRequest {
@@ -204,6 +205,7 @@ export interface SqlMoveToSchemaResponse {
      */
     refactorLogContent: string | null;
     targetSchema: string;
+    warningMessage?: string | null;
 }
 
 export namespace SqlMoveToSchemaRequest {
