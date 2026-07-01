@@ -20,7 +20,7 @@ import { IconPathHelper } from "../common/iconHelper";
 import { WorkspaceTreeItem } from "dataworkspace";
 import * as constants from "../common/constants";
 import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
-import { GenerateProjectFromOpenApiSpecOptions, ItemType } from "sqldbproj";
+import { ItemType } from "sqldbproj";
 import { FileNode } from "../models/tree/fileFolderTreeItem";
 import { HttpClient } from "../http/httpClient";
 
@@ -152,14 +152,6 @@ export default class MainController implements vscode.Disposable {
                 "sqlDatabaseProjects.createProjectFromDatabase",
                 async (context: vscodeMssql.ITreeNodeInfo | undefined) => {
                     return this.projectsController.createProjectFromDatabase(context);
-                },
-            ),
-        );
-        this.context.subscriptions.push(
-            vscode.commands.registerCommand(
-                "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
-                async (options?: GenerateProjectFromOpenApiSpecOptions) => {
-                    return this.projectsController.generateProjectFromOpenApiSpec(options);
                 },
             ),
         );

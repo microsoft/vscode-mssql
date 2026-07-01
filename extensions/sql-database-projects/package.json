@@ -67,14 +67,6 @@
                         "type": "boolean",
                         "description": "%sqlDatabaseProjects.netCoreDoNotAsk%"
                     },
-                    "sqlDatabaseProjects.nodejsDoNotAsk": {
-                        "type": "boolean",
-                        "description": "%sqlDatabaseProjects.nodejsDoNotAsk%"
-                    },
-                    "sqlDatabaseProjects.autorestSqlVersion": {
-                        "type": "string",
-                        "description": "%sqlDatabaseProjects.autorestSqlVersion%"
-                    },
                     "sqlDatabaseProjects.collapseProjectNodes": {
                         "type": "boolean",
                         "description": "%sqlDatabaseProjects.collapseProjectNodes%"
@@ -221,11 +213,6 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             },
             {
-                "command": "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
-                "title": "%sqlDatabaseProjects.generateProjectFromOpenApiSpec%",
-                "category": "%sqlDatabaseProjects.displayName%"
-            },
-            {
                 "command": "sqlDatabaseProjects.openInDesigner",
                 "title": "%sqlDatabaseProjects.openInDesigner%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -269,11 +256,6 @@
                     "command": "sqlDatabaseProjects.createProjectFromDatabase",
                     "when": "view == dataworkspace.views.main",
                     "group": "1_currentWorkspace@1"
-                },
-                {
-                    "command": "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
-                    "when": "view == dataworkspace.views.main && (config.workbench.enablePreviewFeatures || config.sqlDatabaseProjects.enablePreviewFeatures)",
-                    "group": "1_currentWorkspace@3"
                 },
                 {
                     "command": "sqlDatabaseProjects.openDocumentation",
@@ -383,10 +365,6 @@
                 {
                     "command": "sqlDatabaseProjects.openInDesigner",
                     "when": "false"
-                },
-                {
-                    "command": "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
-                    "when": "config.workbench.enablePreviewFeatures || config.sqlDatabaseProjects.enablePreviewFeatures"
                 },
                 {
                     "command": "sqlDatabaseProjects.editSqlCmdVariable",

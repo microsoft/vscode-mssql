@@ -10,6 +10,7 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Added **Rename Symbol** refactoring support for SQL project files.
 - Added **Move to Schema** refactoring support for SQL project files.
+- **Removed** the preview feature "Generate SQL Projects from OpenAPI/Swagger spec".
 
 ## [1.6.1] - 2026-06-03
 
