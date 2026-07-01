@@ -299,6 +299,9 @@ export enum ServerType {
     Azure = "Azure",
     Fabric = "Fabric",
     Dynamics = "Dynamics",
+    AmazonWebServices = "AmazonWebServices",
+    GoogleCloudPlatform = "GoogleCloudPlatform",
+    OracleCloudInfrastructure = "OracleCloudInfrastructure",
     Sql = "SQL",
     DataWarehouse = "DataWarehouse",
     Local = "Local",
@@ -340,6 +343,10 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
                 ServerType.Dynamics,
                 ServerType.Sql,
             ],
+            [".amazonaws.com"]: [ServerType.AmazonWebServices, ServerType.Sql],
+            [".sql.goog"]: [ServerType.GoogleCloudPlatform, ServerType.Sql],
+            [".sql-psa.goog"]: [ServerType.GoogleCloudPlatform, ServerType.Sql],
+            [".oraclevcn.com"]: [ServerType.OracleCloudInfrastructure, ServerType.Sql],
         };
 
         for (const [name, types] of Object.entries(typeMappings)) {
