@@ -60,6 +60,7 @@ const quickQueryGridId = "shortcutsQuickQueriesGrid";
 const configurableKeyCommandCategoryOrder: ConfigurableKeyCommand["category"][] = [
     "queryExecution",
     "connection",
+    "executionPlan",
     "others",
 ];
 
@@ -351,12 +352,14 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
         cursor: "pointer",
         display: "inline-flex",
+        flex: "0 0 190px",
         font: "inherit",
         fontSize: tokens.fontSizeBase200,
         gap: "6px",
         justifyContent: "flex-end",
         margin: 0,
-        minWidth: 0,
+        minWidth: "190px",
+        overflow: "hidden",
         padding: "0",
         whiteSpace: "nowrap",
         ":hover": {
@@ -369,20 +372,23 @@ const useStyles = makeStyles({
             outlineWidth: "1px",
         },
         ":hover .vscodeManagedShortcutActionText": {
-            display: "inline-flex",
+            opacity: 1,
         },
         ":hover .vscodeManagedShortcutActionOpenIcon": {
-            display: "inline-flex",
+            opacity: 1,
         },
         ":focus-visible .vscodeManagedShortcutActionText": {
-            display: "inline-flex",
+            opacity: 1,
         },
         ":focus-visible .vscodeManagedShortcutActionOpenIcon": {
-            display: "inline-flex",
+            opacity: 1,
         },
     },
     vscodeManagedShortcutActionText: {
-        display: "none",
+        display: "inline-flex",
+        flex: "1 1 auto",
+        minWidth: 0,
+        opacity: 0,
         overflow: "hidden",
         textOverflow: "ellipsis",
     },
@@ -393,9 +399,10 @@ const useStyles = makeStyles({
         width: "16px",
     },
     vscodeManagedShortcutActionOpenIcon: {
-        display: "none",
+        display: "inline-flex",
         flex: "0 0 auto",
         height: "14px",
+        opacity: 0,
         width: "14px",
     },
     quickQueryEmpty: {
@@ -740,9 +747,15 @@ export const ShortcutsConfigurationPage = () => {
                         }
 
                         return (
-                            textMatchesSearch(item.label, searchTerm) ||
+                            textMatchesSearch(
+                                loc.configurableKeyCommandLabels[item.command],
+                                searchTerm,
+                            ) ||
                             textMatchesSearch(item.command, searchTerm) ||
-                            textMatchesSearch(item.description, searchTerm)
+                            textMatchesSearch(
+                                loc.configurableKeyCommandDescriptions[item.command],
+                                searchTerm,
+                            )
                         );
                     });
 
@@ -887,6 +900,11 @@ export const ShortcutsConfigurationPage = () => {
                     onChange={(_event, data) => setShortcutSearch(data.value)}
                 />
                 <section className={classes.section}>
+                    <h2 className={classes.sectionTitle}>{loc.resultViewShortcuts}</h2>
+                    {renderInfoBanner(loc.resultViewShortcutsBanner)}
+                    {renderResultViewShortcuts(searchTerm)}
+                </section>
+                <section className={classes.section}>
                     <h2 className={classes.sectionTitle}>{loc.queryEditorShortcuts}</h2>
                     {renderInfoBanner(
                         loc.queryEditorKeyboardShortcutsBanner,
@@ -896,11 +914,6 @@ export const ShortcutsConfigurationPage = () => {
                         },
                     )}
                     {renderQueryEditorShortcuts(searchTerm)}
-                </section>
-                <section className={classes.section}>
-                    <h2 className={classes.sectionTitle}>{loc.resultViewShortcuts}</h2>
-                    {renderInfoBanner(loc.resultViewShortcutsBanner)}
-                    {renderResultViewShortcuts(searchTerm)}
                 </section>
             </>
         );

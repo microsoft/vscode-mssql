@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
+import type { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
@@ -383,13 +384,55 @@ export class LocConstants {
             configurableKeyCommandCategoryLabels: {
                 queryExecution: l10n.t("Query Execution"),
                 connection: l10n.t("Connection"),
+                executionPlan: l10n.t("Execution Plan"),
                 others: l10n.t("Others"),
             },
             configurableKeyCommandCategoryDescriptions: {
                 queryExecution: l10n.t("Run, cancel, and create queries"),
                 connection: l10n.t("Connect and manage database connections"),
+                executionPlan: l10n.t("View and collect query execution plans"),
                 others: l10n.t("Extension and deployment actions"),
             },
+            configurableKeyCommandLabels: {
+                "mssql.runQuery": l10n.t("Execute Query"),
+                "mssql.runCurrentStatement": l10n.t("Execute Selection or Current Statement"),
+                "mssql.cancelQuery": l10n.t("Cancel Query"),
+                "mssql.newQuery": l10n.t("New Query"),
+                "mssql.toggleSqlCmd": l10n.t("Toggle SQLCMD Mode"),
+                "mssql.connect": l10n.t("Connect"),
+                "mssql.disconnect": l10n.t("Disconnect"),
+                "mssql.changeConnection": l10n.t("Change Connection"),
+                "mssql.changeDatabase": l10n.t("Change Database"),
+                "mssql.chooseDatabase": l10n.t("Choose Database"),
+                "mssql.showEstimatedPlan": l10n.t("Show Estimated Plan"),
+                "mssql.toggleActualPlan": l10n.t("Toggle Actual Plan"),
+                "mssql.copyAll": l10n.t("Copy All"),
+                "mssql.toggleQueryResultPanel": l10n.t("Toggle Query Result Panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
+            configurableKeyCommandDescriptions: {
+                "mssql.runQuery": l10n.t("Run a query for the current active SQL document"),
+                "mssql.runCurrentStatement": l10n.t(
+                    "Execute only the T-SQL statement under the cursor",
+                ),
+                "mssql.cancelQuery": l10n.t("Cancel the query execution in progress"),
+                "mssql.newQuery": l10n.t("Open a new SQL query file"),
+                "mssql.toggleSqlCmd": l10n.t(
+                    "Enable or disable SQLCMD mode for the active SQL document",
+                ),
+                "mssql.connect": l10n.t("Connect the active SQL document to a database"),
+                "mssql.disconnect": l10n.t("Disconnect the active SQL document from the database"),
+                "mssql.changeConnection": l10n.t(
+                    "Change the connection for the active SQL document",
+                ),
+                "mssql.changeDatabase": l10n.t("Change the database for the active SQL document"),
+                "mssql.chooseDatabase": l10n.t("Choose a database for the active SQL document"),
+                "mssql.showEstimatedPlan": l10n.t("View the estimated query execution plan"),
+                "mssql.toggleActualPlan": l10n.t(
+                    "Toggle actual execution plan collection for SQL queries",
+                ),
+                "mssql.copyAll": l10n.t("Copy all query result content"),
+                "mssql.toggleQueryResultPanel": l10n.t("Show or hide the query result panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),

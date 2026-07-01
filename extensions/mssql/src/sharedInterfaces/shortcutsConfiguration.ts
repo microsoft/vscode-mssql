@@ -25,11 +25,31 @@ export interface ShortcutsConfigurationData {
     webviewShortcuts: Record<string, string>;
 }
 
+export type ConfigurableKeyCommandCategory =
+    | "queryExecution"
+    | "connection"
+    | "executionPlan"
+    | "others";
+
+export type ConfigurableKeyCommandId =
+    | "mssql.runQuery"
+    | "mssql.runCurrentStatement"
+    | "mssql.cancelQuery"
+    | "mssql.newQuery"
+    | "mssql.toggleSqlCmd"
+    | "mssql.connect"
+    | "mssql.disconnect"
+    | "mssql.changeConnection"
+    | "mssql.changeDatabase"
+    | "mssql.chooseDatabase"
+    | "mssql.showEstimatedPlan"
+    | "mssql.toggleActualPlan"
+    | "mssql.copyAll"
+    | "mssql.toggleQueryResultPanel";
+
 export interface ConfigurableKeyCommand {
-    command: string;
-    label: string;
-    description: string;
-    category: "queryExecution" | "connection" | "others";
+    command: ConfigurableKeyCommandId;
+    category: ConfigurableKeyCommandCategory;
 }
 
 export interface ShortcutsConfigurationWebviewState {
@@ -138,50 +158,58 @@ export interface ShortcutsConfigurationContextProps extends CoreRPCs {
 export const configurableKeyCommands: ConfigurableKeyCommand[] = [
     {
         command: "mssql.runQuery",
-        label: "Execute Query",
-        description: "Run a query for the current active SQL document",
         category: "queryExecution",
     },
     {
         command: "mssql.runCurrentStatement",
-        label: "Execute Selection or Current Statement",
-        description: "Execute only the T-SQL statement under the cursor",
         category: "queryExecution",
     },
     {
         command: "mssql.cancelQuery",
-        label: "Cancel Query",
-        description: "Cancel the query execution in progress",
         category: "queryExecution",
     },
     {
         command: "mssql.newQuery",
-        label: "New Query",
-        description: "Open a new SQL query file",
         category: "queryExecution",
     },
     {
+        command: "mssql.toggleSqlCmd",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.connect",
+        category: "connection",
+    },
+    {
+        command: "mssql.disconnect",
+        category: "connection",
+    },
+    {
+        command: "mssql.changeConnection",
+        category: "connection",
+    },
+    {
+        command: "mssql.changeDatabase",
+        category: "connection",
+    },
+    {
+        command: "mssql.chooseDatabase",
+        category: "connection",
+    },
+    {
         command: "mssql.showEstimatedPlan",
-        label: "Show Estimated Plan",
-        description: "View the estimated query execution plan",
-        category: "others",
+        category: "executionPlan",
     },
     {
         command: "mssql.toggleActualPlan",
-        label: "Toggle Actual Plan",
-        description: "Toggle actual execution plan collection for SQL queries",
-        category: "others",
+        category: "executionPlan",
     },
     {
         command: "mssql.copyAll",
-        label: "Copy All",
-        description: "Copy all query result content",
         category: "others",
     },
     {
         command: "mssql.toggleQueryResultPanel",
-        label: "Toggle Query Result Panel",
-        description: "Show or hide the query result panel",
         category: "others",
     },
 ];

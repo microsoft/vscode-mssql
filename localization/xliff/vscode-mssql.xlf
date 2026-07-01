@@ -832,6 +832,9 @@
     <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
       <source xml:lang="en">Cancel</source>
     </trans-unit>
+    <trans-unit id="++CODE++a0452383bba7697cd1260a63a74ada9439d55bedfeeaab09569e3860c0f2ec82">
+      <source xml:lang="en">Cancel Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++baf083b029cb149c0220c5d92d030938620575f3da7f46af41f26b1db920bfdd">
       <source xml:lang="en">Cancel Task</source>
     </trans-unit>
@@ -842,6 +845,9 @@
     <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
       <source xml:lang="en">Cancel schema compare failed: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the cancel operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++04c029ffc776b6f0150c6527a7641431ebc9c2e5b5a1012ebdf70b6205f762f0">
+      <source xml:lang="en">Cancel the query execution in progress</source>
     </trans-unit>
     <trans-unit id="++CODE++13ca2ee2499310d97a5515fb5fd80b75da66f4cf2775273658eb2b3fdcd3bd3d">
       <source xml:lang="en">Canceled</source>
@@ -913,6 +919,9 @@
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
     </trans-unit>
+    <trans-unit id="++CODE++f07538573cf58e02922ee656434ca50a18ffecd2668d86edf8360309745f7e74">
+      <source xml:lang="en">Change Connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++6bd09f9171ad9aa3824a8e54ea5edf59d28c768124be9dc7f9d2c5c7eee6780b">
       <source xml:lang="en">Change Database</source>
     </trans-unit>
@@ -930,6 +939,12 @@
       <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5b69a53cad667c420f08b25e1f416c04ae4a5e595443e5ee4ca83cd7c5708296">
+      <source xml:lang="en">Change the connection for the active SQL document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d96e501638c5b597c8f01ed60ef2a376be46cb4fbc9dbc8601f53b08d6f4f556">
+      <source xml:lang="en">Change the database for the active SQL document</source>
     </trans-unit>
     <trans-unit id="++CODE++03e884ddf92692afa483662c376c0ddbe134c6b0e73c8506a40d7731d2f9fe3d">
       <source xml:lang="en">Change {0} of {1}</source>
@@ -1029,6 +1044,9 @@
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
     </trans-unit>
+    <trans-unit id="++CODE++1df2cefea162ee2f110b6b1bf82751b5db737e38add19ddec1890541bc5ecc5d">
+      <source xml:lang="en">Choose Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d7f20b4a7223bae862f00b4d5e41f37ededf7d987dba4546b315d891c5fbe08">
       <source xml:lang="en">Choose Existing</source>
     </trans-unit>
@@ -1049,6 +1067,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7bd40bc64cc1051c5198092da16048ef651147d7b291becd00c0467d63408e0">
       <source xml:lang="en">Choose a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6803305e5d4a37cae3d0fa45cf3f0f093868aade34efcb3014d4d604983cb49">
+      <source xml:lang="en">Choose a database for the active SQL document</source>
     </trans-unit>
     <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
       <source xml:lang="en">Choose a database from the list below</source>
@@ -1396,6 +1417,9 @@
     <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
       <source xml:lang="en">Connect and manage database connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
+      <source xml:lang="en">Connect the active SQL document to a database</source>
+    </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
     </trans-unit>
@@ -1688,6 +1712,9 @@
     <trans-unit id="++CODE++494452315caa7a652419add0f9ab91ee1216f59ce7fd2df7b515e464891e7576">
       <source xml:lang="en">Copy &amp; Export</source>
     </trans-unit>
+    <trans-unit id="++CODE++7a1861e47d92e338be8a74dd8c9e93ebc0002af27499b52996ca43c9a8684555">
+      <source xml:lang="en">Copy All</source>
+    </trans-unit>
     <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
       <source xml:lang="en">Copy As</source>
     </trans-unit>
@@ -1708,6 +1735,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0782d5f6e07165c5ebb97befd583b8a1c3638492fd29a6572f522d263ad80cf7">
       <source xml:lang="en">Copy all cells including column headers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9e4b744f16b2f113c4618d96f090604b900af81cd29c367ecfe963eb2873a02b">
+      <source xml:lang="en">Copy all query result content</source>
     </trans-unit>
     <trans-unit id="++CODE++bd0768aa6b547da2466d49441410931420e8beb78cc1d3051e68242a04e8583b">
       <source xml:lang="en">Copy all text output for this cell (messages, PRINT, errors)</source>
@@ -2275,6 +2305,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++de6a56426c2482401a747f4f3f70e9a0a83d162f1a2f335899b63bded7cf59ec">
+      <source xml:lang="en">Disconnect the active SQL document from the database</source>
+    </trans-unit>
     <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
       <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
       <note>{0} is the document name</note>
@@ -2460,6 +2493,9 @@
     <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
       <source xml:lang="en">Enable all rules in {0}</source>
       <note>{0} is the category name, e.g. Design</note>
+    </trans-unit>
+    <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
+      <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
     </trans-unit>
     <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
       <source xml:lang="en">Enable {0}</source>
@@ -2809,8 +2845,17 @@
       <source xml:lang="en">Execute &apos;{0}&apos; operation on the schema designer?</source>
       <note>{0} is the operation name</note>
     </trans-unit>
+    <trans-unit id="++CODE++db523fa8bed84b325771049a5181c18b5fb41c8384a771a6648dbbda3e754a18">
+      <source xml:lang="en">Execute Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++9792b2d9b35834148ffb14e491f3ab556bea3ad38904c8f7ca27142bb4f3d92d">
       <source xml:lang="en">Execute SQL against SQL Server / Azure SQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ce03601c74e3fc4b2372f559b0f95d51961d8a540ba5caf37266e212e07bf50">
+      <source xml:lang="en">Execute Selection or Current Statement</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bcee7af9ed6ff5fd5d2ab891504e131bb92f0a78f9149309fb2bad179f9711a1">
+      <source xml:lang="en">Execute only the T-SQL statement under the cursor</source>
     </trans-unit>
     <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
       <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API builder</source>
@@ -4749,6 +4794,9 @@
     <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
       <source xml:lang="en">New Password</source>
     </trans-unit>
+    <trans-unit id="++CODE++b4bc5e27c9b72fc0f2f1418a20be3e41fcb8437955c05584fb023bf03d2c5cf8">
+      <source xml:lang="en">New Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++a32a71122605d871f3213af8b401fe9cfd1e00ab4b1d508826d2dd6f97bb3cc6">
       <source xml:lang="en">New Query Profiler - Enter Name</source>
     </trans-unit>
@@ -5237,6 +5285,9 @@
     </trans-unit>
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
+    </trans-unit>
+    <trans-unit id="++CODE++811c17ffde572f2a3f875d0066464c75847bbeca86303f13e4dac1c448d05b21">
+      <source xml:lang="en">Open a new SQL query file</source>
     </trans-unit>
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
@@ -6103,6 +6154,9 @@
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca552c47c13c28098e7508a7b673cd923627b914391bb74dc1685bfa31f91601">
+      <source xml:lang="en">Run a query for the current active SQL document</source>
+    </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
     </trans-unit>
@@ -6829,6 +6883,9 @@
     <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
       <source xml:lang="en">Show Definition</source>
     </trans-unit>
+    <trans-unit id="++CODE++2a8671017e56c56c47882964ac316a24d75c24b373db41d31857be325dfcf7fa">
+      <source xml:lang="en">Show Estimated Plan</source>
+    </trans-unit>
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
     </trans-unit>
@@ -6865,6 +6922,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
       <source xml:lang="en">Show masked command (hides sensitive information)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++03cd9b98d0e655868474c63968d4e0979851a6f4a8412764029837f5331efb5e">
+      <source xml:lang="en">Show or hide the query result panel</source>
     </trans-unit>
     <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
       <source xml:lang="en">Show password</source>
@@ -7533,11 +7593,23 @@
     <trans-unit id="++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4">
       <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f91eac004e8c4e3334060eea2ab51d73ccda2acc75fd0cf172b0679757126f6f">
+      <source xml:lang="en">Toggle Actual Plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++66537f058f1d64aa91d143821967b726382f308bef7eed1bbbf400dd835869f8">
+      <source xml:lang="en">Toggle Query Result Panel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5f7970089ef6445b1c3f5481a75e81db1831a82f5afeda03b2c286e1abd07384">
+      <source xml:lang="en">Toggle SQLCMD Mode</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
       <source xml:lang="en">Toggle Sort</source>
     </trans-unit>
     <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
       <source xml:lang="en">Toggle Tooltips</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2a5a40d884d233d252abf7a86279a409060ec8eb434a7488efb88d3a214bef14">
+      <source xml:lang="en">Toggle actual execution plan collection for SQL queries</source>
     </trans-unit>
     <trans-unit id="++CODE++782e08de4b6ec5793be8ace39d20ee91bd05ddc327a36e3d736299c6267f75d4">
       <source xml:lang="en">Toggle all entities in {0}</source>
@@ -7878,6 +7950,9 @@
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
     </trans-unit>
+    <trans-unit id="++CODE++7913ef7c8a897d95c0536d826536de9515a3ec6e5adbf7334139be714b3dfed6">
+      <source xml:lang="en">View and collect query execution plans</source>
+    </trans-unit>
     <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
       <source xml:lang="en">View known issues</source>
     </trans-unit>
@@ -7889,6 +7964,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
       <source xml:lang="en">View settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++50fbd0f6e798bf3bba3ed6f549631ebeb8ea0bf591df84bc7ca4baef49e418c4">
+      <source xml:lang="en">View the estimated query execution plan</source>
     </trans-unit>
     <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
       <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>

@@ -287,8 +287,9 @@ const useStyles = makeStyles({
         gap: "6px",
         justifyContent: "flex-end",
         minHeight: controlHeight,
-        minWidth: "190px",
+        overflow: "hidden",
         padding: "5px 10px",
+        width: "220px",
         whiteSpace: "nowrap",
         ":hover": {
             backgroundColor: "var(--vscode-toolbar-hoverBackground)",
@@ -305,20 +306,23 @@ const useStyles = makeStyles({
             outlineWidth: "1px",
         },
         ":hover .vscodeManagedShortcutActionText": {
-            display: "inline-flex",
+            opacity: 1,
         },
         ":hover .vscodeManagedShortcutActionOpenIcon": {
-            display: "inline-flex",
+            opacity: 1,
         },
         ":focus-visible .vscodeManagedShortcutActionText": {
-            display: "inline-flex",
+            opacity: 1,
         },
         ":focus-visible .vscodeManagedShortcutActionOpenIcon": {
-            display: "inline-flex",
+            opacity: 1,
         },
     },
     vscodeManagedShortcutActionText: {
-        display: "none",
+        display: "inline-flex",
+        flex: "1 1 auto",
+        minWidth: 0,
+        opacity: 0,
         overflow: "hidden",
         textOverflow: "ellipsis",
     },
@@ -329,9 +333,10 @@ const useStyles = makeStyles({
         width: "16px",
     },
     vscodeManagedShortcutActionOpenIcon: {
-        display: "none",
+        display: "inline-flex",
         flex: "0 0 auto",
         height: "14px",
+        opacity: 0,
         width: "14px",
     },
     webviewShortcutRow: {
@@ -988,20 +993,22 @@ export const ConfigurableKeyCommandRow = ({
     searchTerm: string;
 }) => {
     const classes = useStyles();
+    const label = loc.configurableKeyCommandLabels[item.command];
+    const description = loc.configurableKeyCommandDescriptions[item.command];
 
     return (
         <div className={classes.webviewShortcutRow}>
             <div>
                 <Text className={classes.rowLabel}>
-                    <HighlightedText text={item.label} searchTerm={searchTerm} />
+                    <HighlightedText text={label} searchTerm={searchTerm} />
                 </Text>
                 <Text className={classes.rowDescription}>
-                    <HighlightedText text={item.command} searchTerm={searchTerm} />
+                    <HighlightedText text={description} searchTerm={searchTerm} />
                 </Text>
             </div>
             <VscodeManagedShortcutAction
                 onOpen={onOpen}
-                label={loc.viewConfigureKeybindingTooltip(item.label)}
+                label={loc.viewConfigureKeybindingTooltip(label)}
             />
         </div>
     );
