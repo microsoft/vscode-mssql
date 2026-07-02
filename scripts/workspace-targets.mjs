@@ -1,5 +1,12 @@
 export const workspaceTargets = [
     {
+        target: "vscode-extensions-common",
+        aliases: ["extensions-common", "common"],
+        packageName: "@microsoft/vscode-extensions-common",
+        directory: "packages/vscode-extensions-common",
+        scripts: ["build", "watch", "lint"],
+    },
+    {
         target: "mssql",
         aliases: ["mssql"],
         packageName: "mssql",

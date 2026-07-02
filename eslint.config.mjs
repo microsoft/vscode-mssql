@@ -168,6 +168,33 @@ export default [
         },
     },
 
+    // shared VS Code extensions common package
+    {
+        files: ["packages/vscode-extensions-common/src/**/*.ts"],
+        ignores: [...(includeIgnoreFile(gitignorePath).ignores || [])],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+            parser: tseslint.parser,
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: "./packages/vscode-extensions-common/tsconfig.json",
+            },
+        },
+        plugins: {
+            notice,
+            jsdoc,
+            ["@typescript-eslint"]: tseslint.plugin,
+            ...eslintPluginPrettierRecommended.plugins,
+            "@stylistic": stylistic,
+            "custom-eslint-rules": customRules,
+        },
+        rules: {
+            ...sharedRules,
+            "custom-eslint-rules/vscode-extensions-common-layering": "error",
+        },
+    },
+
     // data-workspace extension
     {
         files: ["extensions/data-workspace/src/**/*.ts", "extensions/data-workspace/test/**/*.ts"],

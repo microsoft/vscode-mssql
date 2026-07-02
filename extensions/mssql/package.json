@@ -145,6 +145,7 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "@microsoft/vscode-extensions-common": "file:../../packages/vscode-extensions-common",
         "@azure/arm-maintenance": "^1.0.0-beta.2",
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^11.0.0-beta.4",

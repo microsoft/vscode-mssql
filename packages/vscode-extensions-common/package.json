@@ -1,0 +1,44 @@
+{
+    "name": "@microsoft/vscode-extensions-common",
+    "version": "0.0.1",
+    "private": true,
+    "description": "Common infrastructure for VS Code extensions",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./core": {
+            "types": "./dist/core/index.d.ts",
+            "default": "./dist/core/index.js"
+        },
+        "./core/base": {
+            "types": "./dist/core/base/index.d.ts",
+            "default": "./dist/core/base/index.js"
+        },
+        "./core/di": {
+            "types": "./dist/core/di/index.d.ts",
+            "default": "./dist/core/di/index.js"
+        },
+        "./vscode": {
+            "types": "./dist/vscode/index.d.ts",
+            "default": "./dist/vscode/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.14",
+        "@types/vscode": "1.101.0",
+        "typescript": "^5.8.3"
+    }
+}
