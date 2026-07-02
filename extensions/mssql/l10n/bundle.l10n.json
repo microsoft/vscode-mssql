@@ -2439,6 +2439,7 @@
     "Configure keyboard shortcuts used by the MSSQL extension.": "Configure keyboard shortcuts used by the MSSQL extension.",
     "Query Editor": "Query Editor",
     "Query Editor shortcuts are managed by Visual Studio Code.": "Query Editor shortcuts are managed by Visual Studio Code.",
+    "Configure the full list of Query Editor shortcuts.": "Configure the full list of Query Editor shortcuts.",
     "Result View": "Result View",
     "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.": "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.",
     "Keyboard Shortcuts editor": "Keyboard Shortcuts editor",

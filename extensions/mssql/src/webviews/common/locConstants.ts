@@ -370,6 +370,9 @@ export class LocConstants {
             queryEditorKeyboardShortcutsBanner: l10n.t(
                 "Query Editor shortcuts are managed by Visual Studio Code.",
             ),
+            queryEditorKeyboardShortcutsFooter: l10n.t(
+                "Configure the full list of Query Editor shortcuts.",
+            ),
             resultViewShortcuts: l10n.t("Result View"),
             resultViewShortcutsBanner: l10n.t(
                 "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.",

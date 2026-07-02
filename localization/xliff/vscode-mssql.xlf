@@ -1390,6 +1390,9 @@
     <trans-unit id="++CODE++c3601ab056586eb83c082fc146db4ff551ad914941f89ed7954a78a0618bc798">
       <source xml:lang="en">Configure keyboard shortcuts used by the MSSQL extension.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dbbf02ec8187fe0ca87c3912fce8fb9f4aeba2ae37da3cd211bb9a5fc30f3ca0">
+      <source xml:lang="en">Configure the full list of Query Editor shortcuts.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
       <source xml:lang="en">Confirm Password</source>
     </trans-unit>

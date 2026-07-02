@@ -96,6 +96,12 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase400,
         margin: 0,
     },
+    sectionFooter: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase300,
+        margin: 0,
+    },
     card: {
         backgroundColor: "var(--vscode-editor-background)",
         border: "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
@@ -908,6 +914,15 @@ export const ShortcutsConfigurationPage = () => {
                         },
                     )}
                     {renderQueryEditorShortcuts(searchTerm)}
+                    <p className={classes.sectionFooter}>
+                        {loc.queryEditorKeyboardShortcutsFooter}{" "}
+                        <Link
+                            onClick={() => {
+                                void context.openKeymapCommandKeybindings();
+                            }}>
+                            {loc.openKeyboardShortcutsEditor}
+                        </Link>
+                    </p>
                 </section>
                 <section className={classes.section}>
                     <h2 className={classes.sectionTitle}>{loc.resultViewShortcuts}</h2>
