@@ -28,10 +28,14 @@ const serviceDependencies = new WeakMap<Function, ServiceDependency[]>();
 export function createServiceIdentifier<T>(id: string): ServiceIdentifier<T> {
     const decorator = function (
         target: Function,
-        _propertyKey: string | symbol | undefined,
+        propertyKey: string | symbol | undefined,
         parameterIndex: number,
     ): void {
-        if (typeof parameterIndex !== "number") {
+        if (
+            typeof target !== "function" ||
+            propertyKey !== undefined ||
+            typeof parameterIndex !== "number"
+        ) {
             throw new Error(
                 `Service '${id}' can only be used as a constructor parameter decorator.`,
             );

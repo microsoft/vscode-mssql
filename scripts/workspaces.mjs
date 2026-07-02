@@ -90,7 +90,10 @@ function resolveTargets(action, targetValue) {
     const availableTargets = workspaceTargets.filter((target) => target.scripts.includes(action));
 
     if (!targetValue) {
-        return expandTargetsWithDependencies(action, availableTargets);
+        return {
+            targets: expandTargetsWithDependencies(action, availableTargets),
+            requestedTargets: availableTargets,
+        };
     }
 
     const requested = targetValue
@@ -116,9 +119,14 @@ function resolveTargets(action, targetValue) {
         return target;
     });
 
-    return expandTargetsWithDependencies(action, [
+    const requestedTargets = [
         ...new Map(resolved.map((target) => [target.target, target])).values(),
-    ]);
+    ];
+
+    return {
+        targets: expandTargetsWithDependencies(action, requestedTargets),
+        requestedTargets,
+    };
 }
 
 function findTarget(name) {
@@ -316,26 +324,32 @@ function main() {
         );
     }
 
-    const targets = resolveTargets(action, targetValue);
-    ensureProdBuildSupport(targets, prod);
+    const { targets, requestedTargets } = resolveTargets(action, targetValue);
+    const requestedTargetNames = new Set(requestedTargets.map((target) => target.target));
+    ensureProdBuildSupport(requestedTargets, prod);
 
-    let actionArgs = forwardedArgs;
-    if (prod) {
-        actionArgs = [...actionArgs, "--prod"];
-    }
+    const getActionArgs = (target) => {
+        let actionArgs = forwardedArgs;
 
-    if (prerelease) {
-        actionArgs = [...actionArgs, "--pre-release"];
-    }
+        if (prod && requestedTargetNames.has(target.target)) {
+            actionArgs = [...actionArgs, "--prod"];
+        }
+
+        if (prerelease && requestedTargetNames.has(target.target)) {
+            actionArgs = [...actionArgs, "--pre-release"];
+        }
+
+        return actionArgs;
+    };
 
     if (action === "watch") {
         const watchableTargets = pruneRedundantWatchTargets(targets);
-        watchTargets(watchableTargets, actionArgs);
+        watchTargets(watchableTargets, forwardedArgs);
         return;
     }
 
     for (const target of targets) {
-        runWorkspaceScript(target, action, actionArgs);
+        runWorkspaceScript(target, action, getActionArgs(target));
     }
 }
 
