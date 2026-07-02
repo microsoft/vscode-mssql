@@ -201,6 +201,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                     ownerUri: this.ownerUri,
                     databaseName: state.formState.databaseName,
                     batchSize: batchSize,
+                    azureAccessToken: this.profile.azureAccountToken,
                 });
 
                 // Check result for errors
