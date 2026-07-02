@@ -597,7 +597,7 @@
     "Edit connection profile": "Edit connection profile",
     "Sign in and retry": "Sign in and retry",
     "Connecting...": "Connecting...",
-    "Waking database": "Waking database",
+    "Resuming database": "Resuming database",
     "Are you sure you want to remove {0}?/{0} is the node label": {
         "message": "Are you sure you want to remove {0}?",
         "comment": ["{0} is the node label"]

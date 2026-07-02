@@ -5,7 +5,9 @@
 
 import * as vscode from "vscode";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import ConnectionManager from "../controllers/connectionManager";
+import ConnectionManager, {
+    serverlessWakeMaxRetryAttempts,
+} from "../controllers/connectionManager";
 import {
     CreateSessionCompleteNotification,
     SessionCreatedParameters,
@@ -203,6 +205,7 @@ export class ObjectExplorerService {
             },
         );
         this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
+        let expandCompleted = false; // guard against a late-resolving pause state check changing children
         try {
             const expandParams: ExpandParams = {
                 sessionId: sessionId,
@@ -210,15 +213,14 @@ export class ObjectExplorerService {
                 filters: node.filters,
             };
             const databaseName = ObjectExplorerUtils.getDatabaseName(node);
-            let serverlessWakeFailedAttempts = 0;
 
             // Retry loop for paused/resuming Azure serverless databases (original attempt + 2 retries).
-            while (true) {
-                /**
-                 * For Azure + Entra MFA connections, start an ARM check (scoped to the database
-                 * being expanded) in parallel with the expand request to detect a
-                 * paused/pausing/resuming serverless database. It's only consulted on timeout.
-                 */
+            const maxAttempts = serverlessWakeMaxRetryAttempts + 1;
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                //  For Azure + Entra MFA connections, start an ARM check (scoped to the database
+                //   being expanded) in parallel with the expand request to detect a
+                //  paused/pausing/resuming serverless database. It's only consulted on timeout.
+
                 const serverlessStatusPromise = canCheckDatabasePauseStatus(
                     node.connectionProfile,
                     databaseName,
@@ -229,6 +231,12 @@ export class ObjectExplorerService {
                           "OE expand",
                       )
                     : undefined;
+
+                this.showResumingDatabaseLabelWhenWaking(
+                    () => node,
+                    serverlessStatusPromise,
+                    () => !expandCompleted,
+                );
 
                 const pendingKey = `${sessionId}${node.nodePath}`;
                 const existingPendingExpand = this._pendingExpands.get(pendingKey);
@@ -328,11 +336,10 @@ export class ObjectExplorerService {
                         errorMessage: result.errorMessage,
                     })
                 ) {
-                    serverlessWakeFailedAttempts++;
                     if (
                         await this._connectionManager.shouldRetryForPausedServerlessDatabase(
                             node.connectionProfile,
-                            serverlessWakeFailedAttempts,
+                            attempt + 1,
                             serverlessStatusPromise,
                             databaseName,
                         )
@@ -359,8 +366,12 @@ export class ObjectExplorerService {
                 expandActivity.endFailed(new Error(result.errorMessage), false);
                 return [errorNode];
             }
+
+            return undefined;
         } finally {
+            expandCompleted = true;
             node.shouldRefresh = false;
+            node.loadingLabel = undefined;
         }
     }
 
@@ -622,6 +633,39 @@ export class ObjectExplorerService {
     }
 
     /**
+     * Updates a node's loading indicator to "Resuming database" as soon as the
+     * pause-state check reports the target database is not "online".
+     *
+     * @param resolveNode resolves the node whose loading indicator should be updated (resolved
+     *   lazily since the connection node may not exist yet when the check is started).
+     * @param statusPromise the in-flight ARM status check (raw Azure `status` string), if any.
+     * @param isStillLoading guard so a late-resolving check can't replace already-loaded children
+     *   with a spinner.
+     */
+    private showResumingDatabaseLabelWhenWaking(
+        resolveNode: () => TreeNodeInfo | undefined,
+        statusPromise: Promise<string | undefined> | undefined,
+        isStillLoading: () => boolean,
+    ): void {
+        if (!statusPromise) {
+            return;
+        }
+
+        void statusPromise.then((status) => {
+            const isWaking = status === "Paused" || status === "Pausing" || status === "Resuming";
+            if (!isWaking || !isStillLoading()) {
+                return;
+            }
+
+            const node = resolveNode();
+            if (node) {
+                node.loadingLabel = LocalizedConstants.ObjectExplorer.ResumingDatabase;
+                void this.setLoadingUiForNode(node);
+            }
+        });
+    }
+
+    /**
      * Get or create the children of a node. If the node has a session ID, expand it.
      * If it doesn't, create a new session and expand it.
      * @param element The node to get or create children for
@@ -747,15 +791,20 @@ export class ObjectExplorerService {
 
         const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
 
-        let serverlessWakeFailedAttempts = 0;
+        let sessionCompleted = false;
 
-        // Retry loop for paused/resuming Azure serverless databases (original attempt + 2 retries).
-        while (true) {
-            /**
-             * For Azure + Entra MFA connections, start an ARM check in parallel with the OE
-             * session creation to detect a paused/pausing/resuming serverless database. The
-             * result is only consulted if the session creation times out below.
-             */
+        const finalizeSession = () => {
+            sessionCompleted = true;
+            const connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
+
+            if (connectionNode) {
+                connectionNode.loadingLabel = undefined;
+            }
+        };
+
+        // Retry loop for paused Azure serverless databases
+        const maxAttempts = serverlessWakeMaxRetryAttempts + 1;
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
             const serverlessStatusPromise = canCheckDatabasePauseStatus(connectionProfile)
                 ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(
                       connectionProfile,
@@ -763,6 +812,12 @@ export class ObjectExplorerService {
                       "OE session",
                   )
                 : undefined;
+
+            this.showResumingDatabaseLabelWhenWaking(
+                () => this.getConnectionNodeFromProfile(connectionProfile),
+                serverlessStatusPromise,
+                () => !sessionCompleted,
+            );
 
             const sessionIdResponse: GetSessionIdResponse =
                 await this._connectionManager.client.sendRequest(
@@ -782,6 +837,7 @@ export class ObjectExplorerService {
                 );
 
             if (!createSessionResponse) {
+                finalizeSession();
                 return undefined;
             }
 
@@ -799,6 +855,7 @@ export class ObjectExplorerService {
                 createSessionActivity.end(ActivityStatus.Succeeded, {
                     connectionType: connectionProfile.authenticationType,
                 });
+                finalizeSession();
                 return successResponse;
             }
 
@@ -809,20 +866,20 @@ export class ObjectExplorerService {
             /**
              * Serverless pause-aware silent retry: if the session creation timed out and the
              * target database is a paused/pausing/resuming serverless database, suppress the
-             * error and retry silently while showing a "Waking database" indicator.
+             * error and retry silently while showing a "Resuming database" indicator.
              */
             if (this._connectionManager.isServerlessWakeRetryableTimeout(sessionCreationResult)) {
-                serverlessWakeFailedAttempts++;
                 if (
                     await this._connectionManager.shouldRetryForPausedServerlessDatabase(
                         connectionProfile,
-                        serverlessWakeFailedAttempts,
+                        attempt + 1,
                         serverlessStatusPromise,
                     )
                 ) {
                     const wakingNode = this.getConnectionNodeFromProfile(connectionProfile);
                     if (wakingNode) {
-                        wakingNode.loadingLabel = LocalizedConstants.ObjectExplorer.WakingDatabase;
+                        wakingNode.loadingLabel =
+                            LocalizedConstants.ObjectExplorer.ResumingDatabase;
                         void this.setLoadingUiForNode(wakingNode);
                     }
                     continue;
@@ -835,12 +892,16 @@ export class ObjectExplorerService {
                 createSessionActivity,
             );
             createSessionActivity.endFailed();
+            finalizeSession();
             return {
                 sessionId: undefined,
                 connectionNode: undefined,
                 shouldRetryOnFailure: shouldReconnect,
             };
         }
+
+        finalizeSession();
+        return undefined;
     }
 
     /**

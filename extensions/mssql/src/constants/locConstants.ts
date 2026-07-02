@@ -992,7 +992,7 @@ export class ObjectExplorer {
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit connection profile");
     public static FailedOEConnectionErrorSignIn = l10n.t("Sign in and retry");
     public static Connecting = l10n.t("Connecting...");
-    public static WakingDatabase = l10n.t("Waking database");
+    public static ResumingDatabase = l10n.t("Resuming database");
     public static NodeDeletionConfirmation(nodeLabel: string) {
         return l10n.t({
             message: "Are you sure you want to remove {0}?",

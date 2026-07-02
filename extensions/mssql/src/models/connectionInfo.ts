@@ -378,36 +378,40 @@ export function isAzureSqlDbCompatible(serverTypes: ServerType[]): boolean {
  * * Must have a database specified ('master' doesn't sleep, can't construct ARM URL with <default>)
  * * Must use Entra MFA authentication (for access to Azure ARM APIs)
  *
- * @param credentials the connection being attempted.
+ * @param connection the connection being attempted.
  * @param databaseName optional database name override (e.g. the specific database node being
  *   expanded on a server connection); defaults to the connection's database.
  */
 export function canCheckDatabasePauseStatus(
-    credentials: IConnectionInfo,
+    connection: IConnectionInfo,
     databaseName?: string,
 ): boolean {
-    if (credentials.authenticationType !== Constants.azureMfa) {
+    if (!connection) {
+        return false;
+    }
+
+    if (connection.authenticationType !== Constants.azureMfa) {
         logger.trace(
-            `Connection to ${credentials.server} does not use Entra MFA auth; skipping serverless pause check.`,
+            `Connection to ${connection.server} does not use Entra MFA auth; skipping serverless pause check.`,
         );
 
         return false;
     }
 
-    const serverTypes = getServerTypes(credentials);
+    const serverTypes = getServerTypes(connection);
 
     if (!(serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql))) {
         logger.trace(
-            `Connection to ${credentials.server} is not an Azure SQL database; skipping serverless pause check.`,
+            `Connection to ${connection.server} is not an Azure SQL database; skipping serverless pause check.`,
         );
         return false;
     }
 
-    const database = databaseName ?? credentials.database;
+    const database = databaseName ?? connection.database;
 
     if (!database || database === LocalizedConstants.defaultDatabaseLabel) {
         logger.trace(
-            `Connection to ${credentials.server} targets master or default database; skipping serverless pause check.`,
+            `Connection to ${connection.server} targets master or default database; skipping serverless pause check.`,
         );
 
         return false;
@@ -415,12 +419,12 @@ export function canCheckDatabasePauseStatus(
 
     if (Constants.systemDatabases.includes(database.toLowerCase())) {
         logger.trace(
-            `Connection to ${credentials.server} targets a system database; skipping serverless pause check.`,
+            `Connection to ${connection.server} targets a system database; skipping serverless pause check.`,
         );
 
         return false;
     }
 
-    logger.trace(`Connection to ${credentials.server} can be checked for serverless pause.`);
+    logger.trace(`Connection to ${connection.server} can be checked for serverless pause.`);
     return true;
 }

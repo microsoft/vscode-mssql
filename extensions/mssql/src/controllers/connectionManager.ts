@@ -61,10 +61,10 @@ import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
 
 /**
- * Maximum number of connection retries when a target serverless Azure SQL database is a
+ * Maximum number of connection retries when a target serverless Azure SQL database is
  * not online.
  */
-const serverlessWakeMaxRetryAttempts = 2;
+export const serverlessWakeMaxRetryAttempts = 2;
 
 /**
  * Information for a document's connection. Exported for testing purposes.
