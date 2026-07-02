@@ -221,7 +221,6 @@ export function useQuickQueryColumns({
                         classes.vscodeManagedShortcutAction,
                         "vscodeManagedShortcutAction",
                     );
-                    display.title = loc.viewConfigureKeybindingTooltip(row.name);
                     display.setAttribute(
                         "aria-label",
                         loc.viewConfigureKeybindingTooltip(row.name),

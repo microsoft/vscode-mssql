@@ -392,9 +392,11 @@ const useStyles = makeStyles({
     vscodeManagedShortcutActionText: {
         display: "inline-flex",
         flex: "1 1 auto",
+        justifyContent: "flex-end",
         minWidth: 0,
         opacity: 0,
         overflow: "hidden",
+        textAlign: "right",
         textOverflow: "ellipsis",
     },
     vscodeManagedShortcutActionIcon: {
