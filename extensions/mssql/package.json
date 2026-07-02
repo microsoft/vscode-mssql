@@ -59,6 +59,7 @@
         "build:extension:typecheck": "tsgo -p tsconfig.extension.json --noEmit",
         "build:extension:emit": "tsc -p tsconfig.extension.json --noCheck",
         "build:extension-bundle": "node scripts/bundle-extension.js",
+        "build:cloud-deploy-cli": "node scripts/bundle-cloud-deploy-cli.js",
         "build:webviews": "tsgo -p tsconfig.webviews.json",
         "build:webviews-bundle": "node scripts/bundle-webviews.js",
         "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",

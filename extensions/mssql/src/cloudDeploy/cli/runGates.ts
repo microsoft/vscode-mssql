@@ -21,15 +21,20 @@
  * Static-analysis-only envs still work (no container is stood up when no
  * runtime validator is enabled).
  *
+ * When `--baseline` is given, the produced run is diffed against a prior
+ * `.cdrun.zip` via `compareRuns`; when `--report-out` is given, a Markdown
+ * pull-request comment is written for the workflow to post. Both are optional.
+ *
  * The impure edges (file I/O, subprocesses, env loading, the run itself) are
  * injected through `RunGatesDeps` so the orchestration — load, run, write,
- * derive an exit code — is unit-testable without Docker or `dotnet`. Production
- * uses `liveDeps()`; the real registry/runner composition is exercised by the
- * end-to-end keystone proof.
+ * optionally diff + report, derive an exit code — is unit-testable without
+ * Docker or `dotnet`. Production uses `liveDeps()`; the real registry/runner
+ * composition is exercised by the end-to-end keystone proof.
  */
 
 import * as path from "path";
 
+import { buildPrReport } from "../ci/prReporter";
 import { DiagnosticEvent } from "../diagnostics/types";
 import { NodeDiagnosticEventBus } from "../diagnostics/nodeEventBus";
 import { Environment, EnvironmentsFile } from "../environments/types";
@@ -40,9 +45,17 @@ import {
 } from "../environments/environmentLoader";
 import { EnvironmentsFileParseError } from "../environments/environmentSchema";
 import { LocalFileProvider, FileProvider, LocalSchemaSourceReader } from "../providers";
+import { RunArtifactReader } from "../runs/runArtifactReader";
 import { RunArtifactWriter } from "../runs/runArtifactWriter";
+import { compareRuns, RunComparison } from "../runs/runComparison";
 import { SchemaHasher } from "../runs/schemaHasher";
-import { RunRecord, RunStatus, RunnerIdentity } from "../runs/types";
+import {
+    RunRecord,
+    RunStatus,
+    RunnerIdentity,
+    ValidationResult,
+    ValidationStatus,
+} from "../runs/types";
 import { createDefaultRegistry } from "../validation/registry";
 import { Runner } from "../validation/runner";
 import { LiveArtifactProvider } from "../validation/providers/artifactProvider";
@@ -72,6 +85,8 @@ export interface RunGatesDeps {
         bus: NodeDiagnosticEventBus,
         workspaceRoot: string,
     ): Promise<RunRecord>;
+    /** Loads a previously-written run artifact to diff the new run against. */
+    loadRunArtifact(absPath: string): Promise<RunRecord>;
 }
 
 /** Streams `runGates` writes to. Injected so tests capture output. */
@@ -115,13 +130,21 @@ export async function runGates(
         const bus = new NodeDiagnosticEventBus();
         bus.on((event) => printProgress(event, io.err));
 
-        const record = await deps.runValidation(env, bus, workspaceRoot);
+        const record = stampSourceLabels(
+            await deps.runValidation(env, bus, workspaceRoot),
+            args.sourceCommit,
+            args.sourceRef,
+        );
 
         const outPath = path.resolve(args.outPath);
         const writer = new RunArtifactWriter(deps.fileProvider, bus);
         const { sizeBytes } = await writer.write(record, toAsyncIterable(bus.drain()), outPath);
 
         printSummary(record, outPath, sizeBytes, io.out);
+
+        const comparison = await maybeCompareBaseline(args.baselinePath, record, deps, io.out);
+        await maybeWriteReport(args.reportOut, record, comparison, deps, io.out);
+
         return exitCodeFor(record.status);
     } catch (err) {
         if (err instanceof EnvironmentsFileParseError || err instanceof EnvironmentNotFoundError) {
@@ -147,6 +170,71 @@ export function exitCodeFor(status: RunStatus): number {
 }
 
 /**
+ * Stamps git source labels (commit id / ref) onto the run record's source
+ * version. The runner fingerprints the schema content (the `hash`); CI adds the
+ * friendlier git labels for that same content. A no-op when no label is given
+ * or the run produced no source version.
+ */
+export function stampSourceLabels(
+    record: RunRecord,
+    commitId: string | undefined,
+    ref: string | undefined,
+): RunRecord {
+    if (record.sourceVersion === undefined || (commitId === undefined && ref === undefined)) {
+        return record;
+    }
+    return {
+        ...record,
+        sourceVersion: {
+            ...record.sourceVersion,
+            ...(commitId !== undefined ? { commitId } : {}),
+            ...(ref !== undefined ? { ref } : {}),
+        },
+    };
+}
+
+/**
+ * Loads the baseline artifact (when one was requested) and diffs the new run
+ * against it, printing a per-gate summary. Returns the comparison so the
+ * reporter can fold it into the PR comment, or `undefined` when no baseline was
+ * given.
+ */
+async function maybeCompareBaseline(
+    baselinePath: string | undefined,
+    record: RunRecord,
+    deps: RunGatesDeps,
+    out: NodeJS.WritableStream,
+): Promise<RunComparison | undefined> {
+    if (baselinePath === undefined) {
+        return undefined;
+    }
+    const baseline = await deps.loadRunArtifact(path.resolve(baselinePath));
+    const comparison = compareRuns(baseline, record);
+    printComparison(comparison, out);
+    return comparison;
+}
+
+/**
+ * Writes the PR-comment Markdown report (when `--report-out` was given) so the
+ * workflow can post it on the pull request.
+ */
+async function maybeWriteReport(
+    reportOut: string | undefined,
+    record: RunRecord,
+    comparison: RunComparison | undefined,
+    deps: RunGatesDeps,
+    out: NodeJS.WritableStream,
+): Promise<void> {
+    if (reportOut === undefined) {
+        return;
+    }
+    const report = buildPrReport(record, comparison);
+    const reportPath = path.resolve(reportOut);
+    await deps.fileProvider.writeFileAtomic(reportPath, Buffer.from(report.commentBody, "utf8"));
+    out.write(`Report: ${reportPath}\n`);
+}
+
+/**
  * Production dependencies: real Node file/process providers and the full live
  * registry/runner composition. The runner is wired with
  * `RunnerRuntimeDeps` — the reused `DockerEphemeralDatabaseProvider` driven by
@@ -160,6 +248,7 @@ function liveDeps(): RunGatesDeps {
     return {
         fileProvider,
         loadEnvironments: loadEnvironmentsFromPath,
+        loadRunArtifact: (absPath) => new RunArtifactReader(fileProvider).read(absPath),
         runValidation: (env, bus, workspaceRoot) => {
             const processes = new LiveProcessProvider(workspaceRoot);
             const artifact = new LiveArtifactProvider(fileProvider, workspaceRoot);
@@ -196,13 +285,44 @@ function printSummary(
     sizeBytes: number,
     out: NodeJS.WritableStream,
 ): void {
-    const lines = record.validations.map((v) => `  ${v.displayName}: ${v.status}`).join("\n");
+    const lines = record.validations.map(formatValidationSummary).join("\n");
     const sizeKb = (sizeBytes / 1024).toFixed(1);
     out.write(
         `\nRun ${record.status} — ${record.validations.length} validation(s)\n` +
             `${lines}${lines.length > 0 ? "\n" : ""}` +
             `Artifact: ${outPath} (${sizeKb} KB)\n`,
     );
+}
+
+/**
+ * Renders one summary line per validation. For any validation that did not pass
+ * or skip, the error message and finding messages are indented beneath it, so a
+ * failing run (in a CI log) shows WHY without opening the artifact.
+ */
+function formatValidationSummary(v: ValidationResult): string {
+    let line = `  ${v.displayName}: ${v.status}`;
+    if (v.status === ValidationStatus.Passed || v.status === ValidationStatus.Skipped) {
+        return line;
+    }
+    if (v.errorMessage !== undefined) {
+        line += `\n      ${v.errorMessage}`;
+    }
+    for (const finding of v.payload.findings) {
+        const message = (finding as { message?: unknown }).message;
+        if (typeof message === "string") {
+            line += `\n      ${message}`;
+        }
+    }
+    return line;
+}
+
+function printComparison(comparison: RunComparison, out: NodeJS.WritableStream): void {
+    out.write(`\nDiff vs baseline "${comparison.environmentNameA}":\n`);
+    for (const delta of comparison.validations) {
+        const base = delta.statusA ?? "absent";
+        const candidate = delta.statusB ?? "absent";
+        out.write(`  ${delta.displayName}: ${base} -> ${candidate}\n`);
+    }
 }
 
 async function* toAsyncIterable<T>(items: readonly T[]): AsyncIterable<T> {

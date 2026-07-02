@@ -14,12 +14,18 @@ import {
 } from "../../src/cloudDeploy/environments/types";
 import { EnvironmentsFileParseError } from "../../src/cloudDeploy/environments/environmentSchema";
 import { FileProvider } from "../../src/cloudDeploy/providers";
-import { RUN_RECORD_SCHEMA_VERSION, RunRecord, RunStatus } from "../../src/cloudDeploy/runs/types";
+import {
+    RUN_RECORD_SCHEMA_VERSION,
+    RunRecord,
+    RunStatus,
+    SourceVersion,
+} from "../../src/cloudDeploy/runs/types";
 import {
     exitCodeFor,
     runGates,
     RunGatesDeps,
     RunGatesIo,
+    stampSourceLabels,
 } from "../../src/cloudDeploy/cli/runGates";
 
 const REQUIRED_ARGS = ["--env", "dev", "--config", "c.json", "--out", "o.zip"] as const;
@@ -54,7 +60,7 @@ function makeFile(...envs: Environment[]): EnvironmentsFile {
     return { schemaVersion: ENVIRONMENTS_FILE_SCHEMA_VERSION, environments: envs };
 }
 
-function makeRecord(status: RunStatus): RunRecord {
+function makeRecord(status: RunStatus, sourceVersion?: SourceVersion): RunRecord {
     return {
         schemaVersion: RUN_RECORD_SCHEMA_VERSION,
         runId: "cli-test-run",
@@ -65,6 +71,7 @@ function makeRecord(status: RunStatus): RunRecord {
             displayName: "Cloud Deploy CLI",
             hostKind: "github-actions",
         },
+        ...(sourceVersion !== undefined ? { sourceVersion } : {}),
         startedAtMs: 1,
         endedAtMs: 2,
         status,
@@ -97,6 +104,7 @@ function makeDeps(overrides: Partial<RunGatesDeps> = {}): RunGatesDeps {
         fileProvider: new RecordingFileProvider(),
         loadEnvironments: async () => makeFile(makeEnv("dev")),
         runValidation: async () => makeRecord(RunStatus.Passed),
+        loadRunArtifact: async () => makeRecord(RunStatus.Passed),
         ...overrides,
     };
 }
@@ -188,6 +196,82 @@ suite("CloudDeploy CLI runGates", () => {
                 io,
             );
             expect(code).to.equal(2);
+        });
+
+        test("diffs against the baseline when --baseline is given", async () => {
+            let requested: string | undefined;
+            const { io, out } = captureIo();
+            const code = await runGates(
+                [...REQUIRED_ARGS, "--baseline", "main.cdrun.zip"],
+                makeDeps({
+                    loadRunArtifact: async (p) => {
+                        requested = p;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            expect(code).to.equal(0);
+            expect(requested).to.equal(path.resolve("main.cdrun.zip"));
+            expect(out()).to.contain("Diff vs baseline");
+        });
+
+        test("does not load a baseline when --baseline is omitted", async () => {
+            let called = false;
+            const { io } = captureIo();
+            await runGates(
+                [...REQUIRED_ARGS],
+                makeDeps({
+                    loadRunArtifact: async () => {
+                        called = true;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            expect(called).to.be.false;
+        });
+
+        test("writes a Markdown report when --report-out is given", async () => {
+            const fileProvider = new RecordingFileProvider();
+            const { io } = captureIo();
+            const code = await runGates(
+                [...REQUIRED_ARGS, "--report-out", "report.md"],
+                makeDeps({ fileProvider }),
+                io,
+            );
+            expect(code).to.equal(0);
+            const report = fileProvider.writes.find((w) => w.path === path.resolve("report.md"));
+            expect(report, "report file written").to.not.be.undefined;
+            expect(report!.data.toString("utf8")).to.contain("Cloud Deploy — schema validation");
+        });
+    });
+
+    suite("stampSourceLabels", () => {
+        const baseVersion: SourceVersion = { hash: "sha256:abc", algorithm: "sha256" };
+
+        test("adds the commit id and ref to an existing source version", () => {
+            const stamped = stampSourceLabels(
+                makeRecord(RunStatus.Passed, baseVersion),
+                "deadbeef",
+                "refs/pull/7/merge",
+            );
+            expect(stamped.sourceVersion).to.deep.equal({
+                hash: "sha256:abc",
+                algorithm: "sha256",
+                commitId: "deadbeef",
+                ref: "refs/pull/7/merge",
+            });
+        });
+
+        test("returns the record unchanged when no labels are given", () => {
+            const record = makeRecord(RunStatus.Passed, baseVersion);
+            expect(stampSourceLabels(record, undefined, undefined)).to.equal(record);
+        });
+
+        test("is a no-op when the run produced no source version", () => {
+            const record = makeRecord(RunStatus.Passed);
+            expect(stampSourceLabels(record, "deadbeef", undefined)).to.equal(record);
         });
     });
 });

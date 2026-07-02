@@ -168,6 +168,13 @@ const DEFAULT_HOST_PORT = 11433;
 const DEFAULT_READINESS_TIMEOUT_MS = 60_000;
 const DEFAULT_READINESS_INTERVAL_MS = 1_000;
 const CONTAINER_SQL_PORT = 1433;
+/**
+ * Host address used to reach the container's published port from the runner.
+ * Forced to IPv4 rather than "localhost": Docker publishes the mapped port on
+ * IPv4, but on some Linux CI hosts "localhost" resolves to IPv6 (::1) first,
+ * where nothing is listening — so the host-side publish/connect get refused.
+ */
+const HOST_LOOPBACK_ADDRESS = "127.0.0.1";
 const SA_USER = "sa";
 const READINESS_PROBE_SQL = "SELECT 1";
 /** In-container sqlcmd path for the readiness probe (mssql-tools18 ships in the image). */
@@ -262,7 +269,7 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
 
             const connection = await this._connector.connect(
                 {
-                    host: "localhost",
+                    host: HOST_LOOPBACK_ADDRESS,
                     port: hostPort,
                     user: SA_USER,
                     password,
@@ -442,7 +449,7 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
             [
                 "/Action:Publish",
                 `/SourceFile:${dacpacPath}`,
-                `/TargetServerName:localhost,${hostPort}`,
+                `/TargetServerName:${HOST_LOOPBACK_ADDRESS},${hostPort}`,
                 `/TargetDatabaseName:${databaseName}`,
                 `/TargetUser:${SA_USER}`,
                 `/TargetPassword:${password}`,

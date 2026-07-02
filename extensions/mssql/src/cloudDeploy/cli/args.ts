@@ -25,12 +25,14 @@ export interface CliArgs {
     readonly outPath: string;
     /** Source-path resolution root. Defaults to the config file's grandparent. */
     readonly workspaceRoot?: string;
-    /** Git commit SHA the run validated (reserved; not yet used). */
+    /** Git commit SHA the run validated; stamped onto the run record's source version. */
     readonly sourceCommit?: string;
-    /** PR number / ref the run validated (reserved; not yet used). */
+    /** PR number / ref the run validated; stamped onto the run record's source version. */
     readonly sourceRef?: string;
-    /** Baseline `.cdrun.zip` to diff against (reserved; not yet used). */
+    /** Baseline `.cdrun.zip` to diff the produced run against. */
     readonly baselinePath?: string;
+    /** Destination path for a Markdown validation report (the PR comment body). */
+    readonly reportOut?: string;
 }
 
 /**
@@ -63,9 +65,10 @@ Required:
 
 Options:
   --workspace <dir>     Source-path root (default: the config file's grandparent)
-  --source-commit <sha> Git commit SHA the run validated (reserved; not yet used)
-  --source-ref <ref>    PR number / ref the run validated (reserved; not yet used)
-  --baseline <path>     Baseline .cdrun.zip to diff against (reserved; not yet used)
+  --source-commit <sha> Git commit SHA the run validated (stamped on the artifact)
+  --source-ref <ref>    PR number / ref the run validated (stamped on the artifact)
+  --baseline <path>     Baseline .cdrun.zip to diff the produced run against
+  --report-out <path>   Write a Markdown validation report (PR comment body) here
   -h, --help            Print this help and exit
 
 Exit codes:
@@ -93,6 +96,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
                 "source-commit": { type: "string" },
                 "source-ref": { type: "string" },
                 baseline: { type: "string" },
+                "report-out": { type: "string" },
                 help: { type: "boolean", short: "h" },
             },
             allowPositionals: true,
@@ -126,6 +130,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
         sourceCommit: values["source-commit"],
         sourceRef: values["source-ref"],
         baselinePath: values.baseline,
+        reportOut: values["report-out"],
     };
 }
 
@@ -138,6 +143,7 @@ type ParseConfig = {
         readonly "source-commit": { readonly type: "string" };
         readonly "source-ref": { readonly type: "string" };
         readonly baseline: { readonly type: "string" };
+        readonly "report-out": { readonly type: "string" };
         readonly help: { readonly type: "boolean"; readonly short: "h" };
     };
     readonly allowPositionals: true;

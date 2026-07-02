@@ -34,11 +34,14 @@ suite("CloudDeploy CLI args", () => {
                 "42",
                 "--baseline",
                 "main.cdrun.zip",
+                "--report-out",
+                "report.md",
             ]);
             expect(args.workspaceRoot).to.equal("/w");
             expect(args.sourceCommit).to.equal("abc123");
             expect(args.sourceRef).to.equal("42");
             expect(args.baselinePath).to.equal("main.cdrun.zip");
+            expect(args.reportOut).to.equal("report.md");
         });
 
         test("leaves optional flags undefined when omitted", () => {
@@ -47,6 +50,7 @@ suite("CloudDeploy CLI args", () => {
             expect(args.sourceCommit).to.be.undefined;
             expect(args.sourceRef).to.be.undefined;
             expect(args.baselinePath).to.be.undefined;
+            expect(args.reportOut).to.be.undefined;
         });
 
         test("throws CliUsageError when --env is missing", () => {
