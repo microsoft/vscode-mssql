@@ -1101,6 +1101,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Cancel</source>
         <target state="translated">Abbrechen</target>
       </trans-unit>
+      <trans-unit id="++CODE++a0452383bba7697cd1260a63a74ada9439d55bedfeeaab09569e3860c0f2ec82">
+        <source xml:lang="en">Cancel Query</source>
+        <target state="new">Cancel Query</target>
+      </trans-unit>
       <trans-unit id="++CODE++baf083b029cb149c0220c5d92d030938620575f3da7f46af41f26b1db920bfdd">
         <source xml:lang="en">Cancel Task</source>
         <target state="translated">Aufgabe abbrechen</target>
@@ -1114,6 +1118,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
         <note>{0} is the error message returned from the cancel operation</note>
         <target state="translated">Fehler beim Abbrechen des Schemavergleichs: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++04c029ffc776b6f0150c6527a7641431ebc9c2e5b5a1012ebdf70b6205f762f0">
+        <source xml:lang="en">Cancel the query execution in progress</source>
+        <target state="new">Cancel the query execution in progress</target>
       </trans-unit>
       <trans-unit id="++CODE++13ca2ee2499310d97a5515fb5fd80b75da66f4cf2775273658eb2b3fdcd3bd3d">
         <source xml:lang="en">Canceled</source>
@@ -1206,6 +1214,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Change</source>
         <target state="translated">Ändern</target>
       </trans-unit>
+      <trans-unit id="++CODE++f07538573cf58e02922ee656434ca50a18ffecd2668d86edf8360309745f7e74">
+        <source xml:lang="en">Change Connection</source>
+        <target state="new">Change Connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bd09f9171ad9aa3824a8e54ea5edf59d28c768124be9dc7f9d2c5c7eee6780b">
         <source xml:lang="en">Change Database</source>
         <target state="translated">Datenbank ändern</target>
@@ -1228,6 +1240,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
 {1} is the connection ID
 {2} is the database name</note>
         <target state="translated">Die Datenbank für die Verbindung „{0}“ (ID: {1}) in „{2}“ ändern?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5b69a53cad667c420f08b25e1f416c04ae4a5e595443e5ee4ca83cd7c5708296">
+        <source xml:lang="en">Change the connection for the active SQL document</source>
+        <target state="new">Change the connection for the active SQL document</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d96e501638c5b597c8f01ed60ef2a376be46cb4fbc9dbc8601f53b08d6f4f556">
+        <source xml:lang="en">Change the database for the active SQL document</source>
+        <target state="new">Change the database for the active SQL document</target>
       </trans-unit>
       <trans-unit id="++CODE++03e884ddf92692afa483662c376c0ddbe134c6b0e73c8506a40d7731d2f9fe3d">
         <source xml:lang="en">Change {0} of {1}</source>
@@ -1355,6 +1375,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Choose An Action</source>
         <target state="translated">Aktion auswählen</target>
       </trans-unit>
+      <trans-unit id="++CODE++1df2cefea162ee2f110b6b1bf82751b5db737e38add19ddec1890541bc5ecc5d">
+        <source xml:lang="en">Choose Database</source>
+        <target state="new">Choose Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d7f20b4a7223bae862f00b4d5e41f37ededf7d987dba4546b315d891c5fbe08">
         <source xml:lang="en">Choose Existing</source>
         <target state="translated">Vorhandene auswählen</target>
@@ -1382,6 +1406,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++c7bd40bc64cc1051c5198092da16048ef651147d7b291becd00c0467d63408e0">
         <source xml:lang="en">Choose a database</source>
         <target state="translated">Datenbank auswählen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d6803305e5d4a37cae3d0fa45cf3f0f093868aade34efcb3014d4d604983cb49">
+        <source xml:lang="en">Choose a database for the active SQL document</source>
+        <target state="new">Choose a database for the active SQL document</target>
       </trans-unit>
       <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
         <source xml:lang="en">Choose a database from the list below</source>
@@ -1784,9 +1812,9 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Configure Linux containers</source>
         <target state="translated">Konfigurieren von Linux-Containern</target>
       </trans-unit>
-      <trans-unit id="++CODE++40b05867de48832993b117a3596bebf4b2bf2a99dade41af88c8dfada45469cd">
-        <source xml:lang="en">Configure Quick Query and in-app shortcuts.</source>
-        <target state="translated">Schnellabfrage und In-App-Tastenkombinationen konfigurieren.</target>
+      <trans-unit id="++CODE++6338b746574ee0192b5942652c89968857a7b8dc1634561c1cbd748b7261251e">
+        <source xml:lang="en">Configure Quick Query and Extension shortcuts.</source>
+        <target state="new">Configure Quick Query and Extension shortcuts.</target>
       </trans-unit>
       <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
         <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
@@ -1800,13 +1828,13 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Configure and customize SQL Server containers</source>
         <target state="translated">Konfigurieren und Anpassen von SQL Server-Containern</target>
       </trans-unit>
-      <trans-unit id="++CODE++3135416947bed2e7934a6e4463fa842ab5b8ddc86566c9789517f8c5864c35da">
-        <source xml:lang="en">Configure command-backed SQL snippets that can open or run from keyboard shortcuts.</source>
-        <target state="translated">Konfigurieren Sie befehlsgestützte SQL-Snippets, die sich über Tastenkombinationen öffnen oder ausführen lassen.</target>
+      <trans-unit id="++CODE++c3601ab056586eb83c082fc146db4ff551ad914941f89ed7954a78a0618bc798">
+        <source xml:lang="en">Configure keyboard shortcuts used by the MSSQL extension.</source>
+        <target state="new">Configure keyboard shortcuts used by the MSSQL extension.</target>
       </trans-unit>
-      <trans-unit id="++CODE++b0dc4fcae95361a5ae1cd5e7fc5c817848bbc8819fe5ee0d71615d064884af32">
-        <source xml:lang="en">Configure shortcuts that are handled inside MSSQL views.</source>
-        <target state="translated">Konfigurieren Sie Tastenkombinationen, die in MSSQL-Ansichten verarbeitet werden.</target>
+      <trans-unit id="++CODE++dbbf02ec8187fe0ca87c3912fce8fb9f4aeba2ae37da3cd211bb9a5fc30f3ca0">
+        <source xml:lang="en">Configure the full list of Query Editor shortcuts.</source>
+        <target state="new">Configure the full list of Query Editor shortcuts.</target>
       </trans-unit>
       <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
         <source xml:lang="en">Confirm Password</source>
@@ -1839,6 +1867,14 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
         <source xml:lang="en">Connect</source>
         <target state="translated">Verbinden</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
+        <source xml:lang="en">Connect and manage database connections</source>
+        <target state="new">Connect and manage database connections</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
+        <source xml:lang="en">Connect the active SQL document to a database</source>
+        <target state="new">Connect the active SQL document to a database</target>
       </trans-unit>
       <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
         <source xml:lang="en">Connect to Database</source>
@@ -1976,6 +2012,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
         <source xml:lang="en">Connecting...</source>
         <target state="translated">Verbindung wird hergestellt...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++639a40e82b9a96f0cbeed5f006cf5634c8d1b990b3c83753c00a910fc268d2a6">
+        <source xml:lang="en">Connection</source>
+        <target state="new">Connection</target>
       </trans-unit>
       <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
         <source xml:lang="en">Connection Authentication</source>
@@ -2215,6 +2255,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copy &amp; Export</source>
         <target state="translated">Kopieren und exportieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a1861e47d92e338be8a74dd8c9e93ebc0002af27499b52996ca43c9a8684555">
+        <source xml:lang="en">Copy All</source>
+        <target state="new">Copy All</target>
+      </trans-unit>
       <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
         <source xml:lang="en">Copy As</source>
         <target state="translated">Kopieren als</target>
@@ -2242,6 +2286,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++0782d5f6e07165c5ebb97befd583b8a1c3638492fd29a6572f522d263ad80cf7">
         <source xml:lang="en">Copy all cells including column headers</source>
         <target state="translated">Alle Zellen einschließlich Spaltenüberschriften kopieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9e4b744f16b2f113c4618d96f090604b900af81cd29c367ecfe963eb2873a02b">
+        <source xml:lang="en">Copy all query result content</source>
+        <target state="new">Copy all query result content</target>
       </trans-unit>
       <trans-unit id="++CODE++bd0768aa6b547da2466d49441410931420e8beb78cc1d3051e68242a04e8583b">
         <source xml:lang="en">Copy all text output for this cell (messages, PRINT, errors)</source>
@@ -2988,6 +3036,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
 {1} is the connection ID</note>
         <target state="translated">Verbindung mit „{0}“ (ID: {1}) trennen?</target>
       </trans-unit>
+      <trans-unit id="++CODE++de6a56426c2482401a747f4f3f70e9a0a83d162f1a2f335899b63bded7cf59ec">
+        <source xml:lang="en">Disconnect the active SQL document from the database</source>
+        <target state="new">Disconnect the active SQL document from the database</target>
+      </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
@@ -3231,6 +3283,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Enable all rules in {0}</source>
         <note>{0} is the category name, e.g. Design</note>
         <target state="translated">Alle Regeln in {0} aktivieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
+        <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
+        <target state="new">Enable or disable SQLCMD mode for the active SQL document</target>
       </trans-unit>
       <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
         <source xml:lang="en">Enable {0}</source>
@@ -3689,9 +3745,21 @@ Fehler:
         <note>{0} is the operation name</note>
         <target state="translated">Vorgang „{0}“ im Schemadesigner ausführen?</target>
       </trans-unit>
+      <trans-unit id="++CODE++db523fa8bed84b325771049a5181c18b5fb41c8384a771a6648dbbda3e754a18">
+        <source xml:lang="en">Execute Query</source>
+        <target state="new">Execute Query</target>
+      </trans-unit>
       <trans-unit id="++CODE++9792b2d9b35834148ffb14e491f3ab556bea3ad38904c8f7ca27142bb4f3d92d">
         <source xml:lang="en">Execute SQL against SQL Server / Azure SQL</source>
         <target state="translated">Ausführen von SQL für SQL Server/Azure SQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0ce03601c74e3fc4b2372f559b0f95d51961d8a540ba5caf37266e212e07bf50">
+        <source xml:lang="en">Execute Selection or Current Statement</source>
+        <target state="new">Execute Selection or Current Statement</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bcee7af9ed6ff5fd5d2ab891504e131bb92f0a78f9149309fb2bad179f9711a1">
+        <source xml:lang="en">Execute only the T-SQL statement under the cursor</source>
+        <target state="new">Execute only the T-SQL statement under the cursor</target>
       </trans-unit>
       <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
         <source xml:lang="en">Executing '{0}' operation on Data API builder</source>
@@ -3921,6 +3989,14 @@ Fehler:
       <trans-unit id="++CODE++312cd31b86c8f1e8bfe2bee53392337f74d6268be0bfcef0e28a57b2ef861473">
         <source xml:lang="en">Extended Events Log Files</source>
         <target state="translated">Protokolldateien für erweiterte Ereignisse</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f5bd88842b6e5ec1de5f20134b0fe52c545a289b6a491da8f09704519dabe162">
+        <source xml:lang="en">Extension Shortcuts</source>
+        <target state="new">Extension Shortcuts</target>
+      </trans-unit>
+      <trans-unit id="++CODE++96ddf01f0f59ca7902524e4190abea04cc0238c67c301ccb6903254fbc790a8a">
+        <source xml:lang="en">Extension and deployment actions</source>
+        <target state="new">Extension and deployment actions</target>
       </trans-unit>
       <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
         <source xml:lang="en">Extract DACPAC</source>
@@ -5133,10 +5209,6 @@ Fehler:
         <source xml:lang="en">In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.</source>
         <target state="translated">Im Daten-API-Generator ist die lokale Containerbereitstellung nur für Verbindungen mit SQL-Authentifizierung verfügbar. Ihr aktueller Verbindungstyp wird nicht unterstützt.</target>
       </trans-unit>
-      <trans-unit id="++CODE++2574b3edc726c742a53a8c2453aa785036737b718f29576c2f31265fc691cb52">
-        <source xml:lang="en">In-App Shortcuts</source>
-        <target state="translated">In-App-Tastenkombinationen</target>
-      </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
         <target state="translated">Einschließen</target>
@@ -5310,6 +5382,10 @@ Fehler:
       <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
         <source xml:lang="en">Key</source>
         <target state="translated">Schlüssel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1730c13cc8d1bc6550b4f9150c1934d2bcac56f8a34d701392c057ff113bd491">
+        <source xml:lang="en">Keyboard Shortcuts editor</source>
+        <target state="new">Keyboard Shortcuts editor</target>
       </trans-unit>
       <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
         <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
@@ -5825,10 +5901,6 @@ Fehler:
         <source xml:lang="en">Manage relationships</source>
         <target state="translated">Beziehungen verwalten</target>
       </trans-unit>
-      <trans-unit id="++CODE++92c20a4c9f9605c5118291b8c16272a3732ad73f2293593fd9136db4837d93cf">
-        <source xml:lang="en">Managed in VS Code</source>
-        <target state="translated">In VS Code verwaltet</target>
-      </trans-unit>
       <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
         <source xml:lang="en">Mandatory (Recommended)</source>
         <target state="translated">Obligatorisch (Empfohlen)</target>
@@ -6219,6 +6291,10 @@ Fehler:
       <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
         <source xml:lang="en">New Password</source>
         <target state="translated">Neues Kennwort</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b4bc5e27c9b72fc0f2f1418a20be3e41fcb8437955c05584fb023bf03d2c5cf8">
+        <source xml:lang="en">New Query</source>
+        <target state="new">New Query</target>
       </trans-unit>
       <trans-unit id="++CODE++a32a71122605d871f3213af8b401fe9cfd1e00ab4b1d508826d2dd6f97bb3cc6">
         <source xml:lang="en">New Query Profiler - Enter Name</source>
@@ -6844,6 +6920,10 @@ Fehler:
         <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
         <target state="translated">Öffnen Sie den GitHub Copilot-Chat, um diese Fehler zu beheben</target>
       </trans-unit>
+      <trans-unit id="++CODE++6eea76036450348a3e6a4b9ba6a0671c1c8e40f855def50a88ac9eeae75d01bd">
+        <source xml:lang="en">Open Keyboard Shortcuts editor.</source>
+        <target state="new">Open Keyboard Shortcuts editor.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26">
         <source xml:lang="en">Open Nitro</source>
         <target state="translated">Nitro öffnen</target>
@@ -6867,6 +6947,10 @@ Fehler:
       <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
         <source xml:lang="en">Open XML</source>
         <target state="translated">XML öffnen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++811c17ffde572f2a3f875d0066464c75847bbeca86303f13e4dac1c448d05b21">
+        <source xml:lang="en">Open a new SQL query file</source>
+        <target state="new">Open a new SQL query file</target>
       </trans-unit>
       <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
         <source xml:lang="en">Open a new bug</source>
@@ -6967,6 +7051,10 @@ Fehler:
       <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
         <source xml:lang="en">Original file name</source>
         <target state="translated">Ursprünglicher Dateiname</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ebdad9ba4c5e3ce0078ad8e8fb31e4c76176834cd2370f05bd043e4baf8d6c5a">
+        <source xml:lang="en">Others</source>
+        <target state="new">Others</target>
       </trans-unit>
       <trans-unit id="++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f">
         <source xml:lang="en">Output file</source>
@@ -7423,6 +7511,18 @@ Fehler:
         <source xml:lang="en">Query</source>
         <target state="translated">Abfrage</target>
       </trans-unit>
+      <trans-unit id="++CODE++5bf31bcb066ae7c0e33982f1593874fce61833581817dfb5091aa5c256b4d4d8">
+        <source xml:lang="en">Query Editor</source>
+        <target state="new">Query Editor</target>
+      </trans-unit>
+      <trans-unit id="++CODE++792d7034952abde81e487ac8d2b658a8dddd608968c37c9f69b19e9b8c435c37">
+        <source xml:lang="en">Query Editor shortcuts are managed by Visual Studio Code.</source>
+        <target state="new">Query Editor shortcuts are managed by Visual Studio Code.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++78ce37187f269b9e700f1ffe8bfa8a246f612fe88cdc8b39aa770152712c6add">
+        <source xml:lang="en">Query Execution</source>
+        <target state="new">Query Execution</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">Abfrageplan</target>
@@ -7493,6 +7593,10 @@ Fehler:
       <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
         <source xml:lang="en">Quick Queries</source>
         <target state="translated">Schnellabfragen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51296d3c3409d0fc43f3c4da5cfe61aac838f739a5bf5691479a224e36341234">
+        <source xml:lang="en">Quick Queries keyboard shortcuts are managed by Visual Studio Code.</source>
+        <target state="new">Quick Queries keyboard shortcuts are managed by Visual Studio Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d">
         <source xml:lang="en">Quick Query slot must be between 1 and {0}.</source>
@@ -7836,6 +7940,14 @@ Fehler:
 {1} is the query number</note>
         <target state="translated">Resultset-Batch {0} – Abfrage {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++71d5f8f0fd81ed146cb9025401639f5156d57e15633620ca2153ccdfce395b46">
+        <source xml:lang="en">Result View</source>
+        <target state="new">Result View</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8a66883c25fec3e51a96c6f97d77739a4abce1854f79266e074e7c1a5f74abf5">
+        <source xml:lang="en">Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.</source>
+        <target state="new">Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.</target>
+      </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
         <target state="translated">Ergebnisse</target>
@@ -7977,6 +8089,10 @@ Fehler:
         <source xml:lang="en">Run Query History</source>
         <target state="translated">Abfrageverlauf ausführen</target>
       </trans-unit>
+      <trans-unit id="++CODE++ca552c47c13c28098e7508a7b673cd923627b914391bb74dc1685bfa31f91601">
+        <source xml:lang="en">Run a query for the current active SQL document</source>
+        <target state="new">Run a query for the current active SQL document</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
         <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
         <target state="translated">Führen Sie eine Abfrage im aktuellen Editor aus oder wechseln Sie zu einem Editor, der Ergebnisse enthält.</target>
@@ -7991,6 +8107,10 @@ Query: {2}</source>
         <target state="translated">Abfrage auf Verbindung „{0}“ (ID: {1}) ausführen?
 
 Abfrage: {2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
+        <source xml:lang="en">Run, cancel, and create queries</source>
+        <target state="new">Run, cancel, and create queries</target>
       </trans-unit>
       <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
         <source xml:lang="en">Running</source>
@@ -8191,6 +8311,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
         <target state="translated">Verbindungsprofiländerungen speichern, ohne eine Verbindung herzustellen.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6">
+        <source xml:lang="en">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</source>
+        <target state="new">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</target>
       </trans-unit>
       <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
         <source xml:lang="en">Save password</source>
@@ -8397,9 +8521,9 @@ Abfrage: {2}</target>
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">Verbindungsgruppen durchsuchen</target>
       </trans-unit>
-      <trans-unit id="++CODE++16f289fd88de8f7176a04262f13bf831d2316e26607f21d402390985e3d67643">
-        <source xml:lang="en">Search in-app shortcuts</source>
-        <target state="translated">In-App-Tastenkombinationen suchen</target>
+      <trans-unit id="++CODE++bf02e2b6200125d467ce1c048b8124906131963d7af4568a0b538aecede4da47">
+        <source xml:lang="en">Search extension shortcut</source>
+        <target state="new">Search extension shortcut</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -8907,9 +9031,9 @@ Abfrage: {2}</target>
         <source xml:lang="en">Shortcut</source>
         <target state="translated">Tastenkombination</target>
       </trans-unit>
-      <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
-        <source xml:lang="en">Shortcuts Configuration</source>
-        <target state="translated">Tastenkombinationskonfiguration</target>
+      <trans-unit id="++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba">
+        <source xml:lang="en">Shortcuts Configuration (Preview)</source>
+        <target state="new">Shortcuts Configuration (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++bf913efbcc381cf124165f3786831debf4e1caf3e8b775f07ba3b65e58534ac6">
         <source xml:lang="en">Shortcuts configuration page</source>
@@ -8930,6 +9054,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++7e0fee5f6f228b0021bdc8d58f3bb5956651af2fd313a109b4c4ea75f41ac1e5">
         <source xml:lang="en">Show Definition</source>
         <target state="translated">Definition anzeigen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a8671017e56c56c47882964ac316a24d75c24b373db41d31857be325dfcf7fa">
+        <source xml:lang="en">Show Estimated Plan</source>
+        <target state="new">Show Estimated Plan</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
@@ -8979,6 +9107,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
         <source xml:lang="en">Show masked command (hides sensitive information)</source>
         <target state="translated">Maskierten Befehl anzeigen (vertrauliche Informationen ausblenden)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++03cd9b98d0e655868474c63968d4e0979851a6f4a8412764029837f5331efb5e">
+        <source xml:lang="en">Show or hide the query result panel</source>
+        <target state="new">Show or hide the query result panel</target>
       </trans-unit>
       <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
         <source xml:lang="en">Show password</source>
@@ -9856,6 +9988,18 @@ Abfrage: {2}</target>
         <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source>
         <target state="translated">Um diesen Befehl zu verwenden, müssen Sie die Sprache auf "SQL" festlegen. Bestätigen Sie die Änderung des Sprachmodus.</target>
       </trans-unit>
+      <trans-unit id="++CODE++f91eac004e8c4e3334060eea2ab51d73ccda2acc75fd0cf172b0679757126f6f">
+        <source xml:lang="en">Toggle Actual Plan</source>
+        <target state="new">Toggle Actual Plan</target>
+      </trans-unit>
+      <trans-unit id="++CODE++66537f058f1d64aa91d143821967b726382f308bef7eed1bbbf400dd835869f8">
+        <source xml:lang="en">Toggle Query Result Panel</source>
+        <target state="new">Toggle Query Result Panel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5f7970089ef6445b1c3f5481a75e81db1831a82f5afeda03b2c286e1abd07384">
+        <source xml:lang="en">Toggle SQLCMD Mode</source>
+        <target state="new">Toggle SQLCMD Mode</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
         <source xml:lang="en">Toggle Sort</source>
         <target state="translated">Sortieren umschalten</target>
@@ -9863,6 +10007,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
         <target state="translated">QuickInfos umschalten</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a5a40d884d233d252abf7a86279a409060ec8eb434a7488efb88d3a214bef14">
+        <source xml:lang="en">Toggle actual execution plan collection for SQL queries</source>
+        <target state="new">Toggle actual execution plan collection for SQL queries</target>
       </trans-unit>
       <trans-unit id="++CODE++782e08de4b6ec5793be8ace39d20ee91bd05ddc327a36e3d736299c6267f75d4">
         <source xml:lang="en">Toggle all entities in {0}</source>
@@ -10325,9 +10473,22 @@ Abfrage: {2}</target>
         <source xml:lang="en">View settings</source>
         <target state="translated">Einstellungen anzeigen</target>
       </trans-unit>
+      <trans-unit id="++CODE++50fbd0f6e798bf3bba3ed6f549631ebeb8ea0bf591df84bc7ca4baef49e418c4">
+        <source xml:lang="en">View the estimated query execution plan</source>
+        <target state="new">View the estimated query execution plan</target>
+      </trans-unit>
       <trans-unit id="++CODE++31d815949da602ce097bc69ebb0b6a91aa352ac61455a77264ed3111a3765015">
         <source xml:lang="en">View, add, edit, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
         <target state="translated">Tabellenzeilen in einem interaktiven Raster anzeigen, hinzufügen, bearbeiten und löschen – mit Echtzeitvalidierung und Live-DML-Skriptvorschau.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++177048658940c95e2084e2d0605ee437382d6584321aa0073eaeb6cda6e93fe2">
+        <source xml:lang="en">View/configure keybinding</source>
+        <target state="new">View/configure keybinding</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f464bfcb8edfa7a4cf46e0942195b36ef56273a2daee217d9870793c4c5a241e">
+        <source xml:lang="en">View/configure keybinding for {0}</source>
+        <note>{0} is the command or shortcut display name</note>
+        <target state="new">View/configure keybinding for {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
         <source xml:lang="en">View:</source>
