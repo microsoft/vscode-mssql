@@ -52,6 +52,7 @@ import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
 import { IInstantiationService } from "extension-toolkit/base";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
+import { Perf } from "../perf/perfTelemetry";
 import {
     ActivityObject,
     ActivityStatus,
@@ -1443,6 +1444,7 @@ export default class ConnectionManager {
             serverlessWakeFailedAttempts = 0,
         } = options;
 
+        Perf.marker("mssql.connection.begin", "begin");
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.Connect,
@@ -1628,6 +1630,11 @@ export default class ConnectionManager {
             connectionInfo.errorMessage = result.errorMessage;
             connectionInfo.messages = result.messages;
             connectionInfo.connecting = false;
+
+            Perf.marker("mssql.connection.failed", "end", {
+                error: true,
+                ...(result.errorNumber !== undefined ? { errorNumber: result.errorNumber } : {}),
+            });
 
             this.statusView.setConnectionError(fileUri, connectionInfo.credentials, result);
             this._logger.error(
@@ -1861,6 +1868,7 @@ export default class ConnectionManager {
             connection: connectionInfo,
             fileUri: fileUri,
         });
+        Perf.marker("mssql.connection.ready", "end");
 
         this._logger.info(
             LocalizedConstants.msgConnectedServerInfo(

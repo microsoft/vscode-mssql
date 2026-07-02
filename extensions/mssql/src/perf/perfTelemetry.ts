@@ -54,6 +54,19 @@ export interface IPerfTelemetry {
         attrs?: Record<string, string | number | boolean | null>,
         correlationId?: string,
     ): void;
+    /**
+     * Emit a marker on behalf of a webview, preserving the webview's own
+     * clock readings (its timeOrigin-based epoch ns and monotonic ns).
+     */
+    webviewMark(
+        mark: {
+            name: string;
+            timestampUnixNs: string;
+            monotonicNs: string;
+            attrs?: Record<string, string | number | boolean | null>;
+        },
+        webviewName: string,
+    ): void;
     setActivationState(state: PerfState["activationState"]): void;
     setStsPid(pid: number | undefined): void;
     getState(): PerfState;
@@ -64,6 +77,7 @@ export interface IPerfTelemetry {
 class NoopPerfTelemetry implements IPerfTelemetry {
     public readonly enabled = false;
     public marker(): void {}
+    public webviewMark(): void {}
     public setActivationState(): void {}
     public setStsPid(): void {}
     public getState(): PerfState {
@@ -117,6 +131,46 @@ class ActivePerfTelemetry implements IPerfTelemetry {
             }
             if (correlationId) {
                 marker.correlationId = correlationId;
+            }
+            if (this.queue.length >= MAX_QUEUE) {
+                this.queue.shift();
+                this.dropped++;
+            }
+            this.queue.push(marker);
+            this.scheduleFlush();
+        } catch {
+            // Instrumentation must never surface into the product.
+        }
+    }
+
+    public webviewMark(
+        mark: {
+            name: string;
+            timestampUnixNs: string;
+            monotonicNs: string;
+            attrs?: Record<string, string | number | boolean | null>;
+        },
+        webviewName: string,
+    ): void {
+        try {
+            if (!/^[0-9]+$/.test(mark.timestampUnixNs) || !/^[0-9]+$/.test(mark.monotonicNs)) {
+                return;
+            }
+            const marker: PerfMarker = {
+                schemaVersion: 1,
+                runId: this.runId,
+                repId: this.repId,
+                scenarioId: this.scenarioId,
+                name: mark.name,
+                phase: "instant",
+                timestampUnixNs: mark.timestampUnixNs,
+                monotonicNs: mark.monotonicNs,
+                // The webview's renderer pid is not observable from here; 0 is
+                // the documented "unknown" pid for the webview role.
+                process: { role: "webview", pid: 0, name: webviewName },
+            };
+            if (mark.attrs) {
+                marker.attrs = mark.attrs;
             }
             if (this.queue.length >= MAX_QUEUE) {
                 this.queue.shift();
