@@ -1136,7 +1136,7 @@
                 "command": "mssql.shortcutsConfiguration.open",
                 "title": "%mssql.shortcutsConfiguration.open%",
                 "category": "MS SQL",
-                "icon": "$(settings-gear)"
+                "icon": "$(keyboard)"
             },
             {
                 "command": "mssql.quickQueries.run1",
@@ -1799,11 +1799,8 @@
                     "scope": "application"
                 },
                 "mssql.preview.shortcutsConfiguration": {
-                    "type": [
-                        "boolean",
-                        "null"
-                    ],
-                    "default": null,
+                    "type": "boolean",
+                    "default": false,
                     "description": "%mssql.preview.shortcutsConfiguration.description%",
                     "scope": "application"
                 },

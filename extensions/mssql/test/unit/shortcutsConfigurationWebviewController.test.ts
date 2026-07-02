@@ -101,6 +101,8 @@ suite("shortcutsConfiguration Webview Controller", () => {
             ) => Promise<SaveShortcutsConfigurationResult>;
             openQuickQueryKeybinding: (commandId: string) => Promise<void>;
             openQuickQueryKeybindings: () => Promise<void>;
+            openKeymapCommandKeybinding: (commandId: string) => Promise<void>;
+            openKeymapCommandKeybindings: () => Promise<void>;
         };
     }
 
@@ -209,6 +211,39 @@ suite("shortcutsConfiguration Webview Controller", () => {
         expect(executeCommandStub).to.have.been.calledWith(
             "workbench.action.openGlobalKeybindings",
             "mssql.quickQueries.run",
+        );
+    });
+
+    test("openKeymapCommandKeybinding opens Keyboard Shortcuts filtered to the command", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openKeymapCommandKeybinding("mssql.runQuery");
+
+        expect(executeCommandStub).to.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            "@command:mssql.runQuery",
+        );
+    });
+
+    test("openKeymapCommandKeybinding ignores non-configurable commands", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openKeymapCommandKeybinding("workbench.action.closeActiveEditor");
+
+        expect(executeCommandStub).to.not.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            sinon.match.string,
+        );
+    });
+
+    test("openKeymapCommandKeybindings opens Keyboard Shortcuts filtered to MSSQL commands", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openKeymapCommandKeybindings();
+
+        expect(executeCommandStub).to.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            "mssql",
         );
     });
 
