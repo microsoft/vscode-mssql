@@ -37,7 +37,6 @@ export type ConfigurableKeyCommandId =
     | "mssql.disconnect"
     | "mssql.changeConnection"
     | "mssql.changeDatabase"
-    | "mssql.chooseDatabase"
     | "mssql.showEstimatedPlan"
     | "mssql.toggleActualPlan"
     | "mssql.copyAll"
@@ -186,10 +185,6 @@ export const configurableKeyCommands: ConfigurableKeyCommand[] = [
     },
     {
         command: "mssql.changeDatabase",
-        category: "connection",
-    },
-    {
-        command: "mssql.chooseDatabase",
         category: "connection",
     },
     {

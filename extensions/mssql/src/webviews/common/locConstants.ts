@@ -405,7 +405,6 @@ export class LocConstants {
                 "mssql.disconnect": l10n.t("Disconnect"),
                 "mssql.changeConnection": l10n.t("Change Connection"),
                 "mssql.changeDatabase": l10n.t("Change Database"),
-                "mssql.chooseDatabase": l10n.t("Choose Database"),
                 "mssql.showEstimatedPlan": l10n.t("Show Estimated Plan"),
                 "mssql.toggleActualPlan": l10n.t("Toggle Actual Plan"),
                 "mssql.copyAll": l10n.t("Copy All"),
@@ -427,7 +426,6 @@ export class LocConstants {
                     "Change the connection for the active SQL document",
                 ),
                 "mssql.changeDatabase": l10n.t("Change the database for the active SQL document"),
-                "mssql.chooseDatabase": l10n.t("Choose a database for the active SQL document"),
                 "mssql.showEstimatedPlan": l10n.t("View the estimated query execution plan"),
                 "mssql.toggleActualPlan": l10n.t(
                     "Toggle actual execution plan collection for SQL queries",
@@ -438,6 +436,7 @@ export class LocConstants {
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
+            keybindings: l10n.t("Keybindings"),
             autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),

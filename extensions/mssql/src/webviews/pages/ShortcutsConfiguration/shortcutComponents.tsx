@@ -685,33 +685,27 @@ export const VscodeManagedShortcutAction = ({
     const classes = useStyles();
 
     return (
-        <Tooltip content={label} relationship="label">
-            <button
-                type="button"
-                aria-label={label}
-                className={classes.vscodeManagedShortcutAction}
-                title={label}
-                onClick={onOpen}>
-                <span
-                    className={mergeClasses(
-                        classes.vscodeManagedShortcutActionText,
-                        "vscodeManagedShortcutActionText",
-                    )}>
-                    {locConstants.shortcutsConfiguration.viewConfigureKeybinding}
-                </span>
-                <Open16Regular
-                    aria-hidden
-                    className={mergeClasses(
-                        classes.vscodeManagedShortcutActionOpenIcon,
-                        "vscodeManagedShortcutActionOpenIcon",
-                    )}
-                />
-                <Keyboard16Regular
-                    aria-hidden
-                    className={classes.vscodeManagedShortcutActionIcon}
-                />
-            </button>
-        </Tooltip>
+        <button
+            type="button"
+            aria-label={label}
+            className={classes.vscodeManagedShortcutAction}
+            onClick={onOpen}>
+            <span
+                className={mergeClasses(
+                    classes.vscodeManagedShortcutActionText,
+                    "vscodeManagedShortcutActionText",
+                )}>
+                {locConstants.shortcutsConfiguration.viewConfigureKeybinding}
+            </span>
+            <Open16Regular
+                aria-hidden
+                className={mergeClasses(
+                    classes.vscodeManagedShortcutActionOpenIcon,
+                    "vscodeManagedShortcutActionOpenIcon",
+                )}
+            />
+            <Keyboard16Regular aria-hidden className={classes.vscodeManagedShortcutActionIcon} />
+        </button>
     );
 };
 
