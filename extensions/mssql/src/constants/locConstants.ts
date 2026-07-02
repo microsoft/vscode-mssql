@@ -41,7 +41,7 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
-export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Preview)");
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({

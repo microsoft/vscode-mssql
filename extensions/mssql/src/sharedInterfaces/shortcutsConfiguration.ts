@@ -25,6 +25,29 @@ export interface ShortcutsConfigurationData {
     webviewShortcuts: Record<string, string>;
 }
 
+export type ConfigurableKeyCommandCategory = "queryExecution" | "connection" | "others";
+
+export type ConfigurableKeyCommandId =
+    | "mssql.runQuery"
+    | "mssql.runCurrentStatement"
+    | "mssql.cancelQuery"
+    | "mssql.newQuery"
+    | "mssql.toggleSqlCmd"
+    | "mssql.connect"
+    | "mssql.disconnect"
+    | "mssql.changeConnection"
+    | "mssql.changeDatabase"
+    | "mssql.chooseDatabase"
+    | "mssql.showEstimatedPlan"
+    | "mssql.toggleActualPlan"
+    | "mssql.copyAll"
+    | "mssql.toggleQueryResultPanel";
+
+export interface ConfigurableKeyCommand {
+    command: ConfigurableKeyCommandId;
+    category: ConfigurableKeyCommandCategory;
+}
+
 export interface ShortcutsConfigurationWebviewState {
     focusedQuickQuerySlot?: number;
     focusNonce?: number;
@@ -99,6 +122,18 @@ export namespace OpenQuickQueryKeybindingsRequest {
     );
 }
 
+export namespace OpenKeymapCommandKeybindingRequest {
+    export const type = new RequestType<string, void, void>(
+        "shortcutsConfiguration/openKeymapCommandKeybinding",
+    );
+}
+
+export namespace OpenKeymapCommandKeybindingsRequest {
+    export const type = new RequestType<void, void, void>(
+        "shortcutsConfiguration/openKeymapCommandKeybindings",
+    );
+}
+
 export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     readConfiguration: () => Promise<ShortcutsConfigurationData>;
     saveConfiguration: (
@@ -112,7 +147,68 @@ export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     writeClipboardText: (text: string) => Promise<void>;
     openQuickQueryKeybinding: (commandId: string) => Promise<void>;
     openQuickQueryKeybindings: () => Promise<void>;
+    openKeymapCommandKeybinding: (commandId: string) => Promise<void>;
+    openKeymapCommandKeybindings: () => Promise<void>;
 }
+
+export const configurableKeyCommands: ConfigurableKeyCommand[] = [
+    {
+        command: "mssql.runQuery",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.runCurrentStatement",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.cancelQuery",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.newQuery",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.toggleSqlCmd",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.connect",
+        category: "connection",
+    },
+    {
+        command: "mssql.disconnect",
+        category: "connection",
+    },
+    {
+        command: "mssql.changeConnection",
+        category: "connection",
+    },
+    {
+        command: "mssql.changeDatabase",
+        category: "connection",
+    },
+    {
+        command: "mssql.chooseDatabase",
+        category: "connection",
+    },
+    {
+        command: "mssql.showEstimatedPlan",
+        category: "others",
+    },
+    {
+        command: "mssql.toggleActualPlan",
+        category: "others",
+    },
+    {
+        command: "mssql.copyAll",
+        category: "others",
+    },
+    {
+        command: "mssql.toggleQueryResultPanel",
+        category: "others",
+    },
+];
 
 export function getQuickQueryCommandId(slotNumber: number): string {
     return `${quickQueryCommandPrefix}${slotNumber}`;

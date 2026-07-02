@@ -6,7 +6,7 @@
 import { useMemo } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { mergeClasses } from "@fluentui/react-components";
-import { EraserRegular, Keyboard16Regular } from "@fluentui/react-icons";
+import { EraserRegular, Keyboard16Regular, Open16Regular } from "@fluentui/react-icons";
 import {
     type Editor,
     type EditorArguments,
@@ -20,6 +20,7 @@ import {
 } from "../../../sharedInterfaces/shortcutsConfiguration";
 
 const shortcutKeyboardIconMarkup = renderToStaticMarkup(<Keyboard16Regular aria-hidden />);
+const openIconMarkup = renderToStaticMarkup(<Open16Regular aria-hidden />);
 const clearIconMarkup = renderToStaticMarkup(<EraserRegular aria-hidden />);
 
 export interface QuickQueryGridRow {
@@ -114,7 +115,7 @@ export function useQuickQueryColumns({
         const createShortcutHeader = () => {
             const header = document.createElement("span");
             header.className = classes.quickQueryShortcutHeader;
-            header.title = loc.managedInVsCode;
+            header.title = loc.viewConfigureKeybinding;
 
             const label = document.createElement("span");
             label.className = classes.quickQueryShortcutHeaderText;
@@ -212,19 +213,42 @@ export function useQuickQueryColumns({
                 },
                 minWidth: 180,
                 width: 230,
-                formatter: (_row, _cell, _value, _column, _rowData) => {
+                formatter: (_row, _cell, _value, _column, row) => {
                     const cell = createCell(classes.quickQueryShortcutCell);
-                    const displayValue = loc.managedInVsCode;
-                    const display = document.createElement("span");
-                    display.className = classes.quickQueryShortcutDisplay;
-                    display.title = displayValue;
-                    const icon = document.createElement("span");
-                    icon.className = classes.quickQueryShortcutIcon;
-                    icon.innerHTML = shortcutKeyboardIconMarkup;
+                    const display = document.createElement("button");
+                    display.type = "button";
+                    display.className = mergeClasses(
+                        classes.vscodeManagedShortcutAction,
+                        "vscodeManagedShortcutAction",
+                    );
+                    display.title = loc.viewConfigureKeybindingTooltip(row.name);
+                    display.setAttribute(
+                        "aria-label",
+                        loc.viewConfigureKeybindingTooltip(row.name),
+                    );
+                    display.addEventListener("mousedown", (event) => event.stopPropagation());
+                    display.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onRecordShortcut(row.commandId);
+                    });
+                    display.addEventListener("keydown", (event) => event.stopPropagation());
                     const text = document.createElement("span");
-                    text.className = classes.quickQueryShortcutText;
-                    text.textContent = displayValue;
-                    display.append(text, icon);
+                    text.className = mergeClasses(
+                        classes.vscodeManagedShortcutActionText,
+                        "vscodeManagedShortcutActionText",
+                    );
+                    text.textContent = loc.viewConfigureKeybinding;
+                    const openIcon = document.createElement("span");
+                    openIcon.className = mergeClasses(
+                        classes.vscodeManagedShortcutActionOpenIcon,
+                        "vscodeManagedShortcutActionOpenIcon",
+                    );
+                    openIcon.innerHTML = openIconMarkup;
+                    const icon = document.createElement("span");
+                    icon.className = classes.vscodeManagedShortcutActionIcon;
+                    icon.innerHTML = shortcutKeyboardIconMarkup;
+                    display.append(text, openIcon, icon);
                     cell.append(display);
                     return cell;
                 },
