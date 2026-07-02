@@ -53,6 +53,8 @@ import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
+import { Perf } from "../perf/perfTelemetry";
+import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedInterfaces/perf";
 
 export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
 
@@ -169,6 +171,35 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 this._connectionWriter.dispose();
             },
         });
+
+        // Perf-harness webview mark bridge (PERF_MODE only): forward webview
+        // marks to the perf sink, and tell the webview marks are wanted once
+        // it is ready. Inert outside perf mode. The enable notification is
+        // re-sent on a short schedule because "webview ready" can precede the
+        // app's handler registration; the webview queues marks (with original
+        // timestamps) until one of the sends lands.
+        if (Perf.enabled) {
+            this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
+                Perf.webviewMark(mark, this._sourceFile);
+            });
+            void this.whenWebviewReady()
+                .then(() => {
+                    for (const delayMs of [0, 1000, 3000, 10000]) {
+                        const timer = setTimeout(() => {
+                            if (!this._isDisposed) {
+                                void this.connection.sendNotification(
+                                    PerfEnableNotification.type,
+                                    undefined,
+                                );
+                            }
+                        }, delayMs);
+                        this._disposables.push({ dispose: () => clearTimeout(timer) });
+                    }
+                })
+                .catch(() => {
+                    // Webview never became ready; nothing to enable.
+                });
+        }
     }
 
     /**

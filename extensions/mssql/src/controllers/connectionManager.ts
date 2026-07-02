@@ -42,6 +42,7 @@ import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { Perf } from "../perf/perfTelemetry";
 import {
     ActivityObject,
     ActivityStatus,
@@ -1395,6 +1396,7 @@ export default class ConnectionManager {
     ): Promise<boolean> {
         const { shouldHandleErrors = true, connectionSource = "" } = options;
 
+        Perf.marker("mssql.connection.begin", "begin");
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.Connect,
@@ -1707,6 +1709,7 @@ export default class ConnectionManager {
             connection: connectionInfo,
             fileUri: fileUri,
         });
+        Perf.marker("mssql.connection.ready", "end");
 
         this._logger.info(
             LocalizedConstants.msgConnectedServerInfo(

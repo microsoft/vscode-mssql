@@ -21,6 +21,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
 import ResultGrid, { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
@@ -79,6 +80,7 @@ export const QueryResultsGridView = ({
     }
     const uri = useQueryResultSelector((state) => state.uri);
     const resultSetSummaries = useQueryResultSelector((state) => state.resultSetSummaries);
+    const isExecuting = useQueryResultSelector((state) => state.isExecuting);
     const viewMode =
         useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
         qr.QueryResultViewMode.Grid;
@@ -168,6 +170,29 @@ export const QueryResultsGridView = ({
         gridViewContainerHeight,
         resultSetSummaries,
     ]);
+
+    // Perf-harness render-complete mark: fires only when the perf bridge is
+    // enabled (PERF_MODE runs); otherwise perfMarkAfterNextPaint is inert.
+    const lastPerfMarkKey = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (isExecuting !== false || gridList.length === 0) {
+            return;
+        }
+        const totalRows = gridList.reduce(
+            (total, item) =>
+                total + (resultSetSummaries?.[item.batchId]?.[item.resultId]?.rowCount ?? 0),
+            0,
+        );
+        const key = `${uri}:${gridList.length}:${totalRows}`;
+        if (lastPerfMarkKey.current === key) {
+            return;
+        }
+        lastPerfMarkKey.current = key;
+        perfMarkAfterNextPaint("mssql.resultsGrid.renderComplete", {
+            rowCount: totalRows,
+            resultSets: gridList.length,
+        });
+    }, [isExecuting, gridList, resultSetSummaries, uri]);
 
     // Restore grid view container scroll position on mount
     useEffect(() => {

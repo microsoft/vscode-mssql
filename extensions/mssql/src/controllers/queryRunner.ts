@@ -55,6 +55,7 @@ import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { Perf } from "../perf/perfTelemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
@@ -418,6 +419,7 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
+            Perf.marker("mssql.query.submit", "begin");
             await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
             this._startEmitter.fire(this.uri);
             runQueryRequestCompleted = true;
@@ -464,6 +466,15 @@ export default class QueryRunner {
             Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
+        Perf.marker("mssql.query.complete", "end", {
+            rowCount: this._batchSets.reduce(
+                (total, batch) =>
+                    total +
+                    (batch.resultSetSummaries?.reduce((n, rs) => n + (rs.rowCount ?? 0), 0) ?? 0),
+                0,
+            ),
+            hasError,
+        });
         this.removeRunningQuery();
         this.unregisterAllNotificationUris();
         this._completeEmitter.fire({

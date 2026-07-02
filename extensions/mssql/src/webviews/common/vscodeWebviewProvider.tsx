@@ -11,6 +11,7 @@ import { FluentProvider } from "@fluentui/react-components";
 import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
+import { initPerfMarks } from "./perfMarks";
 import { webviewTheme } from "./theme";
 import {
     ColorThemeChangeNotification,
@@ -118,6 +119,8 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
     // Bootstrap - register notification handlers BEFORE fetching state
     useEffect(() => {
         // Register notification handlers first to prevent race conditions
+        initPerfMarks(extensionRpc as WebviewRpc<unknown>);
+
         extensionRpc.onNotification(ColorThemeChangeNotification.type, (params) => {
             setTheme(params as ColorThemeKind);
         });
