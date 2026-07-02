@@ -124,6 +124,9 @@ suite("BuildHelper: Build Helper tests", function (): void {
     });
 
     test("Should have all required DLLs in build directory", async function (): Promise<void> {
+        // Stub file-existence checks so all files are considered present — no download triggered.
+        sandbox.stub(utils, "exists").resolves(true);
+
         const testContext: TestContext = createContext();
         const buildHelper = new BuildHelper();
         const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
