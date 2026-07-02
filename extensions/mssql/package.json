@@ -224,7 +224,8 @@
                     "type": "webview",
                     "id": "queryResult",
                     "name": "%extension.queryResult%",
-                    "when": "!config.mssql.openQueryResultsInTabByDefault"
+                    "when": "!config.mssql.openQueryResultsInTabByDefault",
+                    "icon": "media/objectTypes/Table.svg"
                 }
             ],
             "objectExplorer": [
@@ -334,8 +335,7 @@
                 "displayName": "SQL Server Execution Plan",
                 "selector": [
                     {
-                        "filenamePattern": "*.sqlplan",
-                        "language": "sqlplan"
+                        "filenamePattern": "*.sqlplan"
                     }
                 ],
                 "priority": "default"
