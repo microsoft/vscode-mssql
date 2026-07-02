@@ -385,13 +385,11 @@ export class LocConstants {
             configurableKeyCommandCategoryLabels: {
                 queryExecution: l10n.t("Query Execution"),
                 connection: l10n.t("Connection"),
-                executionPlan: l10n.t("Execution Plan"),
                 others: l10n.t("Others"),
             },
             configurableKeyCommandCategoryDescriptions: {
                 queryExecution: l10n.t("Run, cancel, and create queries"),
                 connection: l10n.t("Connect and manage database connections"),
-                executionPlan: l10n.t("View and collect query execution plans"),
                 others: l10n.t("Extension and deployment actions"),
             },
             configurableKeyCommandLabels: {

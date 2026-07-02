@@ -25,11 +25,7 @@ export interface ShortcutsConfigurationData {
     webviewShortcuts: Record<string, string>;
 }
 
-export type ConfigurableKeyCommandCategory =
-    | "queryExecution"
-    | "connection"
-    | "executionPlan"
-    | "others";
+export type ConfigurableKeyCommandCategory = "queryExecution" | "connection" | "others";
 
 export type ConfigurableKeyCommandId =
     | "mssql.runQuery"
@@ -198,11 +194,11 @@ export const configurableKeyCommands: ConfigurableKeyCommand[] = [
     },
     {
         command: "mssql.showEstimatedPlan",
-        category: "executionPlan",
+        category: "others",
     },
     {
         command: "mssql.toggleActualPlan",
-        category: "executionPlan",
+        category: "others",
     },
     {
         command: "mssql.copyAll",

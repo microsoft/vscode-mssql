@@ -7953,9 +7953,6 @@
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
     </trans-unit>
-    <trans-unit id="++CODE++7913ef7c8a897d95c0536d826536de9515a3ec6e5adbf7334139be714b3dfed6">
-      <source xml:lang="en">View and collect query execution plans</source>
-    </trans-unit>
     <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
       <source xml:lang="en">View known issues</source>
     </trans-unit>

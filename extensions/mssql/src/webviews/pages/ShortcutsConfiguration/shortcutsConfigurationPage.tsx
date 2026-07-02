@@ -60,7 +60,6 @@ const quickQueryGridId = "shortcutsQuickQueriesGrid";
 const configurableKeyCommandCategoryOrder: ConfigurableKeyCommand["category"][] = [
     "queryExecution",
     "connection",
-    "executionPlan",
     "others",
 ];
 
