@@ -436,7 +436,7 @@ export class LocConstants {
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
-            keybindings: l10n.t("Keybindings"),
+            keybinding: l10n.t("Keybinding"),
             autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),

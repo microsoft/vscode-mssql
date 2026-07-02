@@ -119,7 +119,7 @@ export function useQuickQueryColumns({
 
             const label = document.createElement("span");
             label.className = classes.quickQueryShortcutHeaderText;
-            label.textContent = loc.keybindings;
+            label.textContent = loc.keybinding;
 
             const button = document.createElement("button");
             button.type = "button";

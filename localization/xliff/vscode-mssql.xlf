@@ -4096,8 +4096,8 @@
     <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
       <source xml:lang="en">Key</source>
     </trans-unit>
-    <trans-unit id="++CODE++f6c42866b27f31137477947f1009b69eb665a2a0841cd7992288f8f22df001aa">
-      <source xml:lang="en">Keybindings</source>
+    <trans-unit id="++CODE++0e77469bc7b2a922f052ff67de2121b0673fb09750bf1212544cc6eece9d9e91">
+      <source xml:lang="en">Keybinding</source>
     </trans-unit>
     <trans-unit id="++CODE++1730c13cc8d1bc6550b4f9150c1934d2bcac56f8a34d701392c057ff113bd491">
       <source xml:lang="en">Keyboard Shortcuts editor</source>
