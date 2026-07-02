@@ -411,7 +411,7 @@ export function canCheckDatabasePauseStatus(
 
     if (!database || database === LocalizedConstants.defaultDatabaseLabel) {
         logger.trace(
-            `Connection to ${connection.server} targets master or default database; skipping serverless pause check.`,
+            `Connection to ${connection.server} targets default database; skipping serverless pause check.`,
         );
 
         return false;

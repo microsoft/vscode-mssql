@@ -78,6 +78,8 @@ const azureSqlServerSuffix = ".database.";
 
 let _azureProvider: VSCodeAzureSubscriptionProvider | undefined;
 
+export const azureStatusesToRetry = ["Paused", "Pausing", "Resuming"];
+
 export class VsCodeAzureHelper {
     /**
      * Returns the singleton `VSCodeAzureSubscriptionProvider` instance used for all Azure auth operations.
@@ -275,10 +277,9 @@ export class VsCodeAzureHelper {
         const accountInfo =
             typeof account === "string" ? await this.getAccountById(account) : account;
         const tenants = await this.getTenantsForAccount(accountInfo);
-        const subscriptions = await Promise.all(
-            tenants.map((tenant) => this.getSubscriptionsForTenant(tenant)),
-        );
-        return subscriptions.flat();
+        const tenantIds = new Set(tenants.map((t) => t.tenantId));
+        const allSubs = await VsCodeAzureHelper.getProvider().getSubscriptions(false);
+        return allSubs.filter((sub) => tenantIds.has(sub.tenantId));
     }
 
     /**
@@ -442,38 +443,53 @@ export class VsCodeAzureHelper {
             return undefined;
         }
 
-        const subscriptions = await this.getSubscriptionsForAccount(accountId);
+        try {
+            const subscriptions = await this.getSubscriptionsForAccount(accountId);
 
-        for (const subscription of subscriptions) {
-            const sql = new SqlManagementClient(
-                subscription.credential,
-                subscription.subscriptionId,
-                {
-                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-                },
-            );
+            for (const subscription of subscriptions) {
+                const sql = new SqlManagementClient(
+                    subscription.credential,
+                    subscription.subscriptionId,
+                    {
+                        endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                    },
+                );
 
-            const servers = await listAllIterator(sql.servers.list());
-            const matchingServer = servers.find(
-                (server) => server.name?.toLowerCase() === serverName.toLowerCase(),
-            );
+                const servers = await listAllIterator(sql.servers.list());
+                const matchingServer = servers.find(
+                    (server) => server.name?.toLowerCase() === serverName.toLowerCase(),
+                );
 
-            if (!matchingServer?.id) {
-                continue;
+                if (!matchingServer?.id) {
+                    continue;
+                }
+
+                const resourceGroupName = extractFromResourceId(
+                    matchingServer.id,
+                    "resourceGroups",
+                );
+                if (!resourceGroupName) {
+                    continue;
+                }
+
+                const database = await sql.databases.get(
+                    resourceGroupName,
+                    serverName,
+                    databaseName,
+                );
+
+                azureHelperLogger.trace(
+                    `Pause check ${sourceSuffix}: database ${target} is ${database.status}`,
+                );
+
+                return database?.status ?? undefined;
             }
-
-            const resourceGroupName = extractFromResourceId(matchingServer.id, "resourceGroups");
-            if (!resourceGroupName) {
-                continue;
-            }
-
-            const database = await sql.databases.get(resourceGroupName, serverName, databaseName);
-
+        } catch (err) {
             azureHelperLogger.trace(
-                `Pause check ${sourceSuffix}: database ${target} is ${database.status}`,
+                `Pause check ${sourceSuffix}: error occurred while checking database ${target}: ${getErrorMessage(err)}`,
             );
 
-            return database?.status ?? undefined;
+            return undefined;
         }
 
         azureHelperLogger.trace(

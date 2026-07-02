@@ -11,7 +11,7 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
-import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { azureStatusesToRetry, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
@@ -1652,7 +1652,7 @@ export default class ConnectionManager {
     public async shouldRetryForPausedServerlessDatabase(
         credentials: IConnectionInfo,
         failedAttempts: number,
-        statusPromise: Promise<string>,
+        statusPromise: Promise<string | undefined>,
         databaseName?: string,
     ): Promise<boolean> {
         if (
@@ -1664,7 +1664,7 @@ export default class ConnectionManager {
 
         const status = await statusPromise;
 
-        if (!status) {
+        if (!status || !azureStatusesToRetry.includes(status)) {
             return false;
         }
 

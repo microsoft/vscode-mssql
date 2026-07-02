@@ -651,18 +651,25 @@ export class ObjectExplorerService {
             return;
         }
 
-        void statusPromise.then((status) => {
-            const isWaking = status === "Paused" || status === "Pausing" || status === "Resuming";
-            if (!isWaking || !isStillLoading()) {
-                return;
-            }
+        void statusPromise
+            .then((status) => {
+                const isWaking =
+                    status === "Paused" || status === "Pausing" || status === "Resuming";
+                if (!isWaking || !isStillLoading()) {
+                    return;
+                }
 
-            const node = resolveNode();
-            if (node) {
-                node.loadingLabel = LocalizedConstants.ObjectExplorer.ResumingDatabase;
-                void this.setLoadingUiForNode(node);
-            }
-        });
+                const node = resolveNode();
+                if (node) {
+                    node.loadingLabel = LocalizedConstants.ObjectExplorer.ResumingDatabase;
+                    void this.setLoadingUiForNode(node);
+                }
+            })
+            .catch((err) => {
+                this._logger.trace(
+                    `Pause status check failed; skipping "Resuming database" loading label: ${getErrorMessage(err)}`,
+                );
+            });
     }
 
     /**
@@ -837,6 +844,7 @@ export class ObjectExplorerService {
                 );
 
             if (!createSessionResponse) {
+                this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
                 finalizeSession();
                 return undefined;
             }
