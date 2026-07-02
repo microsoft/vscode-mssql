@@ -44,6 +44,8 @@ import { CredentialStore, ICredentialStore } from "./credentialstore/credentials
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
 import { IAccountStore, AccountStore } from "./azure/accountStore";
+import { registerPerfApi } from "./perf/perfApi";
+import { Perf } from "./perf/perfTelemetry";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -53,20 +55,33 @@ let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     initializeExtensionToolkit();
+    Perf.setActivationState("activating");
+    Perf.marker("mssql.activate.begin", "begin");
 
-    const builder = new InstantiationServiceBuilder();
+    try {
+        const builder = new InstantiationServiceBuilder();
 
-    builder.define(IExtensionContextService, new ExtensionContextService(context));
-    builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
-    builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
-    builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
-    builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+        builder.define(IExtensionContextService, new ExtensionContextService(context));
+        builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+        builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+        builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+        builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
 
-    const instantiationService = builder.seal();
-    context.subscriptions.push(instantiationService);
+        const instantiationService = builder.seal();
+        context.subscriptions.push(instantiationService);
 
-    activation = instantiationService.createInstance(MssqlActivation);
-    return activation.activate();
+        activation = instantiationService.createInstance(MssqlActivation);
+        return await activation.activate();
+    } catch (error) {
+        Perf.setActivationState("failed");
+        Perf.marker("mssql.activate.end", "end", {
+            failed: true,
+            error: true,
+            errorName: error instanceof Error ? error.name : "UnknownError",
+        });
+        Perf.flush();
+        throw error;
+    }
 }
 
 // this method is called when your extension is deactivated
@@ -158,6 +173,11 @@ class MssqlActivation {
         context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
+
+        registerPerfApi(context);
+        Perf.setActivationState("activated");
+        Perf.marker("mssql.activate.end", "end");
+        Perf.flush();
 
         // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
         return {
