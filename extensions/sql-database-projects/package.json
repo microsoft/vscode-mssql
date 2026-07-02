@@ -571,13 +571,13 @@
                 "owner": "sqlproj-builder",
                 "fileLocation": "absolute",
                 "pattern": {
-                    "regexp": "^(.*\\.sql)\\((\\d+),(\\d+),(\\d+),(\\d+)\\):\\s+\\w+\\s+(warning|error)\\s+(\\w+):\\s+(.*?)?$",
+                    "regexp": "^(.*\\.sql)\\((\\d+),(\\d+)\\):\\s+\\w+\\s+(warning|error)\\s+(\\w+):\\s+(.*?)?$",
                     "file": 1,
                     "line": 2,
                     "column": 3,
-                    "severity": 6,
-                    "code": 7,
-                    "message": 8
+                    "severity": 4,
+                    "code": 5,
+                    "message": 6
                 }
             }
         ],
