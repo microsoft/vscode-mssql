@@ -270,6 +270,9 @@ export default class QueryRunner {
                 cancelParams,
             );
             cancelRequestCompleted = true;
+            Perf.marker("mssql.query.cancelled", "instant", {
+                messages: cancelationResult?.messages ?? null,
+            });
             cancelQueryActivity?.end(ActivityStatus.Succeeded);
             return cancelationResult;
         } catch (error) {

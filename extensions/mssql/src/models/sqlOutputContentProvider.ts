@@ -14,6 +14,7 @@ import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { Perf } from "../perf/perfTelemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -175,10 +176,26 @@ export class SqlOutputContentProvider {
         rowStart: number,
         numberOfRows: number,
     ): Promise<ResultSetSubset> {
+        // Perf harness: windowed-fetch proof markers (inert without PERF_MODE).
+        // This is the single row path for webview scroll fetches and perf probes.
+        Perf.marker("mssql.resultsGrid.windowFetch.begin", "begin", {
+            batchId,
+            resultId,
+            rowStart,
+            numberOfRows,
+        });
         return this._queryResultsMap
             .get(uri)
             .queryRunner.getRows(rowStart, numberOfRows, batchId, resultId)
-            .then((r) => r.resultSubset);
+            .then((r) => {
+                Perf.marker("mssql.resultsGrid.windowFetch.end", "end", {
+                    batchId,
+                    resultId,
+                    rowStart,
+                    rowsReturned: r.resultSubset?.rows?.length ?? 0,
+                });
+                return r.resultSubset;
+            });
     }
 
     public configRequestHandler(uri: string): Promise<Interfaces.IResultsConfig> {

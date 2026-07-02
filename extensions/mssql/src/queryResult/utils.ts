@@ -72,6 +72,8 @@ export function registerCommonRequestHandlers(
             : webviewController.getQueryResultWebviewViewController();
 
     webviewController.onRequest(qr.GetRowsRequest.type, async (message) => {
+        // Windowed-fetch proof markers live in rowRequestHandler itself (they
+        // fire for webview scroll fetches AND perf-probe fetches).
         const result = await webviewViewController
             .getSqlOutputContentProvider()
             .rowRequestHandler(

@@ -94,7 +94,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
-    registerPerfApi(context);
+    registerPerfApi(context, { getController: () => controller });
     Perf.setActivationState("activated");
     Perf.marker("mssql.activate.end", "end");
     Perf.flush();

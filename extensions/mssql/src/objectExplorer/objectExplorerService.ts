@@ -36,6 +36,7 @@ import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { Perf } from "../perf/perfTelemetry";
 import {
     ActivityObject,
     ActivityStatus,
@@ -203,6 +204,10 @@ export class ObjectExplorerService {
             },
         );
         this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
+        Perf.marker("mssql.oe.expand.begin", "begin", {
+            nodePath: node.nodePath ?? "",
+            nodeType: node.nodeType ?? "",
+        });
         try {
             const expandParams: ExpandParams = {
                 sessionId: sessionId,
@@ -270,6 +275,11 @@ export class ObjectExplorerService {
                         ),
                     );
                     this._treeNodeToChildrenMap.set(node, children);
+                    Perf.marker("mssql.oe.expand.end", "end", {
+                        nodePath: node.nodePath ?? "",
+                        nodeType: node.nodeType ?? "",
+                        childCount: children.length,
+                    });
                     expandActivity.end(ActivityStatus.Succeeded, undefined, {
                         childrenCount: children.length,
                     });
@@ -284,6 +294,12 @@ export class ObjectExplorerService {
                     }
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
                     this._treeNodeToChildrenMap.set(node, [errorNode]);
+                    Perf.marker("mssql.oe.expand.end", "end", {
+                        nodePath: node.nodePath ?? "",
+                        nodeType: node.nodeType ?? "",
+                        childCount: 0,
+                        error: true,
+                    });
                     expandActivity.endFailed(new Error(result.errorMessage), false);
                     return [errorNode];
                 }
