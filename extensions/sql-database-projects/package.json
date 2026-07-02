@@ -609,6 +609,7 @@
         "@xmldom/xmldom": "^0.9.10",
         "ajv": "^8.18.0",
         "axios": "^1.15.0",
+        "extension-toolkit": "file:../../packages/extension-toolkit",
         "extract-zip": "^2.0.1",
         "fast-glob": "^3.2.7",
         "fs-extra": "^5.0.0",

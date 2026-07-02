@@ -5,4 +5,3 @@
 
 export * from "./di";
 export * from "./lifecycle";
-export * from "./logging";
