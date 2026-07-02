@@ -5,5 +5,3 @@
 
 export * from "../base";
 export * from "./context/extensionContextService";
-export * from "./logging/outputChannelLogService";
-export * from "./resources/extensionResourceService";

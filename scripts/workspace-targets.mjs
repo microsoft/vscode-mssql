@@ -13,6 +13,11 @@ export const workspaceTargets = [
         directory: "extensions/mssql",
         scripts: ["build", "watch", "test", "smoketest", "lint", "package"],
         supportsProdBuild: true,
+        dependencies: {
+            build: ["extension-toolkit"],
+            watch: ["extension-toolkit"],
+            lint: ["extension-toolkit"],
+        },
     },
     {
         target: "sql-database-projects",
@@ -20,6 +25,11 @@ export const workspaceTargets = [
         packageName: "sql-database-projects-vscode",
         directory: "extensions/sql-database-projects",
         scripts: ["build", "watch", "test", "lint", "package"],
+        dependencies: {
+            build: ["extension-toolkit"],
+            watch: ["extension-toolkit"],
+            lint: ["extension-toolkit"],
+        },
     },
     {
         target: "data-workspace",
