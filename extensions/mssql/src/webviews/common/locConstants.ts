@@ -465,6 +465,10 @@ export class LocConstants {
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
             searchWebviewShortcuts: l10n.t("Search extension shortcut"),
+            noShortcutResultsTitle: l10n.t("No matching shortcuts"),
+            noShortcutResultsDescription: l10n.t(
+                "Try searching by command name, description, or keybinding.",
+            ),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
                 "Press desired key combination and then press ENTER.",

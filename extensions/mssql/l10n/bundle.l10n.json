@@ -2500,6 +2500,8 @@
     "No shortcut": "No shortcut",
     "No query set": "No query set",
     "Search extension shortcut": "Search extension shortcut",
+    "No matching shortcuts": "No matching shortcuts",
+    "Try searching by command name, description, or keybinding.": "Try searching by command name, description, or keybinding.",
     "Record shortcut": "Record shortcut",
     "Press desired key combination and then press ENTER.": "Press desired key combination and then press ENTER.",
     "Recording shortcut": "Recording shortcut",
