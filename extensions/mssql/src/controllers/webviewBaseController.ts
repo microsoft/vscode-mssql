@@ -182,23 +182,25 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
                 Perf.webviewMark(mark, this._sourceFile);
             });
-            void this.whenWebviewReady()
-                .then(() => {
-                    for (const delayMs of [0, 1000, 3000, 10000]) {
-                        const timer = setTimeout(() => {
-                            if (!this._isDisposed) {
-                                void this.connection.sendNotification(
-                                    PerfEnableNotification.type,
-                                    undefined,
-                                );
-                            }
-                        }, delayMs);
-                        this._disposables.push({ dispose: () => clearTimeout(timer) });
+            // Unconditional schedule (not gated on whenWebviewReady, which can
+            // time out on cold first loads): sends to a not-yet-ready webview
+            // are dropped harmlessly, and the webview queues marks with their
+            // original timestamps until one enable lands.
+            for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
+                const timer = setTimeout(() => {
+                    if (!this._isDisposed) {
+                        try {
+                            void this.connection.sendNotification(
+                                PerfEnableNotification.type,
+                                undefined,
+                            );
+                        } catch {
+                            // disposed between check and send; ignore
+                        }
                     }
-                })
-                .catch(() => {
-                    // Webview never became ready; nothing to enable.
-                });
+                }, delayMs);
+                this._disposables.push({ dispose: () => clearTimeout(timer) });
+            }
         }
     }
 
