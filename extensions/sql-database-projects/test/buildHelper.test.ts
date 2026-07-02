@@ -124,17 +124,18 @@ suite("BuildHelper: Build Helper tests", function (): void {
     });
 
     test("Should have all required DLLs in build directory", async function (): Promise<void> {
-        // Stub file-existence checks so all files are considered present — no download triggered.
+        // Treat all files as present and fail the test if a network download is attempted.
         sandbox.stub(utils, "exists").resolves(true);
-        // Stub version validation so the floating-version NuGet resolution (network call) is skipped.
-        sandbox.stub(utils, "isValidMicrosoftBuildSqlVersion").returns(false);
+        sandbox
+            .stub(HttpClient.prototype, "download")
+            .throws(new Error("download should not be called"));
 
         const testContext: TestContext = createContext();
         const buildHelper = new BuildHelper();
         const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
-        // Verify that the build directory was created successfully
-        expect(success, "Build directory creation should succeed").to.be.true;
+        expect(success, "Build directory creation should succeed when all files are present").to.be
+            .true;
 
         const buildDirPath = buildHelper.extensionBuildDirPath;
 
