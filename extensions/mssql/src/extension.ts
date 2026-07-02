@@ -28,12 +28,17 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { Perf } from "./perf/perfTelemetry";
+import { registerPerfApi } from "./perf/perfApi";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
 export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    Perf.setActivationState("activating");
+    Perf.marker("mssql.activate.begin", "begin");
+
     // Create coordinator early so uriOwnershipApi is available for export
     uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
@@ -88,6 +93,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
     await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
+
+    registerPerfApi(context);
+    Perf.setActivationState("activated");
+    Perf.marker("mssql.activate.end", "end");
+    Perf.flush();
 
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,

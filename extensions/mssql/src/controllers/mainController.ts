@@ -14,6 +14,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
+import { Perf } from "../perf/perfTelemetry";
 import * as ConnInfo from "../models/connectionInfo";
 import {
     CompletionExtensionParams,
@@ -208,7 +209,10 @@ export default class MainController implements vscode.Disposable {
     public registerCommand(command: string): void {
         const self = this;
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(command, () => self._event.emit(command)),
+            vscode.commands.registerCommand(command, () => {
+                Perf.marker("mssql.command.invoked", "instant", { command });
+                self._event.emit(command);
+            }),
         );
     }
 
@@ -219,6 +223,7 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         this._context.subscriptions.push(
             vscode.commands.registerCommand(command, (args: any) => {
+                Perf.marker("mssql.command.invoked", "instant", { command });
                 self._event.emit(command, args);
             }),
         );

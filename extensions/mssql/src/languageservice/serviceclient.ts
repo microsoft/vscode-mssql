@@ -19,6 +19,7 @@ import {
     type Message,
 } from "vscode-languageclient";
 import * as Utils from "../models/utils";
+import { Perf } from "../perf/perfTelemetry";
 import { getLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
@@ -369,6 +370,7 @@ export default class SqlToolsServiceClient {
             logger.debug("Sql Tools Service executable was not found in expected location.");
             throw new Error("Sql Tools Service executable was not found in expected location.");
         }
+        Perf.marker("mssql.sts.spawn.begin", "begin");
         this.client = await this.createLanguageClient(sqlToolsServicePath);
 
         const resourceProviderServicePath = await this._server.tryGetExecutablePathInFolder(
@@ -389,6 +391,10 @@ export default class SqlToolsServiceClient {
         if (context !== undefined) {
             // Create the language clients and start them.
             await this.client.start();
+            const stsPid = this.client.serverProcess?.pid;
+            Perf.setStsPid(stsPid);
+            Perf.marker("mssql.sts.spawn.end", "end", { pid: stsPid ?? null });
+            Perf.marker("mssql.sts.ready", "instant", { pid: stsPid ?? null });
             await this._resourceClient.start();
 
             // Push the disposable to the context's subscriptions so that the
