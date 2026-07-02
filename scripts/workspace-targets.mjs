@@ -1,5 +1,12 @@
 export const workspaceTargets = [
     {
+        target: "extension-toolkit",
+        aliases: ["extension-toolkit", "toolkit"],
+        packageName: "extension-toolkit",
+        directory: "packages/extension-toolkit",
+        scripts: ["build", "watch", "lint"],
+    },
+    {
         target: "mssql",
         aliases: ["mssql"],
         packageName: "mssql",
@@ -20,6 +27,11 @@ export const workspaceTargets = [
         packageName: "data-workspace-vscode",
         directory: "extensions/data-workspace",
         scripts: ["build", "watch", "test", "lint", "package"],
+        dependencies: {
+            build: ["extension-toolkit"],
+            watch: ["extension-toolkit"],
+            lint: ["extension-toolkit"],
+        },
     },
     {
         target: "database-management-keymap",

@@ -90,7 +90,7 @@ function resolveTargets(action, targetValue) {
     const availableTargets = workspaceTargets.filter((target) => target.scripts.includes(action));
 
     if (!targetValue) {
-        return availableTargets;
+        return expandTargetsWithDependencies(action, availableTargets);
     }
 
     const requested = targetValue
@@ -116,7 +116,63 @@ function resolveTargets(action, targetValue) {
         return target;
     });
 
-    return [...new Map(resolved.map((target) => [target.target, target])).values()];
+    return expandTargetsWithDependencies(action, [
+        ...new Map(resolved.map((target) => [target.target, target])).values(),
+    ]);
+}
+
+function findTarget(name) {
+    return workspaceTargets.find(
+        (candidate) => candidate.target === name || candidate.aliases.includes(name),
+    );
+}
+
+function getTargetDependencies(target, action) {
+    return target.dependencies?.[action] ?? [];
+}
+
+function expandTargetsWithDependencies(action, targets) {
+    const expanded = new Map();
+    const visiting = new Set();
+
+    function visit(target) {
+        if (expanded.has(target.target)) {
+            return;
+        }
+
+        if (visiting.has(target.target)) {
+            throw new Error(`Cyclic target dependency involving "${target.target}".`);
+        }
+
+        visiting.add(target.target);
+
+        for (const dependencyName of getTargetDependencies(target, action)) {
+            const dependency = findTarget(dependencyName);
+
+            if (!dependency) {
+                throw new Error(
+                    `Target "${target.target}" depends on unknown target "${dependencyName}".`,
+                );
+            }
+
+            if (!dependency.scripts.includes(action)) {
+                throw new Error(
+                    `Target "${target.target}" depends on "${dependency.target}", but "${dependency.target}" does not support "${action}".`,
+                );
+            }
+
+            visit(dependency);
+        }
+
+        visiting.delete(target.target);
+        expanded.set(target.target, target);
+    }
+
+    for (const target of targets) {
+        visit(target);
+    }
+
+    return [...expanded.values()];
 }
 
 function ensureProdBuildSupport(targets, prod) {
