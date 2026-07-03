@@ -20,6 +20,7 @@ import {
 } from "vscode-languageclient";
 import * as Utils from "../models/utils";
 import { Perf } from "../perf/perfTelemetry";
+import { diag } from "../diagnostics/diagnosticsCore";
 import { getLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
@@ -653,6 +654,26 @@ export default class SqlToolsServiceClient {
      */
     public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
+            // Diagnostics: JSON-RPC boundary span (near no-op when no sink is
+            // active). The method name is protocol metadata, never payload.
+            if (diag.anySinkActive) {
+                const method = (type as { method?: string }).method ?? "unknown";
+                const span = diag.startSpan({
+                    feature: "rpc",
+                    kind: "request",
+                    type: `rpc.${method}`,
+                });
+                return this.client.sendRequest(type, params as RequestParam<P>).then(
+                    (result) => {
+                        span.end("ok");
+                        return result;
+                    },
+                    (error) => {
+                        span.fail(error);
+                        throw error;
+                    },
+                );
+            }
             return this.client.sendRequest(type, params as RequestParam<P>);
         }
         return Promise.reject(

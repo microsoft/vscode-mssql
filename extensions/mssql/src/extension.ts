@@ -30,6 +30,8 @@ import {
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
 import { Perf } from "./perf/perfTelemetry";
 import { registerPerfApi } from "./perf/perfApi";
+import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
+import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -95,6 +97,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
     registerPerfApi(context, { getController: () => controller });
+
+    // Phase-4 diagnostics: Session Diag lifecycle + MSSQL Debug Console.
+    // Inert unless the user enables capture or opens the console.
+    if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", true)) {
+        const diagnosticsManager = new DiagnosticsManager(context);
+        context.subscriptions.push(diagnosticsManager);
+        registerDebugConsole(context, diagnosticsManager);
+    }
+
     Perf.setActivationState("activated");
     Perf.marker("mssql.activate.end", "end");
     Perf.flush();

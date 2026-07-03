@@ -1,0 +1,777 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* MSSQL Debug Console design system. All colors derive from VS Code theme
+   tokens; process/status accents are theme-safe fixed hues per the UX spec. */
+
+:root {
+    --dc-bg: var(--vscode-editor-background);
+    --dc-panel: var(--vscode-editorWidget-background, var(--vscode-sideBar-background));
+    --dc-panel-alt: var(--vscode-sideBar-background);
+    --dc-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+    --dc-text: var(--vscode-foreground);
+    --dc-muted: var(--vscode-descriptionForeground);
+    --dc-link: var(--vscode-textLink-foreground);
+    --dc-focus: var(--vscode-focusBorder);
+    --dc-error: var(--vscode-errorForeground, #f14c4c);
+    --dc-warn: var(--vscode-editorWarning-foreground, #cca700);
+    --dc-ok: #2ea043;
+    --dc-input-bg: var(--vscode-input-background);
+    --dc-input-border: var(--vscode-input-border, var(--dc-border));
+    --dc-selected-bg: var(--vscode-list-activeSelectionBackground);
+    --dc-selected-fg: var(--vscode-list-activeSelectionForeground);
+    --dc-hover-bg: var(--vscode-list-hoverBackground);
+    /* Process palette (UX spec §7.4) */
+    --dc-proc-ext: #14b8a6;
+    --dc-proc-webview: #3b82f6;
+    --dc-proc-sts: #8b5cf6;
+    --dc-proc-sql: #22c55e;
+    --dc-proc-wire: #f97316;
+    --dc-proc-harness: #64748b;
+    --dc-proc-system: #94a3b8;
+    --dc-replay: #a855f7;
+    --dc-mono: var(--vscode-editor-font-family, ui-monospace, Consolas, monospace);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--dc-bg);
+    color: var(--dc-text);
+    font-family: var(--vscode-font-family);
+    font-size: 12px;
+}
+
+.dc-shell {
+    display: grid;
+    grid-template-rows: 44px 1fr;
+    grid-template-columns: 210px 1fr;
+    grid-template-areas: "topbar topbar" "nav page";
+    height: 100vh;
+}
+
+/* --- Top bar ---------------------------------------------------------- */
+.dc-topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--dc-border);
+    background: var(--dc-panel-alt);
+    min-width: 0;
+}
+.dc-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.dc-title svg {
+    color: var(--dc-link);
+}
+.dc-topbar .spacer {
+    flex: 1;
+}
+.dc-session-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--dc-input-border);
+    background: var(--dc-input-bg);
+    border-radius: 5px;
+    height: 28px;
+    padding: 0 8px;
+    max-width: 300px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.dc-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--dc-ok);
+    flex: none;
+}
+.dc-live-dot.history {
+    background: var(--dc-proc-system);
+}
+.dc-seg {
+    display: flex;
+    border: 1px solid var(--dc-input-border);
+    border-radius: 5px;
+    overflow: hidden;
+    height: 28px;
+}
+.dc-seg button {
+    border: none;
+    background: transparent;
+    color: var(--dc-muted);
+    padding: 0 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.dc-seg button.active {
+    background: var(--dc-selected-bg);
+    color: var(--dc-selected-fg);
+}
+.dc-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--dc-input-border);
+    background: var(--dc-input-bg);
+    border-radius: 5px;
+    height: 28px;
+    padding: 0 8px;
+    width: 280px;
+}
+.dc-search input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--dc-text);
+    width: 100%;
+    font-family: inherit;
+    font-size: 12px;
+}
+.dc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 5px;
+    border: 1px solid var(--dc-input-border);
+    background: var(--dc-input-bg);
+    color: var(--dc-text);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.dc-btn:hover {
+    background: var(--dc-hover-bg);
+}
+.dc-btn.primary {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: transparent;
+}
+.dc-btn.warn-chip {
+    color: var(--dc-warn);
+}
+.dc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 5px;
+    border: 1px solid var(--dc-input-border);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.dc-chip.capture-off {
+    color: var(--dc-muted);
+}
+.dc-chip.capture-on {
+    color: var(--dc-link);
+    border-color: color-mix(in srgb, var(--dc-link) 40%, transparent);
+}
+.dc-chip.capture-full {
+    color: var(--dc-warn);
+    border-color: color-mix(in srgb, var(--dc-warn) 50%, transparent);
+    background: color-mix(in srgb, var(--dc-warn) 12%, transparent);
+}
+
+/* --- Left nav ---------------------------------------------------------- */
+.dc-leftnav {
+    grid-area: nav;
+    border-right: 1px solid var(--dc-border);
+    background: var(--dc-panel-alt);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 8px 6px;
+}
+.dc-nav-group {
+    margin-bottom: 6px;
+}
+.dc-nav-group-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dc-muted);
+    padding: 8px 10px 4px;
+}
+.dc-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--dc-text);
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 12px;
+}
+.dc-nav-item:hover {
+    background: var(--dc-hover-bg);
+}
+.dc-nav-item.active {
+    background: var(--dc-selected-bg);
+    color: var(--dc-selected-fg);
+}
+.dc-nav-item .codicon,
+.dc-nav-item svg {
+    flex: none;
+    opacity: 0.85;
+}
+.dc-provenance {
+    margin-top: auto;
+    border: 1px solid var(--dc-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: var(--dc-mono);
+    font-size: 11px;
+    color: var(--dc-muted);
+}
+.dc-provenance .label {
+    font-family: var(--vscode-font-family);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+}
+
+/* --- Page frame ---------------------------------------------------------- */
+.dc-page {
+    grid-area: page;
+    overflow-y: auto;
+    padding: 14px 18px 30px;
+    min-width: 0;
+}
+.dc-page-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.dc-page-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+}
+.dc-page-sub {
+    color: var(--dc-muted);
+    margin: 0 0 12px;
+    font-size: 12px;
+}
+.dc-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+.dc-toolbar select {
+    height: 26px;
+    background: var(--dc-input-bg);
+    color: var(--dc-text);
+    border: 1px solid var(--dc-input-border);
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 0 4px;
+}
+
+/* --- Cards / KPIs ---------------------------------------------------------- */
+.dc-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.dc-kpi {
+    border: 1px solid var(--dc-border);
+    background: var(--dc-panel);
+    border-radius: 6px;
+    padding: 8px 12px;
+    min-height: 64px;
+}
+.dc-kpi .label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--dc-muted);
+}
+.dc-kpi .value {
+    font-size: 19px;
+    font-weight: 650;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+.dc-kpi .note {
+    font-size: 11px;
+    color: var(--dc-muted);
+    margin-top: 1px;
+}
+.dc-kpi.error .value {
+    color: var(--dc-error);
+}
+.dc-kpi.warn .value {
+    color: var(--dc-warn);
+}
+.dc-kpi.ok .value {
+    color: var(--dc-ok);
+}
+.dc-card {
+    border: 1px solid var(--dc-border);
+    background: var(--dc-panel);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    min-width: 0;
+}
+.dc-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dc-card-title .right {
+    margin-left: auto;
+    font-weight: 400;
+    color: var(--dc-muted);
+    font-size: 11px;
+}
+
+/* --- Pills ---------------------------------------------------------- */
+.dc-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 17px;
+    padding: 0 7px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.dc-pill.ok {
+    color: var(--dc-ok);
+    background: color-mix(in srgb, var(--dc-ok) 13%, transparent);
+}
+.dc-pill.warning {
+    color: var(--dc-warn);
+    background: color-mix(in srgb, var(--dc-warn) 14%, transparent);
+}
+.dc-pill.error {
+    color: var(--dc-error);
+    background: color-mix(in srgb, var(--dc-error) 13%, transparent);
+}
+.dc-pill.info,
+.dc-pill.blocked,
+.dc-pill.partial {
+    color: var(--dc-muted);
+    background: color-mix(in srgb, var(--dc-muted) 14%, transparent);
+}
+.dc-pill.diag {
+    color: var(--dc-muted);
+    border-color: var(--dc-border);
+    background: transparent;
+    font-weight: 500;
+}
+.dc-pill.replay {
+    color: var(--dc-replay);
+    background: color-mix(in srgb, var(--dc-replay) 13%, transparent);
+}
+.dc-proc-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 17px;
+    padding: 0 7px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.dc-proc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    flex: none;
+}
+
+/* --- Tables ---------------------------------------------------------- */
+.dc-table-wrap {
+    overflow: auto;
+    border: 1px solid var(--dc-border);
+    border-radius: 6px;
+    background: var(--dc-panel);
+    min-height: 0;
+}
+table.dc-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 12px;
+}
+table.dc-table th {
+    position: sticky;
+    top: 0;
+    background: var(--dc-panel-alt);
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dc-muted);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--dc-border);
+    white-space: nowrap;
+    z-index: 1;
+}
+table.dc-table td {
+    padding: 4px 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--dc-border) 55%, transparent);
+    white-space: nowrap;
+    vertical-align: middle;
+    height: 28px;
+}
+table.dc-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+table.dc-table tbody tr {
+    cursor: pointer;
+}
+table.dc-table tbody tr:hover td {
+    background: var(--dc-hover-bg);
+}
+table.dc-table tbody tr.selected td {
+    background: var(--dc-selected-bg);
+    color: var(--dc-selected-fg);
+}
+.dc-mono {
+    font-family: var(--dc-mono);
+    font-size: 11.5px;
+}
+.dc-muted {
+    color: var(--dc-muted);
+}
+.dc-proc-stripe {
+    width: 3px;
+    padding: 0 !important;
+}
+
+/* --- Gap marker ---------------------------------------------------------- */
+.dc-gap-row td {
+    background: color-mix(in srgb, var(--dc-warn) 9%, transparent) !important;
+    color: var(--dc-warn);
+    font-size: 11.5px;
+}
+.dc-gap-row a {
+    color: var(--dc-link);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* --- Redacted field ---------------------------------------------------------- */
+.dc-redacted {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--dc-muted);
+    font-style: italic;
+}
+.dc-redacted .digest {
+    font-family: var(--dc-mono);
+    font-style: normal;
+    font-size: 11px;
+}
+
+/* --- Split pane / detail ---------------------------------------------------------- */
+.dc-split {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
+    gap: 10px;
+    min-height: 0;
+    height: calc(100vh - 210px);
+}
+.dc-detail {
+    border: 1px solid var(--dc-border);
+    border-radius: 6px;
+    background: var(--dc-panel);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+.dc-tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--dc-border);
+    padding: 0 8px;
+    flex: none;
+    overflow-x: auto;
+}
+.dc-tabs button {
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--dc-muted);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 9px;
+    border-bottom: 2px solid transparent;
+}
+.dc-tabs button.active {
+    color: var(--dc-text);
+    border-bottom-color: var(--dc-link);
+}
+.dc-detail-body {
+    padding: 10px 12px;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+}
+.dc-kv {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 3px 10px;
+    font-size: 12px;
+}
+.dc-kv .k {
+    color: var(--dc-muted);
+}
+.dc-kv .v {
+    font-family: var(--dc-mono);
+    font-size: 11.5px;
+    overflow-wrap: anywhere;
+}
+pre.dc-json {
+    font-family: var(--dc-mono);
+    font-size: 11px;
+    background: var(--dc-panel-alt);
+    border: 1px solid var(--dc-border);
+    border-radius: 5px;
+    padding: 8px;
+    overflow: auto;
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.dc-cause-node {
+    padding: 2px 0 2px 14px;
+    border-left: 1px solid var(--dc-border);
+    margin-left: 6px;
+}
+.dc-cause-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-family: var(--dc-mono);
+    font-size: 11.5px;
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+.dc-cause-label:hover {
+    background: var(--dc-hover-bg);
+}
+
+/* --- Waterfall ---------------------------------------------------------- */
+.dc-wf-strip {
+    display: flex;
+    height: 18px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 6px 0 8px;
+}
+.dc-wf-strip .seg {
+    height: 100%;
+}
+.dc-wf-legend {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    color: var(--dc-muted);
+    font-size: 11px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+.dc-wf-legend .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 9px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: -1px;
+}
+.dc-wf {
+    border: 1px solid var(--dc-border);
+    border-radius: 6px;
+    background: var(--dc-panel);
+    overflow-x: auto;
+}
+.dc-wf-lane {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    border-bottom: 1px solid color-mix(in srgb, var(--dc-border) 55%, transparent);
+    min-height: 30px;
+}
+.dc-wf-lane-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 10px;
+    font-size: 11.5px;
+    border-right: 1px solid var(--dc-border);
+    background: var(--dc-panel-alt);
+    white-space: nowrap;
+    position: sticky;
+    left: 0;
+}
+.dc-wf-track {
+    position: relative;
+    min-height: 30px;
+}
+.dc-wf-bar {
+    position: absolute;
+    top: 7px;
+    height: 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    min-width: 2px;
+}
+.dc-wf-bar.hatched {
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent 0 3px,
+        rgba(255, 255, 255, 0.35) 3px 6px
+    );
+}
+.dc-wf-bar.selected {
+    outline: 2px solid var(--dc-focus);
+    outline-offset: 1px;
+}
+.dc-wf-axis {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    color: var(--dc-muted);
+    font-size: 10.5px;
+    font-family: var(--dc-mono);
+    border-bottom: 1px solid var(--dc-border);
+}
+.dc-wf-axis .ticks {
+    position: relative;
+    height: 20px;
+}
+.dc-wf-axis .tick {
+    position: absolute;
+    top: 2px;
+    transform: translateX(-50%);
+}
+
+/* --- Anomalies ---------------------------------------------------------- */
+.dc-anomaly {
+    border: 1px solid var(--dc-border);
+    border-left-width: 3px;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: var(--dc-panel);
+}
+.dc-anomaly.warning {
+    border-left-color: var(--dc-warn);
+}
+.dc-anomaly.error {
+    border-left-color: var(--dc-error);
+}
+.dc-anomaly.info {
+    border-left-color: var(--dc-link);
+}
+.dc-anomaly .title {
+    font-weight: 600;
+    font-size: 12px;
+}
+.dc-anomaly .detail {
+    color: var(--dc-muted);
+    font-family: var(--dc-mono);
+    font-size: 11px;
+    margin: 3px 0;
+}
+.dc-anomaly a {
+    color: var(--dc-link);
+    cursor: pointer;
+    font-size: 11.5px;
+}
+
+/* --- Empty states ---------------------------------------------------------- */
+.dc-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--dc-muted);
+}
+.dc-empty h2 {
+    font-size: 15px;
+    color: var(--dc-text);
+    margin: 0 0 6px;
+}
+.dc-empty p {
+    max-width: 420px;
+    margin: 0 0 14px;
+    line-height: 1.5;
+}
+
+/* --- Charts ---------------------------------------------------------- */
+.dc-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 10px;
+}
+.dc-two-col {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+    gap: 12px;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .dc-two-col,
+    .dc-split {
+        grid-template-columns: 1fr;
+    }
+    .dc-split {
+        height: auto;
+    }
+}

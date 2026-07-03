@@ -1113,6 +1113,36 @@
         },
         "commands": [
             {
+                "command": "mssql.openDebugConsole",
+                "title": "Open Debug Console",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.enable",
+                "title": "Session Diagnostics: Enable Capture",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.disable",
+                "title": "Session Diagnostics: Disable Capture",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.elevateCapture",
+                "title": "Session Diagnostics: Elevate Capture (time-bounded)",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.clear",
+                "title": "Session Diagnostics: Clear Local Data",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.openStorageFolder",
+                "title": "Session Diagnostics: Open Storage Folder",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.runQuery",
                 "title": "%mssql.runQuery%",
                 "category": "MS SQL",
@@ -1786,6 +1816,46 @@
             "type": "object",
             "title": "%mssql.Configuration%",
             "properties": {
+                "mssql.sessionDiag.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Capture classified, redacted MSSQL diagnostics for this machine locally across VS Code sessions. Off by default; nothing is ever uploaded. Secrets and connection strings are never persisted regardless of this setting.",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.captureMode": {
+                    "type": "string",
+                    "enum": [
+                        "redacted",
+                        "digest"
+                    ],
+                    "default": "redacted",
+                    "description": "Default capture mode when session diagnostics are enabled. Full capture requires the explicit, time-bounded elevation command.",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.maxSessions": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Maximum number of locally retained diagnostic sessions.",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.maxAgeDays": {
+                    "type": "number",
+                    "default": 14,
+                    "description": "Maximum age in days for locally retained diagnostic sessions.",
+                    "scope": "application"
+                },
+                "mssql.debugConsole.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable the MSSQL Debug Console (in-product diagnostics viewer).",
+                    "scope": "application"
+                },
+                "mssql.debugConsole.perfRunsRoot": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Optional path to a perftest perf-runs directory for the Perf & Sessions page.",
+                    "scope": "application"
+                },
                 "mssql.enableExperimentalFeatures": {
                     "type": "boolean",
                     "default": false,

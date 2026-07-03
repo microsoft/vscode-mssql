@@ -4,37 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Performance-harness instrumentation. Active ONLY when the process was
- * launched by the perf orchestrator with PERF_MODE=1; otherwise every export
- * is an inert no-op and this module allocates nothing beyond a frozen stub.
+ * Performance-harness instrumentation facade.
  *
- * Markers are semantic perf events posted to the orchestrator's local marker
- * sink (PERF_MARKER_URL, 127.0.0.1). Writes are queued in a bounded buffer
- * and flushed asynchronously — they can be dropped under pressure but can
- * never block or throw into the product critical path.
+ * Since Phase 4 this is a thin facade over the unified diagnostics core
+ * (src/diagnostics): every Perf.marker call becomes a diagnostic event that
+ * routes to whichever sinks are active — the PERF_MODE harness sink (exact
+ * legacy wire format, gated on PERF_MODE=1), the Debug Console live tail, and
+ * the user-enabled Session Diag store. One emission path, several gates.
+ *
+ * The public API is unchanged from Phases 1-3 and the PERF_MODE wire contract
+ * is preserved bit-for-bit by PerfModeSink. When no sink is active a marker
+ * call costs one array-length check.
  */
 
-import * as http from "http";
-
-const MAX_QUEUE = 1000;
-const FLUSH_INTERVAL_MS = 250;
-const POST_TIMEOUT_MS = 2000;
+import { diag } from "../diagnostics/diagnosticsCore";
+import { PerfModeSink } from "../diagnostics/sinks";
+import { DataClassification } from "../sharedInterfaces/debugConsole";
 
 export type PerfMarkerPhase = "instant" | "begin" | "end" | "counter";
-
-interface PerfMarker {
-    schemaVersion: 1;
-    runId: string;
-    repId: number;
-    scenarioId: string;
-    name: string;
-    phase: PerfMarkerPhase;
-    correlationId?: string;
-    timestampUnixNs: string;
-    monotonicNs: string;
-    process: { role: string; pid: number; name: string };
-    attrs?: Record<string, string | number | boolean | null>;
-}
 
 export interface PerfState {
     perfMode: boolean;
@@ -47,17 +34,12 @@ export interface PerfState {
 
 export interface IPerfTelemetry {
     readonly enabled: boolean;
-    /** Emit a semantic marker. No-op when perf mode is off. */
     marker(
         name: string,
         phase?: PerfMarkerPhase,
         attrs?: Record<string, string | number | boolean | null>,
         correlationId?: string,
     ): void;
-    /**
-     * Emit a marker on behalf of a webview, preserving the webview's own
-     * clock readings (its timeOrigin-based epoch ns and monotonic ns).
-     */
     webviewMark(
         mark: {
             name: string;
@@ -70,43 +52,60 @@ export interface IPerfTelemetry {
     setActivationState(state: PerfState["activationState"]): void;
     setStsPid(pid: number | undefined): void;
     getState(): PerfState;
-    /** Best-effort flush of queued markers. */
     flush(): void;
 }
 
-class NoopPerfTelemetry implements IPerfTelemetry {
-    public readonly enabled = false;
-    public marker(): void {}
-    public webviewMark(): void {}
-    public setActivationState(): void {}
-    public setStsPid(): void {}
-    public getState(): PerfState {
-        return {
-            perfMode: false,
-            activationState: "inactive",
-            extensionHostPid: process.pid,
-            markersQueued: 0,
-            markersDropped: 0,
-        };
-    }
-    public flush(): void {}
+/** Marker-name prefix → console feature bucket. */
+function featureFor(name: string): string {
+    if (name.startsWith("mssql.connection") || name.startsWith("mssql.sts")) return "connection";
+    if (name.startsWith("mssql.query")) return "query";
+    if (name.startsWith("mssql.resultsGrid")) return "resultsGrid";
+    if (name.startsWith("mssql.oe")) return "objectExplorer";
+    if (name.startsWith("mssql.activate") || name.startsWith("mssql.extension")) return "system";
+    if (name.startsWith("mssql.command")) return "command";
+    if (name.startsWith("driver.")) return "harness";
+    return "system";
 }
 
-class ActivePerfTelemetry implements IPerfTelemetry {
-    public readonly enabled = true;
-    private queue: PerfMarker[] = [];
-    private dropped = 0;
-    private flushTimer: NodeJS.Timeout | undefined;
+/**
+ * Attr-key classification for normal-use capture. Under PERF_MODE the
+ * database is synthetic by harness contract, so attrs are diagnostic
+ * metadata; in normal use, name-bearing keys are classified so the
+ * redaction policy governs them.
+ */
+const ATTR_CLASSIFICATION: Record<string, DataClassification> = {
+    nodePath: "object.name",
+    nodeType: "diagnostic.metadata",
+    objectName: "object.name",
+    documentUri: "source.path",
+    uri: "source.path",
+    messages: "user.text",
+    error: "diagnostic.metadata",
+};
+
+class PerfFacade implements IPerfTelemetry {
+    public readonly enabled: boolean;
+    private readonly perfSink: PerfModeSink | undefined;
     private activationState: PerfState["activationState"] = "inactive";
     private stsPid: number | undefined;
 
-    constructor(
-        private readonly markerUrl: string,
-        private readonly token: string,
-        private readonly runId: string,
-        private readonly repId: number,
-        private readonly scenarioId: string,
-    ) {}
+    constructor() {
+        this.enabled = process.env.PERF_MODE === "1";
+        if (this.enabled) {
+            const markerUrl = process.env.PERF_MARKER_URL;
+            const token = process.env.PERF_CONTROL_TOKEN;
+            if (markerUrl && token) {
+                this.perfSink = new PerfModeSink(
+                    markerUrl,
+                    token,
+                    process.env.PERF_RUN_ID ?? "unknown-run",
+                    Number(process.env.PERF_REP_ID ?? "0"),
+                    process.env.PERF_SCENARIO_ID ?? "unknown-scenario",
+                );
+                diag.addSink(this.perfSink);
+            }
+        }
+    }
 
     public marker(
         name: string,
@@ -114,30 +113,34 @@ class ActivePerfTelemetry implements IPerfTelemetry {
         attrs?: Record<string, string | number | boolean | null>,
         correlationId?: string,
     ): void {
+        if (!diag.anySinkActive) {
+            return;
+        }
         try {
-            const marker: PerfMarker = {
-                schemaVersion: 1,
-                runId: this.runId,
-                repId: this.repId,
-                scenarioId: this.scenarioId,
-                name,
-                phase,
-                timestampUnixNs: (BigInt(Date.now()) * 1000000n).toString(),
-                monotonicNs: process.hrtime.bigint().toString(),
-                process: { role: "extensionHost", pid: process.pid, name: "vscode-mssql" },
-            };
+            const fields: Record<string, { raw: unknown; cls: DataClassification }> = {};
             if (attrs) {
-                marker.attrs = attrs;
+                for (const [key, value] of Object.entries(attrs)) {
+                    fields[key] = {
+                        raw: value,
+                        cls: this.enabled
+                            ? "diagnostic.metadata"
+                            : (ATTR_CLASSIFICATION[key] ?? "diagnostic.metadata"),
+                    };
+                }
             }
+            const tags = ["perfMarker", `phase:${phase}`];
             if (correlationId) {
-                marker.correlationId = correlationId;
+                tags.push("perfCorrelation");
             }
-            if (this.queue.length >= MAX_QUEUE) {
-                this.queue.shift();
-                this.dropped++;
-            }
-            this.queue.push(marker);
-            this.scheduleFlush();
+            diag.emit({
+                feature: featureFor(name),
+                kind: phase === "counter" ? "metric" : "event",
+                type: name,
+                status: attrs?.["error"] === true ? "error" : "ok",
+                ...(correlationId ? { traceId: correlationId } : {}),
+                ...(Object.keys(fields).length > 0 ? { fields } : {}),
+                tags,
+            });
         } catch {
             // Instrumentation must never surface into the product.
         }
@@ -152,32 +155,35 @@ class ActivePerfTelemetry implements IPerfTelemetry {
         },
         webviewName: string,
     ): void {
+        if (!diag.anySinkActive) {
+            return;
+        }
         try {
             if (!/^[0-9]+$/.test(mark.timestampUnixNs) || !/^[0-9]+$/.test(mark.monotonicNs)) {
                 return;
             }
-            const marker: PerfMarker = {
-                schemaVersion: 1,
-                runId: this.runId,
-                repId: this.repId,
-                scenarioId: this.scenarioId,
-                name: mark.name,
-                phase: "instant",
-                timestampUnixNs: mark.timestampUnixNs,
-                monotonicNs: mark.monotonicNs,
-                // The webview's renderer pid is not observable from here; 0 is
-                // the documented "unknown" pid for the webview role.
-                process: { role: "webview", pid: 0, name: webviewName },
-            };
+            const fields: Record<string, { raw: unknown; cls: DataClassification }> = {};
             if (mark.attrs) {
-                marker.attrs = mark.attrs;
+                for (const [key, value] of Object.entries(mark.attrs)) {
+                    fields[key] = {
+                        raw: value,
+                        cls: this.enabled
+                            ? "diagnostic.metadata"
+                            : (ATTR_CLASSIFICATION[key] ?? "diagnostic.metadata"),
+                    };
+                }
             }
-            if (this.queue.length >= MAX_QUEUE) {
-                this.queue.shift();
-                this.dropped++;
-            }
-            this.queue.push(marker);
-            this.scheduleFlush();
+            diag.emit({
+                feature: featureFor(mark.name),
+                kind: "event",
+                type: mark.name,
+                process: "webview",
+                pid: 0,
+                epochMs: Number(BigInt(mark.timestampUnixNs) / 1000000n),
+                monotonicNs: mark.monotonicNs,
+                ...(Object.keys(fields).length > 0 ? { fields } : {}),
+                tags: ["perfMarker", "phase:instant", `webview:${webviewName}`],
+            });
         } catch {
             // Instrumentation must never surface into the product.
         }
@@ -189,15 +195,22 @@ class ActivePerfTelemetry implements IPerfTelemetry {
 
     public setStsPid(pid: number | undefined): void {
         this.stsPid = pid;
+        if (pid !== undefined) {
+            diag.emit({
+                feature: "connection",
+                type: "mssql.sts.pid",
+                fields: { pid: { raw: pid, cls: "diagnostic.metadata" } },
+            });
+        }
     }
 
     public getState(): PerfState {
         const state: PerfState = {
-            perfMode: true,
+            perfMode: this.enabled,
             activationState: this.activationState,
             extensionHostPid: process.pid,
-            markersQueued: this.queue.length,
-            markersDropped: this.dropped,
+            markersQueued: this.perfSink?.queuedCount ?? 0,
+            markersDropped: this.perfSink?.droppedCount ?? 0,
         };
         if (this.stsPid !== undefined) {
             state.stsPid = this.stsPid;
@@ -206,72 +219,13 @@ class ActivePerfTelemetry implements IPerfTelemetry {
     }
 
     public flush(): void {
-        if (this.flushTimer) {
-            clearTimeout(this.flushTimer);
-            this.flushTimer = undefined;
-        }
-        if (this.queue.length === 0) {
-            return;
-        }
-        const batch = this.queue;
-        this.queue = [];
-        try {
-            const body = batch.map((m) => JSON.stringify(m)).join("\n");
-            const request = http.request(
-                this.markerUrl,
-                {
-                    method: "POST",
-                    headers: {
-                        "content-type": "application/x-ndjson",
-                        authorization: `Bearer ${this.token}`,
-                    },
-                    timeout: POST_TIMEOUT_MS,
-                },
-                (response) => response.resume(),
-            );
-            request.on("error", () => {
-                this.dropped += batch.length;
-            });
-            request.on("timeout", () => request.destroy());
-            request.end(body);
-        } catch {
-            this.dropped += batch.length;
-        }
+        diag.flushAll();
     }
-
-    private scheduleFlush(): void {
-        if (this.flushTimer) {
-            return;
-        }
-        this.flushTimer = setTimeout(() => {
-            this.flushTimer = undefined;
-            this.flush();
-        }, FLUSH_INTERVAL_MS);
-        // Never keep the extension host alive just to flush perf markers.
-        this.flushTimer.unref?.();
-    }
-}
-
-function create(): IPerfTelemetry {
-    if (process.env.PERF_MODE !== "1") {
-        return new NoopPerfTelemetry();
-    }
-    const markerUrl = process.env.PERF_MARKER_URL;
-    const token = process.env.PERF_CONTROL_TOKEN;
-    if (!markerUrl || !token) {
-        return new NoopPerfTelemetry();
-    }
-    return new ActivePerfTelemetry(
-        markerUrl,
-        token,
-        process.env.PERF_RUN_ID ?? "unknown-run",
-        Number(process.env.PERF_REP_ID ?? "0"),
-        process.env.PERF_SCENARIO_ID ?? "unknown-scenario",
-    );
 }
 
 /**
- * The singleton perf telemetry surface. Resolved once at module load; a
- * no-op outside perf mode so call sites cost one guarded function call.
+ * The singleton perf telemetry surface. `enabled` reflects PERF_MODE exactly
+ * as before; marker emission also feeds the Debug Console and Session Diag
+ * sinks when those are active.
  */
-export const Perf: IPerfTelemetry = create();
+export const Perf: IPerfTelemetry = new PerfFacade();

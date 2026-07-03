@@ -1,0 +1,349 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Diagnostics core: the single emission path for all product instrumentation.
+ * One event model, pluggable sinks, different gates:
+ *
+ *   PerfModeSink     — PERF_MODE=1 harness capture (exact legacy wire format)
+ *   LiveTailSink     — bounded ring feeding the Debug Console live view
+ *   SessionDiagSink  — user-enabled local Session Diag store (JSONL segments)
+ *
+ * Emission is near-zero cost when no sink is active: one array-length check.
+ * Instrumentation must never throw into the product.
+ */
+
+import {
+    CaptureMode,
+    CapturePolicy,
+    DIAG_SCHEMA_VERSION,
+    DataClassification,
+    DiagEvent,
+    DiagKind,
+    DiagProcess,
+    DiagStatus,
+    DiagTimingClass,
+    GapRecord,
+} from "../sharedInterfaces/debugConsole";
+import { CAPTURE_POLICIES, classifyPayload } from "./redaction";
+
+export interface RawField {
+    raw: unknown;
+    cls: DataClassification;
+}
+
+export interface EmitInput {
+    feature: string;
+    kind?: DiagKind;
+    type: string;
+    status?: DiagStatus;
+    traceId?: string;
+    causeEventId?: string;
+    entity?: { kind: string; id: string };
+    durationMs?: number;
+    timingClass?: DiagTimingClass;
+    /** Raw payload fields with classifications; redacted at this boundary. */
+    fields?: Record<string, RawField>;
+    tags?: string[];
+    process?: DiagProcess;
+    pid?: number;
+    /** Override event time (e.g. webview-supplied clocks). */
+    epochMs?: number;
+    monotonicNs?: string;
+}
+
+export interface DiagnosticSink {
+    readonly id: string;
+    /** Non-blocking; drops must be accounted for by the sink itself. */
+    tryWrite(event: DiagEvent): void;
+    flush?(): void;
+    dispose?(): void;
+}
+
+export interface DiagSpan {
+    readonly traceId: string;
+    end(status?: DiagStatus, fields?: Record<string, RawField>): void;
+    fail(error: unknown): void;
+}
+
+let traceCounter = 0;
+
+/** New root trace id for a user action. */
+export function newTraceId(hint?: string): string {
+    traceCounter++;
+    return `trace_${(hint ?? "act").replace(/[^a-z0-9]/gi, "").slice(0, 12)}_${Date.now().toString(36)}_${traceCounter.toString(36)}`;
+}
+
+class DiagnosticsCore {
+    private sinks: DiagnosticSink[] = [];
+    private seq = 0;
+    private eventCounter = 0;
+    public readonly sessionId: string;
+    private policy: CapturePolicy = CAPTURE_POLICIES.off;
+    private storePolicy: CapturePolicy = CAPTURE_POLICIES.off;
+    private policyRevertTimer: NodeJS.Timeout | undefined;
+    /** Ambient trace for synchronous scopes; async work passes traceId explicitly. */
+    private ambientTrace: string | undefined;
+    /** Entity-keyed correlation: feature code registers uri->trace bindings. */
+    private entityTraces = new Map<string, string>();
+    private listeners: Array<(mode: CaptureMode) => void> = [];
+
+    constructor() {
+        const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
+        this.sessionId = `sess_${stamp}_${process.pid}`;
+    }
+
+    // --- sinks ---------------------------------------------------------------
+
+    public addSink(sink: DiagnosticSink): void {
+        this.sinks.push(sink);
+    }
+
+    public removeSink(id: string): void {
+        const sink = this.sinks.find((s) => s.id === id);
+        this.sinks = this.sinks.filter((s) => s.id !== id);
+        try {
+            sink?.dispose?.();
+        } catch {
+            // sink failures never propagate
+        }
+    }
+
+    public hasSink(id: string): boolean {
+        return this.sinks.some((s) => s.id === id);
+    }
+
+    public get anySinkActive(): boolean {
+        return this.sinks.length > 0;
+    }
+
+    // --- capture policy --------------------------------------------------------
+
+    public get captureMode(): CaptureMode {
+        return this.storePolicy.mode;
+    }
+
+    public get capturePolicy(): CapturePolicy {
+        return this.storePolicy;
+    }
+
+    public get captureExpiresEpochMs(): number | undefined {
+        return this.storePolicy.expiresEpochMs;
+    }
+
+    /**
+     * The store policy governs what the Session Diag sink persists. The
+     * envelope itself is built with the MOST permissive active policy needed;
+     * v1 keeps it simple: one policy applied at emission covering all sinks,
+     * with PERF_MODE (synthetic data by contract) treated as full-capture.
+     */
+    public setCaptureMode(mode: CaptureMode, options?: { reason?: string; durationMs?: number }) {
+        if (this.policyRevertTimer) {
+            clearTimeout(this.policyRevertTimer);
+            this.policyRevertTimer = undefined;
+        }
+        if (mode === "full") {
+            const durationMs = Math.min(options?.durationMs ?? 15 * 60_000, 60 * 60_000);
+            const expires = Date.now() + durationMs;
+            this.storePolicy = CAPTURE_POLICIES.full(options?.reason ?? "elevated", expires);
+            this.policyRevertTimer = setTimeout(() => {
+                this.setCaptureMode("redacted", { reason: "elevation expired" });
+                this.emit({
+                    feature: "sessionDiag",
+                    type: "sessionDiag.elevation.expired",
+                    status: "info",
+                });
+            }, durationMs);
+            this.policyRevertTimer.unref?.();
+        } else {
+            this.storePolicy = CAPTURE_POLICIES[mode];
+        }
+        this.policy =
+            this.storePolicy.mode === "off" ? CAPTURE_POLICIES.redacted : this.storePolicy;
+        for (const listener of this.listeners) {
+            try {
+                listener(mode);
+            } catch {
+                // listeners never break emission
+            }
+        }
+    }
+
+    public onCaptureModeChanged(listener: (mode: CaptureMode) => void): void {
+        this.listeners.push(listener);
+    }
+
+    // --- trace context ---------------------------------------------------------
+
+    public withTrace<T>(traceId: string, fn: () => T): T {
+        const previous = this.ambientTrace;
+        this.ambientTrace = traceId;
+        try {
+            return fn();
+        } finally {
+            this.ambientTrace = previous;
+        }
+    }
+
+    public get currentTrace(): string | undefined {
+        return this.ambientTrace;
+    }
+
+    /** Bind an entity (e.g. a document uri digest) to a trace for async joins. */
+    public bindEntityTrace(entityId: string, traceId: string): void {
+        if (this.entityTraces.size > 500) {
+            const first = this.entityTraces.keys().next().value;
+            if (first !== undefined) {
+                this.entityTraces.delete(first);
+            }
+        }
+        this.entityTraces.set(entityId, traceId);
+    }
+
+    public traceForEntity(entityId: string): string | undefined {
+        return this.entityTraces.get(entityId);
+    }
+
+    // --- emission ----------------------------------------------------------------
+
+    public emit(input: EmitInput): string | undefined {
+        if (this.sinks.length === 0) {
+            return undefined;
+        }
+        try {
+            this.seq++;
+            this.eventCounter++;
+            const { payload, maxClassification, redactedFields } = input.fields
+                ? classifyPayload(input.fields, this.policy)
+                : { payload: undefined, maxClassification: "public" as const, redactedFields: 0 };
+            const traceId =
+                input.traceId ??
+                this.ambientTrace ??
+                (input.entity ? this.entityTraces.get(input.entity.id) : undefined);
+            const event: DiagEvent = {
+                schemaVersion: DIAG_SCHEMA_VERSION,
+                eventId: `evt_${this.eventCounter.toString(36).padStart(6, "0")}`,
+                sessionId: this.sessionId,
+                seq: this.seq,
+                epochMs: input.epochMs ?? Date.now(),
+                process: input.process ?? "extensionHost",
+                pid: input.pid ?? process.pid,
+                feature: input.feature,
+                kind: input.kind ?? "event",
+                type: input.type,
+                status: input.status ?? "ok",
+                cls: {
+                    max: maxClassification,
+                    redactedFields,
+                    policyId: this.policy.policyId,
+                },
+            };
+            if (input.monotonicNs !== undefined) {
+                event.monotonicNs = input.monotonicNs;
+            } else if ((input.process ?? "extensionHost") === "extensionHost") {
+                event.monotonicNs = process.hrtime.bigint().toString();
+            }
+            if (traceId !== undefined) {
+                event.traceId = traceId;
+            }
+            if (input.causeEventId !== undefined) {
+                event.causeEventId = input.causeEventId;
+            }
+            if (input.entity !== undefined) {
+                event.entity = input.entity;
+            }
+            if (input.durationMs !== undefined) {
+                event.durationMs = input.durationMs;
+            }
+            if (input.timingClass !== undefined) {
+                event.timingClass = input.timingClass;
+            }
+            if (payload !== undefined) {
+                event.payload = payload;
+            }
+            if (input.tags !== undefined) {
+                event.tags = input.tags;
+            }
+            for (const sink of this.sinks) {
+                try {
+                    sink.tryWrite(event);
+                } catch {
+                    // A sink failure must never break the product or other sinks.
+                }
+            }
+            return event.eventId;
+        } catch {
+            return undefined;
+        }
+    }
+
+    /** Span helper: emits type.begin now and type.end (with duration) on end(). */
+    public startSpan(input: EmitInput): DiagSpan {
+        const traceId = input.traceId ?? this.ambientTrace ?? newTraceId(input.feature);
+        const startMono = process.hrtime.bigint();
+        const beginId = this.emit({
+            ...input,
+            traceId,
+            kind: input.kind ?? "span",
+            type: `${input.type}.begin`,
+        });
+        const core = this;
+        return {
+            traceId,
+            end(status?: DiagStatus, fields?: Record<string, RawField>): void {
+                const durationMs = Number(process.hrtime.bigint() - startMono) / 1e6;
+                core.emit({
+                    ...input,
+                    ...(fields ? { fields: { ...input.fields, ...fields } } : {}),
+                    traceId,
+                    kind: input.kind ?? "span",
+                    type: `${input.type}.end`,
+                    status: status ?? "ok",
+                    durationMs: Number(durationMs.toFixed(2)),
+                    timingClass: "officialSameProcess",
+                    ...(beginId ? { causeEventId: beginId } : {}),
+                });
+            },
+            fail(error: unknown): void {
+                const durationMs = Number(process.hrtime.bigint() - startMono) / 1e6;
+                core.emit({
+                    ...input,
+                    traceId,
+                    kind: input.kind ?? "span",
+                    type: `${input.type}.end`,
+                    status: "error",
+                    durationMs: Number(durationMs.toFixed(2)),
+                    fields: {
+                        ...input.fields,
+                        error: {
+                            raw: error instanceof Error ? error.message : String(error),
+                            cls: "diagnostic.metadata",
+                        },
+                    },
+                    ...(beginId ? { causeEventId: beginId } : {}),
+                });
+            },
+        };
+    }
+
+    public flushAll(): void {
+        for (const sink of this.sinks) {
+            try {
+                sink.flush?.();
+            } catch {
+                // never throw
+            }
+        }
+    }
+
+    public get lastSeq(): number {
+        return this.seq;
+    }
+}
+
+/** Singleton core. Import cost is trivial; no I/O happens until a sink registers. */
+export const diag = new DiagnosticsCore();
+
+export type { GapRecord };

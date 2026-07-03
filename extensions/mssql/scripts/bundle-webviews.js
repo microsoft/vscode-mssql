@@ -21,6 +21,7 @@ const config = {
             "src/webviews/pages/ObjectManagement/RestoreDatabase/restoreDatabaseIndex.tsx",
         connectionDialog: "src/webviews/pages/ConnectionDialog/index.tsx",
         connectionGroup: "src/webviews/pages/ConnectionGroup/index.tsx",
+        debugConsole: "src/webviews/pages/DebugConsole/index.tsx",
         DacpacDialog: "src/webviews/pages/DacpacDialog/index.tsx",
         deployment: "src/webviews/pages/Deployment/index.tsx",
         executionPlan: "src/webviews/pages/ExecutionPlan/index.tsx",
