@@ -186,7 +186,7 @@ export const ObjectExplorerFilterPage = () => {
         setIntialFocus();
         loadUiFilters();
         setErrorMessage(undefined);
-    }, [filterProperties]);
+    }, [filterProperties, existingFilters, nodePath]);
     if (!context || !filterProperties) {
         return undefined;
     }

@@ -122,6 +122,11 @@ export class ObjectExplorerService {
      */
     private _inFlightChildrenFetches: Map<TreeNodeInfo, Promise<void>> = new Map();
 
+    /**
+     * Nodes that need another refresh as soon as their current load finishes.
+     */
+    private _refreshQueuedAfterInFlight: Set<TreeNodeInfo> = new Set();
+
     constructor(
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
@@ -594,8 +599,15 @@ export class ObjectExplorerService {
         );
 
         if (wasRefresh) {
-            element.shouldRefresh = false;
             this.cleanNodeChildren(element);
+
+            if (hasInFlight) {
+                this._logger.trace(
+                    `getNodeChildren: queueing refresh after in-flight load for ${getNodeDescriptor(element)}`,
+                );
+                this._refreshQueuedAfterInFlight.add(element);
+                return this.setLoadingUiForNode(element);
+            }
         } else {
             if (this._treeNodeToChildrenMap.has(element)) {
                 return this._treeNodeToChildrenMap.get(element);
@@ -696,8 +708,21 @@ export class ObjectExplorerService {
                     await this.createSessionAndExpandNode(element);
                 }
             } finally {
-                element.shouldRefresh = false;
                 this._inFlightChildrenFetches.delete(element);
+
+                if (this._refreshQueuedAfterInFlight.delete(element)) {
+                    this._logger.trace(
+                        `getOrCreateNodeChildrenWithSession: starting queued refresh for ${getNodeDescriptor(element)}`,
+                    );
+                    element.shouldRefresh = true;
+                    element.loadingLabel = undefined;
+                    this.cleanNodeChildren(element);
+                    await this.setLoadingUiForNode(element);
+                    void this.getOrCreateNodeChildrenWithSession(element);
+                    return;
+                }
+
+                element.shouldRefresh = false;
                 this._logger.trace(
                     `getOrCreateNodeChildrenWithSession end: ${getNodeDescriptor(element)} — refresh callback follows`,
                 );
