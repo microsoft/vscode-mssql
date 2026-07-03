@@ -35,8 +35,8 @@ const useStyles = makeStyles({
     },
 });
 
-// Width of the port input box. Narrow since it only holds a port number.
-const PORT_INPUT_WIDTH = "72px";
+const PORT_INPUT_WIDTH = "72px"; // Width of the port input box. Narrow since it only holds a port number
+const DEFAULT_PORT_PLACEHOLDER = "1433";
 
 export const ConnectionFormPage = () => {
     const styles = useStyles();
@@ -100,6 +100,7 @@ export const ConnectionFormPage = () => {
                                 <div className={styles.portField}>
                                     {renderFormField(portComponent, mainOptions.length, {
                                         componentProps: {
+                                            placeholder: DEFAULT_PORT_PLACEHOLDER,
                                             style: {
                                                 width: PORT_INPUT_WIDTH,
                                                 minWidth: PORT_INPUT_WIDTH,

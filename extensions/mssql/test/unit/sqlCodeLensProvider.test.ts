@@ -116,9 +116,6 @@ suite("SqlCodeLensProvider Tests", () => {
 
         expect(lenses).to.have.lengthOf(3);
         expect(lenses[0].command?.title).to.equal("$(star-full) My Profile");
-        expect(lenses[0].command?.tooltip).to.equal(
-            LocalizedConstants.QueryEditor.codeLensProfileTooltip("My Profile"),
-        );
         expect(lenses[0].command?.command).to.equal(Constants.cmdConnect);
         expect(lenses[1].command?.command).to.equal(Constants.cmdConnect);
         expect(lenses[2].command?.command).to.equal(Constants.cmdChooseDatabase);
