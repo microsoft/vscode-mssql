@@ -16,19 +16,13 @@ import { promises as fs } from "fs";
 import { ISqlProject, SqlTargetPlatform } from "sqldbproj";
 import { SystemDatabase } from "./typeHelper";
 import { DeploymentScenario } from "./enums";
+import * as semver from "semver";
 
 /**
  * Returns true if version is a valid NuGet floating version ("2.*" or "2.1.*").
  */
 export function isValidMicrosoftBuildSqlVersion(version: string): boolean {
-    if (!version.endsWith(".*")) {
-        return false;
-    }
-    const parts = version.slice(0, -2).split(".");
-    if (parts.length < 1 || parts.length > 2) {
-        return false;
-    }
-    return parts.every((p) => /^\d+$/.test(p));
+    return !!semver.valid(semver.coerce(version)) && version.endsWith(".*");
 }
 
 /**
