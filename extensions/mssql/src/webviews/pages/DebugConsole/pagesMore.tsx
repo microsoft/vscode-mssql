@@ -3,19 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/** Feature + session pages: Perf & Sessions, SQL Activity, Connections,
- *  Query & Results, Object Explorer, Exports, Settings, and gated stubs. */
+/** Feature + session pages: SQL Activity, Connections, Query & Results,
+ *  Object Explorer (occurrence views), Exports, Settings, and gated stubs. */
 
 import { useEffect, useMemo, useState } from "react";
 import {
     DcExportRequest,
-    DcGetPerfSummaryRequest,
     DcGetSqlActivityRequest,
     DcQueryEventsRequest,
     DiagEvent,
-    PerfSummary,
     SqlActivityRow,
 } from "../../../sharedInterfaces/debugConsole";
+import { Sparkline } from "./charts";
 import {
     EmptyState,
     formatDuration,
@@ -39,183 +38,164 @@ export function GatedPage({ title, body }: { title: string; body: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Perf & Sessions — trend + distribution from perf-runs imports
+// Shared: occurrence extraction (begin/end pairing per trace)
 // ---------------------------------------------------------------------------
 
-export function PerfPage() {
-    const { rpc } = useDc();
-    const [summary, setSummary] = useState<PerfSummary | undefined>(undefined);
-    const [scenario, setScenario] = useState<string>("");
-    const [metric, setMetric] = useState<string>("scenario.wallclock");
-
+function useFeatureEvents(features: string[]): DiagEvent[] {
+    const { rpc, activeSourceId, dataVersion } = useDc();
+    const [events, setEvents] = useState<DiagEvent[]>([]);
     useEffect(() => {
-        void rpc.sendRequest(DcGetPerfSummaryRequest.type, {}).then((s) => {
-            setSummary(s);
-            if (s.scenarios.length > 0 && !scenario) {
-                setScenario(s.scenarios[0]);
-            }
-        });
-    }, [rpc]);
-
-    const series = useMemo(() => {
-        if (!summary) return [];
-        const byRun = new Map<string, number[]>();
-        for (const sample of summary.samples) {
-            if (sample.scenarioId !== scenario || sample.metricName !== metric || !sample.official)
-                continue;
-            const list = byRun.get(sample.runId) ?? [];
-            list.push(sample.value);
-            byRun.set(sample.runId, list);
-        }
-        return [...byRun.entries()]
-            .map(([runId, values]) => {
-                const sorted = [...values].sort((a, b) => a - b);
-                return {
-                    runId,
-                    median: sorted[Math.floor((sorted.length - 1) / 2)],
-                    n: sorted.length,
-                };
+        void rpc
+            .sendRequest(DcQueryEventsRequest.type, {
+                sourceId: activeSourceId,
+                features,
+                limit: 2000,
             })
-            .sort((a, b) => a.runId.localeCompare(b.runId));
-    }, [summary, scenario, metric]);
+            .then((result) =>
+                setEvents(result.rows.filter((row): row is DiagEvent => row.kind !== "gap")),
+            );
+        // features array is a constant literal per page
+        // eslint-disable-next-line
+    }, [rpc, activeSourceId, dataVersion]);
+    return events;
+}
 
-    if (!summary || summary.samples.length === 0) {
-        return (
-            <>
-                <PageHeader title="Perf & Sessions" />
-                <EmptyState
-                    title="No perf metrics found"
-                    body="Point mssql.debugConsole.perfRunsRoot at a perftest perf-runs directory (Settings page) to analyze official metrics, trends, and distributions across runs."
-                />
-            </>
-        );
+interface Occurrence {
+    startEpochMs: number;
+    durationMs?: number;
+    status: DiagEvent["status"];
+    traceId?: string;
+    endEvent: DiagEvent;
+}
+
+/** Pair begin/end types chronologically (per trace when available). */
+function pairOccurrences(events: DiagEvent[], beginType: string, endType: string): Occurrence[] {
+    const occurrences: Occurrence[] = [];
+    const openBegins: DiagEvent[] = [];
+    for (const event of events) {
+        if (event.type === beginType) {
+            openBegins.push(event);
+        } else if (event.type === endType) {
+            let beginIndex = openBegins.findIndex(
+                (b) => b.traceId !== undefined && b.traceId === event.traceId,
+            );
+            if (beginIndex < 0 && openBegins.length > 0) {
+                beginIndex = 0;
+            }
+            if (beginIndex >= 0) {
+                const begin = openBegins.splice(beginIndex, 1)[0];
+                const sameProcess =
+                    begin.monotonicNs !== undefined &&
+                    event.monotonicNs !== undefined &&
+                    begin.process === event.process;
+                const durationMs = sameProcess
+                    ? Number(BigInt(event.monotonicNs!) - BigInt(begin.monotonicNs!)) / 1e6
+                    : event.epochMs - begin.epochMs;
+                occurrences.push({
+                    startEpochMs: begin.epochMs,
+                    durationMs: Number(durationMs.toFixed(1)),
+                    status: event.status,
+                    ...(begin.traceId !== undefined ? { traceId: begin.traceId } : {}),
+                    endEvent: event,
+                });
+            } else {
+                occurrences.push({
+                    startEpochMs: event.epochMs,
+                    status: event.status,
+                    ...(event.traceId !== undefined ? { traceId: event.traceId } : {}),
+                    endEvent: event,
+                });
+            }
+        }
     }
+    return occurrences.reverse();
+}
 
-    const values = series.map((point) => point.median);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const latest = values[values.length - 1];
-    const median = [...values].sort((a, b) => a - b)[Math.floor((values.length - 1) / 2)];
+function payloadNumber(event: DiagEvent, key: string): number | undefined {
+    const value = event.payload?.[key]?.v;
+    return typeof value === "number" ? value : undefined;
+}
 
-    const width = 640;
-    const height = 180;
-    const pad = { l: 50, r: 12, t: 12, b: 24 };
-    const toX = (index: number) =>
-        pad.l + (index / Math.max(1, series.length - 1)) * (width - pad.l - pad.r);
-    const toY = (value: number) =>
-        height - pad.b - ((value - min) / Math.max(1, max - min)) * (height - pad.t - pad.b);
-
+function OccurrenceTable({
+    occurrences,
+    extraColumns,
+}: {
+    occurrences: Occurrence[];
+    extraColumns?: Array<{ label: string; value: (o: Occurrence) => React.ReactNode }>;
+}) {
+    const { navigate } = useDc();
     return (
-        <>
-            <PageHeader
-                title="Perf & Sessions"
-                sub="Official metrics across imported perf runs. Official metrics gate; diagnostic metrics explain."
-            />
-            <div className="dc-toolbar">
-                <select value={scenario} onChange={(e) => setScenario(e.target.value)}>
-                    {summary.scenarios.map((s) => (
-                        <option key={s}>{s}</option>
-                    ))}
-                </select>
-                <select value={metric} onChange={(e) => setMetric(e.target.value)}>
-                    {summary.metrics.map((m) => (
-                        <option key={m}>{m}</option>
-                    ))}
-                </select>
-            </div>
-            <div className="dc-kpis">
-                <Kpi label="Runs" value={series.length} />
-                <Kpi
-                    label="Latest median"
-                    value={latest !== undefined ? formatDuration(latest) : "—"}
-                />
-                <Kpi
-                    label="All-runs median"
-                    value={median !== undefined ? formatDuration(median) : "—"}
-                />
-                <Kpi label="Min / Max" value={`${formatDuration(min)} / ${formatDuration(max)}`} />
-            </div>
-            <div className="dc-card">
-                <div className="dc-card-title">
-                    {scenario} · {metric}
-                    <span className="right">per-run medians · official only</span>
-                </div>
-                {series.length < 2 ? (
-                    <span className="dc-muted">Need at least two runs for a trend.</span>
-                ) : (
-                    <svg
-                        viewBox={`0 0 ${width} ${height}`}
-                        width="100%"
-                        role="img"
-                        aria-label={`Trend of ${metric} for ${scenario}: ${series.length} runs from ${formatDuration(min)} to ${formatDuration(max)}`}>
-                        <line
-                            x1={pad.l}
-                            y1={height - pad.b}
-                            x2={width - pad.r}
-                            y2={height - pad.b}
-                            stroke="var(--dc-border)"
-                        />
-                        <text
-                            x={pad.l - 6}
-                            y={toY(max) + 4}
-                            textAnchor="end"
-                            fontSize="10"
-                            fill="var(--dc-muted)">
-                            {formatDuration(max)}
-                        </text>
-                        <text
-                            x={pad.l - 6}
-                            y={toY(min) + 4}
-                            textAnchor="end"
-                            fontSize="10"
-                            fill="var(--dc-muted)">
-                            {formatDuration(min)}
-                        </text>
-                        <polyline
-                            fill="none"
-                            stroke="var(--dc-link)"
-                            strokeWidth="1.5"
-                            points={series
-                                .map((point, index) => `${toX(index)},${toY(point.median)}`)
-                                .join(" ")}
-                        />
-                        {series.map((point, index) => (
-                            <circle
-                                key={point.runId}
-                                cx={toX(index)}
-                                cy={toY(point.median)}
-                                r="3"
-                                fill="var(--dc-text)">
-                                <title>
-                                    {point.runId}: {formatDuration(point.median)} ({point.n} reps)
-                                </title>
-                            </circle>
+        <div className="dc-table-wrap" style={{ maxHeight: "50vh" }}>
+            <table className="dc-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th className="num">Duration</th>
+                        <th>Status</th>
+                        {(extraColumns ?? []).map((column) => (
+                            <th key={column.label}>{column.label}</th>
                         ))}
-                    </svg>
-                )}
-            </div>
-            <div className="dc-table-wrap">
-                <table className="dc-table">
-                    <thead>
-                        <tr>
-                            <th>Run</th>
-                            <th className="num">Median</th>
-                            <th className="num">Reps</th>
+                        <th>Correlation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {occurrences.map((occurrence, index) => (
+                        <tr
+                            key={index}
+                            onClick={() =>
+                                occurrence.traceId
+                                    ? navigate({ page: "waterfall", traceId: occurrence.traceId })
+                                    : undefined
+                            }>
+                            <td className="dc-mono">{formatTime(occurrence.startEpochMs)}</td>
+                            <td className="num dc-mono">{formatDuration(occurrence.durationMs)}</td>
+                            <td>
+                                <StatusPill status={occurrence.status} />
+                            </td>
+                            {(extraColumns ?? []).map((column) => (
+                                <td key={column.label} className="dc-mono">
+                                    {column.value(occurrence)}
+                                </td>
+                            ))}
+                            <td className="dc-mono dc-muted">
+                                {occurrence.traceId ? `${occurrence.traceId.slice(0, 18)}…` : "—"}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {[...series].reverse().map((point) => (
-                            <tr key={point.runId}>
-                                <td className="dc-mono">{point.runId}</td>
-                                <td className="num dc-mono">{formatDuration(point.median)}</td>
-                                <td className="num dc-mono">{point.n}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </>
+                    ))}
+                    {occurrences.length === 0 ? (
+                        <tr>
+                            <td colSpan={5} className="dc-muted">
+                                No occurrences in this source yet.
+                            </td>
+                        </tr>
+                    ) : null}
+                </tbody>
+            </table>
+        </div>
     );
+}
+
+function occurrenceKpis(occurrences: Occurrence[]): {
+    count: number;
+    medianMs?: number;
+    p95Ms?: number;
+    errors: number;
+    durations: number[];
+} {
+    const durations = occurrences
+        .map((o) => o.durationMs)
+        .filter((d): d is number => d !== undefined);
+    const sorted = [...durations].sort((a, b) => a - b);
+    const result: ReturnType<typeof occurrenceKpis> = {
+        count: occurrences.length,
+        errors: occurrences.filter((o) => o.status === "error").length,
+        durations: [...durations].reverse(),
+    };
+    if (sorted.length > 0) {
+        result.medianMs = sorted[Math.floor((sorted.length - 1) / 2)];
+        result.p95Ms = sorted[Math.min(sorted.length - 1, Math.ceil(0.95 * sorted.length) - 1)];
+    }
+    return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -239,7 +219,7 @@ export function SqlActivityPage() {
                 <PageHeader title="SQL Activity" />
                 <EmptyState
                     title="No SQL activity in this source"
-                    body="SQL Server command capture arrives via imported perf runs (XEvents artifacts) today; live server-side capture is gated on capture-policy hardening. Extension-side query events appear in Consolidated Trace."
+                    body="SQL Server command capture arrives via imported perf runs (XEvents artifacts) today; live server-side capture is gated on capture-policy hardening. Extension-side query events appear in Consolidated Trace and Query & Results."
                 />
             </>
         );
@@ -330,135 +310,209 @@ export function SqlActivityPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Feature pages built on filtered trace queries
+// Connections — connection lifecycle occurrences
 // ---------------------------------------------------------------------------
-
-function useFeatureEvents(features: string[]): DiagEvent[] {
-    const { rpc, activeSourceId, dataVersion } = useDc();
-    const [events, setEvents] = useState<DiagEvent[]>([]);
-    useEffect(() => {
-        void rpc
-            .sendRequest(DcQueryEventsRequest.type, {
-                sourceId: activeSourceId,
-                features,
-                limit: 1000,
-            })
-            .then((result) =>
-                setEvents(result.rows.filter((row): row is DiagEvent => row.kind !== "gap")),
-            );
-    }, [rpc, activeSourceId, dataVersion]);
-    return events;
-}
-
-function FeatureEventTable({ events }: { events: DiagEvent[] }) {
-    return (
-        <div className="dc-table-wrap">
-            <table className="dc-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Type</th>
-                        <th className="num">Duration</th>
-                        <th>Status</th>
-                        <th>Corr</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {events.slice(-200).map((event) => (
-                        <tr key={event.eventId}>
-                            <td className="dc-mono">{formatTime(event.epochMs)}</td>
-                            <td className="dc-mono">{event.type}</td>
-                            <td className="num dc-mono">{formatDuration(event.durationMs)}</td>
-                            <td>
-                                <StatusPill status={event.status} />
-                            </td>
-                            <td className="dc-mono dc-muted">
-                                {event.traceId ? `${event.traceId.slice(0, 16)}…` : "—"}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
 
 export function ConnectionsPage() {
     const events = useFeatureEvents(["connection", "rpc"]);
-    const ready = events.filter((e) => e.type === "mssql.connection.ready");
-    const failures = events.filter((e) => e.status === "error");
+    const occurrences = useMemo(
+        () => pairOccurrences(events, "mssql.connection.begin", "mssql.connection.ready"),
+        [events],
+    );
+    const kpis = occurrenceKpis(occurrences);
+    const rpcSpans = events.filter((e) => e.feature === "rpc" && e.type.endsWith(".end"));
     return (
         <>
-            <PageHeader title="Connections" sub="Connection lifecycle, STS RPCs, and failures." />
+            <PageHeader
+                title="Connections"
+                sub="Every connection open in this source with time-to-ready; STS RPC volume alongside."
+            />
             <div className="dc-kpis">
-                <Kpi label="Connections ready" value={ready.length} />
+                <Kpi label="Connections" value={kpis.count} />
+                <Kpi
+                    label="Median time-to-ready"
+                    value={kpis.medianMs !== undefined ? formatDuration(kpis.medianMs) : "—"}
+                />
+                <Kpi
+                    label="p95"
+                    value={kpis.p95Ms !== undefined ? formatDuration(kpis.p95Ms) : "—"}
+                />
                 <Kpi
                     label="Failures"
-                    value={failures.length}
-                    tone={failures.length > 0 ? "error" : undefined}
+                    value={kpis.errors}
+                    tone={kpis.errors > 0 ? "error" : undefined}
                 />
-                <Kpi label="Lifecycle events" value={events.length} />
+                <Kpi label="STS RPC calls" value={rpcSpans.length} />
+                <div className="dc-kpi">
+                    <div className="label">Ready-time trend</div>
+                    <div style={{ marginTop: 8 }}>
+                        <Sparkline values={kpis.durations.slice(-30)} width={140} height={30} />
+                    </div>
+                </div>
             </div>
-            <FeatureEventTable events={events} />
+            <OccurrenceTable occurrences={occurrences} />
         </>
     );
 }
 
+// ---------------------------------------------------------------------------
+// Query & Results — per-query occurrences with row counts and render times
+// ---------------------------------------------------------------------------
+
 export function QueryResultsPage() {
     const events = useFeatureEvents(["query", "resultsGrid"]);
-    const complete = events.filter((e) => e.type === "mssql.query.complete");
-    const renders = events.filter((e) => e.type === "mssql.resultsGrid.renderComplete");
-    const windowFetches = events.filter((e) => e.type.startsWith("mssql.resultsGrid.windowFetch"));
-    const lastRowCount = complete
-        .map((e) => e.payload?.["rowCount"]?.v)
-        .filter((v): v is number => typeof v === "number")
-        .pop();
+    const occurrences = useMemo(
+        () => pairOccurrences(events, "mssql.query.submit", "mssql.query.complete"),
+        [events],
+    );
+    const kpis = occurrenceKpis(occurrences);
+    const rendersByTrace = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const event of events) {
+            if (event.type === "mssql.resultsGrid.renderComplete" && event.traceId) {
+                const rowCount = payloadNumber(event, "rowCount");
+                if (rowCount !== undefined) {
+                    map.set(event.traceId, rowCount);
+                }
+            }
+        }
+        return map;
+    }, [events]);
+    const windowFetches = events.filter(
+        (e) => e.type === "mssql.resultsGrid.windowFetch.end",
+    ).length;
     return (
         <>
             <PageHeader
                 title="Query & Results"
-                sub="Query execution, grid rendering, virtual windowing."
+                sub="Every query execution with duration, rows, errors, and grid rendering."
             />
             <div className="dc-kpis">
-                <Kpi label="Queries completed" value={complete.length} />
-                <Kpi label="Grid renders" value={renders.length} />
+                <Kpi label="Queries" value={kpis.count} />
+                <Kpi
+                    label="Median duration"
+                    value={kpis.medianMs !== undefined ? formatDuration(kpis.medianMs) : "—"}
+                />
+                <Kpi
+                    label="p95"
+                    value={kpis.p95Ms !== undefined ? formatDuration(kpis.p95Ms) : "—"}
+                />
+                <Kpi
+                    label="Errors"
+                    value={kpis.errors}
+                    tone={kpis.errors > 0 ? "error" : undefined}
+                />
                 <Kpi
                     label="Window fetches"
-                    value={windowFetches.length / 2 >= 1 ? Math.floor(windowFetches.length / 2) : 0}
-                    note={windowFetches.length > 0 ? "virtual windowing active" : undefined}
+                    value={windowFetches}
+                    note={windowFetches > 0 ? "virtual windowing active" : undefined}
                 />
-                <Kpi label="Last row count" value={lastRowCount?.toLocaleString() ?? "—"} />
+                <div className="dc-kpi">
+                    <div className="label">Duration trend</div>
+                    <div style={{ marginTop: 8 }}>
+                        <Sparkline values={kpis.durations.slice(-30)} width={140} height={30} />
+                    </div>
+                </div>
             </div>
-            <FeatureEventTable events={events} />
+            <OccurrenceTable
+                occurrences={occurrences}
+                extraColumns={[
+                    {
+                        label: "Rows",
+                        value: (occurrence) =>
+                            payloadNumber(occurrence.endEvent, "rowCount")?.toLocaleString() ?? "—",
+                    },
+                    {
+                        label: "Rendered",
+                        value: (occurrence) =>
+                            occurrence.traceId !== undefined &&
+                            rendersByTrace.has(occurrence.traceId)
+                                ? rendersByTrace.get(occurrence.traceId)!.toLocaleString()
+                                : "—",
+                    },
+                    {
+                        label: "Error",
+                        value: (occurrence) =>
+                            occurrence.endEvent.payload?.["hasError"]?.v === true ? "yes" : "—",
+                    },
+                ]}
+            />
         </>
     );
 }
 
+// ---------------------------------------------------------------------------
+// Object Explorer — expansion occurrences with node counts
+// ---------------------------------------------------------------------------
+
 export function ObjectExplorerPage() {
     const events = useFeatureEvents(["objectExplorer"]);
-    const expands = events.filter((e) => e.type === "mssql.oe.expand.end");
-    const counts = expands
-        .map((e) => e.payload?.["childCount"]?.v)
-        .filter((v): v is number => typeof v === "number");
+    const occurrences = useMemo(
+        () => pairOccurrences(events, "mssql.oe.expand.begin", "mssql.oe.expand.end"),
+        [events],
+    );
+    const kpis = occurrenceKpis(occurrences);
+    const counts = occurrences
+        .map((o) => payloadNumber(o.endEvent, "childCount"))
+        .filter((v): v is number => v !== undefined);
     return (
         <>
             <PageHeader
                 title="Object Explorer"
-                sub="Tree expansion, node counts, and metadata query cost."
+                sub="Every tree expansion with duration and child count. Node paths follow the capture policy (digested in redacted mode)."
             />
             <div className="dc-kpis">
-                <Kpi label="Expansions" value={expands.length} />
+                <Kpi label="Expansions" value={kpis.count} />
+                <Kpi
+                    label="Median duration"
+                    value={kpis.medianMs !== undefined ? formatDuration(kpis.medianMs) : "—"}
+                />
+                <Kpi
+                    label="p95"
+                    value={kpis.p95Ms !== undefined ? formatDuration(kpis.p95Ms) : "—"}
+                />
                 <Kpi
                     label="Largest node"
                     value={counts.length > 0 ? Math.max(...counts).toLocaleString() : "—"}
                     note="children"
                 />
-                <Kpi label="OE events" value={events.length} />
+                <Kpi
+                    label="Failures"
+                    value={kpis.errors}
+                    tone={kpis.errors > 0 ? "error" : undefined}
+                />
+                <div className="dc-kpi">
+                    <div className="label">Expand-time trend</div>
+                    <div style={{ marginTop: 8 }}>
+                        <Sparkline values={kpis.durations.slice(-30)} width={140} height={30} />
+                    </div>
+                </div>
             </div>
-            <FeatureEventTable events={events} />
+            <OccurrenceTable
+                occurrences={occurrences}
+                extraColumns={[
+                    {
+                        label: "Children",
+                        value: (occurrence) =>
+                            payloadNumber(occurrence.endEvent, "childCount")?.toLocaleString() ??
+                            "—",
+                    },
+                    {
+                        label: "Node",
+                        value: (occurrence) => {
+                            const nodePath = occurrence.endEvent.payload?.["nodePath"];
+                            return nodePath ? <RedactedField value={nodePath} /> : "—";
+                        },
+                    },
+                ]}
+            />
         </>
     );
 }
+
+// ---------------------------------------------------------------------------
+// Exports & Settings
+// ---------------------------------------------------------------------------
 
 export function ExportsPage() {
     const { rpc, activeSourceId } = useDc();

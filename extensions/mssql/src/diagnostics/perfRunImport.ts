@@ -17,6 +17,7 @@ import {
     DiagEvent,
     DiagProcess,
     PerfMetricSample,
+    PerfRunInfo,
 } from "../sharedInterfaces/debugConsole";
 
 interface HarnessMarker {
@@ -245,30 +246,47 @@ export function importPerfRun(runDir: string): { label: string; events: DiagEven
     };
 }
 
-/** Read official metric samples from a perftest SQLite db is out of scope for
- *  v1 (no native dep); trend data imports from run summary/result JSON files. */
-export function importPerfMetrics(perfRunsRoot: string): PerfMetricSample[] {
+function parseRunTimestamp(runName: string): string {
+    // Run directories are named 2026-07-02T20-29-51Z_xxxx.
+    const match = /^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z/.exec(runName);
+    return match ? `${match[1]}T${match[2]}:${match[3]}:${match[4]}Z` : runName.slice(0, 20);
+}
+
+/** Read official metric samples from run summary/result JSON files (SQLite
+ *  import needs a native dep — deferred). All runs are listed; only passed,
+ *  non-warmup reps contribute metric samples. */
+export function importPerfMetrics(perfRunsRoot: string): {
+    samples: PerfMetricSample[];
+    runs: PerfRunInfo[];
+} {
     const samples: PerfMetricSample[] = [];
+    const runs: PerfRunInfo[] = [];
     if (!fs.existsSync(perfRunsRoot)) {
-        return samples;
+        return { samples, runs };
     }
     for (const runName of fs.readdirSync(perfRunsRoot).sort()) {
         const runDir = path.join(perfRunsRoot, runName);
         const scenariosDir = path.join(runDir, "scenarios");
         if (!fs.existsSync(scenariosDir)) continue;
-        let createdUtc = "";
+        const createdUtc = parseRunTimestamp(runName);
+        let status = "unknown";
+        let passType: string | undefined;
+        let environmentHash: string | undefined;
         try {
             const summary = JSON.parse(
                 fs.readFileSync(path.join(runDir, "summary.json"), "utf8"),
-            ) as { runId: string; status: string };
-            if (summary.status !== "passed") continue;
-            createdUtc = runName.slice(0, 20);
+            ) as { status?: string; passType?: string; environmentHash?: string };
+            status = summary.status ?? "unknown";
+            passType = summary.passType;
+            environmentHash = summary.environmentHash;
         } catch {
-            continue;
+            // no summary: keep unknown status, still list the run
         }
+        let scenarioCount = 0;
         for (const scenario of fs.readdirSync(scenariosDir)) {
             const repsDir = path.join(scenariosDir, scenario, "reps");
             if (!fs.existsSync(repsDir)) continue;
+            scenarioCount++;
             for (const rep of fs.readdirSync(repsDir)) {
                 try {
                     const result = JSON.parse(
@@ -300,6 +318,14 @@ export function importPerfMetrics(perfRunsRoot: string): PerfMetricSample[] {
                 }
             }
         }
+        runs.push({
+            runId: runName,
+            createdUtc,
+            status,
+            ...(passType !== undefined ? { passType } : {}),
+            ...(environmentHash !== undefined ? { environmentHash } : {}),
+            scenarioCount,
+        });
     }
-    return samples;
+    return { samples, runs };
 }

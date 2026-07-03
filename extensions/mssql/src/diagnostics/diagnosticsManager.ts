@@ -80,6 +80,41 @@ export class DiagnosticsManager implements vscode.Disposable {
         }
     }
 
+    /**
+     * Apply a capture mode immediately (used by the Debug Console chip), then
+     * persist to settings in the background so it survives restarts.
+     */
+    public applyCaptureMode(
+        mode: CaptureMode,
+        options?: { reason?: string; durationMinutes?: number },
+    ): void {
+        if (mode === "off") {
+            this.disableCapture();
+            void vscode.workspace
+                .getConfiguration()
+                .update(SETTING_ENABLED, false, vscode.ConfigurationTarget.Global);
+            return;
+        }
+        if (mode === "full") {
+            // Elevation implies capture: make sure the store sink is live, then
+            // raise the policy (time-bounded, auto-reverts to redacted).
+            this.enableCapture("redacted");
+            diag.setCaptureMode("full", {
+                reason: options?.reason ?? "elevated",
+                durationMs: (options?.durationMinutes ?? 15) * 60_000,
+            });
+            this.updateStatusItem();
+            return;
+        }
+        this.enableCapture(mode);
+        void vscode.workspace
+            .getConfiguration()
+            .update(SETTING_ENABLED, true, vscode.ConfigurationTarget.Global);
+        void vscode.workspace
+            .getConfiguration()
+            .update(SETTING_MODE, mode, vscode.ConfigurationTarget.Global);
+    }
+
     private enableCapture(mode: CaptureMode): void {
         diag.setCaptureMode(mode);
         if (!this.storeSink) {

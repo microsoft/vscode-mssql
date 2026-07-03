@@ -520,7 +520,9 @@ export function TracePage() {
                                             className="dc-proc-stripe"
                                             style={{
                                                 background:
-                                                    PROCESS_COLOR[(row as DiagEvent).process],
+                                                    (row as DiagEvent).feature === "rpc"
+                                                        ? PROCESS_COLOR["sqlToolsService"]
+                                                        : PROCESS_COLOR[(row as DiagEvent).process],
                                             }}
                                         />
                                         <td className="dc-mono">
@@ -530,7 +532,26 @@ export function TracePage() {
                                             {(row as DiagEvent).seq}
                                         </td>
                                         <td>
-                                            <ProcessPill process={(row as DiagEvent).process} />
+                                            {(row as DiagEvent).feature === "rpc" ? (
+                                                <span
+                                                    className="dc-proc-pill"
+                                                    title="JSON-RPC round-trip to SQL Tools Service, measured from the extension host"
+                                                    style={{
+                                                        color: PROCESS_COLOR["sqlToolsService"],
+                                                        background: `color-mix(in srgb, ${PROCESS_COLOR["sqlToolsService"]} 13%, transparent)`,
+                                                    }}>
+                                                    <span
+                                                        className="dc-proc-dot"
+                                                        style={{
+                                                            background:
+                                                                PROCESS_COLOR["sqlToolsService"],
+                                                        }}
+                                                    />
+                                                    STS rpc
+                                                </span>
+                                            ) : (
+                                                <ProcessPill process={(row as DiagEvent).process} />
+                                            )}
                                         </td>
                                         <td className="dc-muted">{(row as DiagEvent).feature}</td>
                                         <td className="dc-mono">{(row as DiagEvent).type}</td>

@@ -47,6 +47,14 @@ const ROOT_LABELS: Array<{ match: RegExp; label: (e: DiagEvent) => string; featu
         feature: "command",
     },
     { match: /^mssql\.query\.cancel/, label: () => "Cancel query", feature: "query" },
+    {
+        match: /^mssql\.command\.invoked$/,
+        label: (e) => {
+            const command = e.payload?.["command"]?.v;
+            return typeof command === "string" ? command.replace(/^mssql\./, "") : "Command";
+        },
+        feature: "command",
+    },
 ];
 
 function commandLabel(type: string): string {
@@ -264,10 +272,14 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
                 const durationMs = sameProcess
                     ? Number(BigInt(event.monotonicNs!) - BigInt(begin.monotonicNs!)) / 1e6
                     : event.epochMs - begin.epochMs;
+                // JSON-RPC round-trips are measured from the extension host but
+                // represent time spent in STS + wire — lane them under STS with
+                // an honest label.
+                const isRpc = stem.startsWith("rpc.");
                 activities.push({
                     id: `act_${++activityCounter}`,
-                    lane: begin.process,
-                    label: shortLabel(stem),
+                    lane: isRpc ? "sqlToolsService" : begin.process,
+                    label: isRpc ? `${shortLabel(stem)} (round-trip)` : shortLabel(stem),
                     startEpochMs: begin.epochMs,
                     endEpochMs: begin.epochMs + Math.max(0.1, durationMs),
                     durationMs: Number(durationMs.toFixed(2)),

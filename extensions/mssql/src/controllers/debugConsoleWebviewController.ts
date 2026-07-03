@@ -13,6 +13,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import {
+    DcGetHistoryRequest,
+    HistoryActionTrend,
+    HistorySessionRow,
     DebugConsoleState,
     DebugSource,
     DcCaptureChangedNotification,
@@ -229,11 +232,14 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(DcSetCaptureModeRequest.type, async (request) => {
+            // Applies immediately (settings persistence happens in background).
+            this.diagnostics.applyCaptureMode(request.mode, {
+                ...(request.reason !== undefined ? { reason: request.reason } : {}),
+                ...(request.durationMinutes !== undefined
+                    ? { durationMinutes: request.durationMinutes }
+                    : {}),
+            });
             if (request.mode === "full") {
-                diag.setCaptureMode("full", {
-                    reason: request.reason ?? "elevated from Debug Console",
-                    durationMs: (request.durationMinutes ?? 15) * 60_000,
-                });
                 diag.emit({
                     feature: "sessionDiag",
                     type: "sessionDiag.elevated",
@@ -245,21 +251,6 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                         },
                     },
                 });
-            } else if (request.mode === "off") {
-                await vscode.workspace
-                    .getConfiguration()
-                    .update("mssql.sessionDiag.enabled", false, vscode.ConfigurationTarget.Global);
-            } else {
-                await vscode.workspace
-                    .getConfiguration()
-                    .update("mssql.sessionDiag.enabled", true, vscode.ConfigurationTarget.Global);
-                await vscode.workspace
-                    .getConfiguration()
-                    .update(
-                        "mssql.sessionDiag.captureMode",
-                        request.mode,
-                        vscode.ConfigurationTarget.Global,
-                    );
             }
             this.diagnostics.updateStatusItem();
             return {
@@ -302,12 +293,119 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 vscode.workspace
                     .getConfiguration()
                     .get<string>("mssql.debugConsole.perfRunsRoot", "");
-            const samples = root ? importPerfMetrics(root) : [];
+            const imported = root ? importPerfMetrics(root) : { samples: [], runs: [] };
             return {
-                scenarios: [...new Set(samples.map((s) => s.scenarioId))].sort(),
-                metrics: [...new Set(samples.map((s) => s.metricName))].sort(),
-                samples,
+                scenarios: [...new Set(imported.samples.map((s) => s.scenarioId))].sort(),
+                metrics: [...new Set(imported.samples.map((s) => s.metricName))].sort(),
+                samples: imported.samples,
+                runs: imported.runs,
             };
+        });
+
+        this.onRequest(DcGetHistoryRequest.type, async () => {
+            const sessions: HistorySessionRow[] = [];
+            const trendMap = new Map<
+                string,
+                {
+                    feature: string;
+                    points: HistoryActionTrend["points"];
+                }
+            >();
+            let totalEvents = 0;
+            let totalActions = 0;
+            const analyze = (
+                sourceId: string,
+                label: string,
+                createdUtc: string,
+                live: boolean,
+                captureMode: HistorySessionRow["captureMode"],
+                events: DiagEvent[],
+                gaps: number,
+            ) => {
+                const actions = userActions(events);
+                const errors = events.filter((e) => e.status === "error").length;
+                sessions.push({
+                    sourceId,
+                    label,
+                    createdUtc,
+                    live,
+                    events: events.length,
+                    errors,
+                    gaps,
+                    captureMode,
+                    actionCount: actions.length,
+                });
+                totalEvents += events.length;
+                totalActions += actions.length;
+                // Per-action-label medians for cross-session trends.
+                const byLabel = new Map<
+                    string,
+                    { feature: string; durations: number[]; errors: number }
+                >();
+                for (const action of actions) {
+                    if (action.durationMs === undefined) continue;
+                    const entry = byLabel.get(action.label) ?? {
+                        feature: action.feature,
+                        durations: [],
+                        errors: 0,
+                    };
+                    entry.durations.push(action.durationMs);
+                    if (action.status === "error") entry.errors++;
+                    byLabel.set(action.label, entry);
+                }
+                for (const [actionLabel, entry] of byLabel) {
+                    const sorted = [...entry.durations].sort((a, b) => a - b);
+                    const median = sorted[Math.floor((sorted.length - 1) / 2)];
+                    const trend = trendMap.get(actionLabel) ?? {
+                        feature: entry.feature,
+                        points: [],
+                    };
+                    trend.points.push({
+                        sourceId,
+                        sessionLabel: label,
+                        createdUtc,
+                        medianMs: Number(median.toFixed(1)),
+                        count: entry.durations.length,
+                        errors: entry.errors,
+                    });
+                    trendMap.set(actionLabel, trend);
+                }
+            };
+
+            // Stored sessions (newest first, bounded), then the live session.
+            for (const { manifest } of this.diagnostics.store.listLocalSessions().slice(0, 15)) {
+                if (manifest.sessionId === diag.sessionId) continue;
+                const sourceId = `store:${manifest.sessionId}`;
+                analyze(
+                    sourceId,
+                    `Session ${manifest.createdUtc.slice(0, 16).replace("T", " ")}`,
+                    manifest.createdUtc,
+                    false,
+                    manifest.captureMode,
+                    this.diagnostics.store.eventsForSource(sourceId),
+                    manifest.gapCount,
+                );
+            }
+            analyze(
+                this.liveSourceId,
+                "Current session",
+                new Date().toISOString(),
+                true,
+                diag.captureMode,
+                this.liveArchive,
+                this.liveGaps.length,
+            );
+            sessions.sort((a, b) => a.createdUtc.localeCompare(b.createdUtc));
+            const trends: HistoryActionTrend[] = [...trendMap.entries()]
+                .map(([label, entry]) => ({
+                    label,
+                    feature: entry.feature,
+                    points: entry.points.sort((a, b) => a.createdUtc.localeCompare(b.createdUtc)),
+                }))
+                .filter((trend) => trend.points.length >= 1)
+                .sort((a, b) => b.points.length - a.points.length)
+                .slice(0, 8);
+            return { sessions, trends, totalEvents, totalActions };
         });
 
         this.onRequest(DcExportRequest.type, async ({ sourceId }) => {

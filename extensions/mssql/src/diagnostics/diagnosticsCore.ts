@@ -89,6 +89,26 @@ class DiagnosticsCore {
     /** Entity-keyed correlation: feature code registers uri->trace bindings. */
     private entityTraces = new Map<string, string>();
     private listeners: Array<(mode: CaptureMode) => void> = [];
+    /**
+     * Root-action auto-correlation for normal use: a root-begin event (query
+     * submit, connection begin, OE expand, command begin) opens a trace that
+     * subsequent traceless events inherit until the next root begins or the
+     * window times out. IDE usage is mostly sequential, so this yields honest
+     * action grouping without invasive plumbing; explicitly-passed traceIds
+     * always win.
+     */
+    private rootTrace: string | undefined;
+    private rootTraceStartedMs = 0;
+    private static readonly ROOT_WINDOW_MS = 120_000;
+    private static readonly ROOT_BEGINNERS: RegExp[] = [
+        /^mssql\.command\.invoked$/,
+        /^mssql\.query\.submit$/,
+        /^mssql\.connection\.begin$/,
+        /^mssql\.oe\.expand\.begin$/,
+        /^mssql\.oe\.session\.create\.begin$/,
+        /^command\..+\.begin$/,
+        /^userAction\./,
+    ];
 
     constructor() {
         const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
@@ -218,10 +238,25 @@ class DiagnosticsCore {
             const { payload, maxClassification, redactedFields } = input.fields
                 ? classifyPayload(input.fields, this.policy)
                 : { payload: undefined, maxClassification: "public" as const, redactedFields: 0 };
-            const traceId =
+            let traceId =
                 input.traceId ??
                 this.ambientTrace ??
                 (input.entity ? this.entityTraces.get(input.entity.id) : undefined);
+            if (traceId === undefined) {
+                const isRoot = DiagnosticsCore.ROOT_BEGINNERS.some((pattern) =>
+                    pattern.test(input.type),
+                );
+                if (isRoot) {
+                    this.rootTrace = newTraceId(input.type.split(".").slice(-2).join(""));
+                    this.rootTraceStartedMs = Date.now();
+                    traceId = this.rootTrace;
+                } else if (
+                    this.rootTrace !== undefined &&
+                    Date.now() - this.rootTraceStartedMs < DiagnosticsCore.ROOT_WINDOW_MS
+                ) {
+                    traceId = this.rootTrace;
+                }
+            }
             const event: DiagEvent = {
                 schemaVersion: DIAG_SCHEMA_VERSION,
                 eventId: `evt_${this.eventCounter.toString(36).padStart(6, "0")}`,

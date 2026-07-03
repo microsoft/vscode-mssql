@@ -54,6 +54,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
 import { Perf } from "../perf/perfTelemetry";
+import { diag } from "../diagnostics/diagnosticsCore";
 import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedInterfaces/perf";
 
 export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
@@ -172,36 +173,42 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             },
         });
 
-        // Perf-harness webview mark bridge (PERF_MODE only): forward webview
-        // marks to the perf sink, and tell the webview marks are wanted once
-        // it is ready. Inert outside perf mode. The enable notification is
+        // Webview mark bridge: forward webview marks (render timings, window
+        // fetches) to the diagnostics core. Active in PERF_MODE (harness) and
+        // whenever a diagnostics sink is live (Debug Console open or Session
+        // Diag capture on); otherwise fully inert. The enable notification is
         // re-sent on a short schedule because "webview ready" can precede the
         // app's handler registration; the webview queues marks (with original
         // timestamps) until one of the sends lands.
-        if (Perf.enabled) {
-            this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
-                Perf.webviewMark(mark, this._sourceFile);
-            });
-            // Unconditional schedule (not gated on whenWebviewReady, which can
-            // time out on cold first loads): sends to a not-yet-ready webview
-            // are dropped harmlessly, and the webview queues marks with their
-            // original timestamps until one enable lands.
-            for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
-                const timer = setTimeout(() => {
-                    if (!this._isDisposed) {
-                        try {
-                            void this.connection.sendNotification(
-                                PerfEnableNotification.type,
-                                undefined,
-                            );
-                        } catch {
-                            // disposed between check and send; ignore
-                        }
-                    }
-                }, delayMs);
-                this._disposables.push({ dispose: () => clearTimeout(timer) });
+        this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
+            Perf.webviewMark(mark, this._sourceFile);
+        });
+        // Unconditional schedule (not gated on whenWebviewReady, which can
+        // time out on cold first loads): sends to a not-yet-ready webview
+        // are dropped harmlessly, and the webview queues marks with their
+        // original timestamps until one enable lands. Late sends also cover
+        // "console opened after the webview loaded".
+        const sendEnableIfWanted = () => {
+            if (this._isDisposed) {
+                return;
             }
+            if (!Perf.enabled && !diag.anySinkActive) {
+                return;
+            }
+            try {
+                void this.connection.sendNotification(PerfEnableNotification.type, undefined);
+            } catch {
+                // disposed between check and send; ignore
+            }
+        };
+        for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
+            const timer = setTimeout(sendEnableIfWanted, delayMs);
+            this._disposables.push({ dispose: () => clearTimeout(timer) });
         }
+        // Keep late-opened consoles covered: re-check periodically (cheap).
+        const enablePoll = setInterval(sendEnableIfWanted, 20000);
+        enablePoll.unref?.();
+        this._disposables.push({ dispose: () => clearInterval(enablePoll) });
     }
 
     /**

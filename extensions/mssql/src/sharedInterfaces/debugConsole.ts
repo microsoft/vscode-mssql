@@ -336,10 +336,20 @@ export interface PerfMetricSample {
     commit?: string;
 }
 
+export interface PerfRunInfo {
+    runId: string;
+    createdUtc: string;
+    status: string;
+    passType?: string;
+    environmentHash?: string;
+    scenarioCount: number;
+}
+
 export interface PerfSummary {
     scenarios: string[];
     metrics: string[];
     samples: PerfMetricSample[];
+    runs: PerfRunInfo[];
 }
 
 export interface SqlActivityRow {
@@ -433,6 +443,44 @@ export namespace DcExportRequest {
         void
     >("dc/export");
 }
+// History (cross-session) ---------------------------------------------------
+
+export interface HistorySessionRow {
+    sourceId: string;
+    label: string;
+    createdUtc: string;
+    live: boolean;
+    events: number;
+    errors: number;
+    gaps: number;
+    captureMode: CaptureMode;
+    actionCount: number;
+}
+
+export interface HistoryActionTrend {
+    label: string;
+    feature: string;
+    points: Array<{
+        sourceId: string;
+        sessionLabel: string;
+        createdUtc: string;
+        medianMs: number;
+        count: number;
+        errors: number;
+    }>;
+}
+
+export interface HistorySummary {
+    sessions: HistorySessionRow[];
+    trends: HistoryActionTrend[];
+    totalEvents: number;
+    totalActions: number;
+}
+
+export namespace DcGetHistoryRequest {
+    export const type = new RequestType<void, HistorySummary, void>("dc/getHistory");
+}
+
 export namespace DcLivePushNotification {
     export const type = new NotificationType<LiveTailPush>("dc/livePush");
 }

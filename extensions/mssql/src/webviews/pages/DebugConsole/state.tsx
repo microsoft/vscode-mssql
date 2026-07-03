@@ -36,6 +36,7 @@ export type DcPage =
     | "trace"
     | "waterfall"
     | "perf"
+    | "history"
     | "completions"
     | "replay"
     | "sql"

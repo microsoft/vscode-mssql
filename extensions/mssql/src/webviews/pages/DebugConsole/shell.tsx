@@ -14,11 +14,11 @@ import {
     ExportsPage,
     GatedPage,
     ObjectExplorerPage,
-    PerfPage,
     QueryResultsPage,
     SettingsPage,
     SqlActivityPage,
 } from "./pagesMore";
+import { HistoryPage, PerfPage } from "./pagesPerf";
 
 const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon: string }> }> = [
     {
@@ -28,6 +28,7 @@ const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon
             { id: "trace", label: "Consolidated Trace", icon: "≣" },
             { id: "waterfall", label: "Waterfall", icon: "𝄜" },
             { id: "perf", label: "Perf & Sessions", icon: "∿" },
+            { id: "history", label: "History", icon: "◷" },
             { id: "completions", label: "Completions", icon: "✦" },
             { id: "replay", label: "Replay Lab", icon: "⟳" },
         ],
@@ -212,7 +213,12 @@ function TopBar() {
                     />
                     Live
                 </button>
-                <button className={!isLive ? "active" : ""} onClick={() => setIsLive(false)}>
+                <button
+                    className={!isLive ? "active" : ""}
+                    onClick={() => {
+                        setIsLive(false);
+                        navigate({ page: "history" });
+                    }}>
                     History
                 </button>
             </div>
@@ -294,6 +300,9 @@ export function DebugConsoleApp() {
             break;
         case "perf":
             page = <PerfPage />;
+            break;
+        case "history":
+            page = <HistoryPage />;
             break;
         case "sql":
             page = <SqlActivityPage />;
