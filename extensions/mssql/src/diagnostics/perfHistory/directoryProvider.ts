@@ -72,15 +72,17 @@ interface DirIndex {
 
 // --- suites -------------------------------------------------------------------
 
+// Order matters: soak scenario ids contain "query"/"connect", so the soak
+// rule must win first; query beats connections for "connect-query" mixes.
 const SUITE_RULES: Array<{ match: RegExp; suite: string }> = [
+    { match: /soak/i, suite: "Soak" },
+    { match: /oe-|expand-|object-?explorer/i, suite: "Object Explorer" },
+    { match: /intellisense|completion/i, suite: "IntelliSense" },
     {
         match: /query|resultsgrid|large-result|blob|wide-columns|result-sets/i,
         suite: "Query & Results",
     },
-    { match: /oe-|expand-|object-?explorer/i, suite: "Object Explorer" },
     { match: /connect|reconnect/i, suite: "Connections" },
-    { match: /soak/i, suite: "Soak" },
-    { match: /intellisense|completion/i, suite: "IntelliSense" },
     { match: /activation|ext-|debug-console/i, suite: "Extension" },
     { match: /noop|synthetic|harness/i, suite: "Harness" },
 ];
