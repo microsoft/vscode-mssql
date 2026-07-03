@@ -174,7 +174,14 @@ export class SessionStore {
         const limit = Math.min(query.limit ?? 500, MAX_QUERY_LIMIT);
         const text = query.text?.toLowerCase();
         const filtered = events.filter((event) => {
-            if (query.processes && !query.processes.includes(event.process)) return false;
+            if (query.processes && !query.processes.includes(event.process)) {
+                // RPC boundary spans are emitted by the extension host but
+                // represent STS work — the "STS" process filter includes them
+                // (they render as "STS rpc" in the UI).
+                const rpcUnderSts =
+                    event.feature === "rpc" && query.processes.includes("sqlToolsService");
+                if (!rpcUnderSts) return false;
+            }
             if (query.features && !query.features.includes(event.feature)) return false;
             if (query.kinds && !query.kinds.includes(event.kind)) return false;
             if (query.statuses && !query.statuses.includes(event.status)) return false;

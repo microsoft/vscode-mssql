@@ -21,6 +21,7 @@ import {
     UserActionSummary,
     WaterfallModel,
 } from "../../../sharedInterfaces/debugConsole";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
     EmptyState,
     formatDuration,
@@ -476,113 +477,127 @@ export function TracePage() {
                         : ""}
                 </span>
             </div>
-            <div className="dc-split">
-                <div className="dc-table-wrap">
-                    <table className="dc-table">
-                        <thead>
-                            <tr>
-                                <th className="dc-proc-stripe" />
-                                <th>Time</th>
-                                <th className="num">Seq</th>
-                                <th>Process</th>
-                                <th>Feature</th>
-                                <th>Type</th>
-                                <th>Corr</th>
-                                <th className="num">Dur</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(result?.rows ?? []).map((row) =>
-                                row.kind === "gap" ? (
-                                    <tr className="dc-gap-row" key={(row as GapRecord).gapId}>
-                                        <td className="dc-proc-stripe" />
-                                        <td colSpan={8}>
-                                            ⚠ {(row as GapRecord).droppedCount} events dropped ·
-                                            seq {(row as GapRecord).fromSeq}–
-                                            {(row as GapRecord).throughSeq} ·{" "}
-                                            {(row as GapRecord).reason} —{" "}
-                                            <span className="dc-muted">
-                                                retained in Session Diag store when capture is on
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    <tr
-                                        key={(row as DiagEvent).eventId}
-                                        className={
-                                            selected?.eventId === (row as DiagEvent).eventId
-                                                ? "selected"
-                                                : ""
-                                        }
-                                        onClick={() => setSelected(row as DiagEvent)}>
-                                        <td
-                                            className="dc-proc-stripe"
-                                            style={{
-                                                background:
-                                                    (row as DiagEvent).feature === "rpc"
-                                                        ? PROCESS_COLOR["sqlToolsService"]
-                                                        : PROCESS_COLOR[(row as DiagEvent).process],
-                                            }}
-                                        />
-                                        <td className="dc-mono">
-                                            {formatTime((row as DiagEvent).epochMs)}
-                                        </td>
-                                        <td className="num dc-mono dc-muted">
-                                            {(row as DiagEvent).seq}
-                                        </td>
-                                        <td>
-                                            {(row as DiagEvent).feature === "rpc" ? (
-                                                <span
-                                                    className="dc-proc-pill"
-                                                    title="JSON-RPC round-trip to SQL Tools Service, measured from the extension host"
-                                                    style={{
-                                                        color: PROCESS_COLOR["sqlToolsService"],
-                                                        background: `color-mix(in srgb, ${PROCESS_COLOR["sqlToolsService"]} 13%, transparent)`,
-                                                    }}>
-                                                    <span
-                                                        className="dc-proc-dot"
-                                                        style={{
-                                                            background:
-                                                                PROCESS_COLOR["sqlToolsService"],
-                                                        }}
-                                                    />
-                                                    STS rpc
+            <PanelGroup direction="horizontal" className="dc-split-panels">
+                <Panel defaultSize={62} minSize={30} className="dc-panel-min0">
+                    <div className="dc-table-wrap" style={{ height: "100%" }}>
+                        <table className="dc-table">
+                            <thead>
+                                <tr>
+                                    <th className="dc-proc-stripe" />
+                                    <th>Time</th>
+                                    <th className="num">Seq</th>
+                                    <th>Process</th>
+                                    <th>Feature</th>
+                                    <th>Type</th>
+                                    <th>Corr</th>
+                                    <th className="num">Dur</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(result?.rows ?? []).map((row) =>
+                                    row.kind === "gap" ? (
+                                        <tr className="dc-gap-row" key={(row as GapRecord).gapId}>
+                                            <td className="dc-proc-stripe" />
+                                            <td colSpan={8}>
+                                                ⚠ {(row as GapRecord).droppedCount} events dropped
+                                                · seq {(row as GapRecord).fromSeq}–
+                                                {(row as GapRecord).throughSeq} ·{" "}
+                                                {(row as GapRecord).reason} —{" "}
+                                                <span className="dc-muted">
+                                                    retained in Session Diag store when capture is
+                                                    on
                                                 </span>
-                                            ) : (
-                                                <ProcessPill process={(row as DiagEvent).process} />
-                                            )}
-                                        </td>
-                                        <td className="dc-muted">{(row as DiagEvent).feature}</td>
-                                        <td className="dc-mono">{(row as DiagEvent).type}</td>
-                                        <td className="dc-mono dc-muted">
-                                            {(row as DiagEvent).traceId
-                                                ? `${(row as DiagEvent).traceId!.slice(0, 14)}…`
-                                                : "—"}
-                                        </td>
-                                        <td className="num dc-mono">
-                                            {formatDuration((row as DiagEvent).durationMs)}
-                                        </td>
-                                        <td>
-                                            <StatusPill status={(row as DiagEvent).status} />
-                                        </td>
-                                    </tr>
-                                ),
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                {selected ? (
-                    <EventDetail event={selected} />
-                ) : (
-                    <div className="dc-detail">
-                        <div className="dc-detail-body dc-muted">
-                            Select an event to inspect its payload, cause chain, and privacy
-                            classification.
-                        </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        <tr
+                                            key={(row as DiagEvent).eventId}
+                                            className={
+                                                selected?.eventId === (row as DiagEvent).eventId
+                                                    ? "selected"
+                                                    : ""
+                                            }
+                                            onClick={() => setSelected(row as DiagEvent)}>
+                                            <td
+                                                className="dc-proc-stripe"
+                                                style={{
+                                                    background:
+                                                        (row as DiagEvent).feature === "rpc"
+                                                            ? PROCESS_COLOR["sqlToolsService"]
+                                                            : PROCESS_COLOR[
+                                                                  (row as DiagEvent).process
+                                                              ],
+                                                }}
+                                            />
+                                            <td className="dc-mono">
+                                                {formatTime((row as DiagEvent).epochMs)}
+                                            </td>
+                                            <td className="num dc-mono dc-muted">
+                                                {(row as DiagEvent).seq}
+                                            </td>
+                                            <td>
+                                                {(row as DiagEvent).feature === "rpc" ? (
+                                                    <span
+                                                        className="dc-proc-pill"
+                                                        title="JSON-RPC round-trip to SQL Tools Service, measured from the extension host"
+                                                        style={{
+                                                            color: PROCESS_COLOR["sqlToolsService"],
+                                                            background: `color-mix(in srgb, ${PROCESS_COLOR["sqlToolsService"]} 13%, transparent)`,
+                                                        }}>
+                                                        <span
+                                                            className="dc-proc-dot"
+                                                            style={{
+                                                                background:
+                                                                    PROCESS_COLOR[
+                                                                        "sqlToolsService"
+                                                                    ],
+                                                            }}
+                                                        />
+                                                        STS rpc
+                                                    </span>
+                                                ) : (
+                                                    <ProcessPill
+                                                        process={(row as DiagEvent).process}
+                                                    />
+                                                )}
+                                            </td>
+                                            <td className="dc-muted">
+                                                {(row as DiagEvent).feature}
+                                            </td>
+                                            <td className="dc-mono">{(row as DiagEvent).type}</td>
+                                            <td className="dc-mono dc-muted">
+                                                {(row as DiagEvent).traceId
+                                                    ? `${(row as DiagEvent).traceId!.slice(0, 14)}…`
+                                                    : "—"}
+                                            </td>
+                                            <td className="num dc-mono">
+                                                {formatDuration((row as DiagEvent).durationMs)}
+                                            </td>
+                                            <td>
+                                                <StatusPill status={(row as DiagEvent).status} />
+                                            </td>
+                                        </tr>
+                                    ),
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                )}
-            </div>
+                </Panel>
+                <PanelResizeHandle className="dc-resize-handle" />
+                <Panel defaultSize={38} minSize={22} className="dc-panel-min0">
+                    {selected ? (
+                        <EventDetail event={selected} />
+                    ) : (
+                        <div className="dc-detail" style={{ height: "100%" }}>
+                            <div className="dc-detail-body dc-muted">
+                                Select an event to inspect its payload, cause chain, and privacy
+                                classification.
+                            </div>
+                        </div>
+                    )}
+                </Panel>
+            </PanelGroup>
         </>
     );
 }
@@ -744,19 +759,43 @@ export function WaterfallPage() {
                             ))}
                         </div>
                     </div>
-                    {lanes.map((lane) => (
-                        <div className="dc-wf-lane" key={lane}>
-                            <div className="dc-wf-lane-label">
-                                <span
-                                    className="dc-proc-dot"
-                                    style={{ background: PROCESS_COLOR[lane] }}
-                                />
-                                {lane === "userAction" ? "User action" : lane}
-                            </div>
-                            <div className="dc-wf-track">
-                                {model.activities
-                                    .filter((a) => a.lane === lane)
-                                    .map((activity) => {
+                    {lanes.map((lane) => {
+                        // Row packing: overlapping activities stack into
+                        // sub-rows instead of piling onto one line.
+                        const laneActivities = model.activities
+                            .filter((a) => a.lane === lane)
+                            .sort((a, b) => a.startEpochMs - b.startEpochMs);
+                        const rowEnds: number[] = [];
+                        const rowOf = new Map<string, number>();
+                        for (const activity of laneActivities) {
+                            let row = rowEnds.findIndex(
+                                (end) => end <= activity.startEpochMs + 0.01,
+                            );
+                            if (row < 0) {
+                                row = rowEnds.length;
+                                rowEnds.push(0);
+                            }
+                            rowEnds[row] = activity.endEpochMs;
+                            rowOf.set(activity.id, row);
+                        }
+                        const ROW_HEIGHT = 22;
+                        const laneHeight = Math.max(30, rowEnds.length * ROW_HEIGHT + 8);
+                        return (
+                            <div className="dc-wf-lane" key={lane}>
+                                <div className="dc-wf-lane-label">
+                                    <span
+                                        className="dc-proc-dot"
+                                        style={{ background: PROCESS_COLOR[lane] }}
+                                    />
+                                    {lane === "userAction" ? "User action" : lane}
+                                    {rowEnds.length > 1 ? (
+                                        <span className="dc-muted" style={{ fontSize: 10 }}>
+                                            ×{laneActivities.length}
+                                        </span>
+                                    ) : null}
+                                </div>
+                                <div className="dc-wf-track" style={{ minHeight: laneHeight }}>
+                                    {laneActivities.map((activity) => {
                                         const left =
                                             ((activity.startEpochMs - model.startEpochMs) / total) *
                                             100;
@@ -769,6 +808,8 @@ export function WaterfallPage() {
                                         const official =
                                             activity.timingClass === "officialSameProcess" ||
                                             activity.timingClass === "productTimer";
+                                        const row = rowOf.get(activity.id) ?? 0;
+                                        const showLabel = width > 12;
                                         return (
                                             <div
                                                 key={activity.id}
@@ -776,17 +817,36 @@ export function WaterfallPage() {
                                                 style={{
                                                     left: `${left}%`,
                                                     width: `${width}%`,
+                                                    top: 5 + row * ROW_HEIGHT,
                                                     background: PROCESS_COLOR[activity.lane],
                                                     opacity: official ? 0.95 : 0.75,
                                                 }}
                                                 title={`${activity.label} — ${formatDuration(activity.durationMs)} (${activity.timingClass})`}
-                                                onClick={() => setSelectedBar(activity.id)}
-                                            />
+                                                onClick={() => setSelectedBar(activity.id)}>
+                                                {showLabel ? (
+                                                    <span
+                                                        style={{
+                                                            position: "absolute",
+                                                            left: 4,
+                                                            top: 1,
+                                                            fontSize: 9.5,
+                                                            color: "#fff",
+                                                            whiteSpace: "nowrap",
+                                                            overflow: "hidden",
+                                                            maxWidth: "calc(100% - 6px)",
+                                                            textShadow: "0 0 3px rgba(0,0,0,.6)",
+                                                            pointerEvents: "none",
+                                                        }}>
+                                                        {activity.label}
+                                                    </span>
+                                                ) : null}
+                                            </div>
                                         );
                                     })}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
                 <div>
                     {selected ? (

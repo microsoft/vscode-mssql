@@ -60,12 +60,13 @@ export function PerfPage() {
         });
     }, [rpc]);
 
-    // Scenario browser data: per-scenario median series (selected metric).
+    // Scenario browser: always keyed on scenario.wallclock so the browser
+    // stays stable while the metric selector changes.
     const scenarioCards = useMemo(() => {
         if (!summary) return [];
         const byScenario = new Map<string, Map<string, number[]>>();
         for (const sample of summary.samples) {
-            if (sample.metricName !== metric || !sample.official) continue;
+            if (sample.metricName !== "scenario.wallclock" || !sample.official) continue;
             const runs = byScenario.get(sample.scenarioId) ?? new Map<string, number[]>();
             const values = runs.get(sample.runId) ?? [];
             values.push(sample.value);
@@ -86,13 +87,40 @@ export function PerfPage() {
                 return { scenarioId, series, latest, deltaPct, runCount: series.length };
             })
             .sort((a, b) => b.runCount - a.runCount);
-    }, [summary, metric]);
+    }, [summary]);
 
     useEffect(() => {
         if (!scenario && scenarioCards.length > 0) {
             setScenario(scenarioCards[0].scenarioId);
         }
     }, [scenarioCards, scenario]);
+
+    // Metrics available for the SELECTED scenario (with run counts) — the
+    // dropdown never offers a metric this scenario has no data for.
+    const availableMetrics = useMemo(() => {
+        if (!summary) return [];
+        const counts = new Map<string, Set<string>>();
+        for (const sample of summary.samples) {
+            if (sample.scenarioId !== scenario || !sample.official) continue;
+            const runs = counts.get(sample.metricName) ?? new Set<string>();
+            runs.add(sample.runId);
+            counts.set(sample.metricName, runs);
+        }
+        return [...counts.entries()]
+            .map(([name, runs]) => ({ name, runCount: runs.size }))
+            .sort((a, b) => b.runCount - a.runCount || a.name.localeCompare(b.name));
+    }, [summary, scenario]);
+
+    // Keep the metric valid when the scenario changes.
+    useEffect(() => {
+        if (availableMetrics.length === 0) return;
+        if (!availableMetrics.some((m) => m.name === metric)) {
+            const fallback =
+                availableMetrics.find((m) => m.name === "scenario.wallclock") ??
+                availableMetrics[0];
+            setMetric(fallback.name);
+        }
+    }, [availableMetrics, metric]);
 
     // Per-run stats for the selected scenario + metric.
     const runStats = useMemo<RunStats[]>(() => {
@@ -131,6 +159,11 @@ export function PerfPage() {
                     ? current
                     : (runStats[runStats.length - 2]?.runId ?? runStats[0].runId),
             );
+        } else {
+            // No data for this scenario+metric: clear stale A/B selections so
+            // nothing renders from a previous combination.
+            setCandidateRun("");
+            setBaselineRun("");
         }
     }, [runStats]);
 
@@ -228,10 +261,15 @@ export function PerfPage() {
                     ))}
                 </select>
                 <select value={metric} onChange={(e) => setMetric(e.target.value)}>
-                    {summary.metrics.map((m) => (
-                        <option key={m}>{m}</option>
+                    {availableMetrics.map((m) => (
+                        <option key={m.name} value={m.name}>
+                            {m.name} ({m.runCount} runs)
+                        </option>
                     ))}
                 </select>
+                <span className="dc-muted">
+                    {availableMetrics.length} metric(s) recorded for this scenario
+                </span>
             </div>
 
             <div className="dc-kpis">
@@ -273,7 +311,7 @@ export function PerfPage() {
             <div className="dc-card">
                 <div className="dc-card-title">
                     Scenario browser
-                    <span className="right">{metric} · per-run medians</span>
+                    <span className="right">scenario.wallclock · per-run medians</span>
                 </div>
                 <div
                     className="dc-chart-grid"
@@ -312,8 +350,9 @@ export function PerfPage() {
                                                           ? "var(--dc-ok)"
                                                           : "var(--dc-muted)",
                                             }}>
-                                            {card.deltaPct > 0 ? "+" : ""}
-                                            {card.deltaPct.toFixed(1)}%
+                                            {Math.abs(card.deltaPct) > 999
+                                                ? `${card.deltaPct > 0 ? ">+999" : "<-999"}%`
+                                                : `${card.deltaPct > 0 ? "+" : ""}${card.deltaPct.toFixed(1)}%`}
                                         </div>
                                     ) : null}
                                 </div>
@@ -323,64 +362,83 @@ export function PerfPage() {
                 </div>
             </div>
 
-            <div className="dc-two-col">
-                <div className="dc-card">
-                    <div className="dc-card-title">
-                        Trend across runs
-                        <span className="right">
-                            {stepIndex >= 0
-                                ? `step change at ${runStats[stepIndex].runId.slice(0, 20)}…`
-                                : "no step change beyond 10%"}
-                        </span>
-                    </div>
-                    <TrendChart
-                        points={runStats.map((run, index) => ({
-                            x: index,
-                            y: run.median,
-                            label: `${run.runId}\nmedian ${formatDuration(run.median)} · p95 ${formatDuration(run.p95)} · ${run.n} reps`,
-                            highlight: index === stepIndex,
-                        }))}
-                        {...(band ? { band } : {})}
-                        onPick={(index) => setCandidateRun(runStats[index].runId)}
-                    />
-                    <div className="dc-muted" style={{ fontSize: 11 }}>
-                        Click a point to select it as the A/B candidate. Amber = step change.
-                    </div>
+            {runStats.length === 0 ? (
+                <div className="dc-card dc-muted">
+                    No runs recorded <span className="dc-mono">{metric}</span> for{" "}
+                    <span className="dc-mono">{scenario}</span> — pick another metric above (the
+                    dropdown only lists recorded ones).
                 </div>
-                <div className="dc-card">
-                    <div className="dc-card-title">
-                        Latest run distribution
-                        <span className="right">{latest?.runId.slice(0, 24)}</span>
+            ) : (
+                <>
+                    <div className="dc-two-col">
+                        <div className="dc-card">
+                            <div className="dc-card-title">
+                                Trend across runs
+                                <span className="right">
+                                    {stepIndex >= 0
+                                        ? `step change at ${runStats[stepIndex].runId.slice(0, 20)}…`
+                                        : "no step change beyond 10%"}
+                                </span>
+                            </div>
+                            <TrendChart
+                                points={runStats.map((run, index) => ({
+                                    x: index,
+                                    y: run.median,
+                                    label: `${run.runId}\nmedian ${formatDuration(run.median)} · p95 ${formatDuration(run.p95)} · ${run.n} reps`,
+                                    highlight: index === stepIndex,
+                                }))}
+                                {...(band ? { band } : {})}
+                                onPick={(index) => setCandidateRun(runStats[index].runId)}
+                            />
+                            <div className="dc-muted" style={{ fontSize: 11 }}>
+                                Click a point to select it as the A/B candidate. Amber = step
+                                change.
+                            </div>
+                        </div>
+                        <div className="dc-card">
+                            <div className="dc-card-title">
+                                Latest run distribution
+                                <span className="right">{latest?.runId.slice(0, 24)}</span>
+                            </div>
+                            <Histogram values={latest?.values ?? []} />
+                        </div>
                     </div>
-                    <Histogram values={latest?.values ?? []} />
-                </div>
-            </div>
 
-            <div className="dc-card">
-                <div className="dc-card-title">
-                    A/B comparison
-                    <span className="right">official metric medians · red = slower</span>
-                </div>
-                <div className="dc-toolbar">
-                    <span className="dc-muted">Baseline</span>
-                    <select value={baselineRun} onChange={(e) => setBaselineRun(e.target.value)}>
-                        {runStats.map((run) => (
-                            <option key={run.runId} value={run.runId}>
-                                {run.runId}
-                            </option>
-                        ))}
-                    </select>
-                    <span className="dc-muted">Candidate</span>
-                    <select value={candidateRun} onChange={(e) => setCandidateRun(e.target.value)}>
-                        {runStats.map((run) => (
-                            <option key={run.runId} value={run.runId}>
-                                {run.runId}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <DeltaBars entries={abDeltas} />
-            </div>
+                    {runStats.length >= 2 ? (
+                        <div className="dc-card">
+                            <div className="dc-card-title">
+                                A/B comparison
+                                <span className="right">
+                                    official metric medians · red = slower
+                                </span>
+                            </div>
+                            <div className="dc-toolbar">
+                                <span className="dc-muted">Baseline</span>
+                                <select
+                                    value={baselineRun}
+                                    onChange={(e) => setBaselineRun(e.target.value)}>
+                                    {runStats.map((run) => (
+                                        <option key={run.runId} value={run.runId}>
+                                            {run.runId}
+                                        </option>
+                                    ))}
+                                </select>
+                                <span className="dc-muted">Candidate</span>
+                                <select
+                                    value={candidateRun}
+                                    onChange={(e) => setCandidateRun(e.target.value)}>
+                                    {runStats.map((run) => (
+                                        <option key={run.runId} value={run.runId}>
+                                            {run.runId}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <DeltaBars entries={abDeltas} />
+                        </div>
+                    ) : null}
+                </>
+            )}
 
             <div className="dc-card">
                 <div className="dc-card-title">
@@ -403,7 +461,17 @@ export function PerfPage() {
                             {[...summary.runs].reverse().map((run) => {
                                 const stats = runStats.find((r) => r.runId === run.runId);
                                 return (
-                                    <tr key={run.runId}>
+                                    <tr
+                                        key={run.runId}
+                                        title={
+                                            stats
+                                                ? "Click to select as A/B candidate"
+                                                : "No data for the selected scenario/metric"
+                                        }
+                                        className={run.runId === candidateRun ? "selected" : ""}
+                                        onClick={() =>
+                                            stats ? setCandidateRun(run.runId) : undefined
+                                        }>
                                         <td className="dc-mono">{run.runId}</td>
                                         <td className="dc-mono dc-muted">
                                             {run.createdUtc.replace("T", " ").replace("Z", "")}

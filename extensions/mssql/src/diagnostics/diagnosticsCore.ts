@@ -314,9 +314,29 @@ class DiagnosticsCore {
         }
     }
 
+    /**
+     * Trace for a non-root span: explicit > ambient > the active root action
+     * (so RPC spans nest under the user action that caused them) > fresh.
+     */
+    private resolveSpanTrace(feature: string, explicit?: string): string {
+        if (explicit !== undefined) {
+            return explicit;
+        }
+        if (this.ambientTrace !== undefined) {
+            return this.ambientTrace;
+        }
+        if (
+            this.rootTrace !== undefined &&
+            Date.now() - this.rootTraceStartedMs < DiagnosticsCore.ROOT_WINDOW_MS
+        ) {
+            return this.rootTrace;
+        }
+        return newTraceId(feature);
+    }
+
     /** Span helper: emits type.begin now and type.end (with duration) on end(). */
     public startSpan(input: EmitInput): DiagSpan {
-        const traceId = input.traceId ?? this.ambientTrace ?? newTraceId(input.feature);
+        const traceId = this.resolveSpanTrace(input.feature, input.traceId);
         const startMono = process.hrtime.bigint();
         const beginId = this.emit({
             ...input,

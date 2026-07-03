@@ -658,10 +658,19 @@ export default class SqlToolsServiceClient {
             // active). The method name is protocol metadata, never payload.
             if (diag.anySinkActive) {
                 const method = (type as { method?: string }).method ?? "unknown";
+                // Params summary: only known-safe protocol fields, classified.
+                const ownerUri = (params as { ownerUri?: unknown } | undefined)?.ownerUri;
                 const span = diag.startSpan({
                     feature: "rpc",
                     kind: "request",
                     type: `rpc.${method}`,
+                    ...(typeof ownerUri === "string"
+                        ? {
+                              fields: {
+                                  ownerUri: { raw: ownerUri, cls: "source.path" as const },
+                              },
+                          }
+                        : {}),
                 });
                 return this.client.sendRequest(type, params as RequestParam<P>).then(
                     (result) => {

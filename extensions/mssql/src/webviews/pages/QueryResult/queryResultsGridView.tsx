@@ -21,7 +21,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
 import ResultGrid, { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { perfMarkAfterNextPaint } from "../../common/perfMarks";
+import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
@@ -171,9 +171,25 @@ export const QueryResultsGridView = ({
         resultSetSummaries,
     ]);
 
-    // Perf-harness render-complete mark: fires only when the perf bridge is
-    // enabled (PERF_MODE runs); otherwise perfMarkAfterNextPaint is inert.
+    // Diagnostics marks: emitted when the perf/diag bridge is enabled
+    // (PERF_MODE runs or Debug Console / Session Diag active); inert otherwise.
     const lastPerfMarkKey = useRef<string | undefined>(undefined);
+    const lastDataMarkKey = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        // Data-received mark: result summaries arrived in the webview (before
+        // paint) — the gap to renderComplete is grid render cost.
+        if (gridList.length === 0) {
+            return;
+        }
+        const dataKey = `${uri}:${gridList.length}`;
+        if (lastDataMarkKey.current !== dataKey) {
+            lastDataMarkKey.current = dataKey;
+            perfMark("mssql.resultsGrid.dataReceived", {
+                resultSets: gridList.length,
+                stillExecuting: isExecuting !== false,
+            });
+        }
+    }, [gridList, isExecuting, uri]);
     useEffect(() => {
         if (isExecuting !== false || gridList.length === 0) {
             return;
