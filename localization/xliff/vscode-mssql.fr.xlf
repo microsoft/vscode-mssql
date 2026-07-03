@@ -7989,6 +7989,10 @@ Erreur :
         <source xml:lang="en">Resume</source>
         <target state="translated">Reprise</target>
       </trans-unit>
+      <trans-unit id="++CODE++d647b9f6483baa818a4f660d92726b61fb1d08fe42e39ddf95c763fd2fb260c0">
+        <source xml:lang="en">Resuming database</source>
+        <target state="new">Resuming database</target>
+      </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
         <target state="translated">Réessayer</target>
