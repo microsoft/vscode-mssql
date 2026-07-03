@@ -52,6 +52,8 @@ export interface EmitInput {
     /** Override event time (e.g. webview-supplied clocks). */
     epochMs?: number;
     monotonicNs?: string;
+    /** Rich enrichment block (attached by the core under rich mode only). */
+    perf?: DiagEvent["perf"];
 }
 
 export interface DiagnosticSink {
@@ -137,6 +139,37 @@ class DiagnosticsCore {
 
     public get anySinkActive(): boolean {
         return this.sinks.length > 0;
+    }
+
+    // --- rich collection (COLLECT_ALL_THE_DATA) --------------------------------
+
+    private richModeEnabled = false;
+    /** Cheap metric snapshot provider installed by the rich collector. */
+    private richProvider: (() => Record<string, number>) | undefined;
+
+    public get richMode(): boolean {
+        return this.richModeEnabled;
+    }
+
+    /**
+     * Toggle rich enrichment. Enrichment is diagnostic-only metadata (counts,
+     * bytes, delays) — it never changes capture policy or redaction.
+     */
+    public setRichMode(enabled: boolean, reason?: string): void {
+        if (this.richModeEnabled === enabled) {
+            return;
+        }
+        this.richModeEnabled = enabled;
+        this.emit({
+            feature: "sessionDiag",
+            type: enabled ? "richCollection.enabled" : "richCollection.disabled",
+            status: "info",
+            ...(reason ? { fields: { reason: { raw: reason, cls: "diagnostic.metadata" } } } : {}),
+        });
+    }
+
+    public setRichProvider(provider: (() => Record<string, number>) | undefined): void {
+        this.richProvider = provider;
     }
 
     // --- capture policy --------------------------------------------------------
@@ -301,6 +334,9 @@ class DiagnosticsCore {
             if (input.tags !== undefined) {
                 event.tags = input.tags;
             }
+            if (input.perf !== undefined) {
+                event.perf = input.perf;
+            }
             for (const sink of this.sinks) {
                 try {
                     sink.tryWrite(event);
@@ -338,6 +374,9 @@ class DiagnosticsCore {
     public startSpan(input: EmitInput): DiagSpan {
         const traceId = this.resolveSpanTrace(input.feature, input.traceId);
         const startMono = process.hrtime.bigint();
+        // Rich mode: capture a begin heap reading so span ends can report the
+        // allocation delta. One memoryUsage() call per span, rich mode only.
+        const beginHeap = this.richModeEnabled ? process.memoryUsage().heapUsed : undefined;
         const beginId = this.emit({
             ...input,
             traceId,
@@ -345,10 +384,28 @@ class DiagnosticsCore {
             type: `${input.type}.begin`,
         });
         const core = this;
+        const richBlock = (): DiagEvent["perf"] | undefined => {
+            if (!core.richModeEnabled) {
+                return undefined;
+            }
+            const metrics: Record<string, number> = { ...(core.richProvider?.() ?? {}) };
+            if (beginHeap !== undefined) {
+                metrics["heapDeltaKB"] = Number(
+                    ((process.memoryUsage().heapUsed - beginHeap) / 1024).toFixed(1),
+                );
+            }
+            return {
+                captureLevel: "rich",
+                officialEligible: false,
+                metrics,
+                collectionCost: "low",
+            };
+        };
         return {
             traceId,
             end(status?: DiagStatus, fields?: Record<string, RawField>): void {
                 const durationMs = Number(process.hrtime.bigint() - startMono) / 1e6;
+                const perf = richBlock();
                 core.emit({
                     ...input,
                     ...(fields ? { fields: { ...input.fields, ...fields } } : {}),
@@ -359,6 +416,7 @@ class DiagnosticsCore {
                     durationMs: Number(durationMs.toFixed(2)),
                     timingClass: "officialSameProcess",
                     ...(beginId ? { causeEventId: beginId } : {}),
+                    ...(perf ? { perf } : {}),
                 });
             },
             fail(error: unknown): void {

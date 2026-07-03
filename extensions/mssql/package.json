@@ -1853,7 +1853,13 @@
                 "mssql.debugConsole.perfRunsRoot": {
                     "type": "string",
                     "default": "",
-                    "description": "Optional path to a perftest perf-runs directory for the Perf & Sessions page.",
+                    "description": "Optional path to a perftest perf-runs directory used as the default Perf Test History source (self-test runs are also written here).",
+                    "scope": "application"
+                },
+                "mssql.debugConsole.richCollection": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Collect rich diagnostics (CPU, memory, event-loop lag counters and per-span deltas) while Debug Console capture is active. Diagnostic-only metadata; off means zero overhead.",
                     "scope": "application"
                 },
                 "mssql.enableExperimentalFeatures": {

@@ -407,7 +407,10 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
 
 const IRREGULAR_END: Record<string, string> = {
     "mssql.connection.ready": "mssql.connection.begin",
+    "mssql.connection.failed": "mssql.connection.begin",
     "mssql.query.complete": "mssql.query.submit",
+    "mssql.query.cancelled": "mssql.query.submit",
+    "mssql.query.cancelFailed": "mssql.query.cancelRequested",
 };
 
 function shortLabel(type: string): string {

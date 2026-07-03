@@ -1552,6 +1552,13 @@ export default class ConnectionManager {
             connectionInfo.messages = result.messages;
             connectionInfo.connecting = false;
 
+            // Balanced connection lifecycle: begin → ready | failed, with the
+            // error number as classification (message stays out of the marker).
+            Perf.marker("mssql.connection.failed", "end", {
+                error: true,
+                ...(result.errorNumber !== undefined ? { errorNumber: result.errorNumber } : {}),
+            });
+
             this.statusView.setConnectionError(fileUri, connectionInfo.credentials, result);
             this._logger.error(
                 LocalizedConstants.msgConnectionFailed(

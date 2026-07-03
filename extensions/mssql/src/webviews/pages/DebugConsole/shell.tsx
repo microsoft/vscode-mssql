@@ -18,7 +18,8 @@ import {
     SettingsPage,
     SqlActivityPage,
 } from "./pagesMore";
-import { HistoryPage, PerfPage } from "./pagesPerf";
+import { HistoryPage } from "./pagesPerf";
+import { PerfHistoryPage } from "./pagesPerfHistory";
 
 const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon: string }> }> = [
     {
@@ -27,8 +28,8 @@ const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon
             { id: "overview", label: "Overview", icon: "◫" },
             { id: "trace", label: "Consolidated Trace", icon: "≣" },
             { id: "waterfall", label: "Waterfall", icon: "𝄜" },
-            { id: "perf", label: "Perf & Sessions", icon: "∿" },
-            { id: "history", label: "History", icon: "◷" },
+            { id: "perf", label: "Perf Test History", icon: "∿" },
+            { id: "history", label: "Session History", icon: "◷" },
             { id: "completions", label: "Completions", icon: "✦" },
             { id: "replay", label: "Replay Lab", icon: "⟳" },
         ],
@@ -256,31 +257,63 @@ function TopBar() {
     );
 }
 
+const NAV_COLLAPSE_KEY = "dc.nav.collapsed";
+
 function LeftNav() {
     const { route, navigate, state } = useDc();
+    const [collapsed, setCollapsed] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem(NAV_COLLAPSE_KEY) === "1";
+        } catch {
+            return false;
+        }
+    });
+    const toggle = () => {
+        setCollapsed((current) => {
+            try {
+                localStorage.setItem(NAV_COLLAPSE_KEY, current ? "0" : "1");
+            } catch {
+                // localStorage unavailable: collapse is session-only
+            }
+            return !current;
+        });
+    };
     return (
-        <nav className="dc-leftnav">
+        <nav className={`dc-leftnav ${collapsed ? "collapsed" : ""}`}>
             {NAV.map((group) => (
                 <div className="dc-nav-group" key={group.group}>
-                    <div className="dc-nav-group-label">{group.group}</div>
+                    {!collapsed ? <div className="dc-nav-group-label">{group.group}</div> : null}
                     {group.items.map((item) => (
                         <button
                             key={item.id}
                             className={`dc-nav-item ${route.page === item.id ? "active" : ""}`}
+                            title={item.label}
                             onClick={() => navigate({ page: item.id })}>
                             <span aria-hidden style={{ width: 15, textAlign: "center" }}>
                                 {item.icon}
                             </span>
-                            {item.label}
+                            {!collapsed ? item.label : null}
                         </button>
                     ))}
                 </div>
             ))}
-            <div className="dc-provenance" title="Session provenance">
-                <div className="label">PROVENANCE</div>
-                <div>mssql {state?.provenance.extensionVersion ?? "dev"}</div>
-                <div>vscode {state?.provenance.vscodeVersion ?? ""}</div>
-            </div>
+            <div style={{ flex: 1 }} />
+            {!collapsed ? (
+                <div className="dc-provenance" title="Session provenance">
+                    <div className="label">PROVENANCE</div>
+                    <div>mssql {state?.provenance.extensionVersion ?? "dev"}</div>
+                    <div>vscode {state?.provenance.vscodeVersion ?? ""}</div>
+                </div>
+            ) : null}
+            <button
+                className="dc-nav-item dc-nav-collapse"
+                title={collapsed ? "Expand navigation" : "Collapse navigation"}
+                onClick={toggle}>
+                <span aria-hidden style={{ width: 15, textAlign: "center" }}>
+                    {collapsed ? "»" : "«"}
+                </span>
+                {!collapsed ? "Collapse" : null}
+            </button>
         </nav>
     );
 }
@@ -299,7 +332,7 @@ export function DebugConsoleApp() {
             page = <WaterfallPage />;
             break;
         case "perf":
-            page = <PerfPage />;
+            page = <PerfHistoryPage />;
             break;
         case "history":
             page = <HistoryPage />;

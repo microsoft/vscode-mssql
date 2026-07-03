@@ -50,9 +50,25 @@ import {
 } from "../diagnostics/analysis";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
+import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
 import { importPerfMetrics, importPerfRun } from "../diagnostics/perfRunImport";
 import { SelfTestService } from "../diagnostics/selfTest/selfTestService";
 import { LiveTailSink } from "../diagnostics/sinks";
+import {
+    PhAddSourceRequest,
+    PhGetDumpRequest,
+    PhGetSqlActivityRequest,
+    PhGetSummaryRequest,
+    PhGetWaterfallRequest,
+    PhIndexProgressNotification,
+    PhListSourcesRequest,
+    PhMetricSeriesRequest,
+    PhQueryRunsRequest,
+    PhQueryScenariosRequest,
+    PhRemoveSourceRequest,
+    PhRescanRequest,
+    PhScenarioDetailsRequest,
+} from "../sharedInterfaces/perfHistory";
 import { WebviewPanelController } from "./webviewPanelController";
 
 const LIVE_ARCHIVE_CAP = 100_000;
@@ -68,6 +84,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     private subscribed = false;
     private perfRunCounter = 0;
     private readonly selfTest: SelfTestService;
+    private readonly perfHistory: PerfHistoryService;
     public disposed = false;
 
     constructor(
@@ -161,8 +178,49 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             },
         );
 
+        // Perf Test History: source registry + incremental index + lazy artifacts.
+        this.perfHistory = new PerfHistoryService(context, (progress) => {
+            void this.sendNotification(PhIndexProgressNotification.type, progress);
+        });
+
         this.registerHandlers();
+        this.registerPerfHistoryHandlers();
         diag.emit({ feature: "sessionDiag", type: "debugConsole.opened" });
+    }
+
+    private registerPerfHistoryHandlers(): void {
+        this.onRequest(PhListSourcesRequest.type, async () => this.perfHistory.listSources());
+        this.onRequest(PhAddSourceRequest.type, async ({ kind }) => {
+            const outcome = await this.perfHistory.addSource(kind);
+            return { sources: await this.perfHistory.listSources(), ...outcome };
+        });
+        this.onRequest(PhRemoveSourceRequest.type, async ({ sourceId }) => {
+            await this.perfHistory.removeSource(sourceId);
+            return this.perfHistory.listSources();
+        });
+        this.onRequest(PhRescanRequest.type, async ({ sourceId }) =>
+            this.perfHistory.rescan(sourceId),
+        );
+        this.onRequest(PhGetSummaryRequest.type, async ({ sourceId }) =>
+            this.perfHistory.summary(sourceId),
+        );
+        this.onRequest(PhQueryRunsRequest.type, async (query) => this.perfHistory.queryRuns(query));
+        this.onRequest(PhQueryScenariosRequest.type, async (query) =>
+            this.perfHistory.queryScenarios(query),
+        );
+        this.onRequest(PhMetricSeriesRequest.type, async (query) =>
+            this.perfHistory.metricSeries(query),
+        );
+        this.onRequest(PhScenarioDetailsRequest.type, async (query) =>
+            this.perfHistory.scenarioDetails(query),
+        );
+        this.onRequest(PhGetWaterfallRequest.type, async (query) =>
+            this.perfHistory.waterfall(query),
+        );
+        this.onRequest(PhGetSqlActivityRequest.type, async (query) =>
+            this.perfHistory.sqlActivity(query),
+        );
+        this.onRequest(PhGetDumpRequest.type, async (query) => this.perfHistory.dump(query));
     }
 
     private get liveSourceId(): string {

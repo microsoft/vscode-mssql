@@ -256,6 +256,9 @@ export default class QueryRunner {
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         let cancelRequestCompleted = false;
+        // Cancellation lifecycle: requested → cancelled | cancelFailed, so the
+        // waterfall shows the full request/acknowledge window.
+        Perf.marker("mssql.query.cancelRequested", "instant");
         try {
             setTimeout(() => {
                 if (!cancelRequestCompleted) {
@@ -277,6 +280,10 @@ export default class QueryRunner {
             return cancelationResult;
         } catch (error) {
             cancelRequestCompleted = true;
+            Perf.marker("mssql.query.cancelFailed", "instant", {
+                error: true,
+                reason: error instanceof Error ? error.message.slice(0, 200) : String(error),
+            });
             this._handleQueryCleanup(
                 LocalizedConstants.QueryEditor.queryCancelFailed(error),
                 error,

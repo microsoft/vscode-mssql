@@ -58,6 +58,10 @@ body,
     grid-template-areas: "topbar topbar" "nav page";
     height: 100vh;
 }
+/* Collapsed nav shrinks the whole rail column (DevTools-style icon rail). */
+.dc-shell:has(.dc-leftnav.collapsed) {
+    grid-template-columns: 38px 1fr;
+}
 
 /* --- Top bar ---------------------------------------------------------- */
 .dc-topbar {
@@ -395,6 +399,232 @@ body,
     transition: width 0.2s ease;
 }
 
+/* --- Perf Test History -------------------------------------------------- */
+.ph-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 6px;
+}
+.ph-tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--dc-border);
+}
+.ph-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--dc-muted);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.ph-tab:hover {
+    color: var(--dc-text);
+}
+.ph-tab.active {
+    color: var(--dc-text);
+    border-bottom-color: var(--dc-focus);
+}
+.ph-tab:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.ph-scroll {
+    overflow-y: auto;
+    min-height: 0;
+    flex: 1;
+}
+.ph-analysis {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+.ph-fill {
+    flex: 1;
+    min-height: 0;
+}
+.ph-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+}
+.ph-fill-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+.ph-cmdbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.ph-subbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    margin-bottom: 4px;
+}
+.ph-search {
+    height: 26px;
+    background: var(--dc-input-bg);
+    border: 1px solid var(--dc-input-border);
+    border-radius: 5px;
+    color: var(--dc-text);
+    padding: 0 8px;
+    font-family: inherit;
+    font-size: 12px;
+    min-width: 140px;
+}
+.ph-dense th,
+.ph-dense td {
+    padding: 3px 8px;
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+.ph-callout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid color-mix(in srgb, var(--dc-warn) 50%, transparent);
+    background: color-mix(in srgb, var(--dc-warn) 9%, transparent);
+    border-radius: 7px;
+    padding: 9px 12px;
+    margin: 8px 0;
+    font-size: 12px;
+}
+.ph-callout-icon {
+    font-size: 15px;
+    color: var(--dc-warn);
+}
+.ph-suite-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 11.5px;
+}
+.ph-suite-row .name {
+    width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ph-suite-row .bar {
+    flex: 1;
+    height: 7px;
+    border-radius: 4px;
+    background: var(--dc-border);
+    overflow: hidden;
+}
+.ph-suite-row .bar .fill {
+    height: 100%;
+}
+.ph-suite-row .count {
+    font-size: 10.5px;
+    color: var(--dc-muted);
+    min-width: 52px;
+    text-align: right;
+}
+.ph-attn-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 2px;
+    font-size: 11.5px;
+    cursor: pointer;
+    border-bottom: 1px solid color-mix(in srgb, var(--dc-border) 50%, transparent);
+}
+.ph-attn-row:hover {
+    background: var(--dc-hover-bg);
+}
+.ph-rail {
+    padding: 6px 8px;
+    gap: 6px;
+    overflow-y: auto;
+}
+.ph-rail-head {
+    display: flex;
+    align-items: center;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+    color: var(--dc-muted);
+}
+.ph-rail-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 8px;
+}
+.ph-rail-group > label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--dc-muted);
+}
+.ph-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    cursor: pointer;
+}
+.ph-rail-collapsed {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 2px;
+    border-right: 1px solid var(--dc-border);
+}
+.ph-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 2px 0 6px;
+}
+.ph-chips .dc-chip {
+    height: 22px;
+    font-size: 11px;
+}
+.ph-bottom-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-bottom: 1px solid var(--dc-border);
+    padding: 0 4px;
+}
+.ph-dump {
+    font-family: var(--dc-mono);
+    font-size: 11px;
+    background: var(--dc-bg);
+    border: 1px solid var(--dc-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+.dc-resize-handle.horizontal {
+    height: 4px;
+    width: 100%;
+    cursor: row-resize;
+}
+.ph-split-root {
+    height: calc(100vh - 175px) !important;
+    min-height: 260px;
+}
+.ph-split-inner {
+    height: 100% !important;
+    min-height: 0;
+}
+
 /* --- Left nav ---------------------------------------------------------- */
 .dc-leftnav {
     grid-area: nav;
@@ -403,7 +633,22 @@ body,
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 8px 6px;
+}
+/* DevTools-style icon rail when collapsed. */
+.dc-leftnav.collapsed {
+    width: 38px;
+    min-width: 38px;
+    padding: 8px 3px;
+}
+.dc-leftnav.collapsed .dc-nav-item {
+    justify-content: center;
+    padding: 6px 0;
+}
+.dc-nav-collapse {
+    margin-top: 4px;
+    color: var(--dc-muted);
 }
 .dc-nav-group {
     margin-bottom: 6px;
@@ -498,7 +743,15 @@ body,
     align-items: center;
     gap: 8px;
     margin-bottom: 10px;
-    flex-wrap: wrap;
+    /* DevTools-style: toolbars stay one row and scroll horizontally instead
+       of wrapping and eating vertical space. */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    flex-shrink: 0;
+}
+.dc-toolbar > * {
+    flex-shrink: 0;
 }
 .dc-toolbar select {
     height: 26px;

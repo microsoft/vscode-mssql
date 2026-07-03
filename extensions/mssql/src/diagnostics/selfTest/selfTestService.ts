@@ -30,16 +30,16 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 
-// Relative import of the perftest in-process runner (built dist). The .d.ts is
-// self-contained; esbuild bundles the .js with `vscode` left external.
-import {
+// Types come from the perftest repo's built dist (type-only ⇒ erased at
+// compile time); the module itself loads at runtime via inprocLoader so a
+// missing/unbuilt perftest repo degrades to an honest error, not a crash.
+import type {
     BusMarker,
-    BUILTIN_SCENARIOS,
-    builtinScenario,
     ConnectionProfileSpec,
     SelfTestEvent,
     SelfTestRunner,
 } from "../../../../../../perftest/packages/perftest-inproc/dist/index";
+import { loadInproc } from "./inprocLoader";
 
 import {
     DiagEvent,
@@ -52,6 +52,7 @@ import {
     SelfTestScenarioInfo,
 } from "../../sharedInterfaces/debugConsole";
 import { diag, RawField } from "../diagnosticsCore";
+import { richStats } from "../richCollection";
 import { connectionStringLabel, parseSqlConnectionString } from "./connectionString";
 
 /** Marker-name prefix → console feature bucket (mirrors perfTelemetry). */
@@ -140,20 +141,24 @@ export class SelfTestService {
     // --- catalog ---------------------------------------------------------------
 
     public async catalog(): Promise<SelfTestCatalog> {
-        const scenarios: SelfTestScenarioInfo[] = BUILTIN_SCENARIOS.map((s) => ({
-            id: s.id,
-            title: s.title,
-            description: s.description,
-            tags: s.tags,
-            needsSql: s.needsSql,
-            ...(s.inProcess === false ? { cliOnly: true } : {}),
-            estMs: s.estMs,
-        }));
+        const loaded = loadInproc();
+        const scenarios: SelfTestScenarioInfo[] = (loaded.module?.BUILTIN_SCENARIOS ?? []).map(
+            (s) => ({
+                id: s.id,
+                title: s.title,
+                description: s.description,
+                tags: s.tags,
+                needsSql: s.needsSql,
+                ...(s.inProcess === false ? { cliOnly: true } : {}),
+                estMs: s.estMs,
+            }),
+        );
         return {
             scenarios,
             connections: await this.listConnectionOptions(),
             perfRunsRoot: this.effectivePerfRunsRoot(),
             running: this.running,
+            ...(loaded.error ? { unavailableReason: loaded.error } : {}),
         };
     }
 
@@ -355,8 +360,13 @@ export class SelfTestService {
         if (this.running) {
             return { accepted: false, runId: "", reason: "a self-test is already running" };
         }
+        const loaded = loadInproc();
+        if (!loaded.module) {
+            return { accepted: false, runId: "", reason: loaded.error ?? "runner unavailable" };
+        }
+        const inproc = loaded.module;
         const scenarios = request.scenarioIds
-            .map((id) => builtinScenario(id))
+            .map((id) => inproc.builtinScenario(id))
             .filter((s): s is NonNullable<typeof s> => s !== undefined);
         if (scenarios.length === 0) {
             return { accepted: false, runId: "", reason: "no known scenarios selected" };
@@ -387,11 +397,15 @@ export class SelfTestService {
                 durationMs: 10 * 60_000,
             });
         }
+        // Rich diagnostics for the run window only; released in finally below.
+        if (request.collectRich) {
+            richStats.enable(`selftest:${runId}`);
+        }
 
         const runDir = path.join(this.effectivePerfRunsRoot(), runId);
         const connectionProfiles = resolved.spec ? { default: resolved.spec } : undefined;
 
-        const runner = new SelfTestRunner({
+        const runner = new inproc.SelfTestRunner({
             runId,
             scenarios,
             repetitions: Math.max(1, Math.min(request.repetitions || 1, 25)),
@@ -428,6 +442,9 @@ export class SelfTestService {
             if (this.tapId) {
                 diag.removeSink(this.tapId);
                 this.tapId = undefined;
+            }
+            if (request.collectRich) {
+                richStats.disable(`selftest:${runId}`);
             }
             this.running = false;
             this.runner = undefined;

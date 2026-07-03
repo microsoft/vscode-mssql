@@ -117,6 +117,17 @@ export interface DiagEvent {
     payload?: Record<string, ClassifiedValue>;
     cls: DiagClassificationSummary;
     tags?: string[];
+    /**
+     * Rich diagnostics enrichment (opt-in COLLECT_ALL_THE_DATA mode): cheap
+     * context metrics captured at emission. Never official-eligible; absent
+     * when rich collection is off (zero cost).
+     */
+    perf?: {
+        captureLevel: "rich";
+        officialEligible: false;
+        metrics: Record<string, number>;
+        collectionCost: "free" | "low";
+    };
 }
 
 export interface GapRecord {
@@ -393,6 +404,8 @@ export interface SelfTestCatalog {
     connections: SelfTestConnectionOption[];
     perfRunsRoot: string;
     running: boolean;
+    /** Set when the perftest in-process runner could not be loaded. */
+    unavailableReason?: string;
 }
 
 export interface SelfTestRunRequest {

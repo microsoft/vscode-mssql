@@ -249,6 +249,12 @@ export function SelfTestDialog({ onClose }: { onClose: () => void }) {
 
                 <div className="dc-modal-body">
                     <div>
+                        {catalog?.unavailableReason ? (
+                            <div className="ph-callout" style={{ marginBottom: 10 }}>
+                                <span className="ph-callout-icon">⚠</span>
+                                <span>{catalog.unavailableReason}</span>
+                            </div>
+                        ) : null}
                         <div className="dc-field">
                             <label>SQL connection for this run</label>
                             <select

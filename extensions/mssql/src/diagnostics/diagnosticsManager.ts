@@ -14,6 +14,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { CaptureMode, ProvenanceSummary } from "../sharedInterfaces/debugConsole";
 import { diag, newTraceId } from "./diagnosticsCore";
+import { richStats } from "./richCollection";
 import { SessionDiagSink } from "./sinks";
 import { SessionStore } from "./sessionStore";
 
@@ -21,6 +22,8 @@ const SETTING_ENABLED = "mssql.sessionDiag.enabled";
 const SETTING_MODE = "mssql.sessionDiag.captureMode";
 const SETTING_MAX_SESSIONS = "mssql.sessionDiag.maxSessions";
 const SETTING_MAX_AGE_DAYS = "mssql.sessionDiag.maxAgeDays";
+const SETTING_RICH = "mssql.debugConsole.richCollection";
+const ENV_RICH = "MSSQL_COLLECT_ALL_THE_DATA";
 
 /** Commands whose invocation forms a root user action (a new trace). */
 const ROOT_COMMANDS = new Set([
@@ -49,6 +52,7 @@ export class DiagnosticsManager implements vscode.Disposable {
             vscodeVersion: vscode.version,
         };
         this.applySettings();
+        this.applyRichSetting();
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((change) => {
                 if (
@@ -56,6 +60,9 @@ export class DiagnosticsManager implements vscode.Disposable {
                     change.affectsConfiguration(SETTING_MODE)
                 ) {
                     this.applySettings();
+                }
+                if (change.affectsConfiguration(SETTING_RICH)) {
+                    this.applyRichSetting();
                 }
             }),
         );
@@ -65,6 +72,20 @@ export class DiagnosticsManager implements vscode.Disposable {
     }
 
     // --- settings --------------------------------------------------------------
+
+    /** Rich collection gates: setting or env var (self-test adds its own). */
+    private applyRichSetting(): void {
+        const fromSetting = vscode.workspace.getConfiguration().get<boolean>(SETTING_RICH, false);
+        const fromEnv = process.env[ENV_RICH] === "1";
+        if (fromSetting) {
+            richStats.enable("setting");
+        } else {
+            richStats.disable("setting");
+        }
+        if (fromEnv) {
+            richStats.enable("env");
+        }
+    }
 
     private applySettings(): void {
         const config = vscode.workspace.getConfiguration();
