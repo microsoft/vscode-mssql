@@ -11,6 +11,7 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added **Rename Symbol** refactoring support for SQL project files.
 - Added **Move to Schema** refactoring support for SQL project files.
 - **Removed** the preview feature "Generate SQL Projects from OpenAPI/Swagger spec".
+- Updated the default Microsoft.Build.Sql version to `2.*` for new SDK-style projects, enabling projects to automatically fetch the latest available 2.x NuGet release.
 
 ## [1.6.1] - 2026-06-03
 
