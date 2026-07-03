@@ -1044,9 +1044,6 @@
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
     </trans-unit>
-    <trans-unit id="++CODE++1df2cefea162ee2f110b6b1bf82751b5db737e38add19ddec1890541bc5ecc5d">
-      <source xml:lang="en">Choose Database</source>
-    </trans-unit>
     <trans-unit id="++CODE++4d7f20b4a7223bae862f00b4d5e41f37ededf7d987dba4546b315d891c5fbe08">
       <source xml:lang="en">Choose Existing</source>
     </trans-unit>
@@ -1067,9 +1064,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c7bd40bc64cc1051c5198092da16048ef651147d7b291becd00c0467d63408e0">
       <source xml:lang="en">Choose a database</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d6803305e5d4a37cae3d0fa45cf3f0f093868aade34efcb3014d4d604983cb49">
-      <source xml:lang="en">Choose a database for the active SQL document</source>
     </trans-unit>
     <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
       <source xml:lang="en">Choose a database from the list below</source>
@@ -4102,6 +4096,9 @@
     <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
       <source xml:lang="en">Key</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e77469bc7b2a922f052ff67de2121b0673fb09750bf1212544cc6eece9d9e91">
+      <source xml:lang="en">Keybinding</source>
+    </trans-unit>
     <trans-unit id="++CODE++1730c13cc8d1bc6550b4f9150c1934d2bcac56f8a34d701392c057ff113bd491">
       <source xml:lang="en">Keyboard Shortcuts editor</source>
     </trans-unit>
@@ -5006,6 +5003,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
       <source xml:lang="en">No matches found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++95dd64aef10e1cc924061e71213731b1e58612d3d24e9b4f88fdd410c2d8687d">
+      <source xml:lang="en">No matching shortcuts</source>
     </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>
@@ -7683,6 +7683,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
       <source xml:lang="en">Try it</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a3a3528ddf91f12579305467446f74ee44ef4c6016c889a73ee002be224a1b08">
+      <source xml:lang="en">Try searching by command name, description, or keybinding.</source>
     </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
