@@ -15,7 +15,18 @@ import {
 } from "../../../sharedInterfaces/debugConsole";
 import { DeltaBars, Histogram, Sparkline, TrendChart } from "./charts";
 import { EmptyState, formatDuration, Kpi, PageHeader, StatusPill } from "./common";
+import { SelfTestDialog } from "./selftestDialog";
 import { useDc } from "./state";
+
+/** "Run self-test" button — opens the in-process run dialog. */
+function RunSelfTestButton({ onOpen }: { onOpen: () => void }) {
+    const { selfTest } = useDc();
+    return (
+        <button className="dc-btn primary" onClick={onOpen}>
+            {selfTest?.active ? "● Self-test running…" : "▶ Run self-test"}
+        </button>
+    );
+}
 
 // ---------------------------------------------------------------------------
 // Shared math
@@ -47,18 +58,20 @@ interface RunStats {
 // ---------------------------------------------------------------------------
 
 export function PerfPage() {
-    const { rpc } = useDc();
+    const { rpc, dataVersion } = useDc();
     const [summary, setSummary] = useState<PerfSummary | undefined>(undefined);
     const [scenario, setScenario] = useState<string>("");
     const [metric, setMetric] = useState<string>("scenario.wallclock");
     const [baselineRun, setBaselineRun] = useState<string>("");
     const [candidateRun, setCandidateRun] = useState<string>("");
+    const [runOpen, setRunOpen] = useState(false);
 
     useEffect(() => {
+        // dataVersion bumps when a self-test run completes so fresh runs appear.
         void rpc.sendRequest(DcGetPerfSummaryRequest.type, {}).then((result) => {
             setSummary(result);
         });
-    }, [rpc]);
+    }, [rpc, dataVersion]);
 
     // Scenario browser: always keyed on scenario.wallclock so the browser
     // stays stable while the metric selector changes.
@@ -221,11 +234,16 @@ export function PerfPage() {
     if (summary.samples.length === 0) {
         return (
             <>
-                <PageHeader title="Perf & Sessions" />
+                <div className="dc-header-row">
+                    <PageHeader title="Perf & Sessions" />
+                    <RunSelfTestButton onOpen={() => setRunOpen(true)} />
+                </div>
                 <EmptyState
-                    title="No perf metrics found"
-                    body="Point mssql.debugConsole.perfRunsRoot at a perftest perf-runs directory (Settings page) to analyze official metrics, trends, and A/B deltas across runs."
-                />
+                    title="No perf metrics yet"
+                    body="Run a self-test right here — it executes perftest scenarios in this VS Code instance and records the first runs — or point mssql.debugConsole.perfRunsRoot at an existing perftest perf-runs directory (Settings) to analyze runs made by the CLI.">
+                    <RunSelfTestButton onOpen={() => setRunOpen(true)} />
+                </EmptyState>
+                {runOpen ? <SelfTestDialog onClose={() => setRunOpen(false)} /> : null}
             </>
         );
     }
@@ -248,10 +266,14 @@ export function PerfPage() {
 
     return (
         <>
-            <PageHeader
-                title="Perf & Sessions"
-                sub={`${summary.runs.length} runs discovered · official metrics only · ${summary.samples.length.toLocaleString()} samples`}
-            />
+            <div className="dc-header-row">
+                <PageHeader
+                    title="Perf & Sessions"
+                    sub={`${summary.runs.length} runs discovered · official metrics only · ${summary.samples.length.toLocaleString()} samples`}
+                />
+                <RunSelfTestButton onOpen={() => setRunOpen(true)} />
+            </div>
+            {runOpen ? <SelfTestDialog onClose={() => setRunOpen(false)} /> : null}
             <div className="dc-toolbar">
                 <select value={scenario} onChange={(e) => setScenario(e.target.value)}>
                     {scenarioCards.map((card) => (

@@ -33,6 +33,10 @@ import {
     DcSetCaptureModeRequest,
     DcSubscribeLiveRequest,
     DcUnsubscribeLiveRequest,
+    DcListSelfTestScenariosRequest,
+    DcRunSelfTestRequest,
+    DcCancelSelfTestRequest,
+    DcSelfTestProgressNotification,
     DiagEvent,
     GapRecord,
 } from "../sharedInterfaces/debugConsole";
@@ -47,6 +51,7 @@ import {
 import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
 import { importPerfMetrics, importPerfRun } from "../diagnostics/perfRunImport";
+import { SelfTestService } from "../diagnostics/selfTest/selfTestService";
 import { LiveTailSink } from "../diagnostics/sinks";
 import { WebviewPanelController } from "./webviewPanelController";
 
@@ -62,6 +67,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     private liveTail: LiveTailSink;
     private subscribed = false;
     private perfRunCounter = 0;
+    private readonly selfTest: SelfTestService;
     public disposed = false;
 
     constructor(
@@ -129,6 +135,12 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     ? { expiresEpochMs: diag.captureExpiresEpochMs }
                     : {}),
             });
+        });
+
+        // Self-test runner: runs perftest scenarios in-process; progress streams
+        // to the webview and events flow through diag into the live views.
+        this.selfTest = new SelfTestService(context, (progress) => {
+            void this.sendNotification(DcSelfTestProgressNotification.type, progress);
         });
 
         this.registerHandlers();
@@ -407,6 +419,12 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 .slice(0, 8);
             return { sessions, trends, totalEvents, totalActions };
         });
+
+        this.onRequest(DcListSelfTestScenariosRequest.type, async () => this.selfTest.catalog());
+
+        this.onRequest(DcRunSelfTestRequest.type, async (request) => this.selfTest.run(request));
+
+        this.onRequest(DcCancelSelfTestRequest.type, async () => this.selfTest.cancel());
 
         this.onRequest(DcExportRequest.type, async ({ sourceId }) => {
             const events = this.eventsFor(sourceId);

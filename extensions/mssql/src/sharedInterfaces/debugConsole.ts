@@ -352,6 +352,78 @@ export interface PerfSummary {
     runs: PerfRunInfo[];
 }
 
+// ---------------------------------------------------------------------------
+// Self-test: run perftest scenarios in-process against the LIVE extension host
+// ---------------------------------------------------------------------------
+
+export interface SelfTestScenarioInfo {
+    id: string;
+    title: string;
+    description: string;
+    tags: string[];
+    /** Requires a live SQL connection (offered but blocked when none resolves). */
+    needsSql: boolean;
+    estMs: number;
+}
+
+export interface SelfTestCatalog {
+    scenarios: SelfTestScenarioInfo[];
+    /** A "default" connection profile was resolvable from an active editor. */
+    connectionAvailable: boolean;
+    connectionLabel?: string;
+    perfRunsRoot: string;
+    running: boolean;
+}
+
+export interface SelfTestRunRequest {
+    scenarioIds: string[];
+    repetitions: number;
+    warmupRepetitions: number;
+    /** Opt-in richer capture (full) for the run window; auto-reverts. */
+    elevateCapture?: boolean;
+}
+
+export interface SelfTestRunStarted {
+    accepted: boolean;
+    runId: string;
+    connectionAvailable: boolean;
+    reason?: string;
+}
+
+/** A flattened, serializable projection of the runner's event stream. */
+export interface SelfTestProgress {
+    runId: string;
+    phase:
+        | "runStart"
+        | "scenarioStart"
+        | "scenarioSkipped"
+        | "repStart"
+        | "repEnd"
+        | "scenarioEnd"
+        | "log"
+        | "runEnd"
+        | "error";
+    scenarioId?: string;
+    title?: string;
+    index?: number;
+    total?: number;
+    scenarioCount?: number;
+    totalReps?: number;
+    repId?: number;
+    warmup?: boolean;
+    status?: string;
+    durationMs?: number;
+    metrics?: Array<{ name: string; value: number; official: boolean }>;
+    reason?: string;
+    message?: string;
+    passed?: number;
+    failed?: number;
+    // runEnd summary
+    runStatus?: string;
+    perfRunsRoot?: string;
+    skipped?: number;
+}
+
 export interface SqlActivityRow {
     epochMs: number;
     eventName: string;
@@ -479,6 +551,21 @@ export interface HistorySummary {
 
 export namespace DcGetHistoryRequest {
     export const type = new RequestType<void, HistorySummary, void>("dc/getHistory");
+}
+
+export namespace DcListSelfTestScenariosRequest {
+    export const type = new RequestType<void, SelfTestCatalog, void>("dc/listSelfTestScenarios");
+}
+export namespace DcRunSelfTestRequest {
+    export const type = new RequestType<SelfTestRunRequest, SelfTestRunStarted, void>(
+        "dc/runSelfTest",
+    );
+}
+export namespace DcCancelSelfTestRequest {
+    export const type = new RequestType<void, { cancelled: boolean }, void>("dc/cancelSelfTest");
+}
+export namespace DcSelfTestProgressNotification {
+    export const type = new NotificationType<SelfTestProgress>("dc/selfTestProgress");
 }
 
 export namespace DcLivePushNotification {

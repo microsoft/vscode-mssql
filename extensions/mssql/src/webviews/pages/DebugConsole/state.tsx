@@ -21,15 +21,34 @@ import {
     DebugConsoleState,
     DebugSource,
     DcCaptureChangedNotification,
+    DcCancelSelfTestRequest,
     DcImportPerfRunRequest,
     DcListSourcesRequest,
     DcLivePushNotification,
+    DcRunSelfTestRequest,
+    DcSelfTestProgressNotification,
     DcSetCaptureModeRequest,
     DcSubscribeLiveRequest,
     DcUnsubscribeLiveRequest,
     DiagEvent,
     GapRecord,
+    SelfTestProgress,
+    SelfTestRunRequest,
+    SelfTestRunStarted,
 } from "../../../sharedInterfaces/debugConsole";
+
+export interface SelfTestState {
+    runId: string;
+    active: boolean;
+    events: SelfTestProgress[];
+    summary?: {
+        runStatus: string;
+        passed: number;
+        failed: number;
+        skipped: number;
+        perfRunsRoot: string;
+    };
+}
 
 export type DcPage =
     | "overview"
@@ -72,6 +91,9 @@ interface DcContextValue {
     search: string;
     setSearch: (text: string) => void;
     dataVersion: number;
+    selfTest: SelfTestState | undefined;
+    runSelfTest: (request: SelfTestRunRequest) => Promise<SelfTestRunStarted>;
+    cancelSelfTest: () => void;
 }
 
 const DcContext = createContext<DcContextValue | undefined>(undefined);
@@ -105,6 +127,7 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     const [captureExpiresEpochMs, setCaptureExpires] = useState<number | undefined>(undefined);
     const [search, setSearch] = useState("");
     const [dataVersion, setDataVersion] = useState(0);
+    const [selfTest, setSelfTest] = useState<SelfTestState | undefined>(undefined);
     const subscribedRef = useRef(false);
 
     const refreshSources = useCallback(() => {
@@ -141,6 +164,37 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
         rpc.onNotification(DcCaptureChangedNotification.type, (change) => {
             setCaptureModeState(change.mode);
             setCaptureExpires(change.expiresEpochMs);
+        });
+        rpc.onNotification(DcSelfTestProgressNotification.type, (progress) => {
+            setSelfTest((current) => {
+                const base =
+                    current && current.runId === progress.runId
+                        ? current
+                        : { runId: progress.runId, active: true, events: [] };
+                const events = base.events.concat(progress).slice(-500);
+                if (progress.phase === "runEnd") {
+                    return {
+                        runId: base.runId,
+                        active: false,
+                        events,
+                        summary: {
+                            runStatus: progress.runStatus ?? "unknown",
+                            passed: progress.passed ?? 0,
+                            failed: progress.failed ?? 0,
+                            skipped: progress.skipped ?? 0,
+                            perfRunsRoot: progress.perfRunsRoot ?? "",
+                        },
+                    };
+                }
+                if (progress.phase === "error") {
+                    return { ...base, events, active: false };
+                }
+                return { ...base, events, active: true };
+            });
+            if (progress.phase === "runEnd") {
+                // New run persisted → Perf & History pages refresh.
+                setDataVersion((v) => v + 1);
+            }
         });
     }, []);
 
@@ -189,6 +243,24 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
         });
     }, [rpc]);
 
+    const runSelfTest = useCallback(
+        (request: SelfTestRunRequest) => {
+            // Reset the panel for the new run; progress arrives via notification.
+            setSelfTest({ runId: "", active: true, events: [] });
+            return rpc.sendRequest(DcRunSelfTestRequest.type, request).then((started) => {
+                if (!started.accepted) {
+                    setSelfTest(undefined);
+                }
+                return started;
+            });
+        },
+        [rpc],
+    );
+
+    const cancelSelfTest = useCallback(() => {
+        void rpc.sendRequest(DcCancelSelfTestRequest.type);
+    }, [rpc]);
+
     const value = useMemo<DcContextValue>(
         () => ({
             state,
@@ -210,6 +282,9 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             search,
             setSearch,
             dataVersion,
+            selfTest,
+            runSelfTest,
+            cancelSelfTest,
         }),
         [
             state,
@@ -227,6 +302,9 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             importPerfRun,
             search,
             dataVersion,
+            selfTest,
+            runSelfTest,
+            cancelSelfTest,
         ],
     );
     return <DcContext.Provider value={value}>{children}</DcContext.Provider>;
