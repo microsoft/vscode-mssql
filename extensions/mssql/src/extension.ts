@@ -32,6 +32,7 @@ import { Perf } from "./perf/perfTelemetry";
 import { registerPerfApi } from "./perf/perfApi";
 import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
 import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
+import { startStsDiagListener } from "./diagnostics/stsDiagListener";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -61,6 +62,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     // Exposed for testing purposes
     vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
+
+    // Start the STS diagnostics listener BEFORE the service spawns so the
+    // child inherits STS_DIAG_URL/STS_DIAG_TOKEN (Debug Console live spans
+    // for dispatcher/SqlCommand/SMO). Near-zero cost when the console is
+    // closed: the service batches cheaply and the listener discards.
+    if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", true)) {
+        await startStsDiagListener();
+    }
+
     await controller.activate();
 
     initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);

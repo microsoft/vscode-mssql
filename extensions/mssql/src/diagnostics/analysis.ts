@@ -315,18 +315,26 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
                 continue;
             }
         }
-        // Events with their own duration (spans emitted as single events).
+        // Events with their own duration (spans emitted as single events —
+        // STS dispatcher/SqlCommand/SMO spans arrive this way, anchored at
+        // their start time). Driver-level dependency calls get their own lane.
         if (
             event.durationMs !== undefined &&
             event.durationMs > 0 &&
             !event.type.endsWith(".end")
         ) {
+            const isDriverLevel =
+                event.type.startsWith("sts.sql.") || event.type.startsWith("sts.smo.");
+            const isStsSpan = event.tags?.includes("stsDiag") === true;
             activities.push({
                 id: `act_${++activityCounter}`,
-                lane: event.process,
+                lane: isDriverLevel ? "driver" : event.process,
                 label: shortLabel(event.type),
-                startEpochMs: event.epochMs - event.durationMs,
-                endEpochMs: event.epochMs,
+                // STS diag spans are anchored at span START (epochMs =
+                // startEpochMs); extension-side own-duration events are
+                // anchored at completion.
+                startEpochMs: isStsSpan ? event.epochMs : event.epochMs - event.durationMs,
+                endEpochMs: isStsSpan ? event.epochMs + event.durationMs : event.epochMs,
                 durationMs: event.durationMs,
                 timingClass: event.timingClass ?? "epochAlignedDiagnostic",
                 status: event.status,

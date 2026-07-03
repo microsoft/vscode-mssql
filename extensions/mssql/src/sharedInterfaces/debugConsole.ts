@@ -236,7 +236,7 @@ export interface CauseTreeNode {
 
 export interface WaterfallActivity {
     id: string;
-    lane: DiagProcess | "userAction";
+    lane: DiagProcess | "userAction" | "driver";
     label: string;
     startEpochMs: number;
     endEpochMs: number;

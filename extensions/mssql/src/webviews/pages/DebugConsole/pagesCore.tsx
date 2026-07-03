@@ -29,6 +29,7 @@ import {
     Kpi,
     PageHeader,
     PROCESS_COLOR,
+    PROCESS_LABEL,
     ProcessPill,
     RedactedField,
     StatusPill,
@@ -606,11 +607,12 @@ export function TracePage() {
 // Waterfall
 // ---------------------------------------------------------------------------
 
-const LANE_ORDER: Array<DiagProcess | "userAction"> = [
+const LANE_ORDER: Array<DiagProcess | "userAction" | "driver"> = [
     "userAction",
     "extensionHost",
     "webview",
     "sqlToolsService",
+    "driver",
     "sqlServer",
     "harness",
     "system",
@@ -787,7 +789,7 @@ export function WaterfallPage() {
                                         className="dc-proc-dot"
                                         style={{ background: PROCESS_COLOR[lane] }}
                                     />
-                                    {lane === "userAction" ? "User action" : lane}
+                                    {PROCESS_LABEL[lane] ?? lane}
                                     {rowEnds.length > 1 ? (
                                         <span className="dc-muted" style={{ fontSize: 10 }}>
                                             ×{laneActivities.length}

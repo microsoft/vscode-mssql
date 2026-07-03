@@ -495,6 +495,18 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             token: CancellationToken,
         ): TResult | Promise<TResult> => {
             this.logger.debug(`Request received from webview: ${type.method}`);
+            // Debug Console diagnostics: one span per webview request gives
+            // product-wide coverage of every dialog/designer (Table Designer,
+            // Schema Designer, Edit Data, Connection Dialog, Object
+            // Management, Schema Compare, ...). Near no-op when no sink is
+            // active; method + controller id are protocol metadata.
+            const diagSpan = diag.anySinkActive
+                ? diag.startSpan({
+                      feature: `webview.${this._sourceFile}`,
+                      kind: "request",
+                      type: `webview.${this._sourceFile}.${type.method}`,
+                  })
+                : undefined;
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.OnRequest,
@@ -515,6 +527,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                         (res) => {
                             this.logger.debug(`Request succeeded: ${type.method}`);
                             handlerActivity.end(ActivityStatus.Succeeded);
+                            diagSpan?.end("ok");
                             return res;
                         },
                         (error) => {
@@ -522,17 +535,20 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                                 `Request failed: ${type.method} - ${getErrorMessage(error)}`,
                             );
                             handlerActivity.endFailed(error, false);
+                            diagSpan?.fail(error);
                             throw error;
                         },
                     );
                 } else {
                     this.logger.debug(`Request succeeded: ${type.method}`);
                     handlerActivity.end(ActivityStatus.Succeeded);
+                    diagSpan?.end("ok");
                     return result;
                 }
             } catch (error) {
                 this.logger.error(`Request failed: ${type.method} - ${getErrorMessage(error)}`);
                 handlerActivity.endFailed(error, false);
+                diagSpan?.fail(error);
                 throw error;
             }
         };
