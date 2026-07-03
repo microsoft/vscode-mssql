@@ -132,11 +132,66 @@ export class SelfTestService {
     private tapId: string | undefined;
     private optionBacking = new Map<string, OptionBacking>();
 
+    // Status bar "on-air" indicator: tests control the live instance, so the
+    // user must always see that a run is active even when editors cover the
+    // console. Clicking it brings the Debug Console back.
+    private statusItem: vscode.StatusBarItem | undefined;
+    private statusHideTimer: NodeJS.Timeout | undefined;
+    private repsDone = 0;
+    private repsTotal = 0;
+    private currentScenario = "";
+    private cancelling = false;
+    private activeRunId = "";
+
     constructor(
         private readonly context: vscode.ExtensionContext,
         private readonly emitProgress: ProgressSink,
         private readonly attachRun?: AttachRun,
     ) {}
+
+    private ensureStatusItem(): vscode.StatusBarItem {
+        if (!this.statusItem) {
+            this.statusItem = vscode.window.createStatusBarItem(
+                "mssql.selfTest",
+                vscode.StatusBarAlignment.Right,
+                91,
+            );
+            this.statusItem.name = "MSSQL Self-Test";
+            this.statusItem.command = "mssql.openDebugConsole";
+            this.context.subscriptions.push(this.statusItem);
+        }
+        if (this.statusHideTimer) {
+            clearTimeout(this.statusHideTimer);
+            this.statusHideTimer = undefined;
+        }
+        return this.statusItem;
+    }
+
+    private updateStatusRunning(): void {
+        const item = this.ensureStatusItem();
+        const counter = this.repsTotal > 0 ? ` ${this.repsDone}/${this.repsTotal}` : "";
+        item.text = this.cancelling
+            ? `$(sync~spin) MSSQL Self-Test: cancelling…`
+            : `$(record) MSSQL Self-Test${counter}`;
+        item.tooltip = `MSSQL self-test running${this.currentScenario ? ` — ${this.currentScenario}` : ""} (${this.repsDone}/${this.repsTotal} reps). Click to open the Debug Console.`;
+        item.backgroundColor = new vscode.ThemeColor("statusBarItem.warningBackground");
+        item.show();
+    }
+
+    private updateStatusDone(status: string, passed: number, failed: number): void {
+        const item = this.ensureStatusItem();
+        const ok = status !== "failed";
+        item.text = ok
+            ? `$(check) Self-test ${status} · ${passed} passed`
+            : `$(error) Self-test failed · ${failed} failing`;
+        item.tooltip = "MSSQL self-test finished. Click to open the Debug Console.";
+        item.backgroundColor = ok
+            ? undefined
+            : new vscode.ThemeColor("statusBarItem.errorBackground");
+        item.show();
+        this.statusHideTimer = setTimeout(() => this.statusItem?.hide(), 12_000);
+        this.statusHideTimer.unref?.();
+    }
 
     // --- catalog ---------------------------------------------------------------
 
@@ -388,6 +443,12 @@ export class SelfTestService {
 
         const runId = makeRunId();
         this.running = true;
+        this.activeRunId = runId;
+        this.cancelling = false;
+        this.currentScenario = "";
+        this.repsDone = 0;
+        this.repsTotal = 0;
+        this.updateStatusRunning();
 
         // Opt-in capture elevation for the run window (auto-reverts). Keeps the
         // default privacy-first stance: off unless the caller asks.
@@ -456,6 +517,14 @@ export class SelfTestService {
     public cancel(): { cancelled: boolean } {
         if (this.runner) {
             this.runner.cancel();
+            this.cancelling = true;
+            this.updateStatusRunning();
+            this.emitProgress({
+                runId: this.activeRunId,
+                phase: "log",
+                message:
+                    "⛔ cancellation requested — interrupting the current wait and stopping after this step…",
+            });
             return { cancelled: true };
         }
         return { cancelled: false };
@@ -498,6 +567,7 @@ export class SelfTestService {
             } catch {
                 attachedSourceId = undefined;
             }
+            this.updateStatusDone(result.status, passed, failed);
             this.emitProgress({
                 runId,
                 phase: "runEnd",
@@ -521,6 +591,7 @@ export class SelfTestService {
                 },
             });
         } catch (error) {
+            this.updateStatusDone("failed", 0, 0);
             this.emitProgress({
                 runId,
                 phase: "error",
@@ -534,6 +605,9 @@ export class SelfTestService {
     private handleEvent(event: SelfTestEvent, runId: string, runDir: string): void {
         switch (event.kind) {
             case "runStart":
+                this.repsTotal = event.totalReps;
+                this.repsDone = 0;
+                this.updateStatusRunning();
                 this.emitProgress({
                     runId,
                     phase: "runStart",
@@ -542,6 +616,8 @@ export class SelfTestService {
                 });
                 break;
             case "scenarioStart":
+                this.currentScenario = event.title;
+                this.updateStatusRunning();
                 this.emitProgress({
                     runId,
                     phase: "scenarioStart",
@@ -570,6 +646,8 @@ export class SelfTestService {
                 });
                 break;
             case "repEnd": {
+                this.repsDone++;
+                this.updateStatusRunning();
                 // Persist the rep in the standard perf-run layout so the Perf &
                 // History pages pick it up.
                 this.persistRep(runDir, event);

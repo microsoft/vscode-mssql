@@ -130,6 +130,30 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     const [selfTest, setSelfTest] = useState<SelfTestState | undefined>(undefined);
     const subscribedRef = useRef(false);
 
+    // Live pushes arrive every ~120ms during a run; every dataVersion bump
+    // re-queries the visible page (several RPCs). Throttle to 1/sec so a busy
+    // run never freezes the console or the extension host.
+    const versionThrottle = useRef<{ timer?: ReturnType<typeof setTimeout>; lastMs: number }>({
+        lastMs: 0,
+    });
+    const bumpDataVersion = useCallback(() => {
+        const state = versionThrottle.current;
+        if (state.timer) {
+            return; // trailing bump already scheduled
+        }
+        const elapsed = Date.now() - state.lastMs;
+        if (elapsed >= 1000) {
+            state.lastMs = Date.now();
+            setDataVersion((v) => v + 1);
+        } else {
+            state.timer = setTimeout(() => {
+                state.timer = undefined;
+                state.lastMs = Date.now();
+                setDataVersion((v) => v + 1);
+            }, 1000 - elapsed);
+        }
+    }, []);
+
     const refreshSources = useCallback(() => {
         void rpc.sendRequest(DcListSourcesRequest.type).then((list) => setSources(list));
     }, [rpc]);
@@ -156,7 +180,7 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
                         ? next.slice(next.length - LIVE_VIEW_CAP)
                         : next;
                 });
-                setDataVersion((v) => v + 1);
+                bumpDataVersion();
             } else {
                 setLiveGaps((current) => [...current, push.gap]);
             }

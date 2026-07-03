@@ -244,7 +244,6 @@ export interface IndexProgress {
 export class DirectoryHistoryProvider {
     private index: DirIndex = { version: INDEX_VERSION, indexedAtUtc: "", runs: {} };
     private indexLoaded = false;
-    private scanning = false;
     public lastIndexMs: number | undefined;
     public lastError: string | undefined;
 
@@ -286,12 +285,39 @@ export class DirectoryHistoryProvider {
     /**
      * Incremental rescan: stat every run dir, (re)index only new/changed ones.
      * Chunked so thousands of runs never block the extension host loop.
+     * Concurrent callers share the SAME in-flight scan — awaiting during an
+     * active scan must wait for real results, never return early with an
+     * empty index (that race blanked the runs table under live updates).
      */
-    public async rescan(): Promise<void> {
-        if (this.scanning) {
-            return;
+    public rescan(): Promise<void> {
+        if (this.scanPromise) {
+            return this.scanPromise;
         }
-        this.scanning = true;
+        this.scanPromise = this.doRescan().finally(() => {
+            this.scanPromise = undefined;
+        });
+        return this.scanPromise;
+    }
+
+    private scanPromise: Promise<void> | undefined;
+    private lastScanEndedMs = 0;
+
+    public get isScanning(): boolean {
+        return this.scanPromise !== undefined;
+    }
+
+    /** Debounced background refresh: at most one scan per maxAgeMs. */
+    public rescanIfStale(maxAgeMs: number): Promise<void> {
+        if (this.scanPromise) {
+            return this.scanPromise;
+        }
+        if (Date.now() - this.lastScanEndedMs < maxAgeMs) {
+            return Promise.resolve();
+        }
+        return this.rescan();
+    }
+
+    private async doRescan(): Promise<void> {
         this.lastError = undefined;
         const started = Date.now();
         try {
@@ -355,7 +381,7 @@ export class DirectoryHistoryProvider {
             this.lastIndexMs = Date.now() - started;
             this.onProgress?.({ state: "done", scanned, total: dirty.length });
         } finally {
-            this.scanning = false;
+            this.lastScanEndedMs = Date.now();
         }
     }
 

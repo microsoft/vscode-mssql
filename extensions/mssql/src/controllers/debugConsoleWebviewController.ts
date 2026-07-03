@@ -161,6 +161,15 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             context,
             (progress) => {
                 void this.sendNotification(DcSelfTestProgressNotification.type, progress);
+                // Tests open editors over the console; when the run finishes,
+                // bring the console back so the results are visible.
+                if ((progress.phase === "runEnd" || progress.phase === "error") && !this.disposed) {
+                    try {
+                        this.revealToForeground();
+                    } catch {
+                        // panel going away — nothing to reveal
+                    }
+                }
             },
             (runId, runDir) => {
                 const imported = importPerfRun(runDir);

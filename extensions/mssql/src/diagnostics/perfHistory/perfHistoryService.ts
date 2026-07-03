@@ -220,14 +220,19 @@ export class PerfHistoryService {
         return this.sourceStatus(descriptor);
     }
 
-    /** Ensure the source has been scanned at least once (cheap when cached). */
+    /**
+     * Ensure the source has been scanned at least once. Cold (empty index)
+     * AWAITS the scan — concurrent callers share the same in-flight promise so
+     * nobody serves an empty table mid-scan. Warm queries serve the cache and
+     * refresh in the background, debounced so live event storms (a running
+     * self-test bumps the UI continuously) can't hammer the filesystem.
+     */
     public async ensureIndexed(sourceId: string): Promise<DirectoryHistoryProvider | undefined> {
         const provider = this.providerFor(sourceId);
         if (provider && provider.runCount() === 0) {
             await provider.rescan();
         } else if (provider) {
-            // Refresh in the background; queries serve the cached index now.
-            void provider.rescan();
+            void provider.rescanIfStale(5000);
         }
         return provider;
     }

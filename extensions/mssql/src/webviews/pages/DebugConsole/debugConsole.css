@@ -399,6 +399,94 @@ body,
     transition: width 0.2s ease;
 }
 
+/* --- Self-test status console ------------------------------------------ */
+.dc-modal.st-wide {
+    width: min(1150px, 96vw);
+    height: 88vh;
+}
+.st-status {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 12px 18px 6px;
+}
+.st-statusbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0 8px;
+    font-size: 12.5px;
+}
+.st-state {
+    letter-spacing: 0.6px;
+    font-size: 12px;
+}
+.st-current {
+    color: var(--dc-muted);
+    font-size: 11.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.st-counters {
+    color: var(--dc-muted);
+    font-size: 11.5px;
+}
+.st-onair {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.st-onair.live {
+    background: var(--dc-error);
+    animation: st-pulse 1.2s ease-in-out infinite;
+}
+.st-onair.warn {
+    background: var(--dc-warn);
+    animation: st-pulse 0.6s ease-in-out infinite;
+}
+.st-onair.ok {
+    background: var(--dc-ok);
+}
+.st-onair.fail {
+    background: var(--dc-error);
+}
+@keyframes st-pulse {
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--dc-error) 45%, transparent);
+    }
+    50% {
+        opacity: 0.55;
+        box-shadow: 0 0 0 5px transparent;
+    }
+}
+.st-tab-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.st-fill {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overflow: auto;
+}
+.st-env-input {
+    height: 26px;
+    background: var(--dc-input-bg);
+    border: 1px solid var(--dc-input-border);
+    border-radius: 5px;
+    color: var(--dc-text);
+    padding: 0 8px;
+    font-family: var(--dc-mono);
+    font-size: 11.5px;
+}
+
 /* --- Perf Test History -------------------------------------------------- */
 .ph-header {
     display: flex;
