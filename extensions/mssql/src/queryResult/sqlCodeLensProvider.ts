@@ -10,6 +10,8 @@ import { QueryEditor } from "../constants/locConstants";
 import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 import * as LocalizedConstants from "../constants/locConstants";
 import { uriOwnershipCoordinator } from "../extension";
+import { IConnectionProfile } from "../models/interfaces";
+import { IConnectionInfo } from "vscode-mssql";
 
 export const connectionCodeLensRange = new vscode.Range(0, 0, 0, 0);
 
@@ -34,10 +36,10 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         }
     }
 
-    public provideCodeLenses(
+    public async provideCodeLenses(
         document: vscode.TextDocument,
         _token: vscode.CancellationToken,
-    ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
+    ): Promise<vscode.CodeLens[]> {
         // Defer to notebook-specific code lens provider for notebook cells
         if (
             document.uri.scheme === "vscode-notebook-cell" ||
@@ -71,8 +73,20 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
                 }),
             ];
         } else if (connection.connectionId) {
-            // If connected, show the connection change and database change CodeLenses
-            return [
+            // If connected, show [profile name] | server | database
+            const codeLenses: vscode.CodeLens[] = [];
+
+            const profileName = await this.getMatchingProfileName(connection.credentials);
+            if (profileName) {
+                codeLenses.push(
+                    new vscode.CodeLens(connectionCodeLensRange, {
+                        title: `$(star-full) ${profileName}`,
+                        command: Constants.cmdConnect,
+                    }),
+                );
+            }
+
+            codeLenses.push(
                 new vscode.CodeLens(connectionCodeLensRange, {
                     title: generateServerDisplayName(connection.credentials),
                     command: Constants.cmdConnect,
@@ -81,7 +95,9 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
                     title: generateDatabaseDisplayName(connection.credentials),
                     command: Constants.cmdChooseDatabase,
                 }),
-            ];
+            );
+
+            return codeLenses;
         } else if (connection?.errorNumber || connection?.errorMessage) {
             // If there was an error, show a single "Connection Error" CodeLens with the error message in the tooltip
             const tooltipText = connection.errorNumber
@@ -96,6 +112,32 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
             ];
         }
         return [];
+    }
+
+    /**
+     * Returns the profile name for the current connection if unchanged from the profile's
+     * saved configuration (server + database) or if the profile does not specify a database.
+     */
+    private async getMatchingProfileName(
+        credentials: IConnectionInfo,
+    ): Promise<string | undefined> {
+        const id = (credentials as IConnectionProfile).id;
+        if (!id) {
+            return undefined;
+        }
+
+        const profile =
+            await this._connectionManager.connectionStore.connectionConfig.getConnectionById(id);
+
+        if (
+            profile &&
+            profile.server === credentials.server &&
+            (!profile.database || profile.database === credentials.database)
+        ) {
+            return profile.profileName;
+        }
+
+        return undefined;
     }
 
     public resolveCodeLens?(
