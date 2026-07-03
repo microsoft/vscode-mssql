@@ -12,11 +12,18 @@
  * wait bus to the SAME diagnostics stream the Debug Console renders — so the
  * consolidated trace and waterfall light up in real time while scenarios run —
  * and persists results in the standard perf-run layout so the Perf & History
- * pages pick them up with no extra import step.
+ * pages pick them up with no extra import step. Completed runs are attached to
+ * the console as a source for trace/waterfall drill-in.
  *
- * Privacy: capture stays at the current mode unless the caller opts into
- * elevation for the run window (auto-reverts). Metrics are counts and durations
- * (diagnostic metadata, always plain); no SQL text or rows are persisted.
+ * Connection modes (user-selected, never implicit-only):
+ *   active — any connected editor's live connection (not just the focused one)
+ *   saved  — a saved connection profile (password via the credential store)
+ *   env    — a connection string from an environment variable (never persisted)
+ *   none   — SQL scenarios skip honestly
+ *
+ * Privacy: raw connection strings and passwords are never logged or persisted;
+ * provenance records the mode and a server/database label only. Capture stays
+ * at the current mode unless the caller opts into elevation for the run window.
  */
 
 import * as fs from "fs";
@@ -38,12 +45,14 @@ import {
     DiagEvent,
     DiagProcess,
     SelfTestCatalog,
+    SelfTestConnectionOption,
     SelfTestProgress,
     SelfTestRunRequest,
     SelfTestRunStarted,
     SelfTestScenarioInfo,
 } from "../../sharedInterfaces/debugConsole";
 import { diag, RawField } from "../diagnosticsCore";
+import { connectionStringLabel, parseSqlConnectionString } from "./connectionString";
 
 /** Marker-name prefix → console feature bucket (mirrors perfTelemetry). */
 function featureFor(name: string): string {
@@ -83,14 +92,49 @@ interface ProgressSink {
     (progress: SelfTestProgress): void;
 }
 
+/** Registers a finished run as a console source; returns its sourceId. */
+type AttachRun = (runId: string, runDir: string) => string | undefined;
+
+const DEFAULT_ENV_VAR = "MSSQL_PERFTEST_CONNECTION_STRING";
+
+interface RawCredentials {
+    server?: string;
+    database?: string;
+    user?: string;
+    password?: string;
+    authenticationType?: string;
+    encrypt?: string | boolean;
+    trustServerCertificate?: boolean;
+    profileName?: string;
+    savePassword?: boolean;
+}
+
+interface ConnectionManagerSeam {
+    isConnected(uri: string): boolean;
+    getConnectionInfo(uri: string): { credentials?: RawCredentials } | undefined;
+    connectionStore?: {
+        readAllConnections(includeRecent?: boolean): Promise<RawCredentials[]>;
+        lookupPassword(credentials: unknown, isConnectionString?: boolean): Promise<string>;
+    };
+}
+
+/** Cached resolution data behind each option id (never sent to the webview). */
+interface OptionBacking {
+    mode: "active" | "saved" | "env" | "none";
+    uri?: string;
+    profile?: RawCredentials;
+}
+
 export class SelfTestService {
     private running = false;
     private runner: SelfTestRunner | undefined;
     private tapId: string | undefined;
+    private optionBacking = new Map<string, OptionBacking>();
 
     constructor(
         private readonly context: vscode.ExtensionContext,
         private readonly emitProgress: ProgressSink,
+        private readonly attachRun?: AttachRun,
     ) {}
 
     // --- catalog ---------------------------------------------------------------
@@ -102,39 +146,233 @@ export class SelfTestService {
             description: s.description,
             tags: s.tags,
             needsSql: s.needsSql,
+            ...(s.inProcess === false ? { cliOnly: true } : {}),
             estMs: s.estMs,
         }));
-        const profile = await this.resolveDefaultProfile();
         return {
             scenarios,
-            connectionAvailable: profile !== undefined,
-            ...(profile ? { connectionLabel: profile.label } : {}),
+            connections: await this.listConnectionOptions(),
             perfRunsRoot: this.effectivePerfRunsRoot(),
             running: this.running,
         };
     }
 
+    /**
+     * Enumerate every way this run could get SQL connectivity. Labels are
+     * server/database only; option ids are opaque indices resolved through a
+     * service-side map so no URI or profile detail crosses to the webview.
+     */
+    private async listConnectionOptions(): Promise<SelfTestConnectionOption[]> {
+        const options: SelfTestConnectionOption[] = [];
+        this.optionBacking.clear();
+        const cm = await this.connectionManager();
+
+        // Active connections — every connected editor, not just the focused one.
+        if (cm) {
+            const activeUri = vscode.window.activeTextEditor?.document.uri.toString();
+            const connections =
+                (cm as unknown as { _connections?: Record<string, unknown> })._connections ?? {};
+            let index = 0;
+            for (const uri of Object.keys(connections)) {
+                let creds: RawCredentials | undefined;
+                try {
+                    if (!cm.isConnected(uri)) continue;
+                    creds = cm.getConnectionInfo(uri)?.credentials;
+                } catch {
+                    continue;
+                }
+                if (!creds?.server) continue;
+                const id = `active:${index++}`;
+                this.optionBacking.set(id, { mode: "active", uri });
+                options.push({
+                    id,
+                    mode: "active",
+                    label: redactedLabel(creds),
+                    detail: `${uri === activeUri ? "focused editor" : "connected editor"} · ${creds.authenticationType ?? "unknown auth"}`,
+                    available: true,
+                });
+            }
+        }
+
+        // Saved profiles.
+        if (cm?.connectionStore) {
+            try {
+                const profiles = await cm.connectionStore.readAllConnections(false);
+                let index = 0;
+                for (const profile of profiles.slice(0, 25)) {
+                    if (!profile.server) continue;
+                    const id = `saved:${index++}`;
+                    this.optionBacking.set(id, { mode: "saved", profile });
+                    const azure = profile.authenticationType === "AzureMFA";
+                    options.push({
+                        id,
+                        mode: "saved",
+                        label: profile.profileName || redactedLabel(profile),
+                        detail: `${redactedLabel(profile)} · ${profile.authenticationType ?? "unknown auth"}`,
+                        available: !azure,
+                        ...(azure
+                            ? {
+                                  reason: "Azure MFA profiles need interactive tokens — not supported for self-test yet",
+                              }
+                            : {}),
+                    });
+                }
+            } catch {
+                // saved profiles unavailable; other modes still offered
+            }
+        }
+
+        // Environment variable connection string.
+        const envSet = !!process.env[DEFAULT_ENV_VAR];
+        this.optionBacking.set("env", { mode: "env" });
+        options.push({
+            id: "env",
+            mode: "env",
+            label: `Connection string from $${DEFAULT_ENV_VAR}`,
+            detail: envSet
+                ? "variable is set (value never displayed or persisted)"
+                : "variable not set — set it or type another name in the dialog",
+            available: envSet,
+            ...(envSet ? {} : { reason: `${DEFAULT_ENV_VAR} is not set` }),
+        });
+
+        // No SQL.
+        this.optionBacking.set("none", { mode: "none" });
+        options.push({
+            id: "none",
+            mode: "none",
+            label: "No SQL connection",
+            detail: "harness-only scenarios run; SQL scenarios skip with a clear reason",
+            available: true,
+        });
+        return options;
+    }
+
+    /**
+     * Resolve the requested connection into an engine profile. Fails early
+     * with an actionable reason; never logs credentials.
+     */
+    private async resolveConnection(
+        request: SelfTestRunRequest["connection"],
+    ): Promise<{ spec?: ConnectionProfileSpec; label: string } | { error: string }> {
+        const mode = request?.mode ?? "none";
+        if (mode === "none") {
+            return { label: "no SQL connection (SQL scenarios skip)" };
+        }
+        if (mode === "env") {
+            const varName = request?.envVarName?.trim() || DEFAULT_ENV_VAR;
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(varName)) {
+                return { error: `'${varName}' is not a valid environment variable name` };
+            }
+            const raw = process.env[varName];
+            if (!raw) {
+                return {
+                    error: `environment variable ${varName} is not set in this VS Code process — set it and restart, or choose another mode`,
+                };
+            }
+            const outcome = parseSqlConnectionString(raw);
+            if ("error" in outcome) {
+                return { error: `$${varName}: ${outcome.error}` };
+            }
+            const parsed = outcome.parsed;
+            return {
+                spec: {
+                    server: parsed.server,
+                    ...(parsed.database ? { database: parsed.database } : {}),
+                    authenticationType: parsed.integrated ? "Integrated" : "SqlLogin",
+                    ...(parsed.user ? { user: parsed.user } : {}),
+                    ...(parsed.password ? { password: parsed.password } : {}),
+                    ...(parsed.encrypt ? { encrypt: parsed.encrypt } : {}),
+                    ...(parsed.trustServerCertificate !== undefined
+                        ? { trustServerCertificate: parsed.trustServerCertificate }
+                        : {}),
+                },
+                label: `$${varName} → ${connectionStringLabel(parsed)}`,
+            };
+        }
+
+        const backing = request?.optionId
+            ? this.optionBacking.get(request.optionId)
+            : // Robust default for "active": first connected editor.
+              [...this.optionBacking.values()].find((b) => b.mode === mode);
+        if (!backing || backing.mode !== mode) {
+            return {
+                error: `the selected ${mode} connection is no longer available — reopen the dialog to refresh options`,
+            };
+        }
+
+        if (backing.mode === "active") {
+            const cm = await this.connectionManager();
+            if (!cm || !backing.uri || !cm.isConnected(backing.uri)) {
+                return { error: "that editor is no longer connected — pick another connection" };
+            }
+            const creds = cm.getConnectionInfo(backing.uri)?.credentials;
+            if (!creds?.server) {
+                return { error: "could not read the active connection's details" };
+            }
+            return { spec: toSpec(creds), label: redactedLabel(creds) };
+        }
+
+        // saved
+        const profile = backing.profile;
+        if (!profile?.server) {
+            return { error: "saved profile is no longer available" };
+        }
+        let password = profile.password;
+        if (!password && profile.authenticationType === "SqlLogin") {
+            const cm = await this.connectionManager();
+            try {
+                password = (await cm?.connectionStore?.lookupPassword(profile)) || undefined;
+            } catch {
+                password = undefined;
+            }
+            if (!password) {
+                return {
+                    error: `saved profile '${profile.profileName ?? redactedLabel(profile)}' has no retrievable password — connect with it once (Save Password) or choose another mode`,
+                };
+            }
+        }
+        return {
+            spec: toSpec({ ...profile, ...(password ? { password } : {}) }),
+            label: profile.profileName || redactedLabel(profile),
+        };
+    }
+
+    private async connectionManager(): Promise<ConnectionManagerSeam | undefined> {
+        try {
+            const controller = (await vscode.commands.executeCommand(
+                "mssql.getControllerForTests",
+            )) as { connectionManager?: ConnectionManagerSeam } | undefined;
+            return controller?.connectionManager;
+        } catch {
+            return undefined;
+        }
+    }
+
     // --- run -------------------------------------------------------------------
 
     public async run(request: SelfTestRunRequest): Promise<SelfTestRunStarted> {
-        const profile = await this.resolveDefaultProfile();
         if (this.running) {
-            return {
-                accepted: false,
-                runId: "",
-                connectionAvailable: profile !== undefined,
-                reason: "a self-test is already running",
-            };
+            return { accepted: false, runId: "", reason: "a self-test is already running" };
         }
         const scenarios = request.scenarioIds
             .map((id) => builtinScenario(id))
             .filter((s): s is NonNullable<typeof s> => s !== undefined);
         if (scenarios.length === 0) {
+            return { accepted: false, runId: "", reason: "no known scenarios selected" };
+        }
+
+        // Resolve the connection BEFORE starting: fail early and actionably.
+        const resolved = await this.resolveConnection(request.connection);
+        if ("error" in resolved) {
+            return { accepted: false, runId: "", reason: resolved.error };
+        }
+        const needsSql = scenarios.some((s) => s.needsSql);
+        if (needsSql && !resolved.spec && (request.connection?.mode ?? "none") !== "none") {
             return {
                 accepted: false,
                 runId: "",
-                connectionAvailable: profile !== undefined,
-                reason: "no known scenarios selected",
+                reason: "selected scenarios need SQL but no connection resolved",
             };
         }
 
@@ -151,9 +389,7 @@ export class SelfTestService {
         }
 
         const runDir = path.join(this.effectivePerfRunsRoot(), runId);
-        const connectionProfiles: Record<string, ConnectionProfileSpec> | undefined = profile
-            ? { default: profile.spec }
-            : undefined;
+        const connectionProfiles = resolved.spec ? { default: resolved.spec } : undefined;
 
         const runner = new SelfTestRunner({
             runId,
@@ -184,7 +420,11 @@ export class SelfTestService {
 
         // Fire and forget: progress + persistence flow through onEvent; the RPC
         // returns immediately so the webview can render live.
-        void this.execute(runner, runId, runDir).finally(() => {
+        const provenance = {
+            connectionMode: request.connection?.mode ?? "none",
+            connectionLabel: resolved.label,
+        };
+        void this.execute(runner, runId, runDir, provenance).finally(() => {
             if (this.tapId) {
                 diag.removeSink(this.tapId);
                 this.tapId = undefined;
@@ -193,7 +433,7 @@ export class SelfTestService {
             this.runner = undefined;
         });
 
-        return { accepted: true, runId, connectionAvailable: profile !== undefined };
+        return { accepted: true, runId, connectionLabel: resolved.label };
     }
 
     public cancel(): { cancelled: boolean } {
@@ -204,20 +444,43 @@ export class SelfTestService {
         return { cancelled: false };
     }
 
-    private async execute(runner: SelfTestRunner, runId: string, runDir: string): Promise<void> {
+    private async execute(
+        runner: SelfTestRunner,
+        runId: string,
+        runDir: string,
+        provenance: { connectionMode: string; connectionLabel: string },
+    ): Promise<void> {
         try {
             fs.mkdirSync(runDir, { recursive: true });
             const result = await runner.run();
             const passed = result.reps.filter((r) => r.status === "passed").length;
             const failed = result.reps.filter((r) => r.status === "failed").length;
             const skipped = result.scenarios.filter((s) => s.skipped).length;
-            // Run-level summary the Perf page reads.
+            // Run-level summary the Perf/History pages read. Provenance carries
+            // the connection MODE and redacted label only — never credentials.
             writeJson(path.join(runDir, "summary.json"), {
                 status: result.status,
                 passType: "selfTest",
                 environmentHash: "selftest",
                 runId,
+                connection: provenance,
+                scenarios: Object.fromEntries(
+                    result.scenarios.map((s) => [
+                        s.scenarioId,
+                        s.skipped
+                            ? { skipped: true, reason: s.reason }
+                            : { passed: s.passed, failed: s.failed },
+                    ]),
+                ),
             });
+            // Attach the completed run to the console as a source so the trace
+            // and waterfall can drill into it immediately.
+            let attachedSourceId: string | undefined;
+            try {
+                attachedSourceId = this.attachRun?.(runId, runDir);
+            } catch {
+                attachedSourceId = undefined;
+            }
             this.emitProgress({
                 runId,
                 phase: "runEnd",
@@ -226,6 +489,7 @@ export class SelfTestService {
                 passed,
                 failed,
                 skipped,
+                ...(attachedSourceId ? { attachedSourceId } : {}),
             });
             diag.emit({
                 feature: "sessionDiag",
@@ -236,6 +500,7 @@ export class SelfTestService {
                     status: { raw: result.status, cls: "diagnostic.metadata" },
                     passed: { raw: passed, cls: "diagnostic.metadata" },
                     failed: { raw: failed, cls: "diagnostic.metadata" },
+                    connectionMode: { raw: provenance.connectionMode, cls: "diagnostic.metadata" },
                 },
             });
         } catch (error) {
@@ -317,6 +582,7 @@ export class SelfTestService {
                     passed: event.result.passed,
                     failed: event.result.failed,
                     ...(event.result.skipped ? { status: "skipped" } : {}),
+                    ...(event.result.reason ? { reason: event.result.reason } : {}),
                 });
                 break;
             case "log":
@@ -420,8 +686,6 @@ export class SelfTestService {
         };
     }
 
-    // --- connection resolution -------------------------------------------------
-
     private effectivePerfRunsRoot(): string {
         const configured = vscode.workspace
             .getConfiguration()
@@ -432,77 +696,30 @@ export class SelfTestService {
         }
         return path.join(this.context.globalStorageUri.fsPath, "self-test-runs");
     }
-
-    /**
-     * Resolve a "default" connection profile from the active editor's live
-     * connection. Returns undefined when nothing is connected — SQL scenarios
-     * then skip honestly rather than prompting or fabricating a connection.
-     * The password is passed to the in-process engine and never logged or
-     * persisted.
-     */
-    private async resolveDefaultProfile(): Promise<
-        { spec: ConnectionProfileSpec; label: string } | undefined
-    > {
-        try {
-            const controller = (await vscode.commands.executeCommand(
-                "mssql.getControllerForTests",
-            )) as
-                | {
-                      connectionManager?: {
-                          isConnected(uri: string): boolean;
-                          getConnectionInfo(
-                              uri: string,
-                          ): { credentials?: RawCredentials } | undefined;
-                      };
-                  }
-                | undefined;
-            const cm = controller?.connectionManager;
-            if (!cm) {
-                return undefined;
-            }
-            const uri = vscode.window.activeTextEditor?.document.uri.toString();
-            if (!uri || !cm.isConnected(uri)) {
-                return undefined;
-            }
-            const creds = cm.getConnectionInfo(uri)?.credentials;
-            if (!creds?.server) {
-                return undefined;
-            }
-            const authenticationType =
-                creds.authenticationType === "SqlLogin" ? "SqlLogin" : "Integrated";
-            const spec: ConnectionProfileSpec = {
-                server: creds.server,
-                ...(creds.database ? { database: creds.database } : {}),
-                authenticationType,
-                ...(creds.user ? { user: creds.user } : {}),
-                ...(creds.password ? { password: creds.password } : {}),
-                encrypt:
-                    typeof creds.encrypt === "boolean"
-                        ? creds.encrypt
-                            ? "true"
-                            : "false"
-                        : (creds.encrypt ?? "Optional"),
-                ...(creds.trustServerCertificate !== undefined
-                    ? { trustServerCertificate: !!creds.trustServerCertificate }
-                    : {}),
-            };
-            // Label carries no secrets — server + database only.
-            const label = `${creds.server}${creds.database ? ` / ${creds.database}` : ""}`;
-            return { spec, label };
-        } catch {
-            return undefined;
-        }
-    }
 }
 
-interface RawCredentials {
-    server?: string;
-    database?: string;
-    user?: string;
-    password?: string;
-    authenticationType?: string;
-    encrypt?: string | boolean;
-    trustServerCertificate?: boolean;
+/** Server/database display label — never credentials. */
+function redactedLabel(creds: RawCredentials): string {
+    return `${creds.server}${creds.database ? ` / ${creds.database}` : ""}`;
+}
+
+function toSpec(creds: RawCredentials): ConnectionProfileSpec {
+    return {
+        server: creds.server!,
+        ...(creds.database ? { database: creds.database } : {}),
+        authenticationType: creds.authenticationType === "SqlLogin" ? "SqlLogin" : "Integrated",
+        ...(creds.user ? { user: creds.user } : {}),
+        ...(creds.password ? { password: creds.password } : {}),
+        encrypt:
+            typeof creds.encrypt === "boolean"
+                ? creds.encrypt
+                    ? "true"
+                    : "false"
+                : (creds.encrypt ?? "Optional"),
+        ...(creds.trustServerCertificate !== undefined
+            ? { trustServerCertificate: !!creds.trustServerCertificate }
+            : {}),
+    };
 }
 
 function makeRunId(): string {

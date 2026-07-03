@@ -62,6 +62,15 @@ function commandLabel(type: string): string {
     return match ? match[1] : type;
 }
 
+/**
+ * Drop the Debug Console's own instrumentation (viewer-internal spans) so
+ * analysis over a trace never includes the act of viewing it. All derived
+ * views call this first; pass includeViewerInternal on the query to opt in.
+ */
+export function stripViewerNoise(events: DiagEvent[]): DiagEvent[] {
+    return events.filter((e) => !e.tags?.includes("viewerInternal"));
+}
+
 function statusRank(status: DiagStatus): number {
     switch (status) {
         case "error":
@@ -77,7 +86,8 @@ function statusRank(status: DiagStatus): number {
 }
 
 /** Group events by traceId and summarize root user actions, newest first. */
-export function userActions(events: DiagEvent[]): UserActionSummary[] {
+export function userActions(rawEvents: DiagEvent[]): UserActionSummary[] {
+    const events = stripViewerNoise(rawEvents);
     const byTrace = new Map<string, DiagEvent[]>();
     for (const event of events) {
         if (!event.traceId) {
@@ -131,10 +141,11 @@ export function userActions(events: DiagEvent[]): UserActionSummary[] {
 }
 
 export function computeKpis(
-    events: DiagEvent[],
+    rawEvents: DiagEvent[],
     gaps: GapRecord[],
     captureMode: SourceKpis["captureMode"],
 ): SourceKpis {
+    const events = stripViewerNoise(rawEvents);
     let errors = 0;
     let warnings = 0;
     let sql = 0;
@@ -164,7 +175,8 @@ export function computeKpis(
     };
 }
 
-export function deriveAnomalies(events: DiagEvent[], gaps: GapRecord[]): AnomalySummary[] {
+export function deriveAnomalies(rawEvents: DiagEvent[], gaps: GapRecord[]): AnomalySummary[] {
+    const events = stripViewerNoise(rawEvents);
     const anomalies: AnomalySummary[] = [];
     for (const gap of gaps.filter((g) => g.backfillStatus !== "succeeded")) {
         anomalies.push({
@@ -247,7 +259,9 @@ export function causeTree(events: DiagEvent[], eventId: string): CauseTreeNode |
 // ---------------------------------------------------------------------------
 
 export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallModel | undefined {
-    const scope = events.filter((e) => e.traceId === traceId);
+    // Viewer-internal spans are excluded so a completed trace has a FIXED end:
+    // repeatedly opening its waterfall must never extend or pollute it.
+    const scope = stripViewerNoise(events).filter((e) => e.traceId === traceId);
     if (scope.length === 0) {
         return undefined;
     }

@@ -422,6 +422,7 @@ export function TracePage() {
     const [processFilter, setProcessFilter] = useState<string>("all");
     const [featureFilter, setFeatureFilter] = useState<string>("all");
     const [statusFilter, setStatusFilter] = useState<string>("all");
+    const [showViewerInternal, setShowViewerInternal] = useState(false);
 
     useEffect(() => {
         const query = {
@@ -431,9 +432,19 @@ export function TracePage() {
             ...(featureFilter !== "all" ? { features: [featureFilter] } : {}),
             ...(statusFilter !== "all" ? { statuses: [statusFilter as DiagEvent["status"]] } : {}),
             ...(search ? { text: search } : {}),
+            ...(showViewerInternal ? { includeViewerInternal: true } : {}),
         };
         void rpc.sendRequest(DcQueryEventsRequest.type, query).then(setResult);
-    }, [rpc, activeSourceId, processFilter, featureFilter, statusFilter, search, dataVersion]);
+    }, [
+        rpc,
+        activeSourceId,
+        processFilter,
+        featureFilter,
+        statusFilter,
+        search,
+        dataVersion,
+        showViewerInternal,
+    ]);
 
     const features = useMemo(() => {
         const set = new Set<string>();
@@ -471,6 +482,17 @@ export function TracePage() {
                     <option value="warning">warning</option>
                     <option value="error">error</option>
                 </select>
+                <label
+                    className="dc-muted"
+                    title="Show the Debug Console's own RPC spans (excluded by default so viewing a trace never pollutes it)"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <input
+                        type="checkbox"
+                        checked={showViewerInternal}
+                        onChange={(e) => setShowViewerInternal(e.target.checked)}
+                    />
+                    viewer internals
+                </label>
                 <span className="dc-muted" style={{ marginLeft: "auto" }}>
                     {isLive ? "Streaming · newest at bottom · " : ""}
                     {result

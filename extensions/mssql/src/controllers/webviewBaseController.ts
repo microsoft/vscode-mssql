@@ -500,11 +500,19 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             // Schema Designer, Edit Data, Connection Dialog, Object
             // Management, Schema Compare, ...). Near no-op when no sink is
             // active; method + controller id are protocol metadata.
+            // The Debug Console's own RPC traffic (dc/* polling, waterfall and
+            // trace queries) is viewer-internal: it must never join the active
+            // user-action root trace (it would extend completed scenarios
+            // forever) and is excluded from analysis by default.
+            const isViewerInternal = this._sourceFile === "debugConsole";
             const diagSpan = diag.anySinkActive
                 ? diag.startSpan({
                       feature: `webview.${this._sourceFile}`,
                       kind: "request",
                       type: `webview.${this._sourceFile}.${type.method}`,
+                      ...(isViewerInternal
+                          ? { traceId: `viewer_${diag.sessionId}`, tags: ["viewerInternal"] }
+                          : {}),
                   })
                 : undefined;
             const handlerActivity = startActivity(

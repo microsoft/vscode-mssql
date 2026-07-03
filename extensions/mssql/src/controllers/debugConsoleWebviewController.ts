@@ -139,9 +139,27 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
 
         // Self-test runner: runs perftest scenarios in-process; progress streams
         // to the webview and events flow through diag into the live views.
-        this.selfTest = new SelfTestService(context, (progress) => {
-            void this.sendNotification(DcSelfTestProgressNotification.type, progress);
-        });
+        // Completed runs attach as a console source for trace/waterfall drill-in.
+        this.selfTest = new SelfTestService(
+            context,
+            (progress) => {
+                void this.sendNotification(DcSelfTestProgressNotification.type, progress);
+            },
+            (runId, runDir) => {
+                const imported = importPerfRun(runDir);
+                if (!imported) {
+                    return undefined;
+                }
+                this.perfRunCounter++;
+                const sourceId = `perfrun:${this.perfRunCounter}`;
+                this.diagnostics.store.registerPerfRun(
+                    sourceId,
+                    `Self-test ${runId}`,
+                    imported.events,
+                );
+                return sourceId;
+            },
+        );
 
         this.registerHandlers();
         diag.emit({ feature: "sessionDiag", type: "debugConsole.opened" });

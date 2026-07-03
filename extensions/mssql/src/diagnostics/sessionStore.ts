@@ -174,6 +174,9 @@ export class SessionStore {
         const limit = Math.min(query.limit ?? 500, MAX_QUERY_LIMIT);
         const text = query.text?.toLowerCase();
         const filtered = events.filter((event) => {
+            if (!query.includeViewerInternal && event.tags?.includes("viewerInternal")) {
+                return false;
+            }
             if (query.processes && !query.processes.includes(event.process)) {
                 // RPC boundary spans are emitted by the extension host but
                 // represent STS work — the "STS" process filter includes them

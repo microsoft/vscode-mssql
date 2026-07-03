@@ -197,6 +197,13 @@ export class LiveTailSink implements DiagnosticSink {
     }
 
     public tryWrite(event: DiagEvent): void {
+        // Viewer-internal spans never enter the live tail: pushing the
+        // console's own RPC spans back to the console re-renders it, which
+        // issues more RPCs — a self-sustaining feedback loop. The archive
+        // sink still retains them for the explicit "viewer internals" toggle.
+        if (event.tags?.includes("viewerInternal")) {
+            return;
+        }
         this.ring.push(event);
         if (this.ring.length > this.ringCapacity) {
             this.ring.shift();

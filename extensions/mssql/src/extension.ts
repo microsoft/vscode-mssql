@@ -39,6 +39,25 @@ export let controller: MainController = undefined;
 export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    try {
+        return await activateInternal(context);
+    } catch (error) {
+        // Activation begin/end markers must stay balanced even when activation
+        // fails, so the harness/self-test sees a clear failure instead of
+        // waiting for an end marker that never comes.
+        Perf.setActivationState("failed");
+        Perf.marker("mssql.activate.end", "end", {
+            failed: true,
+            error: true,
+            reason:
+                error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+        });
+        Perf.flush();
+        throw error;
+    }
+}
+
+async function activateInternal(context: vscode.ExtensionContext): Promise<IExtension> {
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");
 

@@ -221,6 +221,12 @@ export interface EventQuery {
     limit?: number;
     /** When set, return rows ending at this seq going backwards (tail pages). */
     beforeSeq?: number;
+    /**
+     * Debug Console's own RPC spans (tag "viewerInternal") are excluded by
+     * default so viewing a trace never pollutes it; set true to include them
+     * when debugging the console itself.
+     */
+    includeViewerInternal?: boolean;
 }
 
 export interface EventQueryResult {
@@ -363,14 +369,28 @@ export interface SelfTestScenarioInfo {
     tags: string[];
     /** Requires a live SQL connection (offered but blocked when none resolves). */
     needsSql: boolean;
+    /** Cannot run honestly in-process (e.g. cold activation) — CLI harness only. */
+    cliOnly?: boolean;
     estMs: number;
+}
+
+export type SelfTestConnectionMode = "active" | "saved" | "env" | "none";
+
+/** One selectable way to provide SQL connectivity to a self-test run. */
+export interface SelfTestConnectionOption {
+    id: string;
+    mode: SelfTestConnectionMode;
+    /** Redacted label — server/database only, never credentials. */
+    label: string;
+    detail?: string;
+    available: boolean;
+    reason?: string;
 }
 
 export interface SelfTestCatalog {
     scenarios: SelfTestScenarioInfo[];
-    /** A "default" connection profile was resolvable from an active editor. */
-    connectionAvailable: boolean;
-    connectionLabel?: string;
+    /** All resolvable connection options (active editors, saved profiles, env var, none). */
+    connections: SelfTestConnectionOption[];
     perfRunsRoot: string;
     running: boolean;
 }
@@ -381,12 +401,22 @@ export interface SelfTestRunRequest {
     warmupRepetitions: number;
     /** Opt-in richer capture (full) for the run window; auto-reverts. */
     elevateCapture?: boolean;
+    /** Opt-in rich diagnostics collection for the run window; auto-reverts. */
+    collectRich?: boolean;
+    /** Selected connection option; omitted ⇒ "none" (SQL scenarios skip). */
+    connection?: {
+        mode: SelfTestConnectionMode;
+        optionId?: string;
+        /** env mode: variable holding a SQL connection string (value never persisted). */
+        envVarName?: string;
+    };
 }
 
 export interface SelfTestRunStarted {
     accepted: boolean;
     runId: string;
-    connectionAvailable: boolean;
+    /** Redacted description of the connection the run will use (or why none). */
+    connectionLabel?: string;
     reason?: string;
 }
 
@@ -422,6 +452,8 @@ export interface SelfTestProgress {
     runStatus?: string;
     perfRunsRoot?: string;
     skipped?: number;
+    /** Console source registered for this run's events (drill into trace/waterfall). */
+    attachedSourceId?: string;
 }
 
 export interface SqlActivityRow {
