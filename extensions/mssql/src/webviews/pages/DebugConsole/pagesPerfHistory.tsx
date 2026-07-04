@@ -1762,9 +1762,30 @@ function SubmetricsTab({ details }: { details: PerfScenarioDetails | undefined }
                             )}
                         </td>
                         <td>
-                            <span className={`dc-pill ${sub.official ? "ok" : "info"}`}>
-                                {sub.official ? "official" : "diag"}
-                            </span>
+                            {/* Structured trust labels when the run carries them
+                                (Shared Observability Contract); legacy runs fall
+                                back to the boolean official flag. */}
+                            {sub.eligibility ? (
+                                <span
+                                    className={`dc-pill ${
+                                        sub.eligibility.ciGatingEligible
+                                            ? "ok"
+                                            : sub.eligibility.exploratory
+                                              ? "warn"
+                                              : "info"
+                                    }`}
+                                    title={sub.eligibility.reason}>
+                                    {sub.eligibility.ciGatingEligible
+                                        ? "gate-eligible"
+                                        : sub.eligibility.exploratory
+                                          ? "exploratory"
+                                          : "diagnostic"}
+                                </span>
+                            ) : (
+                                <span className={`dc-pill ${sub.official ? "ok" : "info"}`}>
+                                    {sub.official ? "official" : "diag"}
+                                </span>
+                            )}
                         </td>
                         <td className="num dc-mono">{sub.n}</td>
                         <td className="dc-muted">{sub.unit}</td>

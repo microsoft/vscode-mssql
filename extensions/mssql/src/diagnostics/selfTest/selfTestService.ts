@@ -54,6 +54,11 @@ import {
 import { diag, RawField } from "../diagnosticsCore";
 import { richStats } from "../richCollection";
 import { connectionStringLabel, parseSqlConnectionString } from "./connectionString";
+import {
+    deriveEligibility,
+    explainEventName,
+    loadRegistry as loadObsRegistry,
+} from "../../sharedInterfaces/observabilityContract.generated";
 
 /** Marker-name prefix → console feature bucket (mirrors perfTelemetry). */
 function featureFor(name: string): string {
@@ -142,6 +147,7 @@ export class SelfTestService {
     private currentScenario = "";
     private cancelling = false;
     private activeRunId = "";
+    private activeRunRich = false;
 
     constructor(
         private readonly context: vscode.ExtensionContext,
@@ -461,6 +467,7 @@ export class SelfTestService {
             });
         }
         // Rich diagnostics for the run window only; released in finally below.
+        this.activeRunRich = !!request.collectRich;
         if (request.collectRich) {
             richStats.enable(`selftest:${runId}`);
         }
@@ -697,6 +704,31 @@ export class SelfTestService {
         }
     }
 
+    /**
+     * Structured eligibility for a self-test metric (Shared Observability
+     * Contract). The time plane comes from the REGISTRY: a metric derived
+     * from an epoch-aligned input event (e.g. toRender via the webview's
+     * renderComplete mark) is epoch-plane here — the in-product engine has no
+     * clock calibration, so cross-process durations are honestly diagnostic.
+     * Interactive host ⇒ exploratory at best, never CI-gating.
+     */
+    private metricEligibility(metricName: string, repStatus: string) {
+        const registry = loadObsRegistry();
+        const metricEntry = registry.metrics.find((m) => m.name === metricName);
+        const epochInput =
+            metricEntry?.derivedFrom.some(
+                (input) => explainEventName(input, registry).entry?.timingClass === "epochAligned",
+            ) ?? false;
+        return deriveEligibility({
+            source: "marker",
+            passType: "measurement",
+            environment: "interactiveHost",
+            timePlane: epochInput ? "epoch" : "monotonic",
+            repStatus: repStatus === "passed" ? "passed" : "failed",
+            richCollection: this.activeRunRich,
+        });
+    }
+
     private persistRep(runDir: string, event: Extract<SelfTestEvent, { kind: "repEnd" }>): void {
         try {
             const rep = event.result;
@@ -719,6 +751,7 @@ export class SelfTestService {
                     value: m.value,
                     unit: m.unit,
                     official: m.official,
+                    eligibility: this.metricEligibility(m.name, rep.status),
                 })),
                 ...(rep.failureReason ? { failureReason: rep.failureReason } : {}),
             });

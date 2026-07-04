@@ -27,6 +27,7 @@ import {
     PerfScenarioDetailsQuery,
     PerfScenarioRow,
     PerfScenariosQuery,
+    PerfMetricEligibility,
     PerfSubmetricRow,
     PerfValidationRow,
     RunVerdict,
@@ -745,6 +746,7 @@ export class DirectoryHistoryProvider {
                         value: number;
                         unit?: string;
                         official: boolean;
+                        eligibility?: PerfMetricEligibility;
                     }>;
                     failureReason?: string;
                     validations?: Array<{ name: string; status: string; message?: string }>;
@@ -762,6 +764,7 @@ export class DirectoryHistoryProvider {
                             value: m.value,
                             unit: m.unit ?? "ms",
                             official: m.official === true,
+                            ...(m.eligibility ? { eligibility: m.eligibility } : {}),
                         })),
                     ...(result.failureReason ? { failureReason: result.failureReason } : {}),
                     hasMarkers,
@@ -802,10 +805,17 @@ export class DirectoryHistoryProvider {
         // Submetrics: aggregate every metric present, official + diagnostic.
         const submetrics: PerfSubmetricRow[] = [];
         if (scenario) {
-            const names = new Map<string, { official: boolean; unit: string }>();
+            const names = new Map<
+                string,
+                { official: boolean; unit: string; eligibility?: PerfMetricEligibility }
+            >();
             for (const rep of reps) {
                 for (const metric of rep.metrics) {
-                    names.set(metric.name, { official: metric.official, unit: metric.unit });
+                    names.set(metric.name, {
+                        official: metric.official,
+                        unit: metric.unit,
+                        ...(metric.eligibility ? { eligibility: metric.eligibility } : {}),
+                    });
                 }
             }
             const baseline = this.baselineScenario(
@@ -826,6 +836,7 @@ export class DirectoryHistoryProvider {
                     name,
                     unit: info.unit,
                     official: info.official,
+                    ...(info.eligibility ? { eligibility: info.eligibility } : {}),
                     ...(p50 !== undefined ? { p50: Number(p50.toFixed(2)) } : {}),
                     ...(baselineP50 !== undefined
                         ? { baselineP50: Number(baselineP50.toFixed(2)) }

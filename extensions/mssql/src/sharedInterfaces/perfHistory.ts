@@ -159,15 +159,31 @@ export interface PerfRepRow {
     repId: number;
     status: string;
     warmup: boolean;
-    metrics: Array<{ name: string; value: number; unit: string; official: boolean }>;
+    metrics: Array<{
+        name: string;
+        value: number;
+        unit: string;
+        official: boolean;
+        eligibility?: PerfMetricEligibility;
+    }>;
     failureReason?: string;
     hasMarkers: boolean;
+}
+
+/** Structured trust labels (Shared Observability Contract), pass-through from result.json. */
+export interface PerfMetricEligibility {
+    measurementEligible: boolean;
+    ciGatingEligible: boolean;
+    exploratory: boolean;
+    diagnosticOnly: boolean;
+    reason: string;
 }
 
 export interface PerfSubmetricRow {
     name: string;
     unit: string;
     official: boolean;
+    eligibility?: PerfMetricEligibility;
     p50?: number;
     baselineP50?: number;
     deltaPct?: number;

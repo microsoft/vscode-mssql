@@ -242,6 +242,13 @@ function writeRun(
                             value,
                             unit: "ms",
                             official: true,
+                            eligibility: {
+                                measurementEligible: true,
+                                ciGatingEligible: false,
+                                exploratory: true,
+                                diagnosticOnly: false,
+                                reason: "interactive host — exploratory, never a gate",
+                            },
                         },
                     ],
                 }),
@@ -364,6 +371,14 @@ suite("Perf history directory provider (filesystem)", function () {
         expect(details.reps).to.have.length(3);
         expect(details.submetrics.map((s) => s.name)).to.include("scenario.wallclock");
         expect(details.submetrics[0].n).to.equal(3);
+        // Structured eligibility travels from result.json to the submetric row
+        // (Shared Observability Contract trust labels).
+        const wallclock = details.submetrics.find((s) => s.name === "scenario.wallclock");
+        expect(wallclock?.eligibility?.exploratory).to.equal(true);
+        expect(wallclock?.eligibility?.ciGatingEligible).to.equal(false);
+        expect(wallclock?.eligibility?.reason).to.include("never a gate");
+        const rep = details.reps[0];
+        expect(rep.metrics[0].eligibility?.measurementEligible).to.equal(true);
     });
 
     test("large synthetic history (1,000 runs) indexes in bounded time and serves cached queries fast", async () => {
