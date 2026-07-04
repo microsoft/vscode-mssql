@@ -2996,6 +2996,7 @@
     "Invalid table payload. Expected table with columns array.": "Invalid table payload. Expected table with columns array.",
     "Failed to add table.": "Failed to add table.",
     "Failed to update table.": "Failed to update table.",
+    "Failed to apply schema.": "Failed to apply schema.",
     "Failed to delete table.": "Failed to delete table.",
     "Table id already exists.": "Table id already exists.",
     "Foreign key column mappings are required.": "Foreign key column mappings are required.",

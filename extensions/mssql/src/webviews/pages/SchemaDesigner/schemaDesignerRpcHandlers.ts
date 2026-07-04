@@ -958,12 +958,12 @@ export function createSchemaDesignerApplyEditsHandler(
                 }
 
                 if (didMutateThisEdit) {
-                    if (shouldCommitSchema) {
+                    if (applySchema) {
                         const success = await applySchema(workingSchema);
                         if (!success) {
                             return fail(
                                 "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
+                                locConstants.schemaDesigner.failedToApplySchema,
                             );
                         }
                     }
