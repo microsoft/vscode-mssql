@@ -130,7 +130,6 @@ function TopBar() {
         activeSourceId,
         setActiveSourceId,
         isLive,
-        setIsLive,
         captureMode,
         captureExpiresEpochMs,
         liveGaps,
@@ -174,7 +173,8 @@ function TopBar() {
 
     return (
         <div className="dc-topbar">
-            <div className="dc-title">
+            {/* Icon only — the tab title already says "MSSQL Debug Console". */}
+            <div className="dc-title" title="MSSQL Debug Console" aria-label="MSSQL Debug Console">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
                     <path
                         d="M1 8h3l2-5 3 10 2-5h4"
@@ -184,17 +184,12 @@ function TopBar() {
                         strokeLinejoin="round"
                     />
                 </svg>
-                MSSQL Debug Console
             </div>
             <select
                 className="dc-session-select"
                 value={activeSourceId}
                 title={active?.label}
-                onChange={(e) => {
-                    setActiveSourceId(e.target.value);
-                    const source = sources.find((s) => s.id === e.target.value);
-                    setIsLive(source?.kind === "liveSession");
-                }}
+                onChange={(e) => setActiveSourceId(e.target.value)}
                 onFocus={refreshSources}>
                 {sources.map((source) => (
                     <option key={source.id} value={source.id}>
@@ -203,26 +198,20 @@ function TopBar() {
                     </option>
                 ))}
             </select>
-            <div className="dc-seg">
-                <button
-                    className={isLive ? "active" : ""}
-                    onClick={() => setIsLive(true)}
-                    disabled={active?.kind !== "liveSession"}>
-                    <span
-                        className="dc-live-dot"
-                        style={{ display: "inline-block", marginRight: 5 }}
-                    />
-                    Live
-                </button>
-                <button
-                    className={!isLive ? "active" : ""}
-                    onClick={() => {
-                        setIsLive(false);
-                        navigate({ page: "history" });
+            {/* Live is derived from the selected source (Current session = live). */}
+            {isLive ? (
+                <span
+                    className="dc-muted"
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontSize: 11.5,
                     }}>
-                    History
-                </button>
-            </div>
+                    <span className="dc-live-dot" style={{ display: "inline-block" }} />
+                    live
+                </span>
+            ) : null}
             <div className="spacer" />
             <div className="dc-search">
                 <span aria-hidden>⌕</span>

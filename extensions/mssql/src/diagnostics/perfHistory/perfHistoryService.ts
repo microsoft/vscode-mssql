@@ -504,6 +504,22 @@ export class PerfHistoryService {
         };
     }
 
+    /** Delete a run (writable directory sources only; bundles are read-only). */
+    public async deleteRun(
+        sourceId: string,
+        runId: string,
+    ): Promise<{ ok: boolean; error?: string }> {
+        const descriptor = this.describeAll().find((s) => s.id === sourceId);
+        if (!descriptor || descriptor.kind !== "directory") {
+            return { ok: false, error: "runs can only be deleted from writable directory sources" };
+        }
+        const provider = this.providerFor(sourceId);
+        if (!provider) {
+            return { ok: false, error: "source unavailable" };
+        }
+        return provider.deleteRun(runId);
+    }
+
     public async dump(query: PerfDumpQuery): Promise<PerfDumpResult> {
         const provider = await this.ensureIndexed(query.sourceId);
         if (!provider) {

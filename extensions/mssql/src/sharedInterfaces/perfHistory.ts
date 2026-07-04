@@ -362,6 +362,14 @@ export namespace PhGetRichDiagnosticsRequest {
         "ph/getRichDiagnostics",
     );
 }
+export namespace PhDeleteRunRequest {
+    /** Deletes the run DIRECTORY from disk (writable directory sources only). */
+    export const type = new RequestType<
+        { sourceId: string; runId: string },
+        { ok: boolean; error?: string },
+        void
+    >("ph/deleteRun");
+}
 export namespace PhIndexProgressNotification {
     export const type = new NotificationType<PerfIndexProgress>("ph/indexProgress");
 }

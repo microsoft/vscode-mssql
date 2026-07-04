@@ -855,6 +855,32 @@ export class DirectoryHistoryProvider {
         };
     }
 
+    /**
+     * Delete one run: remove the directory from disk and evict it from the
+     * index (persisted). Refuses run ids that are not direct children of the
+     * root — no path tricks.
+     */
+    public deleteRun(runId: string): { ok: boolean; error?: string } {
+        if (!/^[^/\\]+$/.test(runId) || runId.startsWith(".")) {
+            return { ok: false, error: `invalid run id '${runId}'` };
+        }
+        this.loadPersistedIndex();
+        const runDir = path.join(this.root, runId);
+        try {
+            if (fs.existsSync(runDir)) {
+                fs.rmSync(runDir, { recursive: true, force: true });
+            }
+            delete this.index.runs[runId];
+            this.persistIndex();
+            return { ok: true };
+        } catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
     public repDir(runId: string, scenarioId: string, repId: number): string {
         return path.join(
             this.root,

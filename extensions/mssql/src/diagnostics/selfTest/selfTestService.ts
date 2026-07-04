@@ -151,10 +151,12 @@ export class SelfTestService {
 
     private ensureStatusItem(): vscode.StatusBarItem {
         if (!this.statusItem) {
+            // Very low priority ⇒ right-most among right-aligned items, so the
+            // indicator stays put while other items come and go during a run.
             this.statusItem = vscode.window.createStatusBarItem(
                 "mssql.selfTest",
                 vscode.StatusBarAlignment.Right,
-                91,
+                -1000,
             );
             this.statusItem.name = "MSSQL Self-Test";
             this.statusItem.command = "mssql.openDebugConsole";

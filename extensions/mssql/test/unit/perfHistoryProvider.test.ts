@@ -324,6 +324,32 @@ suite("Perf history directory provider (filesystem)", function () {
         expect(cached.runCount()).to.equal(1);
     });
 
+    test("deleteRun removes the directory, evicts the index, and rejects path tricks", async () => {
+        writeRun(root, "2026-07-01T00-00-00Z_aa", {
+            scenarios: { "selftest-noop": [1, 2, 3] },
+        });
+        writeRun(root, "2026-07-02T00-00-00Z_bb", {
+            scenarios: { "selftest-noop": [4, 5, 6] },
+        });
+        const provider = new DirectoryHistoryProvider("test", root);
+        await provider.rescan();
+        expect(provider.runCount()).to.equal(2);
+
+        const outcome = provider.deleteRun("2026-07-01T00-00-00Z_aa");
+        expect(outcome.ok).to.equal(true);
+        expect(fs.existsSync(path.join(root, "2026-07-01T00-00-00Z_aa"))).to.equal(false);
+        expect(provider.runCount()).to.equal(1);
+
+        // Survives a cache reload (index was persisted post-delete).
+        const reloaded = new DirectoryHistoryProvider("test", root);
+        expect(reloaded.runCount()).to.equal(1);
+
+        // Path traversal / absolute paths are refused.
+        expect(provider.deleteRun("../outside").ok).to.equal(false);
+        expect(provider.deleteRun("a/b").ok).to.equal(false);
+        expect(provider.deleteRun(".dc-history-index.json").ok).to.equal(false);
+    });
+
     test("scenario details expose reps, submetrics, and failure reasons lazily", async () => {
         writeRun(root, "2026-07-01T00-00-00Z_aa", {
             scenarios: { "query-10k-results": [100, 110, 120] },

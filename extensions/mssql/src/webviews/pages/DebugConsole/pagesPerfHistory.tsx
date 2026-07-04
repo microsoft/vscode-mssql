@@ -30,6 +30,7 @@ import {
     PerfScenarioRow,
     PerfSourceKind,
     PhAddSourceRequest,
+    PhDeleteRunRequest,
     PhGetDumpRequest,
     PhGetRichDiagnosticsRequest,
     PhGetSqlActivityRequest,
@@ -732,7 +733,18 @@ function AnalysisTab(props: {
         return [...names].sort();
     }, [details]);
 
-    const toggleRun = (runId: string, multi: boolean) => {
+    // Selection anchor for shift-click contiguous ranges.
+    const anchorRunRef = useRef<string | undefined>(undefined);
+    const toggleRun = (runId: string, multi: boolean, range: boolean) => {
+        if (range && anchorRunRef.current) {
+            const a = runs.findIndex((r) => r.runId === anchorRunRef.current);
+            const b = runs.findIndex((r) => r.runId === runId);
+            if (a >= 0 && b >= 0) {
+                const [from, to] = a <= b ? [a, b] : [b, a];
+                setSelectedRunIds(runs.slice(from, to + 1).map((r) => r.runId));
+                return;
+            }
+        }
         if (multi) {
             setSelectedRunIds(
                 selectedRunIds.includes(runId)
@@ -742,6 +754,16 @@ function AnalysisTab(props: {
         } else {
             setSelectedRunIds([runId]);
         }
+        anchorRunRef.current = runId;
+    };
+
+    const deleteRun = (runId: string) => {
+        void rpc.sendRequest(PhDeleteRunRequest.type, { sourceId, runId }).then((outcome) => {
+            if (outcome.ok) {
+                setSelectedRunIds(selectedRunIds.filter((id) => id !== runId));
+                setRuns((current) => current.filter((r) => r.runId !== runId));
+            }
+        });
     };
 
     const activeChips: Array<{ label: string; clear: () => void }> = [
@@ -854,7 +876,9 @@ function AnalysisTab(props: {
                             runs={runs}
                             selectedRunIds={selectedRunIds}
                             baselineRunId={baselineRunId}
+                            focusRunId={primaryRunId}
                             onToggle={toggleRun}
+                            onDelete={deleteRun}
                         />
                     </div>
                 </Panel>
@@ -1090,12 +1114,36 @@ function RunsTable(props: {
     runs: PerfRunRow[];
     selectedRunIds: string[];
     baselineRunId?: string;
-    onToggle: (runId: string, multi: boolean) => void;
+    /** Primary selection — scrolled into view when it changes (trend drill-in). */
+    focusRunId?: string;
+    onToggle: (runId: string, multi: boolean, range: boolean) => void;
+    onDelete: (runId: string) => void;
 }) {
     const virtual = useVirtualRows(props.runs.length, RUN_ROW_HEIGHT);
     const visible = props.runs.slice(virtual.start, virtual.end);
+
+    // Keep the focused run visible (e.g. after clicking a trend point on the
+    // Runs Summary tab and landing here).
+    useEffect(() => {
+        const el = virtual.ref.current;
+        if (!el || !props.focusRunId) {
+            return;
+        }
+        const index = props.runs.findIndex((r) => r.runId === props.focusRunId);
+        if (index < 0) {
+            return;
+        }
+        const top = index * RUN_ROW_HEIGHT;
+        if (top < el.scrollTop || top > el.scrollTop + el.clientHeight - RUN_ROW_HEIGHT * 2) {
+            el.scrollTop = Math.max(0, top - el.clientHeight / 3);
+        }
+    }, [props.focusRunId, props.runs]);
+
     return (
-        <div className="dc-table-wrap ph-fill-scroll" ref={virtual.ref} onScroll={virtual.onScroll}>
+        <div
+            className="dc-table-wrap ph-fill-scroll ph-noselect"
+            ref={virtual.ref}
+            onScroll={virtual.onScroll}>
             {/* Fixed layout: column widths never shift as virtualized rows
                 scroll in/out, and rows keep a single fixed height. */}
             <table className="dc-table ph-dense ph-table-fixed">
@@ -1114,6 +1162,7 @@ function RunsTable(props: {
                     <col style={{ width: 72 }} />
                     <col style={{ width: 64 }} />
                     <col />
+                    <col style={{ width: 54 }} />
                 </colgroup>
                 <thead>
                     <tr>
@@ -1131,12 +1180,13 @@ function RunsTable(props: {
                         <th className="num">p95</th>
                         <th>Conn</th>
                         <th>Artifacts</th>
+                        <th />
                     </tr>
                 </thead>
                 <tbody>
                     {virtual.topPad > 0 ? (
                         <tr style={{ height: virtual.topPad }}>
-                            <td colSpan={14} />
+                            <td colSpan={15} />
                         </tr>
                     ) : null}
                     {visible.map((run) => (
@@ -1144,7 +1194,9 @@ function RunsTable(props: {
                             key={run.runId}
                             style={{ height: RUN_ROW_HEIGHT }}
                             className={props.selectedRunIds.includes(run.runId) ? "selected" : ""}
-                            onClick={(e) => props.onToggle(run.runId, e.ctrlKey || e.metaKey)}>
+                            onClick={(e) =>
+                                props.onToggle(run.runId, e.ctrlKey || e.metaKey, e.shiftKey)
+                            }>
                             <td>
                                 <VerdictPill verdict={run.verdict} />
                                 {props.baselineRunId === run.runId ? (
@@ -1191,11 +1243,22 @@ function RunsTable(props: {
                             <td>
                                 <ArtifactBadges kinds={run.artifactKinds} />
                             </td>
+                            <td className="num">
+                                <button
+                                    className="dc-btn ph-row-action"
+                                    title="Delete this run (removes the run directory from disk)"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        props.onDelete(run.runId);
+                                    }}>
+                                    🗑
+                                </button>
+                            </td>
                         </tr>
                     ))}
                     {virtual.bottomPad > 0 ? (
                         <tr style={{ height: virtual.bottomPad }}>
-                            <td colSpan={14} />
+                            <td colSpan={15} />
                         </tr>
                     ) : null}
                 </tbody>

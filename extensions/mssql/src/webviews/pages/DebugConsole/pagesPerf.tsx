@@ -22,7 +22,7 @@ export function HistoryPage() {
         rpc,
         dataVersion,
         setActiveSourceId,
-        setIsLive,
+
         navigate,
         captureMode,
         setCaptureMode,
@@ -115,7 +115,7 @@ export function HistoryPage() {
                                     key={session.sourceId}
                                     onClick={() => {
                                         setActiveSourceId(session.sourceId);
-                                        setIsLive(session.live);
+
                                         navigate({ page: "trace" });
                                     }}>
                                     <td>

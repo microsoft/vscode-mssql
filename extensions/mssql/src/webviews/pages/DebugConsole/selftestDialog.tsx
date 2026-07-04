@@ -244,7 +244,7 @@ export function SelfTestDialog({ onClose }: { onClose: () => void }) {
         runSelfTest,
         cancelSelfTest,
         setActiveSourceId,
-        setIsLive,
+
         navigate,
         refreshSources,
     } = useDc();
@@ -344,7 +344,7 @@ export function SelfTestDialog({ onClose }: { onClose: () => void }) {
         }
         refreshSources();
         setActiveSourceId(attachedSourceId);
-        setIsLive(false);
+
         navigate({ page });
         onClose();
     };

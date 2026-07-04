@@ -77,8 +77,8 @@ interface DcContextValue {
     sources: DebugSource[];
     activeSourceId: string;
     setActiveSourceId: (id: string) => void;
+    /** Derived: the selected source IS the current live session. */
     isLive: boolean;
-    setIsLive: (live: boolean) => void;
     route: DcRoute;
     navigate: (route: DcRoute) => void;
     liveEvents: DiagEvent[];
@@ -119,7 +119,9 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
         snapshot && Object.keys(snapshot).length > 0 ? snapshot : undefined;
     const [sources, setSources] = useState<DebugSource[]>([]);
     const [activeSourceId, setActiveSourceId] = useState<string>("");
-    const [isLive, setIsLive] = useState(true);
+    // Live is not a mode the user toggles — it IS the current-session source.
+    // ("" = initial state before the host pushes the live source id.)
+    const isLive = activeSourceId === "" || activeSourceId.startsWith("live:");
     const [route, navigate] = useState<DcRoute>({ page: "overview" });
     const [liveEvents, setLiveEvents] = useState<DiagEvent[]>([]);
     const [liveGaps, setLiveGaps] = useState<GapRecord[]>([]);
@@ -261,7 +263,6 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
                 const perfRun = list.filter((s) => s.kind === "perfRun").pop();
                 if (perfRun) {
                     setActiveSourceId(perfRun.id);
-                    setIsLive(false);
                 }
             }
         });
@@ -293,7 +294,7 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             activeSourceId,
             setActiveSourceId,
             isLive,
-            setIsLive,
+
             route,
             navigate,
             liveEvents,

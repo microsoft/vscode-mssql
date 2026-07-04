@@ -56,6 +56,7 @@ import { SelfTestService } from "../diagnostics/selfTest/selfTestService";
 import { LiveTailSink } from "../diagnostics/sinks";
 import {
     PhAddSourceRequest,
+    PhDeleteRunRequest,
     PhGetDumpRequest,
     PhGetRichDiagnosticsRequest,
     PhGetSqlActivityRequest,
@@ -234,6 +235,18 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         this.onRequest(PhGetRichDiagnosticsRequest.type, async (query) =>
             this.perfHistory.richDiagnostics(query),
         );
+        this.onRequest(PhDeleteRunRequest.type, async ({ sourceId, runId }) => {
+            // Destructive: removes the run directory from disk. Confirm once.
+            const choice = await vscode.window.showWarningMessage(
+                `Delete perf run '${runId}'? This removes the run directory and its artifacts from disk.`,
+                { modal: true },
+                "Delete run",
+            );
+            if (choice !== "Delete run") {
+                return { ok: false, error: "cancelled" };
+            }
+            return this.perfHistory.deleteRun(sourceId, runId);
+        });
     }
 
     private get liveSourceId(): string {

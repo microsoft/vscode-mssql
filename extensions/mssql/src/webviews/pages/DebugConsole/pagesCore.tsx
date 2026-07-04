@@ -434,6 +434,12 @@ export function TracePage() {
     const tableWrapRef = useRef<HTMLDivElement>(null);
     const parsedFilter = useMemo(() => parseTraceFilter(filterExpr), [filterExpr]);
 
+    // Pause/clear are per-live-session state; switching sources resets them.
+    useEffect(() => {
+        setPaused(false);
+        setClearFromSeq(undefined);
+    }, [activeSourceId]);
+
     useEffect(() => {
         const base = {
             sourceId: activeSourceId,
@@ -494,25 +500,35 @@ export function TracePage() {
         <>
             <PageHeader title="Consolidated Trace" />
             <div className="dc-toolbar">
+                {/* Live-capture controls only make sense on the live session —
+                    pre-recorded sources are already frozen. */}
                 <button
                     className={`dc-btn ${paused ? "warn-chip" : ""}`}
+                    disabled={!isLive}
                     title={
-                        paused
-                            ? "Resume the live view (collection kept running)"
-                            : "Pause the view — collection continues, the table freezes"
+                        !isLive
+                            ? "Only the live session can be paused — this source is pre-recorded"
+                            : paused
+                              ? "Resume the live view (collection kept running)"
+                              : "Pause the view — collection continues, the table freezes"
                     }
                     onClick={() => setPaused((p) => !p)}>
                     {paused ? "▶ Resume" : "⏸ Pause"}
                 </button>
                 <button
                     className="dc-btn"
-                    title="Hide everything captured so far (collection continues; 'show all' undoes)"
+                    disabled={!isLive}
+                    title={
+                        !isLive
+                            ? "Only the live session can be cleared — this source is pre-recorded"
+                            : "Hide everything captured so far (collection continues; 'show all' undoes)"
+                    }
                     onClick={() =>
                         setClearFromSeq(lastSeq !== undefined ? lastSeq + 1 : undefined)
                     }>
                     ⌫ Clear
                 </button>
-                {clearFromSeq !== undefined ? (
+                {clearFromSeq !== undefined && isLive ? (
                     <button
                         className="dc-btn"
                         title="Show all captured events again"
@@ -522,11 +538,21 @@ export function TracePage() {
                 ) : null}
                 <label
                     className="dc-muted"
-                    title="Keep the table scrolled to the newest events"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    title={
+                        isLive
+                            ? "Keep the table scrolled to the newest events"
+                            : "Auto-scroll applies to the live session only"
+                    }
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        opacity: isLive ? 1 : 0.5,
+                    }}>
                     <input
                         type="checkbox"
                         checked={autoScroll}
+                        disabled={!isLive}
                         onChange={(e) => setAutoScroll(e.target.checked)}
                     />
                     auto-scroll
@@ -774,7 +800,7 @@ export function WaterfallPage() {
                     {model.calibrationNote}
                 </span>
             </div>
-            <WaterfallView model={model} />
+            <WaterfallView model={model} showEventTable />
         </>
     );
 }
