@@ -732,19 +732,111 @@ body,
     height: auto !important;
     min-height: 260px;
 }
-/* Perfetto-style zoomable timeline: focusable, pannable, no accidental
-   text selection while dragging. */
-.dc-wf-zoomable {
-    outline: none;
-    user-select: none;
-    cursor: grab;
+/* Perfetto-style zoomable timeline v2: fixed label column + NATIVE horizontal
+   scrolling (content grows with zoom, so the scrollbar expands and works). */
+.dc-wf2 {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--dc-border);
+    border-radius: 7px;
+    background: var(--dc-panel);
+    min-height: 0;
+    height: 100%;
     overflow: hidden;
 }
-.dc-wf-zoomable:active {
+.dc-wf2-axis {
+    display: flex;
+    align-items: center;
+    height: 24px;
+    border-bottom: 1px solid var(--dc-border);
+    flex-shrink: 0;
+}
+.dc-wf2-axis-label {
+    width: 132px;
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: 0 8px;
+    font-family: var(--dc-mono);
+    overflow: hidden;
+    white-space: nowrap;
+}
+.dc-wf2-axis-ticks {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+}
+.dc-wf2-axis-ticks .tick {
+    position: absolute;
+    top: 4px;
+    transform: translateX(-50%);
+    font-size: 9.5px;
+    font-family: var(--dc-mono);
+    color: var(--dc-muted);
+    white-space: nowrap;
+}
+.dc-wf2-vscroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.dc-wf2-cols {
+    display: flex;
+    align-items: stretch;
+    min-height: 100%;
+}
+.dc-wf2-labels {
+    flex-shrink: 0;
+    border-right: 1px solid var(--dc-border);
+    background: var(--dc-panel-alt);
+    z-index: 2;
+}
+.dc-wf2-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+    font-size: 11px;
+    border-bottom: 1px solid color-mix(in srgb, var(--dc-border) 55%, transparent);
+    overflow: hidden;
+    white-space: nowrap;
+}
+.dc-wf2-hscroll {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    outline: none;
+    cursor: grab;
+    user-select: none;
+    scrollbar-width: thin;
+}
+.dc-wf2-hscroll:active {
     cursor: grabbing;
 }
-.dc-wf-zoomable:focus-visible {
+.dc-wf2-hscroll:focus-visible {
     box-shadow: inset 0 0 0 1px var(--dc-focus);
+}
+.dc-wf2-inner {
+    min-width: 100%;
+}
+.dc-wf2-track {
+    position: relative;
+    border-bottom: 1px solid color-mix(in srgb, var(--dc-border) 55%, transparent);
+    overflow: hidden; /* bars clip to the track — never into labels */
+}
+.dc-wf-bar-label {
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    font-size: 9.5px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: calc(100% - 6px);
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
 }
 /* Row selection tables: no accidental text selection on shift-click. */
 .ph-noselect {

@@ -124,7 +124,14 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 ? true
                 : false;
 
-        this.showRestorePromptAfterClose = !this._isEdit; // Show restore prompt only for new table creation.
+        // Show restore prompt only for new table creation — and never for
+        // designers opened by the perf self-test (its OE sessions use a
+        // selftest applicationName): the modal would block automated runs and
+        // pile up after each rep.
+        const isSelfTestSession = (
+            this._targetNode.connectionProfile?.applicationName ?? ""
+        ).startsWith("vscode-mssql-selftest");
+        this.showRestorePromptAfterClose = !this._isEdit && !isSelfTestSession;
 
         const targetDatabase = this.getDatabaseNameForNode(this._targetNode);
         // get database name from connection string

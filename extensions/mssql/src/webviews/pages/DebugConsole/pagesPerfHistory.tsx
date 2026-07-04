@@ -604,6 +604,11 @@ function AnalysisTab(props: {
             : undefined;
     }, [timePreset]);
 
+    // Collapsible top (source bar + runs table) and bottom (detail tabs)
+    // regions — collapse to a single row to focus the middle workbench.
+    const [topCollapsed, setTopCollapsed] = useState(false);
+    const [bottomCollapsed, setBottomCollapsed] = useState(false);
+
     // Group drill-down (group-by modes): selecting a group row browses its
     // member scenarios in the bottom pane; drilling a member switches to the
     // normal per-scenario tabs.
@@ -788,101 +793,152 @@ function AnalysisTab(props: {
 
     return (
         <div className="ph-analysis">
-            {/* Source command bar */}
-            <div className="dc-toolbar ph-cmdbar">
-                <select value={sourceId} onChange={(e) => props.onPickSource(e.target.value)}>
-                    {props.sources.map((source) => (
-                        <option key={source.id} value={source.id}>
-                            {source.label} · {source.runCount} runs ({source.status})
-                        </option>
-                    ))}
-                </select>
-                <button className="dc-btn" onClick={() => props.onAddSource("directory")}>
-                    Open directory…
-                </button>
-                <button className="dc-btn" onClick={() => props.onAddSource("sqlite")}>
-                    Connect SQLite DB…
-                </button>
-                <button className="dc-btn" onClick={() => props.onAddSource("bundle")}>
-                    Import bundle…
-                </button>
-                <button className="dc-btn" title="Rescan this source" onClick={props.onRescan}>
-                    ⟳
-                </button>
-                <span style={{ flex: 1 }} />
-                <button
-                    className="dc-btn"
-                    disabled={!primaryRunId}
-                    title="Pin the selected run as the baseline for deltas"
-                    onClick={() =>
-                        setBaselineRunId(baselineRunId === primaryRunId ? undefined : primaryRunId)
-                    }>
-                    {baselineRunId === primaryRunId && baselineRunId !== undefined
-                        ? "Unpin baseline"
-                        : "Pin baseline"}
-                </button>
-                {baselineRunId ? (
-                    <span className="dc-badge" title={baselineRunId}>
-                        baseline: {shortRunId(baselineRunId)}
+            {/* Source + runs region: collapses to a single toolbar row so the
+                middle workbench gets the space (completions-style). */}
+            {topCollapsed ? (
+                <div className="dc-toolbar ph-cmdbar">
+                    <button
+                        className="dc-btn"
+                        title="Expand the source bar and runs table"
+                        onClick={() => setTopCollapsed(false)}>
+                        ▸ Runs
+                    </button>
+                    <select value={sourceId} onChange={(e) => props.onPickSource(e.target.value)}>
+                        {props.sources.map((source) => (
+                            <option key={source.id} value={source.id}>
+                                {source.label} · {source.runCount} runs
+                            </option>
+                        ))}
+                    </select>
+                    <span className="dc-mono dc-muted" style={{ fontSize: 11 }}>
+                        {runTotals.total} of {runTotals.totalInSource}
                     </span>
-                ) : null}
-            </div>
+                    {baselineRunId ? (
+                        <span className="dc-badge" title={baselineRunId}>
+                            baseline: {shortRunId(baselineRunId)}
+                        </span>
+                    ) : null}
+                    <span className="dc-muted" style={{ marginLeft: "auto", fontSize: 11 }}>
+                        {selectedRunIds.length > 0
+                            ? `Selected: ${selectedRunIds.map(shortRunId).join(", ")}`
+                            : ""}
+                    </span>
+                </div>
+            ) : (
+                <div className="dc-toolbar ph-cmdbar">
+                    <button
+                        className="dc-btn"
+                        title="Collapse the source bar and runs table to one row"
+                        onClick={() => setTopCollapsed(true)}>
+                        ⌄ Runs
+                    </button>
+                    <select value={sourceId} onChange={(e) => props.onPickSource(e.target.value)}>
+                        {props.sources.map((source) => (
+                            <option key={source.id} value={source.id}>
+                                {source.label} · {source.runCount} runs ({source.status})
+                            </option>
+                        ))}
+                    </select>
+                    <button className="dc-btn" onClick={() => props.onAddSource("directory")}>
+                        Open directory…
+                    </button>
+                    <button className="dc-btn" onClick={() => props.onAddSource("sqlite")}>
+                        Connect SQLite DB…
+                    </button>
+                    <button className="dc-btn" onClick={() => props.onAddSource("bundle")}>
+                        Import bundle…
+                    </button>
+                    <button className="dc-btn" title="Rescan this source" onClick={props.onRescan}>
+                        ⟳
+                    </button>
+                    <span style={{ flex: 1 }} />
+                    <button
+                        className="dc-btn"
+                        disabled={!primaryRunId}
+                        title="Pin the selected run as the baseline for deltas"
+                        onClick={() =>
+                            setBaselineRunId(
+                                baselineRunId === primaryRunId ? undefined : primaryRunId,
+                            )
+                        }>
+                        {baselineRunId === primaryRunId && baselineRunId !== undefined
+                            ? "Unpin baseline"
+                            : "Pin baseline"}
+                    </button>
+                    {baselineRunId ? (
+                        <span className="dc-badge" title={baselineRunId}>
+                            baseline: {shortRunId(baselineRunId)}
+                        </span>
+                    ) : null}
+                </div>
+            )}
 
-            <PanelGroup direction="vertical" className="ph-split-root">
-                {/* Runs table */}
-                <Panel defaultSize={30} minSize={15} className="dc-panel-min0">
-                    <div className="ph-pane">
-                        <div className="dc-toolbar ph-subbar">
-                            <b>Runs</b>
-                            <span className="dc-mono dc-muted">
-                                {runTotals.total} of {runTotals.totalInSource}
-                            </span>
-                            <input
-                                className="ph-search"
-                                placeholder="Search runs, labels, commit…"
-                                value={runText}
-                                onChange={(e) => setRunText(e.target.value)}
-                            />
-                            <select
-                                value={timePreset}
-                                onChange={(e) => setTimePreset(e.target.value)}>
-                                {TIME_PRESETS.map((preset) => (
-                                    <option key={preset.id} value={preset.id}>
-                                        {preset.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                value={runVerdicts[0] ?? ""}
-                                onChange={(e) =>
-                                    setRunVerdicts(
-                                        e.target.value ? [e.target.value as RunVerdict] : [],
-                                    )
-                                }>
-                                <option value="">Verdict: any</option>
-                                {VERDICTS.map((verdict) => (
-                                    <option key={verdict} value={verdict}>
-                                        {verdict}
-                                    </option>
-                                ))}
-                            </select>
-                            <span className="dc-muted" style={{ marginLeft: "auto", fontSize: 11 }}>
-                                {selectedRunIds.length > 0
-                                    ? `Selected: ${selectedRunIds.map(shortRunId).join(", ")}`
-                                    : "click = select · ctrl+click = compare"}
-                            </span>
-                        </div>
-                        <RunsTable
-                            runs={runs}
-                            selectedRunIds={selectedRunIds}
-                            baselineRunId={baselineRunId}
-                            focusRunId={primaryRunId}
-                            onToggle={toggleRun}
-                            onDelete={deleteRun}
-                        />
-                    </div>
-                </Panel>
-                <PanelResizeHandle className="dc-resize-handle horizontal" />
+            <PanelGroup
+                key={`pg-${topCollapsed}-${bottomCollapsed}`}
+                direction="vertical"
+                className="ph-split-root">
+                {/* Runs table (hidden entirely while collapsed) */}
+                {!topCollapsed ? (
+                    <>
+                        <Panel defaultSize={30} minSize={15} className="dc-panel-min0">
+                            <div className="ph-pane">
+                                <div className="dc-toolbar ph-subbar">
+                                    <b>Runs</b>
+                                    <span className="dc-mono dc-muted">
+                                        {runTotals.total} of {runTotals.totalInSource}
+                                    </span>
+                                    <input
+                                        className="ph-search"
+                                        placeholder="Search runs, labels, commit…"
+                                        value={runText}
+                                        onChange={(e) => setRunText(e.target.value)}
+                                    />
+                                    <select
+                                        value={timePreset}
+                                        onChange={(e) => setTimePreset(e.target.value)}>
+                                        {TIME_PRESETS.map((preset) => (
+                                            <option key={preset.id} value={preset.id}>
+                                                {preset.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={runVerdicts[0] ?? ""}
+                                        onChange={(e) =>
+                                            setRunVerdicts(
+                                                e.target.value
+                                                    ? [e.target.value as RunVerdict]
+                                                    : [],
+                                            )
+                                        }>
+                                        <option value="">Verdict: any</option>
+                                        {VERDICTS.map((verdict) => (
+                                            <option key={verdict} value={verdict}>
+                                                {verdict}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <span
+                                        className="dc-muted"
+                                        style={{ marginLeft: "auto", fontSize: 11 }}>
+                                        {selectedRunIds.length > 0
+                                            ? `Selected: ${selectedRunIds.map(shortRunId).join(", ")}`
+                                            : "click = select · ctrl+click = compare"}
+                                    </span>
+                                </div>
+                                <RunsTable
+                                    runs={runs}
+                                    selectedRunIds={selectedRunIds}
+                                    baselineRunId={baselineRunId}
+                                    focusRunId={primaryRunId}
+                                    onToggle={toggleRun}
+                                    onDelete={deleteRun}
+                                />
+                            </div>
+                        </Panel>
+                        <PanelResizeHandle className="dc-resize-handle horizontal" />
+                    </>
+                ) : null}
 
                 {/* Middle: filter rail | scenario table | charts */}
                 <Panel defaultSize={40} minSize={20} className="dc-panel-min0">
@@ -1057,49 +1113,85 @@ function AnalysisTab(props: {
                         </Panel>
                     </PanelGroup>
                 </Panel>
-                <PanelResizeHandle className="dc-resize-handle horizontal" />
+                {!bottomCollapsed ? (
+                    <PanelResizeHandle className="dc-resize-handle horizontal" />
+                ) : null}
 
                 {/* Bottom detail tabs / group member browser */}
-                <Panel defaultSize={30} minSize={15} className="dc-panel-min0">
-                    {focusGroup ? (
-                        <div className="ph-pane">
-                            <div className="ph-bottom-tabs">
-                                <b style={{ fontSize: 12, padding: "4px 6px" }}>
-                                    Group: {focusGroup.key}
-                                </b>
-                                <span className="dc-muted" style={{ fontSize: 11 }}>
-                                    {memberRows.length} member scenario(s) — select one to drill
-                                    into its reps, waterfall, and artifacts
-                                </span>
-                                <span style={{ flex: 1 }} />
-                                <button
-                                    className="dc-modal-close"
-                                    title="Close group"
-                                    onClick={() => setFocusGroup(undefined)}>
-                                    ×
-                                </button>
+                {!bottomCollapsed ? (
+                    <Panel defaultSize={30} minSize={15} className="dc-panel-min0">
+                        {focusGroup ? (
+                            <div className="ph-pane">
+                                <div className="ph-bottom-tabs">
+                                    <b style={{ fontSize: 12, padding: "4px 6px" }}>
+                                        Group: {focusGroup.key}
+                                    </b>
+                                    <span className="dc-muted" style={{ fontSize: 11 }}>
+                                        {memberRows.length} member scenario(s) — select one to drill
+                                        into its reps, waterfall, and artifacts
+                                    </span>
+                                    <span style={{ flex: 1 }} />
+                                    <button
+                                        className="dc-modal-close"
+                                        title="Close group"
+                                        onClick={() => setFocusGroup(undefined)}>
+                                        ×
+                                    </button>
+                                </div>
+                                <ScenarioTable
+                                    rows={memberRows}
+                                    focusScenarioId={focusScenarioId}
+                                    onFocus={(row) => {
+                                        if (row.scenarioId) {
+                                            setFocusScenarioId(row.scenarioId);
+                                            setFocusGroup(undefined);
+                                        }
+                                    }}
+                                />
                             </div>
-                            <ScenarioTable
-                                rows={memberRows}
-                                focusScenarioId={focusScenarioId}
-                                onFocus={(row) => {
-                                    if (row.scenarioId) {
-                                        setFocusScenarioId(row.scenarioId);
-                                        setFocusGroup(undefined);
-                                    }
-                                }}
+                        ) : (
+                            <BottomTabs
+                                sourceId={sourceId}
+                                runId={primaryRunId}
+                                scenarioId={focusScenarioId}
+                                details={details}
+                                onCollapse={() => setBottomCollapsed(true)}
                             />
-                        </div>
-                    ) : (
-                        <BottomTabs
-                            sourceId={sourceId}
-                            runId={primaryRunId}
-                            scenarioId={focusScenarioId}
-                            details={details}
-                        />
-                    )}
-                </Panel>
+                        )}
+                    </Panel>
+                ) : null}
             </PanelGroup>
+
+            {/* Collapsed bottom: just the tab strip — clicking a tab expands. */}
+            {bottomCollapsed ? (
+                <div className="ph-bottom-tabs" style={{ borderTop: "1px solid var(--dc-border)" }}>
+                    <button
+                        className="ph-tab"
+                        title="Expand the detail tabs"
+                        onClick={() => setBottomCollapsed(false)}>
+                        ▴
+                    </button>
+                    {[
+                        "Submetrics",
+                        "Waterfall",
+                        "SQL Activity",
+                        "Diagnostics",
+                        "Artifacts",
+                        "Validation",
+                        "All Data Dump",
+                    ].map((label) => (
+                        <button
+                            key={label}
+                            className="ph-tab"
+                            onClick={() => setBottomCollapsed(false)}>
+                            {label}
+                        </button>
+                    ))}
+                    <span className="dc-muted dc-mono" style={{ marginLeft: "auto", fontSize: 11 }}>
+                        {focusScenarioId ?? ""}
+                    </span>
+                </div>
+            ) : null}
         </div>
     );
 }
@@ -1513,6 +1605,7 @@ function BottomTabs(props: {
     runId: string | undefined;
     scenarioId: string | undefined;
     details: PerfScenarioDetails | undefined;
+    onCollapse?: () => void;
 }) {
     const [tab, setTab] = useState<PhBottomTab>("submetrics");
     const { details } = props;
@@ -1569,6 +1662,14 @@ function BottomTabs(props: {
                 <span className="dc-muted dc-mono" style={{ marginLeft: "auto", fontSize: 11 }}>
                     {props.scenarioId ?? ""}
                 </span>
+                {props.onCollapse ? (
+                    <button
+                        className="ph-tab"
+                        title="Collapse the detail tabs to a single row"
+                        onClick={props.onCollapse}>
+                        ▾
+                    </button>
+                ) : null}
             </div>
             <div className="ph-fill-scroll" style={{ padding: "6px 8px" }}>
                 {!props.runId || !props.scenarioId ? (

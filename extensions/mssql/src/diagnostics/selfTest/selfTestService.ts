@@ -488,6 +488,12 @@ export class SelfTestService {
             id: tapId,
             tryWrite: (event) => {
                 try {
+                    // The console's own RPC spans never enter the run: no
+                    // scenario waits on them and they'd pollute the persisted
+                    // markers (e.g. viewer spans in the Diagnostics tab).
+                    if (event.tags?.includes("viewerInternal")) {
+                        return;
+                    }
                     runner.deliverMarker(this.toBusMarker(event));
                 } catch {
                     // a tap failure must never break the product or the run

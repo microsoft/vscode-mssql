@@ -800,7 +800,7 @@ export function WaterfallPage() {
                     {model.calibrationNote}
                 </span>
             </div>
-            <WaterfallView model={model} showEventTable />
+            <WaterfallView model={model} layout="full" />
         </>
     );
 }
