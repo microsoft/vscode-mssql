@@ -18,6 +18,7 @@ import { LoadingLogEntry } from "../sharedInterfaces/webview";
 import * as LocConstants from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { Perf } from "../perf/perfTelemetry";
 import { getErrorMessage } from "../utils/utils";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
@@ -233,6 +234,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 isEdit: this._isEdit.toString(),
             },
         );
+        Perf.marker("mssql.tableDesigner.init.begin", "begin", { isEdit: this._isEdit });
         const accessToken = connectionInfo.azureAccountToken
             ? connectionInfo.azureAccountToken
             : undefined;
@@ -269,6 +271,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 tableInfo,
             });
             endActivity.end(ActivityStatus.Succeeded);
+            Perf.marker("mssql.tableDesigner.init.end", "end", { isEdit: this._isEdit });
             initializeResult.tableInfo.database = databaseName ?? "master";
             this.state = {
                 tableInfo: initializeResult.tableInfo,
@@ -289,6 +292,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             };
         } catch (e) {
             endActivity.endFailed(e, false);
+            Perf.marker("mssql.tableDesigner.init.end", "end", {
+                error: true,
+                reason: getErrorMessage(e).slice(0, 200),
+            });
             this.state = {
                 ...this.state,
                 apiState: {
@@ -404,11 +411,13 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 },
                 publishProgressMessages,
             };
+            Perf.marker("mssql.tableDesigner.publish.begin", "begin");
             try {
                 const publishResponse = await this._tableDesignerService.publishChanges(
                     payload.table,
                 );
                 endActivity.end(ActivityStatus.Succeeded);
+                Perf.marker("mssql.tableDesigner.publish.end", "end");
                 state = {
                     ...state,
                     tableInfo: publishResponse.newTableInfo,
@@ -440,6 +449,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     ),
                 };
                 endActivity.endFailed(e, false);
+                Perf.marker("mssql.tableDesigner.publish.end", "end", {
+                    error: true,
+                    reason: getErrorMessage(e).slice(0, 200),
+                });
             }
 
             let targetNode = this._targetNode;

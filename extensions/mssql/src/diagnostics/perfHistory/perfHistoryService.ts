@@ -22,6 +22,9 @@ import {
     PerfMetricSeriesPoint,
     PerfMetricSeriesQuery,
     PerfNeedsAttentionRow,
+    PerfRichDiagnostics,
+    PerfRichSnapshot,
+    PerfRichSpanDelta,
     PerfRunsQuery,
     PerfRunsSummary,
     PerfScenarioDetails,
@@ -432,6 +435,73 @@ export class PerfHistoryService {
         const repDir = provider.repDir(query.runId, query.scenarioId, query.repId);
         const events = importPerfRep(repDir, `${query.runId}_${query.scenarioId}`);
         return sqlActivityRows(events);
+    }
+
+    /**
+     * Rich diagnostics for one rep: system.rich.snapshot counters + per-span
+     * heap deltas, read lazily from the rep's markers.jsonl. `found:false`
+     * when the run wasn't collected with rich diagnostics — never fabricated.
+     */
+    public async richDiagnostics(query: PerfWaterfallQuery): Promise<PerfRichDiagnostics> {
+        const provider = await this.ensureIndexed(query.sourceId);
+        const empty: PerfRichDiagnostics = { snapshots: [], spanDeltas: [], found: false };
+        if (!provider) {
+            return empty;
+        }
+        const markersPath = path.join(
+            provider.repDir(query.runId, query.scenarioId, query.repId),
+            "markers.jsonl",
+        );
+        if (!fs.existsSync(markersPath)) {
+            return empty;
+        }
+        const snapshots: PerfRichSnapshot[] = [];
+        const spanDeltas: PerfRichSpanDelta[] = [];
+        try {
+            for (const line of fs.readFileSync(markersPath, "utf8").split("\n")) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                let marker: {
+                    name?: string;
+                    timestampUnixNs?: string;
+                    attrs?: Record<string, unknown>;
+                };
+                try {
+                    marker = JSON.parse(trimmed);
+                } catch {
+                    continue;
+                }
+                const attrs = marker.attrs ?? {};
+                if (marker.name === "system.rich.snapshot") {
+                    const metrics: Record<string, number> = {};
+                    for (const [key, value] of Object.entries(attrs)) {
+                        if (typeof value === "number") {
+                            metrics[key] = value;
+                        }
+                    }
+                    snapshots.push({
+                        epochMs: Number(BigInt(marker.timestampUnixNs ?? "0") / 1_000_000n),
+                        metrics,
+                    });
+                } else if (typeof attrs["perf_heapDeltaKB"] === "number") {
+                    spanDeltas.push({
+                        type: marker.name ?? "?",
+                        ...(typeof attrs["durationMs"] === "number"
+                            ? { durationMs: attrs["durationMs"] }
+                            : {}),
+                        heapDeltaKB: attrs["perf_heapDeltaKB"],
+                    });
+                }
+            }
+        } catch {
+            return empty;
+        }
+        spanDeltas.sort((a, b) => Math.abs(b.heapDeltaKB ?? 0) - Math.abs(a.heapDeltaKB ?? 0));
+        return {
+            snapshots,
+            spanDeltas: spanDeltas.slice(0, 50),
+            found: snapshots.length > 0 || spanDeltas.length > 0,
+        };
     }
 
     public async dump(query: PerfDumpQuery): Promise<PerfDumpResult> {

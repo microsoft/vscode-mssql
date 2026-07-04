@@ -238,6 +238,9 @@ export interface EventQuery {
      * when debugging the console itself.
      */
     includeViewerInternal?: boolean;
+    /** Duration filters (events without durationMs never match when set). */
+    minDurationMs?: number;
+    maxDurationMs?: number;
 }
 
 export interface EventQueryResult {

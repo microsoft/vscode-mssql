@@ -42,9 +42,21 @@ interface LegacyPerfMarker {
 }
 
 /**
+ * Types of diagnostic span events forwarded to the harness IN ADDITION to the
+ * Perf-facade markers: JSON-RPC round-trips, webview request spans, and
+ * STS-side dispatcher/SqlCommand/SMO/DacFx spans. These give CLI-run
+ * waterfalls real sublane detail instead of one "doing scenario" block. The
+ * names are additive to the marker vocabulary (the normalizer tolerates
+ * unknown markers; importPerfRep pairs *.begin/*.end into bars).
+ */
+const FORWARDED_SPAN_TYPES = /^(rpc\.|webview\.|sts\.)/;
+
+/**
  * Forwards marker-tagged diagnostics to the perf orchestrator's HTTP sink.
- * Only events emitted through the Perf facade (tag "perfMarker") are relayed —
- * rich diagnostics envelopes are not the harness's contract.
+ * Events emitted through the Perf facade (tag "perfMarker") are relayed in the
+ * exact legacy wire format; diagnostic spans matching FORWARDED_SPAN_TYPES are
+ * relayed additively (tagged diag) so harness traces carry cross-process
+ * detail. Everything else stays out of the harness contract.
  */
 export class PerfModeSink implements DiagnosticSink {
     public readonly id = "perfMode";
@@ -69,7 +81,12 @@ export class PerfModeSink implements DiagnosticSink {
     }
 
     public tryWrite(event: DiagEvent): void {
-        if (!event.tags || !event.tags.includes("perfMarker")) {
+        const isPerfMarker = event.tags?.includes("perfMarker") === true;
+        const isForwardedSpan =
+            !isPerfMarker &&
+            FORWARDED_SPAN_TYPES.test(event.type) &&
+            !event.tags?.includes("viewerInternal");
+        if (!isPerfMarker && !isForwardedSpan) {
             return;
         }
         const attrs: Record<string, string | number | boolean | null> = {};
@@ -80,17 +97,31 @@ export class PerfModeSink implements DiagnosticSink {
                 hasAttrs = true;
             }
         }
+        // Forwarded spans carry their duration + honest diag provenance.
+        if (isForwardedSpan) {
+            attrs["diag"] = true;
+            hasAttrs = true;
+            if (event.durationMs !== undefined) {
+                attrs["durationMs"] = event.durationMs;
+            }
+        }
+        const role =
+            event.process === "webview"
+                ? "webview"
+                : event.process === "sqlToolsService"
+                  ? "sts"
+                  : "extensionHost";
         const marker: LegacyPerfMarker = {
             schemaVersion: 1,
             runId: this.runId,
             repId: this.repId,
             scenarioId: this.scenarioId,
             name: event.type,
-            phase: legacyPhase(event),
+            phase: isForwardedSpan ? forwardedPhase(event) : legacyPhase(event),
             timestampUnixNs: (BigInt(Math.round(event.epochMs)) * 1000000n).toString(),
             monotonicNs: event.monotonicNs ?? "0",
             process: {
-                role: event.process === "webview" ? "webview" : "extensionHost",
+                role,
                 pid: event.process === "webview" ? 0 : (event.pid ?? process.pid),
                 name: event.process === "webview" ? event.feature || "webview" : "vscode-mssql",
             },
@@ -98,7 +129,7 @@ export class PerfModeSink implements DiagnosticSink {
         if (hasAttrs) {
             marker.attrs = attrs;
         }
-        if (event.traceId && event.tags.includes("perfCorrelation")) {
+        if (event.traceId && event.tags?.includes("perfCorrelation")) {
             marker.correlationId = event.traceId;
         }
         if (this.queue.length >= PERF_MAX_QUEUE) {
@@ -159,6 +190,13 @@ function legacyPhase(event: DiagEvent): string {
     if (event.tags?.includes("phase:begin")) return "begin";
     if (event.tags?.includes("phase:end")) return "end";
     if (event.tags?.includes("phase:counter")) return "counter";
+    return "instant";
+}
+
+/** Forwarded diag spans: phase from the .begin/.end type suffix. */
+function forwardedPhase(event: DiagEvent): string {
+    if (event.type.endsWith(".begin")) return "begin";
+    if (event.type.endsWith(".end")) return "end";
     return "instant";
 }
 

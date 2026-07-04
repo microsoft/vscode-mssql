@@ -26,6 +26,7 @@ import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
 } from "../sharedInterfaces/schemaDesignerDefinitionOutput";
+import { Perf } from "../perf/perfTelemetry";
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
@@ -636,6 +637,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             undefined, // serverInfo
             true, // include callstack in telemetry
         );
+        Perf.marker("mssql.schemaDesigner.init.begin", "begin");
         try {
             let sessionResponse: SchemaDesigner.CreateSessionResponse;
             const cacheItem = this.schemaDesignerCache.get(this._key);
@@ -667,9 +669,16 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
                 tableCount: sessionResponse?.schema?.tables?.length,
             });
+            Perf.marker("mssql.schemaDesigner.init.end", "end", {
+                tableCount: sessionResponse?.schema?.tables?.length ?? 0,
+            });
             return sessionResponse;
         } catch (error) {
             schemaDesignerInitActivity.endFailed(toError(error), false);
+            Perf.marker("mssql.schemaDesigner.init.end", "end", {
+                error: true,
+                reason: toError(error).message.slice(0, 200),
+            });
             throw error;
         }
     }

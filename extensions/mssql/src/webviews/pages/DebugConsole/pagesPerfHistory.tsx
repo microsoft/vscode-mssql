@@ -23,6 +23,7 @@ import {
     PerfHistorySource,
     PerfIndexProgress,
     PerfMetricSeriesPoint,
+    PerfRichDiagnostics,
     PerfRunRow,
     PerfRunsSummary,
     PerfScenarioDetails,
@@ -30,6 +31,7 @@ import {
     PerfSourceKind,
     PhAddSourceRequest,
     PhGetDumpRequest,
+    PhGetRichDiagnosticsRequest,
     PhGetSqlActivityRequest,
     PhGetSummaryRequest,
     PhGetWaterfallRequest,
@@ -65,14 +67,20 @@ function VerdictPill({ verdict }: { verdict: RunVerdict | string }) {
     return <span className={`dc-pill ${cls}`}>{verdict}</span>;
 }
 
-function ArtifactBadges({ kinds }: { kinds: string[] }) {
+/** One-line badge strip: rows stay fixed-height; overflow collapses to +N. */
+function ArtifactBadges({ kinds, max = 3 }: { kinds: string[]; max?: number }) {
+    const shown = kinds.slice(0, max);
+    const hidden = kinds.length - shown.length;
     return (
-        <span style={{ display: "inline-flex", gap: 3, flexWrap: "wrap" }}>
-            {kinds.map((kind) => (
+        <span
+            style={{ display: "inline-flex", gap: 3, whiteSpace: "nowrap", overflow: "hidden" }}
+            title={kinds.join(" · ")}>
+            {shown.map((kind) => (
                 <span className="dc-badge" key={kind}>
                     {kind}
                 </span>
             ))}
+            {hidden > 0 ? <span className="dc-badge">+{hidden}</span> : null}
         </span>
     );
 }
@@ -595,6 +603,33 @@ function AnalysisTab(props: {
             : undefined;
     }, [timePreset]);
 
+    // Group drill-down (group-by modes): selecting a group row browses its
+    // member scenarios in the bottom pane; drilling a member switches to the
+    // normal per-scenario tabs.
+    const [focusGroup, setFocusGroup] = useState<PerfScenarioRow | undefined>(undefined);
+    const [memberRows, setMemberRows] = useState<PerfScenarioRow[]>([]);
+    useEffect(() => {
+        setFocusGroup(undefined);
+    }, [groupBy, sourceId]);
+    useEffect(() => {
+        const members = focusGroup?.memberScenarioIds;
+        if (!members || members.length === 0 || selectedRunIds.length === 0) {
+            setMemberRows([]);
+            return;
+        }
+        void rpc
+            .sendRequest(PhQueryScenariosRequest.type, {
+                sourceId,
+                runIds: selectedRunIds,
+                ...(baselineRunId ? { baselineRunId } : {}),
+                metric,
+                groupBy: "scenario",
+            })
+            .then((rows) =>
+                setMemberRows(rows.filter((r) => r.scenarioId && members.includes(r.scenarioId))),
+            );
+    }, [rpc, sourceId, selectedRunIds, baselineRunId, metric, focusGroup]);
+
     // Load runs.
     useEffect(() => {
         void rpc
@@ -972,16 +1007,27 @@ function AnalysisTab(props: {
                                 <ScenarioTable
                                     rows={scenarios}
                                     focusScenarioId={focusScenarioId}
-                                    onFocus={(row) => setFocusScenarioId(row.scenarioId)}
+                                    focusGroupKey={focusGroup?.key}
+                                    onFocus={(row) => {
+                                        if (row.scenarioId) {
+                                            setFocusScenarioId(row.scenarioId);
+                                            setFocusGroup(undefined);
+                                        } else if (row.memberScenarioIds?.length) {
+                                            setFocusGroup(row);
+                                        }
+                                    }}
                                 />
                             </div>
                         </Panel>
                         <PanelResizeHandle className="dc-resize-handle" />
                         <Panel defaultSize={32} minSize={18} className="dc-panel-min0">
                             <ChartsRail
-                                focus={scenarios.find((s) => s.scenarioId === focusScenarioId)}
-                                details={details}
-                                series={series}
+                                focus={
+                                    focusGroup ??
+                                    scenarios.find((s) => s.scenarioId === focusScenarioId)
+                                }
+                                details={focusGroup ? undefined : details}
+                                series={focusGroup ? [] : series}
                                 metric={metric}
                             />
                         </Panel>
@@ -989,14 +1035,45 @@ function AnalysisTab(props: {
                 </Panel>
                 <PanelResizeHandle className="dc-resize-handle horizontal" />
 
-                {/* Bottom detail tabs */}
+                {/* Bottom detail tabs / group member browser */}
                 <Panel defaultSize={30} minSize={15} className="dc-panel-min0">
-                    <BottomTabs
-                        sourceId={sourceId}
-                        runId={primaryRunId}
-                        scenarioId={focusScenarioId}
-                        details={details}
-                    />
+                    {focusGroup ? (
+                        <div className="ph-pane">
+                            <div className="ph-bottom-tabs">
+                                <b style={{ fontSize: 12, padding: "4px 6px" }}>
+                                    Group: {focusGroup.key}
+                                </b>
+                                <span className="dc-muted" style={{ fontSize: 11 }}>
+                                    {memberRows.length} member scenario(s) — select one to drill
+                                    into its reps, waterfall, and artifacts
+                                </span>
+                                <span style={{ flex: 1 }} />
+                                <button
+                                    className="dc-modal-close"
+                                    title="Close group"
+                                    onClick={() => setFocusGroup(undefined)}>
+                                    ×
+                                </button>
+                            </div>
+                            <ScenarioTable
+                                rows={memberRows}
+                                focusScenarioId={focusScenarioId}
+                                onFocus={(row) => {
+                                    if (row.scenarioId) {
+                                        setFocusScenarioId(row.scenarioId);
+                                        setFocusGroup(undefined);
+                                    }
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <BottomTabs
+                            sourceId={sourceId}
+                            runId={primaryRunId}
+                            scenarioId={focusScenarioId}
+                            details={details}
+                        />
+                    )}
                 </Panel>
             </PanelGroup>
         </div>
@@ -1019,7 +1096,25 @@ function RunsTable(props: {
     const visible = props.runs.slice(virtual.start, virtual.end);
     return (
         <div className="dc-table-wrap ph-fill-scroll" ref={virtual.ref} onScroll={virtual.onScroll}>
-            <table className="dc-table ph-dense">
+            {/* Fixed layout: column widths never shift as virtualized rows
+                scroll in/out, and rows keep a single fixed height. */}
+            <table className="dc-table ph-dense ph-table-fixed">
+                <colgroup>
+                    <col style={{ width: 112 }} />
+                    <col style={{ width: 132 }} />
+                    <col style={{ width: 200 }} />
+                    <col style={{ width: 90 }} />
+                    <col style={{ width: 92 }} />
+                    <col style={{ width: 72 }} />
+                    <col style={{ width: 58 }} />
+                    <col style={{ width: 50 }} />
+                    <col style={{ width: 46 }} />
+                    <col style={{ width: 52 }} />
+                    <col style={{ width: 72 }} />
+                    <col style={{ width: 72 }} />
+                    <col style={{ width: 64 }} />
+                    <col />
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Status</th>
@@ -1116,6 +1211,7 @@ function RunsTable(props: {
 function ScenarioTable(props: {
     rows: PerfScenarioRow[];
     focusScenarioId?: string;
+    focusGroupKey?: string;
     onFocus: (row: PerfScenarioRow) => void;
 }) {
     if (props.rows.length === 0) {
@@ -1127,7 +1223,18 @@ function ScenarioTable(props: {
     }
     return (
         <div className="dc-table-wrap ph-fill-scroll">
-            <table className="dc-table ph-dense">
+            <table className="dc-table ph-dense ph-table-fixed">
+                <colgroup>
+                    <col style={{ width: 250 }} />
+                    <col style={{ width: 110 }} />
+                    <col style={{ width: 84 }} />
+                    <col style={{ width: 62 }} />
+                    <col style={{ width: 72 }} />
+                    <col style={{ width: 72 }} />
+                    <col style={{ width: 80 }} />
+                    <col style={{ width: 64 }} />
+                    <col />
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Scenario / group</th>
@@ -1146,8 +1253,9 @@ function ScenarioTable(props: {
                         <tr
                             key={row.key}
                             className={
-                                row.scenarioId !== undefined &&
-                                row.scenarioId === props.focusScenarioId
+                                (row.scenarioId !== undefined &&
+                                    row.scenarioId === props.focusScenarioId) ||
+                                (row.scenarioId === undefined && row.key === props.focusGroupKey)
                                     ? "selected"
                                     : ""
                             }
@@ -1328,7 +1436,14 @@ function ChartsRail(props: {
 // Bottom tabs (lazy)
 // ---------------------------------------------------------------------------
 
-type PhBottomTab = "submetrics" | "waterfall" | "sql" | "artifacts" | "validation" | "dump";
+type PhBottomTab =
+    | "submetrics"
+    | "waterfall"
+    | "sql"
+    | "diag"
+    | "artifacts"
+    | "validation"
+    | "dump";
 
 function BottomTabs(props: {
     sourceId: string;
@@ -1353,6 +1468,14 @@ function BottomTabs(props: {
             label: "SQL Activity",
             enabled: hasSql,
             hint: hasSql ? undefined : "no sql-activity.jsonl captured (CLI XEvents runs only)",
+        },
+        {
+            id: "diag",
+            label: "Diagnostics",
+            enabled: hasMarkers,
+            hint: hasMarkers
+                ? "rich diagnostics collected with 'Collect rich diagnostics' runs"
+                : "no markers captured for these reps",
         },
         {
             id: "artifacts",
@@ -1398,6 +1521,13 @@ function BottomTabs(props: {
                     />
                 ) : active === "sql" ? (
                     <SqlTab
+                        sourceId={props.sourceId}
+                        runId={props.runId}
+                        scenarioId={props.scenarioId}
+                        details={details}
+                    />
+                ) : active === "diag" ? (
+                    <DiagnosticsTab
                         sourceId={props.sourceId}
                         runId={props.runId}
                         scenarioId={props.scenarioId}
@@ -1591,6 +1721,158 @@ function SqlTab(props: {
                 ))}
             </tbody>
         </table>
+    );
+}
+
+/**
+ * Rich diagnostics for a rep (COLLECT_ALL_THE_DATA runs): memory/CPU/event-loop
+ * counter series plus the spans with the largest heap deltas. Honest empty
+ * state when the run wasn't collected with rich diagnostics.
+ */
+function DiagnosticsTab(props: {
+    sourceId: string;
+    runId: string;
+    scenarioId: string;
+    details: PerfScenarioDetails | undefined;
+}) {
+    const { rpc } = useDc();
+    const reps = (props.details?.reps ?? []).filter((rep) => rep.hasMarkers);
+    const [repId, setRepId] = useState<number | undefined>(undefined);
+    const [rich, setRich] = useState<PerfRichDiagnostics | undefined>(undefined);
+    const effectiveRep = repId ?? reps[reps.length - 1]?.repId;
+
+    useEffect(() => {
+        if (effectiveRep === undefined) {
+            setRich(undefined);
+            return;
+        }
+        void rpc
+            .sendRequest(PhGetRichDiagnosticsRequest.type, {
+                sourceId: props.sourceId,
+                runId: props.runId,
+                scenarioId: props.scenarioId,
+                repId: effectiveRep,
+            })
+            .then(setRich);
+    }, [rpc, props.sourceId, props.runId, props.scenarioId, effectiveRep]);
+
+    if (reps.length === 0) {
+        return <span className="dc-muted">No reps with captured markers.</span>;
+    }
+    if (!rich) {
+        return <span className="dc-muted">Loading diagnostics…</span>;
+    }
+    if (!rich.found) {
+        return (
+            <span className="dc-muted">
+                No rich diagnostics in this rep — run the self-test with{" "}
+                <b>Collect rich diagnostics</b> checked (or set mssql.debugConsole.richCollection)
+                and the memory/CPU/event-loop counters land here.
+            </span>
+        );
+    }
+    const heapSeries = rich.snapshots
+        .map((s) => s.metrics["heapUsedMB"])
+        .filter((v): v is number => typeof v === "number");
+    const loopSeries = rich.snapshots
+        .map((s) => s.metrics["eventLoopP95Ms"])
+        .filter((v): v is number => typeof v === "number");
+    const latest = rich.snapshots[rich.snapshots.length - 1]?.metrics ?? {};
+    return (
+        <div>
+            <div className="dc-toolbar">
+                <span className="dc-muted">Rep</span>
+                <select value={effectiveRep} onChange={(e) => setRepId(Number(e.target.value))}>
+                    {reps.map((rep) => (
+                        <option key={rep.repId} value={rep.repId}>
+                            #{rep.repId} · {rep.status}
+                            {rep.warmup ? " · warmup" : ""}
+                        </option>
+                    ))}
+                </select>
+                <span className="dc-muted" style={{ fontSize: 11 }}>
+                    {rich.snapshots.length} snapshot(s) · 2s cadence · diagnostic-only, never
+                    official
+                </span>
+            </div>
+            <div className="dc-kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0,1fr))" }}>
+                {["heapUsedMB", "rssMB", "eventLoopP95Ms", "cpuUserMs"].map((key) => (
+                    <Kpi
+                        key={key}
+                        label={key}
+                        value={latest[key] !== undefined ? latest[key] : "—"}
+                    />
+                ))}
+            </div>
+            <div className="dc-two-col">
+                <div className="dc-card">
+                    <div className="dc-card-title">
+                        Heap used (MB) over the rep
+                        <span className="right">{heapSeries.length} samples</span>
+                    </div>
+                    {heapSeries.length >= 2 ? (
+                        <TrendChart
+                            height={130}
+                            unitFormat={(v) => `${v.toFixed(1)} MB`}
+                            points={heapSeries.map((v, i) => ({
+                                x: i,
+                                y: v,
+                                label: `sample ${i}\n${v.toFixed(1)} MB`,
+                            }))}
+                        />
+                    ) : (
+                        <span className="dc-muted">not enough samples for a trend</span>
+                    )}
+                </div>
+                <div className="dc-card">
+                    <div className="dc-card-title">
+                        Event-loop p95 (ms)
+                        <span className="right">{loopSeries.length} samples</span>
+                    </div>
+                    {loopSeries.length >= 2 ? (
+                        <TrendChart
+                            height={130}
+                            unitFormat={(v) => `${v.toFixed(1)} ms`}
+                            points={loopSeries.map((v, i) => ({
+                                x: i,
+                                y: v,
+                                label: `sample ${i}\n${v.toFixed(2)} ms`,
+                            }))}
+                        />
+                    ) : (
+                        <span className="dc-muted">not enough samples for a trend</span>
+                    )}
+                </div>
+            </div>
+            {rich.spanDeltas.length > 0 ? (
+                <div className="dc-card">
+                    <div className="dc-card-title">
+                        Spans by heap delta
+                        <span className="right">top {rich.spanDeltas.length}</span>
+                    </div>
+                    <table className="dc-table ph-dense">
+                        <thead>
+                            <tr>
+                                <th>Span</th>
+                                <th className="num">Duration</th>
+                                <th className="num">Heap Δ (KB)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rich.spanDeltas.slice(0, 20).map((span, index) => (
+                                <tr key={index}>
+                                    <td className="dc-mono">{span.type}</td>
+                                    <td className="num dc-mono">
+                                        {formatDuration(span.durationMs)}
+                                    </td>
+                                    <td className="num dc-mono">{span.heapDeltaKB ?? "—"}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : null}
+        </div>
     );
 }
 

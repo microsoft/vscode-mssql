@@ -767,6 +767,16 @@ export class SelfTestService {
                 }
             }
         }
+        // Rich enrichment survives into persisted markers (perf_ prefix) so
+        // the history Diagnostics tab can surface it per rep.
+        if (event.perf) {
+            for (const [key, value] of Object.entries(event.perf.metrics)) {
+                attrs[`perf_${key}`] = value;
+            }
+        }
+        if (event.durationMs !== undefined && attrs["durationMs"] === undefined) {
+            attrs["durationMs"] = event.durationMs;
+        }
         return {
             name: event.type,
             phase: phaseFromTags(event.tags, event.kind),

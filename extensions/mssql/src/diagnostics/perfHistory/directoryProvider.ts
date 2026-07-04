@@ -899,6 +899,9 @@ export function mergeGroup(key: string, members: PerfScenarioRow[]): PerfScenari
               }
             : {}),
         artifactKinds: [...new Set(members.flatMap((m) => m.artifactKinds))].sort(),
+        memberScenarioIds: members
+            .map((m) => m.scenarioId)
+            .filter((id): id is string => id !== undefined),
     };
 }
 

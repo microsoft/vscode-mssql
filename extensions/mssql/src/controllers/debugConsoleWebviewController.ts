@@ -57,6 +57,7 @@ import { LiveTailSink } from "../diagnostics/sinks";
 import {
     PhAddSourceRequest,
     PhGetDumpRequest,
+    PhGetRichDiagnosticsRequest,
     PhGetSqlActivityRequest,
     PhGetSummaryRequest,
     PhGetWaterfallRequest,
@@ -230,6 +231,9 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             this.perfHistory.sqlActivity(query),
         );
         this.onRequest(PhGetDumpRequest.type, async (query) => this.perfHistory.dump(query));
+        this.onRequest(PhGetRichDiagnosticsRequest.type, async (query) =>
+            this.perfHistory.richDiagnostics(query),
+        );
     }
 
     private get liveSourceId(): string {

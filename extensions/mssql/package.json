@@ -1819,7 +1819,13 @@
                 "mssql.sessionDiag.enabled": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Capture classified, redacted MSSQL diagnostics for this machine locally across VS Code sessions. Off by default; nothing is ever uploaded. Secrets and connection strings are never persisted regardless of this setting.",
+                    "description": "Auto-capture classified, redacted MSSQL diagnostics locally from startup until shutdown, across VS Code sessions, until turned off. Nothing is ever uploaded. Secrets and connection strings are never persisted regardless of this setting. Past sessions appear in the Debug Console's Session History.",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.storePath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Directory for locally captured diagnostic sessions (empty = VS Code global storage). Takes effect on restart.",
                     "scope": "application"
                 },
                 "mssql.sessionDiag.captureMode": {

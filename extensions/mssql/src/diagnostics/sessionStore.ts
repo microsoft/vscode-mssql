@@ -188,6 +188,16 @@ export class SessionStore {
             if (query.features && !query.features.includes(event.feature)) return false;
             if (query.kinds && !query.kinds.includes(event.kind)) return false;
             if (query.statuses && !query.statuses.includes(event.status)) return false;
+            if (
+                query.minDurationMs !== undefined &&
+                (event.durationMs === undefined || event.durationMs < query.minDurationMs)
+            )
+                return false;
+            if (
+                query.maxDurationMs !== undefined &&
+                (event.durationMs === undefined || event.durationMs > query.maxDurationMs)
+            )
+                return false;
             if (query.traceId && event.traceId !== query.traceId) return false;
             if (query.fromSeq !== undefined && event.seq < query.fromSeq) return false;
             if (query.beforeSeq !== undefined && event.seq >= query.beforeSeq) return false;

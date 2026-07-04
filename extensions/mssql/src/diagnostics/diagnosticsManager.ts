@@ -44,7 +44,15 @@ export class DiagnosticsManager implements vscode.Disposable {
     public readonly provenance: ProvenanceSummary;
 
     constructor(private readonly context: vscode.ExtensionContext) {
-        this.store = new SessionStore(path.join(context.globalStorageUri.fsPath, "session-diag"));
+        // Store location is configurable so always-on capture can land traces
+        // wherever the user wants (takes effect on restart).
+        const configuredRoot = vscode.workspace
+            .getConfiguration()
+            .get<string>("mssql.sessionDiag.storePath", "")
+            ?.trim();
+        this.store = new SessionStore(
+            configuredRoot || path.join(context.globalStorageUri.fsPath, "session-diag"),
+        );
         const packageJson = (vscode.extensions.getExtension("ms-mssql.mssql")?.packageJSON ??
             {}) as { version?: string };
         this.provenance = {

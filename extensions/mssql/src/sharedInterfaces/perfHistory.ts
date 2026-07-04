@@ -119,6 +119,8 @@ export interface PerfScenarioRow {
     /** Fewer than 3 valid reps — aggregates are advisory. */
     lowConfidence?: boolean;
     skippedReason?: string;
+    /** Group rows: the scenario ids folded into this group (drill-down). */
+    memberScenarioIds?: string[];
 }
 
 export interface PerfScenariosQuery {
@@ -265,6 +267,29 @@ export interface PerfDumpResult {
     path: string;
 }
 
+// --- rich diagnostics (opt-in COLLECT_ALL_THE_DATA runs) -----------------------
+
+export interface PerfRichSnapshot {
+    epochMs: number;
+    /** heapUsedMB, rssMB, eventLoopP95Ms, cpuUserMs, … (diagnostic-only). */
+    metrics: Record<string, number>;
+}
+
+export interface PerfRichSpanDelta {
+    type: string;
+    durationMs?: number;
+    heapDeltaKB?: number;
+}
+
+export interface PerfRichDiagnostics {
+    /** system.rich.snapshot counter series for the rep. */
+    snapshots: PerfRichSnapshot[];
+    /** Spans that carried rich per-span deltas, worst heap delta first. */
+    spanDeltas: PerfRichSpanDelta[];
+    /** false ⇒ the run was not collected with rich diagnostics. */
+    found: boolean;
+}
+
 // --- indexing progress ---------------------------------------------------------------
 
 export interface PerfIndexProgress {
@@ -331,6 +356,11 @@ export namespace PhGetSqlActivityRequest {
 }
 export namespace PhGetDumpRequest {
     export const type = new RequestType<PerfDumpQuery, PerfDumpResult, void>("ph/getDump");
+}
+export namespace PhGetRichDiagnosticsRequest {
+    export const type = new RequestType<PerfWaterfallQuery, PerfRichDiagnostics, void>(
+        "ph/getRichDiagnostics",
+    );
 }
 export namespace PhIndexProgressNotification {
     export const type = new NotificationType<PerfIndexProgress>("ph/indexProgress");

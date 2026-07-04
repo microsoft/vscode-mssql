@@ -94,6 +94,20 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                     },
                     tags: ["imported", `phase:${marker.phase}`],
                 };
+                // Forwarded diagnostic spans (STS dispatcher/SqlCommand/SMO/
+                // DacFx) travel as instant markers with a durationMs attr —
+                // lift it so the waterfall renders them as bars, anchored at
+                // start like live STS diag spans.
+                if (
+                    typeof marker.attrs?.["durationMs"] === "number" &&
+                    marker.phase === "instant"
+                ) {
+                    event.durationMs = marker.attrs["durationMs"];
+                    event.timingClass = "epochAlignedDiagnostic";
+                    if (marker.name.startsWith("sts.")) {
+                        event.tags!.push("stsDiag");
+                    }
+                }
                 if (marker.attrs) {
                     event.payload = {};
                     for (const [key, value] of Object.entries(marker.attrs)) {

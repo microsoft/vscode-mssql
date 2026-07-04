@@ -73,6 +73,12 @@ body,
     border-bottom: 1px solid var(--dc-border);
     background: var(--dc-panel-alt);
     min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.dc-topbar > * {
+    flex-shrink: 0;
 }
 .dc-title {
     display: flex;
@@ -493,6 +499,12 @@ body,
     align-items: center;
     gap: 14px;
     margin-bottom: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.ph-header > * {
+    flex-shrink: 0;
 }
 .ph-tabs {
     display: flex;
@@ -576,6 +588,17 @@ body,
     padding: 3px 8px;
     font-size: 11.5px;
     white-space: nowrap;
+}
+/* Normal-table behavior: fixed layout so column widths never shift while
+   virtualized rows scroll, single-height rows, ellipsized overflow. */
+.ph-table-fixed {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 1080px;
+}
+.ph-table-fixed td {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .ph-callout {
     display: flex;
@@ -705,7 +728,8 @@ body,
     cursor: row-resize;
 }
 .ph-split-root {
-    height: calc(100vh - 175px) !important;
+    flex: 1 1 auto !important;
+    height: auto !important;
     min-height: 260px;
 }
 .ph-split-inner {
@@ -795,11 +819,20 @@ body,
 }
 
 /* --- Page frame ---------------------------------------------------------- */
+/* Flex column so full-height pages (Trace, Waterfall, Perf Test History) can
+   attach their tables/panels to the real available space instead of a
+   hard-coded viewport calc — no dead space below tables. Normal-flow pages
+   still scroll (block children keep natural height in a column flex). */
 .dc-page {
     grid-area: page;
     overflow-y: auto;
-    padding: 14px 18px 30px;
+    padding: 14px 18px 18px;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.dc-page > * {
+    flex-shrink: 0;
 }
 .dc-page-header {
     display: flex;
@@ -843,6 +876,8 @@ body,
 }
 .dc-toolbar select {
     height: 26px;
+    min-width: 90px;
+    max-width: 260px;
     background: var(--dc-input-bg);
     color: var(--dc-text);
     border: 1px solid var(--dc-input-border);
@@ -853,11 +888,16 @@ body,
 }
 
 /* --- Cards / KPIs ---------------------------------------------------------- */
+/* KPI strip: ONE row that scrolls horizontally on overflow (completions-style)
+   instead of wrapping and eating vertical space. */
 .dc-kpis {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
     gap: 8px;
     margin-bottom: 14px;
+    flex-shrink: 0;
 }
 .dc-kpi {
     border: 1px solid var(--dc-border);
@@ -865,6 +905,9 @@ body,
     border-radius: 6px;
     padding: 8px 12px;
     min-height: 64px;
+    min-width: 140px;
+    max-width: 240px;
+    flex: 0 0 auto;
 }
 .dc-kpi .label {
     font-size: 10px;
@@ -1066,12 +1109,14 @@ table.dc-table tbody tr.selected td {
     display: grid;
     grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
     gap: 10px;
-    min-height: 0;
-    height: calc(100vh - 210px);
+    min-height: 260px;
+    flex: 1 1 auto;
 }
+/* Split panels grow to fill the page's remaining height exactly. */
 .dc-split-panels {
-    height: calc(100vh - 210px) !important;
-    min-height: 0;
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 260px;
 }
 .dc-panel-min0 {
     min-width: 0;

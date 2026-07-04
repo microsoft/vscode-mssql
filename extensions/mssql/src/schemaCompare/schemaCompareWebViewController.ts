@@ -21,6 +21,7 @@ import {
 } from "../sharedInterfaces/schemaCompare";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
+import { Perf } from "../perf/perfTelemetry";
 import { IConnectionProfile } from "../models/interfaces";
 import {
     cancel,
@@ -2503,12 +2504,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
+        Perf.marker("mssql.schemaCompare.compare.begin", "begin");
         const result = await compare(
             this.operationId,
             TaskExecutionMode.execute,
             payload,
             this.schemaCompareService,
         );
+        Perf.marker("mssql.schemaCompare.compare.end", "end", {
+            error: !result || !result.success,
+            differences: result?.differences?.length ?? 0,
+        });
 
         state.isComparisonInProgress = false;
 

@@ -5,7 +5,7 @@
 
 /** Core Debug Console pages: Overview, Consolidated Trace, Waterfall. */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     CauseTreeNode,
     DcGetCauseTreeRequest,
@@ -33,6 +33,7 @@ import {
     RedactedField,
     StatusPill,
 } from "./common";
+import { applyTraceFilter, parseTraceFilter } from "../../../sharedInterfaces/traceFilter";
 import { useDc } from "./state";
 import { WaterfallView } from "./waterfallView";
 
@@ -423,9 +424,18 @@ export function TracePage() {
     const [featureFilter, setFeatureFilter] = useState<string>("all");
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [showViewerInternal, setShowViewerInternal] = useState(false);
+    // Live-capture controls (completions-style): pause freezes the view while
+    // collection continues; clear hides everything before the watermark;
+    // auto-scroll sticks the table to the newest rows.
+    const [paused, setPaused] = useState(false);
+    const [autoScroll, setAutoScroll] = useState(true);
+    const [clearFromSeq, setClearFromSeq] = useState<number | undefined>(undefined);
+    const [filterExpr, setFilterExpr] = useState("");
+    const tableWrapRef = useRef<HTMLDivElement>(null);
+    const parsedFilter = useMemo(() => parseTraceFilter(filterExpr), [filterExpr]);
 
     useEffect(() => {
-        const query = {
+        const base = {
             sourceId: activeSourceId,
             limit: 400,
             ...(processFilter !== "all" ? { processes: [processFilter as DiagProcess] } : {}),
@@ -433,8 +443,11 @@ export function TracePage() {
             ...(statusFilter !== "all" ? { statuses: [statusFilter as DiagEvent["status"]] } : {}),
             ...(search ? { text: search } : {}),
             ...(showViewerInternal ? { includeViewerInternal: true } : {}),
+            ...(clearFromSeq !== undefined ? { fromSeq: clearFromSeq } : {}),
         };
-        void rpc.sendRequest(DcQueryEventsRequest.type, query).then(setResult);
+        void rpc
+            .sendRequest(DcQueryEventsRequest.type, applyTraceFilter(base, parsedFilter))
+            .then(setResult);
     }, [
         rpc,
         activeSourceId,
@@ -442,9 +455,20 @@ export function TracePage() {
         featureFilter,
         statusFilter,
         search,
-        dataVersion,
+        // Paused: freeze the view (collection continues server-side).
+        paused ? -1 : dataVersion,
         showViewerInternal,
+        clearFromSeq,
+        parsedFilter,
     ]);
+
+    // Stick to the newest rows while streaming (unless the user turned it off).
+    useEffect(() => {
+        const el = tableWrapRef.current;
+        if (el && autoScroll && isLive && !paused) {
+            el.scrollTop = el.scrollHeight;
+        }
+    }, [result, autoScroll, isLive, paused]);
 
     const features = useMemo(() => {
         const set = new Set<string>();
@@ -456,10 +480,74 @@ export function TracePage() {
         return [...set].sort();
     }, [result]);
 
+    const lastSeq = useMemo(() => {
+        const rows = result?.rows ?? [];
+        for (let i = rows.length - 1; i >= 0; i--) {
+            if (rows[i].kind !== "gap") {
+                return (rows[i] as DiagEvent).seq;
+            }
+        }
+        return undefined;
+    }, [result]);
+
     return (
         <>
             <PageHeader title="Consolidated Trace" />
             <div className="dc-toolbar">
+                <button
+                    className={`dc-btn ${paused ? "warn-chip" : ""}`}
+                    title={
+                        paused
+                            ? "Resume the live view (collection kept running)"
+                            : "Pause the view — collection continues, the table freezes"
+                    }
+                    onClick={() => setPaused((p) => !p)}>
+                    {paused ? "▶ Resume" : "⏸ Pause"}
+                </button>
+                <button
+                    className="dc-btn"
+                    title="Hide everything captured so far (collection continues; 'show all' undoes)"
+                    onClick={() =>
+                        setClearFromSeq(lastSeq !== undefined ? lastSeq + 1 : undefined)
+                    }>
+                    ⌫ Clear
+                </button>
+                {clearFromSeq !== undefined ? (
+                    <button
+                        className="dc-btn"
+                        title="Show all captured events again"
+                        onClick={() => setClearFromSeq(undefined)}>
+                        show all
+                    </button>
+                ) : null}
+                <label
+                    className="dc-muted"
+                    title="Keep the table scrolled to the newest events"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <input
+                        type="checkbox"
+                        checked={autoScroll}
+                        onChange={(e) => setAutoScroll(e.target.checked)}
+                    />
+                    auto-scroll
+                </label>
+                <input
+                    className="ph-search"
+                    style={{ minWidth: 220, maxWidth: 320 }}
+                    placeholder="filter: dur>1000 proc:sts status:error text…"
+                    value={filterExpr}
+                    spellCheck={false}
+                    title="Filter expressions: dur>1000, dur<2s, proc:sts|extension|webview|sql, feat:query, status:error, plain text. Tokens are ANDed."
+                    onChange={(e) => setFilterExpr(e.target.value)}
+                />
+                {parsedFilter.invalid.length > 0 ? (
+                    <span
+                        className="dc-muted"
+                        style={{ color: "var(--dc-warn)", fontSize: 11 }}
+                        title="These tokens were not understood and are ignored">
+                        ⚠ {parsedFilter.invalid.join(", ")}
+                    </span>
+                ) : null}
                 <select value={processFilter} onChange={(e) => setProcessFilter(e.target.value)}>
                     <option value="all">Process: all</option>
                     <option value="extensionHost">Extension</option>
@@ -494,7 +582,7 @@ export function TracePage() {
                     viewer internals
                 </label>
                 <span className="dc-muted" style={{ marginLeft: "auto" }}>
-                    {isLive ? "Streaming · newest at bottom · " : ""}
+                    {paused ? "⏸ paused · " : isLive ? "Streaming · " : ""}
                     {result
                         ? `${Math.min(result.rows.length, result.totalMatching)} of ${result.totalInSource.toLocaleString()} shown`
                         : ""}
@@ -502,7 +590,7 @@ export function TracePage() {
             </div>
             <PanelGroup direction="horizontal" className="dc-split-panels">
                 <Panel defaultSize={62} minSize={30} className="dc-panel-min0">
-                    <div className="dc-table-wrap" style={{ height: "100%" }}>
+                    <div ref={tableWrapRef} className="dc-table-wrap" style={{ height: "100%" }}>
                         <table className="dc-table">
                             <thead>
                                 <tr>
