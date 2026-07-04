@@ -331,6 +331,24 @@ suite("Perf history directory provider (filesystem)", function () {
         expect(cached.runCount()).to.equal(1);
     });
 
+    test("rep paths are contained: webview-supplied ids cannot escape the source root", async () => {
+        writeRun(root, "2026-07-01T00-00-00Z_aa", {
+            scenarios: { "selftest-noop": [1] },
+        });
+        const provider = new DirectoryHistoryProvider("test", root);
+        await provider.rescan();
+        // Honest paths resolve.
+        expect(provider.repDir("2026-07-01T00-00-00Z_aa", "selftest-noop", 0)).to.include(
+            "selftest-noop",
+        );
+        // Path tricks are refused, not silently read.
+        expect(() => provider.repDir("..", "selftest-noop", 0)).to.throw(/escapes/);
+        expect(() => provider.repDir("2026-07-01T00-00-00Z_aa", "../../..", 0)).to.throw(/escapes/);
+        expect(() => provider.containedPath(path.join(root, "..", "outside.txt"))).to.throw(
+            /escapes/,
+        );
+    });
+
     test("deleteRun removes the directory, evicts the index, and rejects path tricks", async () => {
         writeRun(root, "2026-07-01T00-00-00Z_aa", {
             scenarios: { "selftest-noop": [1, 2, 3] },

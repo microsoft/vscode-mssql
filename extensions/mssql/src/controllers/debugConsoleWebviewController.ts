@@ -21,6 +21,7 @@ import {
     DcCaptureChangedNotification,
     DcExportRequest,
     DcGetCauseTreeRequest,
+    DcGetHealthRequest,
     DcGetOverviewRequest,
     DcGetPerfSummaryRequest,
     DcGetSqlActivityRequest,
@@ -35,6 +36,7 @@ import {
     DcUnsubscribeLiveRequest,
     DcListSelfTestScenariosRequest,
     DcRunSelfTestRequest,
+    DcBackfillGapRequest,
     DcCancelSelfTestRequest,
     DcSelfTestProgressNotification,
     DiagEvent,
@@ -362,6 +364,56 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             this.subscribed = false;
             this.liveTail.unsubscribe();
         });
+
+        // Recover a live-tail gap from the session store's journal — the
+        // payoff for always-on capture: overflow drops become recoverable.
+        this.onRequest(DcBackfillGapRequest.type, async ({ fromSeq, throughSeq }) => {
+            if (!this.diagnostics.storeActive) {
+                return {
+                    ok: false,
+                    status: "failed" as const,
+                    reason: "Session Diag store is off — enable mssql.sessionDiag.enabled to make gaps recoverable",
+                };
+            }
+            try {
+                diag.flushAll();
+                const events = this.diagnostics.store
+                    .eventsForSource(`store:${diag.sessionId}`)
+                    .filter((event) => event.seq >= fromSeq && event.seq <= throughSeq);
+                if (events.length === 0) {
+                    return {
+                        ok: false,
+                        status: "failed" as const,
+                        reason: `range ${fromSeq}–${throughSeq} not in the store (evicted by the store buffer before flush)`,
+                    };
+                }
+                const expected = throughSeq - fromSeq + 1;
+                return {
+                    ok: true,
+                    events,
+                    status:
+                        events.length >= expected ? ("succeeded" as const) : ("partial" as const),
+                    ...(events.length < expected
+                        ? { reason: `${events.length} of ${expected} recovered` }
+                        : {}),
+                };
+            } catch (error) {
+                return {
+                    ok: false,
+                    status: "failed" as const,
+                    reason: error instanceof Error ? error.message : String(error),
+                };
+            }
+        });
+
+        // Sink + store health: degradation is visible, never inferred.
+        this.onRequest(DcGetHealthRequest.type, async () => ({
+            sinks: diag.sinkHealthSnapshot(),
+            store: {
+                enabled: this.diagnostics.storeActive,
+                ...this.diagnostics.store.validateStore(),
+            },
+        }));
 
         this.onRequest(DcSetCaptureModeRequest.type, async (request) => {
             // Applies immediately (settings persistence happens in background).

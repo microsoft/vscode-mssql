@@ -228,14 +228,31 @@ export class SessionStore {
 
     // --- retention -----------------------------------------------------------------
 
-    public enforceRetention(maxSessions: number, maxAgeDays: number): void {
+    public enforceRetention(maxSessions: number, maxAgeDays: number, maxTotalBytes?: number): void {
         const sessions = this.listLocalSessions();
         const cutoff = Date.now() - maxAgeDays * 86_400_000;
-        const doomed = sessions.filter(
-            (s, index) =>
-                s.manifest.status !== "active" &&
-                (index >= maxSessions || Date.parse(s.manifest.createdUtc) < cutoff),
+        const doomed = new Set(
+            sessions.filter(
+                (s, index) =>
+                    s.manifest.status !== "active" &&
+                    (index >= maxSessions || Date.parse(s.manifest.createdUtc) < cutoff),
+            ),
         );
+        // Size budget: evict oldest closed sessions until the store fits.
+        // The JSONL journal must never become a disk dragon under the desk.
+        if (maxTotalBytes !== undefined && maxTotalBytes > 0) {
+            let total = sessions
+                .filter((s) => !doomed.has(s))
+                .reduce((sum, s) => sum + this.sessionSizeBytes(s), 0);
+            for (let i = sessions.length - 1; i >= 0 && total > maxTotalBytes; i--) {
+                const session = sessions[i];
+                if (doomed.has(session) || session.manifest.status === "active") {
+                    continue;
+                }
+                total -= this.sessionSizeBytes(session);
+                doomed.add(session);
+            }
+        }
         for (const session of doomed) {
             try {
                 fs.rmSync(session.dir, { recursive: true, force: true });
@@ -243,6 +260,86 @@ export class SessionStore {
                 // best effort; surfaced by next listing
             }
         }
+    }
+
+    private sessionSizeBytes(session: { manifest: SessionManifest; dir: string }): number {
+        if (typeof session.manifest.sizeBytes === "number") {
+            return session.manifest.sizeBytes;
+        }
+        // Older manifests: measure the events directory once.
+        let total = 0;
+        try {
+            const eventsDir = path.join(session.dir, "events");
+            for (const file of fs.readdirSync(eventsDir)) {
+                total += fs.statSync(path.join(eventsDir, file)).size;
+            }
+        } catch {
+            // unreadable: treat as zero (age/count rules still apply)
+        }
+        return total;
+    }
+
+    /**
+     * Store integrity check: every persisted session's manifest must agree
+     * with what is actually on disk. Findings are strings a user can act on;
+     * an empty list means the store is clean.
+     */
+    public validateStore(): { sessions: number; totalBytes: number; issues: string[] } {
+        const issues: string[] = [];
+        const sessions = this.listLocalSessions();
+        let totalBytes = 0;
+        for (const { manifest, dir } of sessions) {
+            const label = manifest.sessionId;
+            totalBytes += this.sessionSizeBytes({ manifest, dir });
+            for (const segment of manifest.segments) {
+                const file = path.join(dir, "events", segment.file);
+                if (!fs.existsSync(file)) {
+                    if (segment.events > 0) {
+                        issues.push(
+                            `${label}: segment ${segment.file} missing (${segment.events} events)`,
+                        );
+                    }
+                    continue;
+                }
+                try {
+                    const content = fs.readFileSync(file, "utf8");
+                    if (content.length > 0 && !content.endsWith("\n")) {
+                        issues.push(
+                            `${label}: ${segment.file} has a partial trailing line (interrupted write)`,
+                        );
+                    }
+                    const lines = content.split("\n").filter((l) => l.length > 0);
+                    if (lines.length !== segment.events) {
+                        issues.push(
+                            `${label}: ${segment.file} has ${lines.length} line(s), manifest says ${segment.events}`,
+                        );
+                    }
+                    // Seq sanity on the boundaries (full parse stays lazy).
+                    try {
+                        const first = JSON.parse(lines[0] ?? "{}") as { seq?: number };
+                        if (segment.firstSeq > 0 && first.seq !== segment.firstSeq) {
+                            issues.push(
+                                `${label}: ${segment.file} first seq ${first.seq} != manifest ${segment.firstSeq}`,
+                            );
+                        }
+                    } catch {
+                        issues.push(`${label}: ${segment.file} first line is not valid JSON`);
+                    }
+                } catch {
+                    issues.push(`${label}: ${segment.file} unreadable`);
+                }
+            }
+            if (manifest.droppedRanges && manifest.droppedRanges.length > 0) {
+                const dropped = manifest.droppedRanges.reduce(
+                    (sum, r) => sum + (r.throughSeq - r.fromSeq + 1),
+                    0,
+                );
+                issues.push(
+                    `${label}: ${dropped} event(s) lost to store-buffer overflow (${manifest.droppedRanges.length} exact range(s) in manifest)`,
+                );
+            }
+        }
+        return { sessions: sessions.length, totalBytes, issues };
     }
 
     public clearAll(exceptSessionId?: string): { removed: number } {

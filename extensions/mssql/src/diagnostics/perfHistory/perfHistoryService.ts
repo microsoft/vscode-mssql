@@ -272,7 +272,15 @@ export class PerfHistoryService {
                 artifacts: [],
             };
         }
-        return provider.scenarioDetails(query);
+        const details = provider.scenarioDetails(query);
+        // The provider only knows the filesystem; the registry knows what
+        // KIND of source this is (bundles are read-only imports).
+        const descriptor = this.describeAll().find((s) => s.id === query.sourceId);
+        if (details.runProvenance && descriptor) {
+            details.runProvenance.sourceKind = descriptor.kind;
+            details.runProvenance.readOnly = descriptor.kind === "bundle";
+        }
+        return details;
     }
 
     // --- summary --------------------------------------------------------------------
@@ -526,14 +534,30 @@ export class PerfHistoryService {
             return { text: "", truncated: false, path: "" };
         }
         let filePath: string;
-        if (query.file === "summary") {
-            filePath = path.join(provider.root, query.runId, "summary.json");
-        } else {
-            const repDir = provider.repDir(query.runId, query.scenarioId ?? "", query.repId ?? 0);
-            filePath =
-                query.file === "result"
-                    ? path.join(repDir, "result.json")
-                    : path.join(repDir, "markers.jsonl");
+        try {
+            // Ids come from the webview: containment-checked, path tricks are
+            // refused with an honest error instead of a silent read.
+            if (query.file === "summary") {
+                filePath = provider.containedPath(
+                    path.join(provider.root, query.runId, "summary.json"),
+                );
+            } else {
+                const repDir = provider.repDir(
+                    query.runId,
+                    query.scenarioId ?? "",
+                    query.repId ?? 0,
+                );
+                filePath =
+                    query.file === "result"
+                        ? path.join(repDir, "result.json")
+                        : path.join(repDir, "markers.jsonl");
+            }
+        } catch (error) {
+            return {
+                text: `refused: ${error instanceof Error ? error.message : String(error)}`,
+                truncated: false,
+                path: "",
+            };
         }
         try {
             const stat = fs.statSync(filePath);

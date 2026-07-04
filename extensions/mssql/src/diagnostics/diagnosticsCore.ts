@@ -62,6 +62,8 @@ export interface DiagnosticSink {
     tryWrite(event: DiagEvent): void;
     flush?(): void;
     dispose?(): void;
+    /** Health self-report — a sink may degrade, but never silently. */
+    health?(): { id: string; healthy: boolean; detail: string; counters: Record<string, number> };
 }
 
 export interface DiagSpan {
@@ -135,6 +137,41 @@ class DiagnosticsCore {
 
     public hasSink(id: string): boolean {
         return this.sinks.some((s) => s.id === id);
+    }
+
+    /** Health rows from every sink that self-reports (registration order). */
+    public sinkHealthSnapshot(): Array<{
+        id: string;
+        healthy: boolean;
+        detail: string;
+        counters: Record<string, number>;
+    }> {
+        const rows: Array<{
+            id: string;
+            healthy: boolean;
+            detail: string;
+            counters: Record<string, number>;
+        }> = [];
+        for (const sink of this.sinks) {
+            try {
+                rows.push(
+                    sink.health?.() ?? {
+                        id: sink.id,
+                        healthy: true,
+                        detail: "no self-report",
+                        counters: {},
+                    },
+                );
+            } catch {
+                rows.push({
+                    id: sink.id,
+                    healthy: false,
+                    detail: "health() threw",
+                    counters: {},
+                });
+            }
+        }
+        return rows;
     }
 
     public get anySinkActive(): boolean {

@@ -597,6 +597,21 @@ export const OBS_CONTRACT: Registry = {
             attrsComplete: false,
             notes: "DacFxService operations (sts.dacfx.<OperationType>) AND designer DesignServices work (sts.dacfx.tableDesigner.*, sts.dacfx.schemaDesigner.*).",
         },
+        {
+            name: "import.linesSkipped",
+            kind: "event",
+            phase: "instant",
+            feature: "harness",
+            processRoles: ["system"],
+            timingClass: "sameProcessMonotonic",
+            measurementEligible: false,
+            attrs: {
+                skipped: "structuralMetadata",
+                reason: "safeEnum",
+            },
+            attrsComplete: true,
+            notes: "Synthetic import-loss record: how many markers.jsonl lines were refused (malformed/oversized) so imported traces never silently under-report.",
+        },
     ],
     metrics: [
         {

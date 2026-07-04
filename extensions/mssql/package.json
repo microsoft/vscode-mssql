@@ -1850,6 +1850,12 @@
                     "description": "Maximum age in days for locally retained diagnostic sessions.",
                     "scope": "application"
                 },
+                "mssql.sessionDiag.maxTotalMB": {
+                    "type": "number",
+                    "default": 512,
+                    "description": "Maximum total size (MB) of the local Session Diag trace store. Oldest closed sessions are removed first when the budget is exceeded. Applied when capture starts.",
+                    "scope": "application"
+                },
                 "mssql.debugConsole.enabled": {
                     "type": "boolean",
                     "default": true,

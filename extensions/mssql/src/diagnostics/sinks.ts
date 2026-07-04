@@ -16,7 +16,12 @@
 import * as fs from "fs";
 import * as http from "http";
 import * as path from "path";
-import { DiagEvent, GapRecord, SessionManifest } from "../sharedInterfaces/debugConsole";
+import {
+    DiagEvent,
+    GapRecord,
+    SessionManifest,
+    SinkHealth,
+} from "../sharedInterfaces/debugConsole";
 import { DiagnosticSink } from "./diagnosticsCore";
 
 // ---------------------------------------------------------------------------
@@ -78,6 +83,18 @@ export class PerfModeSink implements DiagnosticSink {
 
     public get queuedCount(): number {
         return this.queue.length;
+    }
+
+    public health(): SinkHealth {
+        return {
+            id: this.id,
+            healthy: this.dropped === 0,
+            detail:
+                this.dropped === 0
+                    ? "forwarding to harness"
+                    : `${this.dropped} marker(s) dropped (queue overflow or POST failure) — rep validation should flag forwarding loss`,
+            counters: { queued: this.queue.length, dropped: this.dropped },
+        };
     }
 
     public tryWrite(event: DiagEvent): void {
@@ -216,6 +233,7 @@ export class LiveTailSink implements DiagnosticSink {
     private droppedFrom: number | undefined;
     private droppedThrough: number | undefined;
     private droppedCount = 0;
+    private droppedTotal = 0;
 
     constructor(
         private readonly ringCapacity = 5000,
@@ -255,6 +273,7 @@ export class LiveTailSink implements DiagnosticSink {
             this.droppedFrom = this.droppedFrom ?? dropped.seq;
             this.droppedThrough = dropped.seq;
             this.droppedCount++;
+            this.droppedTotal++;
         }
         this.pending.push(event);
         if (!this.deliverTimer) {
@@ -284,6 +303,9 @@ export class LiveTailSink implements DiagnosticSink {
                 droppedCount: this.droppedCount,
                 reason: "subscriberOverflow",
                 backfillStatus: "notStarted",
+                // Exact resync point: the first event actually delivered
+                // after the dropped range.
+                firstAvailableSeq: batch[0].seq,
                 epochMs: Date.now(),
             };
             this.droppedFrom = undefined;
@@ -295,6 +317,23 @@ export class LiveTailSink implements DiagnosticSink {
         } catch {
             // listener errors never propagate to emission
         }
+    }
+
+    public health(): SinkHealth {
+        return {
+            id: this.id,
+            healthy: this.droppedTotal === 0,
+            detail:
+                this.droppedTotal === 0
+                    ? "live tail keeping up"
+                    : `${this.droppedTotal} event(s) dropped to gaps — backfill from the session store when enabled`,
+            counters: {
+                ring: this.ring.length,
+                pending: this.pending.length,
+                droppedTotal: this.droppedTotal,
+                gaps: this.gapCounter,
+            },
+        };
     }
 }
 
@@ -316,7 +355,10 @@ export class SessionDiagSink implements DiagnosticSink {
     private readonly sessionDir: string;
     private readonly eventsDir: string;
     private failed = false;
+    private failureDetail = "";
     private gaps = 0;
+    private sizeBytes = 0;
+    private droppedRanges: Array<{ fromSeq: number; throughSeq: number }> = [];
 
     constructor(
         storeRoot: string,
@@ -354,7 +396,16 @@ export class SessionDiagSink implements DiagnosticSink {
             return;
         }
         if (this.buffer.length >= STORE_MAX_BUFFER) {
-            this.buffer.shift();
+            // Exact-range accounting: extend the current dropped range or
+            // start a new one, so the manifest records precisely what's
+            // missing (never a bare count).
+            const dropped = this.buffer.shift()!;
+            const last = this.droppedRanges[this.droppedRanges.length - 1];
+            if (last && last.throughSeq === dropped.seq - 1) {
+                last.throughSeq = dropped.seq;
+            } else {
+                this.droppedRanges.push({ fromSeq: dropped.seq, throughSeq: dropped.seq });
+            }
             this.gaps++;
         }
         this.buffer.push(event);
@@ -384,8 +435,13 @@ export class SessionDiagSink implements DiagnosticSink {
             segment.lastSeq = batch[batch.length - 1].seq;
             segment.events += batch.length;
             this.segmentEvents += batch.length;
+            this.sizeBytes += Buffer.byteLength(lines, "utf8");
             this.manifest.eventCount += batch.length;
             this.manifest.gapCount = this.gaps;
+            this.manifest.sizeBytes = this.sizeBytes;
+            if (this.droppedRanges.length > 0) {
+                this.manifest.droppedRanges = [...this.droppedRanges];
+            }
             this.manifest.updatedUtc = new Date().toISOString();
             if (this.segmentEvents >= SEGMENT_MAX_EVENTS) {
                 this.segmentIndex++;
@@ -398,10 +454,30 @@ export class SessionDiagSink implements DiagnosticSink {
                 });
             }
             this.writeManifest();
-        } catch {
-            // Store failure disables the sink; the product must not care.
+        } catch (error) {
+            // Store failure disables the sink; the product must not care —
+            // but the degradation is VISIBLE via health(), never silent.
             this.failed = true;
+            this.failureDetail = error instanceof Error ? error.message : String(error);
         }
+    }
+
+    public health(): SinkHealth {
+        return {
+            id: this.id,
+            healthy: !this.failed,
+            detail: this.failed
+                ? `store write FAILED — capture degraded (${this.failureDetail || "unknown error"})`
+                : this.gaps > 0
+                  ? `writing (${this.gaps} event(s) lost to buffer overflow; exact ranges in manifest)`
+                  : "writing",
+            counters: {
+                buffered: this.buffer.length,
+                eventCount: this.manifest.eventCount,
+                sizeBytes: this.sizeBytes,
+                droppedEvents: this.gaps,
+            },
+        };
     }
 
     public close(): void {

@@ -2101,11 +2101,47 @@ function ArtifactsTab({ details }: { details: PerfScenarioDetails | undefined })
 function ValidationTab({ details }: { details: PerfScenarioDetails | undefined }) {
     const validations = details?.validations ?? [];
     const failures = (details?.reps ?? []).filter((rep) => rep.failureReason);
-    if (validations.length === 0 && failures.length === 0 && !details?.skippedReason) {
+    const provenance = details?.runProvenance;
+    if (
+        validations.length === 0 &&
+        failures.length === 0 &&
+        !details?.skippedReason &&
+        !provenance
+    ) {
         return <span className="dc-muted">No validation records for this scenario.</span>;
     }
     return (
         <div>
+            {/* Provenance first: can this run be trusted, and for what? */}
+            {provenance ? (
+                <div className="dc-kv" style={{ marginBottom: 8 }}>
+                    <span className="k">Provenance</span>
+                    <span className="v">
+                        {provenance.sourceKind}
+                        {provenance.readOnly ? " (read-only)" : ""}
+                        {provenance.passType ? ` · pass: ${provenance.passType}` : ""}
+                        {provenance.runStatus ? ` · run: ${provenance.runStatus}` : ""}
+                    </span>
+                    {provenance.environmentHash ? (
+                        <>
+                            <span className="k">Environment</span>
+                            <span className="v dc-mono">{provenance.environmentHash}</span>
+                        </>
+                    ) : null}
+                    <span className="k">Import</span>
+                    <span className="v">
+                        {provenance.importWarnings.length === 0 ? (
+                            <span className="dc-pill ok">clean</span>
+                        ) : (
+                            <span
+                                className="dc-pill warn"
+                                title={provenance.importWarnings.join("\n")}>
+                                {provenance.importWarnings.length} warning(s)
+                            </span>
+                        )}
+                    </span>
+                </div>
+            ) : null}
             {details?.skippedReason ? (
                 <div className="ph-callout" style={{ marginBottom: 8 }}>
                     <span className="ph-callout-icon">⊘</span>

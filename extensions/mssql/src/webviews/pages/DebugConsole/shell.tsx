@@ -133,6 +133,7 @@ function TopBar() {
         captureMode,
         captureExpiresEpochMs,
         liveGaps,
+        backfillGap,
         search,
         setSearch,
         rpc,
@@ -230,7 +231,20 @@ function TopBar() {
                 {chipLabel}
             </button>
             {unresolvedGaps > 0 ? (
-                <button className="dc-btn warn-chip" onClick={() => navigate({ page: "trace" })}>
+                <button
+                    className="dc-btn warn-chip"
+                    title="Recover the dropped ranges from the session store journal"
+                    onClick={() => {
+                        for (const gap of liveGaps) {
+                            if (
+                                gap.backfillStatus === "notStarted" ||
+                                gap.backfillStatus === "failed"
+                            ) {
+                                void backfillGap(gap);
+                            }
+                        }
+                        navigate({ page: "trace" });
+                    }}>
                     ⚠ Backfill {unresolvedGaps} gap{unresolvedGaps > 1 ? "s" : ""}
                 </button>
             ) : null}

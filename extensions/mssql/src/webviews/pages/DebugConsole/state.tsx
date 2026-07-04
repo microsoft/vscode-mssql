@@ -21,6 +21,7 @@ import {
     DebugConsoleState,
     DebugSource,
     DcCaptureChangedNotification,
+    DcBackfillGapRequest,
     DcCancelSelfTestRequest,
     DcImportPerfRunRequest,
     DcListSourcesRequest,
@@ -83,6 +84,7 @@ interface DcContextValue {
     navigate: (route: DcRoute) => void;
     liveEvents: DiagEvent[];
     liveGaps: GapRecord[];
+    backfillGap: (gap: GapRecord) => Promise<void>;
     captureMode: CaptureMode;
     captureExpiresEpochMs: number | undefined;
     setCaptureMode: (mode: CaptureMode, reason?: string, durationMinutes?: number) => void;
@@ -125,6 +127,41 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     const [route, navigate] = useState<DcRoute>({ page: "overview" });
     const [liveEvents, setLiveEvents] = useState<DiagEvent[]>([]);
     const [liveGaps, setLiveGaps] = useState<GapRecord[]>([]);
+
+    // Recover a gap dropped range from the session store journal; merges the
+    // events back into the live buffer and records the honest outcome.
+    const backfillGap = useCallback(
+        async (gap: GapRecord): Promise<void> => {
+            setLiveGaps((current) =>
+                current.map((g) =>
+                    g.gapId === gap.gapId ? { ...g, backfillStatus: "running" } : g,
+                ),
+            );
+            const outcome = await rpc.sendRequest(DcBackfillGapRequest.type, {
+                gapId: gap.gapId,
+                fromSeq: gap.fromSeq,
+                throughSeq: gap.throughSeq,
+            });
+            if (outcome.ok && outcome.events && outcome.events.length > 0) {
+                setLiveEvents((current) => {
+                    const known = new Set(current.map((e) => e.seq));
+                    const merged = [
+                        ...current,
+                        ...outcome.events!.filter((e) => !known.has(e.seq)),
+                    ].sort((a, b) => a.seq - b.seq);
+                    return merged.length > LIVE_VIEW_CAP
+                        ? merged.slice(merged.length - LIVE_VIEW_CAP)
+                        : merged;
+                });
+            }
+            setLiveGaps((current) =>
+                current.map((g) =>
+                    g.gapId === gap.gapId ? { ...g, backfillStatus: outcome.status } : g,
+                ),
+            );
+        },
+        [rpc],
+    );
     const [captureMode, setCaptureModeState] = useState<CaptureMode>("off");
     const [captureExpiresEpochMs, setCaptureExpires] = useState<number | undefined>(undefined);
     const [search, setSearch] = useState("");
@@ -299,6 +336,7 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             navigate,
             liveEvents,
             liveGaps,
+            backfillGap,
             captureMode,
             captureExpiresEpochMs,
             setCaptureMode,
@@ -320,6 +358,7 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             route,
             liveEvents,
             liveGaps,
+            backfillGap,
             captureMode,
             captureExpiresEpochMs,
             setCaptureMode,

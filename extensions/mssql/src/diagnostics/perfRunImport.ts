@@ -59,6 +59,9 @@ function featureFor(name: string): string {
  * Import one rep directory. Returns unified events sorted by time; traceId is
  * the scenario correlation (all markers of one rep share the rep trace).
  */
+/** Imports are untrusted: refuse absurd single lines outright. */
+const MAX_MARKER_LINE_BYTES = 512 * 1024;
+
 export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
     const events: DiagEvent[] = [];
     let seq = 0;
@@ -66,11 +69,23 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
 
     const markersPath = path.join(repDir, "markers.jsonl");
     if (fs.existsSync(markersPath)) {
+        let skippedLines = 0;
         for (const line of fs.readFileSync(markersPath, "utf8").split("\n")) {
             const trimmed = line.trim();
             if (!trimmed) continue;
+            // Imports are untrusted: an absurd line (multi-MB attr blob,
+            // binary garbage) is skipped with accounting, never parsed into
+            // memory pressure or a crash.
+            if (trimmed.length > MAX_MARKER_LINE_BYTES) {
+                skippedLines++;
+                continue;
+            }
             try {
                 const marker = JSON.parse(trimmed) as HarnessMarker;
+                if (typeof marker.name !== "string" || typeof marker.timestampUnixNs !== "string") {
+                    skippedLines++;
+                    continue;
+                }
                 const epochMs = Number(BigInt(marker.timestampUnixNs) / 1000000n);
                 seq++;
                 const event: DiagEvent = {
@@ -120,8 +135,40 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                 }
                 events.push(event);
             } catch {
-                // skip malformed line
+                skippedLines++;
             }
+        }
+        // Import loss is visible: a synthetic event records exactly how many
+        // lines were refused so the trace never silently under-reports.
+        if (skippedLines > 0) {
+            seq++;
+            events.push({
+                schemaVersion: DIAG_SCHEMA_VERSION,
+                eventId: `imp_${seq.toString(36).padStart(6, "0")}`,
+                sessionId: traceId,
+                seq,
+                epochMs: events[0]?.epochMs ?? Date.now(),
+                process: "system",
+                feature: "harness",
+                kind: "event",
+                type: "import.linesSkipped",
+                status: "warning",
+                traceId,
+                cls: {
+                    max: "diagnostic.metadata",
+                    redactedFields: 0,
+                    policyId: "policy_perf_import",
+                },
+                tags: ["imported"],
+                payload: {
+                    skipped: { v: skippedLines, cls: "diagnostic.metadata", handling: "plain" },
+                    reason: {
+                        v: "malformed or oversized markers.jsonl lines refused during import",
+                        cls: "diagnostic.metadata",
+                        handling: "plain",
+                    },
+                },
+            });
         }
     }
 

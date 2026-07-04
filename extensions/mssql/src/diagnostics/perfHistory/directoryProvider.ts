@@ -855,6 +855,27 @@ export class DirectoryHistoryProvider {
                 (a, b) => Number(b.official) - Number(a.official) || a.name.localeCompare(b.name),
             );
         }
+        // Run-level provenance: summary facts + import findings, so a
+        // dazzling chart with bad provenance looks visibly suspect.
+        const importWarnings = validations
+            .filter((v) => v.status !== "passed" && v.name.includes("import"))
+            .map((v) => v.message ?? v.name);
+        let summary: { passType?: string; environmentHash?: string; status?: string } = {};
+        try {
+            summary = JSON.parse(
+                fs.readFileSync(path.join(this.root, query.runId, "summary.json"), "utf8"),
+            );
+        } catch {
+            importWarnings.push("summary.json missing or unreadable");
+        }
+        const runProvenance = {
+            sourceKind: "directory",
+            readOnly: false,
+            ...(summary.passType ? { passType: summary.passType } : {}),
+            ...(summary.environmentHash ? { environmentHash: summary.environmentHash } : {}),
+            ...(summary.status ? { runStatus: summary.status } : {}),
+            importWarnings,
+        };
         return {
             runId: query.runId,
             scenarioId: query.scenarioId,
@@ -862,6 +883,7 @@ export class DirectoryHistoryProvider {
             submetrics,
             validations,
             artifacts,
+            runProvenance,
             ...(scenario?.skippedReason ? { skippedReason: scenario.skippedReason } : {}),
         };
     }
@@ -892,8 +914,13 @@ export class DirectoryHistoryProvider {
         }
     }
 
+    /**
+     * Rep directory path, CONTAINED: runId/scenarioId come from the webview,
+     * so a crafted "../../" id must never resolve outside the source root
+     * (imports are untrusted input — including our own UI channel).
+     */
     public repDir(runId: string, scenarioId: string, repId: number): string {
-        return path.join(
+        const candidate = path.join(
             this.root,
             runId,
             "scenarios",
@@ -901,6 +928,17 @@ export class DirectoryHistoryProvider {
             "reps",
             `rep-${String(repId).padStart(2, "0")}`,
         );
+        return this.containedPath(candidate);
+    }
+
+    /** Resolve a path and refuse anything outside this source's root. */
+    public containedPath(candidate: string): string {
+        const resolvedRoot = path.resolve(this.root);
+        const resolved = path.resolve(candidate);
+        if (resolved !== resolvedRoot && !resolved.startsWith(resolvedRoot + path.sep)) {
+            throw new Error(`path escapes the run source root: ${candidate}`);
+        }
+        return resolved;
     }
 }
 

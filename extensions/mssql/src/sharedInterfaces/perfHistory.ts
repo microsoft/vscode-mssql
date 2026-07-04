@@ -203,7 +203,19 @@ export interface PerfArtifactRef {
     sizeBytes?: number;
 }
 
+/** Run-level provenance: can this run be trusted, and for what? */
+export interface PerfRunProvenance {
+    sourceKind: string;
+    readOnly: boolean;
+    passType?: string;
+    environmentHash?: string;
+    runStatus?: string;
+    /** Import findings for this scenario (path tricks, refused lines, mismatches). */
+    importWarnings: string[];
+}
+
 export interface PerfScenarioDetails {
+    runProvenance?: PerfRunProvenance;
     runId: string;
     scenarioId: string;
     reps: PerfRepRow[];

@@ -138,6 +138,8 @@ export interface GapRecord {
     throughSeq: number;
     droppedCount: number;
     reason: "subscriberOverflow" | "sinkOverflow" | "journalUnavailable";
+    /** First seq delivered AFTER the gap — the exact resync point. */
+    firstAvailableSeq?: number;
     backfillStatus: "notStarted" | "running" | "succeeded" | "partial" | "failed";
     epochMs: number;
 }
@@ -210,6 +212,10 @@ export interface SessionManifest {
     eventCount: number;
     gapCount: number;
     segments: Array<{ file: string; firstSeq: number; lastSeq: number; events: number }>;
+    /** Total bytes across segments (updated on flush). */
+    sizeBytes?: number;
+    /** Exact seq ranges lost to store-buffer overflow. */
+    droppedRanges?: Array<{ fromSeq: number; throughSeq: number }>;
     provenance: ProvenanceSummary;
     status: "active" | "closed" | "partial";
 }
@@ -556,6 +562,47 @@ export namespace DcGetPerfSummaryRequest {
         "dc/getPerfSummary",
     );
 }
+// --- Evidence durability (Chunk 2) -----------------------------------------
+
+/** Backfill a live-tail gap from the session store journal. */
+export interface GapBackfillResult {
+    ok: boolean;
+    /** Recovered events (seq-ordered) when ok. */
+    events?: DiagEvent[];
+    /** Honest failure reason: store disabled, range evicted, read error. */
+    reason?: string;
+    status: GapRecord["backfillStatus"];
+}
+export namespace DcBackfillGapRequest {
+    export const type = new RequestType<
+        { gapId: string; fromSeq: number; throughSeq: number },
+        GapBackfillResult,
+        void
+    >("dc/backfillGap");
+}
+
+/** One sink health row: a sink may degrade but never silently. */
+export interface SinkHealth {
+    id: string;
+    healthy: boolean;
+    detail: string;
+    counters: Record<string, number>;
+}
+export interface StoreHealth {
+    enabled: boolean;
+    sessions: number;
+    totalBytes: number;
+    /** Integrity findings across persisted sessions (empty = clean). */
+    issues: string[];
+}
+export interface DiagHealthSnapshot {
+    sinks: SinkHealth[];
+    store: StoreHealth;
+}
+export namespace DcGetHealthRequest {
+    export const type = new RequestType<void, DiagHealthSnapshot, void>("dc/getHealth");
+}
+
 export namespace DcExportRequest {
     export const type = new RequestType<
         { sourceId: string },

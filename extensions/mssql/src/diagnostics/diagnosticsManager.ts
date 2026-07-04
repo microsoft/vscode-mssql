@@ -165,6 +165,7 @@ export class DiagnosticsManager implements vscode.Disposable {
                 this.store.enforceRetention(
                     config.get<number>(SETTING_MAX_SESSIONS, 10),
                     config.get<number>(SETTING_MAX_AGE_DAYS, 14),
+                    config.get<number>("mssql.sessionDiag.maxTotalMB", 512) * 1024 * 1024,
                 );
             } catch {
                 // Store unavailable: capture stays off; product unaffected.
@@ -306,6 +307,11 @@ export class DiagnosticsManager implements vscode.Disposable {
 
     public get activeStoreDirectory(): string | undefined {
         return this.storeSink?.directory;
+    }
+
+    /** Whether the always-on session store sink is currently writing. */
+    public get storeActive(): boolean {
+        return this.storeSink !== undefined;
     }
 
     public dispose(): void {

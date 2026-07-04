@@ -13,6 +13,8 @@ import {
     DcQueryEventsRequest,
     DiagEvent,
     SqlActivityRow,
+    DcGetHealthRequest,
+    DiagHealthSnapshot,
 } from "../../../sharedInterfaces/debugConsole";
 import { Sparkline } from "./charts";
 import {
@@ -556,6 +558,87 @@ export function ExportsPage() {
     );
 }
 
+/** Sink + store health: a sink may degrade, but never silently (Chunk 2). */
+function DiagHealthCard() {
+    const { rpc } = useDc();
+    const [health, setHealth] = useState<DiagHealthSnapshot | undefined>(undefined);
+    const refresh = () => {
+        void rpc.sendRequest(DcGetHealthRequest.type).then(setHealth);
+    };
+    useEffect(refresh, [rpc]);
+    return (
+        <div className="dc-card">
+            <div className="dc-card-title">
+                Diagnostics health
+                <span className="right">
+                    <button className="dc-btn" onClick={refresh}>
+                        ⟳ Refresh
+                    </button>
+                </span>
+            </div>
+            {!health ? (
+                <span className="dc-muted">Loading…</span>
+            ) : (
+                <>
+                    <table className="dc-table ph-dense">
+                        <thead>
+                            <tr>
+                                <th>Sink</th>
+                                <th>Status</th>
+                                <th>Detail</th>
+                                <th>Counters</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {health.sinks.map((sink) => (
+                                <tr key={sink.id}>
+                                    <td className="dc-mono">{sink.id}</td>
+                                    <td>
+                                        <span
+                                            className={`dc-pill ${sink.healthy ? "ok" : "error"}`}>
+                                            {sink.healthy ? "healthy" : "degraded"}
+                                        </span>
+                                    </td>
+                                    <td>{sink.detail}</td>
+                                    <td className="dc-mono dc-muted" style={{ fontSize: 10.5 }}>
+                                        {Object.entries(sink.counters)
+                                            .map(([k, v]) => `${k}=${v.toLocaleString()}`)
+                                            .join(" · ")}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <div className="dc-kv" style={{ marginTop: 8 }}>
+                        <span className="k">Store</span>
+                        <span className="v">
+                            {health.store.enabled ? "capturing" : "off"} · {health.store.sessions}{" "}
+                            session(s) · {(health.store.totalBytes / (1024 * 1024)).toFixed(1)} MB
+                        </span>
+                        <span className="k">Integrity</span>
+                        <span className="v">
+                            {health.store.issues.length === 0 ? (
+                                <span className="dc-pill ok">clean</span>
+                            ) : (
+                                `${health.store.issues.length} issue(s)`
+                            )}
+                        </span>
+                    </div>
+                    {health.store.issues.length > 0 ? (
+                        <ul className="dc-muted" style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                            {health.store.issues.slice(0, 12).map((issue, index) => (
+                                <li key={index} style={{ fontSize: 11.5 }}>
+                                    {issue}
+                                </li>
+                            ))}
+                        </ul>
+                    ) : null}
+                </>
+            )}
+        </div>
+    );
+}
+
 export function SettingsPage() {
     const { captureMode, setCaptureMode, state } = useDc();
     return (
@@ -583,12 +666,14 @@ export function SettingsPage() {
                     </button>
                 </div>
             </div>
+            <DiagHealthCard />
             <div className="dc-card">
                 <div className="dc-card-title">Retention &amp; storage</div>
                 <p className="dc-muted" style={{ margin: 0 }}>
                     Retention caps live in VS Code settings:{" "}
                     <span className="dc-mono">mssql.sessionDiag.maxSessions</span> (default 10) and{" "}
-                    <span className="dc-mono">mssql.sessionDiag.maxAgeDays</span> (default 14).
+                    <span className="dc-mono">mssql.sessionDiag.maxAgeDays</span> (default 14), and
+                    <span className="dc-mono"> mssql.sessionDiag.maxTotalMB</span> (default 512).
                     Clear all local diagnostics via the command palette:{" "}
                     <span className="dc-mono">MS SQL: Session Diagnostics: Clear Local Data</span>.
                 </p>
