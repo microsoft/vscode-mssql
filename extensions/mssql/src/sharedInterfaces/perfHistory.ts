@@ -101,6 +101,8 @@ export interface PagedRuns {
 export type ScenarioGroupBy = "scenario" | "suite" | "verdict" | "run";
 
 export interface PerfScenarioRow {
+    /** In-product quick compare vs baseline — the CLI gate is authoritative. */
+    quickCompare?: { verdict: "regression" | "improved" | "ok" | "inconclusive"; reason: string };
     /** Group key (scenarioId in scenario mode, group value otherwise). */
     key: string;
     scenarioId?: string;
@@ -390,6 +392,48 @@ export namespace PhGetRichDiagnosticsRequest {
         "ph/getRichDiagnostics",
     );
 }
+// --- Rep compare (Chunk 5): what changed between two reps? -----------------
+
+export interface PerfRepCompareQuery {
+    sourceId: string;
+    scenarioId: string;
+    runA: string;
+    repA: number;
+    runB: string;
+    repB: number;
+}
+export interface PerfPhaseDelta {
+    name: string;
+    aMs?: number;
+    bMs?: number;
+    deltaMs?: number;
+    deltaPct?: number;
+}
+export interface PerfTypeDelta {
+    type: string;
+    aCount: number;
+    bCount: number;
+    aTotalMs: number;
+    bTotalMs: number;
+    deltaMs: number;
+}
+export interface PerfRepCompareResult {
+    /** Marker-pair phase durations, registry pairs + .begin/.end families. */
+    phases: PerfPhaseDelta[];
+    /** Per-event-type duration/count deltas, ranked by |deltaMs| (what changed most). */
+    types: PerfTypeDelta[];
+    /** Event types present only in A / only in B. */
+    addedInA: string[];
+    addedInB: string[];
+    /** Honest caveats (missing markers, unpaired, clock planes). */
+    notes: string[];
+}
+export namespace PhCompareRepsRequest {
+    export const type = new RequestType<PerfRepCompareQuery, PerfRepCompareResult, void>(
+        "ph/compareReps",
+    );
+}
+
 export namespace PhDeleteRunRequest {
     /** Deletes the run DIRECTORY from disk (writable directory sources only). */
     export const type = new RequestType<

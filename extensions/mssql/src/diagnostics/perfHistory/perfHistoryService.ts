@@ -25,6 +25,8 @@ import {
     PerfRichDiagnostics,
     PerfRichSnapshot,
     PerfRichSpanDelta,
+    PerfRepCompareQuery,
+    PerfRepCompareResult,
     PerfRunsQuery,
     PerfRunsSummary,
     PerfScenarioDetails,
@@ -38,6 +40,7 @@ import { SqlActivityRow, WaterfallModel } from "../../sharedInterfaces/debugCons
 import { buildWaterfall, sqlActivityRows } from "../analysis";
 import { importPerfRep } from "../perfRunImport";
 import { DirectoryHistoryProvider } from "./directoryProvider";
+import { loadRegistry as loadObsRegistry } from "../../sharedInterfaces/observabilityContract.generated";
 
 const STATE_KEY = "mssql.perfHistory.sources";
 const DUMP_CAP_BYTES = 512 * 1024;
@@ -526,6 +529,164 @@ export class PerfHistoryService {
             return { ok: false, error: "source unavailable" };
         }
         return provider.deleteRun(runId);
+    }
+
+    /**
+     * What changed between two reps? Marker-pair phases (registry pairing +
+     * .begin/.end families), per-type duration/count deltas ranked by impact,
+     * and added/removed event types. Read-only over markers.jsonl.
+     */
+    public async compareReps(query: PerfRepCompareQuery): Promise<PerfRepCompareResult> {
+        const provider = await this.ensureIndexed(query.sourceId);
+        const empty: PerfRepCompareResult = {
+            phases: [],
+            types: [],
+            addedInA: [],
+            addedInB: [],
+            notes: ["source unavailable"],
+        };
+        if (!provider) {
+            return empty;
+        }
+        const notes: string[] = [];
+        const load = (runId: string, repId: number) => {
+            try {
+                const file = path.join(
+                    provider.repDir(runId, query.scenarioId, repId),
+                    "markers.jsonl",
+                );
+                const markers: Array<{
+                    name: string;
+                    phase: string;
+                    timestampUnixNs: string;
+                    attrs?: Record<string, unknown>;
+                }> = [];
+                for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+                    const trimmed = line.trim();
+                    if (!trimmed || trimmed.length > 512 * 1024) {
+                        continue;
+                    }
+                    try {
+                        markers.push(JSON.parse(trimmed));
+                    } catch {
+                        // refused line — the import path already accounts these
+                    }
+                }
+                return markers;
+            } catch (error) {
+                notes.push(
+                    `${runId} rep ${repId}: markers unreadable (${error instanceof Error ? error.message : String(error)})`,
+                );
+                return [];
+            }
+        };
+        const a = load(query.runA, query.repA);
+        const b = load(query.runB, query.repB);
+        if (a.length === 0 || b.length === 0) {
+            return {
+                ...empty,
+                notes: [...notes, "one side has no markers — compare needs both reps recorded"],
+            };
+        }
+
+        const ns = (m: { timestampUnixNs: string }) => BigInt(m.timestampUnixNs);
+        const firstPairMs = (markers: typeof a, begin: string, end: string): number | undefined => {
+            const beginMarker = markers.find((m) => m.name === begin);
+            const endMarker = beginMarker
+                ? markers.find((m) => m.name === end && ns(m) >= ns(beginMarker))
+                : undefined;
+            if (!beginMarker || !endMarker) {
+                return undefined;
+            }
+            return Number(ns(endMarker) - ns(beginMarker)) / 1e6;
+        };
+
+        // Phases: registry-explicit pairs + dynamic families seen in the data.
+        const registry = loadObsRegistry();
+        const phasePairs = new Map<string, { begin: string; end: string }>();
+        for (const entry of registry.events) {
+            if (entry.name && entry.pairsWith && entry.phase === "begin") {
+                phasePairs.set(entry.name.replace(/\.(begin|submit)$/, ""), {
+                    begin: entry.name,
+                    end: entry.pairsWith,
+                });
+            }
+        }
+        const familyNames = new Set<string>();
+        for (const marker of [...a, ...b]) {
+            if (/^(rpc\.|webview\.|sts\.)/.test(marker.name) && marker.name.endsWith(".begin")) {
+                familyNames.add(marker.name.slice(0, -".begin".length));
+            }
+        }
+        for (const base of familyNames) {
+            phasePairs.set(base, { begin: `${base}.begin`, end: `${base}.end` });
+        }
+        const phases = [...phasePairs.entries()]
+            .map(([name, pair]) => {
+                const aMs = firstPairMs(a, pair.begin, pair.end);
+                const bMs = firstPairMs(b, pair.begin, pair.end);
+                if (aMs === undefined && bMs === undefined) {
+                    return undefined;
+                }
+                const deltaMs =
+                    aMs !== undefined && bMs !== undefined
+                        ? Number((aMs - bMs).toFixed(2))
+                        : undefined;
+                return {
+                    name,
+                    ...(aMs !== undefined ? { aMs: Number(aMs.toFixed(2)) } : {}),
+                    ...(bMs !== undefined ? { bMs: Number(bMs.toFixed(2)) } : {}),
+                    ...(deltaMs !== undefined ? { deltaMs } : {}),
+                    ...(deltaMs !== undefined && bMs
+                        ? { deltaPct: Number(((deltaMs / bMs) * 100).toFixed(1)) }
+                        : {}),
+                };
+            })
+            .filter((row): row is NonNullable<typeof row> => row !== undefined)
+            .sort((x, y) => Math.abs(y.deltaMs ?? 0) - Math.abs(x.deltaMs ?? 0));
+
+        // Per-type totals: counts always; durations from forwarded durationMs attrs.
+        const totals = (markers: typeof a) => {
+            const map = new Map<string, { count: number; totalMs: number }>();
+            for (const marker of markers) {
+                const row = map.get(marker.name) ?? { count: 0, totalMs: 0 };
+                row.count++;
+                const duration = marker.attrs?.["durationMs"];
+                if (typeof duration === "number") {
+                    row.totalMs += duration;
+                }
+                map.set(marker.name, row);
+            }
+            return map;
+        };
+        const aTotals = totals(a);
+        const bTotals = totals(b);
+        const allTypes = new Set([...aTotals.keys(), ...bTotals.keys()]);
+        const types = [...allTypes]
+            .map((type) => {
+                const at = aTotals.get(type) ?? { count: 0, totalMs: 0 };
+                const bt = bTotals.get(type) ?? { count: 0, totalMs: 0 };
+                return {
+                    type,
+                    aCount: at.count,
+                    bCount: bt.count,
+                    aTotalMs: Number(at.totalMs.toFixed(2)),
+                    bTotalMs: Number(bt.totalMs.toFixed(2)),
+                    deltaMs: Number((at.totalMs - bt.totalMs).toFixed(2)),
+                };
+            })
+            .sort(
+                (x, y) =>
+                    Math.abs(y.deltaMs) - Math.abs(x.deltaMs) ||
+                    Math.abs(y.aCount - y.bCount) - Math.abs(x.aCount - x.bCount),
+            )
+            .slice(0, 40);
+        const addedInA = [...allTypes].filter((t) => !bTotals.has(t)).sort();
+        const addedInB = [...allTypes].filter((t) => !aTotals.has(t)).sort();
+        notes.push(
+            "phase durations are epoch deltas within each rep; cross-rep deltas compare like planes",
+        );
+        return { phases, types, addedInA, addedInB, notes };
     }
 
     public async dump(query: PerfDumpQuery): Promise<PerfDumpResult> {

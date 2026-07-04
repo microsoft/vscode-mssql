@@ -139,6 +139,55 @@ export function runVerdict(row: {
 }
 
 /** Aggregate one scenario's reps (over possibly several runs) into a row. */
+/**
+ * In-product quick compare vs a baseline: honest thresholds (10% AND a 50ms
+ * absolute floor, n≥3 both sides, noise check via IQR/median). This is a
+ * triage label — the CLI regression gate (distributions + significance)
+ * remains authoritative, and the UI says so.
+ */
+export function quickCompareVerdict(
+    samples: number[],
+    baselineSamples: number[],
+): { verdict: "regression" | "improved" | "ok" | "inconclusive"; reason: string } | undefined {
+    if (baselineSamples.length === 0) {
+        return undefined;
+    }
+    if (samples.length < 3 || baselineSamples.length < 3) {
+        return {
+            verdict: "inconclusive",
+            reason: `too few samples (current ${samples.length}, baseline ${baselineSamples.length}; need 3+)`,
+        };
+    }
+    const p50 = percentile(samples, 50)!;
+    const basP50 = percentile(baselineSamples, 50)!;
+    const q1 = percentile(samples, 25) ?? p50;
+    const q3 = percentile(samples, 75) ?? p50;
+    const spreadRatio = p50 > 0 ? (q3 - q1) / p50 : 0;
+    if (spreadRatio > 0.5) {
+        return {
+            verdict: "inconclusive",
+            reason: `noisy: IQR is ${(spreadRatio * 100).toFixed(0)}% of the median — rerun or check the flake ledger`,
+        };
+    }
+    const deltaMs = p50 - basP50;
+    const deltaPct = basP50 !== 0 ? (deltaMs / basP50) * 100 : 0;
+    if (Math.abs(deltaPct) > 10 && Math.abs(deltaMs) > 50) {
+        return deltaMs > 0
+            ? {
+                  verdict: "regression",
+                  reason: `+${deltaPct.toFixed(1)}% (+${deltaMs.toFixed(0)}ms) vs baseline — quick compare, gate is authoritative`,
+              }
+            : {
+                  verdict: "improved",
+                  reason: `${deltaPct.toFixed(1)}% (${deltaMs.toFixed(0)}ms) vs baseline`,
+              };
+    }
+    return {
+        verdict: "ok",
+        reason: `within thresholds (${deltaPct.toFixed(1)}%, ${deltaMs.toFixed(0)}ms)`,
+    };
+}
+
 export function scenarioRowFrom(
     scenarioId: string,
     perRun: Array<{ runId: string; scenario: IndexedScenario }>,
@@ -182,6 +231,10 @@ export function scenarioRowFrom(
         ...(p95 !== undefined ? { p95Ms: Number(p95.toFixed(1)) } : {}),
         ...(baselineP50 !== undefined ? { baselineP50Ms: Number(baselineP50.toFixed(1)) } : {}),
         ...(deltaPct !== undefined ? { deltaPct } : {}),
+        ...(() => {
+            const quick = quickCompareVerdict(samples, baselineSamples);
+            return quick ? { quickCompare: quick } : {};
+        })(),
         artifactKinds,
         ...(validReps > 0 && validReps < 3 ? { lowConfidence: true } : {}),
         ...(skippedReason ? { skippedReason } : {}),

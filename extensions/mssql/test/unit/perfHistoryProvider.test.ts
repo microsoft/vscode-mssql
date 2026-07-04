@@ -19,6 +19,7 @@ import {
     IndexedScenario,
     mergeGroup,
     officialSamples,
+    quickCompareVerdict,
     percentile,
     runVerdict,
     scenarioRowFrom,
@@ -45,6 +46,25 @@ function indexedScenario(values: number[], overrides?: Partial<IndexedScenario>)
 }
 
 suite("Perf history aggregation (pure)", () => {
+    test("quickCompareVerdict: honest thresholds, noise, and sample floors", () => {
+        // no baseline → no verdict at all
+        expect(quickCompareVerdict([100, 100, 100], [])).to.equal(undefined);
+        // too few samples → inconclusive, never a verdict from thin air
+        expect(quickCompareVerdict([100, 100], [100, 100, 100])?.verdict).to.equal("inconclusive");
+        // clear regression: >10% AND >50ms
+        const reg = quickCompareVerdict([600, 610, 620], [500, 500, 500]);
+        expect(reg?.verdict).to.equal("regression");
+        expect(reg?.reason).to.include("gate is authoritative");
+        // big % but tiny absolute → ok (absolute floor)
+        expect(quickCompareVerdict([12, 12, 12], [10, 10, 10])?.verdict).to.equal("ok");
+        // noisy current samples → inconclusive
+        expect(quickCompareVerdict([100, 300, 900], [200, 200, 200])?.verdict).to.equal(
+            "inconclusive",
+        );
+        // improvement labeled as such
+        expect(quickCompareVerdict([400, 400, 410], [500, 505, 510])?.verdict).to.equal("improved");
+    });
+
     test("percentile handles empty, single, and even-sized samples", () => {
         expect(percentile([], 50)).to.equal(undefined);
         expect(percentile([7], 50)).to.equal(7);

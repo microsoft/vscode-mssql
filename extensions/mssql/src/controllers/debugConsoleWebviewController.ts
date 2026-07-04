@@ -60,6 +60,7 @@ import { LiveTailSink } from "../diagnostics/sinks";
 import { lintCorrelation } from "../sharedInterfaces/observabilityContract.generated";
 import {
     PhAddSourceRequest,
+    PhCompareRepsRequest,
     PhDeleteRunRequest,
     PhGetDumpRequest,
     PhGetRichDiagnosticsRequest,
@@ -256,6 +257,9 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         this.onRequest(PhGetDumpRequest.type, async (query) => this.perfHistory.dump(query));
         this.onRequest(PhGetRichDiagnosticsRequest.type, async (query) =>
             this.perfHistory.richDiagnostics(query),
+        );
+        this.onRequest(PhCompareRepsRequest.type, async (query) =>
+            this.perfHistory.compareReps(query),
         );
         this.onRequest(PhDeleteRunRequest.type, async ({ sourceId, runId }) => {
             // Destructive: removes the run directory from disk. Confirm once.

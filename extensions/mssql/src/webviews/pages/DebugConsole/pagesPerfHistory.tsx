@@ -27,9 +27,11 @@ import {
     PerfRunRow,
     PerfRunsSummary,
     PerfScenarioDetails,
+    PerfRepCompareResult,
     PerfScenarioRow,
     PerfSourceKind,
     PhAddSourceRequest,
+    PhCompareRepsRequest,
     PhDeleteRunRequest,
     PhGetDumpRequest,
     PhGetRichDiagnosticsRequest,
@@ -1472,6 +1474,24 @@ function ScenarioTable(props: {
                                 ) : (
                                     "—"
                                 )}
+                                {/* Quick-compare verdict: triage label only —
+                                    the CLI gate is authoritative (tooltip). */}
+                                {row.quickCompare ? (
+                                    <span
+                                        className={`dc-pill ${
+                                            row.quickCompare.verdict === "regression"
+                                                ? "error"
+                                                : row.quickCompare.verdict === "improved"
+                                                  ? "ok"
+                                                  : row.quickCompare.verdict === "inconclusive"
+                                                    ? "warn"
+                                                    : "info"
+                                        }`}
+                                        style={{ marginLeft: 5 }}
+                                        title={row.quickCompare.reason}>
+                                        {row.quickCompare.verdict}
+                                    </span>
+                                ) : null}
                             </td>
                             <td>
                                 <ArtifactBadges kinds={row.artifactKinds} />
@@ -1598,13 +1618,15 @@ type PhBottomTab =
     | "diag"
     | "artifacts"
     | "validation"
-    | "dump";
+    | "dump"
+    | "compare";
 
 function BottomTabs(props: {
     sourceId: string;
     runId: string | undefined;
     scenarioId: string | undefined;
     details: PerfScenarioDetails | undefined;
+    baselineRunId?: string;
     onCollapse?: () => void;
 }) {
     const [tab, setTab] = useState<PhBottomTab>("submetrics");
@@ -1644,6 +1666,14 @@ function BottomTabs(props: {
             enabled: true,
         },
         { id: "dump", label: "All Data Dump", enabled: true },
+        {
+            id: "compare",
+            label: "Compare",
+            enabled: props.baselineRunId !== undefined && props.baselineRunId !== props.runId,
+            hint: props.baselineRunId
+                ? "What changed vs the pinned baseline rep"
+                : "Pin a baseline run to enable rep compare",
+        },
     ];
     const active = tabs.find((t) => t.id === tab && t.enabled) ? tab : "submetrics";
     return (
@@ -1699,6 +1729,14 @@ function BottomTabs(props: {
                     />
                 ) : active === "artifacts" ? (
                     <ArtifactsTab details={details} />
+                ) : active === "compare" ? (
+                    <CompareTab
+                        sourceId={props.sourceId}
+                        runId={props.runId!}
+                        baselineRunId={props.baselineRunId!}
+                        scenarioId={props.scenarioId!}
+                        details={details}
+                    />
                 ) : active === "validation" ? (
                     <ValidationTab details={details} />
                 ) : (
@@ -2228,6 +2266,176 @@ function DumpTab(props: {
                 </span>
             </div>
             <pre className="ph-dump">{dump?.text ?? "…"}</pre>
+        </div>
+    );
+}
+
+/**
+ * Rep compare (Chunk 5): what changed between a rep of the selected run and
+ * a rep of the pinned baseline run — marker-pair phases, per-type totals
+ * ranked by impact, added/removed event types. Quick triage; the CLI
+ * investigation diff remains the deep tool.
+ */
+function CompareTab(props: {
+    sourceId: string;
+    runId: string;
+    baselineRunId: string;
+    scenarioId: string;
+    details: PerfScenarioDetails | undefined;
+}) {
+    const { rpc } = useDc();
+    const reps = (props.details?.reps ?? []).filter((r) => !r.warmup);
+    const [repA, setRepA] = useState<number | undefined>(undefined);
+    const [repB, setRepB] = useState(1);
+    const [result, setResult] = useState<PerfRepCompareResult | undefined>(undefined);
+    const effectiveRepA = repA ?? reps.find((r) => r.status === "passed")?.repId ?? 1;
+
+    useEffect(() => {
+        setResult(undefined);
+        void rpc
+            .sendRequest(PhCompareRepsRequest.type, {
+                sourceId: props.sourceId,
+                scenarioId: props.scenarioId,
+                runA: props.runId,
+                repA: effectiveRepA,
+                runB: props.baselineRunId,
+                repB,
+            })
+            .then(setResult);
+    }, [
+        rpc,
+        props.sourceId,
+        props.scenarioId,
+        props.runId,
+        props.baselineRunId,
+        effectiveRepA,
+        repB,
+    ]);
+
+    return (
+        <div>
+            <div className="dc-toolbar" style={{ marginBottom: 6 }}>
+                <span className="dc-muted">this run rep</span>
+                <select value={effectiveRepA} onChange={(e) => setRepA(Number(e.target.value))}>
+                    {reps.map((rep) => (
+                        <option key={rep.repId} value={rep.repId}>
+                            #{rep.repId} · {rep.status}
+                        </option>
+                    ))}
+                </select>
+                <span className="dc-muted">vs baseline rep</span>
+                <select value={repB} onChange={(e) => setRepB(Number(e.target.value))}>
+                    {[0, 1, 2, 3, 4].map((repId) => (
+                        <option key={repId} value={repId}>
+                            #{repId}
+                        </option>
+                    ))}
+                </select>
+                <span className="dc-muted dc-mono" style={{ marginLeft: "auto", fontSize: 10.5 }}>
+                    {shortRunId(props.runId)} vs {shortRunId(props.baselineRunId)}
+                </span>
+            </div>
+            {!result ? (
+                <span className="dc-muted">Comparing…</span>
+            ) : (
+                <>
+                    {result.notes.map((note, index) => (
+                        <div
+                            key={index}
+                            className="dc-muted"
+                            style={{ fontSize: 11, marginBottom: 4 }}>
+                            {note}
+                        </div>
+                    ))}
+                    <div className="dc-two-col">
+                        <div className="dc-card" style={{ margin: 0 }}>
+                            <div className="dc-card-title">Phases (marker pairs)</div>
+                            <table className="dc-table ph-dense">
+                                <thead>
+                                    <tr>
+                                        <th>Phase</th>
+                                        <th className="num">this</th>
+                                        <th className="num">baseline</th>
+                                        <th className="num">Δ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {result.phases.slice(0, 15).map((phase) => (
+                                        <tr key={phase.name}>
+                                            <td className="dc-mono">{phase.name}</td>
+                                            <td className="num dc-mono">
+                                                {phase.aMs !== undefined ? `${phase.aMs}ms` : "—"}
+                                            </td>
+                                            <td className="num dc-mono">
+                                                {phase.bMs !== undefined ? `${phase.bMs}ms` : "—"}
+                                            </td>
+                                            <td
+                                                className="num dc-mono"
+                                                style={{
+                                                    color:
+                                                        (phase.deltaMs ?? 0) > 50
+                                                            ? "var(--dc-error)"
+                                                            : (phase.deltaMs ?? 0) < -50
+                                                              ? "var(--dc-ok)"
+                                                              : undefined,
+                                                }}>
+                                                {phase.deltaMs !== undefined
+                                                    ? `${phase.deltaMs > 0 ? "+" : ""}${phase.deltaMs}ms`
+                                                    : "one side missing"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="dc-card" style={{ margin: 0 }}>
+                            <div className="dc-card-title">What changed most (by event type)</div>
+                            <table className="dc-table ph-dense">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th className="num">count</th>
+                                        <th className="num">Δms</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {result.types.slice(0, 15).map((type) => (
+                                        <tr key={type.type}>
+                                            <td className="dc-mono">{type.type}</td>
+                                            <td className="num dc-mono">
+                                                {type.aCount}
+                                                {type.aCount !== type.bCount
+                                                    ? ` (was ${type.bCount})`
+                                                    : ""}
+                                            </td>
+                                            <td className="num dc-mono">
+                                                {type.deltaMs > 0 ? "+" : ""}
+                                                {type.deltaMs}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {result.addedInA.length > 0 ? (
+                                <div style={{ marginTop: 6, fontSize: 11 }}>
+                                    <b>only in this run:</b>{" "}
+                                    <span className="dc-mono">
+                                        {result.addedInA.slice(0, 8).join(", ")}
+                                    </span>
+                                </div>
+                            ) : null}
+                            {result.addedInB.length > 0 ? (
+                                <div style={{ marginTop: 2, fontSize: 11 }}>
+                                    <b>only in baseline:</b>{" "}
+                                    <span className="dc-mono">
+                                        {result.addedInB.slice(0, 8).join(", ")}
+                                    </span>
+                                </div>
+                            ) : null}
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
