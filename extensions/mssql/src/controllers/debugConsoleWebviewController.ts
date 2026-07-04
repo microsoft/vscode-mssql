@@ -139,6 +139,24 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 },
             });
         }
+
+        // Seed with THIS session's already-persisted events: when
+        // mssql.sessionDiag.enabled captured startup/activation before the
+        // console opened, that data appears immediately in the live source
+        // instead of only after a restart.
+        try {
+            diag.flushAll();
+            const persisted = diagnostics.store.eventsForSource(`store:${diag.sessionId}`);
+            if (persisted.length > 0) {
+                const known = new Set(this.liveArchive.map((event) => event.seq));
+                this.liveArchive = [
+                    ...persisted.filter((event) => !known.has(event.seq)),
+                    ...this.liveArchive,
+                ].slice(-LIVE_ARCHIVE_CAP);
+            }
+        } catch {
+            // seeding is best-effort; live capture continues regardless
+        }
         this.liveTail = new LiveTailSink();
         diag.addSink(this.liveTail);
         this.panel.onDidDispose(() => {

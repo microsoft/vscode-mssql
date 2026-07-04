@@ -58,6 +58,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 }
 
 async function activateInternal(context: vscode.ExtensionContext): Promise<IExtension> {
+    // Session Diag lifecycle FIRST: when mssql.sessionDiag.enabled is on, the
+    // store sink must exist before the first activation marker fires so
+    // startup/activation data is captured, not dropped. The manager has no
+    // controller dependency; the Debug Console command registers with it.
+    let diagnosticsManager: DiagnosticsManager | undefined;
+    if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", true)) {
+        diagnosticsManager = new DiagnosticsManager(context);
+        context.subscriptions.push(diagnosticsManager);
+        registerDebugConsole(context, diagnosticsManager);
+    }
+
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");
 
@@ -127,13 +138,8 @@ async function activateInternal(context: vscode.ExtensionContext): Promise<IExte
 
     registerPerfApi(context, { getController: () => controller });
 
-    // Phase-4 diagnostics: Session Diag lifecycle + MSSQL Debug Console.
-    // Inert unless the user enables capture or opens the console.
-    if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", true)) {
-        const diagnosticsManager = new DiagnosticsManager(context);
-        context.subscriptions.push(diagnosticsManager);
-        registerDebugConsole(context, diagnosticsManager);
-    }
+    // (Session Diag + Debug Console are initialized at the very top of
+    // activation so startup/activation events are captured, not dropped.)
 
     Perf.setActivationState("activated");
     Perf.marker("mssql.activate.end", "end");
