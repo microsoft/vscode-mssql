@@ -11,6 +11,7 @@ import {
     DcGetCauseTreeRequest,
     DcGetOverviewRequest,
     DcGetWaterfallRequest,
+    DcGetTraceQualityRequest,
     DcListTracesRequest,
     DcQueryEventsRequest,
     DiagEvent,
@@ -18,6 +19,7 @@ import {
     EventQueryResult,
     GapRecord,
     SourceOverview,
+    TraceQualityReport,
     UserActionSummary,
     WaterfallModel,
 } from "../../../sharedInterfaces/debugConsole";
@@ -40,6 +42,68 @@ import { WaterfallView } from "./waterfallView";
 // ---------------------------------------------------------------------------
 // Overview
 // ---------------------------------------------------------------------------
+
+/** Correlation health: how well-stitched the current source is. */
+function TraceQualityCard({ sourceId, dataVersion }: { sourceId: string; dataVersion: number }) {
+    const { rpc } = useDc();
+    const [report, setReport] = useState<TraceQualityReport | undefined>(undefined);
+    useEffect(() => {
+        void rpc.sendRequest(DcGetTraceQualityRequest.type, { sourceId }).then(setReport);
+    }, [rpc, sourceId, dataVersion]);
+    if (!report || report.totalEvents === 0) {
+        return null;
+    }
+    const tone = report.score === "good" ? "ok" : report.score === "fair" ? "warn" : "error";
+    return (
+        <div className="dc-card">
+            <div className="dc-card-title">
+                Trace quality
+                <span className="right">
+                    <span className={`dc-pill ${tone}`}>{report.score}</span>
+                </span>
+            </div>
+            <div className="dc-kv">
+                <span className="k">Correlated</span>
+                <span className="v">
+                    {report.orphanCount === 0
+                        ? "all product markers joined to traces"
+                        : `${report.orphanCount} orphan(s) · ${(report.orphanRatio * 100).toFixed(0)}% of correlatable markers`}
+                </span>
+                <span className="k">Pairs</span>
+                <span className="v">
+                    {report.unmatchedPairs.length === 0
+                        ? "begin/end balanced"
+                        : `${report.unmatchedPairs.length} unbalanced: ${report.unmatchedPairs
+                              .slice(0, 3)
+                              .map((pair) => `${pair.name} (${pair.begins}/${pair.ends})`)
+                              .join(", ")}`}
+                </span>
+                {report.longLivedRoots.length > 0 ? (
+                    <>
+                        <span className="k">Leaked roots</span>
+                        <span className="v">
+                            {report.longLivedRoots.length} trace(s) past the TTL — widest{" "}
+                            {formatDuration(report.longLivedRoots[0].durationMs)}
+                        </span>
+                    </>
+                ) : null}
+                <span className="k">Diagnostic bars</span>
+                <span className="v">
+                    {report.epochAlignedCount} epoch-aligned (hatched, never official)
+                </span>
+            </div>
+            {report.notes.length > 0 ? (
+                <ul className="dc-muted" style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                    {report.notes.map((note, index) => (
+                        <li key={index} style={{ fontSize: 11.5 }}>
+                            {note}
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+        </div>
+    );
+}
 
 export function OverviewPage() {
     const {
@@ -186,6 +250,7 @@ export function OverviewPage() {
                     </div>
                 </div>
                 <div>
+                    <TraceQualityCard sourceId={activeSourceId} dataVersion={dataVersion} />
                     <div className="dc-card-title" style={{ marginBottom: 8 }}>
                         Anomalies
                     </div>
@@ -747,6 +812,22 @@ export function WaterfallPage() {
     const { rpc, activeSourceId, route, navigate, dataVersion } = useDc();
     const [traces, setTraces] = useState<UserActionSummary[]>([]);
     const [model, setModel] = useState<WaterfallModel | undefined>(undefined);
+    const [quality, setQuality] = useState<TraceQualityReport | undefined>(undefined);
+
+    // Per-trace stitching quality: unpaired spans and orphans mean this
+    // waterfall has fog — say so instead of drawing invented roads.
+    useEffect(() => {
+        if (!model?.traceId) {
+            setQuality(undefined);
+            return;
+        }
+        void rpc
+            .sendRequest(DcGetTraceQualityRequest.type, {
+                sourceId: activeSourceId,
+                traceId: model.traceId,
+            })
+            .then(setQuality);
+    }, [rpc, activeSourceId, model?.traceId]);
 
     useEffect(() => {
         void rpc
@@ -793,6 +874,17 @@ export function WaterfallPage() {
                         </option>
                     ))}
                 </select>
+                {quality && quality.score !== "good" ? (
+                    <span
+                        className={`dc-pill ${quality.score === "fair" ? "warn" : "error"}`}
+                        title={quality.notes.join("\n")}>
+                        stitching: {quality.score}
+                        {quality.unmatchedPairs.length > 0
+                            ? ` · ${quality.unmatchedPairs.length} unpaired`
+                            : ""}
+                        {quality.orphanCount > 0 ? ` · ${quality.orphanCount} orphans` : ""}
+                    </span>
+                ) : null}
                 <span
                     className="dc-muted"
                     style={{ marginLeft: "auto" }}

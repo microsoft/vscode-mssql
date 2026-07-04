@@ -603,6 +603,26 @@ export namespace DcGetHealthRequest {
     export const type = new RequestType<void, DiagHealthSnapshot, void>("dc/getHealth");
 }
 
+/** Trace quality (Trace Identity V1 lint) — fog made visible. */
+export interface TraceQualityReport {
+    totalEvents: number;
+    orphanCount: number;
+    orphanRatio: number;
+    unmatchedPairs: Array<{ name: string; begins: number; ends: number }>;
+    longLivedRoots: Array<{ traceId: string; durationMs: number; eventCount: number }>;
+    epochAlignedCount: number;
+    outsideScenarioWindow: number;
+    score: "good" | "fair" | "poor";
+    notes: string[];
+}
+export namespace DcGetTraceQualityRequest {
+    export const type = new RequestType<
+        { sourceId: string; traceId?: string },
+        TraceQualityReport,
+        void
+    >("dc/getTraceQuality");
+}
+
 export namespace DcExportRequest {
     export const type = new RequestType<
         { sourceId: string },

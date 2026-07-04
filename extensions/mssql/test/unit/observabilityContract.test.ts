@@ -18,6 +18,7 @@ import {
     OBS_CONTRACT,
     deriveEligibility,
     explainEventName,
+    lintCorrelation,
 } from "../../src/sharedInterfaces/observabilityContract.generated";
 
 const SRC_ROOT = path.join(__dirname, "..", "..", "..", "src");
@@ -89,5 +90,27 @@ suite("Observability Contract conformance", () => {
         // Epoch-aligned STS spans and rich-collection reps: diagnostic-only.
         expect(deriveEligibility({ ...base, timePlane: "epoch" }).diagnosticOnly).to.equal(true);
         expect(deriveEligibility({ ...base, richCollection: true }).diagnosticOnly).to.equal(true);
+    });
+
+    test("vendored correlation linter: registry pairing + honest scoring", () => {
+        const ev = (type: string, traceId?: string, seq = 1) => ({
+            seq,
+            type,
+            kind: "event",
+            epochMs: 1000 + seq,
+            process: "extensionHost",
+            ...(traceId ? { traceId } : {}),
+        });
+        const clean = lintCorrelation([
+            ev("mssql.connection.begin", "t1", 1),
+            ev("mssql.connection.ready", "t1", 2),
+        ]);
+        expect(clean.score).to.equal("good");
+        const foggy = lintCorrelation([
+            ev("mssql.query.submit", undefined, 1), // orphan + unpaired
+        ]);
+        expect(foggy.orphanCount).to.equal(1);
+        expect(foggy.unmatchedPairs.length).to.be.greaterThan(0);
+        expect(foggy.score).to.not.equal("good");
     });
 });

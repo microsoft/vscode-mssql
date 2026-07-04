@@ -872,3 +872,240 @@ export function deriveEligibility(input: EligibilityInput): MetricEligibility {
         reason: reasons.join("; "),
     };
 }
+
+// Trace Identity V1 — the cross-repo correlation contract. Identities can be
+// partial, but partial must be VISIBLE: the linter below reports fog instead
+// of letting views draw invented roads.
+
+/**
+ * The identity fields a fully-stitched event may carry. Every field is
+ * optional — the contract is about MEANING and propagation, not presence.
+ */
+export interface TraceIdentityV1 {
+    /** perftest / self-test run id (absent for plain product sessions). */
+    runId?: string;
+    repId?: number;
+    scenarioId?: string;
+    /** Root user action / scenario action. Closes on TTL or explicit end. */
+    rootActionId?: string;
+    /** Cross-process trace id (the console's trace grouping key). */
+    traceId?: string;
+    spanId?: string;
+    /** JSON-RPC id crossing extension → STS. A correlation HINT, reused per connection — never globally unique. */
+    jsonRpcId?: string;
+    /** Request id crossing the webview boundary. */
+    webviewRpcId?: string;
+    /** Stable safe grouping digests — never raw identifiers. */
+    ownerUriDigest?: string;
+    connectionIdDigest?: string;
+    /** STS2 envelope identities (imported): corr maps here, cause is an EDGE in the cause graph, never a fake span parent. */
+    sts2Corr?: string;
+    sts2CauseSeq?: number;
+}
+
+/** Root actions that stay open longer than this are leaks, not traces. */
+export const ROOT_ACTION_TTL_MS = 120_000;
+
+/** Structural event shape the linter needs (DiagEvent satisfies it). */
+export interface CorrelationEvent {
+    seq: number;
+    type: string;
+    kind: string;
+    epochMs: number;
+    process: string;
+    traceId?: string;
+    durationMs?: number;
+    tags?: string[];
+}
+
+export interface UnmatchedPair {
+    /** Pair or family label, e.g. "mssql.connection.begin↔ready" or "rpc.<method>". */
+    name: string;
+    begins: number;
+    ends: number;
+}
+
+export interface CorrelationLintReport {
+    totalEvents: number;
+    /** mssql.* markers with no trace correlation (excluding lifecycle noise). */
+    orphanCount: number;
+    orphanRatio: number;
+    /** Registry pairs and .begin/.end span families with unequal sides. */
+    unmatchedPairs: UnmatchedPair[];
+    /** Traces spanning longer than ROOT_ACTION_TTL_MS (leaked roots). */
+    longLivedRoots: Array<{ traceId: string; durationMs: number; eventCount: number }>;
+    /** Epoch-aligned (cross-process diagnostic) events — rendered hatched, never official. */
+    epochAlignedCount: number;
+    /** Events before scenario.start or after scenario.end when both exist. */
+    outsideScenarioWindow: number;
+    /** good = stitched; fair = usable with fog; poor = correlation unreliable. */
+    score: "good" | "fair" | "poor";
+    /** Human-readable explanations — the "why this looks like this" text. */
+    notes: string[];
+}
+
+/** Event types that legitimately carry no trace correlation. */
+const CORRELATION_EXEMPT =
+    /^(sessionDiag\.|system\.|selfTest\.|scenario\.|import\.|mssql\.sts\.pid|mssql\.activate)/;
+
+/**
+ * Registry-driven correlation lint. Marker pairing comes from the REGISTRY's
+ * explicit pairsWith (begin/ready, submit/complete — never suffix guessing);
+ * dynamic span families pair on .begin/.end name suffixes.
+ */
+export function lintCorrelation(
+    events: CorrelationEvent[],
+    registry?: Registry,
+): CorrelationLintReport {
+    const reg = registry ?? OBS_CONTRACT;
+    const notes: string[] = [];
+
+    // --- orphans ---------------------------------------------------------
+    let correlatable = 0;
+    let orphans = 0;
+    for (const event of events) {
+        if (!event.type.startsWith("mssql.") || CORRELATION_EXEMPT.test(event.type)) {
+            continue;
+        }
+        correlatable++;
+        if (!event.traceId) {
+            orphans++;
+        }
+    }
+    const orphanRatio = correlatable > 0 ? orphans / correlatable : 0;
+    if (orphans > 0) {
+        notes.push(
+            `${orphans} product marker(s) have no trace correlation — they appear in the Consolidated Trace but join no waterfall`,
+        );
+    }
+
+    // --- pairs (registry-explicit) ----------------------------------------
+    const counts = new Map<string, number>();
+    for (const event of events) {
+        counts.set(event.type, (counts.get(event.type) ?? 0) + 1);
+    }
+    const unmatchedPairs: UnmatchedPair[] = [];
+    const seenPairs = new Set<string>();
+    for (const entry of reg.events) {
+        if (!entry.name || !entry.pairsWith || entry.phase !== "begin") {
+            continue;
+        }
+        const pairKey = `${entry.name}|${entry.pairsWith}`;
+        if (seenPairs.has(pairKey)) {
+            continue;
+        }
+        seenPairs.add(pairKey);
+        const begins = counts.get(entry.name) ?? 0;
+        const ends = counts.get(entry.pairsWith) ?? 0;
+        if (begins !== ends && (begins > 0 || ends > 0)) {
+            unmatchedPairs.push({
+                name: `${entry.name} ↔ ${entry.pairsWith}`,
+                begins,
+                ends,
+            });
+        }
+    }
+    // Dynamic span families: rpc./webview./sts. pair on .begin/.end suffix.
+    const familyBase = new Map<string, { begins: number; ends: number }>();
+    for (const [type, count] of counts) {
+        if (!/^(rpc\.|webview\.|sts\.)/.test(type)) {
+            continue;
+        }
+        if (type.endsWith(".begin")) {
+            const base = type.slice(0, -".begin".length);
+            const row = familyBase.get(base) ?? { begins: 0, ends: 0 };
+            row.begins += count;
+            familyBase.set(base, row);
+        } else if (type.endsWith(".end")) {
+            const base = type.slice(0, -".end".length);
+            const row = familyBase.get(base) ?? { begins: 0, ends: 0 };
+            row.ends += count;
+            familyBase.set(base, row);
+        }
+    }
+    for (const [base, row] of familyBase) {
+        if (row.begins !== row.ends) {
+            unmatchedPairs.push({ name: base, begins: row.begins, ends: row.ends });
+        }
+    }
+    if (unmatchedPairs.length > 0) {
+        notes.push(
+            `${unmatchedPairs.length} begin/end pair(s) are unbalanced — durations for those operations are absent or partial, never fabricated`,
+        );
+    }
+
+    // --- long-lived roots --------------------------------------------------
+    const traceExtent = new Map<string, { min: number; max: number; count: number }>();
+    for (const event of events) {
+        if (!event.traceId) {
+            continue;
+        }
+        const extent = traceExtent.get(event.traceId) ?? {
+            min: event.epochMs,
+            max: event.epochMs,
+            count: 0,
+        };
+        extent.min = Math.min(extent.min, event.epochMs);
+        extent.max = Math.max(extent.max, event.epochMs + (event.durationMs ?? 0));
+        extent.count++;
+        traceExtent.set(event.traceId, extent);
+    }
+    const longLivedRoots = [...traceExtent.entries()]
+        .filter(([, extent]) => extent.max - extent.min > ROOT_ACTION_TTL_MS)
+        .map(([traceId, extent]) => ({
+            traceId,
+            durationMs: extent.max - extent.min,
+            eventCount: extent.count,
+        }))
+        .sort((a, b) => b.durationMs - a.durationMs)
+        .slice(0, 10);
+    if (longLivedRoots.length > 0) {
+        notes.push(
+            `${longLivedRoots.length} trace(s) exceed the ${ROOT_ACTION_TTL_MS / 1000}s root-action TTL — later events may be joining a leaked root, widening waterfalls`,
+        );
+    }
+
+    // --- epoch-aligned + scenario window ------------------------------------
+    let epochAlignedCount = 0;
+    for (const event of events) {
+        if (event.type.startsWith("sts.") || event.tags?.includes("stsDiag")) {
+            epochAlignedCount++;
+        }
+    }
+    if (epochAlignedCount > 0) {
+        notes.push(
+            `${epochAlignedCount} event(s) are epoch-aligned cross-process diagnostics — hatched bars, never official timing`,
+        );
+    }
+    let outsideScenarioWindow = 0;
+    const start = events.find((e) => e.type === "scenario.start");
+    const end = events.find((e) => e.type === "scenario.end");
+    if (start && end) {
+        for (const event of events) {
+            if (event.epochMs < start.epochMs || event.epochMs > end.epochMs) {
+                outsideScenarioWindow++;
+            }
+        }
+        if (outsideScenarioWindow > 0) {
+            notes.push(
+                `${outsideScenarioWindow} event(s) fall outside the scenario window — setup/teardown noise, excluded from scenario metrics`,
+            );
+        }
+    }
+
+    // --- score --------------------------------------------------------------
+    const poor = orphanRatio > 0.5 || unmatchedPairs.length > 5;
+    const fair =
+        !poor && (orphanRatio > 0.1 || unmatchedPairs.length > 0 || longLivedRoots.length > 0);
+    return {
+        totalEvents: events.length,
+        orphanCount: orphans,
+        orphanRatio: Number(orphanRatio.toFixed(3)),
+        unmatchedPairs,
+        longLivedRoots,
+        epochAlignedCount,
+        outsideScenarioWindow,
+        score: poor ? "poor" : fair ? "fair" : "good",
+        notes,
+    };
+}

@@ -22,6 +22,7 @@ import {
     DcExportRequest,
     DcGetCauseTreeRequest,
     DcGetHealthRequest,
+    DcGetTraceQualityRequest,
     DcGetOverviewRequest,
     DcGetPerfSummaryRequest,
     DcGetSqlActivityRequest,
@@ -56,6 +57,7 @@ import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryServic
 import { importPerfMetrics, importPerfRun } from "../diagnostics/perfRunImport";
 import { SelfTestService } from "../diagnostics/selfTest/selfTestService";
 import { LiveTailSink } from "../diagnostics/sinks";
+import { lintCorrelation } from "../sharedInterfaces/observabilityContract.generated";
 import {
     PhAddSourceRequest,
     PhDeleteRunRequest,
@@ -414,6 +416,17 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 ...this.diagnostics.store.validateStore(),
             },
         }));
+        // Trace Identity V1 lint: how well-stitched is this source (or one
+        // trace)? Fog is reported, never painted over.
+        this.onRequest(DcGetTraceQualityRequest.type, async ({ sourceId, traceId }) => {
+            let events = this.eventsFor(sourceId).filter(
+                (event) => !event.tags?.includes("viewerInternal"),
+            );
+            if (traceId) {
+                events = events.filter((event) => event.traceId === traceId);
+            }
+            return lintCorrelation(events);
+        });
 
         this.onRequest(DcSetCaptureModeRequest.type, async (request) => {
             // Applies immediately (settings persistence happens in background).
