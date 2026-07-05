@@ -50,9 +50,25 @@ import {
     QsSyncUndoRequest,
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
+import {
+    QsLangCompletionRequest,
+    QsLangDefinitionRequest,
+    QsLangDiagnosticsChangedNotification,
+    QsLangDiagnosticsRequest,
+    QsLangDocumentSymbolsRequest,
+    QsLangFoldingRequest,
+    QsLangHoverRequest,
+    QsLangSignatureHelpRequest,
+    QsLangStatusRequest,
+} from "../sharedInterfaces/queryStudioLanguage";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { getSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
+import {
+    LANGUAGE_ENGINE_SETTING,
+    LanguageServiceStatus,
+    QueryStudioLanguageService,
+} from "./queryStudioLanguageService";
 
 const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
 
@@ -68,6 +84,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private inlineCompletionCts: vscode.CancellationTokenSource | undefined;
     /** Accepted-command args by debug event id ("__last__" when capture is off). */
     private inlineCompletionAcceptedArgs = new Map<string, unknown[]>();
+    private readonly languageService: QueryStudioLanguageService;
+    /** Database names cached from QsListDatabases for USE completions. */
+    private _languageDatabasesCache: string[] | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -95,8 +114,36 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 }
             }),
         );
+        this.languageService = new QueryStudioLanguageService({
+            backingDocument: () => this.model.backingDocument,
+            sessionBinding: () => this.model.sessionBinding,
+            databases: () => this._languageDatabasesCache,
+        });
         this.initializeBase();
         this.registerHandlers();
+
+        this.registerDisposable(
+            this.languageService.onDiagnosticsChanged(() => {
+                void this.languageService
+                    .diagnostics()
+                    .then((result) => {
+                        if (this.isDisposed) {
+                            return;
+                        }
+                        void this.sendNotification(QsLangDiagnosticsChangedNotification.type, {
+                            diagnostics: result?.diagnostics ?? [],
+                        });
+                    })
+                    .catch(() => undefined);
+            }),
+        );
+        this.registerDisposable(
+            vscode.workspace.onDidChangeConfiguration((e) => {
+                if (e.affectsConfiguration(LANGUAGE_ENGINE_SETTING)) {
+                    this.languageService.onPreferenceChanged();
+                }
+            }),
+        );
 
         this.modelListener = this.model.attachListener({
             onRemote: (remote) => {
@@ -330,9 +377,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.queueStatePush();
             return { changed };
         });
-        this.onRequest(QsListDatabasesRequest.type, async () => ({
-            databases: await this.model.executionHost.listDatabases(),
-        }));
+        this.onRequest(QsListDatabasesRequest.type, async () => {
+            const databases = await this.model.executionHost.listDatabases();
+            this._languageDatabasesCache = databases;
+            return { databases };
+        });
         this.onRequest(QsGetRowsRequest.type, async (params) =>
             this.model.executionHost.getRows(params.resultSetId, params.start, params.count),
         );
@@ -431,6 +480,58 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }
         });
         this.onRequest(QsUpdateGridSelectionRequest.type, async () => undefined);
+
+        // --- language features (LS-0): 1:1 onto the per-document facade ------
+        this.onRequest(QsLangCompletionRequest.type, async (params) => {
+            const result = await this.languageService.completion(
+                { line: params.line, character: params.character },
+                params.trigger,
+                params.triggerCharacter,
+            );
+            return result ?? { items: [], isIncomplete: false };
+        });
+        this.onRequest(
+            QsLangHoverRequest.type,
+            async (position) => (await this.languageService.hover(position)) ?? null,
+        );
+        this.onRequest(
+            QsLangSignatureHelpRequest.type,
+            async (position) => (await this.languageService.signatureHelp(position)) ?? null,
+        );
+        this.onRequest(QsLangDefinitionRequest.type, async (position) => {
+            const result = await this.languageService.definition(position);
+            // virtualContent targets (LS-4) are not bridged yet.
+            return result?.range ? { range: result.range } : null;
+        });
+        this.onRequest(QsLangFoldingRequest.type, async () => ({
+            ranges: (await this.languageService.folding()) ?? [],
+        }));
+        this.onRequest(QsLangDocumentSymbolsRequest.type, async () => ({
+            symbols: (await this.languageService.documentSymbols()) ?? [],
+        }));
+        this.onRequest(QsLangDiagnosticsRequest.type, async () => ({
+            diagnostics: (await this.languageService.diagnostics())?.diagnostics ?? [],
+        }));
+        this.onRequest(QsLangStatusRequest.type, async () => {
+            const status = this.languageService.status();
+            return {
+                preference: status.preference,
+                features: status.router.map((entry) => ({
+                    feature: entry.feature,
+                    maturity: entry.maturity,
+                    effectiveEngine: entry.effectiveEngine,
+                    circuitBroken: entry.circuitBroken,
+                })),
+                readiness: { ...status.readiness },
+                metadataGeneration: status.metadataGeneration,
+                shadowConnectionState: status.shadowConnectionState,
+            };
+        });
+    }
+
+    /** Status snapshot for the languageServiceStatus command (editor provider). */
+    public get languageServiceStatus(): LanguageServiceStatus {
+        return this.languageService.status();
     }
 
     public override dispose(): void {
@@ -439,6 +540,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         }
         this.inlineCompletionCts?.cancel();
         this.inlineCompletionCts = undefined;
+        this.languageService.dispose();
         this.modelListener.dispose();
         this.bindingListener?.dispose();
         this.executionListener?.dispose();

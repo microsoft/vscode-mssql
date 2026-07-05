@@ -16,6 +16,7 @@ import { Perf } from "../perf/perfTelemetry";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
+import { LanguageServiceStatus } from "./queryStudioLanguageService";
 import { QueryStudioReplayController } from "./replay/queryStudioReplayController";
 
 export const QUERY_STUDIO_VIEW_TYPE = "mssql.queryStudio";
@@ -23,6 +24,9 @@ export const QUERY_STUDIO_VIEW_TYPE = "mssql.queryStudio";
 /** Live models by uri key — lookup seam for cross-feature consumers
  * (inline completions resolve a document's metadata catalog through this). */
 const liveModels = new Map<string, QueryStudioDocumentModel>();
+
+/** Live controllers (one per panel) — seam for the language status command. */
+const liveControllers = new Set<QueryStudioController>();
 
 export function findQueryStudioModel(uri: vscode.Uri): QueryStudioDocumentModel | undefined {
     return liveModels.get(uri.toString());
@@ -65,7 +69,9 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
         model.panelCount++;
 
         const controller = new QueryStudioController(this.context, panel, model);
+        liveControllers.add(controller);
         panel.onDidDispose(() => {
+            liveControllers.delete(controller);
             controller.dispose();
             const current = this.models.get(uriKey);
             if (current) {
@@ -232,6 +238,25 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 );
             },
         ),
+        vscode.commands.registerCommand("mssql.queryStudio.languageServiceStatus", () => {
+            const controller: QueryStudioController | undefined = liveControllers
+                .values()
+                .next().value;
+            if (!controller) {
+                void vscode.window.showInformationMessage(
+                    "No Query Studio document is open — open one to inspect its language service.",
+                );
+                return;
+            }
+            languageStatusChannel ??= vscode.window.createOutputChannel(
+                "Query Studio Language Service",
+            );
+            languageStatusChannel.clear();
+            languageStatusChannel.append(
+                renderLanguageServiceStatus(controller.languageServiceStatus),
+            );
+            languageStatusChannel.show(true);
+        }),
         vscode.commands.registerCommand("mssql.queryStudio.openReplayLab", () => {
             if (replayController && !replayController.isDisposed) {
                 replayController.revealToForeground();
@@ -249,3 +274,35 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
 }
 
 let replayController: QueryStudioReplayController | undefined;
+
+/** Created once on first use; survives across Query Studio panels. */
+let languageStatusChannel: vscode.OutputChannel | undefined;
+
+function renderLanguageServiceStatus(status: LanguageServiceStatus): string {
+    const lines: string[] = [];
+    lines.push("Query Studio Language Service");
+    lines.push("");
+    lines.push(`Engine preference:     ${status.preference}`);
+    lines.push(`Metadata generation:   ${status.metadataGeneration}`);
+    lines.push(`Shadow STS connection: ${status.shadowConnectionState}`);
+    lines.push("");
+    lines.push("Features:");
+    lines.push(`  ${"feature".padEnd(18)}${"maturity".padEnd(18)}${"engine".padEnd(24)}circuit`);
+    for (const entry of status.router) {
+        lines.push(
+            `  ${entry.feature.padEnd(18)}${entry.maturity.padEnd(18)}${entry.effectiveEngine.padEnd(24)}${
+                entry.circuitBroken ? "broken" : "closed"
+            }`,
+        );
+    }
+    lines.push("");
+    lines.push("Metadata readiness:");
+    lines.push(`  objects:     ${status.readiness.objects}`);
+    lines.push(`  columns:     ${status.readiness.columns}`);
+    lines.push(`  parameters:  ${status.readiness.parameters}`);
+    lines.push(`  foreignKeys: ${status.readiness.foreignKeys}`);
+    lines.push(`  definitions: ${status.readiness.definitions}`);
+    lines.push(`  mode:        ${status.readiness.mode}`);
+    lines.push("");
+    return lines.join("\n");
+}

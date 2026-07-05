@@ -48,6 +48,21 @@ import {
     QsSyncUndoRequest,
     QsTextEdit,
 } from "../../../sharedInterfaces/queryStudio";
+import {
+    QsLangCompletionItemKind,
+    QsLangCompletionRequest,
+    QsLangDefinitionRequest,
+    QsLangDiagnostic,
+    QsLangDiagnosticSeverity,
+    QsLangDiagnosticsChangedNotification,
+    QsLangDiagnosticsRequest,
+    QsLangDocumentSymbol,
+    QsLangDocumentSymbolsRequest,
+    QsLangFoldingRequest,
+    QsLangHoverRequest,
+    QsLangRange,
+    QsLangSignatureHelpRequest,
+} from "../../../sharedInterfaces/queryStudioLanguage";
 import { textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
 import { MessagesView, ResultGrid } from "./results";
 import { monacoApi } from "./monacoSetup";
@@ -425,6 +440,192 @@ export function QueryStudioApp() {
         };
     }, [completionsEnabled, rpc]);
 
+    // --- language features (LS-0): Monaco providers over the qs/lang.* bridge --
+    useEffect(() => {
+        const providerDisposables = [
+            monacoApi.languages.registerCompletionItemProvider("sql", {
+                triggerCharacters: [".", " ", "@", "("],
+                provideCompletionItems: async (model, position, context) => {
+                    try {
+                        const result = await rpc.sendRequest(QsLangCompletionRequest.type, {
+                            line: position.lineNumber - 1,
+                            character: position.column - 1,
+                            trigger:
+                                context.triggerKind ===
+                                monacoApi.languages.CompletionTriggerKind.TriggerCharacter
+                                    ? "character"
+                                    : "invoke",
+                            ...(context.triggerCharacter
+                                ? { triggerCharacter: context.triggerCharacter }
+                                : {}),
+                        });
+                        const word = model.getWordUntilPosition(position);
+                        const range = new monacoApi.Range(
+                            position.lineNumber,
+                            word.startColumn,
+                            position.lineNumber,
+                            word.endColumn,
+                        );
+                        return {
+                            suggestions: result.items.map((item) => ({
+                                label: item.label,
+                                kind: completionItemKind(item.kind),
+                                insertText: item.insertText,
+                                range,
+                                ...(item.isSnippet
+                                    ? {
+                                          insertTextRules:
+                                              monacoApi.languages.CompletionItemInsertTextRule
+                                                  .InsertAsSnippet,
+                                      }
+                                    : {}),
+                                ...(item.detail !== undefined ? { detail: item.detail } : {}),
+                                ...(item.documentation !== undefined
+                                    ? { documentation: item.documentation }
+                                    : {}),
+                                ...(item.sortText !== undefined ? { sortText: item.sortText } : {}),
+                                ...(item.filterText !== undefined
+                                    ? { filterText: item.filterText }
+                                    : {}),
+                                ...(item.commitCharacters
+                                    ? { commitCharacters: [...item.commitCharacters] }
+                                    : {}),
+                            })),
+                            incomplete: result.isIncomplete,
+                        };
+                    } catch {
+                        return { suggestions: [] };
+                    }
+                },
+            }),
+            monacoApi.languages.registerHoverProvider("sql", {
+                provideHover: async (_model, position) => {
+                    try {
+                        const result = await rpc.sendRequest(QsLangHoverRequest.type, {
+                            line: position.lineNumber - 1,
+                            character: position.column - 1,
+                        });
+                        if (!result) {
+                            return null;
+                        }
+                        return {
+                            contents: [{ value: result.contentsMarkdown }],
+                            ...(result.range ? { range: langRangeToMonaco(result.range) } : {}),
+                        };
+                    } catch {
+                        return null;
+                    }
+                },
+            }),
+            monacoApi.languages.registerSignatureHelpProvider("sql", {
+                signatureHelpTriggerCharacters: ["(", ","],
+                provideSignatureHelp: async (_model, position) => {
+                    try {
+                        const result = await rpc.sendRequest(QsLangSignatureHelpRequest.type, {
+                            line: position.lineNumber - 1,
+                            character: position.column - 1,
+                        });
+                        if (!result) {
+                            return null;
+                        }
+                        return {
+                            value: {
+                                signatures: result.signatures.map((signature) => ({
+                                    label: signature.label,
+                                    ...(signature.documentation !== undefined
+                                        ? { documentation: signature.documentation }
+                                        : {}),
+                                    parameters: signature.parameters.map((parameter) => ({
+                                        label: parameter.label,
+                                        ...(parameter.documentation !== undefined
+                                            ? { documentation: parameter.documentation }
+                                            : {}),
+                                    })),
+                                })),
+                                activeSignature: result.activeSignature,
+                                activeParameter: result.activeParameter,
+                            },
+                            dispose: () => undefined,
+                        };
+                    } catch {
+                        return null;
+                    }
+                },
+            }),
+            monacoApi.languages.registerDefinitionProvider("sql", {
+                provideDefinition: async (model, position) => {
+                    try {
+                        const result = await rpc.sendRequest(QsLangDefinitionRequest.type, {
+                            line: position.lineNumber - 1,
+                            character: position.column - 1,
+                        });
+                        if (!result?.range) {
+                            return null;
+                        }
+                        return { uri: model.uri, range: langRangeToMonaco(result.range) };
+                    } catch {
+                        return null;
+                    }
+                },
+            }),
+            monacoApi.languages.registerFoldingRangeProvider("sql", {
+                provideFoldingRanges: async () => {
+                    try {
+                        const result = await rpc.sendRequest(QsLangFoldingRequest.type, undefined);
+                        return result.ranges.map((range) => ({
+                            start: range.startLine + 1,
+                            end: range.endLine + 1,
+                            ...(range.kind === "comment"
+                                ? { kind: monacoApi.languages.FoldingRangeKind.Comment }
+                                : range.kind === "region"
+                                  ? { kind: monacoApi.languages.FoldingRangeKind.Region }
+                                  : {}),
+                        }));
+                    } catch {
+                        return [];
+                    }
+                },
+            }),
+            monacoApi.languages.registerDocumentSymbolProvider("sql", {
+                provideDocumentSymbols: async () => {
+                    try {
+                        const result = await rpc.sendRequest(
+                            QsLangDocumentSymbolsRequest.type,
+                            undefined,
+                        );
+                        return result.symbols.map(langSymbolToMonaco);
+                    } catch {
+                        return [];
+                    }
+                },
+            }),
+        ];
+        const applyMarkers = (diagnostics: readonly QsLangDiagnostic[]) => {
+            const model = editorRef.current?.getModel();
+            if (!model) {
+                return;
+            }
+            monacoApi.editor.setModelMarkers(
+                model,
+                "mssql-sqlLanguage",
+                diagnostics.map(langDiagnosticToMarker),
+            );
+        };
+        rpc.onNotification(QsLangDiagnosticsChangedNotification.type, (p) =>
+            applyMarkers(p.diagnostics),
+        );
+        // Seed markers once — the changed notification only covers future pushes.
+        void rpc
+            .sendRequest(QsLangDiagnosticsRequest.type, undefined)
+            .then((result) => applyMarkers(result.diagnostics))
+            .catch(() => undefined);
+        return () => {
+            for (const disposable of providerDisposables) {
+                disposable.dispose();
+            }
+        };
+    }, [rpc]);
+
     // --- splitter --------------------------------------------------------------
     const onSplitterDown = useCallback((down: React.PointerEvent) => {
         down.preventDefault();
@@ -686,5 +887,100 @@ function monacoRange(model: monacoNs.editor.ITextModel, edit: QsTextEdit): monac
         startColumn: start.column,
         endLineNumber: end.lineNumber,
         endColumn: end.column,
+    };
+}
+
+// --- language-feature mapping (qs/lang.* DTOs ⇄ Monaco, 0-based ⇄ 1-based) ----
+
+function langRangeToMonaco(range: QsLangRange): monacoNs.IRange {
+    return {
+        startLineNumber: range.start.line + 1,
+        startColumn: range.start.character + 1,
+        endLineNumber: range.end.line + 1,
+        endColumn: range.end.character + 1,
+    };
+}
+
+function completionItemKind(kind: QsLangCompletionItemKind): monacoNs.languages.CompletionItemKind {
+    const kinds = monacoApi.languages.CompletionItemKind;
+    switch (kind) {
+        case "keyword":
+            return kinds.Keyword;
+        case "table":
+            return kinds.Class;
+        case "view":
+            return kinds.Interface;
+        case "column":
+            return kinds.Field;
+        case "schema":
+            return kinds.Module;
+        case "database":
+            return kinds.File;
+        case "procedure":
+            return kinds.Method;
+        case "function":
+            return kinds.Function;
+        case "variable":
+        case "parameter":
+            return kinds.Variable;
+        case "snippet":
+        case "join":
+            return kinds.Snippet;
+        case "systemObject":
+            return kinds.Class;
+    }
+}
+
+function langDiagnosticToMarker(diagnostic: QsLangDiagnostic): monacoNs.editor.IMarkerData {
+    return {
+        severity: markerSeverity(diagnostic.severity),
+        message: diagnostic.message,
+        source: diagnostic.source,
+        ...(diagnostic.code !== undefined ? { code: diagnostic.code } : {}),
+        startLineNumber: diagnostic.range.start.line + 1,
+        startColumn: diagnostic.range.start.character + 1,
+        endLineNumber: diagnostic.range.end.line + 1,
+        endColumn: diagnostic.range.end.character + 1,
+    };
+}
+
+function markerSeverity(severity: QsLangDiagnosticSeverity): monacoNs.MarkerSeverity {
+    switch (severity) {
+        case "error":
+            return monacoApi.MarkerSeverity.Error;
+        case "warning":
+            return monacoApi.MarkerSeverity.Warning;
+        case "information":
+            return monacoApi.MarkerSeverity.Info;
+        case "hint":
+            return monacoApi.MarkerSeverity.Hint;
+    }
+}
+
+function documentSymbolKind(kind: QsLangDocumentSymbol["kind"]): monacoNs.languages.SymbolKind {
+    switch (kind) {
+        case "batch":
+            return monacoApi.languages.SymbolKind.Namespace;
+        case "statement":
+            return monacoApi.languages.SymbolKind.Event;
+        case "object":
+            return monacoApi.languages.SymbolKind.Class;
+        default:
+            return monacoApi.languages.SymbolKind.Key;
+    }
+}
+
+function langSymbolToMonaco(symbol: QsLangDocumentSymbol): monacoNs.languages.DocumentSymbol {
+    const range = langRangeToMonaco(symbol.range);
+    return {
+        name: symbol.name,
+        detail: "",
+        kind: documentSymbolKind(symbol.kind),
+        tags: [],
+        range,
+        selectionRange: range,
+        ...(symbol.children && symbol.children.length > 0
+            ? { children: symbol.children.map(langSymbolToMonaco) }
+            : {}),
     };
 }

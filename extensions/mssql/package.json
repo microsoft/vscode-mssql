@@ -1840,6 +1840,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.queryStudio.languageServiceStatus",
+                "title": "Query Studio: Language Service Status",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.sqlDataPlane.showStatus",
                 "title": "Show SQL Data-Plane Status",
                 "category": "MS SQL"
@@ -3063,6 +3068,16 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Capture Query Studio run records for the Replay Lab even when the Replay Lab panel is closed. Records store SQL text digests only; replayable SQL text additionally requires Debug Console elevated capture.",
+                    "scope": "application"
+                },
+                "mssql.queryStudio.languageService.engine": {
+                    "type": "string",
+                    "enum": [
+                        "sqlToolsService",
+                        "nativeTypeScript"
+                    ],
+                    "default": "sqlToolsService",
+                    "description": "Query Studio language service engine. 'sqlToolsService' uses the existing SQL Tools Service language features through a bridge; 'nativeTypeScript' prefers the new native TypeScript T-SQL language service for features that have graduated.",
                     "scope": "application"
                 },
                 "mssql.copilot.sdkProviders.anthropic.enabled": {

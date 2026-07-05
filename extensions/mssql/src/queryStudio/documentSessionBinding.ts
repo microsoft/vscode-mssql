@@ -97,6 +97,18 @@ export class DocumentSessionBinding implements vscode.Disposable {
             : undefined;
     }
 
+    /**
+     * The stored profile of the current connection, for the language-service
+     * shadow STS v1 connection (design 05 §9.3). Credentials are NOT included
+     * — the consumer resolves passwords through the connection store exactly
+     * like the data-plane path does.
+     */
+    get shadowConnectionProfile(): Record<string, unknown> | undefined {
+        return this.stateKind === "connected" || this.stateKind === "executing"
+            ? (this.lastStoredProfile as Record<string, unknown> | undefined)
+            : undefined;
+    }
+
     setExecuting(executing: boolean): void {
         if (this.stateKind === "connected" && executing) {
             this.stateKind = "executing";
