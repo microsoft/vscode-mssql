@@ -75,6 +75,8 @@ export type FakeQueryEvent =
           pageSize?: number;
           isPlanResult?: boolean;
           delayMs?: number;
+          /** Pacing between pages (streaming/cancel tests). */
+          pageDelayMs?: number;
       }
     | {
           type: "message";
@@ -202,11 +204,15 @@ class FakeSession implements ISqlSession {
         const script = this.backend.findScript(text);
         const query = new FakeQuery(this, script, opts, sink);
         this.activeQuery = query;
-        void query.run().finally(() => {
+        // Clear the active slot via the COMPLETION promise, registered before
+        // any caller's await — promise reactions run in registration order,
+        // so a sequential batch loop can execute again immediately.
+        void query.handle.completion.finally(() => {
             if (this.activeQuery === query) {
                 this.activeQuery = undefined;
             }
         });
+        void query.run();
         return query.handle;
     }
 
@@ -350,6 +356,7 @@ class FakeQuery {
                         await this.deliver(() => this.sink.onResultSetStarted(meta));
                         const pageSize = event.pageSize ?? Math.max(1, event.rows.length);
                         for (let offset = 0; offset < event.rows.length; offset += pageSize) {
+                            if (event.pageDelayMs) await sleep(event.pageDelayMs);
                             if (this.cancelRequested) {
                                 await this.deliver(() =>
                                     this.sink.onResultSetEnded?.({
