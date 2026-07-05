@@ -339,6 +339,16 @@
                     }
                 ],
                 "priority": "default"
+            },
+            {
+                "viewType": "mssql.queryStudio",
+                "displayName": "Query Studio",
+                "selector": [
+                    {
+                        "filenamePattern": "*.sql"
+                    }
+                ],
+                "priority": "option"
             }
         ],
         "notebookRenderer": [
@@ -1773,6 +1783,26 @@
                 "command": "mssql.notebooks.copyCellMessages",
                 "title": "%mssql.notebooks.copyCellMessages%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryStudio.new",
+                "title": "Query Studio: New Query",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryStudio.openActive",
+                "title": "Query Studio: Reopen Active Document in Query Studio",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryStudio.openInClassicEditor",
+                "title": "Query Studio: Open in Classic Editor",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryStudio.duplicateAsNewQuery",
+                "title": "Query Studio: Duplicate as New Query",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -2944,6 +2974,28 @@
                     "type": "boolean",
                     "description": "%mssql.showChangelogOnUpdate%",
                     "default": true
+                },
+                "mssql.queryStudio.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable the Query Studio custom editor for .sql files (preview). Reload required.",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable the SQL data plane (STS2-backed connection/query semantics) for preview consumers such as Query Studio.",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.backend": {
+                    "type": "string",
+                    "default": "sts2-jsonrpc",
+                    "enum": [
+                        "sts2-jsonrpc",
+                        "fake"
+                    ],
+                    "description": "SQL data plane backend binding. sts2-http and hosted-rest are reserved for later.",
+                    "scope": "application"
                 }
             }
         },

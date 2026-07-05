@@ -1,0 +1,217 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * QueryStudioDocumentModel — the SHARED per-URI state for Query Studio
+ * (doc 04 §4.2/§7): text sync against the backing TextDocument, and (from
+ * B2/B3) the data-plane session binding, execution orchestrator, RowStore,
+ * and message log. Panels attach/detach; the last detach disposes.
+ *
+ * This class adapts VS Code TextDocument events into the pure TextSyncEngine
+ * and applies webview edit groups through WorkspaceEdit so VS Code keeps
+ * ownership of persistence, dirty state, undo, and hot exit.
+ */
+
+import * as vscode from "vscode";
+import { diag } from "../diagnostics/diagnosticsCore";
+import {
+    QsSyncEdits,
+    QsSyncRemote,
+    QsSyncResync,
+    QsTextEdit,
+} from "../sharedInterfaces/queryStudio";
+import { TextSyncEngine } from "./textSync";
+
+export interface ModelTextEvents {
+    onRemote(remote: QsSyncRemote): void;
+    onResync(resync: QsSyncResync): void;
+}
+
+export class QueryStudioDocumentModel implements vscode.Disposable {
+    readonly uriKey: string;
+    /** Managed by the registry. */
+    panelCount = 0;
+
+    private sync: TextSyncEngine;
+    private listeners = new Set<ModelTextEvents>();
+    private docSubscription: vscode.Disposable;
+    private disposed = false;
+    /** Guards re-entrant application of our own workspace edits. */
+    private applyingWebviewEdit = false;
+
+    constructor(
+        private document: vscode.TextDocument,
+        private readonly onLastDispose?: (model: QueryStudioDocumentModel) => void,
+    ) {
+        this.uriKey = document.uri.toString();
+        this.sync = new TextSyncEngine(document.getText());
+        this.docSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
+            if (e.document.uri.toString() !== this.document.uri.toString()) {
+                return;
+            }
+            this.handleHostChange(e);
+        });
+    }
+
+    get backingDocument(): vscode.TextDocument {
+        return this.document;
+    }
+
+    get hostVersion(): number {
+        return this.sync.hostVersion;
+    }
+
+    get syncResyncCount(): number {
+        return this.sync.resyncCount;
+    }
+
+    /** Save As / re-resolve: rebind to the (possibly re-keyed) document. */
+    rebind(document: vscode.TextDocument): void {
+        this.document = document;
+        // Text may differ after external save transforms — resync everyone.
+        this.sync = new TextSyncEngine(document.getText());
+        this.broadcastResync("document rebind (Save As / re-resolve)");
+    }
+
+    attachListener(listener: ModelTextEvents): vscode.Disposable {
+        this.listeners.add(listener);
+        return { dispose: () => this.listeners.delete(listener) };
+    }
+
+    /** Initial payload for a newly attached panel. */
+    syncInit(): { text: string; hostVersion: number; textHash: string; eol: "\n" | "\r\n" } {
+        return {
+            text: this.sync.currentText,
+            hostVersion: this.sync.hostVersion,
+            textHash: this.sync.currentHash,
+            eol: this.document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n",
+        };
+    }
+
+    /**
+     * Webview edit group → engine → WorkspaceEdit. The TextDocument change
+     * event that follows is recognized as our echo and not bounced back.
+     */
+    async applyWebviewEdits(
+        edits: QsSyncEdits,
+    ): Promise<{ applied: boolean; hostVersion: number; resyncPending?: boolean }> {
+        const outcome = this.sync.applyWebviewEdits(edits);
+        if (!outcome.applied) {
+            if (outcome.resyncNeeded) {
+                diag.emit({
+                    feature: "queryStudio",
+                    type: "queryStudio.sync.resync",
+                    status: "warning",
+                    fields: {
+                        reason: {
+                            raw: outcome.reason ?? "unknown",
+                            cls: "diagnostic.metadata",
+                        },
+                    },
+                });
+                this.broadcastResync(outcome.reason ?? "sync divergence");
+                return { applied: false, hostVersion: outcome.hostVersion, resyncPending: true };
+            }
+            return { applied: false, hostVersion: outcome.hostVersion };
+        }
+        const wsEdit = new vscode.WorkspaceEdit();
+        for (const edit of edits.edits) {
+            wsEdit.replace(
+                this.document.uri,
+                new vscode.Range(
+                    this.document.positionAt(edit.start),
+                    this.document.positionAt(edit.end),
+                ),
+                edit.text,
+            );
+        }
+        this.applyingWebviewEdit = true;
+        try {
+            const ok = await vscode.workspace.applyEdit(wsEdit);
+            if (!ok) {
+                // VS Code refused (e.g. readonly): resync back to truth.
+                this.sync = new TextSyncEngine(this.document.getText());
+                this.broadcastResync("workspace edit rejected");
+                return {
+                    applied: false,
+                    hostVersion: this.sync.hostVersion,
+                    resyncPending: true,
+                };
+            }
+        } finally {
+            this.applyingWebviewEdit = false;
+        }
+        return { applied: true, hostVersion: outcome.hostVersion };
+    }
+
+    async undo(redo: boolean): Promise<void> {
+        // Host-owned undo (doc 04 §8.4): route through VS Code commands so
+        // the TextDocument stack stays authoritative. The resulting change
+        // flows back through onDidChangeTextDocument as reason undo/redo.
+        this.pendingUndoReason = redo ? "redo" : "undo";
+        await vscode.commands.executeCommand(redo ? "redo" : "undo");
+    }
+
+    async save(): Promise<void> {
+        await this.document.save();
+    }
+
+    resyncFor(webviewVersion: number, textHash: string): QsSyncResync {
+        void webviewVersion;
+        if (!this.sync.verifyWebviewHash(textHash)) {
+            diag.emit({
+                feature: "queryStudio",
+                type: "queryStudio.sync.resync",
+                status: "warning",
+                fields: {
+                    reason: { raw: "webview-requested resync", cls: "diagnostic.metadata" },
+                },
+            });
+        }
+        return this.sync.resync("webview requested");
+    }
+
+    private pendingUndoReason: "undo" | "redo" | undefined;
+
+    private handleHostChange(e: vscode.TextDocumentChangeEvent): void {
+        if (e.contentChanges.length === 0) {
+            return;
+        }
+        const edits: QsTextEdit[] = e.contentChanges.map((change) => ({
+            start: change.rangeOffset,
+            end: change.rangeOffset + change.rangeLength,
+            text: change.text,
+        }));
+        const reason: QsSyncRemote["reason"] = this.applyingWebviewEdit
+            ? "hostEdit" // echo detection inside the engine refines this
+            : (this.pendingUndoReason ?? "external");
+        this.pendingUndoReason = undefined;
+        const outcome = this.sync.onHostTextChanged(e.document.getText(), edits, reason);
+        if (outcome.remote) {
+            for (const listener of this.listeners) {
+                listener.onRemote(outcome.remote);
+            }
+        }
+    }
+
+    private broadcastResync(reason: string): void {
+        const resync = this.sync.resync(reason);
+        for (const listener of this.listeners) {
+            listener.onResync(resync);
+        }
+    }
+
+    dispose(): void {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
+        // Doc 04 §7.3 grows here in B2/B3: cancel active query, close session,
+        // release metadata handles, tear down shadow LSP, dispose RowStore.
+        this.docSubscription.dispose();
+        this.listeners.clear();
+        this.onLastDispose?.(this);
+    }
+}

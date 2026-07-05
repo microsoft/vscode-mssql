@@ -32,6 +32,7 @@ import { Perf } from "./perf/perfTelemetry";
 import { registerPerfApi } from "./perf/perfApi";
 import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
 import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
+import { registerQueryStudio } from "./queryStudio/queryStudioEditorProvider";
 import { startStsDiagListener } from "./diagnostics/stsDiagListener";
 
 /** exported for testing purposes only */
@@ -68,6 +69,8 @@ async function activateInternal(context: vscode.ExtensionContext): Promise<IExte
         context.subscriptions.push(diagnosticsManager);
         registerDebugConsole(context, diagnosticsManager);
     }
+    // Query Studio custom editor (preview; gated by mssql.queryStudio.enabled).
+    registerQueryStudio(context);
 
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");

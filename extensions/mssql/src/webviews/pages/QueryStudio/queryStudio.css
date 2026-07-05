@@ -1,0 +1,111 @@
+/* Query Studio — M0 shell densities (doc 01 §3/§7): toolbar 35px, status
+   24px, 2px radii max, VS Code tokens only, no ornamental chrome. */
+
+.qs-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--vscode-editor-background);
+    color: var(--vscode-foreground);
+    font-size: 13px;
+}
+
+.qs-toolbar {
+    height: 35px;
+    flex: 0 0 35px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
+    background: var(--vscode-editorWidget-background);
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+}
+
+.qs-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.qs-btn:hover:not(:disabled) {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+.qs-btn:disabled {
+    color: var(--vscode-disabledForeground);
+    cursor: default;
+}
+.qs-btn.primary {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+.qs-btn:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+.qs-database {
+    min-width: 120px;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.qs-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--vscode-editorWidget-border);
+    margin: 0 3px;
+}
+
+.qs-spacer {
+    flex: 1;
+}
+
+.qs-muted {
+    color: var(--vscode-descriptionForeground);
+    padding: 0 6px;
+}
+
+.qs-editor {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.qs-statusbar {
+    height: 24px;
+    flex: 0 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 8px;
+    background: var(--vscode-statusBar-background);
+    color: var(--vscode-statusBar-foreground);
+    font-size: 12px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.qs-status-message[data-kind="error"] {
+    background: var(--vscode-statusBarItem-errorBackground);
+    padding: 0 6px;
+}
+.qs-status-message[data-kind="warning"] {
+    background: var(--vscode-statusBarItem-warningBackground);
+    padding: 0 6px;
+}
+
+.qs-status-seg {
+    padding: 0 8px;
+    border-left: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}

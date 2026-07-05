@@ -29,6 +29,7 @@ const config = {
         tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
         objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
         queryResult: "src/webviews/pages/QueryResult/index.tsx",
+        queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
         userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
         schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
         schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",

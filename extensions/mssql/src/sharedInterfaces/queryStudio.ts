@@ -10,7 +10,7 @@
  * QsGetRows in the compact window shape, Appendix A).
  */
 
-import { RequestType, NotificationType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 
 export const QS_SCHEMA_VERSION = 1;
 
