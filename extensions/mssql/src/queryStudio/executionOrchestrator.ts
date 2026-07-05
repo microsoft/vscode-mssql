@@ -89,6 +89,8 @@ export class ExecutionOrchestrator {
     private cancelRequested = false;
     private activeHandle: QueryHandle | undefined;
     private messageIndex = 0;
+    private cancelRequestedAt: number | undefined;
+    private cancelAckMs: number | undefined;
 
     constructor(
         private readonly session: ISqlSession,
@@ -98,8 +100,14 @@ export class ExecutionOrchestrator {
 
     requestCancel(): Promise<{ acknowledged: boolean }> {
         this.cancelRequested = true;
+        this.cancelRequestedAt ??= Date.now();
+        const requestedAt = this.cancelRequestedAt;
         this.events.onPhase("cancelRequested");
-        return this.activeHandle?.cancel() ?? Promise.resolve({ acknowledged: false });
+        const ack = this.activeHandle?.cancel() ?? Promise.resolve({ acknowledged: false });
+        return ack.then((result) => {
+            this.cancelAckMs ??= Date.now() - requestedAt;
+            return result;
+        });
     }
 
     async run(text: string, options: RunOptions): Promise<RunResult> {
@@ -229,6 +237,12 @@ export class ExecutionOrchestrator {
             partial: status === "canceled" || status === "connectionLost",
             bytes: this.rowStore.stats.memoryBytes + this.rowStore.stats.spillBytes,
         });
+        if (this.cancelRequestedAt !== undefined) {
+            Perf.marker("mssql.queryStudio.cancel", "instant", {
+                msToAck: this.cancelAckMs ?? -1,
+                msToTerminal: Date.now() - this.cancelRequestedAt,
+            });
+        }
         this.events.onPhase(status);
         return {
             status,

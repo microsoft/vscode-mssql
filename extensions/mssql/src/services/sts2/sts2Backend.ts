@@ -603,6 +603,32 @@ export class Sts2Query {
             cancel: () => this.cancel(),
             dispose: () => this.disposeQuery(),
         };
+        // Adapter execute span: construct -> terminal. Protocol metadata only
+        // (ids/counts/status) — SQL text never rides the diag substrate.
+        const executeSpan = diag.startSpan({
+            feature: "sqlDataPlane",
+            kind: "span",
+            type: "sqlDataPlane.execute",
+            fields: {
+                clientQueryId: { raw: this.clientQueryId, cls: "diagnostic.metadata" },
+            },
+        });
+        void completion.then((summary) => {
+            executeSpan.end(
+                summary.status === "succeeded"
+                    ? "ok"
+                    : summary.status === "failed"
+                      ? "error"
+                      : "warning",
+                {
+                    status: { raw: summary.status, cls: "diagnostic.metadata" },
+                    resultSets: { raw: this.resultSets, cls: "diagnostic.metadata" },
+                    rows: { raw: this.totalRows, cls: "diagnostic.metadata" },
+                    errors: { raw: this.errors, cls: "diagnostic.metadata" },
+                    canceled: { raw: this.cancelRequested, cls: "diagnostic.metadata" },
+                },
+            );
+        });
         void this.start(text);
     }
 

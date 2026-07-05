@@ -231,7 +231,33 @@ export class MetadataService {
                         composition: { tables: 0, views: 0, columnsElided: 0 },
                     };
                 }
-                return buildSchemaContext(snapshot, req);
+                const span = diag.startSpan({
+                    feature: "metadata",
+                    kind: "span",
+                    type: "metadata.contextBuild",
+                    fields: {
+                        generation: {
+                            raw: String(snapshot.generation),
+                            cls: "diagnostic.metadata",
+                        },
+                    },
+                });
+                try {
+                    const result = buildSchemaContext(snapshot, req);
+                    span.end("ok", {
+                        charCount: { raw: result.charCount, cls: "diagnostic.metadata" },
+                        objectsIncluded: {
+                            raw: result.objectsIncluded,
+                            cls: "diagnostic.metadata",
+                        },
+                        truncated: { raw: result.truncated, cls: "diagnostic.metadata" },
+                        degraded: { raw: result.degraded ?? "none", cls: "diagnostic.metadata" },
+                    });
+                    return result;
+                } catch (error) {
+                    span.fail(error);
+                    throw error;
+                }
             },
             notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void {
                 if (!input.succeeded || !input.text) {
@@ -469,6 +495,18 @@ export class MetadataService {
             }
             if (digest !== entry.lastDigest) {
                 entry.lastDigest = digest;
+                diag.emit({
+                    feature: "metadata",
+                    kind: "event",
+                    type: "metadata.drift",
+                    fields: {
+                        database: { raw: entry.key.database, cls: "source.path" },
+                        generation: {
+                            raw: String(entry.generation),
+                            cls: "diagnostic.metadata",
+                        },
+                    },
+                });
                 await this.hydrate(entry, true);
             }
         } catch {

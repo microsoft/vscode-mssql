@@ -223,6 +223,11 @@ export class ExecutionHost {
         return this.lastResult;
     }
 
+    /** PERF_MODE probe surface (mssql.perf.queryStudioState). */
+    get spillStats(): { memoryBytes: number; spillBytes: number; resultSets: number } | undefined {
+        return this.rowStore?.stats;
+    }
+
     resultsState(): QsResultsState {
         const resultSets = this.summaryOrder
             .map((id) => this.summaries.get(id))

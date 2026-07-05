@@ -17,6 +17,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { Perf } from "../perf/perfTelemetry";
 import { CompactPage } from "../services/sqlDataPlane/api";
 import { QsCellWindow } from "../sharedInterfaces/queryStudio";
 
@@ -164,6 +165,11 @@ export class RowStore {
      * from memory or spill, return the compact webview shape.
      */
     getRows(resultSetId: string, start: number, count: number): QsCellWindow {
+        Perf.marker("mssql.queryStudio.rows.windowFetch.begin", "begin", {
+            resultSetId,
+            start,
+            count,
+        });
         const set = this.resultSets.get(resultSetId);
         const empty: QsCellWindow = {
             resultSetId,
@@ -173,15 +179,26 @@ export class RowStore {
             values: [],
         };
         if (!set || count <= 0 || start >= set.rowCount) {
+            Perf.marker("mssql.queryStudio.rows.windowFetch.end", "end", {
+                resultSetId,
+                start,
+                count,
+                rows: 0,
+                fromSpill: false,
+            });
             return empty;
         }
         const end = Math.min(start + count, set.rowCount);
         const values: unknown[][] = [];
         const nullBits: boolean[] = [];
+        let fromSpill = false;
         for (const page of set.pages) {
             const pageEnd = page.rowOffset + page.rowCount;
             if (pageEnd <= start || page.rowOffset >= end) {
                 continue;
+            }
+            if (!page.compact) {
+                fromSpill = true;
             }
             const compact = this.materialize(set, page);
             if (!compact) {
@@ -197,6 +214,13 @@ export class RowStore {
                 }
             }
         }
+        Perf.marker("mssql.queryStudio.rows.windowFetch.end", "end", {
+            resultSetId,
+            start,
+            count,
+            rows: values.length,
+            fromSpill,
+        });
         return {
             resultSetId,
             start,

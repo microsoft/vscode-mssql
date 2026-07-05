@@ -13,6 +13,7 @@
  */
 
 import * as vscode from "vscode";
+import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
@@ -357,9 +358,26 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsInlineCompletionRequest.type, async (params) => {
             // Same provider pipeline as the classic editor — the custom text
             // editor's backing vscode.TextDocument stays sync'd by the host.
+            // Bridge span: webview RPC arrival -> provider result (<=10ms
+            // overhead target over the bare provider call; surface attr
+            // distinguishes this from classic-editor requests).
+            const bridgeSpan = diag.startSpan({
+                feature: "queryStudio",
+                kind: "span",
+                type: "queryStudio.inlineCompletion.bridge",
+                fields: {
+                    surface: { raw: "queryStudio", cls: "diagnostic.metadata" },
+                    trigger: { raw: params.trigger, cls: "diagnostic.metadata" },
+                },
+            });
+            const endBridge = (returned: boolean) =>
+                bridgeSpan.end("ok", {
+                    returned: { raw: returned, cls: "diagnostic.metadata" },
+                });
             const provider = getSharedInlineCompletionProvider();
             const document = this.model.backingDocument;
             if (!provider || !document) {
+                endBridge(false);
                 return { text: "" };
             }
             this.inlineCompletionCts?.cancel();
@@ -381,6 +399,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 const list = Array.isArray(items) ? items : (items?.items ?? []);
                 const item = list[0];
                 if (!item) {
+                    endBridge(false);
                     return { text: "" };
                 }
                 const text =
@@ -390,8 +409,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 if (item.command) {
                     this.inlineCompletionAcceptedArgs.set(eventId ?? "__last__", commandArgs);
                 }
+                endBridge(text.length > 0);
                 return { text, ...(eventId ? { eventId } : {}) };
             } catch {
+                endBridge(false);
                 return { text: "" };
             } finally {
                 if (this.inlineCompletionCts === cts) {

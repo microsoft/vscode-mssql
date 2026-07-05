@@ -105,6 +105,34 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     async applyWebviewEdits(
         edits: QsSyncEdits,
     ): Promise<{ applied: boolean; hostVersion: number; resyncPending?: boolean }> {
+        const span = diag.startSpan({
+            feature: "queryStudio",
+            kind: "span",
+            type: "queryStudio.sync.applyEdit",
+            fields: {
+                editCount: { raw: edits.edits.length, cls: "diagnostic.metadata" },
+                chars: {
+                    raw: edits.edits.reduce((sum, edit) => sum + edit.text.length, 0),
+                    cls: "diagnostic.metadata",
+                },
+            },
+        });
+        try {
+            const result = await this.applyWebviewEditsCore(edits);
+            span.end(result.applied ? "ok" : result.resyncPending ? "warning" : "info", {
+                applied: { raw: result.applied, cls: "diagnostic.metadata" },
+                resyncPending: { raw: result.resyncPending ?? false, cls: "diagnostic.metadata" },
+            });
+            return result;
+        } catch (error) {
+            span.fail(error);
+            throw error;
+        }
+    }
+
+    private async applyWebviewEditsCore(
+        edits: QsSyncEdits,
+    ): Promise<{ applied: boolean; hostVersion: number; resyncPending?: boolean }> {
         const outcome = this.sync.applyWebviewEdits(edits);
         if (!outcome.applied) {
             if (outcome.resyncNeeded) {

@@ -89,6 +89,47 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
     }
 }
 
+/**
+ * PERF_MODE-only self-test probe (design 04 §17.4): live Query Studio model
+ * state — row counts, execution phase, spill stats, metadata generation,
+ * sync resync count. Outside perf mode the command does not exist.
+ */
+function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
+    if (!Perf.enabled) {
+        return;
+    }
+    context.subscriptions.push(
+        vscode.commands.registerCommand("mssql.perf.queryStudioState", (uri?: string) => {
+            const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
+            if (!model) {
+                return { error: `no live Query Studio model${uri ? ` for ${uri}` : ""}` };
+            }
+            const results = model.executionHost.resultsState();
+            const metadata = model.sessionBinding.metadataStatus;
+            return {
+                uri: model.uriKey,
+                phase: model.executionHost.executionState.kind,
+                resultSets: results.resultSets.map((summary) => ({
+                    id: summary.id,
+                    rowCount: summary.rowCount,
+                })),
+                totalRows: results.totalRows,
+                messageCount: results.messageCount,
+                errorCount: results.errorCount,
+                spill: model.executionHost.spillStats ?? null,
+                metadata: metadata
+                    ? {
+                          readiness: metadata.readiness,
+                          generation: metadata.generation,
+                          mode: metadata.mode,
+                      }
+                    : null,
+                syncResyncCount: model.syncResyncCount,
+            };
+        }),
+    );
+}
+
 export function registerQueryStudio(context: vscode.ExtensionContext): void {
     const enabled = () =>
         vscode.workspace.getConfiguration().get<boolean>("mssql.queryStudio.enabled", false);
@@ -109,6 +150,7 @@ export function registerQueryStudio(context: vscode.ExtensionContext): void {
 }
 
 function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
+    registerQueryStudioPerfProbe(context);
     const provider = new QueryStudioEditorProvider(context);
     context.subscriptions.push(
         vscode.window.registerCustomEditorProvider(QUERY_STUDIO_VIEW_TYPE, provider, {
