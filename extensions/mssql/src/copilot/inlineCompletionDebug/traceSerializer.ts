@@ -3,6 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * Completions trace serialization over the generic trace codec (B7): the
+ * envelope, redaction walker, and size cap are shared; this file owns the
+ * completions redaction surface (prompt/response keys, promptMessages
+ * content, formatted schema context).
+ */
+
+import {
+    FEATURE_TRACE_REDACTED,
+    FeatureTraceRedaction,
+    serializeFeatureTrace,
+} from "../../diagnostics/featureCapture/traceCodec";
 import {
     InlineCompletionDebugEvent,
     InlineCompletionDebugExportData,
@@ -23,106 +35,51 @@ export interface SerializeSessionTraceOptions {
     maxFileSizeMB?: number;
 }
 
-const REDACTED = "[REDACTED]";
-const REDACTED_KEYS = new Set([
-    "userPrompt",
-    "systemPrompt",
-    "customSystemPrompt",
-    "rawResponse",
-    "sanitizedResponse",
-    "finalCompletionText",
-]);
+export const inlineCompletionTraceRedaction: FeatureTraceRedaction = {
+    redactedKeys: new Set([
+        "userPrompt",
+        "systemPrompt",
+        "customSystemPrompt",
+        "rawResponse",
+        "sanitizedResponse",
+        "finalCompletionText",
+    ]),
+    redactSpecial: (key, value) => {
+        if (key === "promptMessages" && Array.isArray(value)) {
+            return value.map((message) =>
+                typeof message === "object" && message !== null
+                    ? { ...message, content: FEATURE_TRACE_REDACTED }
+                    : message,
+            );
+        }
+
+        if (key === "schemaContextFormatted") {
+            return FEATURE_TRACE_REDACTED;
+        }
+
+        return undefined;
+    },
+};
 
 export function serializeSessionTrace(
     events: InlineCompletionDebugEvent[],
     metadata: InlineCompletionTraceMetadata,
     options: SerializeSessionTraceOptions = {},
 ): InlineCompletionDebugExportData {
-    const trace: InlineCompletionDebugExportData = {
-        version: 1,
-        exportedAt: metadata.exportedAt ?? Date.now(),
-        _savedAt: metadata.savedAt ?? new Date().toISOString(),
-        _extensionVersion: metadata.extensionVersion,
-        overrides: cloneJson(metadata.overrides),
-        recordWhenClosed: metadata.recordWhenClosed,
-        customPromptLastSavedAt: metadata.customPromptLastSavedAt,
-        events: cloneJson(events),
-    };
-
-    const redacted = options.redactPrompts ? redactTrace(trace) : trace;
-    return truncateTraceToMaxSize(redacted, options.maxFileSizeMB);
-}
-
-function redactTrace(trace: InlineCompletionDebugExportData): InlineCompletionDebugExportData {
-    return redactValue(trace) as InlineCompletionDebugExportData;
-}
-
-function redactValue(value: unknown, key?: string): unknown {
-    if (key && REDACTED_KEYS.has(key)) {
-        return REDACTED;
-    }
-
-    if (Array.isArray(value)) {
-        return value.map((item) => redactValue(item));
-    }
-
-    if (!isRecord(value)) {
-        return value;
-    }
-
-    const output: Record<string, unknown> = {};
-    for (const [entryKey, entryValue] of Object.entries(value)) {
-        if (entryKey === "promptMessages" && Array.isArray(entryValue)) {
-            output[entryKey] = entryValue.map((message) =>
-                isRecord(message) ? { ...message, content: REDACTED } : message,
-            );
-            continue;
-        }
-
-        if (entryKey === "schemaContextFormatted") {
-            output[entryKey] = REDACTED;
-            continue;
-        }
-
-        output[entryKey] = redactValue(entryValue, entryKey);
-    }
-
-    return output;
-}
-
-function truncateTraceToMaxSize(
-    trace: InlineCompletionDebugExportData,
-    maxFileSizeMB: number | undefined,
-): InlineCompletionDebugExportData {
-    if (!maxFileSizeMB || maxFileSizeMB <= 0) {
-        return trace;
-    }
-
-    const maxBytes = Math.floor(maxFileSizeMB * 1024 * 1024);
-    if (Buffer.byteLength(JSON.stringify(trace), "utf8") <= maxBytes) {
-        return trace;
-    }
-
-    const truncatedTrace: InlineCompletionDebugExportData = {
-        ...trace,
-        _truncated: true,
-        events: [...trace.events],
-    };
-
-    while (
-        truncatedTrace.events.length > 0 &&
-        Buffer.byteLength(JSON.stringify(truncatedTrace), "utf8") > maxBytes
-    ) {
-        truncatedTrace.events.shift();
-    }
-
-    return truncatedTrace;
-}
-
-function cloneJson<T>(value: T): T {
-    return JSON.parse(JSON.stringify(value)) as T;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
+    return serializeFeatureTrace(
+        events,
+        {
+            exportedAt: metadata.exportedAt,
+            savedAt: metadata.savedAt,
+            extensionVersion: metadata.extensionVersion,
+            overrides: metadata.overrides,
+            recordWhenClosed: metadata.recordWhenClosed,
+            extra: { customPromptLastSavedAt: metadata.customPromptLastSavedAt },
+        },
+        {
+            redact: options.redactPrompts,
+            redaction: inlineCompletionTraceRedaction,
+            maxFileSizeMB: options.maxFileSizeMB,
+        },
+    ) as InlineCompletionDebugExportData;
 }

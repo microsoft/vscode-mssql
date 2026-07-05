@@ -3,11 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
+/**
+ * Completions trace persistence over the generic trace-file helpers (B7):
+ * folder resolution, naming, and disk writes are shared; this file owns the
+ * completions settings surface (trace.captureEnabled/redactPrompts/
+ * maxFileSizeMB/folder, recordWhenClosed) and the save-on-deactivate policy.
+ */
+
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
+import {
+    createFeatureTraceFileName,
+    resolveFeatureTraceFolder,
+    writeFeatureTraceFile,
+} from "../../diagnostics/featureCapture/traceFiles";
 import { logger2 } from "../../models/logger2";
 import { getErrorMessage } from "../../utils/utils";
 import { inlineCompletionDebugStore } from "./inlineCompletionDebugStore";
@@ -46,7 +55,6 @@ export async function saveInlineCompletionTraceNow(
 
     const folder = getConfiguredTraceFolder(context);
     try {
-        await fs.promises.mkdir(folder, { recursive: true });
         const trace = inlineCompletionDebugStore.exportSession(
             getRecordWhenClosedSetting(),
             getExtensionVersion(context),
@@ -59,9 +67,11 @@ export async function saveInlineCompletionTraceNow(
                 maxFileSizeMB: getTraceMaxFileSizeMBSetting(),
             },
         );
-        const filePath = path.join(folder, createTraceFileName(trace._savedAt));
-        const serialized = JSON.stringify(trace, undefined, 2);
-        fs.writeFileSync(filePath, serialized, "utf8");
+        const filePath = await writeFeatureTraceFile(
+            folder,
+            createTraceFileName(trace._savedAt),
+            trace,
+        );
         traceLogger.info(`Saved inline completion trace to ${filePath}`);
         return { filePath };
     } catch (error) {
@@ -73,19 +83,17 @@ export async function saveInlineCompletionTraceNow(
 }
 
 export function getConfiguredTraceFolder(context: vscode.ExtensionContext): string {
-    const configured = vscode.workspace
-        .getConfiguration()
-        .get<string>(Constants.configCopilotInlineCompletionsTraceFolder, "")
-        .trim();
-    if (configured.length === 0) {
-        return vscode.Uri.joinPath(context.globalStorageUri, DEFAULT_TRACE_FOLDER_NAME).fsPath;
-    }
-
-    return expandHome(configured);
+    return resolveFeatureTraceFolder(
+        vscode.workspace
+            .getConfiguration()
+            .get<string>(Constants.configCopilotInlineCompletionsTraceFolder, ""),
+        context,
+        DEFAULT_TRACE_FOLDER_NAME,
+    );
 }
 
 export function createTraceFileName(savedAtIso: string = new Date().toISOString()): string {
-    return `${TRACE_FILE_PREFIX}${savedAtIso.replace(/:/g, "-").replace(".", "-")}.json`;
+    return createFeatureTraceFileName({ filePrefix: TRACE_FILE_PREFIX }, savedAtIso);
 }
 
 export function getTraceCaptureEnabledSetting(): boolean {
@@ -127,18 +135,6 @@ function getRecordWhenClosedSetting(): boolean {
 function getExtensionVersion(context: vscode.ExtensionContext): string {
     const packageJson = context.extension.packageJSON as { version?: unknown } | undefined;
     return typeof packageJson?.version === "string" ? packageJson.version : "unknown";
-}
-
-function expandHome(folder: string): string {
-    if (folder === "~") {
-        return os.homedir();
-    }
-
-    if (folder.startsWith("~/") || folder.startsWith("~\\")) {
-        return path.join(os.homedir(), folder.slice(2));
-    }
-
-    return folder;
 }
 
 async function showTraceWriteWarning(folder: string, message: string): Promise<void> {

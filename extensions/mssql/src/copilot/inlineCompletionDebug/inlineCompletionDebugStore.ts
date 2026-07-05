@@ -3,8 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-import { logger2 } from "../../models/logger2";
+/**
+ * Completions instantiation of the generic feature-capture store (B7).
+ * The ring/pending/capture-gating mechanics live in
+ * diagnostics/featureCapture/captureStore.ts; this file supplies the
+ * completions-specific override surface, normalization, legacy import
+ * migration, and the accepted-flip.
+ */
+
+import {
+    FeatureCaptureStore,
+    isJsonRecord,
+    normalizeJsonRecord,
+    normalizeNullableBoolean,
+    normalizeNullableNumber,
+    normalizeNullableString,
+} from "../../diagnostics/featureCapture/captureStore";
 import {
     InlineCompletionCategory,
     InlineCompletionDebugEvent,
@@ -16,8 +30,6 @@ import {
 } from "../../sharedInterfaces/inlineCompletionDebug";
 import { isInlineCompletionDebugProfileId } from "./inlineCompletionDebugProfiles";
 import { serializeSessionTrace } from "./traceSerializer";
-
-const DEFAULT_EVENT_CAPACITY = 500;
 
 const defaultOverrides: InlineCompletionDebugOverrides = {
     profileId: null,
@@ -34,26 +46,22 @@ const defaultOverrides: InlineCompletionDebugOverrides = {
     schemaContext: null,
 };
 
-class InlineCompletionDebugStore {
-    private readonly _logger = logger2.withPrefix("InlineCompletionDebug");
-    private readonly _onDidChange = new vscode.EventEmitter<void>();
-    private _events: InlineCompletionDebugEvent[] = [];
-    private _overrides: InlineCompletionDebugOverrides = { ...defaultOverrides };
-    private _eventCounter = 0;
-    private _panelOpen = false;
-
-    public readonly onDidChange = this._onDidChange.event;
-
-    public getOverrides(): InlineCompletionDebugOverrides {
-        return { ...this._overrides };
-    }
-
-    public updateOverrides(overrides: Partial<InlineCompletionDebugOverrides>): void {
-        this._overrides = {
-            ...this._overrides,
-            ...normalizePartialOverrides(overrides),
-        };
-        this._onDidChange.fire();
+class InlineCompletionDebugStore extends FeatureCaptureStore<
+    InlineCompletionDebugEvent,
+    InlineCompletionDebugOverrides
+> {
+    constructor() {
+        super({
+            logName: "InlineCompletionDebug",
+            defaultOverrides,
+            normalizeOverrides,
+            normalizePartialOverrides,
+            normalizeImportedOverrides,
+            prepareImportedEvent: (event) => ({
+                ...event,
+                promptMessages: [...(event.promptMessages ?? [])],
+            }),
+        });
     }
 
     public setSchemaContextOverride(
@@ -62,89 +70,19 @@ class InlineCompletionDebugStore {
         this.updateOverrides({ schemaContext: value ?? null });
     }
 
-    public replaceOverrides(overrides: InlineCompletionDebugOverrides): void {
-        this._overrides = normalizeOverrides(overrides);
-        this._onDidChange.fire();
-    }
-
-    public getEvents(): InlineCompletionDebugEvent[] {
-        return [...this._events];
-    }
-
-    public getEvent(eventId: string): InlineCompletionDebugEvent | undefined {
-        return this._events.find((event) => event.id === eventId);
-    }
-
-    public addEvent(event: Omit<InlineCompletionDebugEvent, "id">): InlineCompletionDebugEvent {
-        const storedEvent: InlineCompletionDebugEvent = {
-            ...event,
-            id: `E-${++this._eventCounter}`,
-        };
-
-        this._events.push(storedEvent);
-        if (this._events.length > DEFAULT_EVENT_CAPACITY) {
-            this._events.splice(0, this._events.length - DEFAULT_EVENT_CAPACITY);
-        }
-
-        this._onDidChange.fire();
-        return storedEvent;
-    }
-
-    public updateEvent(
-        eventId: string,
-        event: Omit<InlineCompletionDebugEvent, "id">,
-    ): InlineCompletionDebugEvent | undefined {
-        const index = this._events.findIndex((storedEvent) => storedEvent.id === eventId);
-        if (index < 0) {
-            return undefined;
-        }
-
-        const storedEvent: InlineCompletionDebugEvent = {
-            ...event,
-            id: eventId,
-        };
-
-        this._events[index] = storedEvent;
-        this._onDidChange.fire();
-        return storedEvent;
-    }
-
     public markAccepted(eventId: string): void {
-        const event = this.getEvent(eventId);
-        if (!event || event.result !== "success") {
-            return;
-        }
+        this.mutateEvent(eventId, (event) => {
+            if (event.result !== "success") {
+                return false;
+            }
 
-        event.result = "accepted";
-        this._onDidChange.fire();
-    }
-
-    public clearEvents(): void {
-        if (this._events.length === 0) {
-            return;
-        }
-
-        this._events = [];
-        this._onDidChange.fire();
+            event.result = "accepted";
+            return true;
+        });
     }
 
     public importSession(data: InlineCompletionDebugExportData): void {
-        const importedEvents = [...(data.events ?? [])]
-            .slice(-DEFAULT_EVENT_CAPACITY)
-            .map((event) => ({
-                ...event,
-                promptMessages: [...(event.promptMessages ?? [])],
-            }));
-
-        this._events = importedEvents;
-        this._eventCounter = this.getHighestImportedCounter(importedEvents);
-        this._overrides = normalizeOverrides(
-            normalizeImportedOverrides(data.overrides) ?? defaultOverrides,
-        );
-        this._logger.info(
-            `Imported ${importedEvents.length} inline completion debug events into the store.`,
-        );
-        this._onDidChange.fire();
+        this.importEvents(data.events, data.overrides);
     }
 
     public exportSession(
@@ -166,30 +104,6 @@ class InlineCompletionDebugStore {
             },
             options,
         );
-    }
-
-    public setPanelOpen(isOpen: boolean): void {
-        this._panelOpen = isOpen;
-    }
-
-    public isPanelOpen(): boolean {
-        return this._panelOpen;
-    }
-
-    public shouldCapture(recordWhenClosed: boolean): boolean {
-        return this._panelOpen || recordWhenClosed;
-    }
-
-    private getHighestImportedCounter(events: InlineCompletionDebugEvent[]): number {
-        return events.reduce((highest, event) => {
-            const match = /^E-(\d+)$/.exec(event.id);
-            if (!match) {
-                return highest;
-            }
-
-            const parsed = Number(match[1]);
-            return Number.isFinite(parsed) ? Math.max(highest, parsed) : highest;
-        }, 0);
     }
 }
 
@@ -284,18 +198,6 @@ function normalizeImportedOverrides(
     return overrides;
 }
 
-function normalizeNullableString(
-    value: string | null | undefined,
-    preserveWhitespace: boolean = false,
-): string | null {
-    if (typeof value !== "string") {
-        return null;
-    }
-
-    const normalized = preserveWhitespace ? value : value.trim();
-    return normalized.length > 0 ? normalized : null;
-}
-
 function normalizeNullableProfileId(
     value: InlineCompletionDebugProfileId | string | null | undefined,
 ): InlineCompletionDebugProfileId | null {
@@ -304,14 +206,6 @@ function normalizeNullableProfileId(
     }
 
     return value;
-}
-
-function normalizeNullableBoolean(value: boolean | null | undefined): boolean | null {
-    return typeof value === "boolean" ? value : null;
-}
-
-function normalizeNullableNumber(value: number | null | undefined): number | null {
-    return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function normalizeNullableCompletionCategories(
@@ -334,49 +228,11 @@ function normalizeNullableCompletionCategories(
 function normalizeNullableObject(
     value: unknown,
 ): InlineCompletionDebugSchemaContextOverrides | null {
-    if (!isRecord(value)) {
+    if (!isJsonRecord(value)) {
         return null;
     }
 
     return normalizeJsonRecord(value);
-}
-
-function normalizeJsonRecord(
-    value: Record<string, unknown>,
-): InlineCompletionDebugSchemaContextOverrides {
-    const normalized: InlineCompletionDebugSchemaContextOverrides = {};
-    for (const [key, rawValue] of Object.entries(value)) {
-        const normalizedValue = normalizeJsonValue(rawValue);
-        if (normalizedValue !== undefined) {
-            normalized[key] = normalizedValue;
-        }
-    }
-    return normalized;
-}
-
-function normalizeJsonValue(value: unknown): unknown {
-    if (
-        value === null ||
-        typeof value === "string" ||
-        typeof value === "number" ||
-        typeof value === "boolean"
-    ) {
-        return value;
-    }
-
-    if (Array.isArray(value)) {
-        return value.map((item) => normalizeJsonValue(item)).filter((item) => item !== undefined);
-    }
-
-    if (isRecord(value)) {
-        return normalizeJsonRecord(value);
-    }
-
-    return undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }
 
 export const inlineCompletionDebugStore = new InlineCompletionDebugStore();

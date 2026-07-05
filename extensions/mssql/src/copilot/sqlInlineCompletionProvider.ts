@@ -5,6 +5,7 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import { diag } from "../diagnostics/diagnosticsCore";
 import * as Constants from "../constants/constants";
 import { logger2 } from "../models/logger2";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -164,6 +165,51 @@ export class SqlInlineCompletionProvider
         position: vscode.Position,
         context: vscode.InlineCompletionContext,
         token: vscode.CancellationToken,
+    ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
+        // Substrate observability: one completions.request span per request,
+        // stage/result instants correlated via the span's traceId. This is
+        // protocol metadata only — prompt/document text stays in the gated
+        // feature capture store, never on DiagEvents.
+        const requestSpan = diag.startSpan({
+            feature: "completions",
+            kind: "span",
+            type: "completions.request",
+            fields: {
+                trigger: {
+                    raw:
+                        context.triggerKind === vscode.InlineCompletionTriggerKind.Automatic
+                            ? "automatic"
+                            : "invoke",
+                    cls: "diagnostic.metadata",
+                },
+                languageId: { raw: document.languageId, cls: "diagnostic.metadata" },
+            },
+        });
+        try {
+            const result = await this.provideInlineCompletionItemsCore(
+                document,
+                position,
+                context,
+                token,
+                requestSpan.traceId,
+            );
+            const itemCount = Array.isArray(result) ? result.length : result.items.length;
+            requestSpan.end("ok", {
+                itemCount: { raw: itemCount, cls: "diagnostic.metadata" },
+            });
+            return result;
+        } catch (error) {
+            requestSpan.fail(error);
+            throw error;
+        }
+    }
+
+    private async provideInlineCompletionItemsCore(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        context: vscode.InlineCompletionContext,
+        token: vscode.CancellationToken,
+        requestTraceId: string,
     ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
         if (!this.isEnabledForDocument(document) || context.selectedCompletionInfo) {
             return [];
@@ -400,6 +446,20 @@ export class SqlInlineCompletionProvider
             result: InlineCompletionDebugEventResult,
             error?: unknown,
         ): InlineCompletionDebugEvent | undefined => {
+            if (result !== "pending") {
+                // Substrate result event — fires regardless of debug capture.
+                diag.emit({
+                    feature: "completions",
+                    kind: "event",
+                    type: "completions.result",
+                    status: result === "error" ? "error" : "ok",
+                    traceId: requestTraceId,
+                    fields: {
+                        result: { raw: result, cls: "diagnostic.metadata" },
+                        latencyMs: { raw: Date.now() - modelStartedAt, cls: "diagnostic.metadata" },
+                    },
+                });
+            }
             if (!shouldCaptureDebug) {
                 return undefined;
             }
@@ -420,6 +480,17 @@ export class SqlInlineCompletionProvider
         };
         const recordPendingStage = (stage: string): void => {
             pendingStage = stage;
+            // Substrate stage instant — fires regardless of debug capture.
+            diag.emit({
+                feature: "completions",
+                kind: "event",
+                type: "completions.stage",
+                traceId: requestTraceId,
+                fields: {
+                    stage: { raw: stage, cls: "diagnostic.metadata" },
+                    msFromStart: { raw: Date.now() - modelStartedAt, cls: "diagnostic.metadata" },
+                },
+            });
             recordDebugEvent("pending");
         };
 
