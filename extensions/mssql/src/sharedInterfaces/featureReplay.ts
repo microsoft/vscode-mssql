@@ -34,7 +34,7 @@ export interface FeatureReplaySnapshot<TEvent, TConfig> {
     event: TEvent;
     capturedConfig: TConfig;
     configMode: FeatureReplayConfigMode;
-    override: Partial<TConfig> | null;
+    override?: Partial<TConfig> | null;
 }
 
 export interface FeatureReplayRun<TCell extends FeatureReplayMatrixCellBase> {
