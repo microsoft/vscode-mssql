@@ -277,9 +277,17 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     scope = "selection";
                 }
             }
+            const mode = params.parseOnly
+                ? ("parseOnly" as const)
+                : params.estimatedPlanOnly
+                  ? ("estimatedPlan" as const)
+                  : this.actualPlan
+                    ? ("actualPlan" as const)
+                    : ("normal" as const);
             const outcome = this.model.executionHost.execute(text, {
                 selectionStartLine,
                 scope,
+                mode,
             });
             this.queueStatePush();
             return outcome;
@@ -300,8 +308,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.queueStatePush();
             return { connected };
         });
-        this.onRequest(QsSetDatabaseRequest.type, async () => ({ changed: false }));
-        this.onRequest(QsListDatabasesRequest.type, async () => ({ databases: [] }));
+        this.onRequest(QsSetDatabaseRequest.type, async ({ database }) => {
+            const changed = await this.model.executionHost.setDatabase(database);
+            this.queueStatePush();
+            return { changed };
+        });
+        this.onRequest(QsListDatabasesRequest.type, async () => ({
+            databases: await this.model.executionHost.listDatabases(),
+        }));
         this.onRequest(QsGetRowsRequest.type, async (params) =>
             this.model.executionHost.getRows(params.resultSetId, params.start, params.count),
         );

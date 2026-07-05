@@ -39,6 +39,7 @@ export interface RunEvents {
         resultSetId: string;
         batchOrdinal: number;
         columnNames: string[];
+        isPlanResult?: boolean;
     }): void;
     onRowsAppended(resultSetId: string, newRowCount: number, complete: boolean): void;
     onResultSetEnded(resultSetId: string, rowCount: number, truncatedReason?: string): void;
@@ -52,6 +53,12 @@ export interface RunOptions {
     selectionStartLine: number;
     stopOnError: boolean;
     scope: "selection" | "document";
+    /**
+     * Execution mode (doc 04 §12.5–12.6): SET wrappers around the batch
+     * loop, ALWAYS restored in finally. parse renders messages only;
+     * estimatedPlan returns showplan XML result sets and runs nothing.
+     */
+    mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
 }
 
 export interface RunResult {
@@ -63,6 +70,20 @@ export interface RunResult {
     rowsAffected?: number;
     durationMs: number;
 }
+
+/** Canonical showplan XML column name (SSMS-compatible detection). */
+const SHOWPLAN_COLUMN = /^Microsoft SQL Server .*XML Showplan$/i;
+
+export function isPlanResultSet(columnNames: string[]): boolean {
+    return columnNames.length === 1 && SHOWPLAN_COLUMN.test(columnNames[0] ?? "");
+}
+
+const MODE_WRAPPERS: Record<string, { on: string; off: string } | undefined> = {
+    normal: undefined,
+    parseOnly: { on: "SET PARSEONLY ON;", off: "SET PARSEONLY OFF;" },
+    estimatedPlan: { on: "SET SHOWPLAN_XML ON;", off: "SET SHOWPLAN_XML OFF;" },
+    actualPlan: { on: "SET STATISTICS XML ON;", off: "SET STATISTICS XML OFF;" },
+};
 
 export class ExecutionOrchestrator {
     private cancelRequested = false;
@@ -82,6 +103,53 @@ export class ExecutionOrchestrator {
     }
 
     async run(text: string, options: RunOptions): Promise<RunResult> {
+        const wrapper = MODE_WRAPPERS[options.mode ?? "normal"];
+        if (!wrapper) {
+            return this.runCore(text, options);
+        }
+        // SET wrapper batches run OUTSIDE the user loop; the OFF side is
+        // best-effort ALWAYS (finally), even after cancel/failure — the
+        // session must never stay in parse/plan mode (doc 04 §12.5).
+        await this.runSetBatch(wrapper.on);
+        try {
+            return await this.runCore(text, options);
+        } finally {
+            if (this.session.state === "open") {
+                await this.runSetBatch(wrapper.off).catch(() => undefined);
+            }
+        }
+    }
+
+    /** Fire one SET batch through a silent sink; failures surface as messages. */
+    private async runSetBatch(sql: string): Promise<void> {
+        const events = this.events;
+        await new Promise<void>((resolve) => {
+            const sink: IQueryEventSink = {
+                onResultSetStarted: () => undefined,
+                onRowsPage: () => undefined,
+                onMessage: (message) => {
+                    if (message.kind === "error") {
+                        events.onMessages([
+                            {
+                                batchIndex: -1,
+                                kind: "error",
+                                text: message.text,
+                                epochMs: Date.now(),
+                            },
+                        ]);
+                    }
+                },
+                onComplete: () => resolve(),
+            };
+            this.session.execute(
+                sql,
+                { priority: "interactive", commandKind: "plan", tag: "queryStudio:setWrapper" },
+                sink,
+            );
+        });
+    }
+
+    private async runCore(text: string, options: RunOptions): Promise<RunResult> {
         const startMs = Date.now();
         const batches = splitBatches(text);
         Perf.marker("mssql.queryStudio.query.submit", "begin", {
@@ -201,10 +269,14 @@ export class ExecutionOrchestrator {
                         ...(c.sqlType ? { sqlType: c.sqlType } : {}),
                     })),
                 );
+                const columnNames = meta.columns.map((c) => c.name);
                 events.onResultSetStarted({
                     resultSetId: storeId,
                     batchOrdinal: batchIndex,
-                    columnNames: meta.columns.map((c) => c.name),
+                    columnNames,
+                    // Heuristic (diagnostics mark planDetection: heuristic):
+                    // canonical single showplan-XML column.
+                    isPlanResult: isPlanResultSet(columnNames),
                 });
             },
             async onRowsPage(page) {

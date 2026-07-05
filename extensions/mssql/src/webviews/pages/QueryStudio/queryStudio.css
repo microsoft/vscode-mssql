@@ -279,3 +279,49 @@
 .qs-message-server {
     font-weight: 600;
 }
+
+/* --- B4 parity: db menu, toggles, cell selection --- */
+
+.qs-db-wrap {
+    position: relative;
+    display: inline-flex;
+}
+.qs-db-menu {
+    position: absolute;
+    top: 28px;
+    left: 0;
+    min-width: 180px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 20;
+}
+.qs-db-item {
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.qs-db-item:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+.qs-db-item.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.qs-btn.toggled {
+    background: var(--vscode-inputOption-activeBackground);
+    color: var(--vscode-inputOption-activeForeground);
+    border-color: var(--vscode-inputOption-activeBorder);
+}
+
+.qs-cell-selected {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}

@@ -164,6 +164,11 @@ export interface ISqlSession extends DataPlaneDisposable {
 
     readonly onDidChangeState: DataPlaneEvent<SessionStateChange>;
     readonly onDidChangeDatabase: DataPlaneEvent<DatabaseContextChange>;
+    /**
+     * Record a database-context change the CLIENT caused (e.g. an explicit
+     * USE it executed) so info/state and onDidChangeDatabase stay truthful.
+     */
+    signalDatabaseChanged(database: string, source: DatabaseContextChange["source"]): void;
     readonly onServerInfoMessage: DataPlaneEvent<ServerMessage>;
 
     execute(text: string, opts: ExecuteOptions, sink: IQueryEventSink): QueryHandle;

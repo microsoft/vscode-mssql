@@ -227,6 +227,11 @@ class FakeSession implements ISqlSession {
         this.dbEmitter.fire({ database, source: "backend" });
     }
 
+    signalDatabaseChanged(database: string, source: DatabaseContextChange["source"]): void {
+        this.info.database = database;
+        this.dbEmitter.fire({ database, source });
+    }
+
     async close(): Promise<void> {
         if (this.state === "closed") {
             return; // idempotent

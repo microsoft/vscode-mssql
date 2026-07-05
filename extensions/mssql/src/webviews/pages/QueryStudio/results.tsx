@@ -62,6 +62,7 @@ export function ResultGrid(props: {
     const [scrollTop, setScrollTop] = useState(0);
     const [pinned, setPinned] = useState(true);
     const [unseenRows, setUnseenRows] = useState(0);
+    const [selected, setSelected] = useState<{ row: number; col: number } | undefined>(undefined);
     const lastCountRef = useRef(summary.rowCount);
     const fetchSeqRef = useRef(0);
 
@@ -129,6 +130,30 @@ export function ResultGrid(props: {
         }
     }, [fetchWindow]);
 
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (!selected || !window_ || !(e.ctrlKey || e.metaKey)) {
+                return;
+            }
+            if (e.key.toLowerCase() !== "c") {
+                return;
+            }
+            const rowInWindow = selected.row - (window_.start ?? 0);
+            const row = window_.values[rowInWindow];
+            if (!row) {
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            const text = e.shiftKey
+                ? summary.columnNames.join("\t") + "\n" + row.map((c) => cellText(c)).join("\t")
+                : cellText(row[selected.col]);
+            void navigator.clipboard.writeText(text);
+        };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, [selected, window_, summary.columnNames]);
+
     const firstRendered = window_?.start ?? 0;
 
     return (
@@ -181,10 +206,19 @@ export function ResultGrid(props: {
                                                 cell === undefined || cell === null
                                                     ? isNullCell(window_, r, c) || true
                                                     : false;
+                                            const isSelected =
+                                                selected?.row === firstRendered + r &&
+                                                selected?.col === c;
                                             return (
                                                 <td
                                                     key={c}
-                                                    className={isNull ? "qs-cell-null" : undefined}
+                                                    className={`${isNull ? "qs-cell-null" : ""}${isSelected ? " qs-cell-selected" : ""}`}
+                                                    onClick={() =>
+                                                        setSelected({
+                                                            row: firstRendered + r,
+                                                            col: c,
+                                                        })
+                                                    }
                                                     title={isNull ? "NULL" : cellText(cell)}>
                                                     {isNull ? "NULL" : cellText(cell)}
                                                 </td>

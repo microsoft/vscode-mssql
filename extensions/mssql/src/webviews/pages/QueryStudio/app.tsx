@@ -27,7 +27,10 @@ import {
     QsMessageRow,
     QsMessagesAppendedNotification,
     QsRevealPositionNotification,
+    QsListDatabasesRequest,
     QsRowsAppendedNotification,
+    QsSetActualPlanRequest,
+    QsSetDatabaseRequest,
     QsState,
     QsStateChangedNotification,
     QsSyncEdits,
@@ -304,6 +307,41 @@ export function QueryStudioApp() {
     const connect = useCallback(() => {
         void rpc.sendRequest(QsConnectRequest.type, {});
     }, [rpc]);
+    const [dbList, setDbList] = useState<string[] | undefined>(undefined);
+    const toggleDbList = useCallback(() => {
+        setDbList((current) => {
+            if (current) {
+                return undefined;
+            }
+            void rpc
+                .sendRequest(QsListDatabasesRequest.type, undefined)
+                .then((r) => setDbList(r.databases));
+            return [];
+        });
+    }, [rpc]);
+    const pickDatabase = useCallback(
+        (database: string) => {
+            setDbList(undefined);
+            void rpc.sendRequest(QsSetDatabaseRequest.type, { database });
+        },
+        [rpc],
+    );
+    const parse = useCallback(() => {
+        flushEdits();
+        void rpc.sendRequest(QsExecuteRequest.type, { scope: "document", parseOnly: true });
+    }, [rpc, flushEdits]);
+    const estimatedPlan = useCallback(() => {
+        flushEdits();
+        void rpc.sendRequest(QsExecuteRequest.type, {
+            scope: "document",
+            estimatedPlanOnly: true,
+        });
+    }, [rpc, flushEdits]);
+    const toggleActualPlan = useCallback(() => {
+        void rpc.sendRequest(QsSetActualPlanRequest.type, {
+            enabled: !(state?.toggles.actualPlan ?? false),
+        });
+    }, [rpc, state]);
 
     // Keybindings (addendum §4): F5/Ctrl+E execute; Ctrl+R toggles results.
     useEffect(() => {
@@ -366,14 +404,35 @@ export function QueryStudioApp() {
                     <span className="codicon codicon-plug" /> {connected ? "Change" : "Connect"}
                 </button>
                 <div className="qs-sep" />
-                <button
-                    className="qs-btn qs-database"
-                    disabled={!connected}
-                    title={connected ? "Change database" : "Connect first"}>
-                    <span className="codicon codicon-database" />{" "}
-                    {connection.database ?? "Database"}
-                    <span className="codicon codicon-chevron-down" />
-                </button>
+                <span className="qs-db-wrap">
+                    <button
+                        className="qs-btn qs-database"
+                        disabled={!connected || executing}
+                        onClick={toggleDbList}
+                        title={connected ? "Change database" : "Connect first"}>
+                        <span className="codicon codicon-database" />{" "}
+                        {connection.database ?? "Database"}
+                        <span className="codicon codicon-chevron-down" />
+                    </button>
+                    {dbList ? (
+                        <div className="qs-db-menu" role="listbox">
+                            {dbList.length === 0 ? (
+                                <div className="qs-db-item qs-muted">Loading…</div>
+                            ) : (
+                                dbList.map((db) => (
+                                    <div
+                                        key={db}
+                                        role="option"
+                                        aria-selected={db === connection.database}
+                                        className={`qs-db-item ${db === connection.database ? "active" : ""}`}
+                                        onClick={() => pickDatabase(db)}>
+                                        {db}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    ) : null}
+                </span>
                 <div className="qs-sep" />
                 <button
                     className="qs-btn"
@@ -388,6 +447,28 @@ export function QueryStudioApp() {
                     title="Cancel executing query (Alt+B)"
                     onClick={cancel}>
                     <span className="codicon codicon-debug-stop" />
+                </button>
+                <button
+                    className="qs-btn"
+                    disabled={!connected || executing}
+                    title="Parse (syntax check only)"
+                    onClick={parse}>
+                    <span className="codicon codicon-check" />
+                </button>
+                <div className="qs-sep" />
+                <button
+                    className="qs-btn"
+                    disabled={!connected || executing}
+                    title="Display estimated execution plan"
+                    onClick={estimatedPlan}>
+                    <span className="codicon codicon-type-hierarchy-sub" />
+                </button>
+                <button
+                    className={`qs-btn ${state?.toggles.actualPlan ? "toggled" : ""}`}
+                    disabled={!connected}
+                    title="Include actual execution plan (applies to next execute)"
+                    onClick={toggleActualPlan}>
+                    <span className="codicon codicon-graph" />
                 </button>
                 <span className="qs-spacer" />
                 {results?.present ? (

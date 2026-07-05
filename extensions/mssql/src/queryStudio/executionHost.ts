@@ -67,7 +67,11 @@ export class ExecutionHost {
     /** Start a run. Returns immediately; progress flows via events. */
     execute(
         text: string,
-        options: { selectionStartLine: number; scope: "selection" | "document" },
+        options: {
+            selectionStartLine: number;
+            scope: "selection" | "document";
+            mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
+        },
     ): { started: boolean; reason?: string } {
         const session = this.binding.activeSession;
         if (!session) {
@@ -107,6 +111,7 @@ export class ExecutionHost {
                     columnNames: started.columnNames,
                     rowCount: 0,
                     complete: false,
+                    ...(started.isPlanResult ? { isPlanResult: true } : {}),
                 };
                 host.summaries.set(started.resultSetId, summary);
                 host.summaryOrder.push(started.resultSetId);
@@ -151,6 +156,7 @@ export class ExecutionHost {
                 selectionStartLine: options.selectionStartLine,
                 stopOnError: false,
                 scope: options.scope,
+                mode: options.mode ?? "normal",
             })
             .then(
                 (result) => this.finishRun(result),
@@ -224,6 +230,75 @@ export class ExecutionHost {
             errorCount: this.messages.filter((m) => m.kind === "error").length,
             planCount: resultSets.filter((s) => s.isPlanResult).length,
         };
+    }
+
+    /** Background catalog query: one string column, first cell per row. */
+    private async backgroundColumn(sql: string): Promise<string[]> {
+        const session = this.binding.activeSession;
+        if (!session) {
+            return [];
+        }
+        return new Promise<string[]>((resolve) => {
+            const values: string[] = [];
+            session.execute(
+                sql,
+                { priority: "background", commandKind: "metadata", tag: "queryStudio:catalog" },
+                {
+                    onResultSetStarted: () => undefined,
+                    onRowsPage: (page) => {
+                        for (const row of page.compact.values) {
+                            if (row[0] !== undefined && row[0] !== null) {
+                                values.push(String(row[0]));
+                            }
+                        }
+                    },
+                    onMessage: () => undefined,
+                    onComplete: () => resolve(values),
+                },
+            );
+        });
+    }
+
+    listDatabases(): Promise<string[]> {
+        if (this.executionState.kind === "executing") {
+            return Promise.resolve([]);
+        }
+        return this.backgroundColumn(
+            "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name;",
+        ).catch(() => []);
+    }
+
+    /** USE [db]: bracket-escaped; context change flows via the session event. */
+    async setDatabase(database: string): Promise<boolean> {
+        const session = this.binding.activeSession;
+        if (!session || this.executionState.kind === "executing") {
+            return false;
+        }
+        const escaped = database.replace(/]/g, "]]");
+        let failed = false;
+        await new Promise<void>((resolve) => {
+            session.execute(
+                `USE [${escaped}];`,
+                { priority: "interactive", commandKind: "user", tag: "queryStudio:use" },
+                {
+                    onResultSetStarted: () => undefined,
+                    onRowsPage: () => undefined,
+                    onMessage: (m) => {
+                        if (m.kind === "error") {
+                            failed = true;
+                        }
+                    },
+                    onComplete: (summary) => {
+                        failed = failed || summary.status !== "succeeded";
+                        resolve();
+                    },
+                },
+            );
+        });
+        if (!failed) {
+            session.signalDatabaseChanged(database, "feature");
+        }
+        return !failed;
     }
 
     dispose(): void {
