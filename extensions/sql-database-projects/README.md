@@ -46,10 +46,6 @@ CREATE TABLE [dbo].[Product] (
 - [Include custom scripts before and after deployment](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/pre-post-deployment-scripts?pivots=sq1-visual-studio-code)
 - [Declare deploy-time variables](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/sqlcmd-variables?pivots=sq1-visual-studio-code)
 
-### Preview Features
-
-- Generate SQL projects from OpenAPI/Swagger specs
-
 ## Settings
 
 ### General Settings
@@ -58,11 +54,6 @@ CREATE TABLE [dbo].[Product] (
 - `sqlDatabaseProjects.microsoftBuildSqlVersion`: Version of Microsoft.Build.Sql to use for SQL projects. Controls the SDK version referenced in newly created SDK-style project templates and the binaries used when building non-SDK-style SQL projects. Supports exact versions (e.g. `2.1.0`) and NuGet floating versions (e.g. `2.*`). If not set, the extension will use Microsoft.Build.Sql 2.\*.
 - `sqlDatabaseProjects.netCoreDoNotAsk`: When true, no longer prompts to install .NET SDK when a supported installation is not found.
 - `sqlDatabaseProjects.collapseProjectNodes`: Option to set the default state of the project nodes in the database projects view to collapsed. If not set, the extension will default to expanded.
-
-### AutoRest Settings (preview)
-
-- `sqlDatabaseProjects.nodejsDoNotAsk`: When true, no longer prompts to install Node.js when a supported installation is not found.
-- `sqlDatabaseProjects.autorestSqlVersion`: Version of AutoRest.sql to use for generating SQL projects from OpenAPI/Swagger specs. If not set, the extension will use the latest version.
 
 ## Code of Conduct
 

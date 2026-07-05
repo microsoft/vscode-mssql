@@ -11,13 +11,16 @@ import { expect } from "chai";
 import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, {
+    serverlessWakeMaxRetryAttempts,
+} from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
+import * as Constants from "../../src/constants/constants";
 import { IAccount, RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
 import {
@@ -1150,6 +1153,135 @@ suite("ConnectionManager Tests", () => {
             expect(creds.emptyPasswordInput).to.be.true;
             expect(creds.password).to.equal("");
             expect(creds.azureAccountToken).to.be.undefined;
+        });
+    });
+
+    suite("Serverless pause-aware retry helpers", () => {
+        let testConnectionManager: ConnectionManager;
+
+        setup(() => {
+            const mockPrompter = sandbox.createStubInstance(TestPrompter);
+            testConnectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                mockPrompter,
+                mockLogger,
+            );
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        const azureMfaUserDbConnection = (): IConnectionInfo =>
+            ({
+                server: "test.database.windows.net",
+                database: "userDb",
+                authenticationType: Constants.azureMfa,
+                accountId: "account-1",
+            }) as IConnectionInfo;
+
+        suite("isServerlessWakeRetryableTimeout", () => {
+            test("returns false for a null/undefined error", () => {
+                expect(testConnectionManager.isServerlessWakeRetryableTimeout(undefined as any)).to
+                    .be.false;
+            });
+
+            test("returns true for the OE expand timeout error code", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorCode: Constants.oeExpandTimeoutErrorCode,
+                    }),
+                ).to.be.true;
+            });
+
+            test("returns true for the OE create-session timeout error code", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorCode: Constants.oeCreateSessionTimeoutErrorCode,
+                    }),
+                ).to.be.true;
+            });
+
+            test("returns true for the SqlClient connection-timeout error number", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorNumber: Constants.errorConnectionTimeout,
+                    }),
+                ).to.be.true;
+            });
+
+            test("returns false for unrelated error codes/numbers", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorCode: "SOME_OTHER_CODE",
+                        errorNumber: 18456,
+                        errorMessage: "Login failed",
+                    }),
+                ).to.be.false;
+            });
+        });
+
+        suite("shouldRetryForPausedServerlessDatabase", () => {
+            test("returns false once the retry budget is exhausted", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    serverlessWakeMaxRetryAttempts + 1, // exceeds the allowed number of attempts
+                    Promise.resolve("Paused"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false when the connection is not eligible for a pause check", async () => {
+                const notAzure = {
+                    server: "localhost",
+                    database: "userDb",
+                    authenticationType: Constants.azureMfa,
+                } as IConnectionInfo;
+
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    notAzure,
+                    1,
+                    Promise.resolve("Paused"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false when the status check can't determine a status", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    Promise.resolve(undefined as unknown as string),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns true when eligible, within budget, and the database reports a status", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    Promise.resolve("Resuming"),
+                );
+                expect(result).to.be.true;
+            });
+
+            test("honors the databaseName override for eligibility", async () => {
+                // Connection targets master (not checkable), but the override targets a user db.
+                const connectionOnMaster = {
+                    server: "test.database.windows.net",
+                    database: "master",
+                    authenticationType: Constants.azureMfa,
+                    accountId: "account-1",
+                } as IConnectionInfo;
+
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    connectionOnMaster,
+                    1,
+                    Promise.resolve("Pausing"),
+                    "userDb",
+                );
+                expect(result).to.be.true;
+            });
         });
     });
 });

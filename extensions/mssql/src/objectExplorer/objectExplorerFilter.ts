@@ -98,38 +98,57 @@ export class ObjectExplorerFilter {
         }
         await this._filterWebviewController.whenWebviewReady();
         this._filterWebviewController.revealToForeground();
-        return await new Promise((resolve, _reject) => {
-            this._filterWebviewController.onSubmit((e) => {
-                if (e) {
-                    sendActionEvent(
-                        TelemetryViews.ObjectExplorerFilter,
-                        TelemetryActions.Submit,
-                        {
-                            nodeType: treeNode.nodeType,
-                            correlationId,
-                            filters: JSON.stringify(e.map((e) => e.name)),
-                        },
-                        {
-                            filterCount: e.length,
-                        },
-                    );
+        return await new Promise<vscodeMssql.NodeFilter[] | undefined>((resolve) => {
+            let settled = false;
+            const disposables: vscode.Disposable[] = [];
+
+            const complete = (filters: vscodeMssql.NodeFilter[] | undefined) => {
+                if (settled) {
+                    return;
                 }
-                resolve(e);
-            });
-            this._filterWebviewController.onCancel(() => {
-                sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                    nodeType: treeNode.nodeType,
-                    correlationId,
-                });
-                resolve(undefined);
-            });
-            this._filterWebviewController.onDisposed(() => {
-                sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                    nodeType: treeNode.nodeType,
-                    correlationId,
-                });
-                resolve(undefined);
-            });
+
+                settled = true;
+                disposables.forEach((d) => d.dispose());
+                resolve(filters);
+            };
+
+            disposables.push(
+                this._filterWebviewController.onSubmit((e) => {
+                    if (e) {
+                        sendActionEvent(
+                            TelemetryViews.ObjectExplorerFilter,
+                            TelemetryActions.Submit,
+                            {
+                                nodeType: treeNode.nodeType,
+                                correlationId,
+                                filters: JSON.stringify(e.map((e) => e.name)),
+                            },
+                            {
+                                filterCount: e.length,
+                            },
+                        );
+                    }
+                    complete(e);
+                }),
+            );
+            disposables.push(
+                this._filterWebviewController.onCancel(() => {
+                    sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                        nodeType: treeNode.nodeType,
+                        correlationId,
+                    });
+                    complete(undefined);
+                }),
+            );
+            disposables.push(
+                this._filterWebviewController.onDisposed(() => {
+                    sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                        nodeType: treeNode.nodeType,
+                        correlationId,
+                    });
+                    complete(undefined);
+                }),
+            );
         });
     }
 }

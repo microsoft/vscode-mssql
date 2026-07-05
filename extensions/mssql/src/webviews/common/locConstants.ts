@@ -1346,6 +1346,7 @@ export class LocConstants {
             ),
             failedToAddTable: l10n.t("Failed to add table."),
             failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToApplySchema: l10n.t("Failed to apply schema."),
             failedToDeleteTable: l10n.t("Failed to delete table."),
             tableIdAlreadyExists: l10n.t("Table id already exists."),
             foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),

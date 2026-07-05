@@ -185,6 +185,23 @@ export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
 export const errorKerberosSubString = "Kerberos";
+
+/**
+ * SqlClient connection timeout error number
+ */
+export const errorConnectionTimeout = -2;
+
+export const oeExpandTimeoutErrorCode = "EXPAND_TIMEOUT";
+export const oeCreateSessionTimeoutErrorCode = "CREATE_SESSION_TIMEOUT";
+
+/**
+ * SQL Tools Service error codes for operation timeouts
+ */
+export const serverlessWakeTimeoutErrorCodes = [
+    oeExpandTimeoutErrorCode,
+    oeCreateSessionTimeoutErrorCode,
+];
+
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";

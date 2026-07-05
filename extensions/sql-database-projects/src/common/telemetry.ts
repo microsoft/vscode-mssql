@@ -42,7 +42,6 @@ export enum TelemetryActions {
     configureCodeAnalysisSettings = "configureCodeAnalysisSettings",
     publishToContainer = "publishToContainer",
     publishToNewAzureServer = "publishToNewAzureServer",
-    generateProjectFromOpenApiSpec = "generateProjectFromOpenApiSpec",
     publishOptionsOpened = "publishOptionsOpened",
     resetOptions = "resetOptions",
     optionsChanged = "optionsChanged",
