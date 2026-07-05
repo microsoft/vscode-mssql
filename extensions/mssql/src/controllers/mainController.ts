@@ -88,6 +88,12 @@ import {
     QueryStudioCompletionMetadataResolver,
 } from "../copilot/completionSchemaContextService";
 import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
+import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
+import { InlineCompletionDebugController } from "../copilot/inlineCompletionDebug/inlineCompletionDebugController";
+import {
+    getConfiguredTraceFolder,
+    saveInlineCompletionTraceOnDeactivate,
+} from "../copilot/inlineCompletionDebug/tracePersistence";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
@@ -195,6 +201,8 @@ export default class MainController implements vscode.Disposable {
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
     public inlineCompletionSchemaContextService: CompletionSchemaContextService;
+    public inlineCompletionDebugController: InlineCompletionDebugController | undefined;
+    private _deactivated = false;
 
     /**
      * The main controller constructor
@@ -264,7 +272,12 @@ export default class MainController implements vscode.Disposable {
      * Deactivates the extension
      */
     public async deactivate(): Promise<void> {
+        if (this._deactivated) {
+            return;
+        }
+        this._deactivated = true;
         this._logger.debug("Extension de-activated.");
+        await saveInlineCompletionTraceOnDeactivate(this._context);
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();
         this._shortcutsConfigurationController = undefined;
@@ -481,6 +494,40 @@ export default class MainController implements vscode.Disposable {
                     inlineCompletionProvider,
                 ),
             );
+            this.registerCommand(Constants.cmdOpenInlineCompletionDebug);
+            this._event.on(Constants.cmdOpenInlineCompletionDebug, () => {
+                if (!isInlineCompletionFeatureEnabled()) {
+                    return;
+                }
+                if (
+                    this.inlineCompletionDebugController &&
+                    !this.inlineCompletionDebugController.isDisposed
+                ) {
+                    this.inlineCompletionDebugController.revealToForeground(
+                        vscode.ViewColumn.Active,
+                    );
+                    return;
+                }
+                const debugController = new InlineCompletionDebugController(
+                    this._context,
+                    this.inlineCompletionSchemaContextService,
+                );
+                debugController.onDisposed(() => {
+                    if (this.inlineCompletionDebugController === debugController) {
+                        this.inlineCompletionDebugController = undefined;
+                    }
+                });
+                this.inlineCompletionDebugController = debugController;
+                debugController.revealToForeground(vscode.ViewColumn.Active);
+            });
+            this.registerCommand(Constants.cmdCopilotCompletionsTraceSyncToDatabase);
+            this._event.on(Constants.cmdCopilotCompletionsTraceSyncToDatabase, async () => {
+                await vscode.window.showInformationMessage(
+                    `Database sync is not yet implemented. Traces are currently saved to: ${getConfiguredTraceFolder(
+                        this._context,
+                    )}`,
+                );
+            });
 
             await this.initializeObjectExplorer();
 
@@ -3335,6 +3382,17 @@ export default class MainController implements vscode.Disposable {
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
             await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+        }
+
+        if (
+            (e.affectsConfiguration(Constants.configEnableExperimentalFeatures) ||
+                e.affectsConfiguration(Constants.configCopilotInlineCompletionsUseSchemaContext)) &&
+            !isInlineCompletionFeatureEnabled() &&
+            this.inlineCompletionDebugController &&
+            !this.inlineCompletionDebugController.isDisposed
+        ) {
+            this.inlineCompletionDebugController.dispose();
+            this.inlineCompletionDebugController = undefined;
         }
     }
 

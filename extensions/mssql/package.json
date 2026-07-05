@@ -145,6 +145,7 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "recharts": "^3.8.1",
         "openai": "^6.34.0",
         "@anthropic-ai/sdk": "^0.91.1",
         "@azure/arm-maintenance": "^1.0.0-beta.2",
@@ -963,6 +964,10 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.openInlineCompletionDebug",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
                 {
                     "command": "mssql.viewBackgroundTaskLogs",
                     "when": "false"
@@ -1863,6 +1868,14 @@
                 "command": "mssql.copilot.sdkProviders.xai.clearApiKey",
                 "title": "Clear xAI API Key",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openInlineCompletionDebug",
+                "title": "MSSQL: Open Inline Completion Debug"
+            },
+            {
+                "command": "mssql.copilot.completions.trace.syncToDatabase",
+                "title": "MSSQL: Sync Copilot Completion Traces to Database"
             }
         ],
         "keybindings": [

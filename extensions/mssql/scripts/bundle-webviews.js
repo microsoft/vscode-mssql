@@ -30,6 +30,7 @@ const config = {
         objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
         queryResult: "src/webviews/pages/QueryResult/index.tsx",
         queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
+        inlineCompletionDebug: "src/webviews/pages/InlineCompletionDebug/index.tsx",
         editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",
         userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
         schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
