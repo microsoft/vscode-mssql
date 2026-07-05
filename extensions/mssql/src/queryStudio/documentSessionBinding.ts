@@ -212,27 +212,30 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     private async probeSpid(session: ISqlSession): Promise<void> {
         try {
-            const spid = await new Promise<number | undefined>((resolve) => {
-                let value: number | undefined;
-                const sink: IQueryEventSink = {
-                    onResultSetStarted: () => undefined,
-                    onRowsPage: (page) => {
-                        const cell = page.compact.values[0]?.[0];
-                        value = typeof cell === "number" ? cell : Number(cell);
-                    },
-                    onMessage: () => undefined,
-                    onComplete: () => resolve(Number.isFinite(value) ? value : undefined),
-                };
-                session.execute(
-                    "SELECT @@SPID;",
-                    {
-                        priority: "background",
-                        commandKind: "metadata",
-                        tag: "queryStudio:spidProbe",
-                    },
-                    sink,
-                );
-            });
+            let value: number | undefined;
+            const sink: IQueryEventSink = {
+                onResultSetStarted: () => undefined,
+                onRowsPage: (page) => {
+                    const cell = page.compact.values[0]?.[0];
+                    value = typeof cell === "number" ? cell : Number(cell);
+                },
+                onMessage: () => undefined,
+                onComplete: () => undefined,
+            };
+            const handle = session.execute(
+                "SELECT @@SPID;",
+                {
+                    priority: "background",
+                    commandKind: "metadata",
+                    tag: "queryStudio:spidProbe",
+                },
+                sink,
+            );
+            // Await the HANDLE completion — the session frees its active
+            // slot in completion reaction order; resolving on the sink
+            // callback would race the user's first execute into Busy.
+            await handle.completion;
+            const spid = Number.isFinite(value) ? value : undefined;
             if (spid !== undefined) {
                 this.spid = spid;
                 this.fireChange();

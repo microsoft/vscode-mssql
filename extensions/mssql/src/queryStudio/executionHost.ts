@@ -238,25 +238,27 @@ export class ExecutionHost {
         if (!session) {
             return [];
         }
-        return new Promise<string[]>((resolve) => {
-            const values: string[] = [];
-            session.execute(
-                sql,
-                { priority: "background", commandKind: "metadata", tag: "queryStudio:catalog" },
-                {
-                    onResultSetStarted: () => undefined,
-                    onRowsPage: (page) => {
-                        for (const row of page.compact.values) {
-                            if (row[0] !== undefined && row[0] !== null) {
-                                values.push(String(row[0]));
-                            }
+        // Await the HANDLE (session frees its active slot via completion
+        // reaction order — resolving on the sink callback races into Busy).
+        const values: string[] = [];
+        const handle = session.execute(
+            sql,
+            { priority: "background", commandKind: "metadata", tag: "queryStudio:catalog" },
+            {
+                onResultSetStarted: () => undefined,
+                onRowsPage: (page) => {
+                    for (const row of page.compact.values) {
+                        if (row[0] !== undefined && row[0] !== null) {
+                            values.push(String(row[0]));
                         }
-                    },
-                    onMessage: () => undefined,
-                    onComplete: () => resolve(values),
+                    }
                 },
-            );
-        });
+                onMessage: () => undefined,
+                onComplete: () => undefined,
+            },
+        );
+        await handle.completion;
+        return values;
     }
 
     listDatabases(): Promise<string[]> {
@@ -276,25 +278,22 @@ export class ExecutionHost {
         }
         const escaped = database.replace(/]/g, "]]");
         let failed = false;
-        await new Promise<void>((resolve) => {
-            session.execute(
-                `USE [${escaped}];`,
-                { priority: "interactive", commandKind: "user", tag: "queryStudio:use" },
-                {
-                    onResultSetStarted: () => undefined,
-                    onRowsPage: () => undefined,
-                    onMessage: (m) => {
-                        if (m.kind === "error") {
-                            failed = true;
-                        }
-                    },
-                    onComplete: (summary) => {
-                        failed = failed || summary.status !== "succeeded";
-                        resolve();
-                    },
+        const handle = session.execute(
+            `USE [${escaped}];`,
+            { priority: "interactive", commandKind: "user", tag: "queryStudio:use" },
+            {
+                onResultSetStarted: () => undefined,
+                onRowsPage: () => undefined,
+                onMessage: (m) => {
+                    if (m.kind === "error") {
+                        failed = true;
+                    }
                 },
-            );
-        });
+                onComplete: () => undefined,
+            },
+        );
+        const summary = await handle.completion;
+        failed = failed || summary.status !== "succeeded";
         if (!failed) {
             session.signalDatabaseChanged(database, "feature");
         }
