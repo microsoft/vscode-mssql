@@ -5430,3 +5430,20 @@ export class SqlProjects {
 
     public static stderr = l10n.t("    stderr: ");
 }
+
+export const copilotEnableGuardMessage = l10n.t(
+    "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
+);
+export const copilotEnableGuardDisableForSql = l10n.t("Disable for SQL");
+export const copilotEnableGuardKeepAsIs = l10n.t("Keep as-is");
+export const copilotEnableGuardLearnMore = l10n.t("Learn more");
+export const copilotEnableGuardApplied = l10n.t(
+    "GitHub Copilot's default completions are now disabled for SQL files.",
+);
+export function copilotEnableGuardApplyFailed(errorMessage: string): string {
+    return l10n.t({
+        message: "Couldn't update the 'github.copilot.enable' setting. {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+}
