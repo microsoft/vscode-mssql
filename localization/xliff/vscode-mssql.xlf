@@ -8658,6 +8658,9 @@
     <trans-unit id="mssql.dacpacDialog.launch">
       <source xml:lang="en">DACPAC/BACPAC Operations...</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.profile.description">
+      <source xml:lang="en">Default request profile for SQL inline completions. Preset profiles control model preference, enabled categories, and automatic debounce.</source>
+    </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
     </trans-unit>
@@ -8723,6 +8726,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.useSchemaContext.description">
+      <source xml:lang="en">Enable MSSQL custom ghost-text SQL completions after experimental features are enabled. When active-editor schema context is available, completions use it; otherwise they fall back without database context.</source>
     </trans-unit>
     <trans-unit id="mssql.query.alwaysEncryptedParameterization">
       <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -8856,6 +8862,15 @@
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.includeSqlDiagnostics.description">
+      <source xml:lang="en">Include nearby SQL error diagnostics in MSSQL inline completion prompts. Diagnostics are limited to errors near the cursor and omit file paths.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.enabledCategories.description">
+      <source xml:lang="en">Inline SQL completion categories to enable. Use &apos;continuation&apos; for cursor-continuation ghost text and &apos;intent&apos; for comment-to-query completions.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.modelFamily.description">
+      <source xml:lang="en">Language model used for SQL inline completions when the completion profile is &apos;default&apos;. Accepts either a vendor/id selector (e.g. &apos;anthropic-api/claude-opus-4-8&apos;, &apos;copilot/gpt-5.5&apos;) or a bare family name (e.g. &apos;gpt-5.5&apos;, &apos;claude-sonnet-4-6&apos;). Falls back to the strongest available model if the specified value is not found.</source>
+    </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
@@ -8963,6 +8978,9 @@
     </trans-unit>
     <trans-unit id="mssql.quickQueries.executionMode.open">
       <source xml:lang="en">Open the query in a SQL editor.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.continuationModelFamily.description">
+      <source xml:lang="en">Optional language model used only for continuation SQL inline completions. Leave empty to use the active profile/default model. Accepts either a vendor/id selector (e.g. &apos;openai-api/gpt-5.4-mini&apos;) or a bare family name.</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>

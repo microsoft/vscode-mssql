@@ -63,6 +63,30 @@ export interface FkEdge {
     name: string;
 }
 
+export interface FkColumnPair {
+    fromColumn: string;
+    toColumn: string;
+}
+
+export interface FkDetail extends FkEdge {
+    columns: FkColumnPair[];
+}
+
+export interface ParameterInfo {
+    /** sys.parameters parameter_id; 0 is a scalar function's return value. */
+    ordinal: number;
+    name: string;
+    typeDisplay: string;
+    isOutput: boolean;
+}
+
+export interface CatalogEnvironment {
+    engineEdition?: number;
+    defaultSchema?: string;
+    collationName?: string;
+    caseSensitive?: boolean;
+}
+
 export type Resolution =
     | { kind: "resolved"; objectId: number; confidence: "exact" | "defaultSchema" }
     | { kind: "ambiguous"; candidates: readonly number[] }
@@ -94,10 +118,29 @@ export class CatalogBuilder {
     columnTypeSyms: number[] = [];
     columnNullable: boolean[] = [];
 
-    // fk edges
+    // fk edges (constraintIds parallel; -1 when the source lacks one)
     fkFrom: number[] = [];
     fkTo: number[] = [];
     fkNameSyms: number[] = [];
+    fkConstraintIds: number[] = [];
+
+    // fk column pairs, keyed by constraint id (H5B)
+    fkColumnConstraintIds: number[] = [];
+    fkColumnFromSyms: number[] = [];
+    fkColumnToSyms: number[] = [];
+
+    // primary key columns (H4), appended in (object, key_ordinal) order
+    pkOwner: number[] = []; // index into object table
+    pkColumnNameSyms: number[] = [];
+
+    // routine parameters (H6), appended grouped by object like columns
+    paramOwner: number[] = []; // index into object table
+    paramOrdinals: number[] = [];
+    paramNameSyms: number[] = [];
+    paramTypeSyms: number[] = [];
+    paramOutput: boolean[] = [];
+
+    engineEdition: number | undefined;
 
     caseSensitive = false;
     collationName: string | undefined;
@@ -143,10 +186,64 @@ export class CatalogBuilder {
         this.columnNullable.push(nullable);
     }
 
-    addForeignKey(fromObjectId: number, toObjectId: number, name: string): void {
+    addForeignKey(
+        fromObjectId: number,
+        toObjectId: number,
+        name: string,
+        constraintId: number = -1,
+    ): void {
         this.fkFrom.push(fromObjectId);
         this.fkTo.push(toObjectId);
         this.fkNameSyms.push(this.intern(name));
+        this.fkConstraintIds.push(constraintId);
+    }
+
+    addForeignKeyColumn(constraintId: number, fromColumn: string, toColumn: string): void {
+        this.fkColumnConstraintIds.push(constraintId);
+        this.fkColumnFromSyms.push(this.intern(fromColumn));
+        this.fkColumnToSyms.push(this.intern(toColumn));
+    }
+
+    markPrimaryKeyColumn(objectId: number, columnName: string): void {
+        const objectIndex = this.objectIds.indexOf(objectId);
+        if (objectIndex < 0) {
+            return; // key for unknown object: dropped (H4 raced a DDL)
+        }
+        this.pkOwner.push(objectIndex);
+        this.pkColumnNameSyms.push(this.intern(columnName));
+    }
+
+    addParameter(
+        objectId: number,
+        ordinal: number,
+        name: string,
+        typeDisplay: string,
+        isOutput: boolean,
+    ): void {
+        const objectIndex = this.objectIds.indexOf(objectId);
+        if (objectIndex < 0) {
+            return; // parameter for unknown object: dropped (H6 raced a DDL)
+        }
+        this.paramOwner.push(objectIndex);
+        this.paramOrdinals.push(ordinal);
+        this.paramNameSyms.push(this.intern(name));
+        this.paramTypeSyms.push(this.intern(typeDisplay));
+        this.paramOutput.push(isOutput);
+    }
+
+    setEnvironment(env: CatalogEnvironment): void {
+        if (env.engineEdition !== undefined) {
+            this.engineEdition = env.engineEdition;
+        }
+        if (env.defaultSchema) {
+            this.defaultSchema = env.defaultSchema;
+        }
+        if (env.collationName) {
+            this.collationName = env.collationName;
+        }
+        if (env.caseSensitive !== undefined) {
+            this.caseSensitive = env.caseSensitive;
+        }
     }
 
     build(
@@ -194,6 +291,10 @@ export class CatalogSnapshot {
     private idIndex = new Map<number, number>();
     /** object table index → [start, end) into column arrays. */
     private columnRanges: Array<[number, number]>;
+    /** object table index → [start, end) into parameter arrays. */
+    private paramRanges: Array<[number, number]>;
+    private pkColumnsByObjectIndex = new Map<number, string[]>();
+    private fkColumnsByConstraint = new Map<number, FkColumnPair[]>();
     private schemaNameById = new Map<number, string>();
 
     constructor(
@@ -235,6 +336,31 @@ export class CatalogSnapshot {
                 cursor++;
             }
             this.columnRanges[owner] = [start, cursor];
+        }
+
+        for (let i = 0; i < b.pkOwner.length; i++) {
+            const names = this.pkColumnsByObjectIndex.get(b.pkOwner[i]) ?? [];
+            names.push(this.strings[b.pkColumnNameSyms[i]]);
+            this.pkColumnsByObjectIndex.set(b.pkOwner[i], names);
+        }
+        for (let i = 0; i < b.fkColumnConstraintIds.length; i++) {
+            const constraintId = b.fkColumnConstraintIds[i];
+            const pairs = this.fkColumnsByConstraint.get(constraintId) ?? [];
+            pairs.push({
+                fromColumn: this.strings[b.fkColumnFromSyms[i]],
+                toColumn: this.strings[b.fkColumnToSyms[i]],
+            });
+            this.fkColumnsByConstraint.set(constraintId, pairs);
+        }
+        this.paramRanges = new Array(b.objectIds.length).fill(null).map(() => [0, 0]);
+        let paramCursor = 0;
+        while (paramCursor < b.paramOwner.length) {
+            const owner = b.paramOwner[paramCursor];
+            const start = paramCursor;
+            while (paramCursor < b.paramOwner.length && b.paramOwner[paramCursor] === owner) {
+                paramCursor++;
+            }
+            this.paramRanges[owner] = [start, paramCursor];
         }
     }
 
@@ -329,6 +455,63 @@ export class CatalogSnapshot {
             }
         }
         return edges;
+    }
+
+    /** Environment facts from H0 (undefined when the env probe failed). */
+    get engineEdition(): number | undefined {
+        return this.b.engineEdition;
+    }
+
+    get defaultSchema(): string {
+        return this.b.defaultSchema;
+    }
+
+    get caseSensitive(): boolean {
+        return this.b.caseSensitive;
+    }
+
+    /** PK columns in key-ordinal order (empty when keys are absent/failed). */
+    getPrimaryKeyColumns(objectId: number): string[] {
+        const index = this.idIndex.get(objectId);
+        if (index === undefined) {
+            return [];
+        }
+        return [...(this.pkColumnsByObjectIndex.get(index) ?? [])];
+    }
+
+    /** FK edges from an object with their column pairs (H5 + H5B). */
+    getForeignKeyDetailsFrom(objectId: number): FkDetail[] {
+        const details: FkDetail[] = [];
+        for (let i = 0; i < this.b.fkFrom.length; i++) {
+            if (this.b.fkFrom[i] === objectId) {
+                details.push({
+                    fromObjectId: this.b.fkFrom[i],
+                    toObjectId: this.b.fkTo[i],
+                    name: this.strings[this.b.fkNameSyms[i]],
+                    columns: [...(this.fkColumnsByConstraint.get(this.b.fkConstraintIds[i]) ?? [])],
+                });
+            }
+        }
+        return details;
+    }
+
+    /** Routine parameters in parameter_id order (ordinal 0 = return value). */
+    getParameters(objectId: number): ParameterInfo[] {
+        const index = this.idIndex.get(objectId);
+        if (index === undefined) {
+            return [];
+        }
+        const [start, end] = this.paramRanges[index];
+        const parameters: ParameterInfo[] = [];
+        for (let p = start; p < end; p++) {
+            parameters.push({
+                ordinal: this.b.paramOrdinals[p],
+                name: this.strings[this.b.paramNameSyms[p]],
+                typeDisplay: this.strings[this.b.paramTypeSyms[p]],
+                isOutput: this.b.paramOutput[p],
+            });
+        }
+        return parameters;
     }
 
     /** Prefix search over the folded name index (binary search + scan). */

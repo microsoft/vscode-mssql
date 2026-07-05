@@ -19,6 +19,14 @@ import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
 
 export const QUERY_STUDIO_VIEW_TYPE = "mssql.queryStudio";
 
+/** Live models by uri key — lookup seam for cross-feature consumers
+ * (inline completions resolve a document's metadata catalog through this). */
+const liveModels = new Map<string, QueryStudioDocumentModel>();
+
+export function findQueryStudioModel(uri: vscode.Uri): QueryStudioDocumentModel | undefined {
+    return liveModels.get(uri.toString());
+}
+
 export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvider {
     private registry = new QueryStudioDocumentRegistry<QueryStudioDocumentModel>((uriKey) => {
         // The factory is keyed calls only; the document arrives via resolve.
@@ -45,8 +53,10 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
             );
             model = new QueryStudioDocumentModel(document, spillRoot, (m) => {
                 this.models.delete(m.uriKey);
+                liveModels.delete(m.uriKey);
             });
             this.models.set(uriKey, model);
+            liveModels.set(uriKey, model);
         } else if (model.backingDocument !== document) {
             // Re-resolve (Save As / revert): rebind-safe per doc 04 §7.2.
             model.rebind(document);
@@ -61,6 +71,7 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
                 current.panelCount = Math.max(0, current.panelCount - 1);
                 if (current.panelCount === 0) {
                     this.models.delete(uriKey);
+                    liveModels.delete(uriKey);
                     current.dispose();
                 }
             }
@@ -70,6 +81,7 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
     /** Deactivate sweep (doc 04 §7.3). */
     async disposeAll(): Promise<void> {
         for (const model of [...this.models.values()]) {
+            liveModels.delete(model.uriKey);
             model.dispose();
         }
         this.models.clear();

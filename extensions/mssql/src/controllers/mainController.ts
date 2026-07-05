@@ -80,6 +80,14 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { SqlInlineCompletionProvider } from "../copilot/sqlInlineCompletionProvider";
+import {
+    ClassicCompletionMetadataResolver,
+    ClassicConnectionSource,
+    CompletionSchemaContextService,
+    QueryStudioCompletionMetadataResolver,
+} from "../copilot/completionSchemaContextService";
+import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
@@ -186,6 +194,7 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    public inlineCompletionSchemaContextService: CompletionSchemaContextService;
 
     /**
      * The main controller constructor
@@ -420,6 +429,56 @@ export default class MainController implements vscode.Disposable {
                 vscode.languages.registerCodeLensProvider(
                     { language: "sql" },
                     new SqlCodeLensProvider(this._connectionMgr),
+                ),
+            );
+
+            // Inline SQL completions (B6 port): schema context resolves from
+            // the MetadataService catalog — Query Studio documents through
+            // their session binding, classic documents through a data-plane
+            // metadata acquisition keyed off the classic connection.
+            const classicConnections: ClassicConnectionSource = {
+                getConnectionFacts: (ownerUri) => {
+                    const credentials =
+                        this._connectionMgr.getConnectionInfo(ownerUri)?.credentials;
+                    if (!credentials?.server) {
+                        return undefined;
+                    }
+                    return {
+                        server: credentials.server,
+                        database: credentials.database,
+                        user: credentials.user,
+                        authenticationType: credentials.authenticationType,
+                        encrypt: credentials.encrypt,
+                        trustServerCertificate: credentials.trustServerCertificate,
+                    };
+                },
+                lookupPassword: async (facts) => {
+                    // The credential-store key derives from server/database/
+                    // user/authenticationType — all present on the facts.
+                    const password = await this._connectionMgr.connectionStore.lookupPassword(
+                        facts as Parameters<
+                            typeof this._connectionMgr.connectionStore.lookupPassword
+                        >[0],
+                    );
+                    return password || undefined;
+                },
+            };
+            this.inlineCompletionSchemaContextService = new CompletionSchemaContextService([
+                new QueryStudioCompletionMetadataResolver(),
+                new ClassicCompletionMetadataResolver(classicConnections),
+            ]);
+            const inlineCompletionProvider = new SqlInlineCompletionProvider(
+                this._context,
+                this.inlineCompletionSchemaContextService,
+            );
+            const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
+            this._context.subscriptions.push(
+                this.inlineCompletionSchemaContextService,
+                inlineCompletionProvider,
+                copilotEnableSettingsGuard,
+                vscode.languages.registerInlineCompletionItemProvider(
+                    { language: Constants.languageId },
+                    inlineCompletionProvider,
                 ),
             );
 

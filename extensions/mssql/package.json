@@ -2986,6 +2986,108 @@
                     "description": "Enable the Query Studio custom editor for .sql files (preview). Reload required.",
                     "scope": "application"
                 },
+                "mssql.copilot.inlineCompletions.useSchemaContext": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.copilot.inlineCompletions.useSchemaContext.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.includeSqlDiagnostics": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.copilot.inlineCompletions.includeSqlDiagnostics.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.profile": {
+                    "type": "string",
+                    "default": "balanced",
+                    "enum": [
+                        "focused",
+                        "balanced",
+                        "broad"
+                    ],
+                    "enumDescriptions": [
+                        "Intent-only completions with the lowest automatic request volume.",
+                        "Intent and continuation completions with a moderate automatic debounce.",
+                        "Intent and continuation completions with the quickest debounce."
+                    ],
+                    "description": "%mssql.copilot.inlineCompletions.profile.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.modelFamily": {
+                    "type": "string",
+                    "default": "claude-sonnet-4-6",
+                    "description": "%mssql.copilot.inlineCompletions.modelFamily.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.continuationModelFamily": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.copilot.inlineCompletions.continuationModelFamily.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.modelVendors": {
+                    "type": "array",
+                    "default": [
+                        "copilot",
+                        "anthropic-api",
+                        "openai-api",
+                        "xai-api"
+                    ],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Language model vendors to query for MSSQL inline SQL completion, in priority order.",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.enabledCategories": {
+                    "type": "array",
+                    "default": [
+                        "continuation",
+                        "intent"
+                    ],
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "continuation",
+                            "intent"
+                        ]
+                    },
+                    "uniqueItems": true,
+                    "description": "%mssql.copilot.inlineCompletions.enabledCategories.description%",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.debug.recordWhenClosed": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Keep recording inline completion debug events while the debug panel is closed.",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.trace.captureEnabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When true, save the inline completion debug session trace JSON to the configured trace folder when the extension deactivates.",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.trace.folder": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Absolute or ~-prefixed folder where inline completion trace files are written. Empty defaults to the extension global storage trace folder.",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.trace.redactPrompts": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When true, redact prompt, response, completion, and schema context text in saved inline completion trace files.",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.trace.maxFileSizeMB": {
+                    "type": "number",
+                    "default": 50,
+                    "minimum": 1,
+                    "description": "Maximum inline completion trace file size in megabytes. Older events are dropped first and the trace is marked truncated when needed.",
+                    "scope": "window"
+                },
                 "mssql.sqlDataPlane.enabled": {
                     "type": "boolean",
                     "default": false,

@@ -24,6 +24,66 @@ import {
 function sysScripts(overrides?: { columnsFail?: boolean }): FakeScript[] {
     return [
         {
+            match: (t) => t.includes("SERVERPROPERTY"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["engine_edition", "default_schema", "collation_name"],
+                    rows: [[5, "dbo", "SQL_Latin1_General_CP1_CI_AS"]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            // H4 + H5B contain "sys.columns" too — they must match before H3.
+            match: (t) => t.includes("is_primary_key"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["object_id", "name"],
+                    rows: [
+                        [101, "OrderId"],
+                        [102, "CustomerId"],
+                    ],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            match: (t) => t.includes("foreign_key_columns"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["constraint_object_id", "parent_column", "referenced_column"],
+                    rows: [[900, "CustomerId", "CustomerId"]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            match: (t) => t.includes("sys.parameters"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: [
+                        "object_id",
+                        "parameter_id",
+                        "name",
+                        "type_name",
+                        "max_length",
+                        "precision",
+                        "scale",
+                        "is_output",
+                    ],
+                    rows: [
+                        [105, 1, "@CustomerId", "int", 4, 10, 0, false],
+                        [105, 2, "@Total", "decimal", 9, 18, 2, true],
+                    ],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
             match: (t) => t.includes("sys.schemas"),
             events: [
                 {
@@ -48,6 +108,7 @@ function sysScripts(overrides?: { columnsFail?: boolean }): FakeScript[] {
                         [102, 1, "Customers", "U", "2026-01-01T00:00:00"],
                         [103, 1, "OrdersView", "V", "2026-01-01T00:00:00"],
                         [104, 2, "Orders", "U", "2026-01-01T00:00:00"],
+                        [105, 1, "GetOrders", "P", "2026-01-01T00:00:00"],
                     ],
                 },
                 { type: "complete", status: "succeeded" },
@@ -140,7 +201,7 @@ suite("Metadata catalog (B5)", () => {
         await handle.refresh();
         const snapshot = handle.current()!;
         expect(handle.status().readiness).to.equal("ready");
-        expect(snapshot.stats).to.deep.include({ schemas: 2, objects: 4, columns: 5 });
+        expect(snapshot.stats).to.deep.include({ schemas: 2, objects: 5, columns: 5 });
         expect(snapshot.listSchemas().map((s) => s.name)).to.deep.equal(["dbo", "sales"]);
         expect(snapshot.getObject(101)!.schema).to.equal("dbo");
         expect(snapshot.getColumns(101).map((c) => `${c.name}:${c.typeDisplay}`)).to.deep.equal([
@@ -150,6 +211,28 @@ suite("Metadata catalog (B5)", () => {
         ]);
         expect(snapshot.getForeignKeysFrom(101)[0].toObjectId).to.equal(102);
         expect(statuses[0]).to.equal("loading");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("hydration richness (B6): env facts, PK columns, FK column pairs, parameters", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().mode).to.equal("full");
+        expect(snapshot.engineEdition).to.equal(5);
+        expect(snapshot.defaultSchema).to.equal("dbo");
+        expect(snapshot.caseSensitive).to.equal(false);
+        expect(snapshot.getPrimaryKeyColumns(101)).to.deep.equal(["OrderId"]);
+        const fkDetails = snapshot.getForeignKeyDetailsFrom(101);
+        expect(fkDetails).to.have.length(1);
+        expect(fkDetails[0].columns).to.deep.equal([
+            { fromColumn: "CustomerId", toColumn: "CustomerId" },
+        ]);
+        expect(
+            snapshot.getParameters(105).map((p) => `${p.name}:${p.typeDisplay}:${p.isOutput}`),
+        ).to.deep.equal(["@CustomerId:int:false", "@Total:decimal(18,2):true"]);
         handle.dispose();
         service.dispose();
     });

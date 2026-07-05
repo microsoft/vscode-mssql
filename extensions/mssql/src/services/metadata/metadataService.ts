@@ -82,6 +82,26 @@ const H3_COLUMNS =
 const H5_FOREIGN_KEYS =
     "SELECT fk.object_id, fk.name, fk.parent_object_id, fk.referenced_object_id " +
     "FROM sys.foreign_keys fk WHERE fk.is_ms_shipped = 0 ORDER BY fk.object_id;";
+const H0_ENV =
+    "SELECT CAST(SERVERPROPERTY('EngineEdition') AS int) AS engine_edition, " +
+    "COALESCE(CAST(SCHEMA_NAME() AS sysname), 'dbo') AS default_schema, " +
+    "CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(128)) AS collation_name;";
+const H4_KEYS =
+    "SELECT ic.object_id, c.name FROM sys.indexes i " +
+    "JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id " +
+    "JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id " +
+    "WHERE i.is_primary_key = 1 ORDER BY ic.object_id, ic.key_ordinal;";
+const H5B_FOREIGN_KEY_COLUMNS =
+    "SELECT fkc.constraint_object_id, pc.name AS parent_column, rc.name AS referenced_column " +
+    "FROM sys.foreign_key_columns fkc " +
+    "JOIN sys.columns pc ON pc.object_id = fkc.parent_object_id AND pc.column_id = fkc.parent_column_id " +
+    "JOIN sys.columns rc ON rc.object_id = fkc.referenced_object_id AND rc.column_id = fkc.referenced_column_id " +
+    "ORDER BY fkc.constraint_object_id, fkc.constraint_column_id;";
+const H6_PARAMETERS =
+    "SELECT p.object_id, p.parameter_id, p.name, t.name AS type_name, p.max_length, p.precision, p.scale, p.is_output " +
+    "FROM sys.parameters p JOIN sys.types t ON p.user_type_id = t.user_type_id " +
+    "JOIN sys.objects o ON o.object_id = p.object_id AND o.type IN ('P','FN','IF','TF') AND o.is_ms_shipped = 0 " +
+    "ORDER BY p.object_id, p.parameter_id;";
 const CHEAP_DIGEST =
     "SELECT COUNT(*) AS object_count, ISNULL(CHECKSUM_AGG(CHECKSUM(o.object_id, o.modify_date)), 0) AS object_hash " +
     "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0;";
@@ -313,6 +333,24 @@ export class MetadataService {
             const session = await this.sessions.open();
             const builder = new CatalogBuilder();
 
+            // H0 environment (best-effort; defaults survive a failed probe)
+            try {
+                const envRows = await this.rows(session, H0_ENV, "metadata:H0");
+                const env = envRows[0];
+                if (env) {
+                    const collation =
+                        env[2] === null || env[2] === undefined ? undefined : String(env[2]);
+                    builder.setEnvironment({
+                        engineEdition: Number.isFinite(Number(env[0])) ? Number(env[0]) : undefined,
+                        defaultSchema: env[1] ? String(env[1]) : undefined,
+                        collationName: collation,
+                        caseSensitive: collation ? /_CS(_|$)/i.test(collation) : undefined,
+                    });
+                }
+            } catch {
+                // Environment probe is an enhancement; hydration proceeds.
+            }
+
             // H1 schemas
             for (const row of await this.rows(session, H1_SCHEMAS, "metadata:H1")) {
                 builder.addSchema(Number(row[0]), String(row[1]));
@@ -344,14 +382,51 @@ export class MetadataService {
             } catch {
                 columnsFailed = true; // publish failed, never pretend-empty (§7.4)
             }
+            // H4 primary key columns
+            let keysFailed = false;
+            try {
+                for (const row of await this.rows(session, H4_KEYS, "metadata:H4")) {
+                    builder.markPrimaryKeyColumn(Number(row[0]), String(row[1]));
+                }
+            } catch {
+                keysFailed = true;
+            }
             // H5 FK edges
             let fkFailed = false;
             try {
                 for (const row of await this.rows(session, H5_FOREIGN_KEYS, "metadata:H5")) {
-                    builder.addForeignKey(Number(row[2]), Number(row[3]), String(row[1]));
+                    builder.addForeignKey(
+                        Number(row[2]),
+                        Number(row[3]),
+                        String(row[1]),
+                        Number(row[0]),
+                    );
+                }
+                for (const row of await this.rows(
+                    session,
+                    H5B_FOREIGN_KEY_COLUMNS,
+                    "metadata:H5B",
+                )) {
+                    builder.addForeignKeyColumn(Number(row[0]), String(row[1]), String(row[2]));
                 }
             } catch {
                 fkFailed = true;
+            }
+            // H6 routine parameters
+            let paramsFailed = false;
+            try {
+                for (const row of await this.rows(session, H6_PARAMETERS, "metadata:H6")) {
+                    const name = row[2] === null || row[2] === undefined ? "" : String(row[2]);
+                    builder.addParameter(
+                        Number(row[0]),
+                        Number(row[1]),
+                        name,
+                        typeDisplay(String(row[3]), Number(row[4]), Number(row[5]), Number(row[6])),
+                        row[7] === true || row[7] === 1,
+                    );
+                }
+            } catch {
+                paramsFailed = true;
             }
 
             entry.generation++;
@@ -363,9 +438,11 @@ export class MetadataService {
                     synonyms: "ready",
                     types: "ready",
                     columns: columnsFailed ? "failed" : "ready",
+                    keys: keysFailed ? "failed" : "ready",
                     foreignKeys: fkFailed ? "failed" : "ready",
+                    parameters: paramsFailed ? "failed" : "ready",
                 },
-                columnsFailed || fkFailed ? "partial" : "full",
+                columnsFailed || fkFailed || keysFailed || paramsFailed ? "partial" : "full",
             );
             entry.status = "ready";
             entry.lastDigest = undefined; // re-baseline on next poll
