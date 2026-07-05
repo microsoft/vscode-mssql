@@ -10,6 +10,7 @@
  * `mssql.queryStudio.enabled` (preview master gate).
  */
 
+import * as path from "path";
 import * as vscode from "vscode";
 import { Perf } from "../perf/perfTelemetry";
 import { QueryStudioController } from "./queryStudioController";
@@ -37,7 +38,12 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
 
         let model = this.models.get(uriKey);
         if (!model) {
-            model = new QueryStudioDocumentModel(document, (m) => {
+            const spillRoot = path.join(
+                this.context.globalStorageUri.fsPath,
+                "querystudio-spill",
+                Buffer.from(uriKey).toString("base64url").slice(0, 32),
+            );
+            model = new QueryStudioDocumentModel(document, spillRoot, (m) => {
                 this.models.delete(m.uriKey);
             });
             this.models.set(uriKey, model);
@@ -72,10 +78,25 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
 }
 
 export function registerQueryStudio(context: vscode.ExtensionContext): void {
-    const config = vscode.workspace.getConfiguration();
-    if (!config.get<boolean>("mssql.queryStudio.enabled", false)) {
+    const enabled = () =>
+        vscode.workspace.getConfiguration().get<boolean>("mssql.queryStudio.enabled", false);
+    if (!enabled()) {
+        // Late enablement without a reload (also unblocks harness scenarios
+        // that flip the setting after activation): register once when the
+        // preview gate turns on.
+        const watcher = vscode.workspace.onDidChangeConfiguration((e) => {
+            if (e.affectsConfiguration("mssql.queryStudio.enabled") && enabled()) {
+                watcher.dispose();
+                registerQueryStudioFeatures(context);
+            }
+        });
+        context.subscriptions.push(watcher);
         return;
     }
+    registerQueryStudioFeatures(context);
+}
+
+function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     const provider = new QueryStudioEditorProvider(context);
     context.subscriptions.push(
         vscode.window.registerCustomEditorProvider(QUERY_STUDIO_VIEW_TYPE, provider, {

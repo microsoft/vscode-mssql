@@ -35,6 +35,23 @@ export function registerPerfApi(
     );
 
     /**
+     * Harness-only setting flip (PERF_MODE gate above): scenarios enable
+     * preview features (e.g. Query Studio) without a profile rebuild.
+     * Global scope; the harness profile is disposable by design.
+     */
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "mssql.perf.setConfig",
+            async (section: string, value: unknown) => {
+                await vscode.workspace
+                    .getConfiguration()
+                    .update(section, value, vscode.ConfigurationTarget.Global);
+                return { section, applied: true };
+            },
+        ),
+    );
+
+    /**
      * Results-grid probe: live product state for a results URI (or the most
      * recent one) — resultSetSummaries with rowCounts + isExecuting.
      */

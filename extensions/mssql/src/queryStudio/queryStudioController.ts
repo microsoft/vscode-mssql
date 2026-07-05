@@ -7,9 +7,9 @@
  * Per-panel Query Studio controller: hosts the provided CustomTextEditor
  * webview panel through the standard WebviewBaseController RPC machinery
  * (the Debug Console pattern), bridges the shared document model's text
- * sync, and pushes coarse QsState (≤10/s). Execution/connection RPCs are
- * honest M0 stubs: they answer with the not-yet-available reason instead of
- * pretending (every visible UI state has a model state behind it).
+ * sync, subscribes to the shared ExecutionHost (results/messages fan-out),
+ * and pushes coarse QsState (≤10/s). Rows never ride notifications —
+ * counts only; the grid pulls windows via QsGetRows (addendum §3.6).
  */
 
 import * as vscode from "vscode";
@@ -18,6 +18,12 @@ import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
     QS_SCHEMA_VERSION,
     QsCancelRequest,
+    QsExecuteParams,
+    QsMessagesAppendedNotification,
+    QsResultSetEndedNotification,
+    QsResultSetStartedNotification,
+    QsRevealPositionNotification,
+    QsRowsAppendedNotification,
     QsConnectRequest,
     QsDisconnectRequest,
     QsExecuteRequest,
@@ -49,6 +55,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private openMarkerEnded = false;
     private modelListener: vscode.Disposable;
     private bindingListener: vscode.Disposable | undefined;
+    private executionListener: { dispose(): void } | undefined;
     private statePushTimer: NodeJS.Timeout | undefined;
     private lastStatePush = 0;
     private viewMode: "grid" | "text" = "grid";
@@ -65,6 +72,21 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             localResourceRoots: [vscode.Uri.file(context.extensionPath)],
         };
         this.panel.webview.html = this._getHtmlTemplate();
+        // Bind the RPC reader/writer to the PROVIDED panel's webview — the
+        // panel-owning base class does this in createWebviewPanel; a custom
+        // editor must do it explicitly or every message drops with
+        // "webview is not set".
+        this.updateConnectionWebview(this.panel.webview);
+        this.registerDisposable(
+            this.panel.webview.onDidReceiveMessage((message: unknown) => {
+                const m = message as { type?: string; message?: string; source?: string };
+                if (m?.type === "qsBootError") {
+                    this.logger.error(
+                        `Query Studio webview boot error: ${m.message} @ ${m.source}`,
+                    );
+                }
+            }),
+        );
         this.initializeBase();
         this.registerHandlers();
 
@@ -80,9 +102,52 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
 
         this.bindingListener = this.model.sessionBinding.onDidChange(() => this.queueStatePush());
 
+        this.executionListener = this.model.executionHost.attach({
+            onResultSetStarted: (summary) => {
+                void this.sendNotification(QsResultSetStartedNotification.type, summary);
+                this.queueStatePush();
+            },
+            onRowsAppended: (resultSetId, newRowCount, complete) => {
+                void this.sendNotification(QsRowsAppendedNotification.type, {
+                    resultSetId,
+                    newRowCount,
+                    complete,
+                });
+            },
+            onResultSetEnded: (resultSetId, rowCount, truncatedReason) => {
+                void this.sendNotification(QsResultSetEndedNotification.type, {
+                    resultSetId,
+                    rowCount,
+                    ...(truncatedReason ? { truncatedReason } : {}),
+                });
+                this.queueStatePush();
+            },
+            onMessages: (messages) => {
+                void this.sendNotification(QsMessagesAppendedNotification.type, { messages });
+                this.queueStatePush();
+            },
+            onExecutionStateChanged: () => this.queueStatePush(),
+        });
+
         // Initial sync payload once the webview is live.
         void this.sendNotification(QsSyncInitNotification.type, this.model.syncInit());
         this.queueStatePush();
+    }
+
+    protected override _getHtmlTemplate(): string {
+        // Boot-failure visibility: webview console errors are invisible to
+        // the host/harness — relay window errors before the bundle loads.
+        const relay =
+            "<script>" +
+            "window.__vscodeApiPreAcquired = acquireVsCodeApi();" +
+            "const __qsr = (m, s) => window.__vscodeApiPreAcquired.postMessage(" +
+            "{ type: 'qsBootError', message: String(m).slice(0, 500), source: String(s || '').slice(0, 200) });" +
+            "window.addEventListener('error', (e) => __qsr(e.message, (e.filename || '') + ':' + e.lineno));" +
+            "window.addEventListener('unhandledrejection', (e) => " +
+            "__qsr(e.reason && e.reason.stack ? e.reason.stack : e.reason, 'promise'));" +
+            "</" +
+            "script>";
+        return super._getHtmlTemplate().replace("<body>", "<body>" + relay);
     }
 
     protected _getWebview(): vscode.Webview {
@@ -117,15 +182,39 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         state.editor.hostVersion = this.model.hostVersion;
         state.toggles = { actualPlan: this.actualPlan, viewMode: this.viewMode };
         state.connection = this.model.sessionBinding.connectionState;
-        state.statusMessage =
-            state.connection.kind === "connected" || state.connection.kind === "executing"
-                ? { kind: "info", text: "Connected." }
-                : state.connection.kind === "connecting"
-                  ? { kind: "info", text: "Connecting…" }
-                  : state.connection.kind === "lost"
-                    ? { kind: "warning", text: "Connection lost." }
-                    : { kind: "ready", text: "Ready — not connected" };
+        state.execution = { ...this.model.executionHost.executionState };
+        if (state.execution.kind === "executing" && state.execution.startedEpochMs) {
+            state.execution.elapsedMs = Date.now() - state.execution.startedEpochMs;
+        }
+        state.results = this.model.executionHost.resultsState();
+        state.statusMessage = QueryStudioController.statusFor(state);
         return state;
+    }
+
+    private static statusFor(state: QsState): QsState["statusMessage"] {
+        switch (state.execution.kind) {
+            case "executing":
+                return { kind: "info", text: "Executing query…" };
+            case "cancelRequested":
+                return { kind: "warning", text: "Cancel requested…" };
+            case "succeeded":
+                return { kind: "success", text: "Query executed successfully." };
+            case "completedWithErrors":
+                return { kind: "error", text: "Completed with errors." };
+            case "failed":
+                return { kind: "error", text: "Query failed." };
+            case "canceled":
+                return { kind: "warning", text: "Query was cancelled." };
+            case "connectionLost":
+                return { kind: "error", text: "Connection lost during execution." };
+        }
+        return state.connection.kind === "connected"
+            ? { kind: "info", text: "Connected." }
+            : state.connection.kind === "connecting"
+              ? { kind: "info", text: "Connecting…" }
+              : state.connection.kind === "lost"
+                ? { kind: "warning", text: "Connection lost." }
+                : { kind: "ready", text: "Ready — not connected" };
     }
 
     private queueStatePush(): void {
@@ -167,14 +256,35 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
         });
 
-        // --- honest M0 stubs (connection/execution land in B2/B3) ------------
-        // Execution lands in B3/M2; connect is real from M1.
-        const executionNotReady = {
-            started: false,
-            reason: "Execution lands with the results core (M2)",
-        };
-        this.onRequest(QsExecuteRequest.type, async () => executionNotReady);
-        this.onRequest(QsCancelRequest.type, async () => ({ acknowledged: false }));
+        // --- execution (M2): shared ExecutionHost, honest refusals -----------
+        this.onRequest(QsExecuteRequest.type, async (params: QsExecuteParams) => {
+            const doc = this.model.backingDocument;
+            let text = doc.getText();
+            let selectionStartLine = 1;
+            let scope: "selection" | "document" = "document";
+            if (params.scope === "selection" && params.selection) {
+                const sel = params.selection;
+                const range = new vscode.Range(
+                    sel.startLine - 1,
+                    sel.startColumn - 1,
+                    sel.endLine - 1,
+                    sel.endColumn - 1,
+                );
+                const sliced = doc.getText(range);
+                if (sliced.trim().length > 0) {
+                    text = sliced;
+                    selectionStartLine = sel.startLine;
+                    scope = "selection";
+                }
+            }
+            const outcome = this.model.executionHost.execute(text, {
+                selectionStartLine,
+                scope,
+            });
+            this.queueStatePush();
+            return outcome;
+        });
+        this.onRequest(QsCancelRequest.type, async () => this.model.executionHost.cancel());
         this.onRequest(QsConnectRequest.type, async () => {
             const connected = await this.model.sessionBinding.connect();
             this.queueStatePush();
@@ -192,15 +302,20 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
         this.onRequest(QsSetDatabaseRequest.type, async () => ({ changed: false }));
         this.onRequest(QsListDatabasesRequest.type, async () => ({ databases: [] }));
-        this.onRequest(QsGetRowsRequest.type, async (params) => ({
-            resultSetId: params.resultSetId,
-            start: params.start,
-            rowCount: 0,
-            columns: [],
-            values: [],
-        }));
-        this.onRequest(QsGetMessagesRequest.type, async () => ({ messages: [] }));
-        this.onRequest(QsNavigateToLineRequest.type, async () => undefined);
+        this.onRequest(QsGetRowsRequest.type, async (params) =>
+            this.model.executionHost.getRows(params.resultSetId, params.start, params.count),
+        );
+        this.onRequest(QsGetMessagesRequest.type, async (params) =>
+            this.model.executionHost.getMessages(params?.afterIndex),
+        );
+        this.onRequest(QsNavigateToLineRequest.type, async ({ line, column }) => {
+            // The editor lives in the webview: bounce a reveal notification.
+            void this.sendNotification(QsRevealPositionNotification.type, {
+                line,
+                column: column ?? 1,
+                flash: true,
+            });
+        });
         this.onRequest(QsSetViewModeRequest.type, async ({ viewMode }) => {
             this.viewMode = viewMode;
             this.queueStatePush();
@@ -218,6 +333,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         }
         this.modelListener.dispose();
         this.bindingListener?.dispose();
+        this.executionListener?.dispose();
         super.dispose();
     }
 }

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// MUST be first: binds the bundled Monaco before any editor mounts.
+import "./monacoSetup";
 import ReactDOM from "react-dom/client";
 import "../../index.css";
 import "./queryStudio.css";
