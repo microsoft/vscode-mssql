@@ -102,10 +102,10 @@ export class FeatureReplayEngine<
 
     // ------------------------------------------------------------------ cart
 
-    public addToCart(events: TEvent[], sourceLabel?: string): void {
-        const snapshots = events
-            .filter((event) => this._host.isRunnable(event))
-            .map((event) => this.createSnapshot(event, sourceLabel));
+    public addToCart(items: Array<{ event: TEvent; sourceLabel?: string }>): void {
+        const snapshots = items
+            .filter((item) => this._host.isRunnable(item.event))
+            .map((item) => this.createSnapshot(item.event, item.sourceLabel));
         if (snapshots.length === 0) {
             return;
         }
@@ -132,16 +132,28 @@ export class FeatureReplayEngine<
         this.updateState({ ...this._state, cart: [...this._state.cart].reverse() });
     }
 
-    public reorderCart(snapshotId: string, targetIndex: number): void {
-        const currentIndex = this._state.cart.findIndex((snapshot) => snapshot.id === snapshotId);
-        if (currentIndex < 0) {
+    /** Replace the whole cart (e.g. restoring a dialog-open snapshot on cancel). */
+    public replaceCart(cart: FeatureReplaySnapshot<TEvent, TConfig>[]): void {
+        this.updateState({ ...this._state, cart });
+    }
+
+    /** Bounds-checked positional move; out-of-range indices are a no-op. */
+    public moveCartItem(fromIndex: number, toIndex: number): void {
+        if (
+            fromIndex < 0 ||
+            toIndex < 0 ||
+            fromIndex >= this._state.cart.length ||
+            toIndex >= this._state.cart.length ||
+            fromIndex === toIndex
+        ) {
             return;
         }
 
         const cart = [...this._state.cart];
-        const [moved] = cart.splice(currentIndex, 1);
-        const clamped = Math.max(0, Math.min(targetIndex, cart.length));
-        cart.splice(clamped, 0, moved);
+        const [moved] = cart.splice(fromIndex, 1);
+        if (moved !== undefined) {
+            cart.splice(toIndex, 0, moved);
+        }
         this.updateState({ ...this._state, cart });
     }
 
@@ -170,6 +182,26 @@ export class FeatureReplayEngine<
         }
 
         this.queueSnapshots(this._state.cart, "matrix", cells);
+    }
+
+    /**
+     * Queue events directly without touching the cart (e.g. "replay this
+     * whole session now"). Snapshots are created internally with the given
+     * config mode.
+     */
+    public queueEvents(
+        events: TEvent[],
+        kind: FeatureReplayRun<TCell>["kind"],
+        sourceLabel?: string,
+        configMode?: FeatureReplayConfigMode,
+    ): void {
+        const snapshots = events
+            .filter((event) => this._host.isRunnable(event))
+            .map((event) => ({
+                ...this.createSnapshot(event, sourceLabel),
+                ...(configMode ? { configMode } : {}),
+            }));
+        this.queueSnapshots(snapshots, kind);
     }
 
     /** Queue snapshots directly (single event replay, session replay). */

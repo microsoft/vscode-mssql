@@ -296,10 +296,14 @@ function testEvent(id: string): TestEvent {
     return { id, timestamp: 100, result: "success" };
 }
 
+function cartItems(...ids: string[]): Array<{ event: TestEvent; sourceLabel?: string }> {
+    return ids.map((id) => ({ event: testEvent(id) }));
+}
+
 suite("Feature replay engine", () => {
     test("single run drains sequentially in cart order and completes", async () => {
         const harness = createEngineHarness();
-        harness.engine.addToCart([testEvent("E-1"), testEvent("E-2"), testEvent("E-3")]);
+        harness.engine.addToCart(cartItems("E-1", "E-2", "E-3"));
         harness.engine.queueCart();
 
         await waitFor(() => harness.engine.getState().runs[0]?.status === "completed");
@@ -318,7 +322,7 @@ suite("Feature replay engine", () => {
 
     test("config modes: snapshot, override merge, live", async () => {
         const harness = createEngineHarness();
-        harness.engine.addToCart([testEvent("E-1")]);
+        harness.engine.addToCart(cartItems("E-1"));
         const snapshotId = harness.engine.getState().cart[0].id;
         harness.engine.updateCartSnapshot(snapshotId, {
             configMode: "override",
@@ -333,7 +337,7 @@ suite("Feature replay engine", () => {
             depth: "overridden",
         });
 
-        harness.engine.addToCart([testEvent("E-2")]);
+        harness.engine.addToCart(cartItems("E-2"));
         harness.engine.queueCart("live");
         await waitFor(() => harness.executed.length === 3);
         // Rows 2 and 3: the first cart entry replays again (still in cart) plus the new one.
@@ -342,7 +346,7 @@ suite("Feature replay engine", () => {
 
     test("matrix run: cells x snapshots rows, cell config and labels", async () => {
         const harness = createEngineHarness();
-        harness.engine.addToCart([testEvent("E-1"), testEvent("E-2")]);
+        harness.engine.addToCart(cartItems("E-1", "E-2"));
         harness.engine.runMatrix([
             { cellId: "cell-1", ordinal: 1, speed: "fast", depth: "shallow" },
             { cellId: "cell-2", ordinal: 2, speed: "slow", depth: "deep" },
@@ -364,7 +368,7 @@ suite("Feature replay engine", () => {
     test("cancelRun drops queued rows, keeps the running row, flips status", async () => {
         const harness = createEngineHarness();
         harness.setDelay(30);
-        harness.engine.addToCart([testEvent("E-1"), testEvent("E-2"), testEvent("E-3")]);
+        harness.engine.addToCart(cartItems("E-1", "E-2", "E-3"));
         harness.engine.queueCart();
 
         await waitFor(() => harness.engine.getState().queueRows[0]?.status === "running");
@@ -379,7 +383,7 @@ suite("Feature replay engine", () => {
     test("a throwing executor does not wedge the drain loop", async () => {
         const harness = createEngineHarness();
         harness.setFailFor("E-2");
-        harness.engine.addToCart([testEvent("E-1"), testEvent("E-2"), testEvent("E-3")]);
+        harness.engine.addToCart(cartItems("E-1", "E-2", "E-3"));
         harness.engine.queueCart();
 
         await waitFor(() => harness.engine.getState().runs[0]?.status === "completed");
@@ -401,7 +405,7 @@ suite("Feature replay engine", () => {
         diag.addSink(sink);
         try {
             const harness = createEngineHarness();
-            harness.engine.addToCart([testEvent("E-1")]);
+            harness.engine.addToCart(cartItems("E-1"));
             harness.engine.queueCart();
             await waitFor(() => harness.engine.getState().runs[0]?.status === "completed");
             await waitFor(
