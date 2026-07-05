@@ -48,6 +48,62 @@ module.exports = {
                     });
                 }
 
+                // sqlLanguage core purity (language-service design 05 §6.2): the engine
+                // must stay isomorphic/rehostable. core/** + features/** + data/** +
+                // provider type surface may not import vscode, node builtins, services,
+                // or feature-host code. Only provider/catalogProvider.ts and host/** may
+                // integrate; testSupport is exempt from the services ban but not vscode.
+                const isFileInSqlLanguagePure =
+                    /\/src\/sqlLanguage\/(core|features|data)\//.test(filePath) ||
+                    /\/src\/sqlLanguage\/provider\/(types|nullProvider|fixtureProvider|overlayView)\.ts$/.test(
+                        filePath,
+                    ) ||
+                    /\/src\/sqlLanguage\/api\.ts$/.test(filePath);
+                if (isFileInSqlLanguagePure) {
+                    const isVscodeImport =
+                        importSource === "vscode" || /^vscode-/.test(importSource);
+                    const isNodeBuiltin =
+                        /^node:/.test(importSource) ||
+                        [
+                            "fs",
+                            "path",
+                            "os",
+                            "child_process",
+                            "crypto",
+                            "util",
+                            "events",
+                            "stream",
+                        ].includes(importSource);
+                    const currentDir = path.dirname(filePath);
+                    const resolvedImport = importSource.startsWith(".")
+                        ? toPosix(path.resolve(currentDir, importSource))
+                        : "";
+                    const escapesSqlLanguage =
+                        resolvedImport !== "" &&
+                        /\/src\//.test(resolvedImport) &&
+                        !/\/src\/sqlLanguage\//.test(resolvedImport);
+                    if (isVscodeImport || isNodeBuiltin || escapesSqlLanguage) {
+                        context.report({
+                            node,
+                            message:
+                                "sqlLanguage core/features/provider-types must stay pure: no vscode, node builtins, or imports outside src/sqlLanguage (design 05 §6.2). Integrate via provider/catalogProvider.ts or host/**.",
+                        });
+                    }
+                }
+
+                // STS2 wire DTO containment (documented in src/services/sts2/wire/v2.ts):
+                // nothing outside src/services/sts2/ may import the wire module.
+                const isImportOfSts2Wire =
+                    /\/sts2\/wire\//.test(importSource) || /(^|\/)wire\/v2$/.test(importSource);
+                const isFileInSts2 = /\/src\/services\/sts2\//.test(filePath);
+                if (isImportOfSts2Wire && !isFileInSts2 && !isFileInTest) {
+                    context.report({
+                        node,
+                        message:
+                            "STS2 wire DTOs are contained: only src/services/sts2/** may import sts2/wire (v2.ts module contract).",
+                    });
+                }
+
                 // Importing extension code (non-sharedInterfaces src/) from webview (reactviews)
                 if (isFileInReactviews) {
                     // Check if import is a relative path starting with ../ or ../../ etc
