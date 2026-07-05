@@ -34,6 +34,7 @@ import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
 import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
 import { registerQueryStudio } from "./queryStudio/queryStudioEditorProvider";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
+import { registerSdkLanguageModelProviders } from "./copilot/sdkLanguageModels";
 import { startStsDiagListener } from "./diagnostics/stsDiagListener";
 
 /** exported for testing purposes only */
@@ -86,6 +87,7 @@ async function activateInternal(context: vscode.ExtensionContext): Promise<IExte
     initializeWebviewLocalizationCache();
 
     IconUtils.initialize(context.extensionUri);
+    registerSdkLanguageModelProviders(context);
 
     // Check if GitHub Copilot is installed
     const copilotExtension = vscode.extensions.getExtension("github.copilot-chat");

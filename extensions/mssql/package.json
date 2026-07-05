@@ -145,6 +145,8 @@
         "yargs": "^17.7.2"
     },
     "dependencies": {
+        "openai": "^6.34.0",
+        "@anthropic-ai/sdk": "^0.91.1",
         "@azure/arm-maintenance": "^1.0.0-beta.2",
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^11.0.0-beta.4",
@@ -192,6 +194,29 @@
         }
     },
     "contributes": {
+        "languageModelChatProviders": [
+            {
+                "id": "anthropic-api",
+                "vendor": "anthropic-api",
+                "label": "Anthropic API",
+                "displayName": "Anthropic API",
+                "managementCommand": "mssql.copilot.sdkProviders.anthropic.setApiKey"
+            },
+            {
+                "id": "openai-api",
+                "vendor": "openai-api",
+                "label": "OpenAI API",
+                "displayName": "OpenAI API",
+                "managementCommand": "mssql.copilot.sdkProviders.openai.setApiKey"
+            },
+            {
+                "id": "xai-api",
+                "vendor": "xai-api",
+                "label": "xAI API",
+                "displayName": "xAI API",
+                "managementCommand": "mssql.copilot.sdkProviders.xai.setApiKey"
+            }
+        ],
         "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
@@ -1808,6 +1833,36 @@
                 "command": "mssql.sqlDataPlane.showStatus",
                 "title": "Show SQL Data-Plane Status",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.anthropic.setApiKey",
+                "title": "Set Anthropic API Key",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.anthropic.clearApiKey",
+                "title": "Clear Anthropic API Key",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.openai.setApiKey",
+                "title": "Set OpenAI API Key",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.openai.clearApiKey",
+                "title": "Clear OpenAI API Key",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.xai.setApiKey",
+                "title": "Set xAI API Key",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.xai.clearApiKey",
+                "title": "Clear xAI API Key",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -2984,6 +3039,189 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enable the Query Studio custom editor for .sql files (preview). Reload required.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.anthropic.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Register the Anthropic API language model provider for MSSQL inline completions. Enable this only when you want to use Anthropic API models. Reload VS Code after changing this setting.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.anthropic.additionalModels": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "displayName",
+                            "family"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            },
+                            "family": {
+                                "type": "string"
+                            },
+                            "version": {
+                                "type": "string"
+                            },
+                            "maxInputTokens": {
+                                "type": "number"
+                            },
+                            "maxOutputTokens": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "description": "Additional Anthropic API model definitions beyond the built-in catalog.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.anthropic.baseUrl": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Override the Anthropic API base URL for proxies or gateways. Leave empty to use the SDK default.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.anthropic.timeout": {
+                    "type": "number",
+                    "default": 60000,
+                    "description": "Anthropic API request timeout in milliseconds.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.anthropic.env": {
+                    "type": "object",
+                    "default": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Environment fallback values for the Anthropic API provider. ANTHROPIC_API_KEY may be set to an API key or to the name of an existing process environment variable.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.openai.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Register the OpenAI API language model provider for MSSQL inline completions. Enable this only when you want to use OpenAI API models. Reload VS Code after changing this setting.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.openai.additionalModels": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "displayName",
+                            "family"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            },
+                            "family": {
+                                "type": "string"
+                            },
+                            "version": {
+                                "type": "string"
+                            },
+                            "maxInputTokens": {
+                                "type": "number"
+                            },
+                            "maxOutputTokens": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "description": "Additional OpenAI API model definitions beyond the built-in catalog.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.openai.baseUrl": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Override the OpenAI API base URL for proxies, gateways, or Azure OpenAI-compatible endpoints. Leave empty to use the SDK default.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.openai.timeout": {
+                    "type": "number",
+                    "default": 60000,
+                    "description": "OpenAI API request timeout in milliseconds.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.openai.env": {
+                    "type": "object",
+                    "default": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Environment fallback values for the OpenAI API provider. OPENAI_API_KEY may be set to an API key or to the name of an existing process environment variable.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.xai.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Register the xAI API language model provider for MSSQL inline completions. Enable this only when you want to use xAI API models. Reload VS Code after changing this setting.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.xai.additionalModels": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "displayName",
+                            "family"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            },
+                            "family": {
+                                "type": "string"
+                            },
+                            "version": {
+                                "type": "string"
+                            },
+                            "maxInputTokens": {
+                                "type": "number"
+                            },
+                            "maxOutputTokens": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "description": "Additional xAI API model definitions beyond the built-in catalog.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.xai.baseUrl": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Override the xAI API base URL for proxies or gateways. Leave empty to use https://api.x.ai/v1.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.xai.timeout": {
+                    "type": "number",
+                    "default": 60000,
+                    "description": "xAI API request timeout in milliseconds.",
+                    "scope": "application"
+                },
+                "mssql.copilot.sdkProviders.xai.env": {
+                    "type": "object",
+                    "default": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Environment fallback values for the xAI API provider. XAI_API_KEY may be set to an API key or to the name of an existing process environment variable.",
                     "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.useSchemaContext": {
