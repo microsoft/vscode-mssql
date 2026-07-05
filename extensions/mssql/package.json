@@ -1803,6 +1803,11 @@
                 "command": "mssql.queryStudio.duplicateAsNewQuery",
                 "title": "Query Studio: Duplicate as New Query",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlDataPlane.showStatus",
+                "title": "Show SQL Data-Plane Status",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [

@@ -23,6 +23,7 @@ import {
     QsTextEdit,
 } from "../sharedInterfaces/queryStudio";
 import { TextSyncEngine } from "./textSync";
+import { DocumentSessionBinding } from "./documentSessionBinding";
 
 export interface ModelTextEvents {
     onRemote(remote: QsSyncRemote): void;
@@ -33,6 +34,8 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     readonly uriKey: string;
     /** Managed by the registry. */
     panelCount = 0;
+    /** Shared data-plane session for every panel of this document (M1). */
+    readonly sessionBinding = new DocumentSessionBinding();
 
     private sync: TextSyncEngine;
     private listeners = new Set<ModelTextEvents>();
@@ -210,6 +213,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         this.disposed = true;
         // Doc 04 §7.3 grows here in B2/B3: cancel active query, close session,
         // release metadata handles, tear down shadow LSP, dispose RowStore.
+        this.sessionBinding.dispose();
         this.docSubscription.dispose();
         this.listeners.clear();
         this.onLastDispose?.(this);

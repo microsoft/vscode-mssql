@@ -610,6 +610,12 @@ export default class SqlToolsServiceClient {
 
         // Enable parallel message processing to improve performance
         args.push("--parallel-message-processing");
+
+        // STS2 v2 lane (StdioMultiplexer): only when the SQL data plane is
+        // enabled. v2/* traffic shares this stdio pair; legacy is unchanged.
+        if (vscode.workspace.getConfiguration().get<boolean>("mssql.sqlDataPlane.enabled", false)) {
+            args.push("--enable-sts2");
+        }
         args.push("--parallel-message-processing-limit");
         args.push(String(100));
 

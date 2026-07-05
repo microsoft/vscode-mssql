@@ -48,6 +48,7 @@ const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
 export class QueryStudioController extends WebviewBaseController<QsState, void> {
     private openMarkerEnded = false;
     private modelListener: vscode.Disposable;
+    private bindingListener: vscode.Disposable | undefined;
     private statePushTimer: NodeJS.Timeout | undefined;
     private lastStatePush = 0;
     private viewMode: "grid" | "text" = "grid";
@@ -76,6 +77,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 void this.sendNotification(QsSyncResyncNotification.type, resync);
             },
         });
+
+        this.bindingListener = this.model.sessionBinding.onDidChange(() => this.queueStatePush());
 
         // Initial sync payload once the webview is live.
         void this.sendNotification(QsSyncInitNotification.type, this.model.syncInit());
@@ -113,6 +116,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         const state = QueryStudioController.initialState(this.model);
         state.editor.hostVersion = this.model.hostVersion;
         state.toggles = { actualPlan: this.actualPlan, viewMode: this.viewMode };
+        state.connection = this.model.sessionBinding.connectionState;
+        state.statusMessage =
+            state.connection.kind === "connected" || state.connection.kind === "executing"
+                ? { kind: "info", text: "Connected." }
+                : state.connection.kind === "connecting"
+                  ? { kind: "info", text: "Connecting…" }
+                  : state.connection.kind === "lost"
+                    ? { kind: "warning", text: "Connection lost." }
+                    : { kind: "ready", text: "Ready — not connected" };
         return state;
     }
 
@@ -156,17 +168,28 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
 
         // --- honest M0 stubs (connection/execution land in B2/B3) ------------
-        const notReady = { started: false, reason: "SQL data plane connection lands in M1" };
-        this.onRequest(QsExecuteRequest.type, async () => notReady);
+        // Execution lands in B3/M2; connect is real from M1.
+        const executionNotReady = {
+            started: false,
+            reason: "Execution lands with the results core (M2)",
+        };
+        this.onRequest(QsExecuteRequest.type, async () => executionNotReady);
         this.onRequest(QsCancelRequest.type, async () => ({ acknowledged: false }));
         this.onRequest(QsConnectRequest.type, async () => {
-            void vscode.window.showInformationMessage(
-                "Query Studio connect arrives with the SQL data plane (M1).",
-            );
-            return { connected: false };
+            const connected = await this.model.sessionBinding.connect();
+            this.queueStatePush();
+            return { connected };
         });
-        this.onRequest(QsDisconnectRequest.type, async () => ({ disconnected: false }));
-        this.onRequest(QsReconnectRequest.type, async () => ({ connected: false }));
+        this.onRequest(QsDisconnectRequest.type, async () => {
+            const disconnected = await this.model.sessionBinding.disconnect();
+            this.queueStatePush();
+            return { disconnected };
+        });
+        this.onRequest(QsReconnectRequest.type, async () => {
+            const connected = await this.model.sessionBinding.connect();
+            this.queueStatePush();
+            return { connected };
+        });
         this.onRequest(QsSetDatabaseRequest.type, async () => ({ changed: false }));
         this.onRequest(QsListDatabasesRequest.type, async () => ({ databases: [] }));
         this.onRequest(QsGetRowsRequest.type, async (params) => ({
@@ -194,6 +217,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             clearTimeout(this.statePushTimer);
         }
         this.modelListener.dispose();
+        this.bindingListener?.dispose();
         super.dispose();
     }
 }
