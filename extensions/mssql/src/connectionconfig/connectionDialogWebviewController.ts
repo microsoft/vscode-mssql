@@ -1448,7 +1448,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private combineServerAndPort(connection: IConnectionDialogProfile): void {
-        if (connection.port) {
+        if (connection.port !== undefined) {
             if (connection.server && !connection.server.includes(",")) {
                 connection.server = `${connection.server},${connection.port}`;
             }
@@ -1929,7 +1929,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (connection.server?.includes(",")) {
             const commaIndex = connection.server.indexOf(",");
             const portString = connection.server.substring(commaIndex + 1).trim();
-            const parsedPort = parseInt(portString, 10);
+            const parsedPort = Number(portString);
 
             if (portString !== "" && !isNaN(parsedPort)) {
                 connection.server = connection.server.substring(0, commaIndex).trim();

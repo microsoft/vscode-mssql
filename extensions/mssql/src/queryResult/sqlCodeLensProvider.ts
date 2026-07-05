@@ -126,8 +126,15 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
             return undefined;
         }
 
-        const profile =
-            await this._connectionManager.connectionStore.connectionConfig.getConnectionById(id);
+        let profile: IConnectionProfile | undefined;
+        try {
+            profile =
+                await this._connectionManager.connectionStore.connectionConfig.getConnectionById(
+                    id,
+                );
+        } catch {
+            return undefined;
+        }
 
         if (
             profile &&
