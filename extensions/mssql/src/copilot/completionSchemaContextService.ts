@@ -255,13 +255,20 @@ export class CompletionSchemaContextService implements vscode.Disposable {
                     this.clearCache();
                 }
             }),
-            vscode.commands.registerCommand(
-                Constants.cmdCopilotInlineCompletionRefreshSchemaContext,
-                () => {
-                    this.clearCache();
-                },
-            ),
         );
+        try {
+            this.disposables.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdCopilotInlineCompletionRefreshSchemaContext,
+                    () => {
+                        this.clearCache();
+                    },
+                ),
+            );
+        } catch {
+            // The refresh command belongs to the activated extension's
+            // instance; secondary instances (tests) skip registration.
+        }
     }
 
     public dispose(): void {
