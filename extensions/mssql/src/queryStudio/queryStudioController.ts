@@ -30,6 +30,8 @@ import {
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
     QsGetRowsRequest,
+    QsInlineCompletionAcceptedRequest,
+    QsInlineCompletionRequest,
     QsListDatabasesRequest,
     QsNavigateToLineRequest,
     QsReconnectRequest,
@@ -47,6 +49,8 @@ import {
     QsSyncUndoRequest,
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
+import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
+import { getSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 
 const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
@@ -60,6 +64,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private lastStatePush = 0;
     private viewMode: "grid" | "text" = "grid";
     private actualPlan = false;
+    private inlineCompletionCts: vscode.CancellationTokenSource | undefined;
+    /** Accepted-command args by debug event id ("__last__" when capture is off). */
+    private inlineCompletionAcceptedArgs = new Map<string, unknown[]>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -195,6 +202,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 mode: metadata.mode,
             };
         }
+        state.completions = { enabled: isInlineCompletionFeatureEnabled() };
         state.statusMessage = QueryStudioController.statusFor(state);
         return state;
     }
@@ -346,6 +354,61 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.actualPlan = enabled;
             this.queueStatePush();
         });
+        this.onRequest(QsInlineCompletionRequest.type, async (params) => {
+            // Same provider pipeline as the classic editor — the custom text
+            // editor's backing vscode.TextDocument stays sync'd by the host.
+            const provider = getSharedInlineCompletionProvider();
+            const document = this.model.backingDocument;
+            if (!provider || !document) {
+                return { text: "" };
+            }
+            this.inlineCompletionCts?.cancel();
+            const cts = new vscode.CancellationTokenSource();
+            this.inlineCompletionCts = cts;
+            try {
+                const items = await provider.provideInlineCompletionItems(
+                    document,
+                    new vscode.Position(params.line, params.character),
+                    {
+                        triggerKind:
+                            params.trigger === "invoke"
+                                ? vscode.InlineCompletionTriggerKind.Invoke
+                                : vscode.InlineCompletionTriggerKind.Automatic,
+                        selectedCompletionInfo: undefined,
+                    },
+                    cts.token,
+                );
+                const list = Array.isArray(items) ? items : (items?.items ?? []);
+                const item = list[0];
+                if (!item) {
+                    return { text: "" };
+                }
+                const text =
+                    typeof item.insertText === "string" ? item.insertText : item.insertText.value;
+                const commandArgs = item.command?.arguments ?? [];
+                const eventId = typeof commandArgs[1] === "string" ? commandArgs[1] : undefined;
+                if (item.command) {
+                    this.inlineCompletionAcceptedArgs.set(eventId ?? "__last__", commandArgs);
+                }
+                return { text, ...(eventId ? { eventId } : {}) };
+            } catch {
+                return { text: "" };
+            } finally {
+                if (this.inlineCompletionCts === cts) {
+                    this.inlineCompletionCts = undefined;
+                }
+            }
+        });
+        this.onRequest(QsInlineCompletionAcceptedRequest.type, async ({ eventId }) => {
+            const commandArgs = this.inlineCompletionAcceptedArgs.get(eventId ?? "__last__");
+            if (commandArgs) {
+                this.inlineCompletionAcceptedArgs.delete(eventId ?? "__last__");
+                await vscode.commands.executeCommand(
+                    "mssql.copilot.inlineCompletion.accepted",
+                    ...commandArgs,
+                );
+            }
+        });
         this.onRequest(QsUpdateGridSelectionRequest.type, async () => undefined);
     }
 
@@ -353,6 +416,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         if (this.statePushTimer) {
             clearTimeout(this.statePushTimer);
         }
+        this.inlineCompletionCts?.cancel();
+        this.inlineCompletionCts = undefined;
         this.modelListener.dispose();
         this.bindingListener?.dispose();
         this.executionListener?.dispose();

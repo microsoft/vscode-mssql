@@ -271,6 +271,33 @@ export namespace QsSetViewModeRequest {
 export namespace QsSetActualPlanRequest {
     export const type = new RequestType<{ enabled: boolean }, void, void>("qs/setActualPlan");
 }
+
+export interface QsInlineCompletionParams {
+    /** 0-based document line. */
+    line: number;
+    /** 0-based UTF-16 column. */
+    character: number;
+    trigger: "automatic" | "invoke";
+}
+
+export interface QsInlineCompletionResult {
+    /** Ghost text to insert at the cursor; empty means no completion. */
+    text: string;
+    /** Debug-store event id (present when debug capture is on). */
+    eventId?: string;
+}
+
+export namespace QsInlineCompletionRequest {
+    export const type = new RequestType<QsInlineCompletionParams, QsInlineCompletionResult, void>(
+        "qs/inlineCompletion",
+    );
+}
+
+export namespace QsInlineCompletionAcceptedRequest {
+    export const type = new RequestType<{ eventId?: string }, void, void>(
+        "qs/inlineCompletionAccepted",
+    );
+}
 export namespace QsUpdateGridSelectionRequest {
     export const type = new RequestType<
         { row?: number; column?: number; rangeRows?: number; rangeCols?: number },

@@ -89,6 +89,7 @@ import {
 } from "../copilot/completionSchemaContextService";
 import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
+import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import { InlineCompletionDebugController } from "../copilot/inlineCompletionDebug/inlineCompletionDebugController";
 import {
     getConfiguredTraceFolder,
@@ -484,8 +485,10 @@ export default class MainController implements vscode.Disposable {
                 this._context,
                 this.inlineCompletionSchemaContextService,
             );
+            setSharedInlineCompletionProvider(inlineCompletionProvider);
             const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
             this._context.subscriptions.push(
+                { dispose: () => setSharedInlineCompletionProvider(undefined) },
                 this.inlineCompletionSchemaContextService,
                 inlineCompletionProvider,
                 copilotEnableSettingsGuard,

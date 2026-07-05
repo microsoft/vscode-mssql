@@ -25,6 +25,8 @@ import {
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
     QsMessageRow,
+    QsInlineCompletionAcceptedRequest,
+    QsInlineCompletionRequest,
     QsMessagesAppendedNotification,
     QsRevealPositionNotification,
     QsListDatabasesRequest,
@@ -364,6 +366,65 @@ export function QueryStudioApp() {
         return () => window.removeEventListener("keydown", onKey);
     }, [execute, cancel]);
 
+    // --- inline completions (B6): ghost text via the host's shared provider ----
+    const completionsEnabled = state?.completions?.enabled === true;
+    useEffect(() => {
+        if (!completionsEnabled) {
+            return;
+        }
+        const acceptedCommandId = "mssql.qs.inlineCompletionAccepted";
+        let commandDisposable: { dispose(): void } | undefined;
+        try {
+            commandDisposable = monacoApi.editor.registerCommand(
+                acceptedCommandId,
+                (_accessor: unknown, eventId?: string) => {
+                    void rpc.sendRequest(QsInlineCompletionAcceptedRequest.type, { eventId });
+                },
+            );
+        } catch {
+            // Already registered by a previous enable/disable cycle.
+        }
+        const providerDisposable = monacoApi.languages.registerInlineCompletionsProvider("sql", {
+            provideInlineCompletions: async (_model, position, context) => {
+                const response = await rpc.sendRequest(QsInlineCompletionRequest.type, {
+                    line: position.lineNumber - 1,
+                    character: position.column - 1,
+                    trigger:
+                        context.triggerKind ===
+                        monacoApi.languages.InlineCompletionTriggerKind.Explicit
+                            ? "invoke"
+                            : "automatic",
+                });
+                if (!response?.text) {
+                    return { items: [] };
+                }
+                return {
+                    items: [
+                        {
+                            insertText: response.text,
+                            range: new monacoApi.Range(
+                                position.lineNumber,
+                                position.column,
+                                position.lineNumber,
+                                position.column,
+                            ),
+                            command: {
+                                id: acceptedCommandId,
+                                title: "MSSQL inline SQL completion accepted",
+                                arguments: [response.eventId],
+                            },
+                        },
+                    ],
+                };
+            },
+            disposeInlineCompletions: () => undefined,
+        });
+        return () => {
+            providerDisposable.dispose();
+            commandDisposable?.dispose();
+        };
+    }, [completionsEnabled, rpc]);
+
     // --- splitter --------------------------------------------------------------
     const onSplitterDown = useCallback((down: React.PointerEvent) => {
         down.preventDefault();
@@ -499,6 +560,7 @@ export function QueryStudioApp() {
                         wordWrap: "off",
                         renderLineHighlight: "line",
                         scrollBeyondLastLine: false,
+                        inlineSuggest: { enabled: true },
                     }}
                 />
             </div>
