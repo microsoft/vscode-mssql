@@ -42,6 +42,7 @@ export class ExecutionHost {
     private runCounter = 0;
     private startedEpochMs: number | undefined;
     private lastResult: RunResult | undefined;
+    private lastRunText: string | undefined;
     executionState: QsExecutionState = { kind: "idle" };
 
     constructor(
@@ -96,6 +97,7 @@ export class ExecutionHost {
         this.summaryOrder = [];
         this.lastResult = undefined;
         this.startedEpochMs = Date.now();
+        this.lastRunText = text;
         this.executionState = {
             kind: "executing",
             startedEpochMs: this.startedEpochMs,
@@ -182,6 +184,10 @@ export class ExecutionHost {
     }
 
     private finishRun(result: RunResult): void {
+        this.binding.notifyExecutedBatch(
+            this.lastRunText ?? "",
+            result.status === "succeeded" || result.status === "completedWithErrors",
+        );
         this.lastResult = result;
         this.executionState = {
             kind: result.status,

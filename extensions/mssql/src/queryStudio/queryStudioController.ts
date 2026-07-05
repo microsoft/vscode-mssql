@@ -187,6 +187,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             state.execution.elapsedMs = Date.now() - state.execution.startedEpochMs;
         }
         state.results = this.model.executionHost.resultsState();
+        const metadata = this.model.sessionBinding.metadataStatus;
+        if (metadata) {
+            state.metadata = {
+                readiness: metadata.readiness,
+                generation: metadata.generation,
+                mode: metadata.mode,
+            };
+        }
         state.statusMessage = QueryStudioController.statusFor(state);
         return state;
     }

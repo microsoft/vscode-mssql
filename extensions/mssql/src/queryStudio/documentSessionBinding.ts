@@ -25,6 +25,11 @@ import {
     SqlConnectionProfileRef,
 } from "../services/sqlDataPlane/api";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import {
+    DataPlaneMetadataSessionSource,
+    MetadataService,
+    MetadataStatus,
+} from "../services/metadata/metadataService";
 import { QsConnectionState } from "../sharedInterfaces/queryStudio";
 
 interface StoredProfile {
@@ -56,6 +61,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private lostReason: string | undefined;
     private spid: number | undefined;
     private onChangeHandlers = new Set<() => void>();
+    private metadataService: MetadataService | undefined;
+    private metadataHandle: ReturnType<MetadataService["acquire"]> | undefined;
+    metadataStatus: MetadataStatus | undefined;
 
     onDidChange(handler: () => void): vscode.Disposable {
         this.onChangeHandlers.add(handler);
@@ -134,7 +142,10 @@ export class DocumentSessionBinding implements vscode.Disposable {
         return this.open(picked.profile, store);
     }
 
+    private lastStoredProfile: StoredProfile | undefined;
+
     private async open(stored: StoredProfile, store: ConnectionStoreSeam): Promise<boolean> {
+        this.lastStoredProfile = stored;
         this.stateKind = "connecting";
         this.lostReason = undefined;
         this.fireChange();
@@ -184,6 +195,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 metadataSession: false,
             });
             this.fireChange();
+            // Metadata catalog (design §8.2): dedicated session over the
+            // same profile; hydration never contends with the user's F5.
+            this.acquireMetadata(profileRef, store, authKind);
             // SPID probe only because the open result lacks it (worksheet #5).
             void this.probeSpid(session);
             return true;
@@ -249,6 +263,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
         if (!this.session) {
             return false;
         }
+        this.releaseMetadata();
         this.stateKind = "disconnecting";
         this.fireChange();
         await this.session.close().catch(() => undefined);
@@ -259,7 +274,60 @@ export class DocumentSessionBinding implements vscode.Disposable {
         return true;
     }
 
+    private acquireMetadata(
+        profileRef: SqlConnectionProfileRef,
+        store: ConnectionStoreSeam,
+        authKind: "sql" | "integrated",
+    ): void {
+        void (async () => {
+            try {
+                const service = await SqlDataPlaneService.get().service();
+                const source = new DataPlaneMetadataSessionSource(service, {
+                    profile: profileRef,
+                    applicationName: "vscode-mssql-metadata",
+                    auth: {
+                        passwordProvider: async () =>
+                            authKind === "sql"
+                                ? store.lookupPassword(this.lastStoredProfile ?? {})
+                                : undefined,
+                    },
+                });
+                this.metadataService = new MetadataService(source);
+                this.metadataHandle = this.metadataService.acquire(
+                    {
+                        serverFingerprint: profileRef.profileFingerprint,
+                        database: this.connectionState.database ?? "",
+                    },
+                    (status) => {
+                        this.metadataStatus = status;
+                        this.fireChange();
+                    },
+                );
+            } catch {
+                // Metadata is an enhancement; connect stays healthy without it.
+            }
+        })();
+    }
+
+    /** DDL sniff feed (metadata design §9.1). */
+    notifyExecutedBatch(text: string, succeeded: boolean): void {
+        this.metadataHandle?.notifyExecutedBatch({ text, succeeded });
+    }
+
+    get metadataHandleForConsumers(): ReturnType<MetadataService["acquire"]> | undefined {
+        return this.metadataHandle;
+    }
+
+    private releaseMetadata(): void {
+        this.metadataHandle?.dispose();
+        this.metadataHandle = undefined;
+        this.metadataService?.dispose();
+        this.metadataService = undefined;
+        this.metadataStatus = undefined;
+    }
+
     dispose(): void {
+        this.releaseMetadata();
         void this.session?.close().catch(() => undefined);
         this.onChangeHandlers.clear();
     }
