@@ -100,6 +100,32 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
         return;
     }
     context.subscriptions.push(
+        vscode.commands.registerCommand("mssql.perf.queryStudioConnect", async (uri?: string) => {
+            const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
+            if (!model) {
+                return { error: `no live Query Studio model${uri ? ` for ${uri}` : ""}` };
+            }
+            const connected = await model.sessionBinding.connect();
+            return { connected };
+        }),
+        vscode.commands.registerCommand(
+            "mssql.perf.queryStudioExecute",
+            (args?: { uri?: string; text?: string }) => {
+                const model = args?.uri
+                    ? liveModels.get(args.uri)
+                    : liveModels.values().next().value;
+                if (!model) {
+                    return {
+                        error: `no live Query Studio model${args?.uri ? ` for ${args.uri}` : ""}`,
+                    };
+                }
+                const text = args?.text ?? model.backingDocument?.getText() ?? "";
+                return model.executionHost.execute(text, {
+                    selectionStartLine: 0,
+                    scope: "document",
+                });
+            },
+        ),
         vscode.commands.registerCommand("mssql.perf.queryStudioState", (uri?: string) => {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {

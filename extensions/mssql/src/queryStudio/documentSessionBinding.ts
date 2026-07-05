@@ -128,6 +128,12 @@ export class DocumentSessionBinding implements vscode.Disposable {
             );
             return false;
         }
+        if (Perf.enabled && profiles.length === 1) {
+            // PERF_MODE harness seam: a quick-pick would hang a headless
+            // scenario; exactly-one saved profile auto-selects. Outside perf
+            // mode behavior is unchanged.
+            return this.open(profiles[0], store);
+        }
         const picked = await vscode.window.showQuickPick(
             profiles.map((profile) => ({
                 label: profile.profileName || `${profile.server}`,
