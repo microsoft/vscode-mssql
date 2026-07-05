@@ -696,6 +696,144 @@ suite("OE Service Tests", () => {
             ).to.be.false;
         });
 
+        test("getNodeChildren should send RefreshRequest when node is marked for refresh", async () => {
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            setUpOETreeRoot(objectExplorerService, [connectionProfile]);
+
+            const connectionNode = (objectExplorerService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+            connectionNode.filters = [
+                { name: "Name", operator: 8, value: "cdwi" },
+            ] as import("vscode-mssql").NodeFilter[];
+            connectionNode.shouldRefresh = true;
+
+            mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
+
+            await (objectExplorerService as any).getNodeChildren(connectionNode);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(mockClient.sendRequest, "Refresh request should be sent").to.have.been
+                .calledOnce;
+            expect(
+                mockClient.sendRequest.args[0][0],
+                "Request type should be RefreshRequest",
+            ).to.equal(RefreshRequest.type);
+            expect(
+                mockClient.sendRequest.args[0][1],
+                "Refresh payload should include filters",
+            ).to.deep.equal({
+                sessionId: connectionNode.sessionId,
+                nodePath: connectionNode.nodePath,
+                filters: connectionNode.filters,
+            });
+
+            const pendingExpandKey = `${connectionNode.sessionId}${connectionNode.nodePath}`;
+            const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            ) as Deferred<any>;
+            const inFlightPromise = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+
+            pendingExpand.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [],
+                errorMessage: "",
+            });
+            await inFlightPromise;
+
+            expect(connectionNode.shouldRefresh, "Refresh flag should be cleared after refresh").to
+                .be.false;
+        });
+
+        test("getNodeChildren should queue a filtered refresh when refresh is requested during an in-flight load", async () => {
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            setUpOETreeRoot(objectExplorerService, [connectionProfile]);
+
+            const connectionNode = (objectExplorerService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+
+            mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
+            mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
+
+            await (objectExplorerService as any).getNodeChildren(connectionNode);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            const pendingExpandKey = `${connectionNode.sessionId}${connectionNode.nodePath}`;
+            const firstPending = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            ) as Deferred<any>;
+            const firstInFlight = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+
+            connectionNode.filters = [
+                { name: "Name", operator: 8, value: "cdwi" },
+            ] as import("vscode-mssql").NodeFilter[];
+            connectionNode.shouldRefresh = true;
+            await (objectExplorerService as any).getNodeChildren(connectionNode);
+
+            expect(
+                mockClient.sendRequest,
+                "Refresh should wait for the current load to finish",
+            ).to.have.been.calledOnceWithExactly(ExpandRequest.type, sinon.match.any);
+
+            firstPending.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [
+                    {
+                        nodePath: `${connectionNode.nodePath}/oldChild`,
+                        nodeType: "table",
+                        nodeSubType: "",
+                        label: "oldChild",
+                    },
+                ],
+                errorMessage: "",
+            });
+            await firstInFlight;
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            expect(
+                mockClient.sendRequest.callCount,
+                "Queued refresh should send a second request",
+            ).to.equal(2);
+            expect(
+                mockClient.sendRequest.args[1][0],
+                "Queued request should be RefreshRequest",
+            ).to.equal(RefreshRequest.type);
+            expect(
+                mockClient.sendRequest.args[1][1],
+                "Queued refresh should use latest filters",
+            ).to.deep.equal({
+                sessionId: connectionNode.sessionId,
+                nodePath: connectionNode.nodePath,
+                filters: connectionNode.filters,
+            });
+
+            const secondPending = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            ) as Deferred<any>;
+            const secondInFlight = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+
+            secondPending.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [],
+                errorMessage: "",
+            });
+            await secondInFlight;
+
+            expect(
+                (objectExplorerService as any)._refreshQueuedAfterInFlight.has(connectionNode),
+                "Queued refresh marker should be cleared",
+            ).to.be.false;
+        });
+
         test("expandNode should handle error response from SQL Tools Service", async () => {
             // Mock node and session ID
             const mockNode = new TreeNodeInfo(
