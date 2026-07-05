@@ -65,6 +65,8 @@ export interface QsLangCompletionItem {
     readonly sortText?: string;
     readonly filterText?: string;
     readonly commitCharacters?: readonly string[];
+    /** Explicit replace range (star expansion); default is the caret word. */
+    readonly replaceRange?: QsLangRange;
 }
 
 export interface QsLangCompletionParams extends QsLangPosition {

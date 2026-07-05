@@ -3080,6 +3080,22 @@
                     "description": "Query Studio language service engine. 'sqlToolsService' uses the existing SQL Tools Service language features through a bridge; 'nativeTypeScript' prefers the new native TypeScript T-SQL language service for features that have graduated.",
                     "scope": "application"
                 },
+                "mssql.sqlLanguage.completions.snippets": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Include T-SQL statement snippets in native language service completions.",
+                    "scope": "application"
+                },
+                "mssql.sqlLanguage.keywordCasing": {
+                    "type": "string",
+                    "enum": [
+                        "upper",
+                        "lower"
+                    ],
+                    "default": "upper",
+                    "description": "Keyword casing for native language service completions.",
+                    "scope": "application"
+                },
                 "mssql.copilot.sdkProviders.anthropic.enabled": {
                     "type": "boolean",
                     "default": false,

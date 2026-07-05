@@ -20,6 +20,7 @@ import {
     MetadataService,
     typeDisplay,
 } from "../../src/services/metadata/metadataService";
+import { CatalogLanguageMetadataProvider } from "../../src/sqlLanguage/provider/catalogProvider";
 
 function sysScripts(overrides?: { columnsFail?: boolean }): FakeScript[] {
     return [
@@ -136,13 +137,17 @@ function sysScripts(overrides?: { columnsFail?: boolean }): FakeScript[] {
                               "precision",
                               "scale",
                               "is_nullable",
+                              "is_identity",
+                              "is_computed",
                           ],
+                          // Bit columns arrive as boolean OR 0/1 depending on
+                          // the wire; both forms appear here on purpose.
                           rows: [
-                              [101, 1, "OrderId", "int", 4, 10, 0, false],
-                              [101, 2, "CustomerId", "int", 4, 10, 0, true],
-                              [101, 3, "Total", "decimal", 9, 18, 2, true],
-                              [102, 1, "CustomerId", "int", 4, 10, 0, false],
-                              [102, 2, "Name", "nvarchar", 200, 0, 0, false],
+                              [101, 1, "OrderId", "int", 4, 10, 0, false, true, false],
+                              [101, 2, "CustomerId", "int", 4, 10, 0, true, false, false],
+                              [101, 3, "Total", "decimal", 9, 18, 2, true, 0, 1],
+                              [102, 1, "CustomerId", "int", 4, 10, 0, false, 1, 0],
+                              [102, 2, "Name", "nvarchar", 200, 0, 0, false, false, false],
                           ],
                       },
                       { type: "complete", status: "succeeded" },
@@ -233,6 +238,46 @@ suite("Metadata catalog (B5)", () => {
         expect(
             snapshot.getParameters(105).map((p) => `${p.name}:${p.typeDisplay}:${p.isOutput}`),
         ).to.deep.equal(["@CustomerId:int:false", "@Total:decimal(18,2):true"]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("H3 identity/computed flags reach snapshot columns and the pinned language view", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+
+        // Snapshot surface: flags set only when true (absent = unknown/false),
+        // parsed from both boolean and 0/1 bit wire forms.
+        const orders = snapshot.getColumns(101);
+        expect(orders[0]).to.deep.equal({
+            ordinal: 0,
+            name: "OrderId",
+            typeDisplay: "int",
+            nullable: false,
+            isIdentity: true,
+        });
+        expect(orders[1]).to.not.have.property("isIdentity");
+        expect(orders[1]).to.not.have.property("isComputed");
+        expect(orders[2].isComputed).to.equal(true); // 0/1 wire form
+        expect(orders[2].isIdentity).to.equal(undefined);
+        expect(snapshot.getColumns(102)[0].isIdentity).to.equal(true); // 1/0 wire form
+
+        // Language provider surface: pinned view maps the flags onto LangColumn.
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => handle,
+            serverVersion: () => "16.0.4165.4",
+            currentDatabase: () => KEY.database,
+            databases: () => [KEY.database],
+            subscribeStatus: () => () => undefined,
+        });
+        const pinned = provider.pin();
+        const columns = pinned.getColumns({ objectId: 101 })!;
+        expect(
+            columns.map((c) => `${c.name}:${c.isIdentity ?? "-"}:${c.isComputed ?? "-"}`),
+        ).to.deep.equal(["OrderId:true:-", "CustomerId:-:-", "Total:-:true"]);
+        expect(columns[0].isPrimaryKey).to.equal(true);
         handle.dispose();
         service.dispose();
     });

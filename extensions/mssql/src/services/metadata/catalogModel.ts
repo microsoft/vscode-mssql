@@ -55,6 +55,10 @@ export interface ColumnInfo {
     name: string;
     typeDisplay: string;
     nullable: boolean;
+    /** Set only when true; absent means unknown/false (H3 extension). */
+    isIdentity?: boolean;
+    /** Set only when true; absent means unknown/false (H3 extension). */
+    isComputed?: boolean;
 }
 
 export interface FkEdge {
@@ -117,6 +121,8 @@ export class CatalogBuilder {
     columnNameSyms: number[] = [];
     columnTypeSyms: number[] = [];
     columnNullable: boolean[] = [];
+    columnIdentity: boolean[] = [];
+    columnComputed: boolean[] = [];
 
     // fk edges (constraintIds parallel; -1 when the source lacks one)
     fkFrom: number[] = [];
@@ -175,7 +181,14 @@ export class CatalogBuilder {
         this.objectModifyDates.push(modifyDate);
     }
 
-    addColumn(objectId: number, name: string, typeDisplay: string, nullable: boolean): void {
+    addColumn(
+        objectId: number,
+        name: string,
+        typeDisplay: string,
+        nullable: boolean,
+        isIdentity = false,
+        isComputed = false,
+    ): void {
         const objectIndex = this.objectIds.indexOf(objectId);
         if (objectIndex < 0) {
             return; // column for unknown object: dropped (H3 raced a DDL)
@@ -184,6 +197,8 @@ export class CatalogBuilder {
         this.columnNameSyms.push(this.intern(name));
         this.columnTypeSyms.push(this.intern(typeDisplay));
         this.columnNullable.push(nullable);
+        this.columnIdentity.push(isIdentity);
+        this.columnComputed.push(isComputed);
     }
 
     addForeignKey(
@@ -419,12 +434,19 @@ export class CatalogSnapshot {
         const [start, end] = this.columnRanges[index];
         const columns: ColumnInfo[] = [];
         for (let c = start; c < end; c++) {
-            columns.push({
+            const column: ColumnInfo = {
                 ordinal: c - start,
                 name: this.strings[this.b.columnNameSyms[c]],
                 typeDisplay: this.strings[this.b.columnTypeSyms[c]],
                 nullable: this.b.columnNullable[c],
-            });
+            };
+            if (this.b.columnIdentity[c]) {
+                column.isIdentity = true;
+            }
+            if (this.b.columnComputed[c]) {
+                column.isComputed = true;
+            }
+            columns.push(column);
         }
         return columns;
     }

@@ -75,7 +75,7 @@ const H2_OBJECTS =
     "SELECT o.object_id, o.schema_id, o.name, RTRIM(o.type) AS type, CONVERT(varchar(33), o.modify_date, 126) AS modify_date " +
     "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0 ORDER BY o.object_id;";
 const H3_COLUMNS =
-    "SELECT c.object_id, c.column_id, c.name, t.name AS type_name, c.max_length, c.precision, c.scale, c.is_nullable " +
+    "SELECT c.object_id, c.column_id, c.name, t.name AS type_name, c.max_length, c.precision, c.scale, c.is_nullable, c.is_identity, c.is_computed " +
     "FROM sys.columns c JOIN sys.types t ON c.user_type_id = t.user_type_id " +
     "JOIN sys.objects o ON o.object_id = c.object_id AND o.type IN ('U','V','IF','TF') AND o.is_ms_shipped = 0 " +
     "ORDER BY c.object_id, c.column_id;";
@@ -403,6 +403,8 @@ export class MetadataService {
                         String(row[2]),
                         typeDisplay(String(row[3]), Number(row[4]), Number(row[5]), Number(row[6])),
                         row[7] === true || row[7] === 1,
+                        row[8] === true || row[8] === 1,
+                        row[9] === true || row[9] === 1,
                     );
                 }
             } catch {

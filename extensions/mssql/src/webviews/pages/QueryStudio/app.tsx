@@ -471,7 +471,14 @@ export function QueryStudioApp() {
                                 label: item.label,
                                 kind: completionItemKind(item.kind),
                                 insertText: item.insertText,
-                                range,
+                                range: item.replaceRange
+                                    ? new monacoApi.Range(
+                                          item.replaceRange.start.line + 1,
+                                          item.replaceRange.start.character + 1,
+                                          item.replaceRange.end.line + 1,
+                                          item.replaceRange.end.character + 1,
+                                      )
+                                    : range,
                                 ...(item.isSnippet
                                     ? {
                                           insertTextRules:

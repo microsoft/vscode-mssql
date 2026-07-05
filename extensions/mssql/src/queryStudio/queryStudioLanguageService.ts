@@ -101,7 +101,19 @@ export class QueryStudioLanguageService implements vscode.Disposable {
                 return () => subscription?.dispose();
             },
         });
-        this.nativeEngine = new NativeSqlLanguageEngine(this.provider);
+        this.nativeEngine = new NativeSqlLanguageEngine(this.provider, () => {
+            const config = vscode.workspace.getConfiguration();
+            return {
+                snippetsEnabled: config.get<boolean>(
+                    "mssql.sqlLanguage.completions.snippets",
+                    true,
+                ),
+                keywordCasing:
+                    config.get<string>("mssql.sqlLanguage.keywordCasing", "upper") === "lower"
+                        ? "lower"
+                        : "upper",
+            };
+        });
         this.router = new LanguageFeatureRouter({
             native: this.nativeEngine,
             getBridge: () => this.ensureBridge(),
