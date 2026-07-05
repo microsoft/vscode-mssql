@@ -53,7 +53,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         private readonly onLastDispose?: (model: QueryStudioDocumentModel) => void,
     ) {
         this.uriKey = document.uri.toString();
-        this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding);
+        this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this.uriKey);
         this.sync = new TextSyncEngine(document.getText());
         this.docSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
             if (e.document.uri.toString() !== this.document.uri.toString()) {

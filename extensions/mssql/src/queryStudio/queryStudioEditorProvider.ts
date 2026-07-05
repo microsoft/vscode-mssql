@@ -16,6 +16,7 @@ import { Perf } from "../perf/perfTelemetry";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
+import { QueryStudioReplayController } from "./replay/queryStudioReplayController";
 
 export const QUERY_STUDIO_VIEW_TYPE = "mssql.queryStudio";
 
@@ -205,5 +206,20 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 );
             },
         ),
+        vscode.commands.registerCommand("mssql.queryStudio.openReplayLab", () => {
+            if (replayController && !replayController.isDisposed) {
+                replayController.revealToForeground();
+                return;
+            }
+            replayController = new QueryStudioReplayController(context, () => [
+                ...liveModels.values(),
+            ]);
+            replayController.onDisposed(() => {
+                replayController = undefined;
+            });
+        }),
+        { dispose: () => replayController?.dispose() },
     );
 }
+
+let replayController: QueryStudioReplayController | undefined;

@@ -20,8 +20,10 @@ import {
     QsResultsState,
     QsCellWindow,
 } from "../sharedInterfaces/queryStudio";
+import { FeatureReplayTags } from "../sharedInterfaces/featureReplay";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionOrchestrator, RunResult } from "./executionOrchestrator";
+import { beginRunRecord, completeRunRecord } from "./replay/qsRunCapture";
 import { RowStore } from "./rowStore";
 
 export interface ExecutionHostEvents {
@@ -43,11 +45,14 @@ export class ExecutionHost {
     private startedEpochMs: number | undefined;
     private lastResult: RunResult | undefined;
     private lastRunText: string | undefined;
+    private activeRunRecordId: string | undefined;
+    private msToFirstResult: number | undefined;
     executionState: QsExecutionState = { kind: "idle" };
 
     constructor(
         private readonly spillRoot: string,
         private readonly binding: DocumentSessionBinding,
+        private readonly uriKey: string = "",
     ) {}
 
     attach(listener: ExecutionHostEvents): { dispose(): void } {
@@ -72,6 +77,8 @@ export class ExecutionHost {
             selectionStartLine: number;
             scope: "selection" | "document";
             mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
+            /** Present when this run is a replay-engine re-execution. */
+            replayTags?: FeatureReplayTags;
         },
     ): { started: boolean; reason?: string } {
         const session = this.binding.activeSession;
@@ -103,6 +110,23 @@ export class ExecutionHost {
             startedEpochMs: this.startedEpochMs,
         };
         this.binding.setExecuting(true);
+
+        // Run-record capture (design 04 §17.2): armed via Replay Lab panel or
+        // mssql.queryStudio.replay.enabled; digest-only unless elevated.
+        const sessionInfo = session.info as { server?: string; database?: string } | undefined;
+        this.activeRunRecordId = beginRunRecord({
+            text,
+            uriKey: this.uriKey,
+            scope: options.scope,
+            mode: options.mode ?? "normal",
+            ...(sessionInfo?.server ? { server: sessionInfo.server } : {}),
+            ...(sessionInfo?.database ? { database: sessionInfo.database } : {}),
+            ...(this.binding.metadataStatus
+                ? { catalogGeneration: this.binding.metadataStatus.generation }
+                : {}),
+            ...(options.replayTags ? { replayTags: options.replayTags } : {}),
+        });
+        this.msToFirstResult = undefined;
 
         const host = this;
         this.orchestrator = new ExecutionOrchestrator(session, this.rowStore, {
@@ -151,6 +175,9 @@ export class ExecutionHost {
                     host.fan((l) => l.onExecutionStateChanged());
                 }
             },
+            onFirstResult(msFromSubmit) {
+                host.msToFirstResult = msFromSubmit;
+            },
         });
 
         void this.orchestrator
@@ -184,6 +211,20 @@ export class ExecutionHost {
     }
 
     private finishRun(result: RunResult): void {
+        completeRunRecord(
+            this.activeRunRecordId,
+            {
+                status: result.status,
+                batches: result.batches,
+                resultSets: result.resultSets,
+                totalRows: result.totalRows,
+                errors: result.errors,
+                ...(result.rowsAffected !== undefined ? { rowsAffected: result.rowsAffected } : {}),
+                durationMs: result.durationMs,
+            },
+            this.msToFirstResult,
+        );
+        this.activeRunRecordId = undefined;
         this.binding.notifyExecutedBatch(
             this.lastRunText ?? "",
             result.status === "succeeded" || result.status === "completedWithErrors",
