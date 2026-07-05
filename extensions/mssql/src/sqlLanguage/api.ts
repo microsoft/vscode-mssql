@@ -58,6 +58,8 @@ export interface SqlCompletionItem {
     readonly sortText?: string;
     readonly filterText?: string;
     readonly commitCharacters?: readonly string[];
+    /** Explicit replace range (star expansion); default is the caret word. */
+    readonly replaceRange?: SqlLanguageRange;
 }
 
 export interface CompletionRequest extends SqlLanguageRequest {

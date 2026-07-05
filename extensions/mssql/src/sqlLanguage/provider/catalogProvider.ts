@@ -230,7 +230,8 @@ class SnapshotPinnedView implements IPinnedMetadataView {
             typeDisplay: c.typeDisplay,
             nullable: c.nullable,
             isPrimaryKey: pk.has(c.name) || undefined,
-            // isIdentity / isComputed arrive with the B9 H3 extension.
+            isIdentity: c.isIdentity || undefined,
+            isComputed: c.isComputed || undefined,
         }));
     }
 

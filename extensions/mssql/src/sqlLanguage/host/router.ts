@@ -36,9 +36,13 @@ function maturityAtLeast(actual: FeatureMaturity, threshold: FeatureMaturity): b
     return MATURITY_ORDER.indexOf(actual) >= MATURITY_ORDER.indexOf(threshold);
 }
 
-/** LS-0 capability table: only lexer/segmenter-backed structure features are native. */
+/**
+ * Default capability table. LS-0 shipped structure features; B9/LS-1
+ * promoted completion to preview (served natively only under the
+ * nativeTypeScript preference).
+ */
 export const LS0_NATIVE_CAPABILITIES: NativeCapabilityTable = {
-    completion: "off",
+    completion: "preview",
     hover: "off",
     signatureHelp: "off",
     diagnostics: "off",

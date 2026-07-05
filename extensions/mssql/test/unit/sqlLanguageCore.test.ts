@@ -394,15 +394,17 @@ suite("sqlLanguage LS-0 native features", () => {
         );
     });
 
-    test("no schema claims in LS-0: completion/hover/diagnostics are unserved", async () => {
+    test("feature ladder: completion serves (B9); hover/diagnostics unserved until their batch", async () => {
+        const completion = await engine.completion({
+            text: "SELECT ",
+            version: 3,
+            position: { line: 0, character: 7 },
+            trigger: "invoke",
+        });
+        expect(completion).to.not.equal(undefined);
         expect(
-            await engine.completion({
-                text: "SELECT ",
-                version: 3,
-                position: { line: 0, character: 7 },
-                trigger: "invoke",
-            }),
+            await engine.hover({ text: "SELECT", version: 4, position: { line: 0, character: 2 } }),
         ).to.equal(undefined);
-        expect(await engine.diagnostics({ text: "SELECT", version: 4 })).to.equal(undefined);
+        expect(await engine.diagnostics({ text: "SELECT", version: 5 })).to.equal(undefined);
     });
 });

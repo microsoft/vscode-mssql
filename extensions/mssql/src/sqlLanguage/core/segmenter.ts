@@ -53,6 +53,43 @@ const CONTINUATION_BEFORE = new Set(["UNION", "EXCEPT", "INTERSECT", "ALL", "ELS
 
 const MODULE_KINDS = new Set(["PROC", "PROCEDURE", "FUNCTION", "VIEW", "TRIGGER"]);
 
+/**
+ * Statement-aware continuation allowances: a statement led by KEY may absorb
+ * these keywords without a boundary (count = allowed occurrences; Infinity
+ * for MERGE's WHEN branches). Consuming an allowance chains the consumed
+ * keyword's own allowances in (WITH x AS (...) UPDATE t SET ... etc.).
+ */
+const STATEMENT_ALLOWANCES: ReadonlyMap<string, ReadonlyMap<string, number>> = new Map([
+    ["UPDATE", new Map([["SET", 1]])],
+    [
+        "INSERT",
+        new Map([
+            ["SELECT", 1],
+            ["EXEC", 1],
+            ["EXECUTE", 1],
+        ]),
+    ],
+    [
+        "WITH",
+        new Map([
+            ["SELECT", 1],
+            ["INSERT", 1],
+            ["UPDATE", 1],
+            ["DELETE", 1],
+            ["MERGE", 1],
+        ]),
+    ],
+    [
+        "MERGE",
+        new Map([
+            ["UPDATE", Number.POSITIVE_INFINITY],
+            ["INSERT", Number.POSITIVE_INFINITY],
+            ["DELETE", Number.POSITIVE_INFINITY],
+            ["SET", Number.POSITIVE_INFINITY],
+        ]),
+    ],
+]);
+
 export function segment(text: string, tokens: readonly Token[]): SegmentResult {
     const batches: BatchSegment[] = [];
     let batchFirst = 0; // token index where the current batch begins
@@ -176,6 +213,26 @@ function segmentStatements(
     let caseDepth = 0;
     let inModuleBody = false;
     let prevWord: WordInfo | undefined;
+    let allowances = new Map<string, number>();
+
+    const startAllowances = (leading: string | undefined): void => {
+        allowances = new Map(
+            leading !== undefined ? (STATEMENT_ALLOWANCES.get(leading) ?? []) : [],
+        );
+    };
+
+    const consumeAllowance = (word: string): boolean => {
+        const remaining = allowances.get(word);
+        if (remaining === undefined || remaining <= 0) {
+            return false;
+        }
+        allowances.set(word, remaining - 1);
+        // Chain the consumed keyword's own allowances in.
+        for (const [key, count] of STATEMENT_ALLOWANCES.get(word) ?? []) {
+            allowances.set(key, Math.max(allowances.get(key) ?? 0, count));
+        }
+        return true;
+    };
 
     const flush = (lastTokenIndex: number): void => {
         if (stmtFirst < 0 || lastTokenIndex < stmtFirst) {
@@ -202,6 +259,7 @@ function segmentStatements(
 
         if (stmtFirst < 0) {
             stmtFirst = i;
+            startAllowances(wordAt(text, tokens, i));
         }
 
         if (t.kind === TokenKind.Punctuation) {
@@ -279,10 +337,12 @@ function segmentStatements(
                 upper !== "BEGIN" && // block handled above; BEGIN TRAN starts stmt below
                 (prevWord === undefined || !CONTINUATION_BEFORE.has(prevWord.upper)) &&
                 lastSigInStmt >= 0 &&
-                !isBoundarySuppressed(text, tokens, lastSigInStmt)
+                !isBoundarySuppressed(text, tokens, lastSigInStmt) &&
+                !consumeAllowance(upper) // UPDATE…SET, INSERT…SELECT, WITH…DML, MERGE branches
             ) {
                 flush(lastSigInStmt);
                 stmtFirst = i;
+                startAllowances(upper);
             }
 
             lastSigInStmt = i;
