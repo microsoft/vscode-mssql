@@ -4077,6 +4077,10 @@ Fehler:
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">Fehler beim Anwenden der Änderungen: „{0}“</target>
       </trans-unit>
+      <trans-unit id="++CODE++947b92af892bfe51ada5d9b6b16569d2ef1e0e398142db619de898a7f4299cc8">
+        <source xml:lang="en">Failed to apply schema.</source>
+        <target state="new">Failed to apply schema.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6c64dac05dd8918aa9678f62042470c0ac3b232e4ac9ddc1f8423a5ab9800514">
         <source xml:lang="en">Failed to apply the Move to Schema changes. Check that the files are writable and try again.</source>
         <target state="translated">Fehler beim Anwenden der Änderungen für „In Schema verschieben“. Überprüfen Sie, ob die Dateien beschreibbar sind, und versuchen Sie es erneut.</target>
