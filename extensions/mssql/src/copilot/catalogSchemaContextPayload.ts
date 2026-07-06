@@ -22,7 +22,12 @@
  *   original query behaves.
  */
 
-import { CatalogSnapshot, ObjectInfo, ObjectKind } from "../services/metadata/catalogModel";
+import {
+    CatalogSnapshot,
+    ObjectInfo,
+    ObjectKind,
+    ordinalCompare,
+} from "../services/metadata/catalogModel";
 import {
     RawObjectColumn,
     RawRoutine,
@@ -121,7 +126,7 @@ function rankNameComparer(
         if (aDefault !== bDefault) {
             return aDefault - bDefault;
         }
-        return a.toLowerCase().localeCompare(b.toLowerCase());
+        return ordinalCompare(a, b);
     };
 }
 
@@ -137,8 +142,8 @@ function rankObjects(
         .sort(
             (a, b) =>
                 defaultSchemaRank(a, folded) - defaultSchemaRank(b, folded) ||
-                a.schema.toLowerCase().localeCompare(b.schema.toLowerCase()) ||
-                a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+                ordinalCompare(a.schema, b.schema) ||
+                ordinalCompare(a.name, b.name),
         );
 }
 
@@ -151,8 +156,8 @@ function rankRoutineObjects(snapshot: CatalogSnapshot, defaultSchema: string): O
             (a, b) =>
                 defaultSchemaRank(a, folded) - defaultSchemaRank(b, folded) ||
                 routineKindRank(a.kind) - routineKindRank(b.kind) ||
-                a.schema.toLowerCase().localeCompare(b.schema.toLowerCase()) ||
-                a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+                ordinalCompare(a.schema, b.schema) ||
+                ordinalCompare(a.name, b.name),
         );
 }
 
@@ -242,7 +247,7 @@ function collectForeignKeyPairs(snapshot: CatalogSnapshot, objectId: number): Fo
     const pairs: ForeignKeyPair[] = [];
     const details = snapshot
         .getForeignKeyDetailsFrom(objectId)
-        .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+        .sort((a, b) => ordinalCompare(a.name, b.name));
     for (const detail of details) {
         const target = snapshot.getObject(detail.toObjectId);
         if (!target) {

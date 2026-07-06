@@ -143,6 +143,21 @@ function sysScripts(overrides?: {
             ],
         },
         {
+            // digest — BEFORE H2: CHEAP_DIGEST contains "FROM sys.objects o
+            // WHERE" too, so ordering it after H2 makes it dead (digest
+            // queries silently receive H2's object rows — a latent fixture
+            // bug fixed alongside digest v2).
+            match: (t) => t.includes("CHECKSUM_AGG"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["current_db", "object_count", "object_hash"],
+                    rows: [["Db1", 4, 12345]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
             match: (t) => t.includes("FROM sys.objects o WHERE"),
             events: [
                 {
@@ -204,17 +219,6 @@ function sysScripts(overrides?: {
                     type: "resultSet",
                     columns: ["object_id", "name", "parent_object_id", "referenced_object_id"],
                     rows: [[900, "FK_Orders_Customers", 101, 102]],
-                },
-                { type: "complete", status: "succeeded" },
-            ],
-        },
-        {
-            match: (t) => t.includes("CHECKSUM_AGG"),
-            events: [
-                {
-                    type: "resultSet",
-                    columns: ["object_count", "object_hash"],
-                    rows: [[4, 12345]],
                 },
                 { type: "complete", status: "succeeded" },
             ],

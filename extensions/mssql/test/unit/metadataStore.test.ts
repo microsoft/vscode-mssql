@@ -115,6 +115,19 @@ function catalogScripts(tableName: string): FakeScript[] {
             ],
         },
         {
+            // digest — BEFORE H2: CHEAP_DIGEST contains "FROM sys.objects o
+            // WHERE" too (a digest fixture ordered after H2 is dead).
+            match: (t) => t.includes("CHECKSUM_AGG"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["current_db", "object_count", "object_hash"],
+                    rows: [["Db1", 1, 111]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
             match: (t) => t.includes("FROM sys.objects o WHERE"),
             events: [
                 {
@@ -154,17 +167,6 @@ function catalogScripts(tableName: string): FakeScript[] {
                     type: "resultSet",
                     columns: ["object_id", "name", "parent_object_id", "referenced_object_id"],
                     rows: [],
-                },
-                { type: "complete", status: "succeeded" },
-            ],
-        },
-        {
-            match: (t) => t.includes("CHECKSUM_AGG"),
-            events: [
-                {
-                    type: "resultSet",
-                    columns: ["object_count", "object_hash"],
-                    rows: [[1, 111]],
                 },
                 { type: "complete", status: "succeeded" },
             ],

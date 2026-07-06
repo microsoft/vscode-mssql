@@ -134,8 +134,22 @@ const H7_DESCRIPTIONS =
     "FROM sys.extended_properties ep " +
     "WHERE ep.class = 1 AND ep.name = 'MS_Description' " +
     "ORDER BY ep.major_id, ep.minor_id;";
+// CHEAP_DIGEST v2 (H-1 + H-5): schema_id and the BYTE-EXACT name (varbinary
+// cast — plain CHECKSUM over character data is collation-folded, so a
+// pure-case rename on a CI server would still hide) participate in the hash,
+// because object_id and modify_date both survive sp_rename and ALTER SCHEMA
+// TRANSFER — v1 was blind to renames performed outside this editor.
+// DB_NAME() rides along for the CACHE-5 database-rename identity check
+// (H-5): a renamed database is an identity event, not schema drift, so it
+// is NOT part of the compared digest. Still "likely unchanged", never proof:
+// column/key/FK/parameter/description drift stays invisible until T2
+// section digests. Matcher note: this SQL still contains
+// "FROM sys.objects o WHERE" (H2's substring — digest fixtures must stay
+// ordered BEFORE H2); "DB_NAME()" and "varbinary(256)" collide with no
+// earlier matcher.
 const CHEAP_DIGEST =
-    "SELECT COUNT(*) AS object_count, ISNULL(CHECKSUM_AGG(CHECKSUM(o.object_id, o.modify_date)), 0) AS object_hash " +
+    "SELECT DB_NAME() AS current_db, COUNT(*) AS object_count, " +
+    "ISNULL(CHECKSUM_AGG(CHECKSUM(o.object_id, o.schema_id, CAST(o.name AS varbinary(256)), o.modify_date)), 0) AS object_hash " +
     "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0;";
 // LAZY per-object module definition (B12 scripting/definition) — NOT part of
 // the H-series bulk hydration: one targeted query per requested object,
@@ -149,6 +163,18 @@ const MODULE_DEFINITION = (objectId: number): string =>
 /** DDL keywords that schedule a refresh (design §9.1). */
 const DDL_KEYWORDS = new Set(["CREATE", "ALTER", "DROP", "SP_RENAME"]);
 const MAYBE_DDL = new Set(["EXEC", "EXECUTE"]);
+
+/**
+ * Case sensitivity from a collation name: `_CS` collations, plus binary
+ * collations (`_BIN`/`_BIN2` compare by byte/codepoint and carry no `_CS`
+ * token — C-11; a BIN-collated catalog classified as insensitive makes
+ * resolveName accept folded-only matches the server would reject).
+ * Accent/kana/width sensitivity stay unmodeled: catalog folding is
+ * case-only, an accepted limit.
+ */
+export function collationIsCaseSensitive(collation: string): boolean {
+    return /_CS(_|$)|_BIN2?(_|$)/i.test(collation);
+}
 
 export function typeDisplay(
     typeName: string,
@@ -529,7 +555,7 @@ export class MetadataService {
                         engineEdition: Number.isFinite(Number(env[0])) ? Number(env[0]) : undefined,
                         defaultSchema: env[1] ? String(env[1]) : undefined,
                         collationName: collation,
-                        caseSensitive: collation ? /_CS(_|$)/i.test(collation) : undefined,
+                        caseSensitive: collation ? collationIsCaseSensitive(collation) : undefined,
                     });
                 }
             } catch {
@@ -692,7 +718,12 @@ export class MetadataService {
             const digest = await this.runExclusive(entry, async () => {
                 const session = await this.sessions.open();
                 const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
-                return rows.map((row) => row.join(":")).join(";");
+                // Row shape: [current_db, object_count, object_hash].
+                // current_db is deliberately EXCLUDED from the compared
+                // digest — a database rename is an identity event (H-5,
+                // wired in CACHE-5), not schema drift.
+                const row = rows[0] ?? [];
+                return `${row[1]}:${row[2]}`;
             });
             if (entry.lastDigest === undefined) {
                 entry.lastDigest = digest;

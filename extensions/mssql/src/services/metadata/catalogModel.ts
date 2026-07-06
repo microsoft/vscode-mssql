@@ -106,6 +106,28 @@ export type Resolution =
     | { kind: "notFound" }
     | { kind: "sectionUnavailable"; section: CatalogSection };
 
+/**
+ * Ordinal, locale-independent name comparator: Unicode-default case fold,
+ * then a raw code-unit tiebreak so `Foo`/`foo` stay deterministic on
+ * case-sensitive catalogs. Every ordering that feeds buildSchemaContext
+ * output or any persisted/replayed artifact MUST use this, never
+ * localeCompare: localeCompare delegates to the embedded ICU collator,
+ * whose output changes across Electron/VS Code updates and platforms —
+ * which would silently break the byte-identity guarantee, cached prompts,
+ * and replay comparison (cache design C-1; lint-enforced).
+ */
+export function ordinalCompare(a: string, b: string): number {
+    const fa = a.toLowerCase();
+    const fb = b.toLowerCase();
+    if (fa < fb) {
+        return -1;
+    }
+    if (fa > fb) {
+        return 1;
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
 // ---------------------------------------------------------------------------
 // Builder (streaming appends; snapshot publishes at section boundaries)
 // ---------------------------------------------------------------------------
@@ -478,7 +500,7 @@ export class CatalogSnapshot {
     listSchemas(): SchemaInfo[] {
         return this.b.schemaIds
             .map((schemaId, i) => ({ schemaId, name: this.strings[this.b.schemaNameSyms[i]] }))
-            .sort((a, z) => a.name.localeCompare(z.name));
+            .sort((a, z) => ordinalCompare(a.name, z.name));
     }
 
     private objectAt(index: number): ObjectInfo {
@@ -509,7 +531,7 @@ export class CatalogSnapshot {
             objects.push(info);
         }
         return objects.sort(
-            (a, z) => a.schema.localeCompare(z.schema) || a.name.localeCompare(z.name),
+            (a, z) => ordinalCompare(a.schema, z.schema) || ordinalCompare(a.name, z.name),
         );
     }
 
@@ -906,7 +928,7 @@ export function buildSchemaContext(
         if (kindDelta !== 0) {
             return kindDelta;
         }
-        return a.schema.localeCompare(z.schema) || a.name.localeCompare(z.name);
+        return ordinalCompare(a.schema, z.schema) || ordinalCompare(a.name, z.name);
     });
 
     // 4/5) Render at fidelity tiers, degrading from the tail until it fits.
@@ -934,7 +956,7 @@ export function buildSchemaContext(
     const compose = (objects: ObjectInfo[], render: (o: ObjectInfo) => string) =>
         objects
             .slice()
-            .sort((a, z) => a.schema.localeCompare(z.schema) || a.name.localeCompare(z.name))
+            .sort((a, z) => ordinalCompare(a.schema, z.schema) || ordinalCompare(a.name, z.name))
             .map(render)
             .join("\n");
 

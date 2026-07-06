@@ -252,8 +252,8 @@ export function largeCatalogScripts(spec?: LargeCatalogSpec): FakeScript[] {
         // digest — BEFORE H2 (its SQL also contains "FROM sys.objects o WHERE")
         script(
             (t) => t.includes("CHECKSUM_AGG"),
-            ["object_count", "object_hash"],
-            [[objectCount(s), 424242]],
+            ["current_db", "object_count", "object_hash"],
+            [["Db1", objectCount(s), 424242]],
         ),
         // H6 routine parameters
         script(
