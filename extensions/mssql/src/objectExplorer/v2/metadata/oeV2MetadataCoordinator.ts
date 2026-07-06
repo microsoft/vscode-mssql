@@ -9,6 +9,14 @@
  * catalog leases from the SHARED MetadataStore (injected instance, never a
  * singleton import). Rules: pin once per expand; never mix generations in
  * one response; database catalogs acquire lazily on database expand only.
+ *
+ * Browse freshness (CACHE-5, addendum §7.2 — block-with-loading): expands
+ * route through ensureFresh with the oeBrowse preset (requireValidated,
+ * TTL 120s, wait budget 5s). Within the TTL the memory tier answers
+ * instantly with zero SQL; the first expand beyond it runs the T1 digest
+ * (server scope: validation ≡ re-hydration, §4.4) while the tree shows its
+ * loading child. The verdict rides back to the pure render layer as plain
+ * facts — lease access stays HERE, never in tree/ modules.
  */
 
 import { MetadataStatus } from "../../../services/metadata/metadataService";
@@ -20,9 +28,20 @@ import {
 } from "../../../services/metadata/metadataStore";
 import { PreparedConnection } from "../../../services/metadata/profileAuthAdapter";
 import {
+    FreshCatalogResult,
+    FreshServerCatalogResult,
+    MetadataPolicies,
+} from "../../../services/metadata/cache/metadataFreshness";
+import {
     IPinnedServerCatalogView,
     ServerCatalogStatus,
 } from "../../../services/metadata/serverMetadataService";
+
+/** Test/dogfood seam over the oeBrowse preset knobs (defaults win in prod). */
+export interface OeV2FreshnessOverrides {
+    readonly validationTtlMs?: number;
+    readonly timeoutMs?: number;
+}
 
 export class OeV2MetadataCoordinator {
     private serverLease: ServerCatalogLease | undefined;
@@ -36,6 +55,7 @@ export class OeV2MetadataCoordinator {
     constructor(
         private readonly store: MetadataStore,
         private readonly prepared: PreparedConnection,
+        private readonly freshnessOverrides?: OeV2FreshnessOverrides,
     ) {}
 
     onDidChange(listener: () => void): { dispose(): void } {
@@ -86,6 +106,24 @@ export class OeV2MetadataCoordinator {
         await (await this.ensureServer()).refresh();
     }
 
+    /**
+     * §7.2/§4.4 browse freshness at server scope: requireValidated with the
+     * oeBrowse TTL — re-hydrates when the catalog is older than the TTL
+     * (validation ≡ re-hydration at server scope), returns instantly
+     * within it. Explicit refresh commands keep using refreshServer().
+     */
+    async ensureServerFresh(): Promise<FreshServerCatalogResult> {
+        const lease = await this.ensureServer();
+        return lease.ensureFresh({
+            mode: "requireValidated",
+            reason: "oeBrowse",
+            validationTtlMs:
+                this.freshnessOverrides?.validationTtlMs ??
+                MetadataPolicies.oeBrowse.validationTtlMs,
+            timeoutMs: this.freshnessOverrides?.timeoutMs ?? MetadataPolicies.oeBrowse.timeoutMs,
+        });
+    }
+
     // -- database catalogs ----------------------------------------------------
 
     async ensureDatabase(database: string): Promise<DatabaseCatalogLease> {
@@ -126,6 +164,27 @@ export class OeV2MetadataCoordinator {
 
     async refreshDatabase(database: string): Promise<void> {
         await (await this.ensureDatabase(database)).refresh();
+    }
+
+    /**
+     * §7.2 browse freshness (block-with-loading): requireValidated with the
+     * oeBrowse preset. Within the TTL the validated generation answers
+     * instantly (T0 memory tier — no SQL); the first expand beyond it runs
+     * the T1 digest, bounded by the preset's 5s wait budget (a race, never
+     * a cancellation — C-9). Explicit refresh keeps using refreshDatabase()
+     * (lease.refresh() bypasses the TTL by definition).
+     */
+    async ensureDatabaseFresh(database: string): Promise<FreshCatalogResult> {
+        const lease = await this.ensureDatabase(database);
+        return lease.ensureFresh({
+            ...MetadataPolicies.oeBrowse,
+            ...(this.freshnessOverrides?.validationTtlMs !== undefined
+                ? { validationTtlMs: this.freshnessOverrides.validationTtlMs }
+                : {}),
+            ...(this.freshnessOverrides?.timeoutMs !== undefined
+                ? { timeoutMs: this.freshnessOverrides.timeoutMs }
+                : {}),
+        });
     }
 
     dispose(): void {

@@ -35,8 +35,10 @@ import {
     databasesFolderChildren,
     objectChildren,
     objectFolderChildren,
+    OeV2FreshnessFacts,
     serverChildren,
 } from "./oeV2Browse";
+import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { OeV2Node } from "./oeV2Node";
 import { childrenOfGroup, ConnectionNodeFacts, rootChildren } from "./oeV2NodeFactory";
 import { errorNode, loadingNode, statusNode } from "./oeV2Readiness";
@@ -233,13 +235,19 @@ export class OeV2TreeController {
                 if (!runtime) {
                     return [disconnectedHint(path.connectionId)];
                 }
-                // Pin once per expand.
-                void runtime.coordinator.ensureServer().catch(() => undefined);
+                // §7.2 block-with-loading at server scope: expands beyond
+                // the TTL re-hydrate (validation ≡ re-hydration, §4.4)
+                // while the tree shows its busy state; within the TTL this
+                // answers instantly. Pin once per expand (below).
+                const serverFresh = await runtime.coordinator
+                    .ensureServerFresh()
+                    .catch(() => undefined);
                 return databasesFolderChildren(
                     path.connectionId,
                     runtime.coordinator.serverStatus(),
                     runtime.coordinator.serverView(),
                     settings.showSystemDatabases,
+                    serverFresh ? { freshness: serverFresh.freshness } : undefined,
                 );
             }
             case "database": {
@@ -247,8 +255,10 @@ export class OeV2TreeController {
                 if (!runtime) {
                     return [disconnectedHint(path.connectionId)];
                 }
-                // Lazy lease acquisition on database expand (design §10.5).
-                void runtime.coordinator.ensureDatabase(path.database).catch(() => undefined);
+                // Lazy lease acquisition on database expand (design §10.5);
+                // the folder list itself is static, so validation runs in
+                // the background — folder expands below block on it.
+                void runtime.coordinator.ensureDatabaseFresh(path.database).catch(() => undefined);
                 return databaseChildren(path.connectionId, path.database);
             }
             case "databaseFolder":
@@ -257,7 +267,14 @@ export class OeV2TreeController {
                 if (!runtime) {
                     return [disconnectedHint(path.connectionId)];
                 }
-                void runtime.coordinator.ensureDatabase(path.database).catch(() => undefined);
+                // §7.2 block-with-loading: the FIRST expand beyond the TTL
+                // runs T1 validation within the preset's wait budget (the
+                // tree's loading child covers the wait); within the TTL the
+                // validated generation answers with zero SQL. The verdict
+                // rides to the pure layer as facts — never silent-stale.
+                const fresh = await runtime.coordinator
+                    .ensureDatabaseFresh(path.database)
+                    .catch(() => undefined);
                 const children = databaseFolderChildren(
                     path.connectionId,
                     path.database,
@@ -266,6 +283,7 @@ export class OeV2TreeController {
                     runtime.coordinator.databaseSnapshot(path.database),
                     settings.groupBySchema,
                     path.kind === "schemaFolder" ? path.schema : undefined,
+                    toFreshnessFacts(fresh),
                 );
                 return this.applyFolderFilter(node, children);
             }
@@ -276,10 +294,14 @@ export class OeV2TreeController {
                 if (!runtime) {
                     return [disconnectedHint(path.connectionId)];
                 }
+                const fresh = await runtime.coordinator
+                    .ensureDatabaseFresh(path.database)
+                    .catch(() => undefined);
                 return objectFolderChildren(
                     path,
                     runtime.coordinator.databaseStatus(path.database),
                     runtime.coordinator.databaseSnapshot(path.database),
+                    toFreshnessFacts(fresh),
                 );
             }
             default:
@@ -439,4 +461,15 @@ function disconnectedHint(connectionId: string) {
         "Use 'Connect' on this profile to browse (OE v2 preview).",
         connectionId,
     );
+}
+
+/** Map the ensureFresh verdict onto the pure layer's data-only facts. */
+function toFreshnessFacts(fresh: FreshCatalogResult | undefined): OeV2FreshnessFacts | undefined {
+    if (!fresh) {
+        return undefined;
+    }
+    return {
+        freshness: fresh.freshness,
+        ...(fresh.validation?.staleReason ? { staleReason: fresh.validation.staleReason } : {}),
+    };
 }

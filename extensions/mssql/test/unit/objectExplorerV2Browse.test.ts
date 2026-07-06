@@ -27,8 +27,17 @@ import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2Se
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
 import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 
+interface DbScriptOptions {
+    /** DB_NAME() answer for the digest identity rider (H-5) — must match
+     *  the acquired database name unless a rename is being simulated. */
+    currentDb?: string;
+    counters?: { digest: number; hydrate: number };
+    digestFails?: () => boolean;
+    digestDelayMs?: () => number | undefined;
+}
+
 /** Catalog fixture: Orders/Customers + GetOrders proc + PK/UQ/FK. */
-function dbScripts(tableName: string): FakeScript[] {
+function dbScripts(tableName: string, opts: DbScriptOptions = {}): FakeScript[] {
     return [
         {
             // H7 descriptions — empty is a SUCCEEDED section (a missing
@@ -44,27 +53,51 @@ function dbScripts(tableName: string): FakeScript[] {
             ],
         },
         {
-            match: (t) => t.includes("SERVERPROPERTY"),
+            match: (t) => {
+                const hit = t.includes("SERVERPROPERTY");
+                if (hit && opts.counters) {
+                    opts.counters.hydrate++;
+                }
+                return hit;
+            },
             events: [
                 {
                     type: "resultSet",
                     columns: ["engine_edition", "default_schema", "collation_name"],
-                    rows: [[5, "dbo", "SQL_Latin1_General_CP1_CI_AS"]],
+                    // Edition 3 (on-prem): serverless auto-pause reduction is
+                    // engine-level behavior pinned in the poll-governance suite.
+                    rows: [[3, "dbo", "SQL_Latin1_General_CP1_CI_AS"]],
                 },
                 { type: "complete", status: "succeeded" },
             ],
         },
         {
-            match: (t) => t.includes("CHECKSUM_AGG"),
-            events: [
-                {
-                    type: "resultSet",
-                    columns: ["current_db", "object_count", "object_hash"],
-                    rows: [["AdventureWorks", 4, 12345]],
-                },
-                { type: "complete", status: "succeeded" },
-            ],
-        },
+            match: (t) => {
+                const hit = t.includes("CHECKSUM_AGG");
+                if (hit && opts.counters) {
+                    opts.counters.digest++;
+                }
+                return hit;
+            },
+            get events() {
+                if (opts.digestFails?.()) {
+                    return [
+                        { type: "message", kind: "error", text: "digest failed" },
+                        { type: "complete", status: "failed" },
+                    ];
+                }
+                const delayMs = opts.digestDelayMs?.();
+                return [
+                    {
+                        type: "resultSet",
+                        columns: ["current_db", "object_count", "object_hash"],
+                        rows: [[opts.currentDb ?? "AppDb", 4, 12345]],
+                        ...(delayMs !== undefined ? { delayMs } : {}),
+                    },
+                    { type: "complete", status: "succeeded" },
+                ];
+            },
+        } as unknown as FakeScript,
         {
             match: (t) => t.includes("is_primary_key"),
             events: [
@@ -193,9 +226,18 @@ function dbScripts(tableName: string): FakeScript[] {
     ];
 }
 
-function serverCatalogScript(databases: (string | number | boolean | null)[][]): FakeScript {
+function serverCatalogScript(
+    databases: (string | number | boolean | null)[][],
+    counters?: { list: number },
+): FakeScript {
     return {
-        match: (t) => t.includes("sys.databases"),
+        match: (t) => {
+            const hit = t.includes("sys.databases");
+            if (hit && counters) {
+                counters.list++;
+            }
+            return hit;
+        },
         events: [
             {
                 type: "resultSet",
@@ -249,6 +291,9 @@ interface Harness {
 function harness(overrides?: {
     databases?: Record<string, FakeBackend>;
     serverRows?: (string | number | boolean | null)[][];
+    /** CACHE-5 browse-freshness knobs (small TTLs make digests observable). */
+    freshness?: { validationTtlMs?: number; timeoutMs?: number };
+    serverCounters?: { list: number };
 }): Harness {
     const fallback = new FakeBackend({
         scripts: [
@@ -260,13 +305,14 @@ function harness(overrides?: {
                     [6, "OtherDb", "ONLINE", false, "MULTI_USER", 160, 1],
                     [1, "master", "ONLINE", false, "MULTI_USER", 160, 1],
                 ],
+                overrides?.serverCounters,
             ),
         ],
     });
     const service = new RoutingService(
         overrides?.databases ?? {
-            AppDb: new FakeBackend({ scripts: dbScripts("Orders") }),
-            OtherDb: new FakeBackend({ scripts: dbScripts("Widgets") }),
+            AppDb: new FakeBackend({ scripts: dbScripts("Orders", { currentDb: "AppDb" }) }),
+            OtherDb: new FakeBackend({ scripts: dbScripts("Widgets", { currentDb: "OtherDb" }) }),
         },
         fallback,
     );
@@ -283,11 +329,14 @@ function harness(overrides?: {
         secrets: { lookupPassword: async () => "" },
         dataPlane: { enabled: () => true, availabilityState: () => "available" },
         sessions: registry,
-        coordinatorFactory: (prepared) => new OeV2MetadataCoordinator(store, prepared),
+        coordinatorFactory: (prepared) =>
+            new OeV2MetadataCoordinator(store, prepared, overrides?.freshness),
         settings: () => settings,
     });
     return { controller, registry, store, fallback, settings };
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function browseToDatabases(h: Harness): Promise<{ server: OeV2Node; dbFolder: OeV2Node }> {
     expect(await h.controller.connectProfile("p1")).to.equal(true);
@@ -566,6 +615,219 @@ suite("Object Explorer v2 browse (B18)", () => {
             "dbo.Orders",
             "dbo.OrdersView",
         ]);
+        h.controller.dispose();
+    });
+});
+
+/**
+ * CACHE-5 browse freshness (addendum §7.2, block-with-loading): expands run
+ * requireValidated with the oeBrowse preset — the first expand beyond the
+ * TTL validates (one digest), expands within it reuse the validated
+ * generation with ZERO SQL, timeout/failure with a snapshot renders the
+ * children PLUS a stale-notice status child (never silent-stale, never
+ * empty), and explicit refresh bypasses the TTL via lease.refresh().
+ */
+suite("Object Explorer v2 browse freshness (CACHE-5)", () => {
+    let sendRequest: sinon.SinonSpy;
+    let connect: sinon.SinonSpy;
+
+    setup(() => {
+        sendRequest = sinon.spy(SqlToolsServiceClient.prototype, "sendRequest");
+        connect = sinon.spy(ConnectionManager.prototype, "connect");
+    });
+
+    teardown(() => {
+        // THE TRIPWIRE: freshness wiring must not summon STS v1 either.
+        sinon.assert.notCalled(sendRequest);
+        sinon.assert.notCalled(connect);
+        sendRequest.restore();
+        connect.restore();
+    });
+
+    async function expandToTables(
+        h: Harness,
+    ): Promise<{ appDb: OeV2Node; tablesFolder: OeV2Node }> {
+        const { dbFolder } = await browseToDatabases(h);
+        const appDb = (await h.controller.children(dbFolder)).find((n) => n.label === "AppDb")!;
+        const folders = await h.controller.children(appDb);
+        await h.controller.refreshNode(appDb); // awaits catalog hydration
+        return { appDb, tablesFolder: folders[0] };
+    }
+
+    test("first expand beyond the TTL validates once; expands within it run ZERO digests", async () => {
+        const counters = { digest: 0, hydrate: 0 };
+        const h = harness({
+            databases: {
+                AppDb: new FakeBackend({
+                    scripts: dbScripts("Orders", { currentDb: "AppDb", counters }),
+                }),
+                OtherDb: new FakeBackend({
+                    scripts: dbScripts("Widgets", { currentDb: "OtherDb" }),
+                }),
+            },
+            freshness: { validationTtlMs: 200 },
+        });
+        const { tablesFolder } = await expandToTables(h);
+
+        // Within the TTL of the hydration: validated from memory, no SQL.
+        const withinTtl = await h.controller.children(tablesFolder);
+        expect(withinTtl.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+        expect(counters.digest, "T0 memory tier — no digest").to.equal(0);
+
+        await sleep(250); // step beyond the TTL
+        const firstBeyondTtl = await h.controller.children(tablesFolder);
+        expect(counters.digest, "first expand beyond the TTL runs ONE digest").to.equal(1);
+        // Validated verdict renders clean children — no stale notice.
+        expect(firstBeyondTtl.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+
+        for (let i = 0; i < 10; i++) {
+            const again = await h.controller.children(tablesFolder);
+            expect(again.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+        }
+        expect(counters.digest, "ten expands within the TTL — zero additional digests").to.equal(1);
+        h.controller.dispose();
+    });
+
+    test("validation FAILURE with a snapshot renders children PLUS a stale notice — never silent, never empty", async () => {
+        const counters = { digest: 0, hydrate: 0 };
+        let digestFails = false;
+        const h = harness({
+            databases: {
+                AppDb: new FakeBackend({
+                    scripts: dbScripts("Orders", {
+                        currentDb: "AppDb",
+                        counters,
+                        digestFails: () => digestFails,
+                    }),
+                }),
+                OtherDb: new FakeBackend({
+                    scripts: dbScripts("Widgets", { currentDb: "OtherDb" }),
+                }),
+            },
+            freshness: { validationTtlMs: 40 },
+        });
+        const { tablesFolder } = await expandToTables(h);
+
+        digestFails = true;
+        await sleep(80); // beyond the TTL — the next expand must validate
+        const stale = await h.controller.children(tablesFolder);
+        expect(stale[0].kind, "stale notice leads the children").to.equal("status");
+        expect(stale[0].label).to.contain("Metadata not validated");
+        expect(stale[0].label).to.contain("refresh to retry");
+        expect(
+            stale.map((n) => n.label).slice(1),
+            "the snapshot still renders — stale is NEVER silent emptiness",
+        ).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+        h.controller.dispose();
+    });
+
+    test("validation TIMEOUT with a snapshot renders children plus the notice (wait budget is a race)", async () => {
+        const counters = { digest: 0, hydrate: 0 };
+        let slowDigest = false;
+        const h = harness({
+            databases: {
+                AppDb: new FakeBackend({
+                    scripts: dbScripts("Orders", {
+                        currentDb: "AppDb",
+                        counters,
+                        digestDelayMs: () => (slowDigest ? 300 : undefined),
+                    }),
+                }),
+                OtherDb: new FakeBackend({
+                    scripts: dbScripts("Widgets", { currentDb: "OtherDb" }),
+                }),
+            },
+            freshness: { validationTtlMs: 40, timeoutMs: 40 },
+        });
+        const { tablesFolder } = await expandToTables(h);
+
+        slowDigest = true;
+        await sleep(80);
+        const stale = await h.controller.children(tablesFolder);
+        expect(stale[0].kind).to.equal("status");
+        expect(stale[0].label).to.contain("Metadata not validated");
+        expect(stale.map((n) => n.label).slice(1)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+        h.controller.dispose();
+    });
+
+    test("explicit refresh bypasses the TTL (lease.refresh, not a digest)", async () => {
+        const counters = { digest: 0, hydrate: 0 };
+        const h = harness({
+            databases: {
+                AppDb: new FakeBackend({
+                    scripts: dbScripts("Orders", { currentDb: "AppDb", counters }),
+                }),
+                OtherDb: new FakeBackend({
+                    scripts: dbScripts("Widgets", { currentDb: "OtherDb" }),
+                }),
+            },
+            // Default oeBrowse TTL (120s): nothing here ever expires it.
+        });
+        const { appDb, tablesFolder } = await expandToTables(h);
+        await h.controller.children(tablesFolder);
+        const hydrationsBefore = counters.hydrate;
+
+        await h.controller.refreshNode(appDb);
+        expect(counters.hydrate, "explicit refresh re-hydrates despite the TTL").to.equal(
+            hydrationsBefore + 1,
+        );
+        expect(counters.digest, "freshness never ran a digest inside the TTL").to.equal(0);
+        h.controller.dispose();
+    });
+
+    test("server-catalog expands revalidate beyond the TTL (§4.4: validation ≡ re-hydration)", async () => {
+        const serverCounters = { list: 0 };
+        const h = harness({ serverCounters, freshness: { validationTtlMs: 200 } });
+        const { dbFolder } = await browseToDatabases(h);
+        const baseline = serverCounters.list;
+
+        const withinTtl = await h.controller.children(dbFolder);
+        expect(withinTtl.map((n) => n.label)).to.deep.equal([
+            "AppDb",
+            "Locked",
+            "OtherDb",
+            "master",
+        ]);
+        expect(serverCounters.list, "within the TTL: no re-hydration").to.equal(baseline);
+
+        await sleep(250);
+        const beyondTtl = await h.controller.children(dbFolder);
+        expect(beyondTtl.map((n) => n.label)).to.deep.equal([
+            "AppDb",
+            "Locked",
+            "OtherDb",
+            "master",
+        ]);
+        expect(serverCounters.list, "beyond the TTL: one re-hydration").to.equal(baseline + 1);
+        h.controller.dispose();
+    });
+
+    test("H-5 through the tree: a renamed database renders the access-changed notice and counts the drift", async () => {
+        const counters = { digest: 0, hydrate: 0 };
+        const h = harness({
+            databases: {
+                AppDb: new FakeBackend({
+                    // DB_NAME() disagrees with the browsed database name —
+                    // somebody renamed it underneath the warm lease.
+                    scripts: dbScripts("Orders", { currentDb: "AppDb_Renamed", counters }),
+                }),
+                OtherDb: new FakeBackend({
+                    scripts: dbScripts("Widgets", { currentDb: "OtherDb" }),
+                }),
+            },
+            freshness: { validationTtlMs: 40 },
+        });
+        const { tablesFolder } = await expandToTables(h);
+
+        await sleep(80); // beyond the TTL — the next expand runs the digest
+        const drifted = await h.controller.children(tablesFolder);
+        expect(drifted[0].kind).to.equal("status");
+        expect(drifted[0].label).to.contain("database access may have changed");
+        expect(
+            drifted.map((n) => n.label).slice(1),
+            "allowStale-equivalent render: last known catalog still shows",
+        ).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+        expect(h.store.status().keyCorrectnessViolations, "driftRename counted").to.equal(1);
         h.controller.dispose();
     });
 });

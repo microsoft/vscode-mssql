@@ -9,6 +9,13 @@
  * an already-pinned view/snapshot and never re-reads. Readiness honesty:
  * failure/loading/permission states render their own children; only a
  * truly-empty ready section renders "No items".
+ *
+ * Freshness honesty (CACHE-5, addendum §7.2, extends the §13 table): the
+ * controller runs ensureFresh(oeBrowse) per expand and hands the VERDICT
+ * down as plain OeV2FreshnessFacts — this pure layer never touches leases
+ * or services. A stale/unavailable verdict over rendered data prepends a
+ * status child naming the staleness; stale data NEVER renders silently as
+ * current.
  */
 
 import type { CatalogSnapshot, ObjectKind } from "../../../services/metadata/catalogModel";
@@ -26,7 +33,48 @@ import {
     OeV2ObjectKind,
     OeV2Path,
 } from "./oeV2Path";
-import { errorNode, loadingNode, noItemsNode } from "./oeV2Readiness";
+import { errorNode, loadingNode, noItemsNode, statusNode } from "./oeV2Readiness";
+
+/**
+ * Freshness verdict facts injected by the controller (CACHE-5 §7.2) —
+ * duplicated as a local shape so the pure layer's seam stays data-only.
+ */
+export interface OeV2FreshnessFacts {
+    readonly freshness: "live" | "validated" | "stale" | "refreshing" | "unavailable";
+    readonly staleReason?: string;
+}
+
+/**
+ * §7.2 honesty tail: validated/live verdicts render children as-is;
+ * "refreshing" means shared work is in flight over current data (no banner
+ * — the loading/status gates already cover in-flight hydration); a
+ * stale/unavailable verdict over RENDERED data prepends a status child
+ * naming the staleness. Loading/failed gates return before this point.
+ */
+function withStaleNotice(
+    scope: string,
+    connectionId: string | undefined,
+    children: OeV2Node[],
+    facts?: OeV2FreshnessFacts,
+): OeV2Node[] {
+    if (!facts || (facts.freshness !== "stale" && facts.freshness !== "unavailable")) {
+        return children;
+    }
+    const detail =
+        facts.staleReason === "accessChanged"
+            ? "database access may have changed"
+            : facts.staleReason === "permissionChanged"
+              ? "permissions may have changed"
+              : "using last known catalog";
+    return [
+        statusNode(
+            `${scope}#staleNotice`,
+            `Metadata not validated — ${detail} (refresh to retry).`,
+            connectionId,
+        ),
+        ...children,
+    ];
+}
 
 const FOLDER_LABELS: Record<OeV2DatabaseFolder, string> = {
     tables: "Tables",
@@ -88,6 +136,7 @@ export function databasesFolderChildren(
     status: ServerCatalogStatus | undefined,
     view: IPinnedServerCatalogView | undefined,
     showSystemDatabases: boolean,
+    freshness?: OeV2FreshnessFacts,
 ): OeV2Node[] {
     const scope = `server/${connectionId}/databases`;
     if (!status || status.readiness === "absent" || status.readiness === "loading") {
@@ -110,9 +159,14 @@ export function databasesFolderChildren(
         ? databases
         : databases.filter((database) => database.isSystem !== true);
     if (visible.length === 0) {
-        return [noItemsNode(scope, connectionId)];
+        return withStaleNotice(scope, connectionId, [noItemsNode(scope, connectionId)], freshness);
     }
-    return visible.map((database) => databaseNode(connectionId, database));
+    return withStaleNotice(
+        scope,
+        connectionId,
+        visible.map((database) => databaseNode(connectionId, database)),
+        freshness,
+    );
 }
 
 export function databaseNode(connectionId: string, info: ServerDatabaseInfo): OeV2Node {
@@ -201,21 +255,47 @@ export function databaseFolderChildren(
     snapshot: CatalogSnapshot | undefined,
     groupBySchema: boolean,
     schema?: string,
+    freshness?: OeV2FreshnessFacts,
 ): OeV2Node[] {
     const scope = `db/${connectionId}/${database}/${folder}${schema ? `/${schema}` : ""}`;
     const gate = catalogGate(scope, connectionId, status, snapshot, FOLDER_SECTION[folder]);
     if (gate) {
         return gate;
     }
+    return withStaleNotice(
+        scope,
+        connectionId,
+        databaseFolderContent(
+            scope,
+            connectionId,
+            database,
+            folder,
+            snapshot!,
+            groupBySchema,
+            schema,
+        ),
+        freshness,
+    );
+}
+
+function databaseFolderContent(
+    scope: string,
+    connectionId: string,
+    database: string,
+    folder: OeV2DatabaseFolder,
+    snapshot: CatalogSnapshot,
+    groupBySchema: boolean,
+    schema?: string,
+): OeV2Node[] {
     if (folder === "schemas") {
-        const schemas = snapshot!.listSchemas();
+        const schemas = snapshot.listSchemas();
         return schemas.length === 0
             ? [noItemsNode(scope, connectionId)]
             : schemas.map((info) => schemaNode(connectionId, database, info.name));
     }
     if (groupBySchema && schema === undefined) {
         const withObjects = new Set(
-            snapshot!.listObjects(undefined, FOLDER_KINDS[folder]).map((o) => o.schema),
+            snapshot.listObjects(undefined, FOLDER_KINDS[folder]).map((o) => o.schema),
         );
         if (withObjects.size === 0) {
             return [noItemsNode(scope, connectionId)];
@@ -243,7 +323,7 @@ export function databaseFolderChildren(
             } satisfies OeV2Node;
         });
     }
-    const objects = snapshot!.listObjects(schema, FOLDER_KINDS[folder]);
+    const objects = snapshot.listObjects(schema, FOLDER_KINDS[folder]);
     if (objects.length === 0) {
         return [noItemsNode(scope, connectionId)];
     }
@@ -350,6 +430,7 @@ export function objectFolderChildren(
     path: Extract<OeV2Path, { kind: "objectFolder" }>,
     status: MetadataStatus | undefined,
     snapshot: CatalogSnapshot | undefined,
+    freshness?: OeV2FreshnessFacts,
 ): OeV2Node[] {
     const scope = `obj/${path.connectionId}/${path.database}/${path.schema}.${path.name}/${path.folder}`;
     const gate = catalogGate(
@@ -377,11 +458,25 @@ export function objectFolderChildren(
             ),
         ];
     }
+    return withStaleNotice(
+        scope,
+        path.connectionId,
+        objectFolderContent(scope, path, snapshot!, objectId),
+        freshness,
+    );
+}
+
+function objectFolderContent(
+    scope: string,
+    path: Extract<OeV2Path, { kind: "objectFolder" }>,
+    snapshot: CatalogSnapshot,
+    objectId: number,
+): OeV2Node[] {
     const base = { connectionId: path.connectionId, database: path.database };
     switch (path.folder) {
         case "columns": {
-            const pkColumns = new Set(snapshot!.getPrimaryKeyColumns(objectId));
-            const columns = snapshot!.getColumns(objectId);
+            const pkColumns = new Set(snapshot.getPrimaryKeyColumns(objectId));
+            const columns = snapshot.getColumns(objectId);
             return columns.length === 0
                 ? [noItemsNode(scope, path.connectionId)]
                 : columns.map((column) => {
@@ -415,7 +510,7 @@ export function objectFolderChildren(
                   });
         }
         case "keys": {
-            const constraints = snapshot!.getKeyConstraints(objectId);
+            const constraints = snapshot.getKeyConstraints(objectId);
             return constraints.length === 0
                 ? [noItemsNode(scope, path.connectionId)]
                 : constraints.map((constraint) => {
@@ -444,11 +539,11 @@ export function objectFolderChildren(
                   });
         }
         case "foreignKeys": {
-            const details = snapshot!.getForeignKeyDetailsFrom(objectId);
+            const details = snapshot.getForeignKeyDetailsFrom(objectId);
             return details.length === 0
                 ? [noItemsNode(scope, path.connectionId)]
                 : details.map((detail) => {
-                      const target = snapshot!.getObject(detail.toObjectId);
+                      const target = snapshot.getObject(detail.toObjectId);
                       const fkPath: OeV2Path = {
                           kind: "column",
                           ...base,
