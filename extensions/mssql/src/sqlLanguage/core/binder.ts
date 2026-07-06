@@ -45,6 +45,8 @@ export interface BoundSource {
 export interface BoundColumn {
     readonly name: string;
     readonly typeDisplay?: string;
+    /** Known only for catalog columns; undefined = cannot claim (hover honesty). */
+    readonly nullable?: boolean;
     readonly isPrimaryKey?: boolean;
     readonly isIdentity?: boolean;
     readonly isComputed?: boolean;
@@ -248,6 +250,7 @@ export function bindStatement(input: BindInput): StatementBinding {
                 return columns.map((c: LangColumn) => ({
                     name: c.name,
                     typeDisplay: c.typeDisplay,
+                    nullable: c.nullable,
                     isPrimaryKey: c.isPrimaryKey,
                     isIdentity: c.isIdentity,
                     isComputed: c.isComputed,

@@ -394,7 +394,7 @@ suite("sqlLanguage LS-0 native features", () => {
         );
     });
 
-    test("feature ladder: completion (B9) + diagnostics (B10) serve; hover unserved until B11", async () => {
+    test("feature ladder: completion (B9) + diagnostics (B10) + hover (B11) serve; definition unserved until B12", async () => {
         const completion = await engine.completion({
             text: "SELECT ",
             version: 3,
@@ -402,11 +402,19 @@ suite("sqlLanguage LS-0 native features", () => {
             trigger: "invoke",
         });
         expect(completion).to.not.equal(undefined);
+        // Hover serves since B11 — a bare keyword still gets an honest none.
         expect(
             await engine.hover({ text: "SELECT", version: 4, position: { line: 0, character: 2 } }),
         ).to.equal(undefined);
         const diagnostics = await engine.diagnostics({ text: "SELECT 1", version: 5 });
         expect(diagnostics).to.not.equal(undefined);
         expect(diagnostics!.diagnostics).to.deep.equal([]);
+        expect(
+            await engine.definition({
+                text: "SELECT 1",
+                version: 6,
+                position: { line: 0, character: 2 },
+            }),
+        ).to.equal(undefined);
     });
 });

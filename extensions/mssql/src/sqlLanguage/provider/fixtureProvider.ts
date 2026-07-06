@@ -34,6 +34,10 @@ export interface FixtureObject {
     readonly columns?: readonly LangColumn[];
     readonly parameters?: readonly LangParam[];
     readonly definition?: string;
+    /** MS_Description-style object description (H7 shape). */
+    readonly description?: string;
+    /** Column descriptions by column name (H7 shape). */
+    readonly columnDescriptions?: Readonly<Record<string, string>>;
 }
 
 export interface FixtureForeignKey {
@@ -106,6 +110,8 @@ class FixturePinnedView implements IPinnedMetadataView {
     private readonly columnsById = new Map<number, readonly LangColumn[]>();
     private readonly paramsById = new Map<number, readonly LangParam[]>();
     private readonly definitionsById = new Map<number, string>();
+    private readonly descriptionsById = new Map<number, string>();
+    private readonly columnDescriptionsById = new Map<number, Readonly<Record<string, string>>>();
     private readonly fkEdges: LangFkEdge[] = [];
     private readonly caseSensitive: boolean;
 
@@ -139,6 +145,12 @@ class FixturePinnedView implements IPinnedMetadataView {
             }
             if (fixture.definition !== undefined) {
                 this.definitionsById.set(objectId, fixture.definition);
+            }
+            if (fixture.description !== undefined) {
+                this.descriptionsById.set(objectId, fixture.description);
+            }
+            if (fixture.columnDescriptions !== undefined) {
+                this.columnDescriptionsById.set(objectId, fixture.columnDescriptions);
             }
         }
         for (const fk of spec.foreignKeys ?? []) {
@@ -233,6 +245,26 @@ class FixturePinnedView implements IPinnedMetadataView {
 
     listSchemas(): readonly { name: string }[] {
         return [...new Set(this.objects.map((o) => o.schema))].sort().map((name) => ({ name }));
+    }
+
+    getDescription(ref: LangObjectRef, column?: string): string | undefined {
+        if (column === undefined) {
+            return this.descriptionsById.get(ref.objectId);
+        }
+        const byColumn = this.columnDescriptionsById.get(ref.objectId);
+        if (byColumn === undefined) {
+            return undefined;
+        }
+        if (byColumn[column] !== undefined) {
+            return byColumn[column];
+        }
+        const folded = this.fold(column);
+        for (const [name, value] of Object.entries(byColumn)) {
+            if (this.fold(name) === folded) {
+                return value;
+            }
+        }
+        return undefined;
     }
 
     getDefinition(ref: LangObjectRef): Promise<{ text?: string; unavailableReason?: "notLoaded" }> {

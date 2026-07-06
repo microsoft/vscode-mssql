@@ -753,7 +753,10 @@ function parseDeclare(b: SketchBuilder, i: number, endExclusive: number): void {
             j = k;
             continue;
         }
-        // Scalar: type = tokens until , or = or end.
+        // Scalar: type = tokens until , or = or end. Words that can never be
+        // part of a type end it too (module-header params: "@p int AS…",
+        // "@p int OUTPUT" — the modifier/body word is not the type).
+        const TYPE_ENDERS = new Set(["AS", "BEGIN", "RETURNS", "OUTPUT", "OUT", "READONLY"]);
         const typeStart = k;
         let typeEnd = k;
         while (k < endExclusive) {
@@ -775,6 +778,10 @@ function parseDeclare(b: SketchBuilder, i: number, endExclusive: number): void {
                 continue;
             }
             if (tk.kind === TokenKind.Variable) {
+                break;
+            }
+            const w = b.word(k);
+            if (w !== undefined && k > typeStart && TYPE_ENDERS.has(w)) {
                 break;
             }
             typeEnd = k;

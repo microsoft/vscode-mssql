@@ -313,6 +313,17 @@ class SnapshotPinnedView implements IPinnedMetadataView {
         return this.snapshot.listSchemas().map((s) => ({ name: s.name }));
     }
 
+    /**
+     * H7 descriptions — served ONLY when the section is fully ready (a failed
+     * or absent section yields undefined, never a pretend-empty claim).
+     */
+    getDescription(ref: LangObjectRef, column?: string): string | undefined {
+        if (this.snapshot.readiness.descriptions !== "ready") {
+            return undefined;
+        }
+        return this.snapshot.getDescription(ref.objectId, column);
+    }
+
     getDefinition(): Promise<DefinitionResult> {
         return Promise.resolve({ unavailableReason: "notLoaded" });
     }

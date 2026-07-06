@@ -9,8 +9,8 @@
  * version) and emits the sqlLanguage.* spans (sizes, counts and durations
  * only — never text). Served natively so far: folding + document symbols
  * (B8), completion (B9), diagnostics incl. the sliced pass for the scheduler
- * (B10). Remaining features return undefined until their batch, which the
- * router reports honestly as unserved.
+ * (B10), hover + signature help (B11). Remaining features return undefined
+ * until their batch, which the router reports honestly as unserved.
  */
 
 import { RawField, diag } from "../../diagnostics/diagnosticsCore";
@@ -39,8 +39,11 @@ import { StatementSketch, sketchStatement } from "../core/sketch";
 import { ScriptOverlay, SketchedStatement, buildOverlay } from "../core/overlay";
 import { bindStatement } from "../core/binder";
 import { classifyContext } from "../core/context";
+import { buildDatabaseContext } from "../core/databaseContext";
 import { computeCompletion } from "../features/completion";
 import { DiagnosticsPassResult, createDiagnostics } from "../features/diagnostics";
+import { computeHover } from "../features/hover";
+import { computeSignatureHelp } from "../features/signatureHelp";
 import { SlicedDiagnosticsPass } from "./scheduler";
 
 export interface NativeEngineOptions {
@@ -192,6 +195,33 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
         return analysis;
     }
 
+    /**
+     * Statement containing the caret, else the nearest one before it
+     * (trailing mid-edit positions belong to the prior statement). Undefined
+     * when unattached non-whitespace separates the caret from that statement.
+     */
+    private locateStatement(
+        analysis: DocumentAnalysis,
+        text: string,
+        offset: number,
+    ): AnalyzedStatement | undefined {
+        let target: AnalyzedStatement | undefined;
+        for (const statement of analysis.statements) {
+            if (statement.sketch.span.start > offset) {
+                break;
+            }
+            target = statement;
+        }
+        if (
+            target !== undefined &&
+            offset > target.sketch.span.end + 1 &&
+            !/^\s*$/.test(text.slice(target.sketch.span.end, offset))
+        ) {
+            return undefined;
+        }
+        return target;
+    }
+
     completion(req: CompletionRequest): Promise<CompletionResult | undefined> {
         const analysis = this.analyze(req.text, req.version);
         const offset = analysis.snapshot.offsetAt(req.position);
@@ -205,24 +235,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             },
         });
         try {
-            // Statement containing the caret, else the nearest one before it
-            // (trailing mid-edit positions belong to the prior statement).
-            let target: AnalyzedStatement | undefined;
-            for (const statement of analysis.statements) {
-                if (statement.sketch.span.start > offset) {
-                    break;
-                }
-                target = statement;
-            }
-            if (
-                target !== undefined &&
-                offset > target.sketch.span.end + 1 &&
-                !/^\s*$/.test(req.text.slice(target.sketch.span.end, offset))
-            ) {
-                // Non-whitespace between the last statement and the caret that
-                // the segmenter did not attach — treat as statement start.
-                target = undefined;
-            }
+            const target = this.locateStatement(analysis, req.text, offset);
             const pinned = this.provider.pin();
             if (target === undefined) {
                 // Empty document / between statements: statement start.
@@ -293,11 +306,111 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             throw error;
         }
     }
-    hover(_req: SqlLanguageRequest): Promise<HoverResult | undefined> {
-        return Promise.resolve(undefined); // B11 / LS-3
+    hover(req: SqlLanguageRequest): Promise<HoverResult | undefined> {
+        const analysis = this.analyze(req.text, req.version);
+        const offset = analysis.snapshot.offsetAt(req.position);
+        const span = diag.startSpan({
+            feature: "sqlLanguage",
+            kind: "span",
+            type: "sqlLanguage.hover",
+            fields: {
+                generation: { raw: this.provider.generation, cls: "diagnostic.metadata" },
+            },
+        });
+        try {
+            const target = this.locateStatement(analysis, req.text, offset);
+            if (target === undefined) {
+                span.end("ok", {
+                    symbolKind: { raw: "none", cls: "diagnostic.metadata" },
+                    served: { raw: false, cls: "diagnostic.metadata" },
+                });
+                return Promise.resolve(undefined);
+            }
+            const pinned = this.provider.pin();
+            const binding = bindStatement({
+                text: req.text,
+                sketch: target.sketch,
+                overlay: analysis.overlay,
+                batchIndex: target.batchIndex,
+                ordinal: target.ordinal,
+                pinned,
+                caseSensitive: pinned.env.caseSensitive,
+            });
+            const databaseContext = buildDatabaseContext(analysis.statements);
+            const computation = computeHover({
+                text: req.text,
+                offset,
+                tokens: analysis.lexed.tokens,
+                sketch: target.sketch,
+                binding,
+                overlay: analysis.overlay,
+                batchIndex: target.batchIndex,
+                ordinal: target.ordinal,
+                pinned,
+                databases: this.provider.databases(),
+                effectiveDatabase: databaseContext.effectiveDatabaseAt(target.ordinal),
+                positionAt: (o) => analysis.snapshot.positionAt(o),
+            });
+            span.end("ok", {
+                symbolKind: { raw: computation.symbolKind, cls: "diagnostic.metadata" },
+                served: { raw: computation.result !== undefined, cls: "diagnostic.metadata" },
+            });
+            return Promise.resolve(computation.result);
+        } catch (error) {
+            span.fail(error);
+            throw error;
+        }
     }
-    signatureHelp(_req: SqlLanguageRequest): Promise<SignatureHelpResult | undefined> {
-        return Promise.resolve(undefined); // B11 / LS-3
+
+    signatureHelp(req: SqlLanguageRequest): Promise<SignatureHelpResult | undefined> {
+        const analysis = this.analyze(req.text, req.version);
+        const offset = analysis.snapshot.offsetAt(req.position);
+        const span = diag.startSpan({
+            feature: "sqlLanguage",
+            kind: "span",
+            type: "sqlLanguage.signature",
+            fields: {
+                generation: { raw: this.provider.generation, cls: "diagnostic.metadata" },
+            },
+        });
+        try {
+            const target = this.locateStatement(analysis, req.text, offset);
+            if (target === undefined) {
+                span.end("ok", {
+                    calleeKind: { raw: "none", cls: "diagnostic.metadata" },
+                    signatureCount: { raw: 0, cls: "diagnostic.metadata" },
+                });
+                return Promise.resolve(undefined);
+            }
+            const pinned = this.provider.pin();
+            const databaseContext = buildDatabaseContext(analysis.statements);
+            const computation = computeSignatureHelp({
+                text: req.text,
+                offset,
+                tokens: analysis.lexed.tokens,
+                sketch: target.sketch,
+                overlay: analysis.overlay,
+                batchIndex: target.batchIndex,
+                ordinal: target.ordinal,
+                pinned,
+                effectiveDatabase: databaseContext.effectiveDatabaseAt(target.ordinal),
+            });
+            span.end("ok", {
+                calleeKind: { raw: computation.calleeKind, cls: "diagnostic.metadata" },
+                signatureCount: {
+                    raw: computation.result?.signatures.length ?? 0,
+                    cls: "diagnostic.metadata",
+                },
+                activeParameter: {
+                    raw: computation.result?.activeParameter ?? -1,
+                    cls: "diagnostic.metadata",
+                },
+            });
+            return Promise.resolve(computation.result);
+        } catch (error) {
+            span.fail(error);
+            throw error;
+        }
     }
 
     /** Whole-document diagnostics, run to completion (pull path / router). */
