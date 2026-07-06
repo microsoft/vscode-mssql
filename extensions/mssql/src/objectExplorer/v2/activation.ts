@@ -23,6 +23,7 @@ import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
 import { oeV2Settings, oeViewMode } from "./settings";
 import { ConnectionProfileSource } from "./sessions/oeV2ProfileAdapter";
 import { OeV2SessionRegistry } from "./sessions/oeV2SessionRegistry";
+import { registerOeV2NativeCommands } from "./commands/oeV2NativeCommands";
 import { OeV2Node } from "./tree/oeV2Node";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
 
@@ -92,6 +93,8 @@ export function activateObjectExplorerV2(
     if (oeViewMode() === "v2Preview") {
         register();
     }
+
+    registerOeV2NativeCommands(context, () => controller);
 
     const connectionIdOf = (node: OeV2Node | undefined): string | undefined =>
         node?.connectionId ??

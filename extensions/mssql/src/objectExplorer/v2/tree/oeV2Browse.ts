@@ -138,7 +138,11 @@ export function databaseNode(connectionId: string, info: ServerDatabaseInfo): Oe
         readiness: inaccessible
             ? { kind: "permissionDenied", message: "No access to this database." }
             : NOT_APPLICABLE,
-        capabilities: { canRefresh: true, canOpenQuery: !inaccessible },
+        capabilities: {
+            canRefresh: true,
+            canOpenQuery: !inaccessible,
+            canSearch: !inaccessible,
+        },
         icon: "Database",
     };
 }

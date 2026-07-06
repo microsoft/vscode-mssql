@@ -12,6 +12,8 @@
  * the session registry (B18) via the shared profileAuthAdapter closures.
  */
 
+import { stableProfileId } from "../../../services/metadata/profileAuthAdapter";
+
 export interface OeV2StoredProfile {
     id?: string;
     server?: string;
@@ -83,9 +85,7 @@ export async function readProfileTree(source: ConnectionProfileSource): Promise<
     const profiles: OeV2ProfileRecord[] = connections
         .filter((profile) => profile.server)
         .map((profile) => ({
-            profileId:
-                profile.id ??
-                `${profile.server}|${profile.database ?? ""}|${profile.user ?? ""}|${profile.authenticationType ?? ""}`,
+            profileId: stableProfileId(profile),
             displayName: profile.profileName || profile.server!,
             server: profile.server!,
             ...(profile.database ? { database: profile.database } : {}),

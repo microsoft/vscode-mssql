@@ -100,6 +100,54 @@ export class OeV2TreeController {
         this.fireChange();
     }
 
+    // -- folder filters (in-memory over pinned metadata — design §10.8) -------
+
+    private folderFilters = new Map<string, string>();
+
+    setFolderFilter(node: OeV2Node, filterText: string): void {
+        const trimmed = filterText.trim();
+        if (trimmed) {
+            this.folderFilters.set(node.id, trimmed);
+        } else {
+            this.folderFilters.delete(node.id);
+        }
+        this.fireChange();
+    }
+
+    clearFolderFilter(node?: OeV2Node): void {
+        if (node) {
+            this.folderFilters.delete(node.id);
+        } else {
+            this.folderFilters.clear();
+        }
+        this.fireChange();
+    }
+
+    folderFilter(node: OeV2Node): string | undefined {
+        return this.folderFilters.get(node.id);
+    }
+
+    /** Name search over a connected database's pinned snapshot (§11.2). */
+    async searchObjects(
+        connectionId: string,
+        database: string,
+        term: string,
+        limit = 50,
+    ): Promise<{ schema: string; name: string; kind: string }[]> {
+        const runtime = this.runtimes.get(connectionId);
+        if (!runtime) {
+            return [];
+        }
+        await runtime.coordinator.ensureDatabase(database).catch(() => undefined);
+        const snapshot = runtime.coordinator.databaseSnapshot(database);
+        if (!snapshot) {
+            return [];
+        }
+        return snapshot
+            .search(term, limit)
+            .map((info) => ({ schema: info.schema, name: info.name, kind: info.kind }));
+    }
+
     // -- commands (wired by activation) ---------------------------------------
 
     /** Explicit connect: opens the data-plane session + metadata coordinator. */
@@ -210,7 +258,7 @@ export class OeV2TreeController {
                     return [disconnectedHint(path.connectionId)];
                 }
                 void runtime.coordinator.ensureDatabase(path.database).catch(() => undefined);
-                return databaseFolderChildren(
+                const children = databaseFolderChildren(
                     path.connectionId,
                     path.database,
                     path.folder,
@@ -219,6 +267,7 @@ export class OeV2TreeController {
                     settings.groupBySchema,
                     path.kind === "schemaFolder" ? path.schema : undefined,
                 );
+                return this.applyFolderFilter(node, children);
             }
             case "object":
                 return objectChildren(path);
@@ -315,6 +364,45 @@ export class OeV2TreeController {
             ];
         }
         return children;
+    }
+
+    /**
+     * In-memory filter over an expanded folder's OBJECT nodes (status/error
+     * children always pass through). A fully-filtered folder shows an honest
+     * "no matches" note rather than pretending emptiness.
+     */
+    private applyFolderFilter(folderNode: OeV2Node, children: OeV2Node[]): OeV2Node[] {
+        const filter = this.folderFilters.get(folderNode.id);
+        if (!filter) {
+            return children;
+        }
+        const needle = filter.toLowerCase();
+        const kept = children.filter(
+            (child) =>
+                (child.kind !== "object" && child.kind !== "schema") ||
+                (child.objectName ?? child.label).toLowerCase().includes(needle),
+        );
+        const objectCount = children.filter((child) => child.kind === "object").length;
+        const keptCount = kept.filter((child) => child.kind === "object").length;
+        if (keptCount === 0 && objectCount > 0) {
+            return [
+                statusNode(
+                    `${folderNode.id}#filterEmpty`,
+                    `No matches for filter '${filter}'. Use Clear Filters to remove it.`,
+                    folderNode.connectionId,
+                ),
+            ];
+        }
+        if (objectCount > 0) {
+            kept.push(
+                statusNode(
+                    `${folderNode.id}#filterNote`,
+                    `Filter: '${filter}' (${keptCount} of ${objectCount} shown)`,
+                    folderNode.connectionId,
+                ),
+            );
+        }
+        return kept;
     }
 
     private async findProfile(connectionId: string): Promise<OeV2ProfileRecord | undefined> {

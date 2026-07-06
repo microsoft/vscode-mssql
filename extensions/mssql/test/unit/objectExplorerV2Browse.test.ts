@@ -522,4 +522,37 @@ suite("Object Explorer v2 browse (B18)", () => {
         expect(hint[0].label).to.contain("Connect");
         h.controller.dispose();
     });
+
+    test("folder filter narrows objects honestly; clear restores; search finds by prefix", async () => {
+        const h = harness();
+        const { dbFolder } = await browseToDatabases(h);
+        const appDb = (await h.controller.children(dbFolder)).find((n) => n.label === "AppDb")!;
+        const folders = await h.controller.children(appDb);
+        await h.controller.refreshNode(appDb);
+        const tablesFolder = folders[0];
+
+        h.controller.setFolderFilter(tablesFolder, "Cust");
+        const filtered = await h.controller.children(tablesFolder);
+        expect(filtered.map((n) => `${n.kind}:${n.label}`)).to.deep.equal([
+            "object:dbo.Customers",
+            "status:Filter: 'Cust' (1 of 2 shown)",
+        ]);
+
+        h.controller.setFolderFilter(tablesFolder, "zzz-nothing");
+        const none = await h.controller.children(tablesFolder);
+        expect(none).to.have.length(1);
+        expect(none[0].kind).to.equal("status");
+        expect(none[0].label).to.contain("No matches");
+
+        h.controller.clearFolderFilter(tablesFolder);
+        const restored = await h.controller.children(tablesFolder);
+        expect(restored.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+
+        const matches = await h.controller.searchObjects("p1", "AppDb", "Ord");
+        expect(matches.map((m) => `${m.schema}.${m.name}`)).to.deep.equal([
+            "dbo.Orders",
+            "dbo.OrdersView",
+        ]);
+        h.controller.dispose();
+    });
 });

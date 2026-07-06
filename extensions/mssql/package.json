@@ -647,6 +647,46 @@
                     "group": "1_oe2_refresh@0"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.newQuery",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canOpenQuery\\b/",
+                    "group": "2_oe2_query@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.tablePreview",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canPreviewTable\\b/",
+                    "group": "2_oe2_query@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.selectTop",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSelectTop\\b/",
+                    "group": "2_oe2_query@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.filter",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canFilter\\b/",
+                    "group": "3_oe2_filter@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.clearFilters",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canFilter\\b/",
+                    "group": "3_oe2_filter@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.search",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSearch\\b/",
+                    "group": "3_oe2_filter@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyName",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyName\\b/",
+                    "group": "4_oe2_copy@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyQualifiedName",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyQualifiedName\\b/",
+                    "group": "4_oe2_copy@1"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -1899,6 +1939,46 @@
             {
                 "command": "mssql.objectExplorerV2.disconnect",
                 "title": "Disconnect",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.copyName",
+                "title": "Copy Name",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.copyQualifiedName",
+                "title": "Copy Qualified Name",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.newQuery",
+                "title": "New Query (Query Studio)",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.selectTop",
+                "title": "Script SELECT TOP",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.tablePreview",
+                "title": "Preview Table Data",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.filter",
+                "title": "Filter by Name",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.clearFilters",
+                "title": "Clear Filters",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.search",
+                "title": "Search Objects",
                 "category": "MS SQL"
             },
             {
