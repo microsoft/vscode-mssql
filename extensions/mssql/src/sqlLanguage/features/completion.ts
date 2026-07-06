@@ -19,7 +19,7 @@ import {
 } from "../api";
 import { BoundSource, StatementBinding } from "../core/binder";
 import { CompletionContext } from "../core/context";
-import { matchScore } from "../core/fuzzy";
+import { matchScore, ordinalCompare } from "../core/fuzzy";
 import { quoteIdentifier, quoteParts } from "../core/quote";
 import { ScriptOverlay } from "../core/overlay";
 import { StatementSketch } from "../core/sketch";
@@ -185,8 +185,9 @@ export function computeCompletion(input: CompletionComputeInput): CompletionResu
         }
     }
 
-    // Deterministic order: score desc, then label (§10.5 tie-breakers).
-    candidates.sort((a, b) => b.score - a.score || a.item.label.localeCompare(b.item.label));
+    // Deterministic order: score desc, then label (§10.5 tie-breakers) —
+    // ordinal, not localeCompare: ICU order drifts across Electron updates.
+    candidates.sort((a, b) => b.score - a.score || ordinalCompare(a.item.label, b.item.label));
     const items = candidates.slice(0, MAX_ITEMS).map((c, index) => ({
         ...c.item,
         sortText: String(10000 + index).padStart(5, "0"),

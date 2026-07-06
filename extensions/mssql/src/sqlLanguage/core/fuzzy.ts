@@ -44,3 +44,23 @@ export function matchScore(candidate: string, prefix: string): number | undefine
     }
     return 40 + boundaryHits * 5 - Math.min(20, c.length - p.length);
 }
+
+/**
+ * Ordinal, locale-independent comparator (case-folded, raw tiebreak) for
+ * deterministic candidate ordering. Structural duplicate of
+ * services/metadata/catalogModel's ordinalCompare BY DESIGN: the language
+ * core's purity boundary forbids imports outside src/sqlLanguage +
+ * src/sqlScripting (design 05 §6.2), and localeCompare is banned here —
+ * ICU collation drifts across Electron/platform (cache design C-1).
+ */
+export function ordinalCompare(a: string, b: string): number {
+    const fa = a.toLowerCase();
+    const fb = b.toLowerCase();
+    if (fa < fb) {
+        return -1;
+    }
+    if (fa > fb) {
+        return 1;
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+}
