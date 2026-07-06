@@ -948,6 +948,28 @@ export const OBS_CONTRACT: Registry = {
             attrsComplete: false,
             notes: "A QsRunRecord was captured for a Query Studio execution (design 04 §17.2). The record itself lives in the feature trace store; SQL text is digest-only unless elevated capture was active at record time.",
         },
+        {
+            prefix: "metadataStore.",
+            kind: "spanFamily",
+            feature: "metadata",
+            processRoles: ["extensionHost"],
+            timingClass: "sameProcessMonotonic",
+            measurementEligible: false,
+            attrs: {},
+            attrsComplete: false,
+            notes: "Shared MetadataStore spans/events (oe-docs metadata_service_oe_v2_design §13): metadataStore.prepareProfile, .acquireServer, .acquireDatabase, .acquireObjectDetails, .refresh, .disposeLease, .session.open/.close, .hydrate.server/.database/.objectDetails, .drift.detected, .cache.hit/.miss, .keyCorrectness.violation. Attrs: key kind, SHORT profile fingerprint, section names, readiness state, generation, counts, duration, backend kind, error class. PRIVACY: no SQL text, rows, connection strings, secrets, raw endpoints, or unclassified object/database names — database rides as source.path classification like metadata.* today.",
+        },
+        {
+            prefix: "objectExplorerV2.",
+            kind: "spanFamily",
+            feature: "objectExplorer",
+            processRoles: ["extensionHost"],
+            timingClass: "sameProcessMonotonic",
+            measurementEligible: false,
+            attrs: {},
+            attrsComplete: false,
+            notes: "Object Explorer v2 spans/events (oe-docs oe_view_design §14.1): objectExplorerV2.view.activate, .connection.open/.close/.lost, .serverCatalog.acquire/.refresh, .databaseCatalog.acquire/.refresh, .tree.expand/.filter/.search, .command.route/.native/.handoff, .legacyConnection.created, .unsupported, .noV1Browse.violation. Attrs: view mode, data-plane backend kind, node kind, folder kind, readiness state, generation, object/filter counts, duration, result status, command route (native|handoff|hidden|unavailable), handoff level (h1|h2|h3), unsupported reason, short profile fingerprint. PRIVACY: never full node paths (path KIND only), never object names, never SQL text or endpoints. The noV1Browse.violation event is the architecture tripwire — any emission is a test failure.",
+        },
     ],
     metrics: [
         {
