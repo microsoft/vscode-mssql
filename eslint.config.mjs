@@ -168,6 +168,27 @@ export default [
         },
     },
 
+    // Determinism-critical ordering paths (metadata cache/drift C-1):
+    // localeCompare (ICU collation, drifts across Electron/platform) is
+    // banned where ordering feeds the byte-identical schema context,
+    // persisted metadata artifacts, or deterministic script output. UI-only
+    // presentation sorts live outside these paths on purpose.
+    {
+        files: [
+            "extensions/mssql/src/services/metadata/**/*.ts",
+            "extensions/mssql/src/sqlLanguage/**/*.ts",
+            "extensions/mssql/src/sqlScripting/**/*.ts",
+            "extensions/mssql/src/copilot/catalogSchemaContextPayload.ts",
+            "extensions/mssql/src/copilot/completionSchemaContextCore.ts",
+        ],
+        plugins: {
+            "custom-eslint-rules": customRules,
+        },
+        rules: {
+            "custom-eslint-rules/no-locale-compare": "error",
+        },
+    },
+
     // data-workspace extension
     {
         files: ["extensions/data-workspace/src/**/*.ts", "extensions/data-workspace/test/**/*.ts"],
