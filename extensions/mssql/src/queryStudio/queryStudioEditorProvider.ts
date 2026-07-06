@@ -27,6 +27,11 @@ const liveModels = new Map<string, QueryStudioDocumentModel>();
 
 /** Live controllers (one per panel) — seam for the language status command. */
 const liveControllers = new Set<QueryStudioController>();
+/** Open-from-context payloads keyed by document uri, consumed at resolve. */
+const pendingOpenContexts = new Map<
+    string,
+    { profileId: string; database?: string; autoRun?: boolean }
+>();
 
 export function findQueryStudioModel(uri: vscode.Uri): QueryStudioDocumentModel | undefined {
     return liveModels.get(uri.toString());
@@ -70,6 +75,13 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
 
         const controller = new QueryStudioController(this.context, panel, model);
         liveControllers.add(controller);
+        // Open-from-context (OE v2): a queued context connects the fresh
+        // model to its profile (and optionally runs) once the panel exists.
+        const pendingContext = pendingOpenContexts.get(uriKey);
+        if (pendingContext) {
+            pendingOpenContexts.delete(uriKey);
+            void model.applyOpenContext(pendingContext);
+        }
         panel.onDidDispose(() => {
             liveControllers.delete(controller);
             controller.dispose();
@@ -202,6 +214,33 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 QUERY_STUDIO_VIEW_TYPE,
             );
         }),
+        vscode.commands.registerCommand(
+            "mssql.queryStudio.newQueryFromContext",
+            async (args?: {
+                profileId?: string;
+                database?: string;
+                initialSql?: string;
+                autoRun?: boolean;
+                source?: string;
+            }) => {
+                const doc = await vscode.workspace.openTextDocument({
+                    language: "sql",
+                    content: args?.initialSql ?? "",
+                });
+                if (args?.profileId) {
+                    pendingOpenContexts.set(doc.uri.toString(), {
+                        profileId: args.profileId,
+                        ...(args.database ? { database: args.database } : {}),
+                        ...(args.autoRun ? { autoRun: true } : {}),
+                    });
+                }
+                await vscode.commands.executeCommand(
+                    "vscode.openWith",
+                    doc.uri,
+                    QUERY_STUDIO_VIEW_TYPE,
+                );
+            },
+        ),
         vscode.commands.registerCommand("mssql.queryStudio.openActive", async () => {
             const uri = vscode.window.activeTextEditor?.document.uri;
             if (!uri) {

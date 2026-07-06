@@ -20,6 +20,7 @@ import { profileFingerprint, serverFingerprint } from "./profileFingerprint";
 
 /** Minimal stored-profile shape (subset of IConnectionProfile). */
 export interface StoredConnectionProfile {
+    id?: string;
     server?: string;
     database?: string;
     user?: string;
@@ -28,6 +29,18 @@ export interface StoredConnectionProfile {
     trustServerCertificate?: boolean;
     profileName?: string;
     savePassword?: boolean;
+}
+
+/**
+ * Stable id for a stored profile: its saved id when present, else a
+ * deterministic derivation — the ONE recipe shared by OE v2 nodes and the
+ * Query Studio open-from-context path so ids always agree.
+ */
+export function stableProfileId(stored: StoredConnectionProfile): string {
+    return (
+        stored.id ??
+        `${stored.server}|${stored.database ?? ""}|${stored.user ?? ""}|${stored.authenticationType ?? ""}`
+    );
 }
 
 /** Credential-store seam (ConnectionStore.lookupPassword). */

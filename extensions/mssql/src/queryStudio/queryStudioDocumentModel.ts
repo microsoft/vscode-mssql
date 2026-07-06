@@ -47,6 +47,32 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     /** Guards re-entrant application of our own workspace edits. */
     private applyingWebviewEdit = false;
 
+    /**
+     * Open-from-context (OE v2 New Query / table preview, oe_view_design
+     * §11.3): connect straight to a saved profile (+database override), then
+     * optionally run the document once. Failures surface via the binding's
+     * normal error UX; auto-run is skipped unless connect succeeded.
+     */
+    async applyOpenContext(context: {
+        profileId?: string;
+        database?: string;
+        autoRun?: boolean;
+    }): Promise<void> {
+        if (!context.profileId) {
+            return;
+        }
+        const connected = await this.sessionBinding.connectToProfile(
+            context.profileId,
+            context.database,
+        );
+        if (connected && context.autoRun) {
+            this.executionHost.execute(this.document.getText(), {
+                selectionStartLine: 0,
+                scope: "document",
+            });
+        }
+    }
+
     constructor(
         private document: vscode.TextDocument,
         spillRoot: string,

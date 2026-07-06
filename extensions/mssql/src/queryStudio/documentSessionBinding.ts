@@ -33,11 +33,13 @@ import {
     buildProfileRef,
     prepareConnection,
     resolveAuthKind,
+    stableProfileId,
 } from "../services/metadata/profileAuthAdapter";
 import { QsConnectionState } from "../sharedInterfaces/queryStudio";
 import { buildSessionOptionsBatch, readQuerySessionOptions } from "./sessionOptions";
 
 interface StoredProfile {
+    id?: string;
     server?: string;
     database?: string;
     user?: string;
@@ -172,6 +174,36 @@ export class DocumentSessionBinding implements vscode.Disposable {
     }
 
     private lastStoredProfile: StoredProfile | undefined;
+
+    /**
+     * Connect directly to a saved profile by id (OE v2 open-from-context,
+     * oe_view_design §11.3) — no quick pick; optional database override.
+     * Credentials still resolve through the connection store at open time.
+     */
+    async connectToProfile(profileId: string, database?: string): Promise<boolean> {
+        const dataPlane = SqlDataPlaneService.get();
+        if (!dataPlane.enabled) {
+            void vscode.window.showErrorMessage(
+                "The SQL data plane is disabled. Enable mssql.sqlDataPlane.enabled (and reload) to use Query Studio connections.",
+            );
+            return false;
+        }
+        const store = await connectionStore();
+        if (!store) {
+            void vscode.window.showErrorMessage("Connection store unavailable.");
+            return false;
+        }
+        const stored = (await store.readAllConnections(false)).find(
+            (profile) => stableProfileId(profile) === profileId,
+        );
+        if (!stored) {
+            void vscode.window.showErrorMessage(
+                "The connection profile for this request no longer exists.",
+            );
+            return false;
+        }
+        return this.open(database ? { ...stored, database } : stored, store);
+    }
 
     private async open(stored: StoredProfile, store: ConnectionStoreSeam): Promise<boolean> {
         this.lastStoredProfile = stored;
