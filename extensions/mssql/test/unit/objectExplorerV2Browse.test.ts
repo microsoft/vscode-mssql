@@ -59,8 +59,8 @@ function dbScripts(tableName: string): FakeScript[] {
             events: [
                 {
                     type: "resultSet",
-                    columns: ["object_count", "object_hash"],
-                    rows: [[4, 12345]],
+                    columns: ["current_db", "object_count", "object_hash"],
+                    rows: [["AdventureWorks", 4, 12345]],
                 },
                 { type: "complete", status: "succeeded" },
             ],
