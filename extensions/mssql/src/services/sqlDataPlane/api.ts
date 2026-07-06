@@ -307,12 +307,41 @@ export type CellValue =
     | { kind: "unsupported"; display: string; typeName?: string };
 
 /**
+ * Compact-page encoding of a byte-capped cell (ExecuteOptions.maxCellBytes):
+ * the prefix the backend kept plus honest truncation metadata. Bindings place
+ * this marker in CompactPage.values in place of the raw cell; decodeCell()
+ * maps it to CellValue with `truncated` set. Webview display code detects the
+ * same shape structurally (sharedInterfaces/queryStudioGridOps.ts stays
+ * import-free by convention).
+ */
+export interface TruncatedCellEncoding {
+    $t: "truncated";
+    of: "string" | "binary";
+    /** Full pre-truncation size in bytes. */
+    bytes?: number;
+    /** `sha256:<hex>` digest of the full value. */
+    digest?: string;
+    /** UTF-8 prefix (`of:"string"`) or base64-encoded prefix (`of:"binary"`). */
+    v: string;
+}
+
+export function isTruncatedCellEncoding(raw: unknown): raw is TruncatedCellEncoding {
+    return (
+        raw !== null &&
+        typeof raw === "object" &&
+        (raw as { $t?: unknown }).$t === "truncated" &&
+        typeof (raw as { v?: unknown }).v === "string"
+    );
+}
+
+/**
  * Compact wire-faithful page encoding (addendum §3.3): full CellValue
  * materialization is LAZY (window-serve/serialize time). Bindings may deliver
  * this shape; RowStore retains it; tagged unions never cross postMessage.
  */
 export interface CompactPage {
-    /** Row-major display/raw values; null cells hold undefined. */
+    /** Row-major display/raw values; null cells hold undefined. Byte-capped
+     *  cells hold TruncatedCellEncoding markers. */
     values: unknown[][];
     /** Base64 packed bits, row-major (1 = NULL). */
     nullBitmap?: string;
@@ -478,6 +507,26 @@ export function decodeCell(
     const hint = page.typeHints?.[col];
     if (raw === undefined || raw === null) {
         return { kind: "null" };
+    }
+    // Byte-capped cells decode BEFORE the hint switch — the String(raw)
+    // fallbacks below would render the marker as "[object Object]".
+    if (isTruncatedCellEncoding(raw)) {
+        const truncated: TruncationInfo = {
+            ...(raw.bytes !== undefined ? { originalBytes: raw.bytes } : {}),
+            ...(raw.digest ? { digest: raw.digest } : {}),
+            reason: "maxCellBytes",
+        };
+        if (raw.of === "binary") {
+            return {
+                kind: "binary",
+                base64: raw.v,
+                ...(raw.bytes !== undefined ? { byteLength: raw.bytes } : {}),
+                truncated,
+            };
+        }
+        return hint === "xml"
+            ? { kind: "xml", value: raw.v, truncated }
+            : { kind: "string", value: raw.v, truncated };
     }
     switch (hint) {
         case "number":

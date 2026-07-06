@@ -15,6 +15,8 @@
  * it resolves to undefined and formatXml silently returns raw text.
  */
 
+import { isTruncatedCellMarker } from "../sharedInterfaces/queryStudioGridOps";
+
 const XML_INDENT = "    ";
 const XML_EOL = "\r\n";
 
@@ -22,6 +24,10 @@ const XML_EOL = "\r\n";
 export function cellDocumentText(value: unknown): string {
     if (value === undefined || value === null) {
         return "";
+    }
+    if (isTruncatedCellMarker(value)) {
+        // Byte-capped cell (maxCellBytes): the prefix is all the client has.
+        return value.v;
     }
     if (typeof value === "object") {
         return JSON.stringify(value);

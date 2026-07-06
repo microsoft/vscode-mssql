@@ -128,6 +128,12 @@ export interface V2QueryExecuteParams {
     connectionId: string;
     sql: string;
     pageRows?: number;
+    /**
+     * Per-query bounds. `maxCellBytes`: byte cap per cell (absent/0 = the
+     * service's 1 MiB default; lower-only — the service never raises it).
+     * Capped cells arrive as truncated-cell markers (V2TruncatedCell).
+     */
+    options?: { maxCellBytes?: number; [key: string]: unknown };
     [key: string]: unknown;
 }
 
@@ -166,8 +172,32 @@ export interface V2RowsNotification {
     resultSetId: number;
     pageSeq: number;
     rowOffset: number;
+    /** Cells: JSON scalars, null, or byte-capped V2TruncatedCell markers. */
     rows: unknown[][];
     last?: boolean;
+}
+
+/**
+ * Byte-capped cell marker (service maxCellBytes semantics): the prefix the
+ * service kept plus honest metadata about what it dropped. Tolerantly typed —
+ * only `$t` is load-bearing for detection; the binding normalizes the rest.
+ */
+export interface V2TruncatedCell {
+    $t: "truncated";
+    of?: "string" | "binary" | string;
+    /** Full pre-truncation size in bytes. */
+    bytes?: number;
+    /** `sha256:<hex>` digest of the full value. */
+    digest?: string;
+    /** UTF-8 prefix (`of:"string"`) or base64-encoded prefix (`of:"binary"`). */
+    v?: string;
+}
+
+/** Detects the truncated-cell marker BEFORE any String() decode fallback. */
+export function isV2TruncatedCell(cell: unknown): cell is V2TruncatedCell {
+    return (
+        cell !== null && typeof cell === "object" && (cell as { $t?: unknown }).$t === "truncated"
+    );
 }
 
 export interface V2MessageNotification {

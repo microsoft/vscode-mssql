@@ -13,12 +13,14 @@
 
 import { expect } from "chai";
 import {
+    DataPlaneAvailability,
     IQueryEventSink,
     QueryCompleteSummary,
     ResultSetMetadata,
     RowsPage,
     ServerMessage,
     SqlConnectionProfileRef,
+    decodeCell,
 } from "../../src/services/sqlDataPlane/api";
 import { DEFAULT_DEADLINES, Sts2Backend, Sts2Rpc } from "../../src/services/sts2/sts2Backend";
 import { STS2_METHODS } from "../../src/services/sts2/wire/v2";
@@ -398,6 +400,141 @@ suite("STS2 binding conformance (scripted wire)", () => {
         const summary = await handle.completion;
         expect(summary.status).to.equal("succeeded");
         expect(sink.sequence[0]).to.equal("start:n");
+    });
+
+    test("truncated string cell decodes to CellValue.truncated (prefix + digest, never '[object Object]')", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [{ name: "doc", engineType: "nvarchar" }],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [
+                [
+                    {
+                        $t: "truncated",
+                        of: "string",
+                        bytes: 5_242_880,
+                        digest: "sha256:0f2a",
+                        v: "lorem ipsum prefix",
+                    },
+                ],
+            ],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        const cell = decodeCell(sink.pages[0].compact, 0, 0, 1);
+        expect(cell).to.deep.equal({
+            kind: "string",
+            value: "lorem ipsum prefix",
+            truncated: { originalBytes: 5_242_880, digest: "sha256:0f2a", reason: "maxCellBytes" },
+        });
+    });
+
+    test("truncated binary cell decodes to binary CellValue with base64 prefix + byteLength", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [{ name: "payload", engineType: "varbinary" }],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [
+                [
+                    {
+                        $t: "truncated",
+                        of: "binary",
+                        bytes: 262_144,
+                        digest: "sha256:9c",
+                        v: "3q2+7w==",
+                    },
+                ],
+            ],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        // The marker is NOT a null cell (bitmap stays clear for it).
+        const cell = decodeCell(sink.pages[0].compact, 0, 0, 1);
+        expect(cell).to.deep.equal({
+            kind: "binary",
+            base64: "3q2+7w==",
+            byteLength: 262_144,
+            truncated: { originalBytes: 262_144, digest: "sha256:9c", reason: "maxCellBytes" },
+        });
+    });
+
+    test("maxCellBytes rides the execute params as options.maxCellBytes (absent when unset)", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { session, handle } = await openAndExecute(rpc, sink);
+        const first = rpc.requests.find((r) => r.method === STS2_METHODS.queryExecute);
+        expect(first?.params).to.not.have.property("options");
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        rpc.responders.set(STS2_METHODS.queryExecute, () => ({ queryId: "q-2" }));
+        const handle2 = session.execute("select 2", { maxCellBytes: 65_536 }, new RecordingSink());
+        await new Promise((r) => setTimeout(r, 5));
+        const executes = rpc.requests.filter((r) => r.method === STS2_METHODS.queryExecute);
+        expect(executes).to.have.length(2);
+        expect(
+            (executes[1].params as { options?: { maxCellBytes?: number } }).options,
+        ).to.deep.equal({ maxCellBytes: 65_536 });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-2",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle2.completion;
+    });
+
+    test("capability maxCellBytesHonored derives from the initialize result (both ways)", async () => {
+        const capabilityOf = (availability: DataPlaneAvailability) =>
+            availability.state === "available"
+                ? availability.capabilities.maxCellBytesHonored
+                : undefined;
+
+        const yes = standardRpc();
+        yes.responders.set(STS2_METHODS.initialize, () => ({
+            specVersion: "2.0.0-preview.1",
+            capabilities: { maxCellBytesHonored: true },
+        }));
+        expect(capabilityOf(await new Sts2Backend(yes).start())).to.equal(true);
+
+        // Absent capability object → honestly false.
+        expect(capabilityOf(await new Sts2Backend(standardRpc()).start())).to.equal(false);
+
+        // Truthy-but-not-true stays false (only `=== true` counts).
+        const stringy = standardRpc();
+        stringy.responders.set(STS2_METHODS.initialize, () => ({
+            specVersion: "2.0.0-preview.1",
+            capabilities: { maxCellBytesHonored: "true" },
+        }));
+        expect(capabilityOf(await new Sts2Backend(stringy).start())).to.equal(false);
     });
 
     test("close cancels the active query's future honestly and is idempotent", async () => {

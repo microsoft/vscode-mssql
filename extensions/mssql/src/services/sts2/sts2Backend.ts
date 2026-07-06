@@ -47,6 +47,7 @@ import {
     SessionStateChange,
     SqlBackendCapabilities,
     SqlDataPlaneError,
+    TruncatedCellEncoding,
     packBitmap,
 } from "../sqlDataPlane/api";
 import {
@@ -63,6 +64,8 @@ import {
     V2QueryExecuteResult,
     V2ResultSetNotification,
     V2RowsNotification,
+    V2TruncatedCell,
+    isV2TruncatedCell,
     wireColumnName,
     wireColumnNullable,
     wireColumnType,
@@ -134,6 +137,17 @@ class Emitter<T> {
 let localIds = 0;
 const nextLocalId = (prefix: string) => `${prefix}_${(++localIds).toString(36)}`;
 
+/** Wire truncated-cell marker → backend-neutral compact encoding (validated). */
+function toTruncatedCellEncoding(cell: V2TruncatedCell): TruncatedCellEncoding {
+    return {
+        $t: "truncated",
+        of: cell.of === "binary" ? "binary" : "string",
+        ...(typeof cell.bytes === "number" ? { bytes: cell.bytes } : {}),
+        ...(typeof cell.digest === "string" ? { digest: cell.digest } : {}),
+        v: typeof cell.v === "string" ? cell.v : "",
+    };
+}
+
 /** engineType → compact typeHint (lazy CellValue decoding key). */
 function typeHintFor(engineType: string | undefined): string {
     const t = (engineType ?? "").toLowerCase();
@@ -185,6 +199,8 @@ export class Sts2Backend implements ISqlConnectionService {
                 backend: this.backendInfo.kind,
                 capabilities: {
                     ...STS2_CAPABILITIES,
+                    // Service-declared, honestly false unless explicitly true.
+                    maxCellBytesHonored: result.capabilities?.["maxCellBytesHonored"] === true,
                     protocolVersion: result.specVersion,
                 },
             };
@@ -640,6 +656,11 @@ export class Sts2Query {
                     connectionId: this.session.connectionId,
                     sql: text,
                     ...(this.opts.pageRows ? { pageRows: this.opts.pageRows } : {}),
+                    // Cell byte cap (absent/0 = service 1 MiB default,
+                    // lower-only) — capped cells arrive as truncated markers.
+                    ...(this.opts.maxCellBytes
+                        ? { options: { maxCellBytes: this.opts.maxCellBytes } }
+                        : {}),
                 },
             );
             this.backendId = result.queryId;
@@ -716,6 +737,13 @@ export class Sts2Query {
         const values: unknown[][] = params.rows.map((row) =>
             row.map((cell) => {
                 bits.push(cell === null || cell === undefined);
+                if (isV2TruncatedCell(cell)) {
+                    // Byte-capped cell (maxCellBytes): normalize the wire
+                    // marker into the backend-neutral compact encoding HERE —
+                    // wire DTOs never leave sts2/, and downstream decode
+                    // fallbacks would String() the raw object.
+                    return toTruncatedCellEncoding(cell);
+                }
                 return cell === null ? undefined : cell;
             }),
         );

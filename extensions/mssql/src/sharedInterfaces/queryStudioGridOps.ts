@@ -33,10 +33,32 @@ export const QS_CELL_DISPLAY_CLAMP = 2048;
 /** Cell tooltip (title attribute) clamp. */
 export const QS_CELL_TITLE_CLAMP = 512;
 
+/**
+ * Structural check for the byte-capped cell marker
+ * (services/sqlDataPlane/api.ts TruncatedCellEncoding — shape duplicated here
+ * because this module stays import-free for webview safety).
+ */
+export function isTruncatedCellMarker(
+    value: unknown,
+): value is { $t: "truncated"; of?: "string" | "binary"; bytes?: number; v: string } {
+    return (
+        value !== null &&
+        typeof value === "object" &&
+        (value as { $t?: unknown }).$t === "truncated" &&
+        typeof (value as { v?: unknown }).v === "string"
+    );
+}
+
 /** Display text for one wire cell value (grid cellText parity). */
 export function cellDisplayText(value: unknown): string {
     if (value === undefined || value === null) {
         return "NULL";
+    }
+    if (isTruncatedCellMarker(value)) {
+        // Byte-capped cell (maxCellBytes): show the prefix the service kept —
+        // the grid's clamp/link-out treatment keeps the whole prefix
+        // reachable. Sort/filter/copy operate on the same prefix.
+        return value.v;
     }
     if (typeof value === "object") {
         return JSON.stringify(value);

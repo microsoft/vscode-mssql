@@ -40,6 +40,7 @@ import {
     cellDisplayText,
     clampDisplay,
     distinctValues,
+    isTruncatedCellMarker,
 } from "../../../sharedInterfaces/queryStudioGridOps";
 import { isJson } from "../../common/jsonUtils";
 import { isXmlCell } from "../../common/xmlUtils";
@@ -91,8 +92,10 @@ function cellLinkFormat(
     if (isJson(text)) {
         return "json";
     }
-    if (text.length > QS_CELL_DISPLAY_CLAMP) {
-        return "text"; // display-clamped cell — link opens the raw text
+    if (text.length > QS_CELL_DISPLAY_CLAMP || isTruncatedCellMarker(value)) {
+        // Display-clamped OR byte-capped (maxCellBytes) cell — the link
+        // opens the raw text so the full received prefix stays reachable.
+        return "text";
     }
     return undefined;
 }
