@@ -107,6 +107,53 @@ export type Resolution =
     | { kind: "sectionUnavailable"; section: CatalogSection };
 
 /**
+ * FRIEND VIEW for the persistent-cache codec (CACHE-1, cache/drift addendum
+ * §6): the snapshot's SoA arrays plus the environment, exposed read-only so
+ * `metadataCacheCodec.ts` can serialize a published snapshot without the
+ * snapshot ever doing I/O itself (§3.3 purity). This is the ONE sanctioned
+ * accessor — nothing else may reach into the builder's arrays, and the codec
+ * must never mutate what it receives here.
+ */
+export interface CatalogCodecView {
+    readonly strings: readonly string[];
+    readonly schemaIds: readonly number[];
+    readonly schemaNameSyms: readonly number[];
+    readonly objectIds: readonly number[];
+    readonly objectSchemaIds: readonly number[];
+    readonly objectNameSyms: readonly number[];
+    readonly objectKinds: readonly ObjectKind[];
+    readonly objectModifyDates: readonly (string | undefined)[];
+    readonly columnOwner: readonly number[];
+    readonly columnNameSyms: readonly number[];
+    readonly columnTypeSyms: readonly number[];
+    readonly columnNullable: readonly boolean[];
+    readonly columnIdentity: readonly boolean[];
+    readonly columnComputed: readonly boolean[];
+    readonly fkFrom: readonly number[];
+    readonly fkTo: readonly number[];
+    readonly fkNameSyms: readonly number[];
+    readonly fkConstraintIds: readonly number[];
+    readonly fkColumnConstraintIds: readonly number[];
+    readonly fkColumnFromSyms: readonly number[];
+    readonly fkColumnToSyms: readonly number[];
+    readonly pkOwner: readonly number[];
+    readonly pkColumnNameSyms: readonly number[];
+    readonly keyConstraintOwner: readonly number[];
+    readonly keyConstraintNameSyms: readonly number[];
+    readonly keyConstraintKinds: readonly KeyConstraintKind[];
+    readonly keyConstraintColumnSyms: readonly number[];
+    readonly paramOwner: readonly number[];
+    readonly paramOrdinals: readonly number[];
+    readonly paramNameSyms: readonly number[];
+    readonly paramTypeSyms: readonly number[];
+    readonly paramOutput: readonly boolean[];
+    readonly descriptionOwner: readonly number[];
+    readonly descriptionColumnSyms: readonly number[];
+    readonly descriptionValueSyms: readonly number[];
+    readonly environment: CatalogEnvironment;
+}
+
+/**
  * Ordinal, locale-independent name comparator: Unicode-default case fold,
  * then a raw code-unit tiebreak so `Foo`/`foo` stay deterministic on
  * case-sensitive catalogs. Every ordering that feeds buildSchemaContext
@@ -369,6 +416,8 @@ export class CatalogSnapshot {
     readonly capturedAtUtc: string;
     readonly readiness: Readonly<Record<CatalogSection, SectionState>>;
     readonly mode: "full" | "lite" | "partial";
+    /** Backing for the set-once canonical content hash (cache C-2). */
+    private contentHashValue: string | undefined;
 
     private strings: readonly string[];
     /** Sorted folded object names → object table index (prefix search). */
@@ -494,6 +543,91 @@ export class CatalogSnapshot {
             objects: this.b.objectIds.length,
             columns: this.b.columnOwner.length,
             foreignKeys: this.b.fkFrom.length,
+        };
+    }
+
+    /**
+     * Canonical content hash over the serialized payload in its frozen
+     * canonical field order (cache C-2: `csh_<22 b64url>`); undefined until
+     * the cache codec computes it. A plain readonly string — carrying it
+     * does not violate snapshot purity. It rides result metadata and
+     * feature capture ONLY, never rendered prompt text.
+     */
+    get contentHash(): string | undefined {
+        return this.contentHashValue;
+    }
+
+    /**
+     * SET-ONCE, by the cache codec/rehydrate path only (C-2). Repeating the
+     * same value is an idempotent no-op; a second set with a DIFFERENT
+     * value throws — a snapshot's content cannot change, so a conflicting
+     * hash is always a caller bug, never data.
+     */
+    setContentHashOnce(hash: string): void {
+        if (this.contentHashValue !== undefined) {
+            if (this.contentHashValue !== hash) {
+                throw new Error(
+                    "CatalogSnapshot.contentHash is set-once (cache C-2); conflicting value rejected",
+                );
+            }
+            return;
+        }
+        this.contentHashValue = hash;
+    }
+
+    /**
+     * THE friend accessor for the persistent-cache codec (CACHE-1) — see
+     * CatalogCodecView. Arrays are the builder's own (not copies); callers
+     * must treat them as frozen.
+     */
+    get codecView(): CatalogCodecView {
+        const environment: CatalogEnvironment = {
+            defaultSchema: this.b.defaultSchema,
+            caseSensitive: this.b.caseSensitive,
+        };
+        if (this.b.engineEdition !== undefined) {
+            environment.engineEdition = this.b.engineEdition;
+        }
+        if (this.b.collationName !== undefined) {
+            environment.collationName = this.b.collationName;
+        }
+        return {
+            strings: this.b.stringTable,
+            schemaIds: this.b.schemaIds,
+            schemaNameSyms: this.b.schemaNameSyms,
+            objectIds: this.b.objectIds,
+            objectSchemaIds: this.b.objectSchemaIds,
+            objectNameSyms: this.b.objectNameSyms,
+            objectKinds: this.b.objectKinds,
+            objectModifyDates: this.b.objectModifyDates,
+            columnOwner: this.b.columnOwner,
+            columnNameSyms: this.b.columnNameSyms,
+            columnTypeSyms: this.b.columnTypeSyms,
+            columnNullable: this.b.columnNullable,
+            columnIdentity: this.b.columnIdentity,
+            columnComputed: this.b.columnComputed,
+            fkFrom: this.b.fkFrom,
+            fkTo: this.b.fkTo,
+            fkNameSyms: this.b.fkNameSyms,
+            fkConstraintIds: this.b.fkConstraintIds,
+            fkColumnConstraintIds: this.b.fkColumnConstraintIds,
+            fkColumnFromSyms: this.b.fkColumnFromSyms,
+            fkColumnToSyms: this.b.fkColumnToSyms,
+            pkOwner: this.b.pkOwner,
+            pkColumnNameSyms: this.b.pkColumnNameSyms,
+            keyConstraintOwner: this.b.keyConstraintOwner,
+            keyConstraintNameSyms: this.b.keyConstraintNameSyms,
+            keyConstraintKinds: this.b.keyConstraintKinds,
+            keyConstraintColumnSyms: this.b.keyConstraintColumnSyms,
+            paramOwner: this.b.paramOwner,
+            paramOrdinals: this.b.paramOrdinals,
+            paramNameSyms: this.b.paramNameSyms,
+            paramTypeSyms: this.b.paramTypeSyms,
+            paramOutput: this.b.paramOutput,
+            descriptionOwner: this.b.descriptionOwner,
+            descriptionColumnSyms: this.b.descriptionColumnSyms,
+            descriptionValueSyms: this.b.descriptionValueSyms,
+            environment,
         };
     }
 
