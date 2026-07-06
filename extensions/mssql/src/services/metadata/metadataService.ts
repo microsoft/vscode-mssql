@@ -33,6 +33,11 @@ import {
     SchemaContextRequest,
     SchemaContextResult,
 } from "./catalogModel";
+import {
+    FreshCatalogResult,
+    MetadataFreshnessPolicy,
+    MetadataValidationSummary,
+} from "./cache/metadataFreshness";
 
 export interface CatalogKey {
     serverFingerprint: string;
@@ -42,10 +47,17 @@ export interface CatalogKey {
 const keyOf = (key: CatalogKey) => `${key.serverFingerprint}|${key.database}`;
 
 export interface MetadataStatus {
+    /**
+     * As-built vocabulary, UNTOUCHED by the cache layer (addendum C-3):
+     * "stale" means "re-hydration in flight over an existing snapshot",
+     * never "old data" — age-based staleness rides FreshCatalogResult.
+     */
     readiness: "absent" | "loading" | "ready" | "failed" | "stale";
     generation: number;
     mode: "full" | "lite" | "partial";
     stats?: { schemas: number; objects: number; columns: number; foreignKeys: number };
+    /** Most recent T1/full validation outcome, when one has run. */
+    validation?: MetadataValidationSummary;
 }
 
 interface CatalogEntry {
@@ -67,6 +79,18 @@ interface CatalogEntry {
      * everything that executes on it runs exclusively through this lane.
      */
     sessionLane: Promise<void>;
+    /** Coalesced T1 validation shared by concurrent requireValidated (§4.3). */
+    validationInFlight: Promise<MetadataValidationSummary> | undefined;
+    lastValidation: MetadataValidationSummary | undefined;
+    lastValidatedAtMs: number | undefined;
+    /**
+     * Bumped when the lane watchdog abandons an operation (H-2): an
+     * abandoned hydrateCore/validate MUST NOT mutate the entry when it
+     * eventually settles — every completion path checks its epoch.
+     */
+    opEpoch: number;
+    /** Set by a watchdog fire; the NEXT lane item recycles the session. */
+    sessionWedged: boolean;
 }
 
 /** Result of a lazy sys.sql_modules read (B12 scripting/definition). */
@@ -200,6 +224,12 @@ export function typeDisplay(
 
 export interface MetadataSessionSource {
     open(): Promise<ISqlSession>;
+    /**
+     * Drop the current session so the next open() creates a fresh one —
+     * the lane watchdog's recovery path (H-2: a wedged session is disposed,
+     * a fresh dedicated session is cheap). Optional for fixture sources.
+     */
+    recycle?(): void;
 }
 
 /** Dedicated-session source over the data plane (§8.2). */
@@ -219,6 +249,10 @@ export class DataPlaneMetadataSessionSource implements MetadataSessionSource {
             applicationName: "vscode-mssql-metadata",
         });
         return this.session;
+    }
+
+    recycle(): void {
+        this.dispose();
     }
 
     dispose(): void {
@@ -271,7 +305,13 @@ export class MetadataService {
 
     constructor(
         private readonly sessions: MetadataSessionSource,
-        private readonly options: { pollSeconds?: number } = {},
+        private readonly options: {
+            pollSeconds?: number;
+            /** Lane watchdog ceiling for hydration passes (default 60s). */
+            hydrationTimeoutMs?: number;
+            /** Lane watchdog ceiling for digest/lazy reads (default 15s). */
+            laneOpTimeoutMs?: number;
+        } = {},
     ) {}
 
     /** Acquire (and hydrate if needed) the catalog for a key. */
@@ -287,6 +327,8 @@ export class MetadataService {
         notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void;
         /** LAZY per-object sys.sql_modules read, cached per generation (B12). */
         getModuleDefinition(objectId: number): Promise<ModuleDefinitionResult>;
+        /** Policy-routed freshness decision (cache/drift design §5, §4.2). */
+        ensureFresh(policy: MetadataFreshnessPolicy): Promise<FreshCatalogResult>;
     } {
         const id = keyOf(key);
         let entry = this.entries.get(id);
@@ -303,6 +345,11 @@ export class MetadataService {
                 moduleDefinitions: new Map(),
                 moduleDefinitionReads: new Map(),
                 sessionLane: Promise.resolve(),
+                validationInFlight: undefined,
+                lastValidation: undefined,
+                lastValidatedAtMs: undefined,
+                opEpoch: 0,
+                sessionWedged: false,
             };
             this.entries.set(id, entry);
         }
@@ -385,6 +432,8 @@ export class MetadataService {
             },
             getModuleDefinition: (objectId: number) =>
                 service.getModuleDefinition(entry!, objectId),
+            ensureFresh: (policy: MetadataFreshnessPolicy) =>
+                service.ensureFreshEntry(entry!, policy),
         };
     }
 
@@ -394,6 +443,7 @@ export class MetadataService {
             generation: entry.generation,
             mode: entry.snapshot?.mode ?? "full",
             ...(entry.snapshot ? { stats: entry.snapshot.stats } : {}),
+            ...(entry.lastValidation ? { validation: entry.lastValidation } : {}),
         };
     }
 
@@ -417,14 +467,79 @@ export class MetadataService {
      * Run session work exclusively: the dedicated session allows ONE active
      * query, so hydration, digest polls, and lazy module reads all chain
      * through the per-entry lane (a prior failure never blocks the lane).
+     *
+     * WATCHDOG (H-2): the lane must survive a completion that never comes —
+     * the lane continuation attaches to the RACED promise, so a hung
+     * operation fails after `timeoutMs` (error class laneTimeout), the
+     * entry's opEpoch advances (the abandoned work must not mutate the
+     * entry when it eventually settles), and the NEXT lane item recycles
+     * the session source. The watchdog never rejects the shared lane for
+     * queued waiters — it fails the one operation.
      */
-    private runExclusive<T>(entry: CatalogEntry, work: () => Promise<T>): Promise<T> {
-        const run = entry.sessionLane.catch(() => undefined).then(work);
+    private runExclusive<T>(
+        entry: CatalogEntry,
+        work: () => Promise<T>,
+        watchdog?: { timeoutMs: number; opKind: string },
+    ): Promise<T> {
+        const run = entry.sessionLane
+            .catch(() => undefined)
+            .then(() => {
+                if (entry.sessionWedged) {
+                    entry.sessionWedged = false;
+                    this.sessions.recycle?.();
+                }
+                return watchdog ? this.withWatchdog(entry, work, watchdog) : work();
+            });
         entry.sessionLane = run.then(
             () => undefined,
             () => undefined,
         );
         return run;
+    }
+
+    private withWatchdog<T>(
+        entry: CatalogEntry,
+        work: () => Promise<T>,
+        watchdog: { timeoutMs: number; opKind: string },
+    ): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            let settled = false;
+            const timer = setTimeout(() => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                entry.opEpoch++; // abandoned work must not mutate the entry
+                entry.sessionWedged = true; // next lane item recycles
+                diag.emit({
+                    feature: "metadata",
+                    kind: "event",
+                    type: "metadata.laneTimeout",
+                    fields: {
+                        opKind: { raw: watchdog.opKind, cls: "diagnostic.metadata" },
+                        timeoutMs: { raw: watchdog.timeoutMs, cls: "diagnostic.metadata" },
+                    },
+                });
+                reject(new Error(`laneTimeout:${watchdog.opKind}`));
+            }, watchdog.timeoutMs);
+            (timer as { unref?: () => void }).unref?.();
+            work().then(
+                (value) => {
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timer);
+                        resolve(value);
+                    }
+                },
+                (error: unknown) => {
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timer);
+                        reject(error instanceof Error ? error : new Error(String(error)));
+                    }
+                },
+            );
+        });
     }
 
     /**
@@ -447,42 +562,53 @@ export class MetadataService {
         if (inFlight !== undefined) {
             return inFlight;
         }
-        const read = this.runExclusive(entry, async (): Promise<ModuleDefinitionResult> => {
-            const generation = entry.generation;
-            try {
-                const session = await this.sessions.open();
-                const rows = await this.rows(
-                    session,
-                    MODULE_DEFINITION(objectId),
-                    "metadata:moduleDefinition",
-                );
-                let result: ModuleDefinitionResult;
-                if (rows.length === 0) {
-                    // Catalog visibility filtered the row: the login cannot
-                    // see the module's metadata (or it is not a module).
-                    result = { unavailableReason: "permission", generation };
-                } else {
-                    const [definition, isEncrypted] = rows[0];
-                    if (definition === null || definition === undefined) {
-                        result = {
-                            unavailableReason:
-                                isEncrypted === true || isEncrypted === 1
-                                    ? "encrypted"
-                                    : "permission",
-                            generation,
-                        };
+        const read = this.runExclusive(
+            entry,
+            async (): Promise<ModuleDefinitionResult> => {
+                const generation = entry.generation;
+                try {
+                    const session = await this.sessions.open();
+                    const rows = await this.rows(
+                        session,
+                        MODULE_DEFINITION(objectId),
+                        "metadata:moduleDefinition",
+                    );
+                    let result: ModuleDefinitionResult;
+                    if (rows.length === 0) {
+                        // Catalog visibility filtered the row: the login cannot
+                        // see the module's metadata (or it is not a module).
+                        result = { unavailableReason: "permission", generation };
                     } else {
-                        result = { text: String(definition), generation };
+                        const [definition, isEncrypted] = rows[0];
+                        if (definition === null || definition === undefined) {
+                            result = {
+                                unavailableReason:
+                                    isEncrypted === true || isEncrypted === 1
+                                        ? "encrypted"
+                                        : "permission",
+                                generation,
+                            };
+                        } else {
+                            result = { text: String(definition), generation };
+                        }
                     }
+                    if (entry.generation === generation) {
+                        entry.moduleDefinitions.set(objectId, result);
+                    }
+                    return result;
+                } catch {
+                    return { unavailableReason: "notLoaded", generation };
                 }
-                if (entry.generation === generation) {
-                    entry.moduleDefinitions.set(objectId, result);
-                }
-                return result;
-            } catch {
-                return { unavailableReason: "notLoaded", generation };
-            }
-        });
+            },
+            { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "moduleDefinition" },
+        ).catch(
+            // Only the watchdog rejects (the work catches internally): a
+            // timed-out read is an honest notLoaded, never a thrown error.
+            (): ModuleDefinitionResult => ({
+                unavailableReason: "notLoaded",
+                generation: entry.generation,
+            }),
+        );
         entry.moduleDefinitionReads.set(objectId, read);
         try {
             return await read;
@@ -498,37 +624,51 @@ export class MetadataService {
      * found by the B15 store's concurrent A/B isolation tests).
      */
     private async hydrate(entry: CatalogEntry, force = false): Promise<void> {
+        const watchdog = {
+            timeoutMs: this.options.hydrationTimeoutMs ?? 60_000,
+            opKind: "hydrate",
+        };
         if (entry.hydrating) {
             if (!force) {
                 return entry.hydrating;
             }
             const chained = entry.hydrating
                 .catch(() => undefined)
-                .then(() => this.runExclusive(entry, () => this.hydrateCore(entry)));
-            entry.hydrating = chained;
-            try {
-                await chained;
-            } finally {
-                if (entry.hydrating === chained) {
-                    entry.hydrating = undefined;
-                }
-            }
-            return;
+                .then(() => this.runExclusive(entry, () => this.hydrateCore(entry), watchdog));
+            entry.hydrating = this.containLaneTimeout(entry, chained);
+            return entry.hydrating;
         }
         // Hydration runs on the session lane too (lazy module reads share
         // the single-active-query session — B12).
-        const run = this.runExclusive(entry, () => this.hydrateCore(entry));
-        entry.hydrating = run;
-        try {
-            await run;
-        } finally {
-            if (entry.hydrating === run) {
-                entry.hydrating = undefined;
-            }
-        }
+        const run = this.runExclusive(entry, () => this.hydrateCore(entry), watchdog);
+        entry.hydrating = this.containLaneTimeout(entry, run);
+        return entry.hydrating;
+    }
+
+    /**
+     * A watchdog-abandoned hydration surfaces to callers as a FAILED entry,
+     * never as a rejected refresh() (the abandoned hydrateCore is epoch-
+     * barred from mutating the entry itself). Identity-guarded like every
+     * other completion path.
+     */
+    private containLaneTimeout(entry: CatalogEntry, run: Promise<void>): Promise<void> {
+        const contained = run
+            .catch(() => {
+                entry.status = "failed";
+                this.notify(entry);
+            })
+            .finally(() => {
+                if (entry.hydrating === contained) {
+                    entry.hydrating = undefined;
+                }
+            });
+        return contained;
     }
 
     private async hydrateCore(entry: CatalogEntry): Promise<void> {
+        // Epoch capture (H-2): if the lane watchdog abandons this run, the
+        // epoch advances and NO completion path below may mutate the entry.
+        const epoch = entry.opEpoch;
         entry.status = entry.snapshot ? "stale" : "loading";
         this.notify(entry);
         const span = diag.startSpan({
@@ -680,6 +820,10 @@ export class MetadataService {
                 descriptionsFailed = true; // section failed, never pretend-empty
             }
 
+            if (entry.opEpoch !== epoch) {
+                span.fail(new Error("laneTimeout:abandoned"));
+                return; // watchdog abandoned this run — a newer op owns the entry
+            }
             entry.generation++;
             entry.snapshot = builder.build(
                 entry.generation,
@@ -701,53 +845,369 @@ export class MetadataService {
             entry.status = "ready";
             entry.lastDigest = undefined; // re-baseline on next poll
             entry.moduleDefinitions.clear(); // lazy cache is per generation
+            // A completed full hydration is the strongest validation.
+            entry.lastValidatedAtMs = Date.now();
+            entry.lastValidation = {
+                tier: "fullRefresh",
+                result: "unchanged",
+                validatedAtUtc: new Date().toISOString(),
+            };
             span.end("ok");
         } catch (error) {
+            if (entry.opEpoch !== epoch) {
+                span.fail(error);
+                return; // abandoned run must not stomp a newer op's state
+            }
             entry.status = "failed";
             span.fail(error);
         }
         this.notify(entry);
     }
 
-    /** Cheap digest (§9.2): change → full re-hydrate (v1 refresh plan). */
+    /**
+     * T1 validation (cheap digest v2), COALESCED per entry (§4.3): all
+     * concurrent requireValidated callers await the same run. Never
+     * rejects — outcomes travel in the summary. A "changed" verdict awaits
+     * the chained forced refresh before resolving, so a caller that
+     * outlasts its timeout race still converges on the new generation.
+     */
+    private validateEntry(entry: CatalogEntry): Promise<MetadataValidationSummary> {
+        if (entry.validationInFlight) {
+            return entry.validationInFlight;
+        }
+        const startedAt = Date.now();
+        const finish = (
+            summary: Omit<MetadataValidationSummary, "validatedAtUtc" | "durationMs">,
+            validated: boolean,
+        ): MetadataValidationSummary => {
+            const full: MetadataValidationSummary = {
+                ...summary,
+                validatedAtUtc: new Date().toISOString(),
+                durationMs: Date.now() - startedAt,
+            };
+            if (validated) {
+                entry.lastValidatedAtMs = Date.now();
+            }
+            entry.lastValidation = full;
+            return full;
+        };
+        const run = (async (): Promise<MetadataValidationSummary> => {
+            if (!entry.snapshot || entry.status === "failed" || entry.status === "absent") {
+                // Nothing to validate — validation IS the (joined) hydration.
+                await this.hydrate(entry);
+                const ok = entry.status === "ready";
+                return finish({ tier: "fullRefresh", result: ok ? "unchanged" : "failed" }, ok);
+            }
+            try {
+                const digest = await this.runExclusive(
+                    entry,
+                    async () => {
+                        const session = await this.sessions.open();
+                        const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
+                        // Row shape: [current_db, object_count, object_hash];
+                        // current_db is the CACHE-5 identity rider (H-5) and
+                        // never part of the compared digest.
+                        const row = rows[0] ?? [];
+                        return `${row[1]}:${row[2]}`;
+                    },
+                    { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "digest" },
+                );
+                const baseline = entry.lastDigest;
+                entry.lastDigest = digest;
+                if (baseline !== undefined && digest !== baseline) {
+                    diag.emit({
+                        feature: "metadata",
+                        kind: "event",
+                        type: "metadata.drift",
+                        fields: {
+                            database: { raw: entry.key.database, cls: "source.path" },
+                            generation: {
+                                raw: String(entry.generation),
+                                cls: "diagnostic.metadata",
+                            },
+                        },
+                    });
+                    await this.hydrate(entry, true);
+                    return finish(
+                        {
+                            tier: "cheapDatabaseDigest",
+                            result: "changed",
+                            staleReason: "digestMismatch",
+                        },
+                        entry.status === "ready",
+                    );
+                }
+                return finish({ tier: "cheapDatabaseDigest", result: "unchanged" }, true);
+            } catch {
+                return finish(
+                    { tier: "cheapDatabaseDigest", result: "failed", staleReason: "unknown" },
+                    false,
+                );
+            }
+        })();
+        entry.validationInFlight = run;
+        void run.finally(() => {
+            if (entry.validationInFlight === run) {
+                entry.validationInFlight = undefined;
+            }
+        });
+        return run;
+    }
+
+    /**
+     * Cheap digest check (§9.2), poll/EXEC-sniff entry point: silent, never
+     * queued, skipped while hydrating — a thin wrapper over the coalesced
+     * T1 validation (the summary machinery is shared with ensureFresh).
+     */
     private async checkDigest(entry: CatalogEntry): Promise<void> {
         if (entry.status !== "ready" || entry.hydrating) {
             return;
         }
         try {
-            const digest = await this.runExclusive(entry, async () => {
-                const session = await this.sessions.open();
-                const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
-                // Row shape: [current_db, object_count, object_hash].
-                // current_db is deliberately EXCLUDED from the compared
-                // digest — a database rename is an identity event (H-5,
-                // wired in CACHE-5), not schema drift.
-                const row = rows[0] ?? [];
-                return `${row[1]}:${row[2]}`;
-            });
-            if (entry.lastDigest === undefined) {
-                entry.lastDigest = digest;
-                return;
-            }
-            if (digest !== entry.lastDigest) {
-                entry.lastDigest = digest;
-                diag.emit({
-                    feature: "metadata",
-                    kind: "event",
-                    type: "metadata.drift",
-                    fields: {
-                        database: { raw: entry.key.database, cls: "source.path" },
-                        generation: {
-                            raw: String(entry.generation),
-                            cls: "diagnostic.metadata",
-                        },
-                    },
-                });
-                await this.hydrate(entry, true);
-            }
+            await this.validateEntry(entry);
         } catch {
-            // Poll failures are silent (skipped polls are not queued — §9.2).
+            // validateEntry never rejects; defensive only (§9.2 silence).
         }
+    }
+
+    /**
+     * The freshness decision procedure (addendum §4.2, implemented
+     * exactly). Disk branches land in CACHE-3; offline settings in CACHE-6
+     * (mode "offlineSnapshot" is honored now). Waits are races (C-9): the
+     * underlying lane work always completes for other waiters.
+     */
+    async ensureFreshEntry(
+        entry: CatalogEntry,
+        policy: MetadataFreshnessPolicy,
+    ): Promise<FreshCatalogResult> {
+        const startedAt = Date.now();
+        const span = diag.startSpan({
+            feature: "metadata",
+            kind: "span",
+            type: "metadata.ensureFresh",
+            fields: {
+                mode: { raw: policy.mode, cls: "diagnostic.metadata" },
+                reason: { raw: policy.reason, cls: "diagnostic.metadata" },
+            },
+        });
+        try {
+            const decided = await this.decideFresh(entry, policy, startedAt);
+            const result = this.applySectionGate(decided, policy);
+            span.end("ok", {
+                freshness: { raw: result.freshness, cls: "diagnostic.metadata" },
+                source: { raw: result.source, cls: "diagnostic.metadata" },
+                waitedMs: { raw: result.waitedMs, cls: "diagnostic.metadata" },
+            });
+            return result;
+        } catch (error) {
+            span.fail(error);
+            throw error;
+        }
+    }
+
+    private makeFresh(
+        entry: CatalogEntry,
+        startedAt: number,
+        snapshot: CatalogSnapshot | undefined,
+        source: FreshCatalogResult["source"],
+        freshness: FreshCatalogResult["freshness"],
+        extra?: Partial<FreshCatalogResult>,
+    ): FreshCatalogResult {
+        const capturedAtUtc = snapshot?.capturedAtUtc;
+        const staleAge = capturedAtUtc ? Date.now() - Date.parse(capturedAtUtc) : undefined;
+        return {
+            snapshot,
+            generation: snapshot?.generation ?? entry.generation,
+            source: snapshot ? source : "none",
+            freshness,
+            ...(capturedAtUtc ? { capturedAtUtc } : {}),
+            ...(staleAge !== undefined && Number.isFinite(staleAge)
+                ? { staleAgeMs: Math.max(0, staleAge) }
+                : {}),
+            waitedMs: Date.now() - startedAt,
+            ...extra,
+        };
+    }
+
+    private validatedWithin(entry: CatalogEntry, ttlMs: number | undefined): boolean {
+        return (
+            ttlMs !== undefined &&
+            entry.lastValidatedAtMs !== undefined &&
+            Date.now() - entry.lastValidatedAtMs <= ttlMs
+        );
+    }
+
+    private async decideFresh(
+        entry: CatalogEntry,
+        policy: MetadataFreshnessPolicy,
+        startedAt: number,
+    ): Promise<FreshCatalogResult> {
+        switch (policy.mode) {
+            case "allowStale": {
+                if (entry.snapshot) {
+                    let backgroundRefreshStarted = false;
+                    const ageMs = Date.now() - Date.parse(entry.snapshot.capturedAtUtc);
+                    if (
+                        policy.backgroundRefresh !== false &&
+                        policy.maxStalenessMs !== undefined &&
+                        Number.isFinite(ageMs) &&
+                        ageMs > policy.maxStalenessMs &&
+                        !entry.hydrating
+                    ) {
+                        void this.hydrate(entry, true);
+                        backgroundRefreshStarted = true;
+                    }
+                    const freshness = entry.hydrating
+                        ? "refreshing"
+                        : this.validatedWithin(entry, policy.validationTtlMs)
+                          ? "validated"
+                          : "stale";
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "memory", freshness, {
+                        ...(backgroundRefreshStarted ? { backgroundRefreshStarted } : {}),
+                    });
+                }
+                // No snapshot: join (or kick) hydration up to the wait budget.
+                const outcome = await this.raceWait(this.hydrate(entry), policy);
+                if (outcome === "done" && entry.snapshot) {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "live", "live");
+                }
+                return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "unavailable");
+            }
+            case "requireValidated": {
+                if (
+                    entry.snapshot &&
+                    this.validatedWithin(entry, policy.validationTtlMs ?? 120_000)
+                ) {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "validated");
+                }
+                const validation = this.validateEntry(entry);
+                const outcome = await this.raceWait(validation, policy);
+                if (outcome === "timeout") {
+                    // C-9: stop waiting, never cancel; best snapshot + honesty.
+                    return this.makeFresh(
+                        entry,
+                        startedAt,
+                        entry.snapshot,
+                        "memory",
+                        entry.snapshot ? "stale" : "unavailable",
+                        { validation: { tier: "none", result: "notChecked" } },
+                    );
+                }
+                const summary = await validation;
+                if (summary.result === "unchanged") {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "validated", {
+                        validation: summary,
+                    });
+                }
+                if (summary.result === "changed" && entry.status === "ready") {
+                    // validateEntry awaited the chained refresh internally.
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "live", "live", {
+                        validation: summary,
+                    });
+                }
+                // failed (or changed-but-refresh-failed): C-7 row — snapshot
+                // stays readable, freshness says the bar was not met.
+                return this.makeFresh(
+                    entry,
+                    startedAt,
+                    entry.snapshot,
+                    "memory",
+                    entry.snapshot ? "stale" : "unavailable",
+                    { validation: summary },
+                );
+            }
+            case "requireLive": {
+                const outcome = await this.raceWait(this.hydrate(entry, true), policy);
+                if (outcome === "done" && entry.status === "ready") {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "live", "live");
+                }
+                // C-7: strict callers refuse on freshness — but they still
+                // get the retained snapshot to offer the explicit offline path.
+                return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "unavailable");
+            }
+            case "offlineSnapshot": {
+                // No network, ever, on this path.
+                return this.makeFresh(
+                    entry,
+                    startedAt,
+                    entry.snapshot,
+                    "offline",
+                    entry.snapshot ? "stale" : "unavailable",
+                );
+            }
+        }
+    }
+
+    /**
+     * Readiness gating AFTER the freshness decision (§4.2 tail): require*
+     * callers with unready requested sections downgrade to "unavailable"
+     * unless allowPartial; allowStale callers receive the snapshot plus
+     * per-section truth and do their own honest degradation.
+     */
+    private applySectionGate(
+        result: FreshCatalogResult,
+        policy: MetadataFreshnessPolicy,
+    ): FreshCatalogResult {
+        if (
+            !policy.sections?.length ||
+            policy.allowPartial === true ||
+            policy.mode === "allowStale" ||
+            policy.mode === "offlineSnapshot" ||
+            !result.snapshot
+        ) {
+            return result;
+        }
+        const unready = policy.sections.some((section) => {
+            const state = result.snapshot!.readiness[section];
+            return state !== "ready" && state !== "lite";
+        });
+        return unready ? { ...result, freshness: "unavailable" } : result;
+    }
+
+    /**
+     * Race a wait budget (and optional AbortSignal) against shared work —
+     * NEVER a cancellation (C-9): the work keeps running for other waiters.
+     */
+    private raceWait(
+        work: Promise<unknown>,
+        policy: MetadataFreshnessPolicy,
+    ): Promise<"done" | "timeout"> {
+        const timeoutMs = policy.timeoutMs;
+        const signal = policy.signal;
+        if (timeoutMs === undefined && !signal) {
+            return work.then(
+                () => "done" as const,
+                () => "done" as const,
+            );
+        }
+        return new Promise((resolve) => {
+            let settled = false;
+            const settle = (value: "done" | "timeout") => {
+                if (!settled) {
+                    settled = true;
+                    if (timer !== undefined) {
+                        clearTimeout(timer);
+                    }
+                    resolve(value);
+                }
+            };
+            const timer =
+                timeoutMs !== undefined
+                    ? setTimeout(() => settle("timeout"), timeoutMs)
+                    : undefined;
+            (timer as { unref?: () => void } | undefined)?.unref?.();
+            if (signal) {
+                if (signal.aborted) {
+                    settle("timeout");
+                } else {
+                    signal.addEventListener("abort", () => settle("timeout"), { once: true });
+                }
+            }
+            work.then(
+                () => settle("done"),
+                () => settle("done"),
+            );
+        });
     }
 
     private ensurePolling(): void {

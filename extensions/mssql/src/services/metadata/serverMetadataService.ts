@@ -17,6 +17,7 @@
 
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { ISqlSession } from "../sqlDataPlane/api";
+import { FreshServerCatalogResult, ServerMetadataFreshnessPolicy } from "./cache/metadataFreshness";
 import { MetadataSessionSource, runMetadataQuery } from "./metadataService";
 
 export interface ServerDatabaseInfo {
@@ -78,6 +79,7 @@ export class ServerMetadataService {
         errorMessage: undefined,
     };
     private hydrating: Promise<void> | undefined;
+    private lastHydratedAtMs: number | undefined;
     private listeners = new Set<() => void>();
 
     constructor(private readonly sessions: MetadataSessionSource) {}
@@ -161,6 +163,7 @@ export class ServerMetadataService {
                 serverInfo: toServerInfo(session),
                 errorMessage: undefined,
             };
+            this.lastHydratedAtMs = Date.now();
             span.end("ok", {
                 databases: { raw: databases.length, cls: "diagnostic.metadata" },
             });
@@ -177,6 +180,102 @@ export class ServerMetadataService {
             span.fail(error);
         }
         this.notify();
+    }
+
+    /**
+     * §4.4: no digest exists at server scope — validation ≡ re-hydration.
+     * requireValidated re-hydrates when older than the TTL (OE default
+     * 120s); requireLive always re-hydrates; allowStale returns whatever
+     * generation exists and never blocks on a hydrated catalog. Waits are
+     * races (C-9): a timed-out caller leaves the refresh running.
+     */
+    async ensureFresh(policy: ServerMetadataFreshnessPolicy): Promise<FreshServerCatalogResult> {
+        const startedAt = Date.now();
+        const result = (
+            freshness: FreshServerCatalogResult["freshness"],
+            backgroundRefreshStarted?: boolean,
+        ): FreshServerCatalogResult => ({
+            generation: this.state.generation,
+            readiness: this.state.readiness,
+            freshness,
+            waitedMs: Date.now() - startedAt,
+            ...(backgroundRefreshStarted ? { backgroundRefreshStarted } : {}),
+        });
+        const hydratedWithin = (ttlMs: number): boolean =>
+            this.lastHydratedAtMs !== undefined && Date.now() - this.lastHydratedAtMs <= ttlMs;
+        const race = (work: Promise<void>): Promise<"done" | "timeout"> => {
+            if (policy.timeoutMs === undefined && !policy.signal) {
+                return work.then(
+                    () => "done" as const,
+                    () => "done" as const,
+                );
+            }
+            return new Promise((resolve) => {
+                let settled = false;
+                const settle = (value: "done" | "timeout") => {
+                    if (!settled) {
+                        settled = true;
+                        if (timer !== undefined) {
+                            clearTimeout(timer);
+                        }
+                        resolve(value);
+                    }
+                };
+                const timer =
+                    policy.timeoutMs !== undefined
+                        ? setTimeout(() => settle("timeout"), policy.timeoutMs)
+                        : undefined;
+                (timer as { unref?: () => void } | undefined)?.unref?.();
+                if (policy.signal?.aborted) {
+                    settle("timeout");
+                } else {
+                    policy.signal?.addEventListener("abort", () => settle("timeout"), {
+                        once: true,
+                    });
+                }
+                work.then(
+                    () => settle("done"),
+                    () => settle("done"),
+                );
+            });
+        };
+        switch (policy.mode) {
+            case "allowStale": {
+                if (this.state.databases) {
+                    const freshness = this.hydrating
+                        ? "refreshing"
+                        : hydratedWithin(policy.validationTtlMs ?? 120_000)
+                          ? "validated"
+                          : "stale";
+                    return result(freshness);
+                }
+                const outcome = await race(this.ensureHydrated());
+                if (outcome === "done" && this.state.readiness === "ready") {
+                    return result("live");
+                }
+                return result("unavailable");
+            }
+            case "requireValidated": {
+                if (this.state.databases && hydratedWithin(policy.validationTtlMs ?? 120_000)) {
+                    return result("validated");
+                }
+                const outcome = await race(this.refresh());
+                if (outcome === "done" && this.state.readiness === "ready") {
+                    return result("live");
+                }
+                return result(this.state.databases ? "stale" : "unavailable");
+            }
+            case "requireLive": {
+                const outcome = await race(this.refresh());
+                if (outcome === "done" && this.state.readiness === "ready") {
+                    return result("live");
+                }
+                return result("unavailable");
+            }
+            case "offlineSnapshot": {
+                return result(this.state.databases ? "stale" : "unavailable");
+            }
+        }
     }
 
     dispose(): void {

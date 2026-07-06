@@ -35,6 +35,12 @@ import {
 } from "./metadataService";
 import { PreparedConnection } from "./profileAuthAdapter";
 import {
+    FreshCatalogResult,
+    FreshServerCatalogResult,
+    MetadataFreshnessPolicy,
+    ServerMetadataFreshnessPolicy,
+} from "./cache/metadataFreshness";
+import {
     IPinnedServerCatalogView,
     ServerCatalogStatus,
     ServerMetadataService,
@@ -69,6 +75,8 @@ export interface ServerCatalogLease {
     status(): ServerCatalogStatus;
     pin(): IPinnedServerCatalogView;
     refresh(): Promise<void>;
+    /** §4.4: no server-scope digest — validation IS re-hydration. */
+    ensureFresh(policy: ServerMetadataFreshnessPolicy): Promise<FreshServerCatalogResult>;
     onDidChange(listener: () => void): { dispose(): void };
     dispose(): void;
 }
@@ -82,6 +90,8 @@ export interface DatabaseCatalogLease {
     /** LAZY per-object sys.sql_modules read, cached per generation (B12). */
     getModuleDefinition(objectId: number): Promise<ModuleDefinitionResult>;
     refresh(): Promise<void>;
+    /** Policy-routed freshness decision (cache/drift design §5). */
+    ensureFresh(policy: MetadataFreshnessPolicy): Promise<FreshCatalogResult>;
     onDidChange(listener: (status: MetadataStatus) => void): { dispose(): void };
     dispose(): void;
 }
@@ -183,6 +193,7 @@ export class MetadataStore {
             status: () => resolved.service.status(),
             pin: () => resolved.service.pin(),
             refresh: () => resolved.service.refresh(),
+            ensureFresh: (policy) => resolved.service.ensureFresh(policy),
             onDidChange: (listener) => resolved.service.onDidChange(listener),
             dispose(): void {
                 if (disposed) {
@@ -312,6 +323,7 @@ export class MetadataStore {
             notifyExecutedBatch: (input) => resolved.handle.notifyExecutedBatch(input),
             getModuleDefinition: (objectId) => resolved.handle.getModuleDefinition(objectId),
             refresh: () => resolved.handle.refresh(),
+            ensureFresh: (policy) => resolved.handle.ensureFresh(policy),
             onDidChange(listener): { dispose(): void } {
                 resolved.listeners.add(listener);
                 return { dispose: () => resolved.listeners.delete(listener) };
