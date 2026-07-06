@@ -26,6 +26,7 @@ import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -1357,6 +1358,13 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+
+        // Object Explorer v2 (preview): data-plane/MetadataStore-native view.
+        // Registers only when mssql.objectExplorer.viewMode == "v2Preview";
+        // shares saved profiles/groups READ-ONLY. Classic OE is untouched.
+        activateObjectExplorerV2(this._context, {
+            profiles: this._connectionMgr.connectionStore,
+        });
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;

@@ -260,6 +260,12 @@
                     "icon": "media/objectTypes/Database.svg"
                 },
                 {
+                    "id": "mssql.objectExplorerV2",
+                    "name": "Object Explorer v2 (Preview)",
+                    "when": "config.mssql.objectExplorer.viewMode == v2Preview",
+                    "icon": "media/objectTypes/Database.svg"
+                },
+                {
                     "id": "queryHistory",
                     "name": "%extension.queryHistory%",
                     "when": "config.mssql.enableQueryHistoryFeature",
@@ -558,6 +564,11 @@
                 }
             ],
             "view/title": [
+                {
+                    "command": "mssql.objectExplorerV2.refresh",
+                    "when": "view == mssql.objectExplorerV2",
+                    "group": "navigation"
+                },
                 {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer",
@@ -1847,6 +1858,22 @@
             {
                 "command": "mssql.sqlDataPlane.showStatus",
                 "title": "Show SQL Data-Plane Status",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.showStatus",
+                "title": "Object Explorer v2: Show Status",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.refresh",
+                "title": "Object Explorer v2: Refresh",
+                "category": "MS SQL",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
+                "title": "Object Explorer v2: Open Classic Object Explorer",
                 "category": "MS SQL"
             },
             {
@@ -3396,6 +3423,42 @@
                     ],
                     "description": "SQL data plane backend binding. sts2-http and hosted-rest are reserved for later.",
                     "scope": "application"
+                },
+                "mssql.objectExplorer.viewMode": {
+                    "type": "string",
+                    "default": "classic",
+                    "enum": [
+                        "classic",
+                        "v2Preview"
+                    ],
+                    "markdownDescription": "Choose which Object Explorer view is active. `classic` uses the established SQL Tools Service Object Explorer. `v2Preview` additionally shows Object Explorer v2, which browses through the SQL Data Plane and MetadataStore (STS v1 only for explicit legacy feature handoff). Requires `mssql.sqlDataPlane.enabled`.",
+                    "scope": "application"
+                },
+                "mssql.objectExplorer.v2.confirmLegacyHandoff": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Ask before an Object Explorer v2 command creates a legacy (SQL Tools Service v1) connection for a feature handoff.",
+                    "scope": "application"
+                },
+                "mssql.objectExplorer.v2.tablePreviewRowLimit": {
+                    "type": "number",
+                    "default": 1000,
+                    "minimum": 1,
+                    "maximum": 100000,
+                    "description": "Row limit for Object Explorer v2 table preview (SELECT TOP N).",
+                    "scope": "window"
+                },
+                "mssql.objectExplorer.v2.groupBySchema": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Group Object Explorer v2 object folders by schema.",
+                    "scope": "window"
+                },
+                "mssql.objectExplorer.v2.showSystemDatabases": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show system databases in Object Explorer v2.",
+                    "scope": "window"
                 }
             }
         },
