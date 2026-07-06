@@ -8,6 +8,7 @@
 ### What's new in 1.44.0
 
 - Added customizable query execution shortcuts (Preview), letting you define your own saved queries and run them with keybindings. Enable with `mssql.preview.shortcutsConfiguration`.
+- Added a new query results grid experience (Preview) with improved state management and the ability to show, hide, and freeze columns. Enable with `mssql.preview.betaResultsGrid`.
 - Added an option to include timestamps when using Copy All in the Messages panel (`mssql.messages.copyIncludeTimestamps`)
 - Added an option to disable the "Results copied to clipboard" notification, and an "Open File" action to the export-success notification in Query Results
 - Added a warning when a rename or refactor in SQL Database Projects would create a duplicate object name
