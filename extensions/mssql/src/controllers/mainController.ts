@@ -29,6 +29,13 @@ import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
+import { MetadataStore } from "../services/metadata/metadataStore";
+import {
+    prepareConnection,
+    ProfileSecretSource,
+    StoredConnectionProfile,
+} from "../services/metadata/profileAuthAdapter";
+import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -1469,6 +1476,98 @@ export default class MainController implements vscode.Disposable {
                     .update("offlineMode", false, vscode.ConfigurationTarget.Global),
             ),
         );
+
+        // PERF_MODE-only warm-acquire probe (design 04 §17.4 pattern): pass
+        // 1 hydrates live over a throwaway store and saves back; pass 2
+        // over a SECOND throwaway store MUST be served from disk. Throws on
+        // every honesty failure so the harness records a real error.
+        if (Perf.enabled) {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand("mssql.perf.metadataCacheWarmAcquire", async () => {
+                    const coordinator = MetadataStoreService.get().cache();
+                    if (!coordinator) {
+                        throw new Error("metadata cache disabled (mssql.metadataCache.enabled)");
+                    }
+                    const profiles =
+                        vscode.workspace
+                            .getConfiguration("mssql")
+                            .get<StoredConnectionProfile[]>("connections") ?? [];
+                    const stored = profiles[0];
+                    if (!stored?.server) {
+                        throw new Error("no saved connection profile for the probe");
+                    }
+                    const prepared = prepareConnection(
+                        stored,
+                        this._connectionMgr.connectionStore as unknown as ProfileSecretSource,
+                    );
+                    const database = stored.database ?? "";
+                    const key = { serverFingerprint: prepared.serverFingerprint, database };
+                    const dataPlane = () => SqlDataPlaneService.get().service();
+
+                    // Pass 1 — cold: deterministic (key cleared first).
+                    await coordinator.clearForConnection(key);
+                    const coldStore = new MetadataStore(dataPlane, {
+                        pollSeconds: 0,
+                        cache: { coordinator },
+                    });
+                    const coldLease = await coldStore.acquireDatabase(prepared, database);
+                    const cold = await coldLease.ensureFresh({
+                        mode: "allowStale",
+                        reason: "startupWarm",
+                        timeoutMs: 60_000,
+                    });
+                    if (!cold.snapshot) {
+                        throw new Error("cold acquire produced no snapshot");
+                    }
+                    // Flush the save-back deterministically (the debounce
+                    // is minutes-scale relative to a perf rep).
+                    const saved = await coordinator.saveNow(key, coldLease.current()!);
+                    if (saved.result !== "saved" && saved.result !== "manifestOnly") {
+                        throw new Error(`save-back failed: ${saved.result}`);
+                    }
+                    coldLease.dispose();
+                    coldStore.dispose();
+
+                    // Pass 2 — warm: MUST come from disk (offline store
+                    // option keeps the source deterministic — no
+                    // background refresh racing the assertions).
+                    Perf.marker("mssql.metadata.cache.warmAcquire.begin", "begin");
+                    const warmStore = new MetadataStore(dataPlane, {
+                        pollSeconds: 0,
+                        cache: { coordinator, offlineMode: () => true },
+                    });
+                    const warmLease = await warmStore.acquireDatabase(prepared, database);
+                    const warm = await warmLease.ensureFresh({
+                        mode: "offlineSnapshot",
+                        reason: "startupWarm",
+                    });
+                    const status = warmStore.status();
+                    if (status.cache?.loadedFromDisk !== 1) {
+                        throw new Error("warm acquire did not load from disk");
+                    }
+                    if (!warm.snapshot) {
+                        throw new Error("warm acquire produced no snapshot");
+                    }
+                    if (status.databases[0]?.source !== "disk") {
+                        throw new Error(
+                            `warm snapshot source is ${status.databases[0]?.source ?? "unknown"}, not disk`,
+                        );
+                    }
+                    Perf.marker("mssql.metadata.cache.warmAcquire.end", "end", {
+                        objects: warm.snapshot.stats.objects,
+                        waitedMs: Math.round(warm.waitedMs),
+                    });
+                    const result = {
+                        coldObjects: cold.snapshot.stats.objects,
+                        warmObjects: warm.snapshot.stats.objects,
+                        warmWaitedMs: warm.waitedMs,
+                    };
+                    warmLease.dispose();
+                    warmStore.dispose();
+                    return result;
+                }),
+            );
+        }
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;
