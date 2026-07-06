@@ -53,8 +53,12 @@ module.exports = {
                 // provider type surface may not import vscode, node builtins, services,
                 // or feature-host code. Only provider/catalogProvider.ts and host/** may
                 // integrate; testSupport is exempt from the services ban but not vscode.
+                // src/sqlScripting/** (B12) lives under the SAME purity clause: the
+                // scripting engine may import sqlLanguage core/provider-types (and vice
+                // versa for features/definition.ts) but nothing else in src/.
                 const isFileInSqlLanguagePure =
                     /\/src\/sqlLanguage\/(core|features|data)\//.test(filePath) ||
+                    /\/src\/sqlScripting\//.test(filePath) ||
                     /\/src\/sqlLanguage\/provider\/(types|nullProvider|fixtureProvider|overlayView)\.ts$/.test(
                         filePath,
                     ) ||
@@ -81,12 +85,12 @@ module.exports = {
                     const escapesSqlLanguage =
                         resolvedImport !== "" &&
                         /\/src\//.test(resolvedImport) &&
-                        !/\/src\/sqlLanguage\//.test(resolvedImport);
+                        !/\/src\/(sqlLanguage|sqlScripting)\//.test(resolvedImport);
                     if (isVscodeImport || isNodeBuiltin || escapesSqlLanguage) {
                         context.report({
                             node,
                             message:
-                                "sqlLanguage core/features/provider-types must stay pure: no vscode, node builtins, or imports outside src/sqlLanguage (design 05 §6.2). Integrate via provider/catalogProvider.ts or host/**.",
+                                "sqlLanguage/sqlScripting engine code must stay pure: no vscode, node builtins, or imports outside src/sqlLanguage + src/sqlScripting (design 05 §6.2). Integrate via provider/catalogProvider.ts or host/**.",
                         });
                     }
                 }
