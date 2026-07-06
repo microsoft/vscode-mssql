@@ -32,6 +32,7 @@ import {
     DataPlaneMetadataSessionSource,
     MetadataService,
 } from "../services/metadata/metadataService";
+import { identityDigest } from "../services/metadata/profileFingerprint";
 import { SqlConnectionProfileRef } from "../services/sqlDataPlane/api";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { InlineCompletionDebugSchemaContextOverrides } from "../sharedInterfaces/inlineCompletionDebug";
@@ -164,7 +165,9 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         try {
             const service = await SqlDataPlaneService.get().service();
             const profile: SqlConnectionProfileRef = {
-                profileFingerprint: `iccfp_${Buffer.from(fingerprint).toString("base64url").slice(0, 24)}`,
+                // Non-reversible short digest (the profileRef contract) —
+                // the raw fingerprint string may contain the server name.
+                profileFingerprint: identityDigest("iccfp", fingerprint),
                 server: facts.server!,
                 ...(facts.database ? { database: facts.database } : {}),
                 authKind,

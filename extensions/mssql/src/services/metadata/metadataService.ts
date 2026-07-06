@@ -161,6 +161,44 @@ export class DataPlaneMetadataSessionSource implements MetadataSessionSource {
     }
 }
 
+/**
+ * Background catalog query → rows. Awaits the HANDLE completion (not the
+ * sink callback): the session frees its active-query slot via the completion
+ * promise's reaction order, so sequential queries must synchronize on it or
+ * the next execute races into Busy. Shared by MetadataService and
+ * ServerMetadataService.
+ */
+export async function runMetadataQuery(
+    session: ISqlSession,
+    sql: string,
+    tag: string,
+): Promise<unknown[][]> {
+    const collected: unknown[][] = [];
+    let failed: string | undefined;
+    const sink: IQueryEventSink = {
+        onResultSetStarted: () => undefined,
+        onRowsPage: (page) => {
+            collected.push(...page.compact.values);
+        },
+        onMessage: (message) => {
+            if (message.kind === "error") {
+                failed = message.text;
+            }
+        },
+        onComplete: () => undefined,
+    };
+    const handle = session.execute(
+        sql,
+        { priority: "background", commandKind: "metadata", tag },
+        sink,
+    );
+    const summary = await handle.completion;
+    if (summary.status !== "succeeded") {
+        throw new Error(failed ?? `metadata query ${summary.status}`);
+    }
+    return collected;
+}
+
 export class MetadataService {
     private entries = new Map<string, CatalogEntry>();
     private pollTimer: ReturnType<typeof setInterval> | undefined;
@@ -297,49 +335,43 @@ export class MetadataService {
         }
     }
 
-    /**
-     * Background catalog query → rows. Awaits the HANDLE completion (not
-     * the sink callback): the session frees its active-query slot via the
-     * completion promise's reaction order, so sequential queries must
-     * synchronize on it or the next execute races into Busy.
-     */
+    /** See runMetadataQuery — kept as a method alias for the hydration code. */
     private async rows(session: ISqlSession, sql: string, tag: string): Promise<unknown[][]> {
-        const collected: unknown[][] = [];
-        let failed: string | undefined;
-        const sink: IQueryEventSink = {
-            onResultSetStarted: () => undefined,
-            onRowsPage: (page) => {
-                collected.push(...page.compact.values);
-            },
-            onMessage: (message) => {
-                if (message.kind === "error") {
-                    failed = message.text;
-                }
-            },
-            onComplete: () => undefined,
-        };
-        const handle = session.execute(
-            sql,
-            { priority: "background", commandKind: "metadata", tag },
-            sink,
-        );
-        const summary = await handle.completion;
-        if (summary.status !== "succeeded") {
-            throw new Error(failed ?? `metadata query ${summary.status}`);
-        }
-        return collected;
+        return runMetadataQuery(session, sql, tag);
     }
 
+    /**
+     * Hydrations are SERIALIZED per entry: the dedicated session allows one
+     * active query, so a forced refresh chains AFTER the in-flight run
+     * rather than overlapping it (overlap made both runs race into Busy —
+     * found by the B15 store's concurrent A/B isolation tests).
+     */
     private async hydrate(entry: CatalogEntry, force = false): Promise<void> {
-        if (entry.hydrating && !force) {
-            return entry.hydrating;
+        if (entry.hydrating) {
+            if (!force) {
+                return entry.hydrating;
+            }
+            const chained = entry.hydrating
+                .catch(() => undefined)
+                .then(() => this.hydrateCore(entry));
+            entry.hydrating = chained;
+            try {
+                await chained;
+            } finally {
+                if (entry.hydrating === chained) {
+                    entry.hydrating = undefined;
+                }
+            }
+            return;
         }
         const run = this.hydrateCore(entry);
         entry.hydrating = run;
         try {
             await run;
         } finally {
-            entry.hydrating = undefined;
+            if (entry.hydrating === run) {
+                entry.hydrating = undefined;
+            }
         }
     }
 

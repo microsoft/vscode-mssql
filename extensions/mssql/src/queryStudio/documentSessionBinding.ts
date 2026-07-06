@@ -30,6 +30,11 @@ import {
     MetadataService,
     MetadataStatus,
 } from "../services/metadata/metadataService";
+import {
+    buildAuthBundle,
+    buildProfileRef,
+    resolveAuthKind,
+} from "../services/metadata/profileAuthAdapter";
 import { QsConnectionState } from "../sharedInterfaces/queryStudio";
 import { buildSessionOptionsBatch, readQuerySessionOptions } from "./sessionOptions";
 
@@ -176,20 +181,11 @@ export class DocumentSessionBinding implements vscode.Disposable {
         this.lostReason = undefined;
         this.fireChange();
         Perf.marker("mssql.queryStudio.connect.begin", "begin");
-        const authKind = (stored.authenticationType ?? "").toLowerCase().includes("integrated")
-            ? ("integrated" as const)
-            : ("sql" as const);
-        const profileRef: SqlConnectionProfileRef = {
-            profileFingerprint: `qsfp_${Buffer.from(`${stored.server}|${stored.database}|${stored.user}|${authKind}`).toString("base64url").slice(0, 24)}`,
-            server: stored.server!,
-            ...(stored.database ? { database: stored.database } : {}),
-            authKind,
-            ...(stored.user ? { user: stored.user } : {}),
-            ...(stored.encrypt !== undefined ? { encrypt: stored.encrypt } : {}),
-            ...(stored.trustServerCertificate !== undefined
-                ? { trustServerCertificate: stored.trustServerCertificate }
-                : {}),
-        };
+        // Shared profile-preparation seam (MetadataStore MD-0): fingerprint
+        // recipe is now hash-based (non-reversible, per the profileRef
+        // contract) — in-memory keys only, so no persisted state shifts.
+        const authKind = resolveAuthKind(stored);
+        const profileRef: SqlConnectionProfileRef = buildProfileRef(stored);
         this.lastProfileRef = profileRef;
         this.lastStore = store;
         this.lastAuthKind = authKind;
@@ -198,11 +194,8 @@ export class DocumentSessionBinding implements vscode.Disposable {
             const session = await service.openSession({
                 profile: profileRef,
                 applicationName: "vscode-mssql-querystudio",
-                auth: {
-                    // Password exists only inside this provider call chain.
-                    passwordProvider: async () =>
-                        authKind === "sql" ? store.lookupPassword(stored) : undefined,
-                },
+                // Password exists only inside the provider closure.
+                auth: buildAuthBundle(stored, store),
             });
             this.session = session;
             session.onDidChangeState((change) => {

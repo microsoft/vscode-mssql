@@ -1,0 +1,469 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * MetadataStore (oe-docs metadata_service_oe_v2_design): the SHARED,
+ * key-correct, multi-connection metadata service — server catalog leases +
+ * database catalog leases over refcounted engines, for Query Studio, the
+ * native language service, scripting, and Object Explorer v2.
+ *
+ * Key-correctness (design §6, the critical fix): every database catalog gets
+ * its OWN data-plane metadata session opened with
+ * `OpenSessionParams.database = key.database` (preview-safe strategy). The
+ * session source is key-aware by construction; a serialized-USE server lane
+ * can replace it later behind the same acquisition surface. A post-open
+ * check emits `metadataStore.keyCorrectness.violation` (and counts it in
+ * store status) if a backend ever hands back a session in the wrong
+ * database.
+ *
+ * Lifecycle: leases are refcounted. When an entry's refcount reaches zero it
+ * survives for `idleTtlMs` (warm re-acquire = cache hit), bounded by
+ * `maxIdleDatabases` (LRU) so large servers cannot pile up idle sessions.
+ */
+
+import { diag } from "../../diagnostics/diagnosticsCore";
+import { ISqlConnectionService } from "../sqlDataPlane/api";
+import { CatalogSnapshot, SchemaContextRequest, SchemaContextResult } from "./catalogModel";
+import {
+    DataPlaneMetadataSessionSource,
+    MetadataService,
+    MetadataSessionSource,
+    MetadataStatus,
+} from "./metadataService";
+import { PreparedConnection } from "./profileAuthAdapter";
+import {
+    IPinnedServerCatalogView,
+    ServerCatalogStatus,
+    ServerMetadataService,
+} from "./serverMetadataService";
+
+// ---------------------------------------------------------------------------
+// Keys (design §4.2)
+// ---------------------------------------------------------------------------
+
+export interface ServerKey {
+    readonly serverFingerprint: string;
+}
+
+export interface DatabaseKey extends ServerKey {
+    /**
+     * Exact database spelling as reported/requested. Deliberately NOT
+     * case-folded for keying: name case sensitivity is a server-collation
+     * fact, and backends report the canonical spelling on context changes.
+     */
+    readonly database: string;
+}
+
+const serverKeyOf = (key: ServerKey): string => key.serverFingerprint;
+const databaseKeyOf = (key: DatabaseKey): string => `${key.serverFingerprint}|${key.database}`;
+
+// ---------------------------------------------------------------------------
+// Leases (design §5)
+// ---------------------------------------------------------------------------
+
+export interface ServerCatalogLease {
+    readonly key: ServerKey;
+    status(): ServerCatalogStatus;
+    pin(): IPinnedServerCatalogView;
+    refresh(): Promise<void>;
+    onDidChange(listener: () => void): { dispose(): void };
+    dispose(): void;
+}
+
+export interface DatabaseCatalogLease {
+    readonly key: DatabaseKey;
+    status(): MetadataStatus;
+    current(): CatalogSnapshot | undefined;
+    buildSchemaContext(req: SchemaContextRequest): SchemaContextResult;
+    notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void;
+    refresh(): Promise<void>;
+    onDidChange(listener: (status: MetadataStatus) => void): { dispose(): void };
+    dispose(): void;
+}
+
+export interface MetadataStoreStatus {
+    readonly servers: readonly {
+        readonly readiness: ServerCatalogStatus["readiness"];
+        readonly generation: number;
+        readonly databaseCount?: number;
+        readonly refCount: number;
+    }[];
+    readonly databases: readonly {
+        readonly readiness: MetadataStatus["readiness"];
+        readonly generation: number;
+        readonly refCount: number;
+        readonly idle: boolean;
+    }[];
+    readonly keyCorrectnessViolations: number;
+}
+
+export interface MetadataStoreOptions {
+    /** Digest-poll cadence forwarded to database engines (0 disables). */
+    pollSeconds?: number;
+    /** Zero-ref entries stay warm this long before disposal (default 120s). */
+    idleTtlMs?: number;
+    /** Max zero-ref database entries kept warm (LRU, default 4). */
+    maxIdleDatabases?: number;
+}
+
+interface ServerEntry {
+    key: ServerKey;
+    prepared: PreparedConnection;
+    source: DataPlaneMetadataSessionSource;
+    service: ServerMetadataService;
+    refCount: number;
+    idleTimer: ReturnType<typeof setTimeout> | undefined;
+}
+
+interface DatabaseEntry {
+    key: DatabaseKey;
+    prepared: PreparedConnection;
+    source: DataPlaneMetadataSessionSource;
+    engine: MetadataService;
+    handle: ReturnType<MetadataService["acquire"]>;
+    listeners: Set<(status: MetadataStatus) => void>;
+    refCount: number;
+    idleTimer: ReturnType<typeof setTimeout> | undefined;
+    lastReleasedAt: number;
+}
+
+export class MetadataStore {
+    private servers = new Map<string, ServerEntry>();
+    private databases = new Map<string, DatabaseEntry>();
+    private violations = 0;
+    private disposed = false;
+
+    constructor(
+        private readonly service: () => Promise<ISqlConnectionService>,
+        private readonly options: MetadataStoreOptions = {},
+    ) {}
+
+    // -- Server catalog ------------------------------------------------------
+
+    async acquireServer(prepared: PreparedConnection): Promise<ServerCatalogLease> {
+        this.assertLive();
+        const key: ServerKey = { serverFingerprint: prepared.serverFingerprint };
+        const id = serverKeyOf(key);
+        let entry = this.servers.get(id);
+        const cacheHit = entry !== undefined;
+        if (!entry) {
+            const connection = await this.service();
+            // Server-scoped session: profile default database (server facts
+            // and sys.databases are database-agnostic).
+            const source = new DataPlaneMetadataSessionSource(connection, {
+                profile: prepared.profileRef,
+                applicationName: "vscode-mssql-metadata",
+                auth: prepared.auth,
+            });
+            entry = {
+                key,
+                prepared,
+                source,
+                service: new ServerMetadataService(source),
+                refCount: 0,
+                idleTimer: undefined,
+            };
+            this.servers.set(id, entry);
+        }
+        const resolved = entry;
+        resolved.refCount++;
+        this.cancelIdle(resolved);
+        this.emitAcquire("metadataStore.acquireServer", prepared, cacheHit);
+        void resolved.service.ensureHydrated();
+
+        const store = this;
+        let disposed = false;
+        return {
+            key,
+            status: () => resolved.service.status(),
+            pin: () => resolved.service.pin(),
+            refresh: () => resolved.service.refresh(),
+            onDidChange: (listener) => resolved.service.onDidChange(listener),
+            dispose(): void {
+                if (disposed) {
+                    return;
+                }
+                disposed = true;
+                store.releaseServer(resolved);
+            },
+        };
+    }
+
+    private releaseServer(entry: ServerEntry): void {
+        entry.refCount = Math.max(0, entry.refCount - 1);
+        diag.emit({
+            feature: "metadata",
+            kind: "event",
+            type: "metadataStore.disposeLease",
+            fields: {
+                keyKind: { raw: "server", cls: "diagnostic.metadata" },
+                refCount: { raw: entry.refCount, cls: "diagnostic.metadata" },
+            },
+        });
+        if (entry.refCount === 0) {
+            this.scheduleIdle(entry, () => {
+                this.servers.delete(serverKeyOf(entry.key));
+                entry.service.dispose();
+                entry.source.dispose();
+            });
+        }
+    }
+
+    // -- Database catalog ----------------------------------------------------
+
+    async acquireDatabase(
+        prepared: PreparedConnection,
+        database: string,
+        onStatus?: (status: MetadataStatus) => void,
+    ): Promise<DatabaseCatalogLease> {
+        this.assertLive();
+        const key: DatabaseKey = { serverFingerprint: prepared.serverFingerprint, database };
+        const id = databaseKeyOf(key);
+        let entry = this.databases.get(id);
+        const cacheHit = entry !== undefined;
+        if (!entry) {
+            const connection = await this.service();
+            // KEY-CORRECT by construction: the dedicated session opens IN the
+            // requested database (preview-safe strategy, design §6.1).
+            const inner = new DataPlaneMetadataSessionSource(connection, {
+                profile: prepared.profileRef,
+                database: key.database,
+                applicationName: "vscode-mssql-metadata",
+                auth: prepared.auth,
+            });
+            const source: MetadataSessionSource = {
+                open: async () => {
+                    const session = await inner.open();
+                    if (session.info.database && session.info.database !== key.database) {
+                        this.violations++;
+                        diag.emit({
+                            feature: "metadata",
+                            kind: "event",
+                            type: "metadataStore.keyCorrectness.violation",
+                            fields: {
+                                expected: { raw: key.database, cls: "database.name" },
+                                actual: {
+                                    raw: session.info.database,
+                                    cls: "database.name",
+                                },
+                            },
+                        });
+                    }
+                    return session;
+                },
+            };
+            const engine = new MetadataService(source, {
+                ...(this.options.pollSeconds !== undefined
+                    ? { pollSeconds: this.options.pollSeconds }
+                    : {}),
+            });
+            const listeners = new Set<(status: MetadataStatus) => void>();
+            const handle = engine.acquire(
+                { serverFingerprint: key.serverFingerprint, database: key.database },
+                (status) => {
+                    for (const listener of [...listeners]) {
+                        try {
+                            listener(status);
+                        } catch {
+                            /* listener isolation */
+                        }
+                    }
+                },
+            );
+            entry = {
+                key,
+                prepared,
+                source: inner,
+                engine,
+                handle,
+                listeners,
+                refCount: 0,
+                idleTimer: undefined,
+                lastReleasedAt: 0,
+            };
+            this.databases.set(id, entry);
+        }
+        const resolved = entry;
+        resolved.refCount++;
+        this.cancelIdle(resolved);
+        if (onStatus) {
+            resolved.listeners.add(onStatus);
+        }
+        this.emitAcquire("metadataStore.acquireDatabase", prepared, cacheHit);
+
+        const store = this;
+        let disposed = false;
+        return {
+            key,
+            status: () => resolved.handle.status(),
+            current: () => resolved.handle.current(),
+            buildSchemaContext: (req) => resolved.handle.buildSchemaContext(req),
+            notifyExecutedBatch: (input) => resolved.handle.notifyExecutedBatch(input),
+            refresh: () => resolved.handle.refresh(),
+            onDidChange(listener): { dispose(): void } {
+                resolved.listeners.add(listener);
+                return { dispose: () => resolved.listeners.delete(listener) };
+            },
+            dispose(): void {
+                if (disposed) {
+                    return;
+                }
+                disposed = true;
+                if (onStatus) {
+                    resolved.listeners.delete(onStatus);
+                }
+                store.releaseDatabase(resolved);
+            },
+        };
+    }
+
+    private releaseDatabase(entry: DatabaseEntry): void {
+        entry.refCount = Math.max(0, entry.refCount - 1);
+        diag.emit({
+            feature: "metadata",
+            kind: "event",
+            type: "metadataStore.disposeLease",
+            fields: {
+                keyKind: { raw: "database", cls: "diagnostic.metadata" },
+                refCount: { raw: entry.refCount, cls: "diagnostic.metadata" },
+            },
+        });
+        if (entry.refCount === 0) {
+            entry.lastReleasedAt = Date.now();
+            this.scheduleIdle(entry, () => this.disposeDatabaseEntry(entry));
+            this.enforceIdleCap();
+        }
+    }
+
+    private disposeDatabaseEntry(entry: DatabaseEntry): void {
+        this.databases.delete(databaseKeyOf(entry.key));
+        entry.handle.dispose();
+        entry.engine.dispose();
+        entry.source.dispose();
+        entry.listeners.clear();
+    }
+
+    /** LRU cap on zero-ref entries (oldest released go first). */
+    private enforceIdleCap(): void {
+        const cap = this.options.maxIdleDatabases ?? 4;
+        const idle = [...this.databases.values()]
+            .filter((entry) => entry.refCount === 0)
+            .sort((a, b) => a.lastReleasedAt - b.lastReleasedAt);
+        while (idle.length > cap) {
+            const evict = idle.shift()!;
+            this.cancelIdle(evict);
+            this.disposeDatabaseEntry(evict);
+        }
+    }
+
+    // -- Drift + status ------------------------------------------------------
+
+    /** Route a DDL-drift notification to a live catalog, if any. */
+    notifyExecutedBatch(input: {
+        serverFingerprint: string;
+        database: string;
+        text?: string;
+        succeeded: boolean;
+    }): void {
+        const entry = this.databases.get(
+            databaseKeyOf({ serverFingerprint: input.serverFingerprint, database: input.database }),
+        );
+        entry?.handle.notifyExecutedBatch({
+            ...(input.text !== undefined ? { text: input.text } : {}),
+            succeeded: input.succeeded,
+        });
+    }
+
+    status(): MetadataStoreStatus {
+        return {
+            servers: [...this.servers.values()].map((entry) => {
+                const status = entry.service.status();
+                return {
+                    readiness: status.readiness,
+                    generation: status.generation,
+                    ...(status.databaseCount !== undefined
+                        ? { databaseCount: status.databaseCount }
+                        : {}),
+                    refCount: entry.refCount,
+                };
+            }),
+            databases: [...this.databases.values()].map((entry) => {
+                const status = entry.handle.status();
+                return {
+                    readiness: status.readiness,
+                    generation: status.generation,
+                    refCount: entry.refCount,
+                    idle: entry.refCount === 0,
+                };
+            }),
+            keyCorrectnessViolations: this.violations,
+        };
+    }
+
+    dispose(): void {
+        this.disposed = true;
+        for (const entry of this.databases.values()) {
+            this.cancelIdle(entry);
+            entry.handle.dispose();
+            entry.engine.dispose();
+            entry.source.dispose();
+        }
+        this.databases.clear();
+        for (const entry of this.servers.values()) {
+            this.cancelIdle(entry);
+            entry.service.dispose();
+            entry.source.dispose();
+        }
+        this.servers.clear();
+    }
+
+    // -- internals -----------------------------------------------------------
+
+    private assertLive(): void {
+        if (this.disposed) {
+            throw new Error("MetadataStore disposed");
+        }
+    }
+
+    private scheduleIdle(
+        entry: { idleTimer: ReturnType<typeof setTimeout> | undefined },
+        onExpire: () => void,
+    ): void {
+        this.cancelIdle(entry);
+        const ttl = this.options.idleTtlMs ?? 120_000;
+        if (ttl <= 0) {
+            onExpire();
+            return;
+        }
+        entry.idleTimer = setTimeout(onExpire, ttl);
+        (entry.idleTimer as { unref?: () => void }).unref?.();
+    }
+
+    private cancelIdle(entry: { idleTimer: ReturnType<typeof setTimeout> | undefined }): void {
+        if (entry.idleTimer) {
+            clearTimeout(entry.idleTimer);
+            entry.idleTimer = undefined;
+        }
+    }
+
+    private emitAcquire(
+        type: "metadataStore.acquireServer" | "metadataStore.acquireDatabase",
+        prepared: PreparedConnection,
+        cacheHit: boolean,
+    ): void {
+        diag.emit({
+            feature: "metadata",
+            kind: "event",
+            type,
+            fields: {
+                fingerprint: {
+                    raw: prepared.serverFingerprint.slice(0, 12),
+                    cls: "diagnostic.metadata",
+                },
+                cache: { raw: cacheHit ? "hit" : "miss", cls: "diagnostic.metadata" },
+            },
+        });
+    }
+}
