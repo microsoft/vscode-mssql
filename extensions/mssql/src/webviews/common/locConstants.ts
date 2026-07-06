@@ -42,7 +42,7 @@ export class LocConstants {
             findPrevious: l10n.t("Find Previous"),
             property: l10n.t("Property"),
             value: l10n.t("Value"),
-            noResults: l10n.t("No results"),
+            noResults: l10n.t("No results found"),
             searchResultSummary: (activeElement: number, totalElements: number) =>
                 l10n.t({
                     message: "{0} of {1}",
