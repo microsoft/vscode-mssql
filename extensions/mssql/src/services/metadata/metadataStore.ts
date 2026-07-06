@@ -31,6 +31,7 @@ import {
     MetadataService,
     MetadataSessionSource,
     MetadataStatus,
+    MetadataValidationLimiter,
     ModuleDefinitionResult,
 } from "./metadataService";
 import { PreparedConnection } from "./profileAuthAdapter";
@@ -122,6 +123,12 @@ export interface MetadataStoreStatus {
 export interface MetadataStoreOptions {
     /** Digest-poll cadence forwarded to database engines (0 disables). */
     pollSeconds?: number;
+    /**
+     * HOST fact for H-3 focus gating, forwarded verbatim to every engine
+     * (the composition root injects `() => vscode.window.state.focused`;
+     * engines stay vscode-free). Default: always active.
+     */
+    isActive?: () => boolean;
     /** Zero-ref entries stay warm this long before disposal (default 120s). */
     idleTtlMs?: number;
     /** Max zero-ref database entries kept warm (LRU, default 4). */
@@ -146,6 +153,9 @@ interface ServerEntry {
     service: ServerMetadataService;
     refCount: number;
     idleTimer: ReturnType<typeof setTimeout> | undefined;
+    /** H-6(b): accessState per database name as of the last hydration. */
+    accessStates: Map<string, string> | undefined;
+    accessSubscription: { dispose(): void } | undefined;
 }
 
 interface DatabaseEntry {
@@ -169,6 +179,13 @@ export class MetadataStore {
     private violations = 0;
     private diskLoads = 0;
     private disposed = false;
+    /**
+     * H-3.4: ONE cross-entry validation semaphore for the whole store —
+     * each database entry composes its own engine, so the cap only
+     * constrains anything when the SAME limiter instance rides into every
+     * engine's options (a resume storm must not fan out 30 digests).
+     */
+    private readonly validationLimiter = new MetadataValidationLimiter(2);
 
     constructor(
         private readonly service: () => Promise<ISqlConnectionService>,
@@ -199,7 +216,16 @@ export class MetadataStore {
                 service: new ServerMetadataService(source),
                 refCount: 0,
                 idleTimer: undefined,
+                accessStates: undefined,
+                accessSubscription: undefined,
             };
+            const created = entry;
+            // H-6(b): every server hydration diffs accessState per database
+            // name against the previous pinned view and pokes matching live
+            // database entries with staleReason "accessChanged".
+            created.accessSubscription = created.service.onDidChange(() =>
+                this.diffServerAccessStates(created),
+            );
             this.servers.set(id, entry);
         }
         const resolved = entry;
@@ -241,8 +267,56 @@ export class MetadataStore {
         if (entry.refCount === 0) {
             this.scheduleIdle(entry, () => {
                 this.servers.delete(serverKeyOf(entry.key));
+                entry.accessSubscription?.dispose();
                 entry.service.dispose();
                 entry.source.dispose();
+            });
+        }
+    }
+
+    /**
+     * H-6(b): compare the freshly-hydrated server view's accessState per
+     * database name to the previous one; transitions poke live database
+     * entries via the engine hook. Counted only — no identifiers in the
+     * event (database names stay out per the H-6 rule; the H-5 rename
+     * event is the only sanctioned name carrier).
+     */
+    private diffServerAccessStates(server: ServerEntry): void {
+        const list = server.service.pin().listDatabases();
+        if (!list) {
+            return; // failed/loading — never diff against emptiness
+        }
+        const next = new Map(list.map((db) => [db.name, db.accessState as string]));
+        const previous = server.accessStates;
+        server.accessStates = next;
+        if (!previous) {
+            return; // first hydration — nothing to transition from
+        }
+        let transitions = 0;
+        for (const [name, state] of next) {
+            const before = previous.get(name);
+            if (before === undefined || before === state) {
+                continue;
+            }
+            const dbEntry = this.databases.get(
+                databaseKeyOf({ serverFingerprint: server.key.serverFingerprint, database: name }),
+            );
+            if (dbEntry) {
+                dbEntry.engine.noteAccessStateChanged({
+                    serverFingerprint: server.key.serverFingerprint,
+                    database: name,
+                });
+                transitions++;
+            }
+        }
+        if (transitions > 0) {
+            diag.emit({
+                feature: "metadata",
+                kind: "event",
+                type: "metadataStore.accessDrift",
+                fields: {
+                    databases: { raw: transitions, cls: "diagnostic.metadata" },
+                },
             });
         }
     }
@@ -300,6 +374,24 @@ export class MetadataStore {
                 ...(this.options.pollSeconds !== undefined
                     ? { pollSeconds: this.options.pollSeconds }
                     : {}),
+                // H-3: focus fact + the SHARED cross-entry digest limiter.
+                ...(this.options.isActive ? { isActive: this.options.isActive } : {}),
+                validationLimiter: this.validationLimiter,
+                // H-5: the engine detects the rename; the STORE owns the
+                // sanctioned event (cls database.name, same classes as the
+                // key-correctness tripwire) and the violations counter.
+                onIdentityDrift: (drift) => {
+                    this.violations++;
+                    diag.emit({
+                        feature: "metadata",
+                        kind: "event",
+                        type: "metadataStore.keyCorrectness.driftRename",
+                        fields: {
+                            expected: { raw: drift.expected, cls: "database.name" },
+                            actual: { raw: drift.actual, cls: "database.name" },
+                        },
+                    });
+                },
             });
             const engineKey = { serverFingerprint: key.serverFingerprint, database: key.database };
             const cache = this.options.cache;
@@ -509,6 +601,7 @@ export class MetadataStore {
         this.databases.clear();
         for (const entry of this.servers.values()) {
             this.cancelIdle(entry);
+            entry.accessSubscription?.dispose();
             entry.service.dispose();
             entry.source.dispose();
         }

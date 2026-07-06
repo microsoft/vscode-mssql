@@ -32,6 +32,18 @@ export interface MetadataCacheInit {
     };
 }
 
+/**
+ * Host facts for H-3 poll governance, injected here so the store and its
+ * engines stay vscode-free: the activation path passes
+ * `isActive: () => vscode.window.state.focused` and a live read of
+ * `mssql.metadata.pollSeconds` (internal setting; the engine already
+ * accepted pollSeconds — this exposes it).
+ */
+export interface MetadataHostInit {
+    readonly isActive?: () => boolean;
+    readonly pollSeconds?: () => number;
+}
+
 export class MetadataStoreService {
     private static instance: MetadataStoreService | undefined;
 
@@ -51,6 +63,7 @@ export class MetadataStoreService {
     private storeInstance: MetadataStore | undefined;
     private coordinator: MetadataCacheCoordinator | undefined;
     private cacheInit: MetadataCacheInit | undefined;
+    private hostInit: MetadataHostInit | undefined;
 
     /**
      * Configure the persistent cache BEFORE the first store() call (the
@@ -64,6 +77,14 @@ export class MetadataStoreService {
         this.cacheInit = init;
     }
 
+    /** Configure host facts (H-3) BEFORE the first store() call. */
+    configureHost(init: MetadataHostInit): void {
+        if (this.storeInstance) {
+            return; // store already composed — a restart picks up changes
+        }
+        this.hostInit = init;
+    }
+
     store(): MetadataStore {
         if (!this.storeInstance) {
             const init = this.cacheInit;
@@ -73,17 +94,18 @@ export class MetadataStoreService {
                     ...(init.producer ? { producer: init.producer } : {}),
                 });
             }
-            this.storeInstance = new MetadataStore(
-                () => SqlDataPlaneService.get().service(),
-                this.coordinator
+            this.storeInstance = new MetadataStore(() => SqlDataPlaneService.get().service(), {
+                ...(this.hostInit?.pollSeconds ? { pollSeconds: this.hostInit.pollSeconds() } : {}),
+                ...(this.hostInit?.isActive ? { isActive: this.hostInit.isActive } : {}),
+                ...(this.coordinator
                     ? {
                           cache: {
                               coordinator: this.coordinator,
                               offlineMode: () => this.cacheInit?.settings().offlineMode === true,
                           },
                       }
-                    : {},
-            );
+                    : {}),
+            });
         }
         return this.storeInstance;
     }

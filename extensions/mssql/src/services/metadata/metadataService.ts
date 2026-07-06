@@ -15,6 +15,14 @@
  * Session policy (§8.2): a DEDICATED metadata session per ServerKey
  * (applicationName `vscode-mssql-metadata`), opened through the same data
  * plane; hydration/poll queries never contend with the user's F5.
+ *
+ * Poll governance (CACHE-5, addendum H-3): per-entry jittered cadence with
+ * a no-change backoff ladder (base → 2× → 5× cap), suspension while the
+ * host window is unfocused beyond a grace (injected `isActive` fact —
+ * this module stays vscode-free), serverless editions pinned at the cap,
+ * and a cross-entry validation semaphore shared via engine options.
+ * Rename identity (H-5): the digest's DB_NAME() rider latches identity
+ * drift — poll stops, strict freshness fails actionably, never auto-rekeys.
  */
 
 import { diag } from "../../diagnostics/diagnosticsCore";
@@ -101,6 +109,17 @@ interface CatalogEntry {
     /** C-4.3 failed-with-retained-snapshot retry state. */
     failedAttempts: number;
     retryTimer: ReturnType<typeof setTimeout> | undefined;
+    /** H-3 per-entry poll cadence: jittered timer + backoff ladder level. */
+    pollTimer: ReturnType<typeof setTimeout> | undefined;
+    pollBackoffLevel: number;
+    /**
+     * H-5 latch: the digest identity rider saw DB_NAME() ≠ key.database —
+     * the entry is lying by definition. The poll stops, strict freshness
+     * modes fail actionably, allowStale keeps serving the retained
+     * snapshot; ONLY an explicit refresh (which reopens the session BY
+     * NAME, key-correct by construction) can clear it. Never auto-rekeyed.
+     */
+    identityDrift: boolean;
 }
 
 /** Result of a lazy sys.sql_modules read (B12 scripting/definition). */
@@ -197,6 +216,97 @@ const MODULE_DEFINITION = (objectId: number): string =>
 /** DDL keywords that schedule a refresh (design §9.1). */
 const DDL_KEYWORDS = new Set(["CREATE", "ALTER", "DROP", "SP_RENAME"]);
 const MAYBE_DDL = new Set(["EXEC", "EXECUTE"]);
+
+/**
+ * Serverless/auto-pause-capable engine editions (H0 fact; addendum H-3.3):
+ * 5 = Azure SQL Database, 8 = Managed Instance, 11 = Edge, 12 = Azure
+ * Synapse serverless family. Entries on these targets poll at the backoff
+ * CAP so the digest never defeats auto-pause (billable wake-ups); the TTL
+ * validation model covers correctness on user activity.
+ */
+const SERVERLESS_ENGINE_EDITIONS = new Set([5, 8, 11, 12]);
+
+/** H-3.2 per-entry poll backoff: 60s → 120s → 300s over a 60s base. */
+export const DEFAULT_POLL_BACKOFF_MULTIPLIERS: readonly number[] = [1, 2, 5];
+
+/**
+ * H-3.4: every poll interval carries ±10% jitter so a resume/reconnect
+ * storm never phase-locks 30 databases onto the same tick. Pure and
+ * exported so the bounds are unit-testable (T-A16).
+ */
+export function jitteredPollDelayMs(
+    baseMs: number,
+    multipliers: readonly number[],
+    level: number,
+    random: () => number = Math.random,
+): number {
+    const index = Math.max(0, Math.min(level, multipliers.length - 1));
+    const jitter = 0.9 + random() * 0.2;
+    return Math.max(1, Math.round(baseMs * (multipliers[index] ?? 1) * jitter));
+}
+
+/**
+ * Store-wide validation semaphore (H-3.4): per-entry lanes serialize within
+ * a key, not across keys — the STORE constructs one limiter (default 2) and
+ * passes it into every engine's options so a laptop-resume storm cannot fan
+ * out one digest query per leased database at once. Waiters are FIFO; the
+ * slot is held for the digest query only, never across a chained refresh.
+ */
+export class MetadataValidationLimiter {
+    private active = 0;
+    private waiters: (() => void)[] = [];
+
+    constructor(private readonly maxConcurrent: number = 2) {}
+
+    async run<T>(work: () => Promise<T>): Promise<T> {
+        await this.acquire();
+        try {
+            return await work();
+        } finally {
+            this.release();
+        }
+    }
+
+    private acquire(): Promise<void> {
+        if (this.active < this.maxConcurrent) {
+            this.active++;
+            return Promise.resolve();
+        }
+        return new Promise((resolve) =>
+            this.waiters.push(() => {
+                this.active++;
+                resolve();
+            }),
+        );
+    }
+
+    private release(): void {
+        this.active--;
+        this.waiters.shift()?.();
+    }
+}
+
+/**
+ * H-6(a) APPROXIMATION, noted on purpose: the H-pass catches carry only the
+ * backend's error message text (no server error number travels through
+ * runMetadataQuery), so "permission-flavored" is a message-class heuristic.
+ * Section failures that do not match keep their honest generic "failed"
+ * state with no staleReason attached.
+ */
+function isPermissionFlavoredError(error: unknown): boolean {
+    const text = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+    return /permission|denied|not authorized|unauthorized/i.test(text);
+}
+
+/**
+ * H-5 tail: session-open/hydration failures whose error class says the
+ * database itself is missing or offline map to staleReason "accessChanged"
+ * where detectable (message-class heuristic, same caveat as above).
+ */
+function isDatabaseAccessError(error: unknown): boolean {
+    const text = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+    return /cannot open database|unable to open database|does not exist|offline/i.test(text);
+}
 
 /**
  * Case sensitivity from a collation name: `_CS` collations, plus binary
@@ -311,7 +421,11 @@ export async function runMetadataQuery(
 
 export class MetadataService {
     private entries = new Map<string, CatalogEntry>();
-    private pollTimer: ReturnType<typeof setInterval> | undefined;
+    /** H-3.1 focus governance state (host-fact driven, engine-owned). */
+    private focusTimer: ReturnType<typeof setInterval> | undefined;
+    private inactiveSinceMs: number | undefined;
+    private pollsSuspended = false;
+    private defaultLimiter: MetadataValidationLimiter | undefined;
 
     constructor(
         private readonly sessions: MetadataSessionSource,
@@ -326,6 +440,31 @@ export class MetadataService {
              * (default 5s/30s/2min; afterwards every poll tick retries).
              */
             retryBackoffMs?: readonly number[];
+            /**
+             * HOST fact (H-3.1): is the hosting window focused/active? The
+             * engine stays vscode-free — the composition root injects
+             * `() => vscode.window.state.focused`. Default: always active.
+             */
+            isActive?: () => boolean;
+            /** Unfocused longer than this suspends polls (default 2 min). */
+            inactiveGraceMs?: number;
+            /** Cadence for re-checking isActive (default 5s, no SQL). */
+            focusRecheckMs?: number;
+            /** H-3.2 backoff ladder over pollSeconds (default [1, 2, 5]). */
+            pollBackoffMultipliers?: readonly number[];
+            /**
+             * Cross-entry validation semaphore (H-3.4) — the store passes
+             * ONE shared instance into every engine it composes. Absent, a
+             * private default (max 2) still bounds this engine's entries.
+             */
+            validationLimiter?: MetadataValidationLimiter;
+            /**
+             * H-5: fired EXACTLY ONCE per identity-drift episode when the
+             * digest identity rider proves the physical database no longer
+             * matches key.database. The store wires this to its
+             * key-correctness counter + the sanctioned driftRename event.
+             */
+            onIdentityDrift?: (drift: { expected: string; actual: string }) => void;
         } = {},
     ) {}
 
@@ -353,7 +492,7 @@ export class MetadataService {
         if (entry.status === "absent" || entry.status === "failed") {
             void this.hydrate(entry);
         }
-        this.ensurePolling();
+        this.startPolling(entry);
 
         const service = this;
         return {
@@ -412,13 +551,21 @@ export class MetadataService {
                 if (!input.succeeded || !input.text) {
                     return;
                 }
+                // H-3.2: user execution against this database resets the
+                // poll backoff to the base cadence. An identity-drifted
+                // entry stays parked — the consumer owns reacquisition.
+                if (!entry!.identityDrift) {
+                    service.resetPollBackoff(entry!);
+                }
                 const keyword = leadingKeyword(input.text)?.toUpperCase();
                 if (!keyword) {
                     return;
                 }
                 if (DDL_KEYWORDS.has(keyword)) {
                     // Sniff accelerates refresh; the poll remains the backstop.
-                    void service.hydrate(entry!, true);
+                    if (!entry!.identityDrift) {
+                        void service.hydrate(entry!, true);
+                    }
                 } else if (MAYBE_DDL.has(keyword)) {
                     void service.checkDigest(entry!);
                 }
@@ -454,6 +601,9 @@ export class MetadataService {
                 manifestDigest: undefined,
                 failedAttempts: 0,
                 retryTimer: undefined,
+                pollTimer: undefined,
+                pollBackoffLevel: 0,
+                identityDrift: false,
             };
             this.entries.set(id, entry);
         }
@@ -773,6 +923,7 @@ export class MetadataService {
             }
             // H3 columns (grouped by object_id, column_id — matches builder spans)
             let columnsFailed = false;
+            let columnsError: unknown;
             try {
                 for (const row of await this.rows(session, H3_COLUMNS, "metadata:H3")) {
                     builder.addColumn(
@@ -784,12 +935,14 @@ export class MetadataService {
                         row[9] === true || row[9] === 1,
                     );
                 }
-            } catch {
+            } catch (error) {
                 columnsFailed = true; // publish failed, never pretend-empty (§7.4)
+                columnsError = error;
             }
             // H4 key constraints (PK columns keep their dedicated marking;
             // unique-constraint columns are recorded but never PK-marked)
             let keysFailed = false;
+            let keysError: unknown;
             try {
                 for (const row of await this.rows(session, H4_KEYS, "metadata:H4")) {
                     const objectId = Number(row[0]);
@@ -808,11 +961,13 @@ export class MetadataService {
                         );
                     }
                 }
-            } catch {
+            } catch (error) {
                 keysFailed = true;
+                keysError = error;
             }
             // H5 FK edges
             let fkFailed = false;
+            let fkError: unknown;
             try {
                 for (const row of await this.rows(session, H5_FOREIGN_KEYS, "metadata:H5")) {
                     builder.addForeignKey(
@@ -829,11 +984,13 @@ export class MetadataService {
                 )) {
                     builder.addForeignKeyColumn(Number(row[0]), String(row[1]), String(row[2]));
                 }
-            } catch {
+            } catch (error) {
                 fkFailed = true;
+                fkError = error;
             }
             // H6 routine parameters
             let paramsFailed = false;
+            let paramsError: unknown;
             try {
                 for (const row of await this.rows(session, H6_PARAMETERS, "metadata:H6")) {
                     const name = row[2] === null || row[2] === undefined ? "" : String(row[2]);
@@ -845,11 +1002,13 @@ export class MetadataService {
                         row[7] === true || row[7] === 1,
                     );
                 }
-            } catch {
+            } catch (error) {
                 paramsFailed = true;
+                paramsError = error;
             }
             // H7 MS_Description extended properties (objects + columns)
             let descriptionsFailed = false;
+            let descriptionsError: unknown;
             try {
                 for (const row of await this.rows(session, H7_DESCRIPTIONS, "metadata:H7")) {
                     const value = row[3] === null || row[3] === undefined ? "" : String(row[3]);
@@ -868,14 +1027,18 @@ export class MetadataService {
                         minorId > 0 ? columnName : undefined,
                     );
                 }
-            } catch {
+            } catch (error) {
                 descriptionsFailed = true; // section failed, never pretend-empty
+                descriptionsError = error;
             }
 
             if (entry.opEpoch !== epoch) {
                 span.fail(new Error("laneTimeout:abandoned"));
                 return; // watchdog abandoned this run — a newer op owns the entry
             }
+            // H-6(a): remember the OUTGOING generation's per-section truth so
+            // ready→failed flips across this refresh are classifiable below.
+            const previousReadiness = entry.snapshot?.readiness;
             entry.generation++;
             entry.snapshot = builder.build(
                 entry.generation,
@@ -903,13 +1066,54 @@ export class MetadataService {
                 entry.retryTimer = undefined;
             }
             entry.moduleDefinitions.clear(); // lazy cache is per generation
+            // H-3.2: a completed refresh is a drift trigger — poll cadence
+            // returns to base (and the pending timer is re-jittered so a
+            // serverless edition just learned from H0 polls at the cap).
+            // H-5: an EXPLICIT refresh that succeeded ran on a session
+            // reopened BY NAME (the drift latch wedged the old one), so its
+            // data is key-correct again and the latch clears; the restarted
+            // poll re-verifies identity on its next digest.
+            entry.identityDrift = false;
+            this.resetPollBackoff(entry);
+            // H-6(a): a section that was ready and is now failed with a
+            // permission-flavored error routes into the existing staleReason
+            // vocabulary (permissionChanged). Counted only — no identifiers.
+            let permissionFlips = 0;
+            const sectionOutcomes: readonly [string, boolean, unknown][] = [
+                ["columns", columnsFailed, columnsError],
+                ["keys", keysFailed, keysError],
+                ["foreignKeys", fkFailed, fkError],
+                ["parameters", paramsFailed, paramsError],
+                ["descriptions", descriptionsFailed, descriptionsError],
+            ];
+            for (const [section, failed, error] of sectionOutcomes) {
+                if (
+                    failed &&
+                    previousReadiness &&
+                    (previousReadiness as Record<string, string>)[section] === "ready" &&
+                    isPermissionFlavoredError(error)
+                ) {
+                    permissionFlips++;
+                }
+            }
             // A completed full hydration is the strongest validation.
             entry.lastValidatedAtMs = Date.now();
             entry.lastValidation = {
                 tier: "fullRefresh",
                 result: "unchanged",
+                ...(permissionFlips > 0 ? { staleReason: "permissionChanged" as const } : {}),
                 validatedAtUtc: new Date().toISOString(),
             };
+            if (permissionFlips > 0) {
+                diag.emit({
+                    feature: "metadata",
+                    kind: "event",
+                    type: "metadata.permissionDrift",
+                    fields: {
+                        sections: { raw: permissionFlips, cls: "diagnostic.metadata" },
+                    },
+                });
+            }
             span.end("ok");
         } catch (error) {
             if (entry.opEpoch !== epoch) {
@@ -917,6 +1121,17 @@ export class MetadataService {
                 return; // abandoned run must not stomp a newer op's state
             }
             entry.status = "failed";
+            if (isDatabaseAccessError(error)) {
+                // H-5 tail: database-missing/offline error classes map to
+                // the same staleReason as the rename identity check.
+                entry.lastValidatedAtMs = undefined;
+                entry.lastValidation = {
+                    tier: "fullRefresh",
+                    result: "failed",
+                    staleReason: "accessChanged",
+                    validatedAtUtc: new Date().toISOString(),
+                };
+            }
             this.scheduleFailedRetry(entry);
             span.fail(error);
         }
@@ -959,6 +1174,18 @@ export class MetadataService {
         if (entry.validationInFlight) {
             return entry.validationInFlight;
         }
+        if (entry.identityDrift) {
+            // H-5: the entry is lying by definition — no further digests
+            // run; the latched failed summary answers until an explicit
+            // refresh reopens the session by name and clears the latch.
+            return Promise.resolve(
+                entry.lastValidation ?? {
+                    tier: "cheapDatabaseDigest",
+                    result: "failed",
+                    staleReason: "accessChanged",
+                },
+            );
+        }
         const startedAt = Date.now();
         const finish = (
             summary: Omit<MetadataValidationSummary, "validatedAtUtc" | "durationMs">,
@@ -983,26 +1210,57 @@ export class MetadataService {
                 return finish({ tier: "fullRefresh", result: ok ? "unchanged" : "failed" }, ok);
             }
             try {
-                const digest = await this.runExclusive(
-                    entry,
-                    async () => {
-                        const session = await this.sessions.open();
-                        const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
-                        // Row shape: [current_db, object_count, object_hash];
-                        // current_db is the CACHE-5 identity rider (H-5) and
-                        // never part of the compared digest.
-                        const row = rows[0] ?? [];
-                        return `${row[1]}:${row[2]}`;
-                    },
-                    { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "digest" },
+                // The store-wide limiter (H-3.4) bounds concurrent digest
+                // queries ACROSS entries/engines; the slot is released
+                // before any chained refresh below so a "changed" verdict
+                // never holds a validation slot through a full hydration.
+                const probe = await this.limiter().run(() =>
+                    this.runExclusive(
+                        entry,
+                        async () => {
+                            const session = await this.sessions.open();
+                            const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
+                            // Row shape: [current_db, object_count, object_hash];
+                            // current_db is the CACHE-5 identity rider (H-5) and
+                            // never part of the compared digest.
+                            const row = rows[0] ?? [];
+                            return {
+                                digest: `${row[1]}:${row[2]}`,
+                                currentDb:
+                                    row[0] === null || row[0] === undefined
+                                        ? undefined
+                                        : String(row[0]),
+                            };
+                        },
+                        { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "digest" },
+                    ),
                 );
+                // H-5 identity: DB_NAME() must equal key.database BYTE-EXACTLY
+                // (same rule as the key-correctness tripwire). A mismatch is
+                // an identity event, not schema drift — latch, stop the poll,
+                // fail strict modes actionably, keep allowStale serving.
+                if (
+                    entry.key.database &&
+                    probe.currentDb !== undefined &&
+                    probe.currentDb !== entry.key.database
+                ) {
+                    this.latchIdentityDrift(entry, probe.currentDb);
+                    return finish(
+                        {
+                            tier: "cheapDatabaseDigest",
+                            result: "failed",
+                            staleReason: "accessChanged",
+                        },
+                        false,
+                    );
+                }
                 // C-4.2: with no live baseline yet, a disk-published entry
                 // compares against the manifest's recorded digest — the
                 // cheapest possible "was my cache already wrong?" check.
                 const baseline = entry.lastDigest ?? entry.manifestDigest;
                 entry.manifestDigest = undefined; // consumed either way
-                entry.lastDigest = digest;
-                if (baseline !== undefined && digest !== baseline) {
+                entry.lastDigest = probe.digest;
+                if (baseline !== undefined && probe.digest !== baseline) {
                     diag.emit({
                         feature: "metadata",
                         kind: "event",
@@ -1015,7 +1273,7 @@ export class MetadataService {
                             },
                         },
                     });
-                    await this.hydrate(entry, true);
+                    await this.hydrate(entry, true); // resets backoff on success
                     return finish(
                         {
                             tier: "cheapDatabaseDigest",
@@ -1025,6 +1283,12 @@ export class MetadataService {
                         entry.status === "ready",
                     );
                 }
+                // H-3.2: consecutive no-change verdicts stretch the poll
+                // cadence toward the cap (any drift trigger resets it).
+                entry.pollBackoffLevel = Math.min(
+                    entry.pollBackoffLevel + 1,
+                    this.pollMultipliers().length - 1,
+                );
                 return finish({ tier: "cheapDatabaseDigest", result: "unchanged" }, true);
             } catch {
                 return finish(
@@ -1048,7 +1312,7 @@ export class MetadataService {
      * T1 validation (the summary machinery is shared with ensureFresh).
      */
     private async checkDigest(entry: CatalogEntry): Promise<void> {
-        if (entry.status !== "ready" || entry.hydrating) {
+        if (entry.status !== "ready" || entry.hydrating || entry.identityDrift) {
             return;
         }
         try {
@@ -1056,6 +1320,60 @@ export class MetadataService {
         } catch {
             // validateEntry never rejects; defensive only (§9.2 silence).
         }
+    }
+
+    private limiter(): MetadataValidationLimiter {
+        if (this.options.validationLimiter) {
+            return this.options.validationLimiter;
+        }
+        this.defaultLimiter ??= new MetadataValidationLimiter();
+        return this.defaultLimiter;
+    }
+
+    /**
+     * H-5 latch (fires the callback EXACTLY ONCE per episode): the digest's
+     * identity rider proved the warm dedicated session no longer sits in
+     * key.database. The poll stops (the entry is lying by definition), the
+     * TTL claim is revoked, and the session is wedged so any EXPLICIT
+     * refresh reopens BY NAME — key-correct by construction. Never
+     * auto-rekeys; the consumer owns reacquisition under the new name.
+     */
+    private latchIdentityDrift(entry: CatalogEntry, actual: string): void {
+        if (entry.identityDrift) {
+            return;
+        }
+        entry.identityDrift = true;
+        entry.lastValidatedAtMs = undefined; // never claim "validated" again
+        entry.sessionWedged = true; // next lane item reopens by name
+        if (entry.pollTimer) {
+            clearTimeout(entry.pollTimer);
+            entry.pollTimer = undefined;
+        }
+        this.options.onIdentityDrift?.({ expected: entry.key.database, actual });
+    }
+
+    /**
+     * H-6(b): a server-catalog accessState transition for this database is
+     * drift the digest cannot see — the store pokes the entry so its status
+     * carries staleReason "accessChanged" and the next require* revalidates
+     * instead of trusting the TTL. Counted upstream; no identifiers here.
+     */
+    noteAccessStateChanged(key: CatalogKey): void {
+        const entry = this.entries.get(keyOf(key));
+        if (!entry) {
+            return;
+        }
+        entry.lastValidatedAtMs = undefined;
+        entry.lastValidation = {
+            tier: "none",
+            result: "notChecked",
+            staleReason: "accessChanged",
+            validatedAtUtc: new Date().toISOString(),
+        };
+        if (!entry.identityDrift) {
+            this.resetPollBackoff(entry); // drift trigger (H-3.2)
+        }
+        this.notify(entry);
     }
 
     /**
@@ -1140,7 +1458,10 @@ export class MetadataService {
                         policy.maxStalenessMs !== undefined &&
                         Number.isFinite(ageMs) &&
                         ageMs > policy.maxStalenessMs &&
-                        !entry.hydrating
+                        !entry.hydrating &&
+                        // H-5: never auto-refresh an identity-drifted entry —
+                        // only an explicit refresh may reopen by name.
+                        !entry.identityDrift
                     ) {
                         void this.hydrate(entry, true);
                         backgroundRefreshStarted = true;
@@ -1194,17 +1515,35 @@ export class MetadataService {
                     });
                 }
                 // failed (or changed-but-refresh-failed): C-7 row — snapshot
-                // stays readable, freshness says the bar was not met.
+                // stays readable, freshness says the bar was not met. An
+                // identity-drifted entry (H-5) fails ACTIONABLY: freshness
+                // "unavailable" even with the retained snapshot present.
                 return this.makeFresh(
                     entry,
                     startedAt,
                     entry.snapshot,
                     "memory",
-                    entry.snapshot ? "stale" : "unavailable",
+                    entry.snapshot && !entry.identityDrift ? "stale" : "unavailable",
                     { validation: summary },
                 );
             }
             case "requireLive": {
+                if (entry.identityDrift) {
+                    // H-5: a forced hydration would publish the RENAMED
+                    // database's catalog under the old key — refuse; the
+                    // retained snapshot still travels (C-7 shape) and the
+                    // latched summary names accessChanged.
+                    return this.makeFresh(
+                        entry,
+                        startedAt,
+                        entry.snapshot,
+                        "memory",
+                        "unavailable",
+                        {
+                            ...(entry.lastValidation ? { validation: entry.lastValidation } : {}),
+                        },
+                    );
+                }
                 const outcome = await this.raceWait(this.hydrate(entry, true), policy);
                 if (outcome === "done" && entry.status === "ready") {
                     return this.makeFresh(entry, startedAt, entry.snapshot, "live", "live");
@@ -1298,52 +1637,176 @@ export class MetadataService {
         });
     }
 
-    private ensurePolling(): void {
-        if (this.pollTimer) {
-            return;
-        }
+    // -- H-3 poll governance --------------------------------------------------
+    // Per-entry cadence with backoff + jitter lives HERE in the engine; the
+    // window-focus fact is injected (isActive) and the cross-entry digest
+    // fan-out is bounded by the shared validation limiter. The store owns
+    // both injections at composition time.
+
+    private pollBaseMs(): number | undefined {
         const seconds = this.options.pollSeconds ?? 60;
-        if (seconds <= 0) {
+        return seconds > 0 ? seconds * 1000 : undefined;
+    }
+
+    private pollMultipliers(): readonly number[] {
+        return this.options.pollBackoffMultipliers ?? DEFAULT_POLL_BACKOFF_MULTIPLIERS;
+    }
+
+    /**
+     * H-3.3: serverless/auto-pause editions poll AT the cap — a digest that
+     * wakes a paused database is a billable bug. Reduced polling is safe:
+     * TTL validation re-checks drift whenever a consumer actually asks.
+     */
+    private effectivePollLevel(entry: CatalogEntry): number {
+        const maxLevel = this.pollMultipliers().length - 1;
+        const edition = entry.snapshot?.engineEdition;
+        if (edition !== undefined && SERVERLESS_ENGINE_EDITIONS.has(edition)) {
+            return maxLevel;
+        }
+        return Math.min(entry.pollBackoffLevel, maxLevel);
+    }
+
+    private startPolling(entry: CatalogEntry): void {
+        if (this.pollBaseMs() === undefined) {
             return;
         }
-        this.pollTimer = setInterval(() => {
-            for (const entry of this.entries.values()) {
-                if (entry.refCount <= 0) {
-                    continue;
-                }
-                if (
-                    entry.status === "failed" &&
-                    entry.snapshot &&
-                    !entry.retryTimer &&
-                    !entry.hydrating
-                ) {
-                    // C-4.3 tail: after the backoff ladder, every poll tick
-                    // retries a failed entry that still serves a snapshot.
-                    void this.hydrate(entry);
-                    continue;
-                }
-                void this.checkDigest(entry);
+        this.schedulePoll(entry);
+        this.ensureFocusWatch();
+    }
+
+    private schedulePoll(entry: CatalogEntry): void {
+        const base = this.pollBaseMs();
+        if (
+            base === undefined ||
+            entry.pollTimer !== undefined ||
+            entry.identityDrift ||
+            entry.refCount <= 0 ||
+            this.pollsSuspended
+        ) {
+            return;
+        }
+        const delay = jitteredPollDelayMs(
+            base,
+            this.pollMultipliers(),
+            this.effectivePollLevel(entry),
+        );
+        entry.pollTimer = setTimeout(() => {
+            entry.pollTimer = undefined;
+            void this.pollTick(entry);
+        }, delay);
+        (entry.pollTimer as { unref?: () => void }).unref?.();
+    }
+
+    private async pollTick(entry: CatalogEntry): Promise<void> {
+        if (entry.refCount <= 0 || entry.identityDrift || this.pollsSuspended) {
+            return; // stopped/suspended — resume or re-acquire reschedules
+        }
+        try {
+            if (
+                entry.status === "failed" &&
+                entry.snapshot &&
+                !entry.retryTimer &&
+                !entry.hydrating
+            ) {
+                // C-4.3 tail: after the backoff ladder, every poll tick
+                // retries a failed entry that still serves a snapshot.
+                await this.hydrate(entry).catch(() => undefined);
+            } else {
+                await this.checkDigest(entry);
             }
-        }, seconds * 1000);
-        (this.pollTimer as { unref?: () => void }).unref?.();
+        } finally {
+            this.schedulePoll(entry);
+        }
+    }
+
+    /** H-3.2: drift trigger/user execution — back to base cadence NOW. */
+    private resetPollBackoff(entry: CatalogEntry): void {
+        entry.pollBackoffLevel = 0;
+        if (entry.pollTimer) {
+            clearTimeout(entry.pollTimer);
+            entry.pollTimer = undefined;
+        }
+        this.schedulePoll(entry);
+    }
+
+    private hostActive(): boolean {
+        return this.options.isActive ? this.options.isActive() : true;
+    }
+
+    /** The focus watch runs no SQL — it only observes the injected fact. */
+    private ensureFocusWatch(): void {
+        if (this.focusTimer || !this.options.isActive) {
+            return;
+        }
+        const cadence = this.options.focusRecheckMs ?? 5_000;
+        this.focusTimer = setInterval(() => this.focusTick(), cadence);
+        (this.focusTimer as { unref?: () => void }).unref?.();
+    }
+
+    /**
+     * H-3.1: unfocused for longer than the grace (default 2 min) suspends
+     * every entry's poll (drift is re-checked by TTL validation on return
+     * anyway); refocus resumes with an IMMEDIATE tick per polled entry —
+     * fan-out bounded by the validation limiter, intervals re-jittered.
+     */
+    private focusTick(): void {
+        if (this.hostActive()) {
+            this.inactiveSinceMs = undefined;
+            if (this.pollsSuspended) {
+                this.pollsSuspended = false;
+                for (const entry of this.entries.values()) {
+                    if (entry.refCount > 0 && !entry.identityDrift) {
+                        void this.pollTick(entry); // immediate tick + reschedule
+                    }
+                }
+            }
+            return;
+        }
+        const now = Date.now();
+        if (this.inactiveSinceMs === undefined) {
+            this.inactiveSinceMs = now;
+            return;
+        }
+        const grace = this.options.inactiveGraceMs ?? 120_000;
+        if (!this.pollsSuspended && now - this.inactiveSinceMs > grace) {
+            this.pollsSuspended = true;
+            for (const entry of this.entries.values()) {
+                if (entry.pollTimer) {
+                    clearTimeout(entry.pollTimer);
+                    entry.pollTimer = undefined;
+                }
+            }
+        }
     }
 
     private maybeStopPolling(): void {
-        if ([...this.entries.values()].every((entry) => entry.refCount === 0) && this.pollTimer) {
-            clearInterval(this.pollTimer);
-            this.pollTimer = undefined;
+        for (const entry of this.entries.values()) {
+            if (entry.refCount <= 0 && entry.pollTimer) {
+                clearTimeout(entry.pollTimer);
+                entry.pollTimer = undefined;
+            }
+        }
+        if (this.focusTimer && [...this.entries.values()].every((entry) => entry.refCount <= 0)) {
+            clearInterval(this.focusTimer);
+            this.focusTimer = undefined;
+            this.pollsSuspended = false;
+            this.inactiveSinceMs = undefined;
         }
     }
 
     dispose(): void {
-        if (this.pollTimer) {
-            clearInterval(this.pollTimer);
-            this.pollTimer = undefined;
+        if (this.focusTimer) {
+            clearInterval(this.focusTimer);
+            this.focusTimer = undefined;
         }
         for (const entry of this.entries.values()) {
             if (entry.retryTimer) {
                 clearTimeout(entry.retryTimer);
                 entry.retryTimer = undefined;
+            }
+            if (entry.pollTimer) {
+                clearTimeout(entry.pollTimer);
+                entry.pollTimer = undefined;
             }
         }
         this.entries.clear();
