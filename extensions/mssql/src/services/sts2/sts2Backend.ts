@@ -790,6 +790,17 @@ export class Sts2Query {
                   : params.status === "disposed"
                     ? "disposed"
                     : "failed";
+        // Backend database truth (ENVCHANGE): a USE executed in the script
+        // changes the connection's database; reconcile session info + fire
+        // the change event (sources-of-truth ladder: backend wins, doc 04
+        // §11.4). No-op when unchanged.
+        if (
+            typeof params.database === "string" &&
+            params.database.length > 0 &&
+            params.database !== this.session.info.database
+        ) {
+            this.session.signalDatabaseChanged(params.database, "backend");
+        }
         this.finishTerminal({
             clientQueryId: this.clientQueryId,
             status,

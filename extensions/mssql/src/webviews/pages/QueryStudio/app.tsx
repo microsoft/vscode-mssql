@@ -64,7 +64,7 @@ import {
     QsLangSignatureHelpRequest,
 } from "../../../sharedInterfaces/queryStudioLanguage";
 import { textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
-import { MessagesView, ResultGrid } from "./results";
+import { MessagesView, ResultGridBlock } from "./results";
 import { monacoApi } from "./monacoSetup";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
@@ -661,7 +661,24 @@ export function QueryStudioApp() {
     const results = state?.results;
     const showResults = (results?.present ?? false) && !resultsCollapsed;
     const errorCount = results?.errorCount ?? 0;
-    const elapsed = state?.execution.elapsedMs;
+
+    // Live elapsed ticker (SSMS parity): while executing, derive elapsed
+    // locally from startedEpochMs so the clock counts even when no row or
+    // message events arrive; terminal states show the host's final value.
+    const startedEpochMs = state?.execution.startedEpochMs;
+    const [nowMs, setNowMs] = useState<number>(() => Date.now());
+    useEffect(() => {
+        if (!executing) {
+            return;
+        }
+        setNowMs(Date.now());
+        const timer = window.setInterval(() => setNowMs(Date.now()), 500);
+        return () => window.clearInterval(timer);
+    }, [executing, startedEpochMs]);
+    const elapsed =
+        executing && startedEpochMs !== undefined
+            ? Math.max(0, nowMs - startedEpochMs)
+            : state?.execution.elapsedMs;
 
     return (
         <div className="qs-root" ref={rootRef}>
@@ -809,12 +826,15 @@ export function QueryStudioApp() {
                         <div className="qs-results-body">
                             {activeTab === "results" ? (
                                 results.resultSets.length > 0 ? (
+                                    // Lazy mounting: captions always render; grid
+                                    // bodies mount near the viewport (never unmount).
                                     results.resultSets.map((summary) => (
-                                        <ResultGrid
+                                        <ResultGridBlock
                                             key={summary.resultSetId}
                                             rpc={rpc}
                                             summary={summary}
                                             version={rowVersions[summary.resultSetId] ?? 0}
+                                            gridStyle={state?.gridStyle}
                                         />
                                     ))
                                 ) : (
@@ -844,6 +864,14 @@ export function QueryStudioApp() {
                 ) : null}
                 {connected ? (
                     <>
+                        {(connection.openTransactions ?? 0) > 0 ? (
+                            <span
+                                className="qs-status-seg qs-status-tran"
+                                title={`${connection.openTransactions} open transaction(s) on this session — COMMIT or ROLLBACK, or they roll back on disconnect`}>
+                                <span className="codicon codicon-git-commit" /> TRAN (
+                                {connection.openTransactions})
+                            </span>
+                        ) : null}
                         <span className="qs-status-seg">
                             {connection.encrypted ? (
                                 <span className="codicon codicon-lock" />

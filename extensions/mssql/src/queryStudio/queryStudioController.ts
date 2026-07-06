@@ -31,6 +31,8 @@ import {
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
     QsGetRowsRequest,
+    QsGridStyle,
+    QsOpenCellDocumentRequest,
     QsInlineCompletionAcceptedRequest,
     QsInlineCompletionRequest,
     QsListDatabasesRequest,
@@ -69,6 +71,9 @@ import {
     LanguageServiceStatus,
     QueryStudioLanguageService,
 } from "./queryStudioLanguageService";
+import { cellDocumentText, prettyPrintCellText } from "./cellDocument";
+import { readGridStyle } from "./gridStyle";
+import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
 
 const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
 
@@ -141,6 +146,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             vscode.workspace.onDidChangeConfiguration((e) => {
                 if (e.affectsConfiguration(LANGUAGE_ENGINE_SETTING)) {
                     this.languageService.onPreferenceChanged();
+                }
+                if (
+                    e.affectsConfiguration("mssql.resultsFontFamily") ||
+                    e.affectsConfiguration("mssql.resultsFontSize") ||
+                    e.affectsConfiguration("mssql.resultsGrid")
+                ) {
+                    this.queueStatePush();
                 }
             }),
         );
@@ -227,9 +239,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             metadata: { readiness: "absent" },
             completions: { enabled: false },
             toggles: { actualPlan: false, viewMode: "grid" },
+            gridStyle: QueryStudioController.currentGridStyle(),
             statusMessage: { kind: "ready", text: "Ready — not connected" },
             capabilities: {},
         };
+    }
+
+    /** Grid styling snapshot from live configuration (classic parity). */
+    private static currentGridStyle(): QsGridStyle {
+        const config = vscode.workspace.getConfiguration();
+        return readGridStyle((key) => config.get(key));
     }
 
     private currentState(): QsState {
@@ -348,10 +367,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                   : this.actualPlan
                     ? ("actualPlan" as const)
                     : ("normal" as const);
+            const config = vscode.workspace.getConfiguration();
+            const timeoutMs = executionTimeoutMs(
+                readQuerySessionOptions((key, fallback) => config.get(key, fallback)),
+            );
             const outcome = this.model.executionHost.execute(text, {
                 selectionStartLine,
                 scope,
                 mode,
+                ...(timeoutMs !== undefined ? { timeoutMs } : {}),
             });
             this.queueStatePush();
             return outcome;
@@ -384,6 +408,35 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
         this.onRequest(QsGetRowsRequest.type, async (params) =>
             this.model.executionHost.getRows(params.resultSetId, params.start, params.count),
+        );
+        this.onRequest(
+            QsOpenCellDocumentRequest.type,
+            async ({ resultSetId, row, column, format }) => {
+                // Classic openFileThroughLink parity: fetch the single cell,
+                // pretty-print, open Beside. {opened:false} on any failure.
+                // format "text" = display-clamped huge cell: raw text, no
+                // pretty-print, plaintext language.
+                try {
+                    const window = this.model.executionHost.getRows(resultSetId, row, 1);
+                    const value = window.values[0]?.[column];
+                    if (value === undefined || value === null) {
+                        return { opened: false };
+                    }
+                    const raw = cellDocumentText(value);
+                    const content = format === "text" ? raw : prettyPrintCellText(raw, format);
+                    const doc = await vscode.workspace.openTextDocument({
+                        language: format === "text" ? "plaintext" : format,
+                        content,
+                    });
+                    await vscode.window.showTextDocument(doc, {
+                        preview: true,
+                        viewColumn: vscode.ViewColumn.Beside,
+                    });
+                    return { opened: true };
+                } catch {
+                    return { opened: false };
+                }
+            },
         );
         this.onRequest(QsGetMessagesRequest.type, async (params) =>
             this.model.executionHost.getMessages(params?.afterIndex),

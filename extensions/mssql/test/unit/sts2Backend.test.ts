@@ -177,6 +177,39 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(page.compact.nullBitmap).to.be.a("string");
     });
 
+    test("complete carrying a DIFFERENT database fires onDidChangeDatabase (backend truth)", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { session, handle } = await openAndExecute(rpc, sink);
+        const changes: { database: string; source: string }[] = [];
+        session.onDidChangeDatabase((change) =>
+            changes.push({ database: change.database, source: change.source }),
+        );
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: 0,
+            database: "OtherDb",
+        });
+        await handle.completion;
+        expect(changes).to.deep.equal([{ database: "OtherDb", source: "backend" }]);
+        expect(session.info.database).to.equal("OtherDb");
+
+        // Same database on a later complete: no spurious event.
+        rpc.responders.set(STS2_METHODS.queryExecute, () => ({ queryId: "q-2" }));
+        const sink2 = new RecordingSink();
+        const handle2 = session.execute("select 2", {}, sink2);
+        await new Promise((r) => setTimeout(r, 5));
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-2",
+            status: "succeeded",
+            rowsAffected: 0,
+            database: "OtherDb",
+        });
+        await handle2.completion;
+        expect(changes).to.have.length(1);
+    });
+
     test("high-water ack is sent only AFTER the sink durably accepts the page", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();

@@ -77,6 +77,8 @@ export class ExecutionHost {
             selectionStartLine: number;
             scope: "selection" | "document";
             mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
+            /** Per-query timeout (mssql.query.executionTimeout), host-resolved. */
+            timeoutMs?: number;
             /** Present when this run is a replay-engine re-execution. */
             replayTags?: FeatureReplayTags;
         },
@@ -186,6 +188,7 @@ export class ExecutionHost {
                 stopOnError: false,
                 scope: options.scope,
                 mode: options.mode ?? "normal",
+                ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
             })
             .then(
                 (result) => this.finishRun(result),
@@ -238,6 +241,10 @@ export class ExecutionHost {
         };
         this.binding.setExecuting(false);
         this.fan((l) => l.onExecutionStateChanged());
+        // Open-transaction indicator (SSMS parity): probe @@TRANCOUNT on the
+        // SAME session after the run settles — a BEGIN TRAN without COMMIT
+        // stays active across executions and must be visible + guarded.
+        void this.binding.probeTransactionState();
     }
 
     cancel(): Promise<{ acknowledged: boolean }> {

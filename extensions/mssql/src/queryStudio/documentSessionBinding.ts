@@ -31,6 +31,7 @@ import {
     MetadataStatus,
 } from "../services/metadata/metadataService";
 import { QsConnectionState } from "../sharedInterfaces/queryStudio";
+import { buildSessionOptionsBatch, readQuerySessionOptions } from "./sessionOptions";
 
 interface StoredProfile {
     server?: string;
@@ -60,6 +61,10 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private stateKind: QsConnectionState["kind"] = "disconnected";
     private lostReason: string | undefined;
     private spid: number | undefined;
+    private openTransactions: number | undefined;
+    private lastProfileRef: SqlConnectionProfileRef | undefined;
+    private lastStore: ConnectionStoreSeam | undefined;
+    private lastAuthKind: "sql" | "integrated" | undefined;
     private onChangeHandlers = new Set<() => void>();
     private metadataService: MetadataService | undefined;
     private metadataHandle: ReturnType<MetadataService["acquire"]> | undefined;
@@ -86,6 +91,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
             ...(this.spid !== undefined ? { spid: this.spid } : {}),
             ...(info?.database ? { database: info.database } : {}),
             ...(info?.encrypted !== undefined ? { encrypted: info.encrypted } : {}),
+            ...(this.openTransactions !== undefined && this.openTransactions > 0
+                ? { openTransactions: this.openTransactions }
+                : {}),
             backend: info?.backendKind ?? "sts2-jsonrpc",
             ...(this.lostReason ? { lostReason: this.lostReason } : {}),
         };
@@ -182,6 +190,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 ? { trustServerCertificate: stored.trustServerCertificate }
                 : {}),
         };
+        this.lastProfileRef = profileRef;
+        this.lastStore = store;
+        this.lastAuthKind = authKind;
         try {
             const service = await SqlDataPlaneService.get().service();
             const session = await service.openSession({
@@ -204,7 +215,13 @@ export class DocumentSessionBinding implements vscode.Disposable {
                     this.fireChange();
                 }
             });
-            session.onDidChangeDatabase(() => this.fireChange());
+            session.onDidChangeDatabase((change) => {
+                // USE (typed or dropdown) moved the session to a different
+                // database: the metadata catalog is keyed by database, so
+                // re-acquire against the new one (fresh dedicated session).
+                this.reacquireMetadataForDatabase(change.database);
+                this.fireChange();
+            });
             this.stateKind = "connected";
             Perf.marker("mssql.queryStudio.connect.ready", "end", {
                 backend: session.info.backendKind,
@@ -213,6 +230,11 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 metadataSession: false,
             });
             this.fireChange();
+            // Session options (SSMS parity): apply the mssql.query.* SET
+            // batch FIRST — the session serializes queries, so anything the
+            // user runs right after connect queues behind the configured
+            // state. Reconnect flows re-enter open(), reapplying naturally.
+            void this.applySessionOptions(session);
             // Metadata catalog (design §8.2): dedicated session over the
             // same profile; hydration never contends with the user's F5.
             this.acquireMetadata(profileRef, store, authKind);
@@ -239,6 +261,96 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 void vscode.commands.executeCommand("mssql.queryStudio.openInClassicEditor");
             }
             return false;
+        }
+    }
+
+    /**
+     * Apply the mssql.query.* options as one SET batch on the user session
+     * (SSMS parity — SET state is per-connection). Failures surface as a
+     * status change only; the connection stays usable.
+     */
+    private async applySessionOptions(session: ISqlSession): Promise<void> {
+        try {
+            const config = vscode.workspace.getConfiguration();
+            const batch = buildSessionOptionsBatch(
+                readQuerySessionOptions((key, fallback) => config.get(key, fallback)),
+            );
+            const sink: IQueryEventSink = {
+                onResultSetStarted: () => undefined,
+                onRowsPage: () => undefined,
+                onMessage: () => undefined,
+                onComplete: () => undefined,
+            };
+            const handle = session.execute(
+                batch,
+                {
+                    priority: "background",
+                    commandKind: "metadata",
+                    tag: "queryStudio:sessionOptions",
+                },
+                sink,
+            );
+            await handle.completion;
+        } catch {
+            // Options are best-effort; server defaults apply.
+        }
+    }
+
+    /** Re-key the metadata catalog when the session's database changes. */
+    private reacquireMetadataForDatabase(database: string): void {
+        if (
+            this.lastProfileRef === undefined ||
+            this.lastStore === undefined ||
+            this.lastAuthKind === undefined
+        ) {
+            return;
+        }
+        this.releaseMetadata();
+        this.acquireMetadata(
+            { ...this.lastProfileRef, database },
+            this.lastStore,
+            this.lastAuthKind,
+        );
+    }
+
+    /**
+     * Open-transaction probe (SSMS parity): after each run, ask the SAME
+     * session for @@TRANCOUNT so a BEGIN TRAN left open across executions is
+     * visible in the status bar and guarded at disconnect. Best-effort.
+     */
+    async probeTransactionState(): Promise<void> {
+        const session = this.activeSession;
+        if (session === undefined) {
+            return;
+        }
+        try {
+            let value: number | undefined;
+            const sink: IQueryEventSink = {
+                onResultSetStarted: () => undefined,
+                onRowsPage: (page) => {
+                    const cell = page.compact.values[0]?.[0];
+                    value = typeof cell === "number" ? cell : Number(cell);
+                },
+                onMessage: () => undefined,
+                onComplete: () => undefined,
+            };
+            const handle = session.execute(
+                "SELECT @@TRANCOUNT;",
+                {
+                    priority: "background",
+                    commandKind: "metadata",
+                    tag: "queryStudio:tranProbe",
+                },
+                sink,
+            );
+            await handle.completion;
+            const count = Number.isFinite(value) ? Number(value) : undefined;
+            if (count !== undefined && count !== this.openTransactions) {
+                this.openTransactions = count;
+                this.fireChange();
+            }
+        } catch {
+            // Best-effort; the indicator simply stays at its last value.
         }
     }
 
@@ -281,12 +393,26 @@ export class DocumentSessionBinding implements vscode.Disposable {
         if (!this.session) {
             return false;
         }
+        // Transaction guard (SSMS parity): closing the connection rolls back
+        // any open transaction server-side — make that explicit and stoppable.
+        if ((this.openTransactions ?? 0) > 0) {
+            const disconnectAnyway = "Disconnect (roll back)";
+            const choice = await vscode.window.showWarningMessage(
+                `This session has ${this.openTransactions} open transaction(s). Disconnecting will roll them back.`,
+                { modal: true },
+                disconnectAnyway,
+            );
+            if (choice !== disconnectAnyway) {
+                return false;
+            }
+        }
         this.releaseMetadata();
         this.stateKind = "disconnecting";
         this.fireChange();
         await this.session.close().catch(() => undefined);
         this.session = undefined;
         this.spid = undefined;
+        this.openTransactions = undefined;
         this.stateKind = "disconnected";
         this.fireChange();
         return true;

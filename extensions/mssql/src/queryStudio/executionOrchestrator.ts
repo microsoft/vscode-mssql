@@ -59,6 +59,8 @@ export interface RunOptions {
      * estimatedPlan returns showplan XML result sets and runs nothing.
      */
     mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
+    /** Per-query timeout (mssql.query.executionTimeout); undefined = none. */
+    timeoutMs?: number;
 }
 
 export interface RunResult {
@@ -318,7 +320,14 @@ export class ExecutionOrchestrator {
                 // Aggregation happens on the returned summary.
             },
         };
-        const handle = this.session.execute(batch.text, { priority: "interactive" }, sink);
+        const handle = this.session.execute(
+            batch.text,
+            {
+                priority: "interactive",
+                ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+            },
+            sink,
+        );
         this.activeHandle = handle;
         return handle.completion.then((summary) => {
             // Cancel/lost truncation truthfulness: any set still open is

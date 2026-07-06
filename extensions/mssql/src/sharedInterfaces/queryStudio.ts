@@ -97,6 +97,8 @@ export interface QsConnectionState {
     accentColor?: string;
     backend?: string;
     lostReason?: string;
+    /** Open @@TRANCOUNT on the session when > 0 (post-run probe, SSMS parity). */
+    openTransactions?: number;
 }
 
 export type QsExecutionStateKind =
@@ -138,6 +140,26 @@ export interface QsResultsState {
     planCount: number;
 }
 
+export type QsGridLinesMode = "both" | "horizontal" | "vertical" | "none";
+
+/**
+ * Results-grid styling snapshot (classic mssql.resultsFontFamily/Size +
+ * mssql.resultsGrid.* parity). Always present on QsState; the webview maps
+ * it onto CSS custom properties and grid classes.
+ */
+export interface QsGridStyle {
+    fontFamily?: string;
+    fontSize?: number;
+    alternatingRowColors: boolean;
+    showGridLines: QsGridLinesMode;
+    rowPadding?: number;
+    /**
+     * Max complete-result-set row count for client-side sort/filter
+     * (mssql.resultsGrid.inMemoryDataProcessingThreshold, classic parity).
+     */
+    inMemoryDataProcessingThreshold: number;
+}
+
 export interface QsState {
     schemaVersion: number;
     connection: QsConnectionState;
@@ -147,6 +169,7 @@ export interface QsState {
     metadata: { readiness: string; generation?: number; mode?: string };
     completions: { enabled: boolean; degraded?: string };
     toggles: { actualPlan: boolean; viewMode: "grid" | "text" };
+    gridStyle: QsGridStyle;
     statusMessage: {
         kind: "ready" | "info" | "success" | "warning" | "error";
         text: string;
@@ -250,6 +273,19 @@ export namespace QsListDatabasesRequest {
 }
 export namespace QsGetRowsRequest {
     export const type = new RequestType<QsGetRowsParams, QsCellWindow, void>("qs/getRows");
+}
+/**
+ * Open one cell's content in a side-by-side text document (classic
+ * openFileThroughLink parity). XML/JSON pretty-print; "text" opens the raw
+ * cell text as plaintext (display-clamped huge cells). NULL cells never
+ * produce this request.
+ */
+export namespace QsOpenCellDocumentRequest {
+    export const type = new RequestType<
+        { resultSetId: string; row: number; column: number; format: "xml" | "json" | "text" },
+        { opened: boolean },
+        void
+    >("qs/openCellDocument");
 }
 export namespace QsGetMessagesRequest {
     export const type = new RequestType<

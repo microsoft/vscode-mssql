@@ -185,6 +185,8 @@ export interface V2CompleteNotification {
     queryId: string;
     status: V2QueryStatus;
     rowsAffected: number | number[] | null;
+    /** Connection's CURRENT database at completion (ENVCHANGE truth — reflects USE). */
+    database?: string | null;
     error?: {
         code?: string;
         message?: string;
