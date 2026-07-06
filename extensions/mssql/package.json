@@ -687,6 +687,11 @@
                     "group": "4_oe2_copy@1"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.legacyActions",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(connectedServer|database|object)\\b/",
+                    "group": "5_oe2_legacy@0"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -1979,6 +1984,11 @@
             {
                 "command": "mssql.objectExplorerV2.search",
                 "title": "Search Objects",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.legacyActions",
+                "title": "Legacy Actions…",
                 "category": "MS SQL"
             },
             {

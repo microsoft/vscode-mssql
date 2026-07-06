@@ -24,11 +24,20 @@ import { oeV2Settings, oeViewMode } from "./settings";
 import { ConnectionProfileSource } from "./sessions/oeV2ProfileAdapter";
 import { OeV2SessionRegistry } from "./sessions/oeV2SessionRegistry";
 import { registerOeV2NativeCommands } from "./commands/oeV2NativeCommands";
+import { policiesForNode } from "./commands/oeV2LegacyCommandPolicy";
+import {
+    HandoffConnectionSeam,
+    OeV2ClassicHandoffService,
+} from "./legacy/oeV2ClassicHandoffService";
+import { toLegacyTreeNode } from "./legacy/oeV2LegacyNodeAdapter";
+import { IConnectionProfile } from "../../models/interfaces";
 import { OeV2Node } from "./tree/oeV2Node";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
 
 export interface OeV2ActivationDeps {
     readonly profiles: ConnectionProfileSource & ProfileSecretSource;
+    /** Classic connection seam for the EXPLICIT legacy handoff door (B20). */
+    readonly legacyConnections?: HandoffConnectionSeam;
 }
 
 export function activateObjectExplorerV2(
@@ -38,6 +47,7 @@ export function activateObjectExplorerV2(
     let registration: vscode.Disposable | undefined;
     let controller: OeV2TreeController | undefined;
     let registry: OeV2SessionRegistry | undefined;
+    let handoff: OeV2ClassicHandoffService | undefined;
 
     const register = () => {
         if (registration) {
@@ -67,12 +77,30 @@ export function activateObjectExplorerV2(
             treeDataProvider: provider,
             showCollapseAll: true,
         });
+        handoff = deps.legacyConnections
+            ? new OeV2ClassicHandoffService(deps.legacyConnections, {
+                  confirm: async (message) => {
+                      if (!oeV2Settings().confirmLegacyHandoff) {
+                          return true;
+                      }
+                      const proceed = "Continue";
+                      const choice = await vscode.window.showWarningMessage(
+                          message,
+                          { modal: true },
+                          proceed,
+                      );
+                      return choice === proceed;
+                  },
+              })
+            : undefined;
         const localRegistry = registry;
         const localController = controller;
+        const localHandoff = handoff;
         registration = vscode.Disposable.from(view, provider, {
             dispose: () => {
                 localController.dispose();
                 localRegistry.dispose();
+                localHandoff?.dispose();
             },
         });
         diag.emit({
@@ -88,6 +116,7 @@ export function activateObjectExplorerV2(
         registration = undefined;
         controller = undefined;
         registry = undefined;
+        handoff = undefined;
     };
 
     if (oeViewMode() === "v2Preview") {
@@ -147,7 +176,69 @@ export function activateObjectExplorerV2(
             async (node?: OeV2Node) => {
                 const connectionId = connectionIdOf(node);
                 if (connectionId) {
+                    // Handoff state never outlives the v2 connection (§12.5).
+                    await handoff?.close(connectionId);
                     await controller?.disconnectProfile(connectionId);
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.legacyActions",
+            async (node?: OeV2Node) => {
+                if (!node?.connectionId || !controller) {
+                    return;
+                }
+                const policies = policiesForNode(node.kind);
+                if (policies.length === 0 || !handoff) {
+                    void vscode.window.showInformationMessage(
+                        "No legacy actions are available for this node in the OE v2 preview.",
+                    );
+                    return;
+                }
+                const picked = await vscode.window.showQuickPick(
+                    policies.map((policy) => ({ label: policy.label, policy })),
+                    { title: "Legacy actions (creates a classic connection)" },
+                );
+                if (!picked) {
+                    return;
+                }
+                const facts = await controller.handoffFacts(node.connectionId);
+                if (!facts) {
+                    void vscode.window.showErrorMessage(
+                        "Connect this profile in Object Explorer v2 first.",
+                    );
+                    return;
+                }
+                const profile = facts.stored as unknown as IConnectionProfile;
+                const ownerUri = await handoff.ensureOwnerUri(
+                    node.connectionId,
+                    facts.fingerprint,
+                    profile,
+                    picked.policy.feature,
+                );
+                if (!ownerUri) {
+                    return; // declined or connect failed (already surfaced)
+                }
+                try {
+                    if (picked.policy.level === "h1") {
+                        await vscode.commands.executeCommand(
+                            picked.policy.classicCommand,
+                            ownerUri,
+                        );
+                    } else {
+                        const adapted = toLegacyTreeNode(node, ownerUri, profile);
+                        if (!adapted) {
+                            throw new Error("node kind not adaptable");
+                        }
+                        await vscode.commands.executeCommand(picked.policy.classicCommand, adapted);
+                    }
+                } catch (error) {
+                    // Guarded route: synthetic nodes are best-effort (§12.3).
+                    void vscode.window.showErrorMessage(
+                        `The legacy feature could not run with an Object Explorer v2 node (${
+                            error instanceof Error ? error.message : String(error)
+                        }). Use Classic Object Explorer for this command.`,
+                    );
                 }
             },
         ),

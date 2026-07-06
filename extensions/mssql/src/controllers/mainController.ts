@@ -1364,6 +1364,9 @@ export default class MainController implements vscode.Disposable {
         // shares saved profiles/groups READ-ONLY. Classic OE is untouched.
         activateObjectExplorerV2(this._context, {
             profiles: this._connectionMgr.connectionStore,
+            // Classic connections are reachable ONLY through the explicit
+            // legacy-handoff door (oe_view_design §12) — never for browse.
+            legacyConnections: this._connectionMgr,
         });
 
         // Register command for table node double-click action

@@ -410,6 +410,21 @@ export class OeV2TreeController {
         return tree.profiles.find((profile) => profile.profileId === connectionId);
     }
 
+    /** Stored profile + server fingerprint for the legacy handoff door. */
+    async handoffFacts(
+        connectionId: string,
+    ): Promise<{ stored: Record<string, unknown>; fingerprint: string } | undefined> {
+        const profile = await this.findProfile(connectionId);
+        const prepared = this.deps.sessions?.get(connectionId)?.prepared;
+        if (!profile || !prepared) {
+            return undefined;
+        }
+        return {
+            stored: profile.stored as Record<string, unknown>,
+            fingerprint: prepared.serverFingerprint,
+        };
+    }
+
     private async profileTree(): Promise<OeV2ProfileTree> {
         if (!this.tree) {
             this.tree = await readProfileTree(this.deps.profiles);

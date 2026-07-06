@@ -1,0 +1,166 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * OE v2 explicit legacy handoff (B20): the policy table drives exposure,
+ * the handoff service creates exactly one guarded classic connection per
+ * v2 connection (confirmation gate, secret-free owner URIs, idle TTL,
+ * close-on-disconnect, failure isolation), and the H2 adapter synthesizes
+ * classic nodes only for adaptable kinds.
+ */
+
+import { expect } from "chai";
+import {
+    LEGACY_COMMAND_POLICIES,
+    policiesForNode,
+} from "../../src/objectExplorer/v2/commands/oeV2LegacyCommandPolicy";
+import {
+    HandoffConnectionSeam,
+    OeV2ClassicHandoffService,
+} from "../../src/objectExplorer/v2/legacy/oeV2ClassicHandoffService";
+import { toLegacyTreeNode } from "../../src/objectExplorer/v2/legacy/oeV2LegacyNodeAdapter";
+import { IConnectionProfile } from "../../src/models/interfaces";
+import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
+import { encodePath } from "../../src/objectExplorer/v2/tree/oeV2Path";
+import { initializeIconUtils } from "./utils";
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const PROFILE = {
+    server: "secret-server.example.internal",
+    database: "AppDb",
+    user: "user@example.com",
+} as unknown as IConnectionProfile;
+
+function seam(overrides?: Partial<HandoffConnectionSeam>) {
+    const calls: { connect: string[]; disconnect: string[] } = { connect: [], disconnect: [] };
+    const connections: HandoffConnectionSeam = {
+        connect: async (ownerUri) => {
+            calls.connect.push(ownerUri);
+            return true;
+        },
+        disconnect: async (ownerUri) => {
+            calls.disconnect.push(ownerUri);
+            return true;
+        },
+        ...overrides,
+    };
+    return { connections, calls };
+}
+
+function databaseNode(): OeV2Node {
+    const path = { kind: "database" as const, connectionId: "p1", database: "AppDb" };
+    return {
+        id: encodePath(path),
+        path,
+        kind: "database",
+        label: "AppDb",
+        collapsible: true,
+        connectionId: "p1",
+        database: "AppDb",
+        readiness: { kind: "notApplicable" },
+        capabilities: {},
+    };
+}
+
+suite("Object Explorer v2 legacy handoff (B20)", () => {
+    suiteSetup(() => {
+        initializeIconUtils(); // TreeNodeInfo resolves icons in its ctor
+    });
+
+    test("policy table: exposure by node kind, H1/H2 levels only, no H3", () => {
+        expect(policiesForNode("database").map((p) => p.feature)).to.deep.equal([
+            "backupDatabase",
+            "restoreDatabase",
+            "profiler",
+            "schemaCompare",
+        ]);
+        expect(policiesForNode("object").map((p) => p.feature)).to.deep.equal(["editTable"]);
+        expect(policiesForNode("databaseFolder")).to.deep.equal([]);
+        expect(policiesForNode("disconnectedConnection")).to.deep.equal([]);
+        for (const policy of LEGACY_COMMAND_POLICIES) {
+            expect(["h1", "h2"]).to.contain(policy.level);
+        }
+    });
+
+    test("handoff: confirmation gate, one connection per v2 connection, reuse, close", async () => {
+        const { connections, calls } = seam();
+        let prompts = 0;
+        let approve = false;
+        const service = new OeV2ClassicHandoffService(connections, {
+            confirm: async () => (prompts++, approve),
+            uriNonce: () => "nonce",
+        });
+
+        // declined → no classic connection is created
+        expect(
+            await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "profiler"),
+        ).to.equal(undefined);
+        expect(calls.connect).to.have.length(0);
+        expect(prompts).to.equal(1);
+
+        // approved → exactly one connection with a secret-free owner URI
+        approve = true;
+        const ownerUri = await service.ensureOwnerUri(
+            "p1",
+            "sfp_abcdef123456",
+            PROFILE,
+            "profiler",
+        );
+        expect(ownerUri).to.equal("objectexplorerv2://handoff/sfp_abcdef12/nonce");
+        expect(ownerUri).to.not.contain("secret-server");
+        expect(ownerUri).to.not.contain("user@example.com");
+        expect(calls.connect).to.deep.equal([ownerUri]);
+
+        // second feature on the same connection REUSES (no second connect,
+        // no second prompt)
+        const again = await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "backup");
+        expect(again).to.equal(ownerUri);
+        expect(calls.connect).to.have.length(1);
+        expect(prompts).to.equal(2); // prompted once before approval, once at approval
+
+        expect(service.hasHandoff("p1")).to.equal(true);
+        await service.close("p1");
+        expect(service.hasHandoff("p1")).to.equal(false);
+        expect(calls.disconnect).to.deep.equal([ownerUri]);
+        service.dispose();
+    });
+
+    test("handoff: connect failure is isolated; idle TTL closes automatically", async () => {
+        const failing = seam({
+            connect: async () => {
+                throw new Error("classic connect exploded");
+            },
+        });
+        const service = new OeV2ClassicHandoffService(failing.connections, {});
+        expect(await service.ensureOwnerUri("p1", "sfp_x", PROFILE, "profiler")).to.equal(
+            undefined,
+        );
+        expect(service.hasHandoff("p1")).to.equal(false);
+
+        const { connections, calls } = seam();
+        const ttlService = new OeV2ClassicHandoffService(connections, { idleTtlMs: 5 });
+        const uri = await ttlService.ensureOwnerUri("p1", "sfp_x", PROFILE, "profiler");
+        expect(uri).to.not.equal(undefined);
+        await sleep(30);
+        expect(ttlService.hasHandoff("p1")).to.equal(false);
+        expect(calls.disconnect).to.have.length(1);
+        ttlService.dispose();
+    });
+
+    test("H2 adapter: adaptable kinds get classic identity; others refuse", () => {
+        const adapted = toLegacyTreeNode(databaseNode(), "owner-uri", PROFILE)!;
+        expect(adapted).to.not.equal(undefined);
+        expect(adapted.nodeType).to.equal("Database");
+        expect(adapted.sessionId).to.equal("owner-uri");
+        expect((adapted.connectionProfile as { database?: string }).database).to.equal("AppDb");
+
+        const folder: OeV2Node = {
+            ...databaseNode(),
+            kind: "databaseFolder",
+        };
+        expect(toLegacyTreeNode(folder, "owner-uri", PROFILE)).to.equal(undefined);
+    });
+});
