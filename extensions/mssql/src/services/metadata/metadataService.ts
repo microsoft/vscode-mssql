@@ -57,6 +57,25 @@ interface CatalogEntry {
     lastDigest: string | undefined;
     listeners: Set<(status: MetadataStatus) => void>;
     refCount: number;
+    /** Lazy module-definition cache, cleared on every new generation (B12). */
+    moduleDefinitions: Map<number, ModuleDefinitionResult>;
+    /** In-flight lazy reads by object id (dedupe). */
+    moduleDefinitionReads: Map<number, Promise<ModuleDefinitionResult>>;
+    /**
+     * Serialization lane for ALL session work (hydration, digest polls,
+     * lazy module reads): the dedicated session allows ONE active query, so
+     * everything that executes on it runs exclusively through this lane.
+     */
+    sessionLane: Promise<void>;
+}
+
+/** Result of a lazy sys.sql_modules read (B12 scripting/definition). */
+export interface ModuleDefinitionResult {
+    text?: string;
+    /** Why text is absent — an HONEST state, never a fabricated script. */
+    unavailableReason?: "encrypted" | "permission" | "notLoaded";
+    /** Catalog generation current when the definition was read. */
+    generation: number;
 }
 
 /** Kind codes from sys.objects type. */
@@ -118,6 +137,14 @@ const H7_DESCRIPTIONS =
 const CHEAP_DIGEST =
     "SELECT COUNT(*) AS object_count, ISNULL(CHECKSUM_AGG(CHECKSUM(o.object_id, o.modify_date)), 0) AS object_hash " +
     "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0;";
+// LAZY per-object module definition (B12 scripting/definition) — NOT part of
+// the H-series bulk hydration: one targeted query per requested object,
+// cached per generation. Matcher-collision note (see H7): this SQL must
+// avoid every earlier FakeScript matcher substring — "sys.sql_modules" and
+// "OBJECTPROPERTY" collide with none of them.
+const MODULE_DEFINITION = (objectId: number): string =>
+    "SELECT sm.definition, OBJECTPROPERTY(sm.object_id, 'IsEncrypted') AS is_encrypted " +
+    `FROM sys.sql_modules sm WHERE sm.object_id = ${Math.trunc(objectId)};`;
 
 /** DDL keywords that schedule a refresh (design §9.1). */
 const DDL_KEYWORDS = new Set(["CREATE", "ALTER", "DROP", "SP_RENAME"]);
@@ -232,6 +259,8 @@ export class MetadataService {
         status(): MetadataStatus;
         buildSchemaContext(req: SchemaContextRequest): SchemaContextResult;
         notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void;
+        /** LAZY per-object sys.sql_modules read, cached per generation (B12). */
+        getModuleDefinition(objectId: number): Promise<ModuleDefinitionResult>;
     } {
         const id = keyOf(key);
         let entry = this.entries.get(id);
@@ -245,6 +274,9 @@ export class MetadataService {
                 lastDigest: undefined,
                 listeners: new Set(),
                 refCount: 0,
+                moduleDefinitions: new Map(),
+                moduleDefinitionReads: new Map(),
+                sessionLane: Promise.resolve(),
             };
             this.entries.set(id, entry);
         }
@@ -325,6 +357,8 @@ export class MetadataService {
                     void service.checkDigest(entry!);
                 }
             },
+            getModuleDefinition: (objectId: number) =>
+                service.getModuleDefinition(entry!, objectId),
         };
     }
 
@@ -354,6 +388,84 @@ export class MetadataService {
     }
 
     /**
+     * Run session work exclusively: the dedicated session allows ONE active
+     * query, so hydration, digest polls, and lazy module reads all chain
+     * through the per-entry lane (a prior failure never blocks the lane).
+     */
+    private runExclusive<T>(entry: CatalogEntry, work: () => Promise<T>): Promise<T> {
+        const run = entry.sessionLane.catch(() => undefined).then(work);
+        entry.sessionLane = run.then(
+            () => undefined,
+            () => undefined,
+        );
+        return run;
+    }
+
+    /**
+     * LAZY module-definition read (B12): one targeted sys.sql_modules query
+     * per requested object, cached per generation (the cache clears when a
+     * hydration publishes a new snapshot). Reads are serialized on the
+     * session lane behind any in-flight hydration. Failures return an honest
+     * "notLoaded" and are NOT cached; NULL definitions map to
+     * encrypted/permission — never a fabricated script.
+     */
+    async getModuleDefinition(
+        entry: CatalogEntry,
+        objectId: number,
+    ): Promise<ModuleDefinitionResult> {
+        const cached = entry.moduleDefinitions.get(objectId);
+        if (cached !== undefined) {
+            return cached;
+        }
+        const inFlight = entry.moduleDefinitionReads.get(objectId);
+        if (inFlight !== undefined) {
+            return inFlight;
+        }
+        const read = this.runExclusive(entry, async (): Promise<ModuleDefinitionResult> => {
+            const generation = entry.generation;
+            try {
+                const session = await this.sessions.open();
+                const rows = await this.rows(
+                    session,
+                    MODULE_DEFINITION(objectId),
+                    "metadata:moduleDefinition",
+                );
+                let result: ModuleDefinitionResult;
+                if (rows.length === 0) {
+                    // Catalog visibility filtered the row: the login cannot
+                    // see the module's metadata (or it is not a module).
+                    result = { unavailableReason: "permission", generation };
+                } else {
+                    const [definition, isEncrypted] = rows[0];
+                    if (definition === null || definition === undefined) {
+                        result = {
+                            unavailableReason:
+                                isEncrypted === true || isEncrypted === 1
+                                    ? "encrypted"
+                                    : "permission",
+                            generation,
+                        };
+                    } else {
+                        result = { text: String(definition), generation };
+                    }
+                }
+                if (entry.generation === generation) {
+                    entry.moduleDefinitions.set(objectId, result);
+                }
+                return result;
+            } catch {
+                return { unavailableReason: "notLoaded", generation };
+            }
+        });
+        entry.moduleDefinitionReads.set(objectId, read);
+        try {
+            return await read;
+        } finally {
+            entry.moduleDefinitionReads.delete(objectId);
+        }
+    }
+
+    /**
      * Hydrations are SERIALIZED per entry: the dedicated session allows one
      * active query, so a forced refresh chains AFTER the in-flight run
      * rather than overlapping it (overlap made both runs race into Busy —
@@ -366,7 +478,7 @@ export class MetadataService {
             }
             const chained = entry.hydrating
                 .catch(() => undefined)
-                .then(() => this.hydrateCore(entry));
+                .then(() => this.runExclusive(entry, () => this.hydrateCore(entry)));
             entry.hydrating = chained;
             try {
                 await chained;
@@ -377,7 +489,9 @@ export class MetadataService {
             }
             return;
         }
-        const run = this.hydrateCore(entry);
+        // Hydration runs on the session lane too (lazy module reads share
+        // the single-active-query session — B12).
+        const run = this.runExclusive(entry, () => this.hydrateCore(entry));
         entry.hydrating = run;
         try {
             await run;
@@ -560,6 +674,7 @@ export class MetadataService {
             );
             entry.status = "ready";
             entry.lastDigest = undefined; // re-baseline on next poll
+            entry.moduleDefinitions.clear(); // lazy cache is per generation
             span.end("ok");
         } catch (error) {
             entry.status = "failed";
@@ -574,9 +689,11 @@ export class MetadataService {
             return;
         }
         try {
-            const session = await this.sessions.open();
-            const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
-            const digest = rows.map((row) => row.join(":")).join(";");
+            const digest = await this.runExclusive(entry, async () => {
+                const session = await this.sessions.open();
+                const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
+                return rows.map((row) => row.join(":")).join(";");
+            });
             if (entry.lastDigest === undefined) {
                 entry.lastDigest = digest;
                 return;

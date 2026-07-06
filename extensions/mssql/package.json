@@ -3244,6 +3244,16 @@
                     "description": "Keyword casing for native language service completions.",
                     "scope": "application"
                 },
+                "mssql.sqlLanguage.definition.mode": {
+                    "type": "string",
+                    "enum": [
+                        "peek",
+                        "open"
+                    ],
+                    "default": "peek",
+                    "description": "How Query Studio shows scripted definitions from the native language service: 'peek' opens the generated script beside the editor as a transient read-only preview; 'open' pins it as a regular read-only tab.",
+                    "scope": "application"
+                },
                 "mssql.copilot.sdkProviders.anthropic.enabled": {
                     "type": "boolean",
                     "default": false,

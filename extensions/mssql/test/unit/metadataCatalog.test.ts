@@ -652,3 +652,260 @@ suite("Metadata catalog H7 descriptions (B11)", () => {
         service.dispose();
     });
 });
+
+suite("Metadata catalog module definitions (B12 lazy reads)", () => {
+    const VIEW_TEXT = "CREATE VIEW dbo.OrdersView\r\nAS\r\nSELECT OrderId FROM dbo.Orders;";
+
+    /** sys scripts + per-object sys.sql_modules responders with counters. */
+    function moduleScripts() {
+        const counts = { view: 0, encrypted: 0, missing: 0, failing: 0 };
+        const scripts: FakeScript[] = [
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 103;");
+                    if (hit) {
+                        counts.view++;
+                    }
+                    return hit;
+                },
+                events: [
+                    {
+                        type: "resultSet",
+                        columns: ["definition", "is_encrypted"],
+                        rows: [[VIEW_TEXT, false]],
+                    },
+                    { type: "complete", status: "succeeded" },
+                ],
+            },
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 105;");
+                    if (hit) {
+                        counts.encrypted++;
+                    }
+                    return hit;
+                },
+                events: [
+                    {
+                        type: "resultSet",
+                        columns: ["definition", "is_encrypted"],
+                        rows: [[null, 1]],
+                    },
+                    { type: "complete", status: "succeeded" },
+                ],
+            },
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 104;");
+                    if (hit) {
+                        counts.missing++;
+                    }
+                    return hit;
+                },
+                events: [
+                    {
+                        type: "resultSet",
+                        columns: ["definition", "is_encrypted"],
+                        rows: [],
+                    },
+                    { type: "complete", status: "succeeded" },
+                ],
+            },
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 999;");
+                    if (hit) {
+                        counts.failing++;
+                    }
+                    return hit;
+                },
+                events: [
+                    { type: "message", kind: "error", text: "deadlock victim" },
+                    { type: "complete", status: "failed" },
+                ],
+            },
+            ...sysScripts(),
+        ];
+        return { scripts, counts };
+    }
+
+    test("lazy read returns the stored text and caches per generation", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const first = await handle.getModuleDefinition(103);
+        expect(first.text).to.equal(VIEW_TEXT);
+        expect(first.unavailableReason).to.equal(undefined);
+        expect(first.generation).to.equal(handle.status().generation);
+        const second = await handle.getModuleDefinition(103);
+        expect(second.text).to.equal(VIEW_TEXT);
+        expect(counts.view, "second read must be served from the cache").to.equal(1);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("encrypted module: NULL definition + IsEncrypted ⇒ honest 'encrypted'", async () => {
+        const { scripts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = await handle.getModuleDefinition(105);
+        expect(result.text).to.equal(undefined);
+        expect(result.unavailableReason).to.equal("encrypted");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("row filtered by catalog visibility ⇒ honest 'permission'", async () => {
+        const { scripts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = await handle.getModuleDefinition(104);
+        expect(result.unavailableReason).to.equal("permission");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("query failure ⇒ 'notLoaded' and NOT cached (retries re-query)", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const first = await handle.getModuleDefinition(999);
+        expect(first.unavailableReason).to.equal("notLoaded");
+        const second = await handle.getModuleDefinition(999);
+        expect(second.unavailableReason).to.equal("notLoaded");
+        expect(counts.failing, "failures must not be cached").to.equal(2);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("cache invalidates on a new generation (refresh re-queries)", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        await handle.getModuleDefinition(103);
+        await handle.refresh(); // generation bump clears the lazy cache
+        const again = await handle.getModuleDefinition(103);
+        expect(again.text).to.equal(VIEW_TEXT);
+        expect(counts.view).to.equal(2);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("lazy reads serialize with hydration on the single-query session", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        // Fire a refresh and a lazy read CONCURRENTLY: the session allows one
+        // active query, so both must complete without a Busy failure.
+        const refreshing = handle.refresh();
+        const reading = handle.getModuleDefinition(103);
+        const [, result] = await Promise.all([refreshing, reading]);
+        expect(handle.status().readiness).to.equal("ready");
+        expect(result.text).to.equal(VIEW_TEXT);
+        expect(counts.view).to.be.greaterThan(0);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("concurrent reads for the SAME object dedupe to one query", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const [a, b] = await Promise.all([
+            handle.getModuleDefinition(103),
+            handle.getModuleDefinition(103),
+        ]);
+        expect(a.text).to.equal(VIEW_TEXT);
+        expect(b.text).to.equal(VIEW_TEXT);
+        expect(counts.view).to.equal(1);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("pinned language view: definitions readiness 'lazy' + end-to-end getDefinition", async () => {
+        const { scripts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => handle,
+            serverVersion: () => "16.0.4165.4",
+            currentDatabase: () => KEY.database,
+            databases: () => [KEY.database],
+            subscribeStatus: () => () => undefined,
+        });
+        expect(provider.readiness().definitions).to.equal("lazy");
+        const pinned = provider.pin();
+        const text = await pinned.getDefinition?.({ objectId: 103 });
+        expect(text).to.deep.equal({ text: VIEW_TEXT });
+        const encrypted = await pinned.getDefinition?.({ objectId: 105 });
+        expect(encrypted).to.deep.equal({ unavailableReason: "encrypted" });
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("offline pinned view refuses definitions honestly", () => {
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => undefined,
+            serverVersion: () => undefined,
+            currentDatabase: () => undefined,
+            databases: () => undefined,
+            subscribeStatus: () => () => undefined,
+        });
+        expect(provider.readiness().definitions).to.equal("unknown");
+        expect(provider.pin().getDefinition).to.equal(undefined);
+    });
+
+    test("referenced-side FK details now carry column pairs (B11 finding)", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => handle,
+            serverVersion: () => "16.0.4165.4",
+            currentDatabase: () => KEY.database,
+            databases: () => [KEY.database],
+            subscribeStatus: () => () => undefined,
+        });
+        const pinned = provider.pin();
+        const edges = pinned.fkTo({ objectId: 102 });
+        expect(edges.length).to.equal(1);
+        expect(edges[0].columns).to.deep.equal([
+            { fromColumn: "CustomerId", toColumn: "CustomerId" },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("pinned key constraints serve names/kinds in key order (scripting F2)", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => handle,
+            serverVersion: () => "16.0.4165.4",
+            currentDatabase: () => KEY.database,
+            databases: () => [KEY.database],
+            subscribeStatus: () => () => undefined,
+        });
+        const pinned = provider.pin();
+        const constraints = pinned.getKeyConstraints?.({ objectId: 102 });
+        expect(constraints).to.deep.equal([
+            { name: "PK_Customers", kind: "primaryKey", columns: ["CustomerId"] },
+            {
+                name: "UQ_Customers_Name",
+                kind: "uniqueConstraint",
+                columns: ["Name", "CustomerId"],
+            },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+});

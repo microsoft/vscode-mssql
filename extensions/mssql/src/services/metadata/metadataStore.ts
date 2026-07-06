@@ -31,6 +31,7 @@ import {
     MetadataService,
     MetadataSessionSource,
     MetadataStatus,
+    ModuleDefinitionResult,
 } from "./metadataService";
 import { PreparedConnection } from "./profileAuthAdapter";
 import {
@@ -78,6 +79,8 @@ export interface DatabaseCatalogLease {
     current(): CatalogSnapshot | undefined;
     buildSchemaContext(req: SchemaContextRequest): SchemaContextResult;
     notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void;
+    /** LAZY per-object sys.sql_modules read, cached per generation (B12). */
+    getModuleDefinition(objectId: number): Promise<ModuleDefinitionResult>;
     refresh(): Promise<void>;
     onDidChange(listener: (status: MetadataStatus) => void): { dispose(): void };
     dispose(): void;
@@ -307,6 +310,7 @@ export class MetadataStore {
             current: () => resolved.handle.current(),
             buildSchemaContext: (req) => resolved.handle.buildSchemaContext(req),
             notifyExecutedBatch: (input) => resolved.handle.notifyExecutedBatch(input),
+            getModuleDefinition: (objectId) => resolved.handle.getModuleDefinition(objectId),
             refresh: () => resolved.handle.refresh(),
             onDidChange(listener): { dispose(): void } {
                 resolved.listeners.add(listener);

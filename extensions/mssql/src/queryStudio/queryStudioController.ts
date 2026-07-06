@@ -66,6 +66,7 @@ import {
 } from "../sharedInterfaces/queryStudioLanguage";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { getSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
+import { definitionContentProvider, openScriptedDefinition } from "./definitionContentProvider";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import {
     DIAGNOSTICS_ENABLED_SETTING,
@@ -603,8 +604,19 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
         this.onRequest(QsLangDefinitionRequest.type, async (position) => {
             const result = await this.languageService.definition(position);
-            // virtualContent targets (LS-4) are not bridged yet.
-            return result?.range ? { range: result.range } : null;
+            if (result?.range) {
+                return { range: result.range };
+            }
+            // Scripted target (LS-4): open the generated script BESIDE as a
+            // read-only mssql-def: document at the anchor (design §13.5);
+            // the webview keeps its in-editor navigation for ranges only.
+            if (result?.virtualContent !== undefined) {
+                const provider = definitionContentProvider();
+                if (provider !== undefined) {
+                    await openScriptedDefinition(provider, result.virtualContent);
+                }
+            }
+            return null;
         });
         this.onRequest(QsLangFoldingRequest.type, async () => ({
             ranges: (await this.languageService.folding()) ?? [],

@@ -13,6 +13,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { Perf } from "../perf/perfTelemetry";
+import { registerDefinitionContentProvider } from "./definitionContentProvider";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
@@ -196,6 +197,9 @@ export function registerQueryStudio(context: vscode.ExtensionContext): void {
 
 function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     registerQueryStudioPerfProbe(context);
+    // mssql-def: virtual documents for scripted go-to-definition (LS-4);
+    // registered once with the QS surface, shared by every controller.
+    registerDefinitionContentProvider(context);
     const provider = new QueryStudioEditorProvider(context);
     context.subscriptions.push(
         vscode.window.registerCustomEditorProvider(QUERY_STUDIO_VIEW_TYPE, provider, {
