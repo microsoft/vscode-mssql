@@ -394,7 +394,7 @@ suite("sqlLanguage LS-0 native features", () => {
         );
     });
 
-    test("feature ladder: completion (B9) + diagnostics (B10) + hover (B11) serve; definition unserved until B12", async () => {
+    test("feature ladder: completion (B9) + diagnostics (B10) + hover (B11) + definition (B12) serve honestly", async () => {
         const completion = await engine.completion({
             text: "SELECT ",
             version: 3,

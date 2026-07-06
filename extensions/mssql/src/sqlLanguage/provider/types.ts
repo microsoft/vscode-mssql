@@ -81,6 +81,13 @@ export interface LangFkColumnPair {
     readonly toColumn: string;
 }
 
+/** PK/unique key constraint with columns in key-ordinal order (scripting F2). */
+export interface LangKeyConstraint {
+    readonly name: string;
+    readonly kind: "primaryKey" | "uniqueConstraint";
+    readonly columns: readonly string[];
+}
+
 export interface LangFkEdge {
     readonly name?: string;
     readonly from: LangObjectRef;
@@ -143,6 +150,12 @@ export interface IPinnedMetadataView {
 
     fkFrom(ref: LangObjectRef): readonly LangFkEdge[];
     fkTo(ref: LangObjectRef): readonly LangFkEdge[];
+
+    /**
+     * PK/unique constraints with names and key order (scripting F2);
+     * undefined = the section is not trustworthy (emitters note the gap).
+     */
+    getKeyConstraints?(ref: LangObjectRef): readonly LangKeyConstraint[] | undefined;
 
     searchObjects(query: ObjectSearchQuery): readonly LangObjectInfo[];
     listSchemas(): readonly LangSchema[];

@@ -9,8 +9,10 @@
  * version) and emits the sqlLanguage.* spans (sizes, counts and durations
  * only — never text). Served natively so far: folding + document symbols
  * (B8), completion (B9), diagnostics incl. the sliced pass for the scheduler
- * (B10), hover + signature help (B11). Remaining features return undefined
- * until their batch, which the router reports honestly as unserved.
+ * (B10), hover + signature help (B11), definition over the scripting engine
+ * (B12 — sqlScripting.script spans are emitted here, host-side, because the
+ * engine itself is pure). Remaining features return undefined until their
+ * batch, which the router reports honestly as unserved.
  */
 
 import { RawField, diag } from "../../diagnostics/diagnosticsCore";
@@ -41,9 +43,12 @@ import { bindStatement } from "../core/binder";
 import { classifyContext } from "../core/context";
 import { buildDatabaseContext } from "../core/databaseContext";
 import { computeCompletion } from "../features/completion";
+import { computeDefinition } from "../features/definition";
 import { DiagnosticsPassResult, createDiagnostics } from "../features/diagnostics";
 import { computeHover } from "../features/hover";
 import { computeSignatureHelp } from "../features/signatureHelp";
+import { ScriptRequest, ScriptResult, SqlScriptingService } from "../../sqlScripting/api";
+import { SqlScriptingEngine } from "../../sqlScripting/scriptingService";
 import { SlicedDiagnosticsPass } from "./scheduler";
 
 export interface NativeEngineOptions {
@@ -511,8 +516,65 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             },
         };
     }
-    definition(_req: SqlLanguageRequest): Promise<DefinitionLocationResult | undefined> {
-        return Promise.resolve(undefined); // B12 / LS-4
+    async definition(req: SqlLanguageRequest): Promise<DefinitionLocationResult | undefined> {
+        const analysis = this.analyze(req.text, req.version);
+        const offset = analysis.snapshot.offsetAt(req.position);
+        const span = diag.startSpan({
+            feature: "sqlLanguage",
+            kind: "span",
+            type: "sqlLanguage.definition",
+            fields: {
+                generation: { raw: this.provider.generation, cls: "diagnostic.metadata" },
+            },
+        });
+        try {
+            const target = this.locateStatement(analysis, req.text, offset);
+            if (target === undefined) {
+                span.end("ok", {
+                    targetKind: { raw: "none", cls: "diagnostic.metadata" },
+                    served: { raw: false, cls: "diagnostic.metadata" },
+                });
+                return undefined;
+            }
+            const pinned = this.provider.pin();
+            const binding = bindStatement({
+                text: req.text,
+                sketch: target.sketch,
+                overlay: analysis.overlay,
+                batchIndex: target.batchIndex,
+                ordinal: target.ordinal,
+                pinned,
+                caseSensitive: pinned.env.caseSensitive,
+            });
+            const databaseContext = buildDatabaseContext(analysis.statements);
+            const computation = await computeDefinition({
+                text: req.text,
+                offset,
+                tokens: analysis.lexed.tokens,
+                sketch: target.sketch,
+                binding,
+                overlay: analysis.overlay,
+                statements: analysis.statements,
+                batchIndex: target.batchIndex,
+                ordinal: target.ordinal,
+                pinned,
+                effectiveDatabase: databaseContext.effectiveDatabaseAt(target.ordinal),
+                scripting: withScriptingSpans(new SqlScriptingEngine(pinned)),
+                positionAt: (o) => analysis.snapshot.positionAt(o),
+            });
+            span.end("ok", {
+                targetKind: { raw: computation.targetKind, cls: "diagnostic.metadata" },
+                served: { raw: computation.result !== undefined, cls: "diagnostic.metadata" },
+                virtual: {
+                    raw: computation.result?.virtualContent !== undefined,
+                    cls: "diagnostic.metadata",
+                },
+            });
+            return computation.result;
+        } catch (error) {
+            span.fail(error);
+            throw error;
+        }
     }
     highlights(_req: SqlLanguageRequest): Promise<readonly HighlightResult[] | undefined> {
         return Promise.resolve(undefined); // B13 / LS-5
@@ -534,6 +596,45 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             computeDocumentSymbols(analysis.snapshot, analysis.lexed.tokens, analysis.segments),
         );
     }
+}
+
+/**
+ * Wrap the pure scripting engine with sqlScripting.script spans (host-side —
+ * the engine itself is pure). Fields: object kind, operation, fidelity,
+ * anchor count, source, unavailable reason — never script text or names.
+ */
+function withScriptingSpans(engine: SqlScriptingService): SqlScriptingService {
+    return {
+        capabilities: (target) => engine.capabilities(target),
+        script: async (request: ScriptRequest): Promise<ScriptResult> => {
+            const span = diag.startSpan({
+                feature: "sqlLanguage",
+                kind: "span",
+                type: "sqlScripting.script",
+                fields: {
+                    operation: { raw: request.operation, cls: "diagnostic.metadata" },
+                },
+            });
+            try {
+                const result = await engine.script(request);
+                span.end("ok", {
+                    objectKind: { raw: result.objectKind, cls: "diagnostic.metadata" },
+                    fidelity: { raw: result.fidelity, cls: "diagnostic.metadata" },
+                    scriptSource: { raw: result.source, cls: "diagnostic.metadata" },
+                    anchorCount: { raw: result.anchors.length, cls: "diagnostic.metadata" },
+                    noteCount: { raw: result.fidelityNotes.length, cls: "diagnostic.metadata" },
+                    unavailableReason: {
+                        raw: result.unavailableReason ?? "none",
+                        cls: "diagnostic.metadata",
+                    },
+                });
+                return result;
+            } catch (error) {
+                span.fail(error);
+                throw error;
+            }
+        },
+    };
 }
 
 /** Privacy-safe end-of-pass span fields: counts and reason names only. */

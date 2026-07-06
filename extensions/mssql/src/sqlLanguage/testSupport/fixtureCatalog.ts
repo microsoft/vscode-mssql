@@ -27,6 +27,7 @@ export const STANDARD_FIXTURE_CATALOG: FixtureCatalogSpec = {
                 { name: "OrderDate", typeDisplay: "datetime2(7)", nullable: false },
                 { name: "Comments", typeDisplay: "nvarchar(max)", nullable: true },
             ],
+            keyConstraints: [{ name: "PK_Orders", kind: "primaryKey", columns: ["OrderID"] }],
         },
         {
             schema: "Sales",
@@ -35,6 +36,14 @@ export const STANDARD_FIXTURE_CATALOG: FixtureCatalogSpec = {
             columns: [
                 { name: "CustomerID", typeDisplay: "int", nullable: false, isPrimaryKey: true },
                 { name: "CustomerName", typeDisplay: "nvarchar(100)", nullable: false },
+            ],
+            keyConstraints: [
+                { name: "PK_Customers", kind: "primaryKey", columns: ["CustomerID"] },
+                {
+                    name: "UQ_Customers_CustomerName",
+                    kind: "uniqueConstraint",
+                    columns: ["CustomerName"],
+                },
             ],
         },
         {
@@ -45,6 +54,9 @@ export const STANDARD_FIXTURE_CATALOG: FixtureCatalogSpec = {
                 { name: "OrderID", typeDisplay: "int", nullable: false, isPrimaryKey: true },
                 { name: "LineNumber", typeDisplay: "int", nullable: false, isPrimaryKey: true },
                 { name: "Quantity", typeDisplay: "int", nullable: false },
+            ],
+            keyConstraints: [
+                { name: "PK_OrderLines", kind: "primaryKey", columns: ["OrderID", "LineNumber"] },
             ],
         },
         {
@@ -61,6 +73,9 @@ export const STANDARD_FIXTURE_CATALOG: FixtureCatalogSpec = {
                 { name: "OrderID", typeDisplay: "int", nullable: false },
                 { name: "CustomerName", typeDisplay: "nvarchar(100)", nullable: false },
             ],
+            definition:
+                "CREATE VIEW Sales.vOrderSummary\nAS\nSELECT o.OrderID, c.CustomerName\n" +
+                "FROM Sales.Orders o JOIN Sales.Customers c ON c.CustomerID = o.CustomerID;",
         },
         {
             schema: "Sales",

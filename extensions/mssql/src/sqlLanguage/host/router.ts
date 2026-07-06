@@ -39,15 +39,16 @@ function maturityAtLeast(actual: FeatureMaturity, threshold: FeatureMaturity): b
 /**
  * Default capability table. LS-0 shipped structure features; B9/LS-1
  * promoted completion to preview; B10/LS-2 promoted diagnostics to preview;
- * B11/LS-3 promoted hover + signatureHelp to preview (all served natively
- * only under the nativeTypeScript preference).
+ * B11/LS-3 promoted hover + signatureHelp to preview; B12/LS-4 promoted
+ * definition to preview (all served natively only under the nativeTypeScript
+ * preference).
  */
 export const LS0_NATIVE_CAPABILITIES: NativeCapabilityTable = {
     completion: "preview",
     hover: "preview",
     signatureHelp: "preview",
     diagnostics: "preview",
-    definition: "off",
+    definition: "preview",
     folding: "preview",
     documentSymbols: "preview",
     highlights: "off",

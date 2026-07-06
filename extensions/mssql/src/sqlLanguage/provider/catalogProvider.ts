@@ -25,6 +25,7 @@ import {
     LangColumn,
     LangDatabase,
     LangFkEdge,
+    LangKeyConstraint,
     LangObjectInfo,
     LangObjectRef,
     LangParam,
@@ -122,18 +123,20 @@ export class CatalogLanguageMetadataProvider implements ISqlLanguageMetadataProv
             columns: mapSection(snapshot.readiness.columns),
             parameters: mapSection(snapshot.readiness.parameters),
             foreignKeys: mapSection(snapshot.readiness.foreignKeys),
-            // Module definitions are not hydrated yet (B12 adds lazy reads).
-            definitions: "unknown",
+            // Module definitions are LAZY: fetched per object on demand
+            // through the metadata session (B12), never bulk-hydrated.
+            definitions: "lazy",
             mode: status.mode,
         };
     }
 
     pin(): IPinnedMetadataView {
-        const snapshot = this.host.handle()?.current();
-        if (snapshot === undefined) {
+        const handle = this.host.handle();
+        const snapshot = handle?.current();
+        if (handle === undefined || snapshot === undefined) {
             return new OfflinePinnedView(this.env(), this.readiness());
         }
-        return new SnapshotPinnedView(snapshot, this.env(), this.readiness());
+        return new SnapshotPinnedView(snapshot, this.env(), this.readiness(), handle);
     }
 
     databases(): readonly LangDatabase[] | undefined {
@@ -185,6 +188,7 @@ class SnapshotPinnedView implements IPinnedMetadataView {
         private readonly snapshot: CatalogSnapshot,
         readonly env: SqlLanguageEnvironment,
         readonly readiness: LanguageReadiness,
+        private readonly handle: MetadataCatalogHandle,
     ) {
         this.generation = snapshot.generation;
     }
@@ -270,13 +274,25 @@ class SnapshotPinnedView implements IPinnedMetadataView {
     }
 
     fkTo(ref: LangObjectRef): readonly LangFkEdge[] {
-        // Reverse-direction pairs are not stored per edge today; edges only.
-        return this.snapshot.getForeignKeysTo(ref.objectId).map((fk) => ({
+        // Referenced-side pairs via H5B details (B11 finding closed in B12).
+        return this.snapshot.getForeignKeyDetailsTo(ref.objectId).map((fk) => ({
             name: fk.name,
             from: { objectId: fk.fromObjectId },
             to: { objectId: fk.toObjectId },
-            columns: [],
+            columns: fk.columns,
         }));
+    }
+
+    /**
+     * PK/unique constraints (H4) — served ONLY when the keys section is
+     * fully ready; a failed/absent section yields undefined so emitters
+     * degrade to F1 with an explicit fidelity note instead of a wrong claim.
+     */
+    getKeyConstraints(ref: LangObjectRef): readonly LangKeyConstraint[] | undefined {
+        if (this.snapshot.readiness.keys !== "ready") {
+            return undefined;
+        }
+        return this.snapshot.getKeyConstraints(ref.objectId);
     }
 
     searchObjects(query: ObjectSearchQuery): readonly LangObjectInfo[] {
@@ -324,7 +340,17 @@ class SnapshotPinnedView implements IPinnedMetadataView {
         return this.snapshot.getDescription(ref.objectId, column);
     }
 
-    getDefinition(): Promise<DefinitionResult> {
-        return Promise.resolve({ unavailableReason: "notLoaded" });
+    /**
+     * The single sanctioned LAZY read (design §4.5 exception): a targeted
+     * sys.sql_modules fetch through the metadata session, cached per
+     * generation by MetadataService. NULL definitions map to honest
+     * encrypted/permission reasons — never a fabricated body.
+     */
+    async getDefinition(ref: LangObjectRef): Promise<DefinitionResult> {
+        const result = await this.handle.getModuleDefinition(ref.objectId);
+        if (result.text !== undefined) {
+            return { text: result.text };
+        }
+        return { unavailableReason: result.unavailableReason ?? "notLoaded" };
     }
 }

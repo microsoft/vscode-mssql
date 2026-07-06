@@ -26,6 +26,7 @@
 import { SignatureHelpResult, SignatureInfo } from "../api";
 import { resolveNameParts } from "../core/binder";
 import { Token, TokenKind, isTrivia, tokenIndexAt } from "../core/lexer";
+import { findEnclosingCall } from "../core/nameChain";
 import { ScriptOverlay } from "../core/overlay";
 import { StatementSketch } from "../core/sketch";
 import { BuiltinFunctionInfo, TSQL_BUILTIN_FUNCTIONS } from "../data/builtinFunctions.generated";
@@ -58,56 +59,6 @@ const BUILTIN_BY_NAME = new Map<string, BuiltinFunctionInfo>(
     TSQL_BUILTIN_FUNCTIONS.map((fn) => [fn.name, fn]),
 );
 
-function isNameKind(kind: TokenKind): boolean {
-    return (
-        kind === TokenKind.Identifier ||
-        kind === TokenKind.BracketedIdentifier ||
-        kind === TokenKind.QuotedIdentifier ||
-        kind === TokenKind.TempName ||
-        kind === TokenKind.GlobalTempName
-    );
-}
-
-function namePartText(text: string, t: Token): string {
-    const raw = text.slice(t.start, t.end);
-    switch (t.kind) {
-        case TokenKind.BracketedIdentifier:
-            return raw.slice(1, raw.endsWith("]") ? -1 : undefined).replace(/\]\]/g, "]");
-        case TokenKind.QuotedIdentifier:
-            return raw.slice(1, raw.endsWith('"') ? -1 : undefined).replace(/""/g, '"');
-        default:
-            return raw;
-    }
-}
-
-function prevSignificant(tokens: readonly Token[], index: number): number {
-    for (let i = index - 1; i >= 0; i--) {
-        if (!isTrivia(tokens[i].kind)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/** Dotted callee chain ending AT `nameIndex` (reads backward across dots). */
-function readCalleeChain(text: string, tokens: readonly Token[], nameIndex: number): string[] {
-    const parts = [namePartText(text, tokens[nameIndex])];
-    let i = nameIndex;
-    for (;;) {
-        const dot = prevSignificant(tokens, i);
-        if (dot < 0 || text.slice(tokens[dot].start, tokens[dot].end) !== ".") {
-            break;
-        }
-        const name = prevSignificant(tokens, dot);
-        if (name < 0 || !isNameKind(tokens[name].kind)) {
-            break;
-        }
-        parts.unshift(namePartText(text, tokens[name]));
-        i = name;
-    }
-    return parts;
-}
-
 export function computeSignatureHelp(input: SignatureHelpComputeInput): SignatureHelpComputation {
     const { tokens, offset, pinned } = input;
     const fold = (value: string): string =>
@@ -136,7 +87,12 @@ export function computeSignatureHelp(input: SignatureHelpComputeInput): Signatur
         (current === undefined || fold(input.effectiveDatabase) !== fold(current));
 
     // ---- innermost enclosing call expression -------------------------------
-    const call = findEnclosingCall(input);
+    const call = findEnclosingCall({
+        text: input.text,
+        tokens,
+        offset,
+        statementStart: input.sketch.span.start,
+    });
     if (call !== undefined) {
         if (call.parts.length === 1) {
             const builtin = BUILTIN_BY_NAME.get(call.parts[0].toUpperCase());
@@ -285,70 +241,6 @@ function builtinSignatures(builtin: BuiltinFunctionInfo, commas: number): Signat
         result: { signatures, activeSignature, activeParameter: commas },
         calleeKind: "builtin",
     };
-}
-
-interface EnclosingCall {
-    readonly parts: readonly string[];
-    /** Top-level comma count between the open paren and the caret. */
-    readonly commas: number;
-}
-
-/**
- * Scan backward from the caret for the innermost unclosed `(` with a
- * name-chain callee. Grouping parens (no callee) are stepped over; commas
- * counted inside them are discarded because everything at the caret's depth
- * before a grouping `(` lies within that group.
- */
-function findEnclosingCall(input: SignatureHelpComputeInput): EnclosingCall | undefined {
-    const { text, tokens, offset } = input;
-    const statementStart = input.sketch.span.start;
-    let i = tokenIndexAt(tokens, Math.max(0, offset - 1));
-    if (tokens[i] !== undefined && tokens[i].start >= offset) {
-        i--;
-    }
-    let depth = 0;
-    let commas = 0;
-    while (i >= 0) {
-        const t = tokens[i];
-        if (t === undefined || t.end <= statementStart) {
-            break;
-        }
-        if (isTrivia(t.kind)) {
-            i--;
-            continue;
-        }
-        const raw = text.slice(t.start, t.end);
-        if (t.kind === TokenKind.Punctuation || t.kind === TokenKind.Operator) {
-            if (raw === ")") {
-                depth++;
-            } else if (raw === "(") {
-                if (depth > 0) {
-                    depth--;
-                } else {
-                    const nameIndex = prevSignificant(tokens, i);
-                    if (nameIndex >= 0 && isNameKind(tokens[nameIndex].kind)) {
-                        const callee = tokens[nameIndex];
-                        // Reserved words are not callees UNLESS they are
-                        // curated builtins (LEFT, RIGHT, COALESCE, CONVERT…
-                        // are reserved keywords AND functions).
-                        const word = namePartText(text, callee).toUpperCase();
-                        if (callee.keyword?.reserved !== true || BUILTIN_BY_NAME.has(word)) {
-                            return { parts: readCalleeChain(text, tokens, nameIndex), commas };
-                        }
-                    }
-                    // Grouping paren: continue outward; all commas seen so
-                    // far were inside this group.
-                    commas = 0;
-                }
-            } else if (raw === "," && depth === 0) {
-                commas++;
-            } else if (raw === ";") {
-                break;
-            }
-        }
-        i--;
-    }
-    return undefined;
 }
 
 /** Argument-segment index at the caret: top-level commas after the proc name. */

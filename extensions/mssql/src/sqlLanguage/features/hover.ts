@@ -25,7 +25,8 @@
 
 import { HoverResult, SqlLanguagePosition } from "../api";
 import { BoundColumn, BoundSource, StatementBinding, resolveNameParts } from "../core/binder";
-import { Token, TokenKind, isTrivia, nextSignificant, tokenIndexAt } from "../core/lexer";
+import { Token, TokenKind, nextSignificant, tokenIndexAt } from "../core/lexer";
+import { NameChain, isNameKind, readChainAround } from "../core/nameChain";
 import { OverlayObject, ScriptOverlay } from "../core/overlay";
 import { CteDecl, SketchSpan, StatementSketch } from "../core/sketch";
 import { BuiltinFunctionInfo, TSQL_BUILTIN_FUNCTIONS } from "../data/builtinFunctions.generated";
@@ -94,82 +95,6 @@ const KIND_WORDS: Record<LangObjectInfo["kind"], string> = {
 const BUILTIN_BY_NAME = new Map<string, BuiltinFunctionInfo>(
     TSQL_BUILTIN_FUNCTIONS.map((fn) => [fn.name, fn]),
 );
-
-function isNameKind(kind: TokenKind): boolean {
-    return (
-        kind === TokenKind.Identifier ||
-        kind === TokenKind.BracketedIdentifier ||
-        kind === TokenKind.QuotedIdentifier ||
-        kind === TokenKind.TempName ||
-        kind === TokenKind.GlobalTempName
-    );
-}
-
-function namePartText(text: string, t: Token): string {
-    const raw = text.slice(t.start, t.end);
-    switch (t.kind) {
-        case TokenKind.BracketedIdentifier:
-            return raw.slice(1, raw.endsWith("]") ? -1 : undefined).replace(/\]\]/g, "]");
-        case TokenKind.QuotedIdentifier:
-            return raw.slice(1, raw.endsWith('"') ? -1 : undefined).replace(/""/g, '"');
-        default:
-            return raw;
-    }
-}
-
-function prevSignificant(tokens: readonly Token[], index: number): number {
-    for (let i = index - 1; i >= 0; i--) {
-        if (!isTrivia(tokens[i].kind)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-interface NameChain {
-    readonly parts: readonly string[];
-    readonly spans: readonly SketchSpan[];
-    /** Which part the caret token is. */
-    readonly partIndex: number;
-}
-
-/** Read the full dotted chain around the token at `index` (both directions). */
-function readChainAround(text: string, tokens: readonly Token[], index: number): NameChain {
-    const parts: string[] = [namePartText(text, tokens[index])];
-    const spans: SketchSpan[] = [{ start: tokens[index].start, end: tokens[index].end }];
-    // Backward: name . name . <caret>
-    let i = index;
-    for (;;) {
-        const dot = prevSignificant(tokens, i);
-        if (dot < 0 || text.slice(tokens[dot].start, tokens[dot].end) !== ".") {
-            break;
-        }
-        const name = prevSignificant(tokens, dot);
-        if (name < 0 || !isNameKind(tokens[name].kind)) {
-            break;
-        }
-        parts.unshift(namePartText(text, tokens[name]));
-        spans.unshift({ start: tokens[name].start, end: tokens[name].end });
-        i = name;
-    }
-    const partIndex = parts.length - 1;
-    // Forward: <caret> . name . name
-    let j = index;
-    for (;;) {
-        const dot = nextSignificant(tokens, j + 1);
-        if (dot >= tokens.length || text.slice(tokens[dot].start, tokens[dot].end) !== ".") {
-            break;
-        }
-        const name = nextSignificant(tokens, dot + 1);
-        if (name >= tokens.length || !isNameKind(tokens[name].kind)) {
-            break;
-        }
-        parts.push(namePartText(text, tokens[name]));
-        spans.push({ start: tokens[name].start, end: tokens[name].end });
-        j = name;
-    }
-    return { parts, spans, partIndex };
-}
 
 export function computeHover(input: HoverComputeInput): HoverComputation {
     const { text, tokens, offset, pinned } = input;

@@ -129,9 +129,14 @@ export interface DefinitionLocationResult {
     readonly range?: SqlLanguageRange;
     /** Virtual/scripted content target (catalog objects), LS-4. */
     readonly virtualContent?: {
+        /** Display name for the virtual document (e.g. "Sales.Orders"). */
         readonly title: string;
         readonly text: string;
         readonly anchor?: SqlLanguagePosition;
+        /** Stable id: object + operation + metadata generation (§13.5 cache). */
+        readonly cacheKey: string;
+        /** Honest-unavailability marker (encrypted/permission/notLoaded…). */
+        readonly unavailableReason?: string;
     };
 }
 

@@ -12,11 +12,13 @@
  */
 
 import {
+    DefinitionResult,
     IPinnedMetadataView,
     ISqlLanguageMetadataProvider,
     LangColumn,
     LangDatabase,
     LangFkEdge,
+    LangKeyConstraint,
     LangObjectInfo,
     LangObjectKind,
     LangObjectRef,
@@ -34,6 +36,10 @@ export interface FixtureObject {
     readonly columns?: readonly LangColumn[];
     readonly parameters?: readonly LangParam[];
     readonly definition?: string;
+    /** Honest-unavailability fixture (encrypted / permission-hidden modules). */
+    readonly definitionUnavailable?: "encrypted" | "permission";
+    /** PK/unique constraints with names and key order (H4 shape, scripting F2). */
+    readonly keyConstraints?: readonly LangKeyConstraint[];
     /** MS_Description-style object description (H7 shape). */
     readonly description?: string;
     /** Column descriptions by column name (H7 shape). */
@@ -110,6 +116,8 @@ class FixturePinnedView implements IPinnedMetadataView {
     private readonly columnsById = new Map<number, readonly LangColumn[]>();
     private readonly paramsById = new Map<number, readonly LangParam[]>();
     private readonly definitionsById = new Map<number, string>();
+    private readonly definitionUnavailableById = new Map<number, "encrypted" | "permission">();
+    private readonly keyConstraintsById = new Map<number, readonly LangKeyConstraint[]>();
     private readonly descriptionsById = new Map<number, string>();
     private readonly columnDescriptionsById = new Map<number, Readonly<Record<string, string>>>();
     private readonly fkEdges: LangFkEdge[] = [];
@@ -145,6 +153,12 @@ class FixturePinnedView implements IPinnedMetadataView {
             }
             if (fixture.definition !== undefined) {
                 this.definitionsById.set(objectId, fixture.definition);
+            }
+            if (fixture.definitionUnavailable !== undefined) {
+                this.definitionUnavailableById.set(objectId, fixture.definitionUnavailable);
+            }
+            if (fixture.keyConstraints !== undefined) {
+                this.keyConstraintsById.set(objectId, fixture.keyConstraints);
             }
             if (fixture.description !== undefined) {
                 this.descriptionsById.set(objectId, fixture.description);
@@ -220,6 +234,9 @@ class FixturePinnedView implements IPinnedMetadataView {
     fkTo(ref: LangObjectRef): readonly LangFkEdge[] {
         return this.fkEdges.filter((e) => e.to.objectId === ref.objectId);
     }
+    getKeyConstraints(ref: LangObjectRef): readonly LangKeyConstraint[] | undefined {
+        return this.keyConstraintsById.get(ref.objectId);
+    }
 
     searchObjects(query: ObjectSearchQuery): readonly LangObjectInfo[] {
         const prefix = query.prefix !== undefined ? this.fold(query.prefix) : undefined;
@@ -267,7 +284,11 @@ class FixturePinnedView implements IPinnedMetadataView {
         return undefined;
     }
 
-    getDefinition(ref: LangObjectRef): Promise<{ text?: string; unavailableReason?: "notLoaded" }> {
+    getDefinition(ref: LangObjectRef): Promise<DefinitionResult> {
+        const unavailable = this.definitionUnavailableById.get(ref.objectId);
+        if (unavailable !== undefined) {
+            return Promise.resolve({ unavailableReason: unavailable });
+        }
         const text = this.definitionsById.get(ref.objectId);
         return Promise.resolve(text !== undefined ? { text } : { unavailableReason: "notLoaded" });
     }
