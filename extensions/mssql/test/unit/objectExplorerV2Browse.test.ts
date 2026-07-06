@@ -31,6 +31,19 @@ import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 function dbScripts(tableName: string): FakeScript[] {
     return [
         {
+            // H7 descriptions — empty is a SUCCEEDED section (a missing
+            // script would fail the hydration query and flip mode to partial).
+            match: (t) => t.includes("extended_properties"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["major_id", "minor_id", "column_name", "description"],
+                    rows: [],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
             match: (t) => t.includes("SERVERPROPERTY"),
             events: [
                 {
