@@ -1313,6 +1313,9 @@
       <source xml:lang="en">Compare selected ({0})</source>
       <note>{0} is the number of currently selected runs (0, 1 or 2)</note>
     </trans-unit>
+    <trans-unit id="++CODE++3d4e795144c2ee8ff2250bc323e4e459d1c74188353d0879f289840ab27d476c">
+      <source xml:lang="en">Comparing Cloud Deploy runs</source>
+    </trans-unit>
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
     </trans-unit>
@@ -3778,6 +3781,9 @@
     <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
+    <trans-unit id="++CODE++62443a56d27a6bd7f1a6c4b0a142eb300f1216cbe15676f24467d73b511b62b1">
+      <source xml:lang="en">Import Cloud Deploy Run</source>
+    </trans-unit>
     <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
       <source xml:lang="en">Import Data</source>
     </trans-unit>
@@ -3798,6 +3804,9 @@
     </trans-unit>
     <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
       <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2fcf0e69e511565586c81dc76fbb3b368b8ddde893958c840db8f96cc5f04ed8">
+      <source xml:lang="en">Import a Cloud Deploy run artifact and read its results?</source>
     </trans-unit>
     <trans-unit id="++CODE++e06eac7e7960029aa3e9849f6e1d9316e9bf7f143c1fb634dd0a2b3391e373f1">
       <source xml:lang="en">Import anyway</source>
@@ -3826,6 +3835,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6ef88827ba30503ec0beb5b6cc6801a9f9f1b0dd11d47de6f30e57fce50a7f63">
       <source xml:lang="en">Importing BACPAC...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d000de398509c7fbf9c9b84546bfddc8fb1fea93cd078329ed2e30b0c76aea75">
+      <source xml:lang="en">Importing Cloud Deploy run</source>
     </trans-unit>
     <trans-unit id="++CODE++1055660e603fb86aa34b3b67aa1e5ac0d1f7d5bf303fb151808544c699012c05">
       <source xml:lang="en">Importing data...</source>
@@ -4702,6 +4714,14 @@
     <trans-unit id="++CODE++2c5ca5eb3cecc14d02190a0af2f2b96f80df2c617aec0f30b76cac8038b318a2">
       <source xml:lang="en">No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.</source>
     </trans-unit>
+    <trans-unit id="++CODE++8c56689b13c4efc59315e02208f7750bd2a9953938554537a47bae19ce10e5d7">
+      <source xml:lang="en">No Cloud Deploy run with id &apos;{0}&apos; was found in this workspace.</source>
+      <note>{0} is the run id</note>
+    </trans-unit>
+    <trans-unit id="++CODE++de8237c7366aa54cc872f239e33035801d282c1753912021d3ced08d7d93e7ac">
+      <source xml:lang="en">No Cloud Deploy runs have been recorded for environment &apos;{0}&apos;.</source>
+      <note>{0} is the environment id</note>
+    </trans-unit>
     <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
       <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
     </trans-unit>
@@ -5530,6 +5550,12 @@
     <trans-unit id="++CODE++40040cb181f7f0ee5add2b52e8467c6652477f7ce12af39fe380b5084b64f4fe">
       <source xml:lang="en">Property</source>
     </trans-unit>
+    <trans-unit id="++CODE++70be2e38b3429a6ef5eb22e1c07bd551aaab73b45fc3d2b1beb71a1523cf2c95">
+      <source xml:lang="en">Provide the path to a .cdrun.zip run artifact to import.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99e13ac0d1353b0c9f24c3f37031480f10703030ab963e183a4522824a3ecdf1">
+      <source xml:lang="en">Provide two run ids (baseRunId and candidateRunId), or an environmentId that has at least two runs.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
@@ -5676,6 +5702,9 @@
     <trans-unit id="++CODE++6e9ce04c8011fac8f770657a02a4e5e14dab3bfa4c280ef3588b4270adaee8ed">
       <source xml:lang="en">Reading Cloud Deploy environment &apos;{0}&apos;</source>
       <note>{0} is the environment id</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5c7c0c1cc8a546f720803c98c9896b2281221cc4826f149bce2887d841115a31">
+      <source xml:lang="en">Reading Cloud Deploy run result</source>
     </trans-unit>
     <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
       <source xml:lang="en">Ready for import</source>

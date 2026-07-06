@@ -2797,6 +2797,33 @@ export class MssqlChatAgent {
             comment: ["{0} is the environment id"],
         });
     };
+    public static CloudDeployRunNotFound = (runId: string) => {
+        return l10n.t({
+            message: "No Cloud Deploy run with id '{0}' was found in this workspace.",
+            args: [runId],
+            comment: ["{0} is the run id"],
+        });
+    };
+    public static CloudDeployNoRunsForEnvironment = (environmentId: string) => {
+        return l10n.t({
+            message: "No Cloud Deploy runs have been recorded for environment '{0}'.",
+            args: [environmentId],
+            comment: ["{0} is the environment id"],
+        });
+    };
+    public static CloudDeployDiffNeedsRuns = l10n.t(
+        "Provide two run ids (baseRunId and candidateRunId), or an environmentId that has at least two runs.",
+    );
+    public static CloudDeployGetRunResultInvocation = l10n.t("Reading Cloud Deploy run result");
+    public static CloudDeployDiffRunsInvocation = l10n.t("Comparing Cloud Deploy runs");
+    public static CloudDeployImportRunPathRequired = l10n.t(
+        "Provide the path to a .cdrun.zip run artifact to import.",
+    );
+    public static CloudDeployImportRunInvocation = l10n.t("Importing Cloud Deploy run");
+    public static CloudDeployImportRunConfirmationTitle = l10n.t("Import Cloud Deploy Run");
+    public static CloudDeployImportRunConfirmationMessage = l10n.t(
+        "Import a Cloud Deploy run artifact and read its results?",
+    );
     public static ListSchemasToolConfirmationTitle = l10n.t("List Schemas");
     public static ListSchemasToolConfirmationMessage = (
         displayName: string,

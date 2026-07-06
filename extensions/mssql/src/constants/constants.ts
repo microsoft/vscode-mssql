@@ -275,6 +275,9 @@ export const copilotCloudDeployListEnvironmentsToolName = "mssql_cd_list_environ
 export const copilotCloudDeployDescribeEnvironmentToolName = "mssql_cd_describe_environment";
 export const copilotCloudDeployCreateEnvironmentToolName = "mssql_cd_create_environment";
 export const copilotCloudDeployValidateEnvironmentToolName = "mssql_cd_validate_environment";
+export const copilotCloudDeployGetRunResultToolName = "mssql_cd_get_run_result";
+export const copilotCloudDeployDiffRunsToolName = "mssql_cd_diff_runs";
+export const copilotCloudDeployImportRunToolName = "mssql_cd_import_run";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";

@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 
+import * as path from "path";
+
 import { ToolBase } from "./toolBase";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
@@ -17,7 +19,9 @@ import {
     ValidationConfig,
     ValidationType,
 } from "../../cloudDeploy/environments/types";
-import { Finding, RunRecord, ValidationStatus } from "../../cloudDeploy/runs/types";
+import { compareRuns, RunComparison } from "../../cloudDeploy/runs/runComparison";
+import type { RunStore } from "../../cloudDeploy/runs/runStore";
+import { Finding, RunListEntry, RunRecord, ValidationStatus } from "../../cloudDeploy/runs/types";
 
 /**
  * Cloud Deploy — Copilot agent tools.
@@ -253,6 +257,98 @@ function parseCreateInput(input: CdCreateEnvironmentParams): {
 }
 
 // =============================================================================
+// Run-history projections (get_run_result / diff_runs / import_run)
+// =============================================================================
+
+/** Max recent runs returned when `get_run_result` is called with no id. */
+const RECENT_RUN_LIMIT = 20;
+
+/** Compact projection of a run-list summary for the model. */
+function projectRunEntry(entry: RunListEntry): Record<string, unknown> {
+    return {
+        runId: entry.runId,
+        environmentId: entry.envId,
+        environmentName: entry.envDisplayName,
+        status: entry.status,
+        startedAtMs: entry.startedAtMs,
+    };
+}
+
+/** Structured per-gate delta projection of a run comparison. */
+function summarizeComparison(comparison: RunComparison): Record<string, unknown> {
+    const gates = comparison.validations.map((delta) => ({
+        id: delta.validationId,
+        name: delta.displayName,
+        presence: delta.presence,
+        ...(delta.statusA !== undefined ? { baseStatus: delta.statusA } : {}),
+        ...(delta.statusB !== undefined ? { candidateStatus: delta.statusB } : {}),
+        statusChanged: delta.statusChanged,
+        findingCountDelta: delta.findingCountDelta,
+        ...(delta.durationDeltaMs !== undefined ? { durationDeltaMs: delta.durationDeltaMs } : {}),
+    }));
+    const changedGates = gates
+        .filter((gate) => gate.statusChanged || gate.findingCountDelta !== 0)
+        .map((gate) => gate.id);
+    return {
+        base: {
+            runId: comparison.runIdA,
+            status: comparison.statusA,
+            environment: comparison.environmentNameA,
+        },
+        candidate: {
+            runId: comparison.runIdB,
+            status: comparison.statusB,
+            environment: comparison.environmentNameB,
+        },
+        gates,
+        changedGates,
+    };
+}
+
+/** Resolves a possibly-relative artifact path against the first workspace folder. */
+function resolveArtifactPath(artifactPath: string): string {
+    if (path.isAbsolute(artifactPath)) {
+        return artifactPath;
+    }
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    return root !== undefined ? path.join(root, artifactPath) : artifactPath;
+}
+
+/** Resolves the base/candidate run pair for a diff, or a user-facing error message. */
+async function resolveDiffPair(
+    store: RunStore,
+    input: CdDiffRunsParams,
+): Promise<{ base: RunRecord; candidate: RunRecord } | string> {
+    const baseRunId = trimmed(input.baseRunId);
+    const candidateRunId = trimmed(input.candidateRunId);
+    if (baseRunId !== undefined && candidateRunId !== undefined) {
+        const base = await store.get(baseRunId);
+        if (base === undefined) {
+            return loc.CloudDeployRunNotFound(baseRunId);
+        }
+        const candidate = await store.get(candidateRunId);
+        if (candidate === undefined) {
+            return loc.CloudDeployRunNotFound(candidateRunId);
+        }
+        return { base, candidate };
+    }
+    const environmentId = trimmed(input.environmentId);
+    if (environmentId !== undefined) {
+        const entries = store.list(environmentId);
+        if (entries.length < 2) {
+            return loc.CloudDeployDiffNeedsRuns;
+        }
+        const candidate = await store.get(entries[0].runId);
+        const base = await store.get(entries[1].runId);
+        if (base === undefined || candidate === undefined) {
+            return loc.CloudDeployDiffNeedsRuns;
+        }
+        return { base, candidate };
+    }
+    return loc.CloudDeployDiffNeedsRuns;
+}
+
+// =============================================================================
 // Tool parameter shapes
 // =============================================================================
 
@@ -278,6 +374,22 @@ export interface CdCreateEnvironmentParams {
 
 export interface CdValidateEnvironmentParams {
     environmentId: string;
+}
+
+export interface CdGetRunResultParams {
+    runId?: string;
+    environmentId?: string;
+}
+
+export interface CdDiffRunsParams {
+    baseRunId?: string;
+    candidateRunId?: string;
+    environmentId?: string;
+}
+
+export interface CdImportRunParams {
+    artifactPath: string;
+    persist?: boolean;
 }
 
 // =============================================================================
@@ -464,6 +576,160 @@ export class CloudDeployValidateEnvironmentTool extends ToolBase<CdValidateEnvir
                 message: new vscode.MarkdownString(
                     loc.CloudDeployValidateEnvironmentConfirmationMessage(environmentId),
                 ),
+            },
+        };
+    }
+}
+
+/**
+ * Reads a stored run back for reporting: by `runId`, the latest for an
+ * `environmentId`, or — when neither is given — a list of the most recent runs
+ * so the agent can pick one.
+ */
+export class CloudDeployGetRunResultTool extends ToolBase<CdGetRunResultParams> {
+    public readonly toolName = Constants.copilotCloudDeployGetRunResultToolName;
+
+    constructor(private readonly _getService: CloudDeployServiceAccessor) {
+        super();
+    }
+
+    async call(
+        options: vscode.LanguageModelToolInvocationOptions<CdGetRunResultParams>,
+    ): Promise<string> {
+        const store = this._getService().runs.store;
+        if (store === undefined) {
+            return JSON.stringify({ success: false, message: loc.CloudDeployNoWorkspaceMessage });
+        }
+        try {
+            await store.scan();
+            const runId = trimmed(options.input.runId);
+            if (runId !== undefined) {
+                const record = await store.get(runId);
+                if (record === undefined) {
+                    return JSON.stringify({
+                        success: false,
+                        message: loc.CloudDeployRunNotFound(runId),
+                    });
+                }
+                return JSON.stringify({ success: true, run: summarizeRun(record) });
+            }
+            const environmentId = trimmed(options.input.environmentId);
+            if (environmentId !== undefined) {
+                const record = await store.latest(environmentId);
+                if (record === undefined) {
+                    return JSON.stringify({
+                        success: false,
+                        message: loc.CloudDeployNoRunsForEnvironment(environmentId),
+                    });
+                }
+                return JSON.stringify({ success: true, run: summarizeRun(record) });
+            }
+            const runs = store.list().slice(0, RECENT_RUN_LIMIT).map(projectRunEntry);
+            return JSON.stringify({ success: true, count: runs.length, runs });
+        } catch (error) {
+            return JSON.stringify({ success: false, message: getErrorMessage(error) });
+        }
+    }
+
+    async prepareInvocation() {
+        return { invocationMessage: loc.CloudDeployGetRunResultInvocation };
+    }
+}
+
+/**
+ * Diffs two runs and returns the per-gate deltas so the agent can report what
+ * changed (e.g. a gate that went from Passed to Failed between local and CI, or
+ * a candidate against its base). Compares two explicit run ids, or the latest
+ * two runs for an `environmentId`.
+ */
+export class CloudDeployDiffRunsTool extends ToolBase<CdDiffRunsParams> {
+    public readonly toolName = Constants.copilotCloudDeployDiffRunsToolName;
+
+    constructor(private readonly _getService: CloudDeployServiceAccessor) {
+        super();
+    }
+
+    async call(
+        options: vscode.LanguageModelToolInvocationOptions<CdDiffRunsParams>,
+    ): Promise<string> {
+        const store = this._getService().runs.store;
+        if (store === undefined) {
+            return JSON.stringify({ success: false, message: loc.CloudDeployNoWorkspaceMessage });
+        }
+        try {
+            await store.scan();
+            const pair = await resolveDiffPair(store, options.input);
+            if (typeof pair === "string") {
+                return JSON.stringify({ success: false, message: pair });
+            }
+            const comparison = compareRuns(pair.base, pair.candidate);
+            return JSON.stringify({ success: true, comparison: summarizeComparison(comparison) });
+        } catch (error) {
+            return JSON.stringify({ success: false, message: getErrorMessage(error) });
+        }
+    }
+
+    async prepareInvocation() {
+        return { invocationMessage: loc.CloudDeployDiffRunsInvocation };
+    }
+}
+
+/**
+ * Imports an external run artifact (e.g. a `.cdrun.zip` a workflow produced and
+ * the agent downloaded from a PR) and returns its structured results. With
+ * `persist: true` it is also copied into the workspace runs directory so it
+ * shows up in the dashboard alongside local runs.
+ */
+export class CloudDeployImportRunTool extends ToolBase<CdImportRunParams> {
+    public readonly toolName = Constants.copilotCloudDeployImportRunToolName;
+
+    constructor(private readonly _getService: CloudDeployServiceAccessor) {
+        super();
+    }
+
+    async call(
+        options: vscode.LanguageModelToolInvocationOptions<CdImportRunParams>,
+    ): Promise<string> {
+        const service = this._getService();
+        const artifactPath = trimmed(options.input.artifactPath);
+        if (artifactPath === undefined) {
+            return JSON.stringify({
+                success: false,
+                message: loc.CloudDeployImportRunPathRequired,
+            });
+        }
+        const resolved = resolveArtifactPath(artifactPath);
+        try {
+            const record = await service.runs.reader.read(resolved);
+            let runArtifactPath: string | undefined;
+            const runsDirectory = service.runs.runsDirectory;
+            if (options.input.persist === true && runsDirectory !== undefined) {
+                const dest = path.join(runsDirectory, `${record.runId}.cdrun.zip`);
+                await service.runs.writer.write(
+                    record,
+                    service.runs.reader.readEvents(resolved),
+                    dest,
+                );
+                runArtifactPath = dest;
+                await service.runs.store?.scan();
+            }
+            return JSON.stringify({
+                success: true,
+                imported: true,
+                ...(runArtifactPath !== undefined ? { persisted: true, runArtifactPath } : {}),
+                run: summarizeRun(record),
+            });
+        } catch (error) {
+            return JSON.stringify({ success: false, message: getErrorMessage(error) });
+        }
+    }
+
+    async prepareInvocation() {
+        return {
+            invocationMessage: loc.CloudDeployImportRunInvocation,
+            confirmationMessages: {
+                title: `${Constants.extensionName}: ${loc.CloudDeployImportRunConfirmationTitle}`,
+                message: new vscode.MarkdownString(loc.CloudDeployImportRunConfirmationMessage),
             },
         };
     }

@@ -4906,6 +4906,107 @@
                 "toolReferenceName": "mssql_cd_validate_environment",
                 "userDescription": "Run the Cloud Deploy validation gates for an environment.",
                 "icon": "$(check-all)"
+            },
+            {
+                "name": "mssql_cd_get_run_result",
+                "modelDescription": "Read a recorded Cloud Deploy run and return its structured results (rollup status, gates-passed/total, and per-gate findings). Provide a runId, or an environmentId to get its latest run. With neither, returns a list of the most recent runs (runId, environment, status, time) so you can pick one.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "runs",
+                    "report"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "runId": {
+                            "description": "Id of a specific run to read.",
+                            "title": "Run Id",
+                            "type": "string"
+                        },
+                        "environmentId": {
+                            "description": "Return the latest run for this environment id.",
+                            "title": "Environment Id",
+                            "type": "string"
+                        }
+                    }
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Get Cloud Deploy Run Result",
+                "toolReferenceName": "mssql_cd_get_run_result",
+                "userDescription": "Read a recorded Cloud Deploy run's results.",
+                "icon": "$(output)"
+            },
+            {
+                "name": "mssql_cd_diff_runs",
+                "modelDescription": "Compare two Cloud Deploy runs and return the per-gate deltas (status change, finding-count delta, duration delta) plus the list of gates that changed. Use it to report what changed between a local run and CI, or a candidate against its base. Provide baseRunId and candidateRunId, or an environmentId to diff its latest two runs.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "runs",
+                    "diff"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "baseRunId": {
+                            "description": "Run id to treat as the base (the 'before').",
+                            "title": "Base Run Id",
+                            "type": "string"
+                        },
+                        "candidateRunId": {
+                            "description": "Run id to treat as the candidate (the 'after').",
+                            "title": "Candidate Run Id",
+                            "type": "string"
+                        },
+                        "environmentId": {
+                            "description": "Diff the latest two runs for this environment id (used when explicit run ids are omitted).",
+                            "title": "Environment Id",
+                            "type": "string"
+                        }
+                    }
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Diff Cloud Deploy Runs",
+                "toolReferenceName": "mssql_cd_diff_runs",
+                "userDescription": "Compare two Cloud Deploy runs.",
+                "icon": "$(git-compare)"
+            },
+            {
+                "name": "mssql_cd_import_run",
+                "modelDescription": "Import an external Cloud Deploy run artifact (a .cdrun.zip, e.g. downloaded from a CI workflow run with 'gh run download') and return its structured results, so you can report on a PR's CI check locally. Set persist:true to also copy it into the workspace runs directory so it appears in the dashboard and can be diffed against local runs. artifactPath may be absolute or relative to the workspace root.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "runs",
+                    "ci"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "artifactPath": {
+                            "description": "Path to the .cdrun.zip artifact (absolute or workspace-relative).",
+                            "title": "Artifact Path",
+                            "type": "string"
+                        },
+                        "persist": {
+                            "description": "When true, copy the artifact into the workspace runs directory so it shows in the dashboard.",
+                            "title": "Persist",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "artifactPath"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Import Cloud Deploy Run",
+                "toolReferenceName": "mssql_cd_import_run",
+                "userDescription": "Import an external Cloud Deploy run artifact and read its results.",
+                "icon": "$(cloud-download)"
             }
         ],
         "colors": [

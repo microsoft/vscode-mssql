@@ -3515,6 +3515,21 @@
         "message": "Validating Cloud Deploy environment '{0}'",
         "comment": ["{0} is the environment id"]
     },
+    "No Cloud Deploy run with id '{0}' was found in this workspace./{0} is the run id": {
+        "message": "No Cloud Deploy run with id '{0}' was found in this workspace.",
+        "comment": ["{0} is the run id"]
+    },
+    "No Cloud Deploy runs have been recorded for environment '{0}'./{0} is the environment id": {
+        "message": "No Cloud Deploy runs have been recorded for environment '{0}'.",
+        "comment": ["{0} is the environment id"]
+    },
+    "Provide two run ids (baseRunId and candidateRunId), or an environmentId that has at least two runs.": "Provide two run ids (baseRunId and candidateRunId), or an environmentId that has at least two runs.",
+    "Reading Cloud Deploy run result": "Reading Cloud Deploy run result",
+    "Comparing Cloud Deploy runs": "Comparing Cloud Deploy runs",
+    "Provide the path to a .cdrun.zip run artifact to import.": "Provide the path to a .cdrun.zip run artifact to import.",
+    "Importing Cloud Deploy run": "Importing Cloud Deploy run",
+    "Import Cloud Deploy Run": "Import Cloud Deploy Run",
+    "Import a Cloud Deploy run artifact and read its results?": "Import a Cloud Deploy run artifact and read its results?",
     "List Schemas": "List Schemas",
     "List schemas for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
         "message": "List schemas for connection '{0}' (ID: {1})?",

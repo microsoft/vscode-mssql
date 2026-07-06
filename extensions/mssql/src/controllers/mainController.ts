@@ -113,6 +113,9 @@ import { DabTool } from "../copilot/tools/dabTool";
 import {
     CloudDeployCreateEnvironmentTool,
     CloudDeployDescribeEnvironmentTool,
+    CloudDeployDiffRunsTool,
+    CloudDeployGetRunResultTool,
+    CloudDeployImportRunTool,
     CloudDeployListEnvironmentsTool,
     CloudDeployValidateEnvironmentTool,
 } from "../copilot/tools/cloudDeployTools";
@@ -955,6 +958,24 @@ export default class MainController implements vscode.Disposable {
             vscode.lm.registerTool(
                 Constants.copilotCloudDeployValidateEnvironmentToolName,
                 new CloudDeployValidateEnvironmentTool(getCloudDeployService),
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeployGetRunResultToolName,
+                new CloudDeployGetRunResultTool(getCloudDeployService),
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeployDiffRunsToolName,
+                new CloudDeployDiffRunsTool(getCloudDeployService),
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeployImportRunToolName,
+                new CloudDeployImportRunTool(getCloudDeployService),
             ),
         );
     }
