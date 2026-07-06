@@ -15,6 +15,7 @@
 
 import * as vscode from "vscode";
 import { diag } from "../../diagnostics/diagnosticsCore";
+import { Perf } from "../../perf/perfTelemetry";
 import { MetadataStoreService } from "../../services/metadata/metadataStoreService";
 import { ProfileSecretSource } from "../../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneService";
@@ -124,6 +125,41 @@ export function activateObjectExplorerV2(
     }
 
     registerOeV2NativeCommands(context, () => controller);
+
+    // PERF_MODE-only browse probe (design 04 §17.4 pattern): connect the
+    // single provisioned profile and expand to a rendered Databases list.
+    // Throws on any honesty failure so the harness records a real error.
+    if (Perf.enabled) {
+        context.subscriptions.push(
+            vscode.commands.registerCommand("mssql.perf.objectExplorerV2Browse", async () => {
+                if (!controller) {
+                    throw new Error("OE v2 is not registered (check viewMode setting)");
+                }
+                const roots = await controller.children();
+                const connection = roots.find((node) => node.path.kind === "connection");
+                if (!connection?.connectionId) {
+                    throw new Error("no saved profile visible in OE v2");
+                }
+                if (!(await controller.connectProfile(connection.connectionId))) {
+                    throw new Error("OE v2 data-plane connect failed");
+                }
+                const afterConnect = await controller.children();
+                const server = afterConnect.find((node) => node.kind === "connectedServer");
+                if (!server) {
+                    throw new Error("no connected server node after connect");
+                }
+                const [databasesFolder] = await controller.children(server);
+                await controller.refreshNode(databasesFolder); // await catalog
+                const databases = (await controller.children(databasesFolder)).filter(
+                    (node) => node.kind === "database",
+                );
+                if (databases.length === 0) {
+                    throw new Error("no databases rendered from the server catalog");
+                }
+                return { databases: databases.length };
+            }),
+        );
+    }
 
     const connectionIdOf = (node: OeV2Node | undefined): string | undefined =>
         node?.connectionId ??

@@ -115,9 +115,14 @@ export function childrenOfGroup(
         .filter((group) => group.parentId === groupId && group.groupId !== groupId)
         .sort((a, z) => a.name.localeCompare(z.name))
         .map(connectionGroupNode);
+    const isRootLevel = groupId === tree.rootGroupId;
     const profiles = tree.profiles
-        .filter((profile) =>
-            groupId === undefined ? profile.groupId === undefined : profile.groupId === groupId,
+        .filter(
+            (profile) =>
+                profile.groupId === groupId ||
+                // Group-less profiles live at the root (classic behavior;
+                // harness/settings-written profiles often omit groupId).
+                (isRootLevel && profile.groupId === undefined),
         )
         .sort((a, z) => a.displayName.localeCompare(z.displayName))
         .map((profile) => connectionNode(profile, stateFor?.(profile.profileId)));

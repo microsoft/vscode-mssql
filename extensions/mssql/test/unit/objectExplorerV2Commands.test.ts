@@ -60,4 +60,18 @@ suite("Object Explorer v2 command primitives (B19)", () => {
         });
         expect(tree.profiles[0].profileId).to.equal(derived);
     });
+
+    test("group-less profiles surface at the root level (harness/settings-written)", async () => {
+        const { rootChildren } = await import("../../src/objectExplorer/v2/tree/oeV2NodeFactory");
+        const tree = await readProfileTree({
+            readAllConnectionGroups: async () => [{ id: "ROOT", name: "ROOT" }],
+            // no groupId — the shape the perf harness (and hand-edited
+            // settings) produce; must not be invisible in the v2 tree
+            readAllConnections: async () => [{ server: "srv", profileName: "NoGroup" }],
+        });
+        const roots = rootChildren(tree);
+        expect(roots.map((n) => `${n.kind}:${n.label}`)).to.deep.equal([
+            "disconnectedConnection:NoGroup",
+        ]);
+    });
 });
