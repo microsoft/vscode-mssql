@@ -836,6 +836,9 @@ suite("sqlLanguage diagnostics suppression accounting", () => {
             "quotedIdentifierAmbiguous",
             "setOperationScope",
             "unsupportedSyntax",
+            // CACHE-5 freshness reasons (§7.3) — counted, never identifiers.
+            "metadataNotValidated",
+            "metadataStale",
         ]);
         for (const key of Object.keys(result.suppressed ?? {})) {
             expect(REASONS.has(key), `unknown suppression key ${key}`).to.equal(true);

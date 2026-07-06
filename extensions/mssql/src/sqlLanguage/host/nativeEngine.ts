@@ -75,6 +75,8 @@ interface DiagnosticsMemo {
     readonly version: number;
     readonly textLength: number;
     readonly generation: number;
+    /** Host freshness verdict the pass ran under (CACHE-5 §7.3). */
+    readonly metadataFreshness: "validated" | "notValidated";
     readonly result: DiagnosticsResult;
 }
 
@@ -435,12 +437,14 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
      */
     diagnosticsPass(req: DiagnosticsRequest): SlicedDiagnosticsPass {
         const generation = this.provider.generation;
+        const metadataFreshness = req.metadataFreshness ?? "validated";
         const memo = this.diagnosticsMemo;
         if (
             memo !== undefined &&
             memo.version === req.version &&
             memo.textLength === req.text.length &&
-            memo.generation === generation
+            memo.generation === generation &&
+            memo.metadataFreshness === metadataFreshness
         ) {
             let done = false;
             return {
@@ -465,6 +469,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 charCount: { raw: req.text.length, cls: "diagnostic.metadata" },
                 statementCount: { raw: analysis.statements.length, cls: "diagnostic.metadata" },
                 generation: { raw: generation, cls: "diagnostic.metadata" },
+                metadataFreshness: { raw: metadataFreshness, cls: "diagnostic.metadata" },
             },
         });
         const computation = createDiagnostics({
@@ -473,6 +478,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             statements: analysis.statements,
             overlay: analysis.overlay,
             pinned,
+            metadataFreshness,
             positionAt: (offset) => analysis.snapshot.positionAt(offset),
         });
         let settled = false;
@@ -502,6 +508,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                     version: req.version,
                     textLength: req.text.length,
                     generation,
+                    metadataFreshness,
                     result: diagnosticsResult,
                 };
                 return diagnosticsResult;

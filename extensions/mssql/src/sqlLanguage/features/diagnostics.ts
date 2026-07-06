@@ -62,7 +62,14 @@ export type DiagnosticSuppressionReason =
     | "unresolvedQualifier" // qualifier matches no visible source (multi-part honesty)
     | "quotedIdentifierAmbiguous" // "..." may be a string under QUOTED_IDENTIFIER OFF
     | "setOperationScope" // UNION/EXCEPT/INTERSECT branches share one sketch scope
-    | "unsupportedSyntax"; // statement families the binder does not model yet
+    | "unsupportedSyntax" // statement families the binder does not model yet
+    // CACHE-5 (§7.3) freshness reasons. metadataNotValidated is counted here
+    // (per binder-eligible statement) when the host's ensureFresh verdict is
+    // "notValidated". metadataStale is counted by the HOST publisher when a
+    // drift trigger (metadata generation change) cancels a pass mid-flight —
+    // it belongs to this taxonomy but the engine itself never emits it.
+    | "metadataNotValidated" // freshness policy could not validate within budget
+    | "metadataStale"; // drift trigger invalidated the pass mid-flight (host-counted)
 
 export interface AnalyzedStatementInput {
     readonly segment: StatementSegment;
@@ -79,6 +86,12 @@ export interface DiagnosticsComputeInput {
     readonly overlay: ScriptOverlay;
     readonly pinned: IPinnedMetadataView;
     readonly positionAt: (offset: number) => SqlLanguagePosition;
+    /**
+     * Host-resolved freshness verdict (see api.ts). "notValidated" swaps the
+     * T2 binder tier off (counted `metadataNotValidated` per statement that
+     * would have been bound); absent/"validated" changes nothing.
+     */
+    readonly metadataFreshness?: "validated" | "notValidated";
 }
 
 export interface DiagnosticsPassResult {
@@ -192,6 +205,7 @@ interface TargetInfo {
 
 export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsComputation {
     const { text, tokens, statements, overlay, pinned, positionAt } = input;
+    const metadataValidated = input.metadataFreshness !== "notValidated";
     const caseSensitive = pinned.env.caseSensitive;
     const fold = (value: string): string => (caseSensitive ? value : value.toLowerCase());
 
@@ -995,6 +1009,15 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
             return;
         }
         if (kind !== "select" && kind !== "insert" && kind !== "update" && kind !== "delete") {
+            return;
+        }
+
+        // CACHE-5 freshness gate (addendum §7.3): the host's ensureFresh
+        // verdict arrives as data. When the freshness policy could not
+        // validate the snapshot within budget, no binder claim is honest —
+        // suppress the whole T2 tier for this statement and count it.
+        if (!metadataValidated) {
+            count("metadataNotValidated");
             return;
         }
 

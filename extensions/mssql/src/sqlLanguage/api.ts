@@ -111,9 +111,22 @@ export interface SqlDiagnostic {
     readonly source: string;
 }
 
+/**
+ * Host-supplied metadata freshness verdict (cache/drift design, addendum
+ * §7.3): the engine is pure and never consults the freshness policy itself —
+ * the host publisher resolves `ensureFresh(MetadataPolicies.diagnosticsBinder)`
+ * and passes the verdict in as data. "notValidated" suppresses (and counts,
+ * reason `metadataNotValidated`) every metadata-backed binder claim; T1
+ * lexical/structural diagnostics are unaffected. Absent means "validated"
+ * (hosts without a freshness-managed lease change nothing).
+ */
+export type SqlMetadataFreshnessVerdict = "validated" | "notValidated";
+
 export interface DiagnosticsRequest {
     readonly text: string;
     readonly version: number;
+    /** See {@link SqlMetadataFreshnessVerdict}; default "validated". */
+    readonly metadataFreshness?: SqlMetadataFreshnessVerdict;
 }
 
 export interface DiagnosticsResult {

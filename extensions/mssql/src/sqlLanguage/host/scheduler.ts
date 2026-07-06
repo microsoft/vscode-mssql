@@ -7,8 +7,10 @@
  * Sliced diagnostics scheduler (design 05 §6.4, §11.3): ~300ms debounce after
  * a change, whole-document passes sliced into small time budgets with a yield
  * between slices, and stale-version cancellation — a new edit (or metadata
- * generation change: the snapshot stamp encodes both) silently abandons the
- * in-flight pass. Per document; the Query Studio facade owns one instance.
+ * generation change: the snapshot stamp encodes both) abandons the in-flight
+ * pass, reporting the cancel through `onStaleCancel` so the host can count
+ * drift cancels (`metadataStale`, cache/drift addendum §7.3). Per document;
+ * the Query Studio facade owns one instance.
  *
  * Lives in host/** but stays vscode-free (timers only) so the unit lane can
  * drive it deterministically.
@@ -40,8 +42,26 @@ export interface DiagnosticsSnapshot {
 export interface SlicedDiagnosticsSchedulerOptions {
     /** Current document snapshot; undefined = nothing to analyze. */
     readonly snapshot: () => DiagnosticsSnapshot | undefined;
-    readonly createPass: (text: string, version: number) => SlicedDiagnosticsPass;
+    /**
+     * Pass factory. MAY be async (CACHE-5: the host resolves the metadata
+     * freshness verdict first); staleness is re-checked after the await, so
+     * a slow factory can never start work against an outdated snapshot.
+     */
+    readonly createPass: (
+        text: string,
+        version: number,
+    ) => SlicedDiagnosticsPass | Promise<SlicedDiagnosticsPass>;
     readonly publish: (result: DiagnosticsResult, version: number) => void;
+    /**
+     * Fired when an in-flight pass is abandoned as stale (never on dispose).
+     * `started` is the snapshot the pass ran against, `current` the snapshot
+     * at cancel time — the host tells drift cancels apart from edit cancels
+     * with {@link isMetadataDriftCancel} and counts `metadataStale` (§7.3).
+     */
+    readonly onStaleCancel?: (
+        started: DiagnosticsSnapshot,
+        current: DiagnosticsSnapshot | undefined,
+    ) => void;
     /** Debounce after change; design target 300ms. */
     readonly debounceMs?: number;
     /** Per-slice time budget; design target 8ms. */
@@ -52,6 +72,24 @@ export interface SlicedDiagnosticsSchedulerOptions {
 }
 
 export type DiagnosticsSchedulerState = "idle" | "debouncing" | "running";
+
+/**
+ * True when a stale-cancel was caused by metadata drift: the document
+ * version is unchanged but the stamp (which also encodes the metadata
+ * generation) moved — i.e. a drift trigger invalidated the pass mid-flight.
+ * Edit cancels (version moved) and route/setting cancels (stamp unchanged)
+ * are NOT drift.
+ */
+export function isMetadataDriftCancel(
+    started: DiagnosticsSnapshot,
+    current: DiagnosticsSnapshot | undefined,
+): boolean {
+    return (
+        current !== undefined &&
+        current.version === started.version &&
+        current.stamp !== started.stamp
+    );
+}
 
 export class SlicedDiagnosticsScheduler {
     private readonly options: SlicedDiagnosticsSchedulerOptions;
@@ -133,10 +171,36 @@ export class SlicedDiagnosticsScheduler {
             ((): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0)));
         const budget = this.options.sliceBudgetMs ?? 8;
 
-        const pass = this.options.createPass(snapshot.text, snapshot.version);
+        // Abandon a stale pass; reports the cancel (unless disposing) so the
+        // host can count drift cancels (metadataStale, §7.3). Returns true
+        // when the pass was aborted.
+        const abortIfStale = (pass: SlicedDiagnosticsPass): boolean => {
+            if (this.disposed || generation !== this.generation) {
+                pass.abort();
+                if (!this.disposed) {
+                    this.options.onStaleCancel?.(snapshot, this.options.snapshot());
+                }
+                return true;
+            }
+            const current = this.options.snapshot();
+            if (current === undefined || current.stamp !== snapshot.stamp) {
+                pass.abort();
+                this.options.onStaleCancel?.(snapshot, current);
+                return true;
+            }
+            return false;
+        };
+
+        // Mark running BEFORE the (possibly async) factory so identical-stamp
+        // runs coalesce across the await as well.
         this.running = true;
         this.runningStamp = snapshot.stamp;
         try {
+            const pass = await this.options.createPass(snapshot.text, snapshot.version);
+            // The factory may have awaited (freshness verdict) — re-check.
+            if (abortIfStale(pass)) {
+                return;
+            }
             let more = true;
             while (more) {
                 const sliceEnd = now() + budget;
@@ -147,13 +211,7 @@ export class SlicedDiagnosticsScheduler {
                     break;
                 }
                 await yieldSlice();
-                if (this.disposed || generation !== this.generation) {
-                    pass.abort();
-                    return;
-                }
-                const current = this.options.snapshot();
-                if (current === undefined || current.stamp !== snapshot.stamp) {
-                    pass.abort();
+                if (abortIfStale(pass)) {
                     return;
                 }
             }
