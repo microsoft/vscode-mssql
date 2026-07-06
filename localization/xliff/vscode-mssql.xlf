@@ -1755,6 +1755,9 @@
     <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
       <source xml:lang="en">Create</source>
     </trans-unit>
+    <trans-unit id="++CODE++e7ee3f04706250f285d3969d84959d8e6b7b243a6e8162bfc7e1055c351e03b1">
+      <source xml:lang="en">Create Cloud Deploy Environment</source>
+    </trans-unit>
     <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
       <source xml:lang="en">Create Connection Group</source>
     </trans-unit>
@@ -1826,6 +1829,9 @@
     <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
       <source xml:lang="en">Create new firewall rule for {0}</source>
       <note>{0} is the server name that the firewall rule will be created for</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e3f9bd5c390b6874fd7840073174a8b4309a366cbb08c2bce28bf2e67bde313d">
+      <source xml:lang="en">Create or update a Cloud Deploy environment in .mssql/environments.json?</source>
     </trans-unit>
     <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
       <source xml:lang="en">Created table {0}</source>
@@ -4081,6 +4087,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++d7869c4106426e62add296e08296bdcae7f09ad8616b0e9487349959eb7784ad">
+      <source xml:lang="en">Listing Cloud Deploy environments</source>
+    </trans-unit>
     <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
       <source xml:lang="en">Listing Fabric SQL Databases for workspace &apos;{0}&apos;</source>
       <note>{0} is the workspace ID</note>
@@ -4682,6 +4691,13 @@
     </trans-unit>
     <trans-unit id="++CODE++6d7af8a57c85229b9b08306d93d38a7f0f2d369dc90a339ea4708ca45a92252b">
       <source xml:lang="en">No Azure accounts found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++23a73d191dd3b360623a221aeb65e27d13ccb9f91dab107813e47d2c6b6f20b1">
+      <source xml:lang="en">No Cloud Deploy environment file is available. Open a workspace folder that contains a .mssql/environments.json file.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7e84eb487bb9aab4ccf493601299ba8237a8e19623b0b4dc6d46f68becac98c">
+      <source xml:lang="en">No Cloud Deploy environment with id &apos;{0}&apos; was found in this workspace.</source>
+      <note>{0} is the environment id</note>
     </trans-unit>
     <trans-unit id="++CODE++2c5ca5eb3cecc14d02190a0af2f2b96f80df2c617aec0f30b76cac8038b318a2">
       <source xml:lang="en">No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.</source>
@@ -5657,6 +5673,10 @@
       <source xml:lang="en">Read-only disconnected mode for &apos;{0}&apos;. Cannot create or start live sessions without a database connection.</source>
       <note>{0} is the XEL file name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6e9ce04c8011fac8f770657a02a4e5e14dab3bfa4c280ef3588b4270adaee8ed">
+      <source xml:lang="en">Reading Cloud Deploy environment &apos;{0}&apos;</source>
+      <note>{0} is the environment id</note>
+    </trans-unit>
     <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
       <source xml:lang="en">Ready for import</source>
     </trans-unit>
@@ -6212,6 +6232,9 @@
     <trans-unit id="++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13">
       <source xml:lang="en">Saved results to {0}</source>
       <note>{0} is the saved file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9a4ae83af32fa26d47828eb1fbaa0858ac485aceded25dbf2a8f378256aa4d6d">
+      <source xml:lang="en">Saving Cloud Deploy environment</source>
     </trans-unit>
     <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
       <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
@@ -7724,6 +7747,17 @@
     </trans-unit>
     <trans-unit id="++CODE++40611abbdda22526b47ddcb41553bf3f556195a6855f2aca8404d62791a7ec67">
       <source xml:lang="en">Validate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++76fdfafdcce70a42177d380a561e7ce39a67789cbd3b542f415641fe06144b30">
+      <source xml:lang="en">Validate Cloud Deploy Environment</source>
+    </trans-unit>
+    <trans-unit id="++CODE++be6e3f2c0bb34d031f8a3c5933ec159dce3a2211c78ae84c0ee69cb0429fa5ef">
+      <source xml:lang="en">Validate Cloud Deploy environment &apos;{0}&apos;? This provisions a throwaway database and runs every enabled gate.</source>
+      <note>{0} is the environment id</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a0f72747aed942165f37cf29156054439f10b97637c59c2398e0b05408eba341">
+      <source xml:lang="en">Validating Cloud Deploy environment &apos;{0}&apos;</source>
+      <note>{0} is the environment id</note>
     </trans-unit>
     <trans-unit id="++CODE++a73a6576ca228a2f04383ae754a60e2e43ab9d6e55e03e3b1db5db0bef2fcf18">
       <source xml:lang="en">Validating environment &apos;{0}&apos;</source>

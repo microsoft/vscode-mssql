@@ -2750,6 +2750,53 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
+    public static CloudDeployNoWorkspaceMessage = l10n.t(
+        "No Cloud Deploy environment file is available. Open a workspace folder that contains a .mssql/environments.json file.",
+    );
+    public static CloudDeployEnvironmentNotFound = (environmentId: string) => {
+        return l10n.t({
+            message: "No Cloud Deploy environment with id '{0}' was found in this workspace.",
+            args: [environmentId],
+            comment: ["{0} is the environment id"],
+        });
+    };
+    public static CloudDeployListEnvironmentsInvocation = l10n.t(
+        "Listing Cloud Deploy environments",
+    );
+    public static CloudDeployDescribeEnvironmentInvocation = (environmentId: string) => {
+        return l10n.t({
+            message: "Reading Cloud Deploy environment '{0}'",
+            args: [environmentId],
+            comment: ["{0} is the environment id"],
+        });
+    };
+    public static CloudDeployCreateEnvironmentConfirmationTitle = l10n.t(
+        "Create Cloud Deploy Environment",
+    );
+    public static CloudDeployCreateEnvironmentConfirmationMessage = l10n.t(
+        "Create or update a Cloud Deploy environment in .mssql/environments.json?",
+    );
+    public static CloudDeployCreateEnvironmentInvocation = l10n.t(
+        "Saving Cloud Deploy environment",
+    );
+    public static CloudDeployValidateEnvironmentConfirmationTitle = l10n.t(
+        "Validate Cloud Deploy Environment",
+    );
+    public static CloudDeployValidateEnvironmentConfirmationMessage = (environmentId: string) => {
+        return l10n.t({
+            message:
+                "Validate Cloud Deploy environment '{0}'? This provisions a throwaway database and runs every enabled gate.",
+            args: [environmentId],
+            comment: ["{0} is the environment id"],
+        });
+    };
+    public static CloudDeployValidateEnvironmentInvocation = (environmentId: string) => {
+        return l10n.t({
+            message: "Validating Cloud Deploy environment '{0}'",
+            args: [environmentId],
+            comment: ["{0} is the environment id"],
+        });
+    };
     public static ListSchemasToolConfirmationTitle = l10n.t("List Schemas");
     public static ListSchemasToolConfirmationMessage = (
         displayName: string,

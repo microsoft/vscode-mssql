@@ -4756,6 +4756,156 @@
                 "toolReferenceName": "mssql_run_query",
                 "userDescription": "Execute a SQL query against a connected MSSQL database.",
                 "icon": "$(play)"
+            },
+            {
+                "name": "mssql_cd_list_environments",
+                "modelDescription": "List all Cloud Deploy environments declared in the current workspace's .mssql/environments.json. Returns each environment's id, name, source of truth (sqlproj/dacpac/connection), and enabled validation gates. Use this to discover which environments exist before describing or validating one.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "environments",
+                    "list"
+                ],
+                "canBeReferencedInPrompt": true,
+                "displayName": "List Cloud Deploy Environments",
+                "toolReferenceName": "mssql_cd_list_environments",
+                "userDescription": "List the Cloud Deploy environments in this workspace.",
+                "icon": "$(list-unordered)"
+            },
+            {
+                "name": "mssql_cd_describe_environment",
+                "modelDescription": "Return the full stored configuration of a single Cloud Deploy environment by id: its source of truth, optional data-generator script, and every validation gate with its settings. Use mssql_cd_list_environments first to find valid ids.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "environments"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "environmentId": {
+                            "description": "Id of the environment to describe (from mssql_cd_list_environments).",
+                            "title": "Environment Id",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "environmentId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Describe Cloud Deploy Environment",
+                "toolReferenceName": "mssql_cd_describe_environment",
+                "userDescription": "Show a Cloud Deploy environment's full configuration.",
+                "icon": "$(info)"
+            },
+            {
+                "name": "mssql_cd_create_environment",
+                "modelDescription": "Create or update a Cloud Deploy environment in .mssql/environments.json. Provide an id, a display name, and a source of truth (kind 'sqlproj' or 'dacpac' with a 'path', or kind 'connection' with a 'connectionProfileId'). Optionally list the validations to enable (connectivity, static-analysis, unit-tests, workload-playback); when omitted, connectivity and static-analysis are enabled. If a required field is missing, the tool returns { status: 'needs_input', missing: [...] } naming the fields (and valid options) to ask the user for — do NOT guess values; ask the user, then call again.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "environments",
+                    "create"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "description": "Stable slug id, unique within the workspace (e.g. 'staging').",
+                            "title": "Id",
+                            "type": "string"
+                        },
+                        "name": {
+                            "description": "Human-readable display name.",
+                            "title": "Name",
+                            "type": "string"
+                        },
+                        "description": {
+                            "description": "Optional free-form description.",
+                            "title": "Description",
+                            "type": "string"
+                        },
+                        "sourceOfTruth": {
+                            "description": "Where the schema comes from. Exactly one variant, selected by 'kind'.",
+                            "title": "Source Of Truth",
+                            "type": "object",
+                            "properties": {
+                                "kind": {
+                                    "description": "One of 'sqlproj', 'dacpac', or 'connection'.",
+                                    "type": "string",
+                                    "enum": [
+                                        "sqlproj",
+                                        "dacpac",
+                                        "connection"
+                                    ]
+                                },
+                                "path": {
+                                    "description": "File path for kind 'sqlproj' or 'dacpac' (absolute or workspace-relative).",
+                                    "type": "string"
+                                },
+                                "connectionProfileId": {
+                                    "description": "Saved connection profile id for kind 'connection'.",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "kind"
+                            ]
+                        },
+                        "validations": {
+                            "description": "Validation gates to enable. Defaults to connectivity and static-analysis when omitted.",
+                            "title": "Validations",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "connectivity",
+                                    "static-analysis",
+                                    "unit-tests",
+                                    "workload-playback"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Create Cloud Deploy Environment",
+                "toolReferenceName": "mssql_cd_create_environment",
+                "userDescription": "Create or update a Cloud Deploy environment.",
+                "icon": "$(add)"
+            },
+            {
+                "name": "mssql_cd_validate_environment",
+                "modelDescription": "Run every enabled validation gate for a Cloud Deploy environment and return the structured result: an overall status, a gates-passed/total tally, and each gate with its concrete findings (rule id, message, file, and line for static analysis; failing test names; workload regressions). Provisions a throwaway database when a gate needs one. Use the returned findings to explain failures and propose fixes. Use mssql_cd_list_environments to find valid ids.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "validation",
+                    "validate"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "environmentId": {
+                            "description": "Id of the environment to validate (from mssql_cd_list_environments).",
+                            "title": "Environment Id",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "environmentId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Validate Cloud Deploy Environment",
+                "toolReferenceName": "mssql_cd_validate_environment",
+                "userDescription": "Run the Cloud Deploy validation gates for an environment.",
+                "icon": "$(check-all)"
             }
         ],
         "colors": [

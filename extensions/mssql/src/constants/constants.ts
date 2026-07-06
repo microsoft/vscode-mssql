@@ -271,6 +271,10 @@ export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 export const copilotDabToolName = "mssql_dab";
+export const copilotCloudDeployListEnvironmentsToolName = "mssql_cd_list_environments";
+export const copilotCloudDeployDescribeEnvironmentToolName = "mssql_cd_describe_environment";
+export const copilotCloudDeployCreateEnvironmentToolName = "mssql_cd_create_environment";
+export const copilotCloudDeployValidateEnvironmentToolName = "mssql_cd_validate_environment";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";

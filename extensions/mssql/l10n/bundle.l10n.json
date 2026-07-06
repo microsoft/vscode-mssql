@@ -3493,6 +3493,28 @@
         "message": "Listing tables for connection '{0}' (ID: {1})",
         "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
+    "No Cloud Deploy environment file is available. Open a workspace folder that contains a .mssql/environments.json file.": "No Cloud Deploy environment file is available. Open a workspace folder that contains a .mssql/environments.json file.",
+    "No Cloud Deploy environment with id '{0}' was found in this workspace./{0} is the environment id": {
+        "message": "No Cloud Deploy environment with id '{0}' was found in this workspace.",
+        "comment": ["{0} is the environment id"]
+    },
+    "Listing Cloud Deploy environments": "Listing Cloud Deploy environments",
+    "Reading Cloud Deploy environment '{0}'/{0} is the environment id": {
+        "message": "Reading Cloud Deploy environment '{0}'",
+        "comment": ["{0} is the environment id"]
+    },
+    "Create Cloud Deploy Environment": "Create Cloud Deploy Environment",
+    "Create or update a Cloud Deploy environment in .mssql/environments.json?": "Create or update a Cloud Deploy environment in .mssql/environments.json?",
+    "Saving Cloud Deploy environment": "Saving Cloud Deploy environment",
+    "Validate Cloud Deploy Environment": "Validate Cloud Deploy Environment",
+    "Validate Cloud Deploy environment '{0}'? This provisions a throwaway database and runs every enabled gate./{0} is the environment id": {
+        "message": "Validate Cloud Deploy environment '{0}'? This provisions a throwaway database and runs every enabled gate.",
+        "comment": ["{0} is the environment id"]
+    },
+    "Validating Cloud Deploy environment '{0}'/{0} is the environment id": {
+        "message": "Validating Cloud Deploy environment '{0}'",
+        "comment": ["{0} is the environment id"]
+    },
     "List Schemas": "List Schemas",
     "List schemas for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
         "message": "List schemas for connection '{0}' (ID: {1})?",

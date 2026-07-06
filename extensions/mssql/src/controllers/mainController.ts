@@ -110,6 +110,12 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
+import {
+    CloudDeployCreateEnvironmentTool,
+    CloudDeployDescribeEnvironmentTool,
+    CloudDeployListEnvironmentsTool,
+    CloudDeployValidateEnvironmentTool,
+} from "../copilot/tools/cloudDeployTools";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -919,6 +925,36 @@ export default class MainController implements vscode.Disposable {
                     async (connectionUri: string, database: string) =>
                         this.openDabDesigner(connectionUri, database),
                 ),
+            ),
+        );
+
+        // Register the Cloud Deploy agent tools. The service is resolved
+        // lazily through a getter because it is constructed later in
+        // activation than this registration runs; by the time an agent
+        // invokes a tool the service is wired.
+        const getCloudDeployService = () => this.cloudDeployService;
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeployListEnvironmentsToolName,
+                new CloudDeployListEnvironmentsTool(getCloudDeployService),
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeployDescribeEnvironmentToolName,
+                new CloudDeployDescribeEnvironmentTool(getCloudDeployService),
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeployCreateEnvironmentToolName,
+                new CloudDeployCreateEnvironmentTool(getCloudDeployService),
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeployValidateEnvironmentToolName,
+                new CloudDeployValidateEnvironmentTool(getCloudDeployService),
             ),
         );
     }
