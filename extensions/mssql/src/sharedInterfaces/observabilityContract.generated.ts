@@ -833,7 +833,7 @@ export const OBS_CONTRACT: Registry = {
             measurementEligible: false,
             attrs: {},
             attrsComplete: false,
-            notes: "MetadataService spans/events (metadata.hydrate, metadata.contextBuild, metadata.drift). Database/object names are metadata — classified (source.path), never plaintext under redacted capture. No SQL text beyond the fixed hydration scripts' identifiers.",
+            notes: "MetadataService spans/events (metadata.hydrate, metadata.contextBuild, metadata.drift; cache/drift design adds metadata.ensureFresh + metadata.validate — attrs mode/reason/freshness/tier/result as safe enums, waitedMs/durationMs as diagnostic.metric). Database/object names are metadata — classified (source.path), never plaintext under redacted capture. No SQL text beyond the fixed hydration scripts' identifiers.",
         },
         {
             prefix: "completions.",
@@ -958,6 +958,17 @@ export const OBS_CONTRACT: Registry = {
             attrs: {},
             attrsComplete: false,
             notes: "Shared MetadataStore spans/events (oe-docs metadata_service_oe_v2_design §13): metadataStore.prepareProfile, .acquireServer, .acquireDatabase, .acquireObjectDetails, .refresh, .disposeLease, .session.open/.close, .hydrate.server/.database/.objectDetails, .drift.detected, .cache.hit/.miss, .keyCorrectness.violation. Attrs: key kind, SHORT profile fingerprint, section names, readiness state, generation, counts, duration, backend kind, error class. PRIVACY: no SQL text, rows, connection strings, secrets, raw endpoints, or unclassified object/database names — database rides as source.path classification like metadata.* today.",
+        },
+        {
+            prefix: "metadataCache.",
+            kind: "spanFamily",
+            feature: "metadata",
+            processRoles: ["extensionHost"],
+            timingClass: "sameProcessMonotonic",
+            measurementEligible: false,
+            attrs: {},
+            attrsComplete: false,
+            notes: "Persistent metadata snapshot cache + freshness policy (metadata-docs cache/drift design §18, review addendum §8/App C): metadataCache.load/.save/.hit/.miss/.validate/.policyDecision/.backgroundRefresh/.evict/.corrupt/.clear/.offlineMode/.raceLost. Attr allowlist: serverFpPrefix + dbHashPrefix (diagnostic.metadata — non-reversible HASH prefixes, never names), generation, readinessSummary, staleAgeBucket (fixed buckets <1m,<10m,<1h,<1d,<7d,<30d,>=30d), payloadBytes/durationMs/waitedMs (diagnostic.metric), mode/reason/source/freshness/tier/result/errorClass/skipped/policyIntersected/raceLost (safe enums/bools). FORBIDDEN: object names, raw database names, SQL text, result rows, endpoints, connection strings, secrets/tokens, prompt text, module definitions, description values. contentHash prefix stays OUT of events pending review (addendum §12 Q2) — snapshot status/feature-capture only.",
         },
         {
             prefix: "objectExplorerV2.",
