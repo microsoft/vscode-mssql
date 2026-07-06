@@ -51,9 +51,47 @@ const MODULE_CATALOG: FixtureCatalogSpec = {
             kind: "procedure",
             definitionUnavailable: "encrypted",
         },
+        // No definition text: the fixture's lazy read yields "notLoaded",
+        // exactly what a session-less (offline) sys.sql_modules read maps to.
+        { schema: "dbo", name: "NoTextView", kind: "view" },
     ],
 };
 const moduleProvider = new FixtureLanguageMetadataProvider(MODULE_CATALOG);
+
+/**
+ * Provider double for the CACHE-6 offline honesty check: same catalog, but
+ * the pinned view exposes NO getDefinition seam (no metadata session — the
+ * offline acquisition path). The engine must refuse honestly, never serve a
+ * blank or fabricated module body.
+ */
+function providerWithoutLazyReads(spec: FixtureCatalogSpec): ISqlLanguageMetadataProvider {
+    const base = new FixtureLanguageMetadataProvider(spec);
+    const pin = (): ReturnType<FixtureLanguageMetadataProvider["pin"]> => {
+        const view = base.pin();
+        return {
+            generation: view.generation,
+            env: view.env,
+            readiness: view.readiness,
+            resolveObject: (parts) => view.resolveObject(parts),
+            getObject: (ref) => view.getObject(ref),
+            getColumns: (ref) => view.getColumns(ref),
+            getParameters: (ref) => view.getParameters(ref),
+            fkFrom: (ref) => view.fkFrom(ref),
+            fkTo: (ref) => view.fkTo(ref),
+            searchObjects: (query) => view.searchObjects(query),
+            listSchemas: () => view.listSchemas(),
+            // getDefinition deliberately ABSENT — no session to read from.
+        };
+    };
+    return {
+        generation: base.generation,
+        env: () => base.env(),
+        readiness: () => base.readiness(),
+        pin,
+        databases: () => base.databases(),
+        onDidChange: (listener) => base.onDidChange(listener),
+    };
+}
 
 interface DefinitionRun {
     readonly result: DefinitionLocationResult | undefined;
@@ -372,6 +410,40 @@ suite("sqlLanguage definition: scripted modules", () => {
         expect(virtual.unavailableReason).to.equal("encrypted");
         expect(virtual.text).to.contain("encrypted");
         expect(virtual.text).to.not.contain("CREATE PROC");
+    });
+
+    test("offline lazy read (notLoaded): module text is a refusal, never blank (CACHE-6)", async () => {
+        // A session-less module read maps to "notLoaded" (metadataService
+        // catches and never throws); the definition path must surface that
+        // as an honest comment document, not empty virtual content.
+        const run = await definitionAt("SELECT * FROM dbo./*caret*/NoTextView;", moduleProvider);
+        const virtual = virtualOf(run);
+        expect(virtual.unavailableReason).to.equal("notLoaded");
+        expect(virtual.text.trim().length).to.be.greaterThan(0);
+        expect(virtual.text).to.contain("Cannot script dbo.NoTextView");
+        expect(virtual.text).to.contain("not been loaded");
+        expect(virtual.text).to.not.contain("CREATE VIEW");
+    });
+
+    test("no metadata session at all: module definition refuses as offline (CACHE-6)", async () => {
+        const run = await definitionAt(
+            "EXEC Sales./*caret*/GetOrders;",
+            providerWithoutLazyReads(MODULE_CATALOG),
+        );
+        const virtual = virtualOf(run);
+        expect(virtual.unavailableReason).to.equal("offline");
+        expect(virtual.text).to.contain("no metadata connection");
+        expect(virtual.text).to.not.contain("CREATE PROCEDURE");
+    });
+
+    test("offline never blocks SYNTHESIZED table scripts (no lazy read involved)", async () => {
+        const run = await definitionAt(
+            "SELECT * FROM Sales./*caret*/Orders;",
+            providerWithoutLazyReads(MODULE_CATALOG),
+        );
+        const virtual = virtualOf(run);
+        expect(virtual.unavailableReason).to.equal(undefined);
+        expect(virtual.text).to.contain("CREATE TABLE Sales.Orders (");
     });
 
     test("synonym: honest unsupported content", async () => {

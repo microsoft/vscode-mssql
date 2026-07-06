@@ -41,7 +41,28 @@ export type ScriptUnavailableReason =
     | "permission"
     | "unsupported"
     | "notLoaded"
+    | "notValidated"
     | "offline";
+
+/**
+ * Snapshot provenance for the metadata generation a script is produced from
+ * (cache/drift addendum §7.5 — normative). Populated HOST-side from the
+ * FreshCatalogResult used to pin the snapshot and handed INTO the engine as
+ * request data (the diagnostics-verdict pattern, CACHE-5), so the honest
+ * refusal (freshness "unavailable"), the §16.3 offline banner, and
+ * telemetry all derive from ONE source of truth and can never disagree.
+ * The string unions mirror FreshCatalogResult structurally — the pure
+ * engine never imports from services/**.
+ */
+export interface ScriptMetadataProvenance {
+    readonly generation: number;
+    /** Canonical snapshot content hash (addendum C-2), when known. */
+    readonly contentHash?: string;
+    /** "none" ⇔ no snapshot backed the freshness decision. */
+    readonly source: "memory" | "disk" | "live" | "offline" | "none";
+    readonly freshness: "live" | "validated" | "stale" | "refreshing" | "unavailable";
+    readonly capturedAtUtc?: string;
+}
 
 export interface ScriptTarget {
     readonly ref: LangObjectRef;
@@ -50,6 +71,12 @@ export interface ScriptTarget {
 export interface ScriptRequest {
     readonly target: ScriptTarget;
     readonly operation: ScriptOperation;
+    /**
+     * CACHE-6 strict flow: the host's ensureFresh verdict. Absent = a
+     * consumer outside the strict flow (definition/peek keeps its own
+     * honesty ladder); results then carry no provenance and no banner.
+     */
+    readonly provenance?: ScriptMetadataProvenance;
 }
 
 /** Emitted-script span in UTF-16 code units (start inclusive, end exclusive). */
@@ -87,6 +114,13 @@ export interface ScriptResult {
     readonly objectKind: LangObjectKind;
     /** Set when no honest script exists; text is an explanatory comment. */
     readonly unavailableReason?: ScriptUnavailableReason;
+    /**
+     * Provenance of the metadata this script was generated from (addendum
+     * §7.5): the request's provenance echoed verbatim. When source is
+     * "offline" (and a script was produced) the text carries the §16.3
+     * offline banner rendered from these same fields.
+     */
+    readonly provenance?: ScriptMetadataProvenance;
 }
 
 export interface SqlScriptingService {

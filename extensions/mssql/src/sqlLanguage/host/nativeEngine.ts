@@ -10,9 +10,10 @@
  * only — never text). Served natively so far: folding + document symbols
  * (B8), completion (B9), diagnostics incl. the sliced pass for the scheduler
  * (B10), hover + signature help (B11), definition over the scripting engine
- * (B12 — sqlScripting.script spans are emitted here, host-side, because the
- * engine itself is pure). Remaining features return undefined until their
- * batch, which the router reports honestly as unserved.
+ * (B12 — sqlScripting.script spans are emitted host-side through
+ * scriptingHost's withScriptingSpans, because the engine itself is pure).
+ * Remaining features return undefined until their batch, which the router
+ * reports honestly as unserved.
  */
 
 import { RawField, diag } from "../../diagnostics/diagnosticsCore";
@@ -47,9 +48,9 @@ import { computeDefinition } from "../features/definition";
 import { DiagnosticsPassResult, createDiagnostics } from "../features/diagnostics";
 import { computeHover } from "../features/hover";
 import { computeSignatureHelp } from "../features/signatureHelp";
-import { ScriptRequest, ScriptResult, SqlScriptingService } from "../../sqlScripting/api";
 import { SqlScriptingEngine } from "../../sqlScripting/scriptingService";
 import { SlicedDiagnosticsPass } from "./scheduler";
+import { withScriptingSpans } from "./scriptingHost";
 
 export interface NativeEngineOptions {
     readonly snippetsEnabled: boolean;
@@ -603,45 +604,6 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             computeDocumentSymbols(analysis.snapshot, analysis.lexed.tokens, analysis.segments),
         );
     }
-}
-
-/**
- * Wrap the pure scripting engine with sqlScripting.script spans (host-side —
- * the engine itself is pure). Fields: object kind, operation, fidelity,
- * anchor count, source, unavailable reason — never script text or names.
- */
-function withScriptingSpans(engine: SqlScriptingService): SqlScriptingService {
-    return {
-        capabilities: (target) => engine.capabilities(target),
-        script: async (request: ScriptRequest): Promise<ScriptResult> => {
-            const span = diag.startSpan({
-                feature: "sqlLanguage",
-                kind: "span",
-                type: "sqlScripting.script",
-                fields: {
-                    operation: { raw: request.operation, cls: "diagnostic.metadata" },
-                },
-            });
-            try {
-                const result = await engine.script(request);
-                span.end("ok", {
-                    objectKind: { raw: result.objectKind, cls: "diagnostic.metadata" },
-                    fidelity: { raw: result.fidelity, cls: "diagnostic.metadata" },
-                    scriptSource: { raw: result.source, cls: "diagnostic.metadata" },
-                    anchorCount: { raw: result.anchors.length, cls: "diagnostic.metadata" },
-                    noteCount: { raw: result.fidelityNotes.length, cls: "diagnostic.metadata" },
-                    unavailableReason: {
-                        raw: result.unavailableReason ?? "none",
-                        cls: "diagnostic.metadata",
-                    },
-                });
-                return result;
-            } catch (error) {
-                span.fail(error);
-                throw error;
-            }
-        },
-    };
 }
 
 /** Privacy-safe end-of-pass span fields: counts and reason names only. */

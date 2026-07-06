@@ -23,6 +23,7 @@
 
 import { IPinnedMetadataView, LangObjectInfo, LangObjectKind } from "../sqlLanguage/provider/types";
 import {
+    ScriptMetadataProvenance,
     ScriptOperation,
     ScriptRequest,
     ScriptResult,
@@ -74,6 +75,28 @@ export class SqlScriptingEngine implements SqlScriptingService {
     }
 
     async script(request: ScriptRequest): Promise<ScriptResult> {
+        // CACHE-6 strict gate (base §10.3, addendum §7.5): the host's
+        // ensureFresh verdict arrives as request data. "unavailable" means
+        // the policy's freshness bar was not met — refuse honestly (the B12
+        // pattern) BEFORE consulting the pinned snapshot, which may be
+        // retained but unproven (addendum C-7).
+        const provenance = request.provenance;
+        if (provenance !== undefined && provenance.freshness === "unavailable") {
+            const info = this.pinned.getObject(request.target.ref);
+            const refusal =
+                provenance.source === "offline"
+                    ? this.unavailable(request, info, "offline", [
+                          "offline mode is active and no metadata snapshot is available for this database",
+                      ])
+                    : this.unavailable(request, info, "notValidated", [
+                          "live metadata refresh failed or timed out — retry after a successful refresh, or enable mssql.metadataCache.offlineMode to script from the retained snapshot",
+                      ]);
+            return withProvenance(refusal, provenance);
+        }
+        return withProvenance(await this.scriptCore(request), provenance);
+    }
+
+    private async scriptCore(request: ScriptRequest): Promise<ScriptResult> {
         const info = this.pinned.getObject(request.target.ref);
         if (info === undefined) {
             return this.unavailable(request, undefined, "notLoaded", [
@@ -263,6 +286,55 @@ export class SqlScriptingEngine implements SqlScriptingService {
             unavailableReason: reason,
         };
     }
+}
+
+/**
+ * Echo the request provenance onto the result (ONE source of truth), and —
+ * only when a script was actually produced from an offline snapshot — render
+ * the base §16.3 offline banner from the SAME fields. Refusals never carry
+ * the banner (their comment text already tells the truth), but they keep
+ * the provenance so telemetry stays coherent.
+ */
+function withProvenance(
+    result: ScriptResult,
+    provenance: ScriptMetadataProvenance | undefined,
+): ScriptResult {
+    if (provenance === undefined) {
+        return result;
+    }
+    const stamped: ScriptResult = { ...result, provenance };
+    if (provenance.source !== "offline" || stamped.unavailableReason !== undefined) {
+        return stamped;
+    }
+    return prependBanner(stamped, offlineBannerLines(provenance));
+}
+
+/** Base §16.3 scripting header, verbatim — derived only from provenance. */
+function offlineBannerLines(provenance: ScriptMetadataProvenance): readonly string[] {
+    return [
+        "-- Generated from offline metadata snapshot.",
+        provenance.capturedAtUtc !== undefined
+            ? `-- Snapshot captured at ${provenance.capturedAtUtc}.`
+            : "-- Snapshot capture time is unknown.",
+        "-- Live drift validation was not performed.",
+    ];
+}
+
+/** Prepend header comment lines, shifting every anchor exactly. */
+function prependBanner(result: ScriptResult, banner: readonly string[]): ScriptResult {
+    const prefix = banner.join("\r\n") + "\r\n";
+    return {
+        ...result,
+        text: prefix + result.text,
+        anchors: result.anchors.map((anchor) => ({
+            ...anchor,
+            span: {
+                start: anchor.span.start + prefix.length,
+                end: anchor.span.end + prefix.length,
+            },
+            line: anchor.line + banner.length,
+        })),
+    };
 }
 
 function moduleUnavailableNote(reason: ScriptUnavailableReason): string {

@@ -19,7 +19,11 @@ import {
 } from "../../src/sqlLanguage/provider/fixtureProvider";
 import { IPinnedMetadataView } from "../../src/sqlLanguage/provider/types";
 import { STANDARD_FIXTURE_CATALOG } from "../../src/sqlLanguage/testSupport/fixtureCatalog";
-import { ScriptOperation, ScriptResult } from "../../src/sqlScripting/api";
+import {
+    ScriptMetadataProvenance,
+    ScriptOperation,
+    ScriptResult,
+} from "../../src/sqlScripting/api";
 import { SqlScriptingEngine } from "../../src/sqlScripting/scriptingService";
 
 function pinOf(spec: FixtureCatalogSpec = STANDARD_FIXTURE_CATALOG): IPinnedMetadataView {
@@ -47,9 +51,14 @@ async function scriptOf(
     name: string,
     operation: ScriptOperation,
     spec: FixtureCatalogSpec = STANDARD_FIXTURE_CATALOG,
+    provenance?: ScriptMetadataProvenance,
 ): Promise<ScriptResult> {
     const { engine, pinned } = engineOf(spec);
-    return engine.script({ target: { ref: refOf(pinned, schema, name) }, operation });
+    return engine.script({
+        target: { ref: refOf(pinned, schema, name) },
+        operation,
+        ...(provenance !== undefined ? { provenance } : {}),
+    });
 }
 
 function lines(result: ScriptResult): string[] {
@@ -663,5 +672,201 @@ suite("sqlScripting service: capabilities and routing", () => {
             const flattened = note.replace(/\s+/g, " ");
             expect(result.text.replace(/\s+/g, " ")).to.contain(flattened.slice(0, 40));
         }
+    });
+});
+
+// ---------------------------------------------------------------------------
+// CACHE-6: provenance travel + offline banner + strict refusal (addendum
+// §7.5, base §16.3) — the provenance arrives as request data and is the ONE
+// source of truth for result.provenance, the banner, and the refusal.
+// ---------------------------------------------------------------------------
+
+const LIVE_PROVENANCE: ScriptMetadataProvenance = {
+    generation: 7,
+    contentHash: "ch_live7",
+    source: "live",
+    freshness: "live",
+    capturedAtUtc: "2026-07-06T15:12:03Z",
+};
+
+const OFFLINE_PROVENANCE: ScriptMetadataProvenance = {
+    generation: 5,
+    contentHash: "ch_disk5",
+    source: "offline",
+    freshness: "stale",
+    capturedAtUtc: "2026-07-06T15:12:03Z",
+};
+
+const OFFLINE_BANNER = [
+    "-- Generated from offline metadata snapshot.",
+    "-- Snapshot captured at 2026-07-06T15:12:03Z.",
+    "-- Live drift validation was not performed.",
+];
+
+suite("sqlScripting provenance + offline banner (CACHE-6 §7.5/§16.3)", () => {
+    test("provenance travels through VERBATIM; live scripts carry no banner", async () => {
+        const plain = await scriptOf("Sales", "Orders", "create");
+        const result = await scriptOf(
+            "Sales",
+            "Orders",
+            "create",
+            STANDARD_FIXTURE_CATALOG,
+            LIVE_PROVENANCE,
+        );
+        expect(result.provenance).to.deep.equal(LIVE_PROVENANCE);
+        expect(result.text).to.equal(plain.text); // no banner, byte-identical
+        expect(result.anchors).to.deep.equal(plain.anchors);
+    });
+
+    test("no provenance in the request → none on the result (non-strict callers unchanged)", async () => {
+        const result = await scriptOf("Sales", "Orders", "create");
+        expect(result.provenance).to.equal(undefined);
+    });
+
+    test("offline provenance renders the EXACT three banner lines above the script", async () => {
+        const result = await scriptOf(
+            "Sales",
+            "Orders",
+            "create",
+            STANDARD_FIXTURE_CATALOG,
+            OFFLINE_PROVENANCE,
+        );
+        expect(lines(result).slice(0, 3)).to.deep.equal(OFFLINE_BANNER);
+        expect(result.text).to.contain("CREATE TABLE Sales.Orders (");
+        expect(result.provenance).to.deep.equal(OFFLINE_PROVENANCE);
+        expect(result.unavailableReason).to.equal(undefined);
+    });
+
+    test("banner and provenance come from the same fields (capturedAtUtc match)", async () => {
+        const result = await scriptOf(
+            "Sales",
+            "Orders",
+            "create",
+            STANDARD_FIXTURE_CATALOG,
+            OFFLINE_PROVENANCE,
+        );
+        expect(result.text).to.contain(`captured at ${result.provenance!.capturedAtUtc}`);
+    });
+
+    test("offline banner without capturedAtUtc stays honest (no fabricated time)", async () => {
+        const result = await scriptOf("Sales", "Orders", "create", STANDARD_FIXTURE_CATALOG, {
+            generation: 5,
+            contentHash: "ch_disk5",
+            source: "offline",
+            freshness: "stale",
+        });
+        expect(lines(result)[0]).to.equal("-- Generated from offline metadata snapshot.");
+        expect(lines(result)[1]).to.equal("-- Snapshot capture time is unknown.");
+        expect(lines(result)[2]).to.equal("-- Live drift validation was not performed.");
+    });
+
+    test("the banner shifts every anchor exactly (spans, lines, characters)", async () => {
+        const plain = await scriptOf("Sales", "Orders", "create");
+        const banner = await scriptOf(
+            "Sales",
+            "Orders",
+            "create",
+            STANDARD_FIXTURE_CATALOG,
+            OFFLINE_PROVENANCE,
+        );
+        const prefixLength = banner.text.length - plain.text.length;
+        expect(banner.anchors.length).to.equal(plain.anchors.length);
+        banner.anchors.forEach((anchor, i) => {
+            const before = plain.anchors[i];
+            expect(anchor.span.start).to.equal(before.span.start + prefixLength);
+            expect(anchor.span.end).to.equal(before.span.end + prefixLength);
+            expect(anchor.line).to.equal(before.line + 3);
+            expect(anchor.character).to.equal(before.character);
+            if (anchor.symbol.kind === "column") {
+                expect(banner.text.slice(anchor.span.start, anchor.span.end)).to.equal(
+                    anchor.symbol.name,
+                );
+            }
+        });
+    });
+
+    test("banner applies to offline DML templates and module scripts too", async () => {
+        const template = await scriptOf(
+            "Sales",
+            "Customers",
+            "selectTop",
+            STANDARD_FIXTURE_CATALOG,
+            OFFLINE_PROVENANCE,
+        );
+        expect(lines(template).slice(0, 3)).to.deep.equal(OFFLINE_BANNER);
+        const module = await scriptOf(
+            "Sales",
+            "GetOrders",
+            "create",
+            STANDARD_FIXTURE_CATALOG,
+            OFFLINE_PROVENANCE,
+        );
+        expect(lines(module).slice(0, 3)).to.deep.equal(OFFLINE_BANNER);
+        expect(module.text).to.contain("CREATE PROCEDURE Sales.GetOrders");
+    });
+
+    test("fidelity notes stay in place under the banner (existing mechanism untouched)", async () => {
+        const result = await scriptOf(
+            "dbo",
+            "Widgets",
+            "create",
+            WIDGET_CATALOG,
+            OFFLINE_PROVENANCE,
+        );
+        expect(lines(result).slice(0, 3)).to.deep.equal(OFFLINE_BANNER);
+        expect(lines(result)[3]).to.contain("Synthesized from catalog metadata");
+        expect(result.fidelityNotes.join(" ")).to.contain("seed/increment");
+    });
+
+    test("non-offline sources never render the banner (disk/memory/validated)", async () => {
+        for (const source of ["memory", "disk", "live"] as const) {
+            const result = await scriptOf("Sales", "Orders", "create", STANDARD_FIXTURE_CATALOG, {
+                generation: 3,
+                source,
+                freshness: "validated",
+            });
+            expect(result.text, source).to.not.contain("offline metadata snapshot");
+        }
+    });
+
+    test("freshness unavailable ONLINE: honest refusal mentioning refresh", async () => {
+        const result = await scriptOf("Sales", "Orders", "create", STANDARD_FIXTURE_CATALOG, {
+            generation: 3,
+            source: "memory",
+            freshness: "unavailable",
+        });
+        expect(result.unavailableReason).to.equal("notValidated");
+        expect(result.text).to.contain("Cannot script Sales.Orders");
+        expect(result.text).to.contain("refresh");
+        expect(result.text).to.contain("mssql.metadataCache.offlineMode");
+        expect(result.text).to.not.contain("CREATE TABLE");
+        expect(result.anchors.length).to.equal(0);
+        expect(result.provenance?.freshness).to.equal("unavailable");
+    });
+
+    test("freshness unavailable OFFLINE: refusal names offline mode, not refresh", async () => {
+        const result = await scriptOf("Sales", "Orders", "create", STANDARD_FIXTURE_CATALOG, {
+            generation: 0,
+            source: "offline",
+            freshness: "unavailable",
+        });
+        expect(result.unavailableReason).to.equal("offline");
+        expect(result.text).to.contain("offline mode is active");
+        expect(result.text).to.not.contain("CREATE TABLE");
+        // A refusal NEVER carries the banner — the comment tells the truth.
+        expect(result.text).to.not.contain("Generated from offline metadata snapshot");
+    });
+
+    test("engine refusals under offline provenance keep provenance but no banner", async () => {
+        const result = await scriptOf(
+            "dbo",
+            "SecretProc",
+            "create",
+            MODULE_CATALOG,
+            OFFLINE_PROVENANCE,
+        );
+        expect(result.unavailableReason).to.equal("encrypted");
+        expect(result.text).to.not.contain("Generated from offline metadata snapshot");
+        expect(result.provenance).to.deep.equal(OFFLINE_PROVENANCE);
     });
 });
