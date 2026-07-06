@@ -23,8 +23,39 @@ import {
 } from "../../src/services/metadata/metadataService";
 import { CatalogLanguageMetadataProvider } from "../../src/sqlLanguage/provider/catalogProvider";
 
-function sysScripts(overrides?: { columnsFail?: boolean }): FakeScript[] {
+function sysScripts(overrides?: {
+    columnsFail?: boolean;
+    descriptionsFail?: boolean;
+}): FakeScript[] {
     return [
+        overrides?.descriptionsFail
+            ? {
+                  // H7 — its SQL avoids every other matcher substring
+                  // (COL_NAME instead of a sys.columns join) on purpose.
+                  match: (t) => t.includes("extended_properties"),
+                  events: [
+                      { type: "message", kind: "error", text: "permission denied" },
+                      { type: "complete", status: "failed" },
+                  ],
+              }
+            : {
+                  match: (t) => t.includes("extended_properties"),
+                  events: [
+                      {
+                          type: "resultSet",
+                          columns: ["major_id", "minor_id", "column_name", "description"],
+                          rows: [
+                              [101, 0, null, "Order header rows."],
+                              [101, 2, "CustomerId", "References the customer."],
+                              // Column dropped since the property was set:
+                              // COL_NAME yields NULL — the row must be skipped.
+                              [101, 9, null, "orphaned column property"],
+                              [103, 0, null, "Read view over orders."],
+                          ],
+                      },
+                      { type: "complete", status: "succeeded" },
+                  ],
+              },
         {
             match: (t) => t.includes("SERVERPROPERTY"),
             events: [
@@ -499,5 +530,125 @@ suite("Metadata catalog (B5)", () => {
         const second = await source.open();
         expect(second).to.not.equal(first);
         source.dispose();
+    });
+});
+
+suite("Metadata catalog H7 descriptions (B11)", () => {
+    test("hydration: object + column MS_Description reach the snapshot; orphans dropped", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().mode).to.equal("full");
+        expect(snapshot.readiness.descriptions).to.equal("ready");
+        expect(snapshot.getDescription(101)).to.equal("Order header rows.");
+        expect(snapshot.getDescription(101, "CustomerId")).to.equal("References the customer.");
+        expect(snapshot.getDescription(103)).to.equal("Read view over orders.");
+        // minor_id 9 had no surviving column (COL_NAME NULL) — skipped, and
+        // it must not bleed into the object-level slot.
+        expect(snapshot.getDescription(101)).to.not.equal("orphaned column property");
+        // Absent descriptions stay absent (no pretend-empty strings).
+        expect(snapshot.getDescription(102)).to.equal(undefined);
+        expect(snapshot.getDescription(101, "OrderId")).to.equal(undefined);
+        expect(snapshot.getDescription(9999)).to.equal(undefined);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("column description lookup folds case on CI catalogs only", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(snapshot.getDescription(101, "customerid")).to.equal("References the customer.");
+
+        const cs = new CatalogBuilder();
+        cs.caseSensitive = true;
+        cs.addSchema(1, "dbo");
+        cs.addObject(1, 1, "T", "table");
+        cs.addDescription(1, "col doc", "Name");
+        const csSnapshot = cs.build(1, {
+            schemas: "ready",
+            objects: "ready",
+            descriptions: "ready",
+        });
+        expect(csSnapshot.getDescription(1, "Name")).to.equal("col doc");
+        expect(csSnapshot.getDescription(1, "name")).to.equal(undefined);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("builder drops descriptions for unknown objects (H7 raced a DDL)", () => {
+        const builder = new CatalogBuilder();
+        builder.addSchema(1, "dbo");
+        builder.addObject(1, 1, "T", "table");
+        builder.addDescription(42, "for an object H2 never saw");
+        builder.addDescription(1, "kept");
+        const snapshot = builder.build(1, {
+            schemas: "ready",
+            objects: "ready",
+            descriptions: "ready",
+        });
+        expect(snapshot.getDescription(1)).to.equal("kept");
+        expect(snapshot.getDescription(42)).to.equal(undefined);
+    });
+
+    test("pinned language view serves getDescription only when the section is ready", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => handle,
+            serverVersion: () => "16.0.4165.4",
+            currentDatabase: () => KEY.database,
+            databases: () => [KEY.database],
+            subscribeStatus: () => () => undefined,
+        });
+        const pinned = provider.pin();
+        expect(pinned.getDescription?.({ objectId: 101 })).to.equal("Order header rows.");
+        expect(pinned.getDescription?.({ objectId: 101 }, "CustomerId")).to.equal(
+            "References the customer.",
+        );
+        expect(pinned.getDescription?.({ objectId: 102 })).to.equal(undefined);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("section failure honesty: H7 fails ⇒ 'descriptions' failed + partial, never pretend-empty", async () => {
+        const { service } = await serviceOver(sysScripts({ descriptionsFail: true }));
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().readiness).to.equal("ready");
+        expect(handle.status().mode).to.equal("partial");
+        expect(snapshot.readiness.descriptions).to.equal("failed");
+        expect(snapshot.readiness.objects).to.equal("ready");
+        // The pinned language view refuses description claims for the failed
+        // section (undefined ≠ "no description exists").
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => handle,
+            serverVersion: () => "16.0.4165.4",
+            currentDatabase: () => KEY.database,
+            databases: () => [KEY.database],
+            subscribeStatus: () => () => undefined,
+        });
+        expect(provider.pin().getDescription?.({ objectId: 101 })).to.equal(undefined);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("privacy gate: descriptions NEVER enter the schema-context projection", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = handle.buildSchemaContext({
+            budget: "unlimited",
+            privacy: { destination: "local", allowObjectNames: true },
+        });
+        expect(result.text).to.include("dbo.Orders");
+        expect(result.text).to.not.include("Order header rows.");
+        expect(result.text).to.not.include("References the customer.");
+        handle.dispose();
+        service.dispose();
     });
 });

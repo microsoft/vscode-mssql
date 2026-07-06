@@ -163,6 +163,12 @@ export class CatalogBuilder {
     paramTypeSyms: number[] = [];
     paramOutput: boolean[] = [];
 
+    // MS_Description extended properties (H7), appended AFTER all existing
+    // SoA arrays — additive only, existing array order is load-bearing
+    descriptionOwner: number[] = []; // index into object table
+    descriptionColumnSyms: number[] = []; // -1 = object-level description
+    descriptionValueSyms: number[] = [];
+
     engineEdition: number | undefined;
 
     caseSensitive = false;
@@ -279,6 +285,16 @@ export class CatalogBuilder {
         this.paramOutput.push(isOutput);
     }
 
+    addDescription(objectId: number, value: string, columnName?: string): void {
+        const objectIndex = this.objectIds.indexOf(objectId);
+        if (objectIndex < 0) {
+            return; // description for unknown object: dropped (H7 raced a DDL)
+        }
+        this.descriptionOwner.push(objectIndex);
+        this.descriptionColumnSyms.push(columnName === undefined ? -1 : this.intern(columnName));
+        this.descriptionValueSyms.push(this.intern(value));
+    }
+
     setEnvironment(env: CatalogEnvironment): void {
         if (env.engineEdition !== undefined) {
             this.engineEdition = env.engineEdition;
@@ -345,6 +361,11 @@ export class CatalogSnapshot {
     private keyConstraintsByObjectIndex = new Map<number, KeyConstraintInfo[]>();
     private fkColumnsByConstraint = new Map<number, FkColumnPair[]>();
     private schemaNameById = new Map<number, string>();
+    /** object table index → { object-level description, per-column map } (H7). */
+    private descriptionsByObjectIndex = new Map<
+        number,
+        { object?: string; byColumn: Map<string, string> }
+    >();
 
     constructor(
         private readonly b: CatalogBuilder,
@@ -426,6 +447,22 @@ export class CatalogSnapshot {
                 paramCursor++;
             }
             this.paramRanges[owner] = [start, paramCursor];
+        }
+        // H7 descriptions (additive — appended after all existing indexes)
+        for (let i = 0; i < b.descriptionOwner.length; i++) {
+            const owner = b.descriptionOwner[i];
+            let entry = this.descriptionsByObjectIndex.get(owner);
+            if (entry === undefined) {
+                entry = { byColumn: new Map() };
+                this.descriptionsByObjectIndex.set(owner, entry);
+            }
+            const value = this.strings[b.descriptionValueSyms[i]];
+            const columnSym = b.descriptionColumnSyms[i];
+            if (columnSym < 0) {
+                entry.object = value;
+            } else {
+                entry.byColumn.set(this.strings[columnSym], value);
+            }
         }
     }
 
@@ -593,6 +630,37 @@ export class CatalogSnapshot {
             }
         }
         return details;
+    }
+
+    /**
+     * MS_Description for an object (no column) or one of its columns (H7).
+     * PRIVACY: descriptions are user data — they serve hover/editor surfaces
+     * ONLY and must never enter schema-context/remoteLm projections
+     * (addendum §9 gate; buildSchemaContext does not read them).
+     */
+    getDescription(objectId: number, column?: string): string | undefined {
+        const index = this.idIndex.get(objectId);
+        if (index === undefined) {
+            return undefined;
+        }
+        const entry = this.descriptionsByObjectIndex.get(index);
+        if (entry === undefined) {
+            return undefined;
+        }
+        if (column === undefined) {
+            return entry.object;
+        }
+        const exact = entry.byColumn.get(column);
+        if (exact !== undefined || this.b.caseSensitive) {
+            return exact;
+        }
+        const folded = column.toLowerCase();
+        for (const [name, value] of entry.byColumn) {
+            if (name.toLowerCase() === folded) {
+                return value;
+            }
+        }
+        return undefined;
     }
 
     /** Routine parameters in parameter_id order (ordinal 0 = return value). */

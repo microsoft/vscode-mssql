@@ -5,8 +5,9 @@
 
 /**
  * MetadataService core (metadata design §5/§7–9): progressive hydration
- * (H1 schemas → H2 objects/synonyms → H3 types/columns → H5 FK edges)
- * streamed from ISqlSession background queries, per-section readiness with
+ * (H1 schemas → H2 objects/synonyms → H3 types/columns → H4 keys → H5/H5B
+ * FKs → H6 parameters → H7 MS_Description) streamed from ISqlSession
+ * background queries, per-section readiness with
  * honest "failed" states, drift triggers (A: DDL sniff via the shared
  * lexer; B: cheap digest poll while handles are alive; C: explicit
  * refresh), and generation-bumped immutable snapshots.
@@ -104,6 +105,16 @@ const H6_PARAMETERS =
     "FROM sys.parameters p JOIN sys.types t ON p.user_type_id = t.user_type_id " +
     "JOIN sys.objects o ON o.object_id = p.object_id AND o.type IN ('P','FN','IF','TF') AND o.is_ms_shipped = 0 " +
     "ORDER BY p.object_id, p.parameter_id;";
+// H7 uses COL_NAME() instead of a sys.columns join ON PURPOSE: FakeScript
+// fixtures match by substring in array order, and "sys.columns" (H3),
+// "sys.parameters" (H6), "is_primary_key" (H4) etc. would collide. Keep
+// this query free of every earlier matcher substring (see the matcher-order
+// notes in test/unit/metadataStore.test.ts and largeCatalogFixture.ts).
+const H7_DESCRIPTIONS =
+    "SELECT ep.major_id, ep.minor_id, COL_NAME(ep.major_id, ep.minor_id) AS column_name, CAST(ep.value AS nvarchar(4000)) AS description " +
+    "FROM sys.extended_properties ep " +
+    "WHERE ep.class = 1 AND ep.name = 'MS_Description' " +
+    "ORDER BY ep.major_id, ep.minor_id;";
 const CHEAP_DIGEST =
     "SELECT COUNT(*) AS object_count, ISNULL(CHECKSUM_AGG(CHECKSUM(o.object_id, o.modify_date)), 0) AS object_hash " +
     "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0;";
@@ -505,6 +516,29 @@ export class MetadataService {
             } catch {
                 paramsFailed = true;
             }
+            // H7 MS_Description extended properties (objects + columns)
+            let descriptionsFailed = false;
+            try {
+                for (const row of await this.rows(session, H7_DESCRIPTIONS, "metadata:H7")) {
+                    const value = row[3] === null || row[3] === undefined ? "" : String(row[3]);
+                    if (value.length === 0) {
+                        continue;
+                    }
+                    const minorId = Number(row[1]);
+                    const columnName =
+                        row[2] === null || row[2] === undefined ? undefined : String(row[2]);
+                    if (minorId > 0 && columnName === undefined) {
+                        continue; // column dropped since the property was set
+                    }
+                    builder.addDescription(
+                        Number(row[0]),
+                        value,
+                        minorId > 0 ? columnName : undefined,
+                    );
+                }
+            } catch {
+                descriptionsFailed = true; // section failed, never pretend-empty
+            }
 
             entry.generation++;
             entry.snapshot = builder.build(
@@ -518,8 +552,11 @@ export class MetadataService {
                     keys: keysFailed ? "failed" : "ready",
                     foreignKeys: fkFailed ? "failed" : "ready",
                     parameters: paramsFailed ? "failed" : "ready",
+                    descriptions: descriptionsFailed ? "failed" : "ready",
                 },
-                columnsFailed || fkFailed || keysFailed || paramsFailed ? "partial" : "full",
+                columnsFailed || fkFailed || keysFailed || paramsFailed || descriptionsFailed
+                    ? "partial"
+                    : "full",
             );
             entry.status = "ready";
             entry.lastDigest = undefined; // re-baseline on next poll

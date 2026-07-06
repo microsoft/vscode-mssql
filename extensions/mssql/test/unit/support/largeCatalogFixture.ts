@@ -5,7 +5,7 @@
 
 /**
  * LARGE-CATALOG fixture generator (B16 scale tests): deterministic FakeBackend
- * transcripts that answer the MetadataService H0–H6 hydration queries plus the
+ * transcripts that answer the MetadataService H0–H7 hydration queries plus the
  * CHECKSUM_AGG digest, sized to stress the TypeScript metadata stack (10k
  * tables, 80k+ columns, a 1000-column wide table, chained FK pairs) without a
  * real server. Fully deterministic: fixed names ("s0"..; "T000001"..;
@@ -17,7 +17,8 @@
  * (foreign_key_columns) scripts are listed BEFORE the H3 sys.columns script —
  * their SQL also contains the substring "sys.columns". Likewise the digest
  * (CHECKSUM_AGG) script is listed BEFORE the H2 script — the digest SQL also
- * contains "FROM sys.objects o WHERE".
+ * contains "FROM sys.objects o WHERE". H7 (extended_properties) collides with
+ * nothing: it uses COL_NAME() instead of a sys.columns join by design.
  *
  * H4 rows are emitted in the 5-column extended shape (object_id, name,
  * index_name, is_primary_key, is_unique_constraint): the current parser reads
@@ -224,7 +225,7 @@ function script(match: (text: string) => boolean, columns: string[], rows: Row[]
 }
 
 /**
- * FakeBackend scripts answering the full H0–H6 + digest hydration sequence
+ * FakeBackend scripts answering the full H0–H7 + digest hydration sequence
  * for the specced catalog. Matcher order is load-bearing — see file header.
  */
 export function largeCatalogScripts(spec?: LargeCatalogSpec): FakeScript[] {
@@ -268,6 +269,13 @@ export function largeCatalogScripts(spec?: LargeCatalogSpec): FakeScript[] {
                 "is_output",
             ],
             parameterRows(s),
+        ),
+        // H7 descriptions — empty but SUCCEEDED (a missing script would fail
+        // the section and drop the hydration mode to "partial")
+        script(
+            (t) => t.includes("extended_properties"),
+            ["major_id", "minor_id", "column_name", "description"],
+            [],
         ),
         // H1 schemas
         script((t) => t.includes("sys.schemas"), ["schema_id", "name"], schemaRows(s)),

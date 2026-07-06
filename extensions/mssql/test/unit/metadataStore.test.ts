@@ -33,9 +33,21 @@ import { MetadataStore } from "../../src/services/metadata/metadataStore";
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Minimal H-series scripts for one user table (H4/H5B before H3 — the
- *  "sys.columns" substring matches those first). */
+ *  "sys.columns" substring matches those first; H7 uses COL_NAME so it
+ *  collides with nothing). */
 function catalogScripts(tableName: string): FakeScript[] {
     return [
+        {
+            match: (t) => t.includes("extended_properties"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["major_id", "minor_id", "column_name", "description"],
+                    rows: [],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
         {
             match: (t) => t.includes("SERVERPROPERTY"),
             events: [
