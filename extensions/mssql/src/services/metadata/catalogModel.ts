@@ -76,6 +76,15 @@ export interface FkDetail extends FkEdge {
     columns: FkColumnPair[];
 }
 
+export type KeyConstraintKind = "primaryKey" | "uniqueConstraint";
+
+export interface KeyConstraintInfo {
+    name: string;
+    kind: KeyConstraintKind;
+    /** Column names in key-ordinal order. */
+    columns: string[];
+}
+
 export interface ParameterInfo {
     /** sys.parameters parameter_id; 0 is a scalar function's return value. */
     ordinal: number;
@@ -138,6 +147,14 @@ export class CatalogBuilder {
     // primary key columns (H4), appended in (object, key_ordinal) order
     pkOwner: number[] = []; // index into object table
     pkColumnNameSyms: number[] = [];
+
+    // key constraints (H4): one row per (constraint, column), appended in
+    // (object, index_id, key_ordinal) order so a constraint's rows are
+    // consecutive
+    keyConstraintOwner: number[] = []; // index into object table
+    keyConstraintNameSyms: number[] = [];
+    keyConstraintKinds: KeyConstraintKind[] = [];
+    keyConstraintColumnSyms: number[] = [];
 
     // routine parameters (H6), appended grouped by object like columns
     paramOwner: number[] = []; // index into object table
@@ -228,6 +245,22 @@ export class CatalogBuilder {
         this.pkColumnNameSyms.push(this.intern(columnName));
     }
 
+    addKeyConstraintColumn(
+        objectId: number,
+        constraintName: string,
+        kind: KeyConstraintKind,
+        columnName: string,
+    ): void {
+        const objectIndex = this.objectIds.indexOf(objectId);
+        if (objectIndex < 0) {
+            return; // constraint for unknown object: dropped (H4 raced a DDL)
+        }
+        this.keyConstraintOwner.push(objectIndex);
+        this.keyConstraintNameSyms.push(this.intern(constraintName));
+        this.keyConstraintKinds.push(kind);
+        this.keyConstraintColumnSyms.push(this.intern(columnName));
+    }
+
     addParameter(
         objectId: number,
         ordinal: number,
@@ -309,6 +342,7 @@ export class CatalogSnapshot {
     /** object table index → [start, end) into parameter arrays. */
     private paramRanges: Array<[number, number]>;
     private pkColumnsByObjectIndex = new Map<number, string[]>();
+    private keyConstraintsByObjectIndex = new Map<number, KeyConstraintInfo[]>();
     private fkColumnsByConstraint = new Map<number, FkColumnPair[]>();
     private schemaNameById = new Map<number, string>();
 
@@ -357,6 +391,22 @@ export class CatalogSnapshot {
             const names = this.pkColumnsByObjectIndex.get(b.pkOwner[i]) ?? [];
             names.push(this.strings[b.pkColumnNameSyms[i]]);
             this.pkColumnsByObjectIndex.set(b.pkOwner[i], names);
+        }
+        // key-constraint rows arrive with a constraint's columns consecutive
+        // (H4 orders by object, index_id, key_ordinal); group by run
+        for (let i = 0; i < b.keyConstraintOwner.length; i++) {
+            const owner = b.keyConstraintOwner[i];
+            const name = this.strings[b.keyConstraintNameSyms[i]];
+            const kind = b.keyConstraintKinds[i];
+            const column = this.strings[b.keyConstraintColumnSyms[i]];
+            const constraints = this.keyConstraintsByObjectIndex.get(owner) ?? [];
+            const last = constraints[constraints.length - 1];
+            if (last && last.name === name && last.kind === kind) {
+                last.columns.push(column);
+            } else {
+                constraints.push({ name, kind, columns: [column] });
+            }
+            this.keyConstraintsByObjectIndex.set(owner, constraints);
         }
         for (let i = 0; i < b.fkColumnConstraintIds.length; i++) {
             const constraintId = b.fkColumnConstraintIds[i];
@@ -501,11 +551,39 @@ export class CatalogSnapshot {
         return [...(this.pkColumnsByObjectIndex.get(index) ?? [])];
     }
 
+    /** PK/unique key constraints with columns in key-ordinal order (H4). */
+    getKeyConstraints(objectId: number): readonly KeyConstraintInfo[] {
+        const index = this.idIndex.get(objectId);
+        if (index === undefined) {
+            return [];
+        }
+        return (this.keyConstraintsByObjectIndex.get(index) ?? []).map((constraint) => ({
+            ...constraint,
+            columns: [...constraint.columns],
+        }));
+    }
+
     /** FK edges from an object with their column pairs (H5 + H5B). */
     getForeignKeyDetailsFrom(objectId: number): FkDetail[] {
         const details: FkDetail[] = [];
         for (let i = 0; i < this.b.fkFrom.length; i++) {
             if (this.b.fkFrom[i] === objectId) {
+                details.push({
+                    fromObjectId: this.b.fkFrom[i],
+                    toObjectId: this.b.fkTo[i],
+                    name: this.strings[this.b.fkNameSyms[i]],
+                    columns: [...(this.fkColumnsByConstraint.get(this.b.fkConstraintIds[i]) ?? [])],
+                });
+            }
+        }
+        return details;
+    }
+
+    /** FK edges referencing an object with their column pairs (H5 + H5B). */
+    getForeignKeyDetailsTo(objectId: number): FkDetail[] {
+        const details: FkDetail[] = [];
+        for (let i = 0; i < this.b.fkTo.length; i++) {
+            if (this.b.fkTo[i] === objectId) {
                 details.push({
                     fromObjectId: this.b.fkFrom[i],
                     toObjectId: this.b.fkTo[i],

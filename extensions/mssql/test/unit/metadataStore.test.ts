@@ -50,7 +50,17 @@ function catalogScripts(tableName: string): FakeScript[] {
         {
             match: (t) => t.includes("is_primary_key"),
             events: [
-                { type: "resultSet", columns: ["object_id", "name"], rows: [] },
+                {
+                    type: "resultSet",
+                    columns: [
+                        "object_id",
+                        "name",
+                        "index_name",
+                        "is_primary_key",
+                        "is_unique_constraint",
+                    ],
+                    rows: [],
+                },
                 { type: "complete", status: "succeeded" },
             ],
         },

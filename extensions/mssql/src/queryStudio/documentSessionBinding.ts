@@ -25,14 +25,13 @@ import {
     SqlConnectionProfileRef,
 } from "../services/sqlDataPlane/api";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
-import {
-    DataPlaneMetadataSessionSource,
-    MetadataService,
-    MetadataStatus,
-} from "../services/metadata/metadataService";
+import { MetadataStatus } from "../services/metadata/metadataService";
+import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
+import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
     buildAuthBundle,
     buildProfileRef,
+    prepareConnection,
     resolveAuthKind,
 } from "../services/metadata/profileAuthAdapter";
 import { QsConnectionState } from "../sharedInterfaces/queryStudio";
@@ -71,8 +70,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private lastStore: ConnectionStoreSeam | undefined;
     private lastAuthKind: "sql" | "integrated" | undefined;
     private onChangeHandlers = new Set<() => void>();
-    private metadataService: MetadataService | undefined;
-    private metadataHandle: ReturnType<MetadataService["acquire"]> | undefined;
+    private metadataLease: DatabaseCatalogLease | undefined;
     metadataStatus: MetadataStatus | undefined;
 
     onDidChange(handler: () => void): vscode.Disposable {
@@ -411,35 +409,26 @@ export class DocumentSessionBinding implements vscode.Disposable {
         return true;
     }
 
+    /**
+     * Catalog acquisition now goes through the SHARED MetadataStore (MD-4):
+     * one lease per {server, database} key across all features. Releasing a
+     * lease leaves the engine warm for the store's idle TTL, so reconnect
+     * and database switches re-acquire instantly.
+     */
     private acquireMetadata(
-        profileRef: SqlConnectionProfileRef,
+        _profileRef: SqlConnectionProfileRef,
         store: ConnectionStoreSeam,
-        authKind: "sql" | "integrated",
+        _authKind: "sql" | "integrated",
     ): void {
         void (async () => {
             try {
-                const service = await SqlDataPlaneService.get().service();
-                const source = new DataPlaneMetadataSessionSource(service, {
-                    profile: profileRef,
-                    applicationName: "vscode-mssql-metadata",
-                    auth: {
-                        passwordProvider: async () =>
-                            authKind === "sql"
-                                ? store.lookupPassword(this.lastStoredProfile ?? {})
-                                : undefined,
-                    },
-                });
-                this.metadataService = new MetadataService(source);
-                this.metadataHandle = this.metadataService.acquire(
-                    {
-                        serverFingerprint: profileRef.profileFingerprint,
-                        database: this.connectionState.database ?? "",
-                    },
-                    (status) => {
+                const prepared = prepareConnection(this.lastStoredProfile ?? {}, store);
+                this.metadataLease = await MetadataStoreService.get()
+                    .store()
+                    .acquireDatabase(prepared, this.connectionState.database ?? "", (status) => {
                         this.metadataStatus = status;
                         this.fireChange();
-                    },
-                );
+                    });
             } catch {
                 // Metadata is an enhancement; connect stays healthy without it.
             }
@@ -448,18 +437,16 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     /** DDL sniff feed (metadata design §9.1). */
     notifyExecutedBatch(text: string, succeeded: boolean): void {
-        this.metadataHandle?.notifyExecutedBatch({ text, succeeded });
+        this.metadataLease?.notifyExecutedBatch({ text, succeeded });
     }
 
-    get metadataHandleForConsumers(): ReturnType<MetadataService["acquire"]> | undefined {
-        return this.metadataHandle;
+    get metadataHandleForConsumers(): DatabaseCatalogLease | undefined {
+        return this.metadataLease;
     }
 
     private releaseMetadata(): void {
-        this.metadataHandle?.dispose();
-        this.metadataHandle = undefined;
-        this.metadataService?.dispose();
-        this.metadataService = undefined;
+        this.metadataLease?.dispose();
+        this.metadataLease = undefined;
         this.metadataStatus = undefined;
     }
 

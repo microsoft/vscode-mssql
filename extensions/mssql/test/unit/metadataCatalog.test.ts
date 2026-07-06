@@ -8,8 +8,9 @@
  * (H1–H3 + FK), SoA snapshot reads (resolveName exact/defaultSchema/
  * ambiguous + case-sensitive policy, prefix search, columns), deterministic
  * schema-context projection (byte-identical, budget degradation, privacy
- * gate, FK one-hop), DDL sniff → refresh, and honest section failure
- * (columns failed ⇒ partial, never empty-ready).
+ * gate, FK one-hop), DDL sniff → refresh, honest section failure
+ * (columns failed ⇒ partial, never empty-ready), and OE v2 details
+ * (key-constraint names/kinds in key order, reverse FK column pairs).
  */
 
 import { expect } from "chai";
@@ -41,10 +42,22 @@ function sysScripts(overrides?: { columnsFail?: boolean }): FakeScript[] {
             events: [
                 {
                     type: "resultSet",
-                    columns: ["object_id", "name"],
+                    columns: [
+                        "object_id",
+                        "name",
+                        "index_name",
+                        "is_primary_key",
+                        "is_unique_constraint",
+                    ],
+                    // Bit columns arrive as boolean OR 0/1 depending on the
+                    // wire; both forms appear here on purpose. The unique
+                    // constraint's key order (Name before CustomerId)
+                    // deliberately differs from column_id order.
                     rows: [
-                        [101, "OrderId"],
-                        [102, "CustomerId"],
+                        [101, "OrderId", "PK_Orders", true, false],
+                        [102, "CustomerId", "PK_Customers", 1, 0],
+                        [102, "Name", "UQ_Customers_Name", false, true],
+                        [102, "CustomerId", "UQ_Customers_Name", 0, 1],
                     ],
                 },
                 { type: "complete", status: "succeeded" },
@@ -238,6 +251,74 @@ suite("Metadata catalog (B5)", () => {
         expect(
             snapshot.getParameters(105).map((p) => `${p.name}:${p.typeDisplay}:${p.isOutput}`),
         ).to.deep.equal(["@CustomerId:int:false", "@Total:decimal(18,2):true"]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("key constraints (OE v2): PK names + columns in key order via getKeyConstraints", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(snapshot.getKeyConstraints(101)).to.deep.equal([
+            { name: "PK_Orders", kind: "primaryKey", columns: ["OrderId"] },
+        ]);
+        // Key-ordinal order is preserved (Name before CustomerId), not
+        // column_id order.
+        expect(snapshot.getKeyConstraints(102)).to.deep.equal([
+            { name: "PK_Customers", kind: "primaryKey", columns: ["CustomerId"] },
+            {
+                name: "UQ_Customers_Name",
+                kind: "uniqueConstraint",
+                columns: ["Name", "CustomerId"],
+            },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("key constraints (OE v2): unique-constraint columns are never PK-marked", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        // UQ_Customers_Name covers Name and CustomerId; the PK column set
+        // stays exactly the is_primary_key rows — no Name, no duplicate.
+        expect(snapshot.getPrimaryKeyColumns(102)).to.deep.equal(["CustomerId"]);
+        const kinds = snapshot.getKeyConstraints(102).map((c) => c.kind);
+        expect(kinds).to.deep.equal(["primaryKey", "uniqueConstraint"]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("reverse FK details (OE v2): getForeignKeyDetailsTo serves column pairs", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        // FK 900 is Orders(101) → Customers(102); Customers sees the reverse
+        // edge with the same per-constraint column pairs.
+        expect(snapshot.getForeignKeyDetailsTo(102)).to.deep.equal([
+            {
+                fromObjectId: 101,
+                toObjectId: 102,
+                name: "FK_Orders_Customers",
+                columns: [{ fromColumn: "CustomerId", toColumn: "CustomerId" }],
+            },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("key/FK details: objects without constraints or referencing FKs return []", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(snapshot.getKeyConstraints(103)).to.deep.equal([]);
+        expect(snapshot.getKeyConstraints(9999)).to.deep.equal([]);
+        expect(snapshot.getForeignKeyDetailsTo(101)).to.deep.equal([]);
+        expect(snapshot.getForeignKeyDetailsTo(9999)).to.deep.equal([]);
         handle.dispose();
         service.dispose();
     });

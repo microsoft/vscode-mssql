@@ -87,10 +87,12 @@ const H0_ENV =
     "COALESCE(CAST(SCHEMA_NAME() AS sysname), 'dbo') AS default_schema, " +
     "CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(128)) AS collation_name;";
 const H4_KEYS =
-    "SELECT ic.object_id, c.name FROM sys.indexes i " +
+    "SELECT ic.object_id, c.name, i.name AS index_name, i.is_primary_key, i.is_unique_constraint " +
+    "FROM sys.indexes i " +
     "JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id " +
     "JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id " +
-    "WHERE i.is_primary_key = 1 ORDER BY ic.object_id, ic.key_ordinal;";
+    "WHERE i.is_primary_key = 1 OR i.is_unique_constraint = 1 " +
+    "ORDER BY ic.object_id, i.index_id, ic.key_ordinal;";
 const H5B_FOREIGN_KEY_COLUMNS =
     "SELECT fkc.constraint_object_id, pc.name AS parent_column, rc.name AS referenced_column " +
     "FROM sys.foreign_key_columns fkc " +
@@ -442,11 +444,26 @@ export class MetadataService {
             } catch {
                 columnsFailed = true; // publish failed, never pretend-empty (§7.4)
             }
-            // H4 primary key columns
+            // H4 key constraints (PK columns keep their dedicated marking;
+            // unique-constraint columns are recorded but never PK-marked)
             let keysFailed = false;
             try {
                 for (const row of await this.rows(session, H4_KEYS, "metadata:H4")) {
-                    builder.markPrimaryKeyColumn(Number(row[0]), String(row[1]));
+                    const objectId = Number(row[0]);
+                    const columnName = String(row[1]);
+                    const isPrimaryKey = row[3] === true || row[3] === 1;
+                    const isUniqueConstraint = row[4] === true || row[4] === 1;
+                    if (isPrimaryKey) {
+                        builder.markPrimaryKeyColumn(objectId, columnName);
+                    }
+                    if (isPrimaryKey || isUniqueConstraint) {
+                        builder.addKeyConstraintColumn(
+                            objectId,
+                            String(row[2]),
+                            isPrimaryKey ? "primaryKey" : "uniqueConstraint",
+                            columnName,
+                        );
+                    }
                 }
             } catch {
                 keysFailed = true;

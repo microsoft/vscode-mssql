@@ -226,17 +226,23 @@ export class MetadataStore {
         if (!entry) {
             const connection = await this.service();
             // KEY-CORRECT by construction: the dedicated session opens IN the
-            // requested database (preview-safe strategy, design §6.1).
+            // requested database (preview-safe strategy, design §6.1). An
+            // empty database means "profile default" — no explicit context,
+            // and the correctness check does not apply.
             const inner = new DataPlaneMetadataSessionSource(connection, {
                 profile: prepared.profileRef,
-                database: key.database,
+                ...(key.database ? { database: key.database } : {}),
                 applicationName: "vscode-mssql-metadata",
                 auth: prepared.auth,
             });
             const source: MetadataSessionSource = {
                 open: async () => {
                     const session = await inner.open();
-                    if (session.info.database && session.info.database !== key.database) {
+                    if (
+                        key.database &&
+                        session.info.database &&
+                        session.info.database !== key.database
+                    ) {
                         this.violations++;
                         diag.emit({
                             feature: "metadata",
