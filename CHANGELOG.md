@@ -1,5 +1,24 @@
 # Change Log
 
+## Version 1.44.0
+
+- Release date: July 15, 2026
+- Release status: GA
+
+### What's new in 1.44.0
+
+- Added customizable query execution shortcuts (Preview), letting you define your own saved queries and run them with keybindings. Enable with `mssql.preview.shortcutsConfiguration`.
+- Added an option to include timestamps when using Copy All in the Messages panel (`mssql.messages.copyIncludeTimestamps`)
+- Added an option to disable the "Results copied to clipboard" notification, and an "Open File" action to the export-success notification in Query Results
+- Added a warning when a rename or refactor in SQL Database Projects would create a duplicate object name
+- Fixed authentication that broke when connecting to Dataverse/Dynamics environments starting in 1.42.0
+- Fixed unstable Azure SQL connections that could become stale and require restarting VS Code to reconnect
+- Fixed Schema Designer to allow creating multiple foreign keys in a single batch, and removed the "Visualize and Design Schema" and "Build Data API" actions that incorrectly appeared on the server node
+- Fixed an issue in Schema Compare where controls remained enabled and stale diff results stayed visible after apply, which could cause subsequent apply attempts to fail, and added a loading indicator during the apply operation
+- Fixed DACPAC deployment failures on Linux/WSL2 caused by invalid path separators
+- Fixed SQL Database Projects Go-To-Definition on macOS and Linux
+- Fixed the Object Explorer stored procedure filter dialog not loading
+
 ## Version 1.43.0
 
 - Release date: June 2, 2026
