@@ -23,6 +23,17 @@
  * bridge push-forwarding is gated off the native route (mutual exclusion).
  * mssql.sqlLanguage.diagnostics.enabled=false makes the native engine
  * publish nothing (markers clear); the bridge path is unaffected.
+ *
+ * Diagnostics freshness (CACHE-5, cache/drift addendum §7.3): before every
+ * native pass this facade — the owner of the document→lease binding —
+ * resolves ensureFresh(MetadataPolicies.diagnosticsBinder) on the metadata
+ * lease and hands the verdict INTO the pure engine as data. The 250ms wait
+ * budget is a race (addendum C-9), backstopped host-side so a misbehaving
+ * lease can never block the pass: on miss the verdict is "notValidated" and
+ * the engine suppresses binder claims (counted `metadataNotValidated`; T1
+ * continues unchanged). Drift cancels mid-pass (metadata generation moved,
+ * same document version) keep their silent restart and are now counted as
+ * `metadataStale` on the next published pass.
  */
 
 import * as vscode from "vscode";
@@ -36,7 +47,9 @@ import {
     HoverResult,
     SignatureHelpResult,
     SqlLanguagePosition,
+    SqlMetadataFreshnessVerdict,
 } from "../sqlLanguage/api";
+import { MetadataPolicies } from "../services/metadata/cache/metadataFreshness";
 import { Sts2BridgeEngine } from "../sqlLanguage/host/bridgeEngine";
 import { NativeSqlLanguageEngine } from "../sqlLanguage/host/nativeEngine";
 import {
@@ -47,6 +60,7 @@ import {
 import {
     DiagnosticsSchedulerState,
     SlicedDiagnosticsScheduler,
+    isMetadataDriftCancel,
 } from "../sqlLanguage/host/scheduler";
 import {
     CatalogLanguageMetadataProvider,
@@ -111,6 +125,8 @@ export class QueryStudioLanguageService implements vscode.Disposable {
     private readonly diagnosticsScheduler: SlicedDiagnosticsScheduler;
     private diagnosticsSuppressionCounts: Readonly<Record<string, number>> = {};
     private lastDiagnosticsPassVersion: number | undefined;
+    /** Drift cancels awaiting the next publish (merged as `metadataStale`). */
+    private pendingMetadataStale = 0;
 
     private readonly disposables: vscode.Disposable[] = [];
     private readonly diagnosticsListeners = new Set<() => void>();
@@ -188,11 +204,34 @@ export class QueryStudioLanguageService implements vscode.Disposable {
                     stamp: `${document.version}:${this.provider.generation}`,
                 };
             },
-            createPass: (text, version) => this.nativeEngine.diagnosticsPass({ text, version }),
+            // CACHE-5 (§7.3): resolve the freshness verdict first (bounded —
+            // see diagnosticsFreshnessVerdict), then build the pass with the
+            // verdict as data. The scheduler re-checks staleness after the
+            // await, so verdict resolution never races the stamp.
+            createPass: async (text, version) =>
+                this.nativeEngine.diagnosticsPass({
+                    text,
+                    version,
+                    metadataFreshness: await this.diagnosticsFreshnessVerdict(),
+                }),
             publish: (result, version) => {
                 this.lastDiagnosticsPassVersion = version;
-                this.diagnosticsSuppressionCounts = { ...(result.suppressed ?? {}) };
+                const counts: Record<string, number> = { ...(result.suppressed ?? {}) };
+                // Drift cancels since the last publish ride the same counted
+                // suppression surface (reason -> count, never identifiers).
+                if (this.pendingMetadataStale > 0) {
+                    counts.metadataStale = (counts.metadataStale ?? 0) + this.pendingMetadataStale;
+                    this.pendingMetadataStale = 0;
+                }
+                this.diagnosticsSuppressionCounts = counts;
                 this.notifyDiagnosticsListeners();
+            },
+            onStaleCancel: (started, current) => {
+                // Keep the silent restart (the provider-change listener
+                // already reschedules); just count the drift (§7.3).
+                if (isMetadataDriftCancel(started, current)) {
+                    this.pendingMetadataStale++;
+                }
             },
         });
         this.disposables.push(
@@ -220,6 +259,46 @@ export class QueryStudioLanguageService implements vscode.Disposable {
 
     private diagnosticsEnabled(): boolean {
         return vscode.workspace.getConfiguration().get<boolean>(DIAGNOSTICS_ENABLED_SETTING, true);
+    }
+
+    /**
+     * Resolve the diagnostics-binder freshness verdict for the current
+     * document→lease binding (CACHE-5, addendum §7.3/§4). ensureFresh's
+     * timeoutMs is already a wait budget (a race, C-9); the host-side
+     * backstop timer below guarantees the pass can never block past the
+     * budget even on a lease that never settles. Validation miss, timeout,
+     * or failure all yield "notValidated" — diagnostics suppress, they do
+     * not block. No lease bound means there is nothing to validate; the
+     * provider readiness ladder (providerNotReady et al.) owns honesty then.
+     */
+    private async diagnosticsFreshnessVerdict(): Promise<SqlMetadataFreshnessVerdict> {
+        const handle = this.metadataHandle();
+        if (handle === undefined) {
+            return "validated";
+        }
+        const policy = MetadataPolicies.diagnosticsBinder;
+        const backstopMs = (policy.timeoutMs ?? 250) + 50;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+            const result = await Promise.race([
+                handle.ensureFresh(policy),
+                new Promise<undefined>((resolve) => {
+                    timer = setTimeout(() => resolve(undefined), backstopMs);
+                }),
+            ]);
+            if (result === undefined) {
+                return "notValidated"; // backstop won — lease overran the budget
+            }
+            return result.freshness === "validated" || result.freshness === "live"
+                ? "validated"
+                : "notValidated";
+        } catch {
+            return "notValidated";
+        } finally {
+            if (timer !== undefined) {
+                clearTimeout(timer);
+            }
+        }
     }
 
     /** Debounce a native pass — or clear when disabled / routed elsewhere. */
@@ -363,18 +442,24 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         return this.router.route("definition", (e) => e.definition(this.request(position)));
     }
 
-    diagnostics(): Promise<DiagnosticsResult | undefined> {
+    async diagnostics(): Promise<DiagnosticsResult | undefined> {
         // Disabled = the native engine publishes NOTHING (an empty result so
         // previously published markers clear). Bridge routing is unaffected.
-        if (
-            this.router.effectiveEngine("diagnostics") === "nativeTypeScript" &&
-            !this.diagnosticsEnabled()
-        ) {
-            return Promise.resolve({ diagnostics: [] });
+        const native = this.router.effectiveEngine("diagnostics") === "nativeTypeScript";
+        if (native && !this.diagnosticsEnabled()) {
+            return { diagnostics: [] };
         }
         const req = this.request({ line: 0, character: 0 });
+        // Native pulls carry the same freshness verdict as scheduled passes
+        // (a pull right after a pass memo-hits: same version/generation/
+        // verdict). The bridge path never sees the field.
+        const metadataFreshness = native ? await this.diagnosticsFreshnessVerdict() : undefined;
         return this.router.route("diagnostics", (e) =>
-            e.diagnostics({ text: req.text, version: req.version }),
+            e.diagnostics({
+                text: req.text,
+                version: req.version,
+                ...(metadataFreshness !== undefined ? { metadataFreshness } : {}),
+            }),
         );
     }
 
