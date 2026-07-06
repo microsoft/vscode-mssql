@@ -4759,7 +4759,7 @@
             },
             {
                 "name": "mssql_cd_list_environments",
-                "modelDescription": "List all Cloud Deploy environments declared in the current workspace's .mssql/environments.json. Returns each environment's id, name, source of truth (sqlproj/dacpac/connection), and enabled validation gates. Use this to discover which environments exist before describing or validating one.",
+                "modelDescription": "List all Cloud Deploy environments declared in the current workspace's .mssql/environments.json. Returns each environment's id, name, source of truth (sqlproj/dacpac/connection), and enabled validation gates. Use this to discover which environments exist before describing or validating one. After picking one, inspect it with mssql_cd_describe_environment or run its gates with mssql_cd_validate_environment.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4775,7 +4775,7 @@
             },
             {
                 "name": "mssql_cd_describe_environment",
-                "modelDescription": "Return the full stored configuration of a single Cloud Deploy environment by id: its source of truth, optional data-generator script, and every validation gate with its settings. Use mssql_cd_list_environments first to find valid ids.",
+                "modelDescription": "Return the full stored configuration of a single Cloud Deploy environment by id: its source of truth, optional data-generator script, and every validation gate with its settings. Use mssql_cd_list_environments first to find valid ids. To run its gates, use mssql_cd_validate_environment.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4803,7 +4803,7 @@
             },
             {
                 "name": "mssql_cd_create_environment",
-                "modelDescription": "Create or update a Cloud Deploy environment in .mssql/environments.json. Provide an id, a display name, and a source of truth (kind 'sqlproj' or 'dacpac' with a 'path', or kind 'connection' with a 'connectionProfileId'). Optionally list the validations to enable (connectivity, static-analysis, unit-tests, workload-playback); when omitted, connectivity and static-analysis are enabled. If a required field is missing, the tool returns { status: 'needs_input', missing: [...] } naming the fields (and valid options) to ask the user for — do NOT guess values; ask the user, then call again.",
+                "modelDescription": "Create or update a Cloud Deploy environment in .mssql/environments.json. Provide an id, a display name, and a source of truth (kind 'sqlproj' or 'dacpac' with a 'path', or kind 'connection' with a 'connectionProfileId'). Optionally list the validations to enable (connectivity, static-analysis, unit-tests, workload-playback); when omitted, connectivity and static-analysis are enabled. If a required field is missing, the tool returns { status: 'needs_input', missing: [...] } naming the fields (and valid options) to ask the user for — do NOT guess values; ask the user, then call again. After it is created, validate it with mssql_cd_validate_environment.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4880,7 +4880,7 @@
             },
             {
                 "name": "mssql_cd_validate_environment",
-                "modelDescription": "Run every enabled validation gate for a Cloud Deploy environment and return the structured result: an overall status, a gates-passed/total tally, and each gate with its concrete findings (rule id, message, file, and line for static analysis; failing test names; workload regressions). Provisions a throwaway database when a gate needs one. Use the returned findings to explain failures and propose fixes. Use mssql_cd_list_environments to find valid ids.",
+                "modelDescription": "Run every enabled validation gate for a Cloud Deploy environment and return the structured result: an overall status, a gates-passed/total tally, and each gate with its concrete findings (rule id, message, file, and line for static analysis; failing test names; workload regressions). Provisions a throwaway database when a gate needs one, so Docker must be running for database-backed gates. Use the returned findings to explain failures and propose fixes. Use mssql_cd_list_environments to find valid ids. After a failing gate, open the referenced file (findings carry file and line), fix it, and call this tool again to confirm the gates are green before committing or pushing.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4909,7 +4909,7 @@
             },
             {
                 "name": "mssql_cd_get_run_result",
-                "modelDescription": "Read a recorded Cloud Deploy run and return its structured results (rollup status, gates-passed/total, and per-gate findings). Provide a runId, or an environmentId to get its latest run. With neither, returns a list of the most recent runs (runId, environment, status, time) so you can pick one.",
+                "modelDescription": "Read a recorded Cloud Deploy run and return its structured results (rollup status, gates-passed/total, and per-gate findings). Provide a runId, or an environmentId to get its latest run. With neither, returns a list of the most recent runs (runId, environment, status, time) so you can pick one. To compare two runs (e.g. a local run against a CI run), use mssql_cd_diff_runs.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4940,7 +4940,7 @@
             },
             {
                 "name": "mssql_cd_diff_runs",
-                "modelDescription": "Compare two Cloud Deploy runs and return the per-gate deltas (status change, finding-count delta, duration delta) plus the list of gates that changed. Use it to report what changed between a local run and CI, or a candidate against its base. Provide baseRunId and candidateRunId, or an environmentId to diff its latest two runs.",
+                "modelDescription": "Compare two Cloud Deploy runs and return the per-gate deltas (status change, finding-count delta, duration delta) plus the list of gates that changed. Use it to report what changed between a local run and CI, or a candidate against its base. Provide baseRunId and candidateRunId, or an environmentId to diff its latest two runs. To pull a CI run in first, use mssql_cd_import_run.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4976,7 +4976,7 @@
             },
             {
                 "name": "mssql_cd_import_run",
-                "modelDescription": "Import an external Cloud Deploy run artifact (a .cdrun.zip, e.g. downloaded from a CI workflow run with 'gh run download') and return its structured results, so you can report on a PR's CI check locally. Set persist:true to also copy it into the workspace runs directory so it appears in the dashboard and can be diffed against local runs. artifactPath may be absolute or relative to the workspace root.",
+                "modelDescription": "Import an external Cloud Deploy run artifact (a .cdrun.zip, e.g. downloaded from a CI workflow run with 'gh run download') and return its structured results, so you can report on a PR's CI check locally. Set persist:true to also copy it into the workspace runs directory so it appears in the dashboard and can be diffed against local runs. artifactPath may be absolute or relative to the workspace root. If 'gh' is not installed, ask the user to install it (winget install --id GitHub.cli) and run 'gh auth login' rather than scraping credentials. After importing with persist:true, use mssql_cd_diff_runs to compare it against your local run.",
                 "tags": [
                     "databases",
                     "mssql",
