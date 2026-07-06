@@ -13,6 +13,6 @@ jobs:
         run: |
           curl -X POST \
             "https://dev.azure.com/msdata/SQLToolsAndLibraries/_apis/pipelines/34537/runs?api-version=7.0" \
-            -H "Authorization: Basic $(echo -n :${{ secrets.ADO_PAT }} | base64)" \
+            -H "Authorization: Basic $(echo -n :${{ secrets.ADO_BUDDY_PAT }} | base64)" \
             -H "Content-Type: application/json" \
             -d '{"resources":{"repositories":{"vscode-mssql":{"refName":"refs/tags/${{ github.ref_name }}"}}}}'
