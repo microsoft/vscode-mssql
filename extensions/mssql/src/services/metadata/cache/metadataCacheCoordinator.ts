@@ -53,6 +53,7 @@ import {
 } from "./metadataCacheManifest";
 import {
     CacheEntryKey,
+    CacheEntryListing,
     CacheMissReason,
     computeDatabaseHash,
     EvictionSummary,
@@ -451,6 +452,14 @@ export class MetadataCacheCoordinator {
 
     async clearForConnection(key: CacheEntryKey): Promise<void> {
         await this.store.clearForKey(key);
+    }
+
+    /**
+     * Current disk entries with exact keys, for the clearForConnection quick
+     * pick (CACHE-6). LOCAL display only — never log the database names.
+     */
+    listEntries(): Promise<readonly CacheEntryListing[]> {
+        return this.store.listEntries();
     }
 
     /**

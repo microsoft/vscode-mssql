@@ -1371,6 +1371,16 @@ export default class MainController implements vscode.Disposable {
             legacyConnections: this._connectionMgr,
         });
 
+        // H-3 poll governance host facts (CACHE-5): window focus gates the
+        // digest poll (suspend after >2 min unfocused, immediate tick on
+        // refocus) and mssql.metadata.pollSeconds rides through as the
+        // internal base cadence — engines stay vscode-free by injection.
+        MetadataStoreService.get().configureHost({
+            isActive: () => vscode.window.state.focused,
+            pollSeconds: () =>
+                vscode.workspace.getConfiguration("mssql.metadata").get<number>("pollSeconds", 60),
+        });
+
         // Persistent metadata snapshot cache (CACHE-3): configured before
         // the first store() consumer; inert unless
         // mssql.metadataCache.enabled (default false). Eviction hygiene
@@ -1416,6 +1426,37 @@ export default class MainController implements vscode.Disposable {
                 }
                 await coordinator.clearAll();
                 void vscode.window.showInformationMessage("MSSQL metadata cache cleared.");
+            }),
+            vscode.commands.registerCommand("mssql.metadataCache.clearForConnection", async () => {
+                const coordinator = MetadataStoreService.get().cache();
+                if (!coordinator) {
+                    void vscode.window.showInformationMessage(
+                        "The metadata cache is not enabled (mssql.metadataCache.enabled).",
+                    );
+                    return;
+                }
+                const entries = await coordinator.listEntries();
+                if (entries.length === 0) {
+                    void vscode.window.showInformationMessage(
+                        "The metadata cache has no entries to clear.",
+                    );
+                    return;
+                }
+                // Fingerprint prefix + database name render in the LOCAL
+                // quick pick only — never logged (base §8.3 redaction).
+                const picked = await vscode.window.showQuickPick(
+                    entries.map((entry) => ({
+                        label: entry.key.database,
+                        description: `${entry.key.serverFingerprint.slice(0, 12)}… · captured ${entry.capturedAtUtc}`,
+                        entry,
+                    })),
+                    { title: "Clear cached metadata for a connection" },
+                );
+                if (!picked) {
+                    return;
+                }
+                await coordinator.clearForConnection(picked.entry.key);
+                void vscode.window.showInformationMessage("MSSQL metadata cache entry cleared.");
             }),
             vscode.commands.registerCommand("mssql.metadataCache.enableOfflineMode", () =>
                 vscode.workspace

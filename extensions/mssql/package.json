@@ -1942,6 +1942,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.metadataCache.clearForConnection",
+                "title": "Metadata Cache: Clear for Connection",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.metadataCache.enableOfflineMode",
                 "title": "Metadata Cache: Enable Offline Mode",
                 "category": "MS SQL"
@@ -3593,6 +3598,13 @@
                     "default": 268435456,
                     "minimum": 1048576,
                     "description": "Total size cap for the persisted metadata cache (least-recently-used entries evicted first).",
+                    "scope": "application"
+                },
+                "mssql.metadata.pollSeconds": {
+                    "type": "number",
+                    "default": 60,
+                    "minimum": 0,
+                    "markdownDescription": "Internal/dogfood: base cadence in seconds for the background metadata drift digest poll (0 disables). Per-database backoff (up to 5× when nothing changes), window-focus suspension, and serverless auto-pause reduction apply on top of this base.",
                     "scope": "application"
                 },
                 "mssql.metadataCache.offlineMode": {

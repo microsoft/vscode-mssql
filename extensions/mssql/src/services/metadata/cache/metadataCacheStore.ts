@@ -195,6 +195,17 @@ export interface EvictionSummary {
     readonly totalBytesAfter: number;
 }
 
+/**
+ * One current disk entry with its EXACT key material (from the manifest's
+ * databaseExact). LOCAL pickers only — database names must never be logged
+ * from this shape (base §8.3; events use hash prefixes).
+ */
+export interface CacheEntryListing {
+    readonly key: CacheEntryKey;
+    readonly capturedAtUtc: string;
+    readonly payloadBytes: number;
+}
+
 interface CacheIndexEntry {
     serverFingerprint: string;
     databaseHash: string;
@@ -850,6 +861,30 @@ export class MetadataCacheStore {
             }
         }
         return entries;
+    }
+
+    /**
+     * Enumerate current entries with exact keys (CACHE-6 clearForConnection
+     * picker). Scans manifests — entries without a readable manifest or a
+     * databaseExact cannot be keyed and are omitted (eviction owns them).
+     */
+    async listEntries(): Promise<readonly CacheEntryListing[]> {
+        const out: CacheEntryListing[] = [];
+        for (const scanned of await this.scanEntries()) {
+            const manifest = scanned.manifest;
+            if (manifest === undefined || manifest.key.databaseExact === undefined) {
+                continue;
+            }
+            out.push({
+                key: {
+                    serverFingerprint: manifest.key.serverFingerprint,
+                    database: manifest.key.databaseExact,
+                },
+                capturedAtUtc: manifest.capture.capturedAtUtc,
+                payloadBytes: manifest.stats.payloadBytes,
+            });
+        }
+        return out;
     }
 
     /** Quick counts for status surfaces (index-backed, no payload reads). */

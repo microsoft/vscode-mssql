@@ -824,6 +824,39 @@ suite("Metadata cache store (CACHE-2): eviction and index", () => {
         expect(fs.files.has(manifestPathOf(goodKey))).to.equal(true);
     });
 
+    test("listEntries returns exact keys from manifests; unkeyable entries are omitted (CACHE-6)", async () => {
+        const fs = new MemFs();
+        const store = makeStore(fs);
+        const orders = keyOf("OrdersDb");
+        const sales = keyOf("SalesDb");
+        const nameless = keyOf("NamelessDb");
+        await writeRawEntry(store, orders, { capturedAtUtc: "2026-07-01T10:00:00.000Z" });
+        await writeRawEntry(store, sales, { capturedAtUtc: "2026-07-02T10:00:00.000Z" });
+        await writeRawEntry(store, nameless, { capturedAtUtc: "2026-07-03T10:00:00.000Z" });
+        // A manifest without databaseExact cannot be keyed for clearForKey.
+        tamperManifest(fs, nameless, (manifest) => {
+            delete (manifest.key as Record<string, unknown>).databaseExact;
+        });
+        // Corrupt manifests contribute nothing (eviction owns them).
+        const corruptDir = `${ROOT}/v1/databases/${serverFingerprintSegment(SFP)}/dbh_corruptcorruptcorr00`;
+        fs.files.set(`${corruptDir}/manifest.json`, Buffer.from("{ not json", "utf8"));
+        const listed = await store.listEntries();
+        expect(listed.map((entry) => entry.key.database).sort()).to.deep.equal([
+            "OrdersDb",
+            "SalesDb",
+        ]);
+        for (const entry of listed) {
+            expect(entry.key.serverFingerprint).to.equal(SFP);
+            expect(entry.payloadBytes).to.be.greaterThan(0);
+        }
+        expect(listed.find((entry) => entry.key.database === "OrdersDb")!.capturedAtUtc).to.equal(
+            "2026-07-01T10:00:00.000Z",
+        );
+        // clearForKey over a listed key removes exactly that entry.
+        await store.clearForKey(listed[0].key);
+        expect((await store.listEntries()).length).to.equal(1);
+    });
+
     test("index rebuild from manifests: corrupt index.json is reconstructed, never trusted", async () => {
         const fs = new MemFs();
         const store = makeStore(fs);
