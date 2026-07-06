@@ -68,6 +68,7 @@ import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFea
 import { getSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import {
+    DIAGNOSTICS_ENABLED_SETTING,
     LANGUAGE_ENGINE_SETTING,
     LanguageServiceStatus,
     QueryStudioLanguageService,
@@ -151,6 +152,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             vscode.workspace.onDidChangeConfiguration((e) => {
                 if (e.affectsConfiguration(LANGUAGE_ENGINE_SETTING)) {
                     this.languageService.onPreferenceChanged();
+                }
+                if (e.affectsConfiguration(DIAGNOSTICS_ENABLED_SETTING)) {
+                    this.languageService.onDiagnosticsSettingChanged();
                 }
                 if (
                     e.affectsConfiguration("mssql.resultsFontFamily") ||

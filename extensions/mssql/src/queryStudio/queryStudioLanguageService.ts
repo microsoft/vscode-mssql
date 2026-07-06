@@ -16,6 +16,13 @@
  * next bridge request), torn down on dispose. connectionManager's
  * onDidCloseTextDocument disconnect is the safety net when the backing
  * document dies first.
+ *
+ * Diagnostics (B10/LS-2): when the router serves diagnostics natively, a
+ * per-document sliced scheduler (300ms debounce, stale-version cancel) runs
+ * whole-document passes and pushes through the diagnosticsChanged listeners;
+ * bridge push-forwarding is gated off the native route (mutual exclusion).
+ * mssql.sqlLanguage.diagnostics.enabled=false makes the native engine
+ * publish nothing (markers clear); the bridge path is unaffected.
  */
 
 import * as vscode from "vscode";
@@ -38,6 +45,10 @@ import {
     RouterStatusEntry,
 } from "../sqlLanguage/host/router";
 import {
+    DiagnosticsSchedulerState,
+    SlicedDiagnosticsScheduler,
+} from "../sqlLanguage/host/scheduler";
+import {
     CatalogLanguageMetadataProvider,
     MetadataCatalogHandle,
 } from "../sqlLanguage/provider/catalogProvider";
@@ -45,6 +56,7 @@ import { LanguageReadiness } from "../sqlLanguage/provider/types";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 
 export const LANGUAGE_ENGINE_SETTING = "mssql.queryStudio.languageService.engine";
+export const DIAGNOSTICS_ENABLED_SETTING = "mssql.sqlLanguage.diagnostics.enabled";
 
 interface ConnectionManagerSeam {
     connect(
@@ -69,12 +81,21 @@ export interface QueryStudioLanguageServiceHost {
     databases(): readonly string[] | undefined;
 }
 
+export interface LanguageServiceDiagnosticsStatus {
+    readonly enabled: boolean;
+    readonly scheduler: DiagnosticsSchedulerState;
+    readonly lastPassVersion?: number;
+    /** Suppression counts BY REASON from the last native pass — never text. */
+    readonly suppressionCounts: Readonly<Record<string, number>>;
+}
+
 export interface LanguageServiceStatus {
     readonly preference: LanguageEnginePreference;
     readonly router: readonly RouterStatusEntry[];
     readonly readiness: LanguageReadiness;
     readonly metadataGeneration: number;
     readonly shadowConnectionState: "none" | "connected" | "invalidated";
+    readonly diagnostics: LanguageServiceDiagnosticsStatus;
 }
 
 export class QueryStudioLanguageService implements vscode.Disposable {
@@ -86,6 +107,10 @@ export class QueryStudioLanguageService implements vscode.Disposable {
     private shadowState: "none" | "connected" | "invalidated" = "none";
     private shadowConnecting: Promise<boolean> | undefined;
     private shadowDatabase: string | undefined;
+
+    private readonly diagnosticsScheduler: SlicedDiagnosticsScheduler;
+    private diagnosticsSuppressionCounts: Readonly<Record<string, number>> = {};
+    private lastDiagnosticsPassVersion: number | undefined;
 
     private readonly disposables: vscode.Disposable[] = [];
     private readonly diagnosticsListeners = new Set<() => void>();
@@ -133,17 +158,82 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         }
 
         // Forward STS v1 published diagnostics for the backing URI (push path;
-        // the pull path is bridge.diagnostics()).
+        // the pull path is bridge.diagnostics()). MUTUAL EXCLUSION: when the
+        // router serves diagnostics natively, bridge/mssql-collection pushes
+        // must not double-report — the forwarding is gated on the route.
         this.disposables.push(
             vscode.languages.onDidChangeDiagnostics((e) => {
+                if (this.router.effectiveEngine("diagnostics") === "nativeTypeScript") {
+                    return;
+                }
                 const uri = this.host.backingDocument()?.uri.toString();
                 if (uri !== undefined && e.uris.some((u) => u.toString() === uri)) {
-                    for (const listener of [...this.diagnosticsListeners]) {
-                        listener();
-                    }
+                    this.notifyDiagnosticsListeners();
                 }
             }),
         );
+
+        // Native diagnostics: ~300ms debounce, sliced whole-document pass,
+        // stale-version cancel (design §11.3). The stamp carries the metadata
+        // generation so mid-hydration changes abort and re-run the pass.
+        this.diagnosticsScheduler = new SlicedDiagnosticsScheduler({
+            snapshot: () => {
+                const document = this.host.backingDocument();
+                if (document === undefined) {
+                    return undefined;
+                }
+                return {
+                    text: document.getText(),
+                    version: document.version,
+                    stamp: `${document.version}:${this.provider.generation}`,
+                };
+            },
+            createPass: (text, version) => this.nativeEngine.diagnosticsPass({ text, version }),
+            publish: (result, version) => {
+                this.lastDiagnosticsPassVersion = version;
+                this.diagnosticsSuppressionCounts = { ...(result.suppressed ?? {}) };
+                this.notifyDiagnosticsListeners();
+            },
+        });
+        this.disposables.push(
+            vscode.workspace.onDidChangeTextDocument((e) => {
+                const document = this.host.backingDocument();
+                if (
+                    document !== undefined &&
+                    e.document.uri.toString() === document.uri.toString()
+                ) {
+                    this.scheduleNativeDiagnostics();
+                }
+            }),
+        );
+        const providerUnsubscribe = this.provider.onDidChange(() =>
+            this.scheduleNativeDiagnostics(),
+        );
+        this.disposables.push({ dispose: providerUnsubscribe });
+    }
+
+    private notifyDiagnosticsListeners(): void {
+        for (const listener of [...this.diagnosticsListeners]) {
+            listener();
+        }
+    }
+
+    private diagnosticsEnabled(): boolean {
+        return vscode.workspace.getConfiguration().get<boolean>(DIAGNOSTICS_ENABLED_SETTING, true);
+    }
+
+    /** Debounce a native pass — or clear when disabled / routed elsewhere. */
+    private scheduleNativeDiagnostics(): void {
+        if (this.router.effectiveEngine("diagnostics") !== "nativeTypeScript") {
+            this.diagnosticsScheduler.cancel();
+            return;
+        }
+        if (!this.diagnosticsEnabled()) {
+            this.diagnosticsScheduler.cancel();
+            this.notifyDiagnosticsListeners(); // pull yields [] -> markers clear
+            return;
+        }
+        this.diagnosticsScheduler.notifyChange();
     }
 
     private binding(): DocumentSessionBinding | undefined {
@@ -169,6 +259,16 @@ export class QueryStudioLanguageService implements vscode.Disposable {
     /** Circuit breakers reset when the user flips the engine preference. */
     onPreferenceChanged(): void {
         this.router.resetCircuits();
+        // Route switch: the now-effective engine republishes (the pull path
+        // returns its markers; the stale engine's markers are replaced).
+        this.scheduleNativeDiagnostics();
+        this.notifyDiagnosticsListeners();
+    }
+
+    /** mssql.sqlLanguage.diagnostics.enabled changed. */
+    onDiagnosticsSettingChanged(): void {
+        this.scheduleNativeDiagnostics();
+        this.notifyDiagnosticsListeners();
     }
 
     onDiagnosticsChanged(listener: () => void): vscode.Disposable {
@@ -264,6 +364,14 @@ export class QueryStudioLanguageService implements vscode.Disposable {
     }
 
     diagnostics(): Promise<DiagnosticsResult | undefined> {
+        // Disabled = the native engine publishes NOTHING (an empty result so
+        // previously published markers clear). Bridge routing is unaffected.
+        if (
+            this.router.effectiveEngine("diagnostics") === "nativeTypeScript" &&
+            !this.diagnosticsEnabled()
+        ) {
+            return Promise.resolve({ diagnostics: [] });
+        }
         const req = this.request({ line: 0, character: 0 });
         return this.router.route("diagnostics", (e) =>
             e.diagnostics({ text: req.text, version: req.version }),
@@ -291,10 +399,17 @@ export class QueryStudioLanguageService implements vscode.Disposable {
             readiness: this.provider.readiness(),
             metadataGeneration: this.provider.generation,
             shadowConnectionState: this.shadowState,
+            diagnostics: {
+                enabled: this.diagnosticsEnabled(),
+                scheduler: this.diagnosticsScheduler.state,
+                lastPassVersion: this.lastDiagnosticsPassVersion,
+                suppressionCounts: this.diagnosticsSuppressionCounts,
+            },
         };
     }
 
     dispose(): void {
+        this.diagnosticsScheduler.dispose();
         for (const d of this.disposables) {
             d.dispose();
         }

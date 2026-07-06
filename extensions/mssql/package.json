@@ -3228,6 +3228,12 @@
                     "description": "Include T-SQL statement snippets in native language service completions.",
                     "scope": "application"
                 },
+                "mssql.sqlLanguage.diagnostics.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Publish native T-SQL language service diagnostics (syntax errors and schema warnings) in Query Studio when the native engine serves diagnostics. When false the native engine publishes nothing; SQL Tools Service diagnostics are unaffected.",
+                    "scope": "application"
+                },
                 "mssql.sqlLanguage.keywordCasing": {
                     "type": "string",
                     "enum": [

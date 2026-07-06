@@ -343,5 +343,21 @@ function renderLanguageServiceStatus(status: LanguageServiceStatus): string {
     lines.push(`  definitions: ${status.readiness.definitions}`);
     lines.push(`  mode:        ${status.readiness.mode}`);
     lines.push("");
+    lines.push("Diagnostics (native engine):");
+    lines.push(`  enabled:           ${status.diagnostics.enabled}`);
+    lines.push(`  scheduler:         ${status.diagnostics.scheduler}`);
+    lines.push(`  last pass version: ${status.diagnostics.lastPassVersion ?? "(none)"}`);
+    const reasons = Object.entries(status.diagnostics.suppressionCounts).sort(([a], [b]) =>
+        a.localeCompare(b),
+    );
+    if (reasons.length === 0) {
+        lines.push("  suppressions:      (none)");
+    } else {
+        lines.push("  suppressions by reason:");
+        for (const [reason, count] of reasons) {
+            lines.push(`    ${reason.padEnd(28)}${count}`);
+        }
+    }
+    lines.push("");
     return lines.join("\n");
 }
