@@ -27,6 +27,8 @@ import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTree
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
+import { MetadataStoreService } from "../services/metadata/metadataStoreService";
+import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -1368,6 +1370,64 @@ export default class MainController implements vscode.Disposable {
             // legacy-handoff door (oe_view_design §12) — never for browse.
             legacyConnections: this._connectionMgr,
         });
+
+        // Persistent metadata snapshot cache (CACHE-3): configured before
+        // the first store() consumer; inert unless
+        // mssql.metadataCache.enabled (default false). Eviction hygiene
+        // runs AFTER activation (H-10 — never inside mssql.activate).
+        // Mocked test contexts carry no globalStorageUri — no storage
+        // location means no persistent cache, by construction.
+        const globalStorageUri = this._context.globalStorageUri as vscode.Uri | undefined;
+        if (globalStorageUri) {
+            MetadataStoreService.get().configureCache({
+                cacheRootPath: vscode.Uri.joinPath(globalStorageUri, "metadata-cache").fsPath,
+                settings: () =>
+                    readMetadataCacheSettings((key, dflt) =>
+                        vscode.workspace.getConfiguration("mssql.metadataCache").get(key, dflt),
+                    ),
+                producer: {
+                    extensionVersion: this._context.extension?.packageJSON?.version as string,
+                    appVersion: vscode.version,
+                },
+            });
+            setTimeout(() => {
+                void MetadataStoreService.get().maintenance();
+            }, 5_000).unref?.();
+        }
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand("mssql.metadataCache.showStatus", async () => {
+                // MetadataStoreStatus carries readiness/generations/counts
+                // and non-reversible fingerprint-derived data only — safe
+                // to render verbatim for dogfood.
+                const status = MetadataStoreService.get().store().status();
+                const document = await vscode.workspace.openTextDocument({
+                    language: "json",
+                    content: JSON.stringify(status, undefined, 2),
+                });
+                await vscode.window.showTextDocument(document, { preview: true });
+            }),
+            vscode.commands.registerCommand("mssql.metadataCache.clearAll", async () => {
+                const coordinator = MetadataStoreService.get().cache();
+                if (!coordinator) {
+                    void vscode.window.showInformationMessage(
+                        "The metadata cache is not enabled (mssql.metadataCache.enabled).",
+                    );
+                    return;
+                }
+                await coordinator.clearAll();
+                void vscode.window.showInformationMessage("MSSQL metadata cache cleared.");
+            }),
+            vscode.commands.registerCommand("mssql.metadataCache.enableOfflineMode", () =>
+                vscode.workspace
+                    .getConfiguration("mssql.metadataCache")
+                    .update("offlineMode", true, vscode.ConfigurationTarget.Global),
+            ),
+            vscode.commands.registerCommand("mssql.metadataCache.disableOfflineMode", () =>
+                vscode.workspace
+                    .getConfiguration("mssql.metadataCache")
+                    .update("offlineMode", false, vscode.ConfigurationTarget.Global),
+            ),
+        );
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;

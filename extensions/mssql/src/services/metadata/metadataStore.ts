@@ -40,6 +40,7 @@ import {
     MetadataFreshnessPolicy,
     ServerMetadataFreshnessPolicy,
 } from "./cache/metadataFreshness";
+import { MetadataCacheCoordinator } from "./cache/metadataCacheCoordinator";
 import {
     IPinnedServerCatalogView,
     ServerCatalogStatus,
@@ -108,8 +109,14 @@ export interface MetadataStoreStatus {
         readonly generation: number;
         readonly refCount: number;
         readonly idle: boolean;
+        /** Where the CURRENT snapshot came from ("disk" until live wins). */
+        readonly source?: "disk" | "live";
     }[];
     readonly keyCorrectnessViolations: number;
+    readonly cache?: {
+        readonly enabled: boolean;
+        readonly loadedFromDisk: number;
+    };
 }
 
 export interface MetadataStoreOptions {
@@ -119,6 +126,17 @@ export interface MetadataStoreOptions {
     idleTtlMs?: number;
     /** Max zero-ref database entries kept warm (LRU, default 4). */
     maxIdleDatabases?: number;
+    /**
+     * Persistent snapshot cache (CACHE-3): when configured, a fresh
+     * database acquire loads the disk snapshot BEFORE live hydration
+     * (base §10.1), always followed by a background refresh (C-4.1)
+     * unless offline; live generations save back through the coordinator.
+     */
+    cache?: {
+        coordinator: MetadataCacheCoordinator;
+        /** Live read of mssql.metadataCache.offlineMode (CACHE-6 owns UX). */
+        offlineMode?: () => boolean;
+    };
 }
 
 interface ServerEntry {
@@ -140,12 +158,16 @@ interface DatabaseEntry {
     refCount: number;
     idleTimer: ReturnType<typeof setTimeout> | undefined;
     lastReleasedAt: number;
+    /** Generation published from disk (undefined = never disk-served). */
+    diskGeneration: number | undefined;
+    cacheSource: "disk" | "live" | undefined;
 }
 
 export class MetadataStore {
     private servers = new Map<string, ServerEntry>();
     private databases = new Map<string, DatabaseEntry>();
     private violations = 0;
+    private diskLoads = 0;
     private disposed = false;
 
     constructor(
@@ -279,19 +301,61 @@ export class MetadataStore {
                     ? { pollSeconds: this.options.pollSeconds }
                     : {}),
             });
+            const engineKey = { serverFingerprint: key.serverFingerprint, database: key.database };
+            const cache = this.options.cache;
+            const offline = cache?.offlineMode?.() === true;
+
+            // Disk snapshot BEFORE the engine handle exists (base §10.1):
+            // publishing first means acquire() below sees "ready" and does
+            // not kick its own hydration — the C-4.1 background refresh is
+            // scheduled explicitly instead. A miss costs one manifest stat.
+            let publishedFromDisk = false;
+            let manifestDigest: string | undefined;
+            if (cache) {
+                const loaded = await cache.coordinator.load(engineKey);
+                if (!("miss" in loaded)) {
+                    manifestDigest = loaded.manifest.validation.objectDigest;
+                    publishedFromDisk = engine.publishExternalSnapshot(
+                        engineKey,
+                        loaded.snapshot,
+                        manifestDigest !== undefined ? { manifestDigest } : {},
+                    );
+                }
+            }
+
             const listeners = new Set<(status: MetadataStatus) => void>();
-            const handle = engine.acquire(
-                { serverFingerprint: key.serverFingerprint, database: key.database },
-                (status) => {
-                    for (const listener of [...listeners]) {
-                        try {
-                            listener(status);
-                        } catch {
-                            /* listener isolation */
+            const pendingEntry: { current: DatabaseEntry | undefined } = { current: undefined };
+            const handle = engine.acquire(engineKey, (status) => {
+                const owner = pendingEntry.current;
+                if (owner && cache && status.readiness === "ready") {
+                    if (
+                        owner.diskGeneration !== undefined &&
+                        status.generation !== owner.diskGeneration
+                    ) {
+                        owner.cacheSource = "live";
+                    }
+                    // Save LIVE generations back (debounced + eligibility-
+                    // gated inside the coordinator); never re-save the
+                    // generation that came FROM the disk.
+                    if (status.generation !== owner.diskGeneration) {
+                        const snapshot = owner.handle?.current();
+                        if (snapshot) {
+                            cache.coordinator.save(engineKey, snapshot);
                         }
                     }
-                },
-            );
+                }
+                for (const listener of [...listeners]) {
+                    try {
+                        listener(status);
+                    } catch {
+                        /* listener isolation */
+                    }
+                }
+            });
+            if (publishedFromDisk && !offline) {
+                // C-4.1: cached data must never become silent forever-truth.
+                void handle.refresh();
+            }
             entry = {
                 key,
                 prepared,
@@ -302,7 +366,13 @@ export class MetadataStore {
                 refCount: 0,
                 idleTimer: undefined,
                 lastReleasedAt: 0,
+                diskGeneration: publishedFromDisk ? handle.status().generation : undefined,
+                cacheSource: publishedFromDisk ? "disk" : undefined,
             };
+            pendingEntry.current = entry;
+            if (publishedFromDisk) {
+                this.diskLoads++;
+            }
             this.databases.set(id, entry);
         }
         const resolved = entry;
@@ -418,9 +488,13 @@ export class MetadataStore {
                     generation: status.generation,
                     refCount: entry.refCount,
                     idle: entry.refCount === 0,
+                    ...(entry.cacheSource ? { source: entry.cacheSource } : {}),
                 };
             }),
             keyCorrectnessViolations: this.violations,
+            ...(this.options.cache
+                ? { cache: { enabled: true, loadedFromDisk: this.diskLoads } }
+                : {}),
         };
     }
 

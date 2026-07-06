@@ -91,6 +91,16 @@ interface CatalogEntry {
     opEpoch: number;
     /** Set by a watchdog fire; the NEXT lane item recycles the session. */
     sessionWedged: boolean;
+    /**
+     * Manifest-recorded digest from a disk-published snapshot (C-4.2): the
+     * poll baseline is NEVER seeded from it — the first live digest
+     * compares AGAINST it (mismatch ⇒ the cache was already wrong ⇒ forced
+     * refresh), then it is consumed. Cleared by any full hydration.
+     */
+    manifestDigest: string | undefined;
+    /** C-4.3 failed-with-retained-snapshot retry state. */
+    failedAttempts: number;
+    retryTimer: ReturnType<typeof setTimeout> | undefined;
 }
 
 /** Result of a lazy sys.sql_modules read (B12 scripting/definition). */
@@ -311,6 +321,11 @@ export class MetadataService {
             hydrationTimeoutMs?: number;
             /** Lane watchdog ceiling for digest/lazy reads (default 15s). */
             laneOpTimeoutMs?: number;
+            /**
+             * C-4.3 backoff for failed refreshes over a RETAINED snapshot
+             * (default 5s/30s/2min; afterwards every poll tick retries).
+             */
+            retryBackoffMs?: readonly number[];
         } = {},
     ) {}
 
@@ -330,29 +345,7 @@ export class MetadataService {
         /** Policy-routed freshness decision (cache/drift design §5, §4.2). */
         ensureFresh(policy: MetadataFreshnessPolicy): Promise<FreshCatalogResult>;
     } {
-        const id = keyOf(key);
-        let entry = this.entries.get(id);
-        if (!entry) {
-            entry = {
-                key,
-                snapshot: undefined,
-                generation: 0,
-                status: "absent",
-                hydrating: undefined,
-                lastDigest: undefined,
-                listeners: new Set(),
-                refCount: 0,
-                moduleDefinitions: new Map(),
-                moduleDefinitionReads: new Map(),
-                sessionLane: Promise.resolve(),
-                validationInFlight: undefined,
-                lastValidation: undefined,
-                lastValidatedAtMs: undefined,
-                opEpoch: 0,
-                sessionWedged: false,
-            };
-            this.entries.set(id, entry);
-        }
+        const entry = this.getOrCreateEntry(key);
         entry.refCount++;
         if (onStatus) {
             entry.listeners.add(onStatus);
@@ -435,6 +428,64 @@ export class MetadataService {
             ensureFresh: (policy: MetadataFreshnessPolicy) =>
                 service.ensureFreshEntry(entry!, policy),
         };
+    }
+
+    private getOrCreateEntry(key: CatalogKey): CatalogEntry {
+        const id = keyOf(key);
+        let entry = this.entries.get(id);
+        if (!entry) {
+            entry = {
+                key,
+                snapshot: undefined,
+                generation: 0,
+                status: "absent",
+                hydrating: undefined,
+                lastDigest: undefined,
+                listeners: new Set(),
+                refCount: 0,
+                moduleDefinitions: new Map(),
+                moduleDefinitionReads: new Map(),
+                sessionLane: Promise.resolve(),
+                validationInFlight: undefined,
+                lastValidation: undefined,
+                lastValidatedAtMs: undefined,
+                opEpoch: 0,
+                sessionWedged: false,
+                manifestDigest: undefined,
+                failedAttempts: 0,
+                retryTimer: undefined,
+            };
+            this.entries.set(id, entry);
+        }
+        return entry;
+    }
+
+    /**
+     * Publish a DISK-loaded snapshot into an entry (CACHE-3, base §10.1 +
+     * addendum C-2.4/C-4): applies only while the entry has no snapshot —
+     * a cache load must never clobber live data. The entry's generation
+     * counter resumes at the manifest's published generation so the next
+     * live publish is strictly greater; the digest baseline is NOT seeded
+     * (C-4.2 — the first live digest compares against the manifest's, then
+     * consumes it). The caller owns scheduling the mandatory background
+     * hydration (C-4.1).
+     */
+    publishExternalSnapshot(
+        key: CatalogKey,
+        snapshot: CatalogSnapshot,
+        opts?: { manifestDigest?: string },
+    ): boolean {
+        const entry = this.getOrCreateEntry(key);
+        if (entry.snapshot !== undefined || entry.hydrating || entry.status === "loading") {
+            return false;
+        }
+        entry.snapshot = snapshot;
+        entry.generation = snapshot.generation;
+        entry.status = "ready";
+        entry.manifestDigest = opts?.manifestDigest;
+        entry.moduleDefinitions.clear();
+        this.notify(entry);
+        return true;
     }
 
     private statusOf(entry: CatalogEntry): MetadataStatus {
@@ -655,6 +706,7 @@ export class MetadataService {
         const contained = run
             .catch(() => {
                 entry.status = "failed";
+                this.scheduleFailedRetry(entry);
                 this.notify(entry);
             })
             .finally(() => {
@@ -844,6 +896,12 @@ export class MetadataService {
             );
             entry.status = "ready";
             entry.lastDigest = undefined; // re-baseline on next poll
+            entry.manifestDigest = undefined; // full refresh supersedes it
+            entry.failedAttempts = 0; // C-4.3 reset on success
+            if (entry.retryTimer) {
+                clearTimeout(entry.retryTimer);
+                entry.retryTimer = undefined;
+            }
             entry.moduleDefinitions.clear(); // lazy cache is per generation
             // A completed full hydration is the strongest validation.
             entry.lastValidatedAtMs = Date.now();
@@ -859,9 +917,35 @@ export class MetadataService {
                 return; // abandoned run must not stomp a newer op's state
             }
             entry.status = "failed";
+            this.scheduleFailedRetry(entry);
             span.fail(error);
         }
         this.notify(entry);
+    }
+
+    /**
+     * C-4.3: a failed refresh over a RETAINED snapshot re-arms with backoff
+     * (5s/30s/2min, then every poll tick — the pre-fix behavior silently
+     * disabled the poll until a fresh acquire). Reset on success; the lane
+     * already caps in-flight attempts at one.
+     */
+    private scheduleFailedRetry(entry: CatalogEntry): void {
+        if (!entry.snapshot || entry.refCount <= 0 || entry.retryTimer) {
+            return;
+        }
+        const backoff = this.options.retryBackoffMs ?? [5_000, 30_000, 120_000];
+        if (entry.failedAttempts >= backoff.length) {
+            return; // poll-tick territory from here on
+        }
+        const delay = backoff[entry.failedAttempts];
+        entry.failedAttempts++;
+        entry.retryTimer = setTimeout(() => {
+            entry.retryTimer = undefined;
+            if (entry.status === "failed" && !entry.hydrating && entry.refCount > 0) {
+                void this.hydrate(entry);
+            }
+        }, delay);
+        (entry.retryTimer as { unref?: () => void }).unref?.();
     }
 
     /**
@@ -912,7 +996,11 @@ export class MetadataService {
                     },
                     { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "digest" },
                 );
-                const baseline = entry.lastDigest;
+                // C-4.2: with no live baseline yet, a disk-published entry
+                // compares against the manifest's recorded digest — the
+                // cheapest possible "was my cache already wrong?" check.
+                const baseline = entry.lastDigest ?? entry.manifestDigest;
+                entry.manifestDigest = undefined; // consumed either way
                 entry.lastDigest = digest;
                 if (baseline !== undefined && digest !== baseline) {
                     diag.emit({
@@ -1220,9 +1308,21 @@ export class MetadataService {
         }
         this.pollTimer = setInterval(() => {
             for (const entry of this.entries.values()) {
-                if (entry.refCount > 0) {
-                    void this.checkDigest(entry);
+                if (entry.refCount <= 0) {
+                    continue;
                 }
+                if (
+                    entry.status === "failed" &&
+                    entry.snapshot &&
+                    !entry.retryTimer &&
+                    !entry.hydrating
+                ) {
+                    // C-4.3 tail: after the backoff ladder, every poll tick
+                    // retries a failed entry that still serves a snapshot.
+                    void this.hydrate(entry);
+                    continue;
+                }
+                void this.checkDigest(entry);
             }
         }, seconds * 1000);
         (this.pollTimer as { unref?: () => void }).unref?.();
@@ -1239,6 +1339,12 @@ export class MetadataService {
         if (this.pollTimer) {
             clearInterval(this.pollTimer);
             this.pollTimer = undefined;
+        }
+        for (const entry of this.entries.values()) {
+            if (entry.retryTimer) {
+                clearTimeout(entry.retryTimer);
+                entry.retryTimer = undefined;
+            }
         }
         this.entries.clear();
     }

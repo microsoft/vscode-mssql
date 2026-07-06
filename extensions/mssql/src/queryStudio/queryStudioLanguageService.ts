@@ -426,6 +426,13 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         trigger: "invoke" | "character",
         triggerCharacter?: string,
     ): Promise<CompletionResult | undefined> {
+        // CACHE-4 safe-stale: the answer comes synchronously from the
+        // pinned snapshot; this policy call is NEVER awaited on the hot
+        // path — it schedules a background refresh when the snapshot has
+        // aged past the preset and records the policy decision.
+        void this.metadataHandle()
+            ?.ensureFresh(MetadataPolicies.completion)
+            .catch(() => undefined);
         const req = { ...this.request(position), trigger, triggerCharacter };
         return this.router.route("completion", (e) => e.completion(req));
     }

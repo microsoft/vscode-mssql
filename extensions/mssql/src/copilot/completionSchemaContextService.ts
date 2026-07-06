@@ -20,20 +20,24 @@
  * Deviation from the original service: there is no fetch-wait — a catalog
  * still hydrating yields no schema context for that request (the provider
  * already reports fallbackWithoutMetadata honestly) and later requests pick
- * up the hydrated catalog. The classic resolver awaits the FIRST hydration of
- * a newly acquired catalog so cold connections still get context.
+ * up the hydrated catalog. The classic resolver goes through the SHARED
+ * MetadataStore (CACHE-4, addendum §7.6): a persistent-cache hit answers a
+ * cold restart instantly with a background refresh; otherwise
+ * ensureFresh(aiContext) joins the first hydration, still bounded by the
+ * prior 120s ceiling.
  */
 
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import { logger2 } from "../models/logger2";
 import { CatalogSnapshot } from "../services/metadata/catalogModel";
+import { MetadataPolicies } from "../services/metadata/cache/metadataFreshness";
+import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
+import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
-    DataPlaneMetadataSessionSource,
-    MetadataService,
-} from "../services/metadata/metadataService";
-import { identityDigest } from "../services/metadata/profileFingerprint";
-import { SqlConnectionProfileRef } from "../services/sqlDataPlane/api";
+    prepareConnection,
+    StoredConnectionProfile,
+} from "../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { InlineCompletionDebugSchemaContextOverrides } from "../sharedInterfaces/inlineCompletionDebug";
 import { findQueryStudioModel } from "../queryStudio/queryStudioEditorProvider";
@@ -105,13 +109,10 @@ export interface ClassicConnectionSource {
 }
 
 interface ClassicAcquisition {
-    service: MetadataService;
-    source: DataPlaneMetadataSessionSource;
-    handle: ReturnType<MetadataService["acquire"]>;
-    firstHydration: Promise<void>;
+    lease: DatabaseCatalogLease;
 }
 
-/** Resolver 2: classic editor documents via the data plane. */
+/** Resolver 2: classic editor documents via the SHARED MetadataStore. */
 export class ClassicCompletionMetadataResolver implements CompletionMetadataResolver {
     private readonly logger = logger2.withPrefix("SqlInlineSchemaContext");
     private readonly acquisitions = new Map<string, ClassicAcquisition>();
@@ -130,6 +131,8 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         const authKind = (facts.authenticationType ?? "").toLowerCase().includes("integrated")
             ? ("integrated" as const)
             : ("sql" as const);
+        // In-memory LRU key only — the store derives the non-reversible
+        // fingerprints from the same facts via prepareConnection.
         const fingerprint = `classic|${facts.server}|${facts.database ?? ""}|${facts.user ?? ""}|${authKind}`;
 
         let acquisition = this.acquisitions.get(fingerprint);
@@ -144,8 +147,15 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
             this.acquisitions.set(fingerprint, acquisition);
         }
 
-        await acquisition.firstHydration;
-        const snapshot = acquisition.handle.current();
+        // §7.6: a disk-cache hit answers instantly (stale + background
+        // refresh); a cold catalog joins hydration bounded by the prior
+        // 120s ceiling. Freshness rides result metadata — prompt bytes
+        // stay generation-pinned via the snapshot itself.
+        const result = await acquisition.lease.ensureFresh({
+            ...MetadataPolicies.aiContext,
+            timeoutMs: firstHydrationWaitMs,
+        });
+        const snapshot = result.snapshot;
         if (!snapshot) {
             return undefined;
         }
@@ -163,59 +173,33 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         authKind: "sql" | "integrated",
     ): Promise<ClassicAcquisition | undefined> {
         try {
-            const service = await SqlDataPlaneService.get().service();
-            const profile: SqlConnectionProfileRef = {
-                // Non-reversible short digest (the profileRef contract) —
-                // the raw fingerprint string may contain the server name.
-                profileFingerprint: identityDigest("iccfp", fingerprint),
+            const stored: StoredConnectionProfile = {
                 server: facts.server!,
                 ...(facts.database ? { database: facts.database } : {}),
-                authKind,
                 ...(facts.user ? { user: facts.user } : {}),
+                authenticationType:
+                    facts.authenticationType ??
+                    (authKind === "integrated" ? "Integrated" : "SqlLogin"),
                 ...(facts.encrypt !== undefined ? { encrypt: facts.encrypt } : {}),
                 ...(facts.trustServerCertificate !== undefined
                     ? { trustServerCertificate: facts.trustServerCertificate }
                     : {}),
             };
-            const source = new DataPlaneMetadataSessionSource(service, {
-                profile,
-                applicationName: "vscode-mssql-metadata",
-                auth: {
-                    // Password exists only inside this provider call chain.
-                    passwordProvider: async () =>
-                        authKind === "sql" ? this.connections.lookupPassword(facts) : undefined,
-                },
+            const prepared = prepareConnection(stored, {
+                // Password exists only inside this provider call chain.
+                lookupPassword: async () => (await this.connections.lookupPassword(facts)) ?? "",
             });
-            const metadataService = new MetadataService(source);
-            let resolveFirst: (() => void) | undefined;
-            const firstHydration = new Promise<void>((resolve) => {
-                resolveFirst = resolve;
-                setTimeout(resolve, firstHydrationWaitMs).unref?.();
-            });
-            const handle = metadataService.acquire(
-                {
-                    serverFingerprint: profile.profileFingerprint,
-                    database: facts.database ?? "",
-                },
-                (status) => {
-                    if (status.readiness === "ready" || status.readiness === "failed") {
-                        resolveFirst?.();
-                    }
-                },
-            );
-            const acquisition: ClassicAcquisition = {
-                service: metadataService,
-                source,
-                handle,
-                firstHydration,
-            };
+            const lease = await MetadataStoreService.get()
+                .store()
+                .acquireDatabase(prepared, facts.database ?? "");
+            const acquisition: ClassicAcquisition = { lease };
             this.acquisitions.set(fingerprint, acquisition);
             while (this.acquisitions.size > maxClassicAcquisitions) {
                 const oldestKey = this.acquisitions.keys().next().value;
                 if (oldestKey === undefined) {
                     break;
                 }
-                this.disposeAcquisition(this.acquisitions.get(oldestKey)!);
+                this.acquisitions.get(oldestKey)!.lease.dispose();
                 this.acquisitions.delete(oldestKey);
             }
             return acquisition;
@@ -227,15 +211,9 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         }
     }
 
-    private disposeAcquisition(acquisition: ClassicAcquisition): void {
-        acquisition.handle.dispose();
-        acquisition.service.dispose();
-        acquisition.source.dispose();
-    }
-
     dispose(): void {
         for (const acquisition of this.acquisitions.values()) {
-            this.disposeAcquisition(acquisition);
+            acquisition.lease.dispose();
         }
         this.acquisitions.clear();
     }

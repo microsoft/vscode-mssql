@@ -1932,6 +1932,26 @@
                 "icon": "$(refresh)"
             },
             {
+                "command": "mssql.metadataCache.showStatus",
+                "title": "Metadata Cache: Show Status",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.metadataCache.clearAll",
+                "title": "Metadata Cache: Clear All",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.metadataCache.enableOfflineMode",
+                "title": "Metadata Cache: Enable Offline Mode",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.metadataCache.disableOfflineMode",
+                "title": "Metadata Cache: Disable Offline Mode",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
                 "title": "Object Explorer v2: Open Classic Object Explorer",
                 "category": "MS SQL"
@@ -3553,6 +3573,32 @@
                         "fake"
                     ],
                     "description": "SQL data plane backend binding. sts2-http and hosted-rest are reserved for later.",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Persist metadata catalog snapshots locally so reconnects and cold restarts serve completions, AI schema context, and Object Explorer v2 instantly while a live refresh runs in the background. Snapshots contain structural metadata only (schemas, objects, columns, keys) — never descriptions, module definitions, query results, or secrets.",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.maxAgeDays": {
+                    "type": "number",
+                    "default": 14,
+                    "minimum": 1,
+                    "description": "Persisted metadata snapshots older than this are evicted.",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.maxBytes": {
+                    "type": "number",
+                    "default": 268435456,
+                    "minimum": 1048576,
+                    "description": "Total size cap for the persisted metadata cache (least-recently-used entries evicted first).",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.offlineMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Serve metadata exclusively from persisted snapshots without contacting the server. Status surfaces always disclose the snapshot's age; strict operations (scripting) refuse or emit an offline banner.",
                     "scope": "application"
                 },
                 "mssql.objectExplorer.viewMode": {
