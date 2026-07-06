@@ -77,9 +77,80 @@ export interface BindInput {
     readonly caseSensitive: boolean;
 }
 
+/** Context for resolving a dotted name outside a specific statement sketch. */
+export interface NameResolutionContext {
+    readonly overlay: ScriptOverlay;
+    readonly batchIndex: number;
+    readonly ordinal: number;
+    readonly pinned: IPinnedMetadataView;
+    readonly caseSensitive: boolean;
+}
+
+/**
+ * Resolve dotted name parts against overlay + catalog (no CTE step — that is
+ * statement-scoped and stays in bindStatement). Shared with diagnostics for
+ * DML target resolution so both features refuse identically (§11.2 honesty).
+ */
+export function resolveNameParts(
+    rawParts: readonly string[],
+    ctx: NameResolutionContext,
+): SourceResolution {
+    const fold = (value: string): string => (ctx.caseSensitive ? value : value.toLowerCase());
+    const parts = rawParts.filter((p) => p.length > 0);
+    if (parts.length === 0) {
+        return { kind: "opaque", reason: "unknownSketchRegion" };
+    }
+    const last = parts[parts.length - 1];
+    // 1. Overlay objects (#temp, @tablevar, script tables).
+    if (parts.length === 1 || last.startsWith("#")) {
+        const obj = ctx.overlay.findObject(last, ctx.batchIndex, ctx.ordinal);
+        if (obj !== undefined) {
+            return { kind: "overlay", overlay: obj };
+        }
+        if (last.startsWith("#") || last.startsWith("@")) {
+            return { kind: "opaque", reason: "notFound" };
+        }
+    }
+    // 2. Cross-database / linked-server honesty.
+    if (parts.length >= 4) {
+        return { kind: "opaque", reason: "linkedServer" };
+    }
+    if (parts.length === 3) {
+        const database = parts[0];
+        const current = ctx.pinned.env.currentDatabase;
+        if (current === undefined || fold(database) !== fold(current)) {
+            return { kind: "opaque", reason: "crossDatabaseUnhydrated" };
+        }
+    }
+    // 3. Catalog (TVFs resolve like objects).
+    if (ctx.pinned.readiness.objects !== "ready" && ctx.pinned.readiness.objects !== "partial") {
+        return { kind: "opaque", reason: "providerNotReady" };
+    }
+    const nameParts = parts.length === 3 ? parts.slice(1) : parts;
+    const resolution = ctx.pinned.resolveObject(nameParts);
+    switch (resolution.kind) {
+        case "resolved":
+            return { kind: "catalog", ref: resolution.ref };
+        case "ambiguous":
+            return { kind: "opaque", reason: "ambiguous" };
+        case "unavailable":
+            return { kind: "opaque", reason: "providerNotReady" };
+        case "notFound":
+        default:
+            return { kind: "opaque", reason: "notFound" };
+    }
+}
+
 export function bindStatement(input: BindInput): StatementBinding {
     const { sketch, overlay, batchIndex, ordinal, pinned } = input;
     const fold = (value: string): string => (input.caseSensitive ? value : value.toLowerCase());
+    const nameCtx: NameResolutionContext = {
+        overlay,
+        batchIndex,
+        ordinal,
+        pinned,
+        caseSensitive: input.caseSensitive,
+    };
 
     const resolveSource = (source: SourceRef): SourceResolution => {
         if (source.kind === "derived" || source.kind === "values") {
@@ -93,51 +164,14 @@ export function bindStatement(input: BindInput): StatementBinding {
             return { kind: "opaque", reason: "unknownSketchRegion" };
         }
         const last = parts[parts.length - 1];
-        // 1. Statement CTEs.
+        // Statement CTEs win before overlay/catalog names.
         if (parts.length === 1) {
             const cte = sketch.ctes.find((c) => fold(c.name) === fold(last));
             if (cte !== undefined) {
                 return { kind: "cte", cte };
             }
         }
-        // 2. Overlay objects (#temp, @tablevar, script tables).
-        if (parts.length === 1 || last.startsWith("#")) {
-            const obj = overlay.findObject(last, batchIndex, ordinal);
-            if (obj !== undefined) {
-                return { kind: "overlay", overlay: obj };
-            }
-            if (last.startsWith("#") || last.startsWith("@")) {
-                return { kind: "opaque", reason: "notFound" };
-            }
-        }
-        // 3. Cross-database / linked-server honesty.
-        if (parts.length >= 4) {
-            return { kind: "opaque", reason: "linkedServer" };
-        }
-        if (parts.length === 3) {
-            const database = parts[0];
-            const current = pinned.env.currentDatabase;
-            if (current === undefined || fold(database) !== fold(current)) {
-                return { kind: "opaque", reason: "crossDatabaseUnhydrated" };
-            }
-        }
-        // 4. Catalog (TVFs resolve like objects).
-        if (pinned.readiness.objects !== "ready" && pinned.readiness.objects !== "partial") {
-            return { kind: "opaque", reason: "providerNotReady" };
-        }
-        const nameParts = parts.length === 3 ? parts.slice(1) : parts;
-        const resolution = pinned.resolveObject(nameParts);
-        switch (resolution.kind) {
-            case "resolved":
-                return { kind: "catalog", ref: resolution.ref };
-            case "ambiguous":
-                return { kind: "opaque", reason: "ambiguous" };
-            case "unavailable":
-                return { kind: "opaque", reason: "providerNotReady" };
-            case "notFound":
-            default:
-                return { kind: "opaque", reason: "notFound" };
-        }
+        return resolveNameParts(parts, nameCtx);
     };
 
     const bindSource = (source: SourceRef): BoundSource => {

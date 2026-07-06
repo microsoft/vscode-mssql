@@ -43,6 +43,13 @@ export interface SketchedStatement {
 
 export interface ScriptOverlay {
     readonly objects: readonly OverlayObject[];
+    /**
+     * Case-folded last-part names of objects the script ALTERs (ALTER TABLE
+     * ... ADD/DROP/ALTER COLUMN). Their column shape — catalog or overlay —
+     * can no longer be claimed complete; diagnostics suppress column claims
+     * for them (design 05 §11.2 "overlay ... could plausibly provide").
+     */
+    readonly alteredNames: ReadonlySet<string>;
     /** Batch-scoped variable declarations (scalar + table). */
     readonly variables: readonly {
         readonly name: string;
@@ -65,6 +72,7 @@ export interface ScriptOverlay {
 
 export function buildOverlay(statements: readonly SketchedStatement[]): ScriptOverlay {
     const objects: OverlayObject[] = [];
+    const alteredNames = new Set<string>();
     const variables: {
         name: string;
         typeText?: string;
@@ -96,19 +104,24 @@ export function buildOverlay(statements: readonly SketchedStatement[]): ScriptOv
             }
         }
 
-        // CREATE TABLE — temp or script-local real table.
+        // CREATE TABLE — temp or script-local real table. ALTER TABLE never
+        // declares a shape: it only marks the target's columns unreliable.
         if (sketch.createdTable !== undefined) {
             const lastPart = sketch.createdTable.parts[sketch.createdTable.parts.length - 1];
-            const isTemp = lastPart.startsWith("#");
-            objects.push({
-                name: lastPart,
-                parts: sketch.createdTable.parts,
-                kind: isTemp ? "tempTable" : "scriptTable",
-                columns: sketch.createdTable.columns,
-                fromStatement: ordinal,
-                batchIndex,
-                speculative: isTemp ? undefined : true,
-            });
+            if (sketch.createdTable.isAlter === true) {
+                alteredNames.add(lastPart.toLowerCase());
+            } else {
+                const isTemp = lastPart.startsWith("#");
+                objects.push({
+                    name: lastPart,
+                    parts: sketch.createdTable.parts,
+                    kind: isTemp ? "tempTable" : "scriptTable",
+                    columns: sketch.createdTable.columns,
+                    fromStatement: ordinal,
+                    batchIndex,
+                    speculative: isTemp ? undefined : true,
+                });
+            }
         }
 
         // SELECT ... INTO target — columns from the select list when named.
@@ -152,6 +165,7 @@ export function buildOverlay(statements: readonly SketchedStatement[]): ScriptOv
 
     return {
         objects,
+        alteredNames,
         variables,
         visibleObjectsAt,
         visibleVariablesAt: (batchIndex, ordinal) =>

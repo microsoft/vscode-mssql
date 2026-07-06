@@ -1142,6 +1142,7 @@ export function sketchStatement(
                         parts: name.parts,
                         columns: cols,
                         span: { start: name.span.start, end },
+                        isAlter: leading === "ALTER" || undefined,
                     };
                 }
             } else if (

@@ -5,14 +5,15 @@
 
 /**
  * Native engine host wrapper (design 05 §6.1 host/nativeEngine). Owns the
- * per-document analysis cache (lex + segment, keyed by version) and emits the
- * sqlLanguage.lex / sqlLanguage.segment spans (sizes and durations only —
- * never text). LS-0 serves folding + document symbols; schema-aware features
- * arrive per batch (B9+) and return undefined until then, which the router
- * reports honestly as unserved.
+ * per-document analysis cache (lex + segment + sketch + overlay, keyed by
+ * version) and emits the sqlLanguage.* spans (sizes, counts and durations
+ * only — never text). Served natively so far: folding + document symbols
+ * (B8), completion (B9), diagnostics incl. the sliced pass for the scheduler
+ * (B10). Remaining features return undefined until their batch, which the
+ * router reports honestly as unserved.
  */
 
-import { diag } from "../../diagnostics/diagnosticsCore";
+import { RawField, diag } from "../../diagnostics/diagnosticsCore";
 import {
     CompletionRequest,
     CompletionResult,
@@ -29,7 +30,7 @@ import {
     SqlLanguageRequest,
 } from "../api";
 import { LexResult, lex } from "../core/lexer";
-import { SegmentResult, segment } from "../core/segmenter";
+import { SegmentResult, StatementSegment, segment } from "../core/segmenter";
 import { TextSnapshot } from "../core/text/textSnapshot";
 import { ISqlLanguageMetadataProvider } from "../provider/types";
 import { computeDocumentSymbols } from "../features/documentSymbols";
@@ -39,6 +40,8 @@ import { ScriptOverlay, SketchedStatement, buildOverlay } from "../core/overlay"
 import { bindStatement } from "../core/binder";
 import { classifyContext } from "../core/context";
 import { computeCompletion } from "../features/completion";
+import { DiagnosticsPassResult, createDiagnostics } from "../features/diagnostics";
+import { SlicedDiagnosticsPass } from "./scheduler";
 
 export interface NativeEngineOptions {
     readonly snippetsEnabled: boolean;
@@ -46,6 +49,7 @@ export interface NativeEngineOptions {
 }
 
 interface AnalyzedStatement extends SketchedStatement {
+    readonly segment: StatementSegment;
     readonly sketch: StatementSketch;
 }
 
@@ -59,10 +63,18 @@ interface DocumentAnalysis {
     readonly overlay: ScriptOverlay;
 }
 
+interface DiagnosticsMemo {
+    readonly version: number;
+    readonly textLength: number;
+    readonly generation: number;
+    readonly result: DiagnosticsResult;
+}
+
 export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
     readonly engineId = "nativeTypeScript" as const;
 
     private analysis: DocumentAnalysis | undefined;
+    private diagnosticsMemo: DiagnosticsMemo | undefined;
     private provider: ISqlLanguageMetadataProvider;
     private readonly getOptions: () => NativeEngineOptions;
 
@@ -76,6 +88,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
     /** Swap the metadata provider (connect/disconnect/database change). */
     setProvider(provider: ISqlLanguageMetadataProvider): void {
         this.provider = provider;
+        this.diagnosticsMemo = undefined;
     }
 
     get metadataProvider(): ISqlLanguageMetadataProvider {
@@ -152,6 +165,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                     statements.push({
                         batchIndex,
                         ordinal,
+                        segment: statement,
                         sketch: sketchStatement(text, lexed.tokens, statement),
                     });
                     ordinal++;
@@ -285,8 +299,104 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
     signatureHelp(_req: SqlLanguageRequest): Promise<SignatureHelpResult | undefined> {
         return Promise.resolve(undefined); // B11 / LS-3
     }
-    diagnostics(_req: DiagnosticsRequest): Promise<DiagnosticsResult | undefined> {
-        return Promise.resolve(undefined); // B10 / LS-2
+
+    /** Whole-document diagnostics, run to completion (pull path / router). */
+    diagnostics(req: DiagnosticsRequest): Promise<DiagnosticsResult | undefined> {
+        const pass = this.diagnosticsPass(req);
+        while (pass.step()) {
+            // synchronous full pass
+        }
+        return Promise.resolve(pass.finish());
+    }
+
+    /**
+     * Resumable whole-document diagnostics pass for the sliced scheduler.
+     * Owns the sqlLanguage.diagnostics span: counts/durations/suppression
+     * reasons only — never text. Results are memoized per (version, length,
+     * metadata generation) so a pull right after a scheduled pass is free.
+     */
+    diagnosticsPass(req: DiagnosticsRequest): SlicedDiagnosticsPass {
+        const generation = this.provider.generation;
+        const memo = this.diagnosticsMemo;
+        if (
+            memo !== undefined &&
+            memo.version === req.version &&
+            memo.textLength === req.text.length &&
+            memo.generation === generation
+        ) {
+            let done = false;
+            return {
+                step: (): boolean => {
+                    done = true;
+                    return false;
+                },
+                finish: (): DiagnosticsResult => {
+                    void done;
+                    return memo.result;
+                },
+                abort: (): void => undefined,
+            };
+        }
+        const analysis = this.analyze(req.text, req.version);
+        const pinned = this.provider.pin();
+        const span = diag.startSpan({
+            feature: "sqlLanguage",
+            kind: "span",
+            type: "sqlLanguage.diagnostics",
+            fields: {
+                charCount: { raw: req.text.length, cls: "diagnostic.metadata" },
+                statementCount: { raw: analysis.statements.length, cls: "diagnostic.metadata" },
+                generation: { raw: generation, cls: "diagnostic.metadata" },
+            },
+        });
+        const computation = createDiagnostics({
+            text: req.text,
+            tokens: analysis.lexed.tokens,
+            statements: analysis.statements,
+            overlay: analysis.overlay,
+            pinned,
+            positionAt: (offset) => analysis.snapshot.positionAt(offset),
+        });
+        let settled = false;
+        return {
+            step: (): boolean => {
+                try {
+                    return computation.step();
+                } catch (error) {
+                    if (!settled) {
+                        settled = true;
+                        span.fail(error);
+                    }
+                    throw error;
+                }
+            },
+            finish: (): DiagnosticsResult => {
+                const result = computation.result();
+                if (!settled) {
+                    settled = true;
+                    span.end("ok", diagnosticsSpanFields(result));
+                }
+                const diagnosticsResult: DiagnosticsResult = {
+                    diagnostics: result.diagnostics,
+                    suppressed: result.suppressed,
+                };
+                this.diagnosticsMemo = {
+                    version: req.version,
+                    textLength: req.text.length,
+                    generation,
+                    result: diagnosticsResult,
+                };
+                return diagnosticsResult;
+            },
+            abort: (): void => {
+                if (!settled) {
+                    settled = true;
+                    span.end("warning", {
+                        outcome: { raw: "staleCancelled", cls: "diagnostic.metadata" },
+                    });
+                }
+            },
+        };
     }
     definition(_req: SqlLanguageRequest): Promise<DefinitionLocationResult | undefined> {
         return Promise.resolve(undefined); // B12 / LS-4
@@ -311,6 +421,32 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             computeDocumentSymbols(analysis.snapshot, analysis.lexed.tokens, analysis.segments),
         );
     }
+}
+
+/** Privacy-safe end-of-pass span fields: counts and reason names only. */
+function diagnosticsSpanFields(result: DiagnosticsPassResult): Record<string, RawField> {
+    let errorCount = 0;
+    let warningCount = 0;
+    for (const d of result.diagnostics) {
+        if (d.severity === "error") {
+            errorCount++;
+        } else if (d.severity === "warning") {
+            warningCount++;
+        }
+    }
+    let suppressedTotal = 0;
+    const reasonParts: string[] = [];
+    for (const [reason, n] of Object.entries(result.suppressed)) {
+        suppressedTotal += n;
+        reasonParts.push(`${reason}:${n}`);
+    }
+    return {
+        diagnosticCount: { raw: result.diagnostics.length, cls: "diagnostic.metadata" },
+        errorCount: { raw: errorCount, cls: "diagnostic.metadata" },
+        warningCount: { raw: warningCount, cls: "diagnostic.metadata" },
+        suppressedTotal: { raw: suppressedTotal, cls: "diagnostic.metadata" },
+        suppressionReasons: { raw: reasonParts.sort().join(","), cls: "diagnostic.metadata" },
+    };
 }
 
 /** Zero-width sketch for caret positions outside any statement. */

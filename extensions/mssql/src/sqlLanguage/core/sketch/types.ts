@@ -131,6 +131,11 @@ export interface CreatedTable {
     readonly parts: readonly string[]; // may be [#temp]
     readonly columns: readonly string[];
     readonly span: SketchSpan;
+    /**
+     * True for ALTER TABLE (the statement mutates an existing shape rather
+     * than declaring one — its column list is NOT a trustworthy definition).
+     */
+    readonly isAlter?: boolean;
 }
 
 export interface StatementSketch {
