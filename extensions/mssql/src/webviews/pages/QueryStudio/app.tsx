@@ -28,6 +28,7 @@ import {
     QsInlineCompletionAcceptedRequest,
     QsInlineCompletionRequest,
     QsMessagesAppendedNotification,
+    QsOpenPlanRequest,
     QsRevealPositionNotification,
     QsListDatabasesRequest,
     QsRowsAppendedNotification,
@@ -96,6 +97,17 @@ export function QueryStudioApp() {
     const expectedEchoGroupsRef = useRef<Set<string>>(new Set());
     const renderedRunRef = useRef<number | undefined>(undefined);
     const rootRef = useRef<HTMLDivElement | null>(null);
+    // QS-1 auto-open: runs are always webview-initiated, so plan mode is
+    // tracked locally at the point the run is triggered. `planRunArmedRef`
+    // is set by the Estimated Plan button (or Execute while the Actual Plan
+    // toggle is on) and consumed once when the run starts; terminal states
+    // then open each plan-flagged result set exactly once.
+    const actualPlanEnabledRef = useRef(false);
+    const planRunArmedRef = useRef(false);
+    const startedRunRef = useRef<number | undefined>(undefined);
+    const planAutoOpenRef = useRef<{ runId?: number; opened: Set<string> }>({
+        opened: new Set(),
+    });
 
     // --- sync: webview → host --------------------------------------------
     const flushEdits = useCallback(() => {
@@ -239,12 +251,31 @@ export function QueryStudioApp() {
     // resultsRendered mark once per run after the terminal paint.
     const runId = state?.execution.startedEpochMs;
     const executionKind = state?.execution.kind ?? "idle";
+    // Mirror the host's actual-plan toggle so `execute` can read it at
+    // trigger time without re-registering its callback on every state push.
+    useEffect(() => {
+        actualPlanEnabledRef.current = state?.toggles.actualPlan ?? false;
+    }, [state]);
     useEffect(() => {
         if (executionKind === "executing" && renderedRunRef.current !== runId) {
             setMessages([]);
             setRowVersions({});
             setActiveTab("results");
             setResultsCollapsed(false);
+        }
+        // QS-1: consume the armed plan-mode flag once per run and reset the
+        // "already auto-opened" tracking for the new run.
+        if (
+            executionKind === "executing" &&
+            runId !== undefined &&
+            startedRunRef.current !== runId
+        ) {
+            startedRunRef.current = runId;
+            planAutoOpenRef.current = {
+                ...(planRunArmedRef.current ? { runId } : {}),
+                opened: new Set(),
+            };
+            planRunArmedRef.current = false;
         }
         if (TERMINAL_KINDS.has(executionKind) && runId && renderedRunRef.current !== runId) {
             renderedRunRef.current = runId;
@@ -261,7 +292,27 @@ export function QueryStudioApp() {
                 setActiveTab("messages");
             }
         }
-    }, [executionKind, runId, state]);
+        // QS-1 auto-open: a plan-mode run that completed opens each of its
+        // plan-flagged result sets exactly once (dedupe by resultSetId so
+        // later state pushes/re-renders never re-open).
+        if (
+            (executionKind === "succeeded" || executionKind === "completedWithErrors") &&
+            runId !== undefined &&
+            planAutoOpenRef.current.runId === runId
+        ) {
+            for (const summary of state?.results.resultSets ?? []) {
+                if (
+                    summary.isPlanResult === true &&
+                    !planAutoOpenRef.current.opened.has(summary.resultSetId)
+                ) {
+                    planAutoOpenRef.current.opened.add(summary.resultSetId);
+                    void rpc.sendRequest(QsOpenPlanRequest.type, {
+                        resultSetId: summary.resultSetId,
+                    });
+                }
+            }
+        }
+    }, [executionKind, runId, state, rpc]);
 
     // --- editor wiring -------------------------------------------------------
     const onEditorMount = useCallback(
@@ -302,6 +353,9 @@ export function QueryStudioApp() {
     // --- commands -------------------------------------------------------------
     const execute = useCallback(() => {
         flushEdits();
+        // QS-1: an execute while the Actual Plan toggle is on is a plan-mode
+        // run — its plan result sets auto-open on completion.
+        planRunArmedRef.current = actualPlanEnabledRef.current;
         const editor = editorRef.current;
         const selection = editor?.getSelection();
         if (selection && !selection.isEmpty()) {
@@ -345,10 +399,12 @@ export function QueryStudioApp() {
     );
     const parse = useCallback(() => {
         flushEdits();
+        planRunArmedRef.current = false; // parse-only runs never open plans
         void rpc.sendRequest(QsExecuteRequest.type, { scope: "document", parseOnly: true });
     }, [rpc, flushEdits]);
     const estimatedPlan = useCallback(() => {
         flushEdits();
+        planRunArmedRef.current = true; // QS-1: auto-open the estimated plan
         void rpc.sendRequest(QsExecuteRequest.type, {
             scope: "document",
             estimatedPlanOnly: true,

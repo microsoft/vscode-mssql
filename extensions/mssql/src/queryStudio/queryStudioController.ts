@@ -33,6 +33,7 @@ import {
     QsGetRowsRequest,
     QsGridStyle,
     QsOpenCellDocumentRequest,
+    QsOpenPlanRequest,
     QsInlineCompletionAcceptedRequest,
     QsInlineCompletionRequest,
     QsListDatabasesRequest,
@@ -72,6 +73,7 @@ import {
     QueryStudioLanguageService,
 } from "./queryStudioLanguageService";
 import { cellDocumentText, prettyPrintCellText } from "./cellDocument";
+import { openExecutionPlanWebview } from "../controllers/sharedExecutionPlanUtils";
 import { readGridStyle } from "./gridStyle";
 import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
 
@@ -93,12 +95,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     /** Database names cached from QsListDatabases for USE completions. */
     private _languageDatabasesCache: string[] | undefined;
 
+    private readonly extensionContext: vscode.ExtensionContext;
+
     constructor(
         context: vscode.ExtensionContext,
         private readonly panel: vscode.WebviewPanel,
         private readonly model: QueryStudioDocumentModel,
     ) {
         super(context, "queryStudio", QueryStudioController.initialState(model), "queryStudio");
+        this.extensionContext = context;
         this.panel.webview.options = {
             enableScripts: true,
             localResourceRoots: [vscode.Uri.file(context.extensionPath)],
@@ -438,6 +443,47 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 }
             },
         );
+        this.onRequest(QsOpenPlanRequest.type, async ({ resultSetId }) => {
+            // QS-1: reuse the classic execution-plan viewer — fetch the
+            // canonical single-cell showplan XML and hand it to the existing
+            // webview (plan PARSING rides the same STS v1 service classic
+            // uses; this is viewer reuse, not a data-plane dependency).
+            try {
+                const summary = this.model.executionHost
+                    .resultsState()
+                    .resultSets.find((set) => set.resultSetId === resultSetId);
+                if (!summary?.isPlanResult) {
+                    return { opened: false };
+                }
+                const window = this.model.executionHost.getRows(resultSetId, 0, 1);
+                const value = window.values[0]?.[0];
+                if (value === undefined || value === null) {
+                    return { opened: false };
+                }
+                const seam = (await vscode.commands.executeCommand(
+                    "mssql.getControllerForTests",
+                )) as
+                    | {
+                          context?: vscode.ExtensionContext;
+                          executionPlanService?: unknown;
+                          sqlDocumentService?: unknown;
+                      }
+                    | undefined;
+                if (!seam?.executionPlanService || !seam.sqlDocumentService) {
+                    return { opened: false };
+                }
+                openExecutionPlanWebview(
+                    seam.context ?? this.extensionContext,
+                    seam.executionPlanService as never,
+                    seam.sqlDocumentService as never,
+                    cellDocumentText(value),
+                    `${this.model.backingDocument?.uri.path.split("/").pop() ?? "Query Studio"} plan`,
+                );
+                return { opened: true };
+            } catch {
+                return { opened: false };
+            }
+        });
         this.onRequest(QsGetMessagesRequest.type, async (params) =>
             this.model.executionHost.getMessages(params?.afterIndex),
         );

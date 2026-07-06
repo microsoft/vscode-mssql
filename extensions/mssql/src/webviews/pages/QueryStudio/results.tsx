@@ -27,6 +27,7 @@ import {
     QsMessageRow,
     QsNavigateToLineRequest,
     QsOpenCellDocumentRequest,
+    QsOpenPlanRequest,
     QsResultSetSummary,
 } from "../../../sharedInterfaces/queryStudio";
 import {
@@ -129,8 +130,8 @@ function decodeWindowRows(window: QsCellWindow): unknown[][] {
 }
 
 /** Caption row shared by the live grid and the lazy placeholder. */
-function GridCaption(props: { summary: QsResultSetSummary; children?: ReactNode }) {
-    const { summary, children } = props;
+function GridCaption(props: { rpc: Rpc; summary: QsResultSetSummary; children?: ReactNode }) {
+    const { rpc, summary, children } = props;
     return (
         <div className="qs-grid-caption">
             <span className="qs-grid-caption-title">
@@ -141,6 +142,21 @@ function GridCaption(props: { summary: QsResultSetSummary; children?: ReactNode 
                 {summary.truncatedReason ? ` · truncated (${summary.truncatedReason})` : ""}
                 {!summary.complete && !summary.truncatedReason ? " · streaming…" : ""}
             </span>
+            {summary.isPlanResult ? (
+                // QS-1: plan-flagged sets link out to the execution plan
+                // viewer. The host answers {opened:false} silently on failure.
+                <a
+                    className="qs-cell-link qs-plan-link"
+                    role="button"
+                    title="Open in the execution plan viewer"
+                    onClick={() => {
+                        void rpc.sendRequest(QsOpenPlanRequest.type, {
+                            resultSetId: summary.resultSetId,
+                        });
+                    }}>
+                    Open execution plan
+                </a>
+            ) : null}
             {children}
         </div>
     );
@@ -664,7 +680,7 @@ export function ResultGrid(props: {
 
     return (
         <div className={gridBlockClass} style={gridBlockStyle} ref={blockRef}>
-            <GridCaption summary={summary}>
+            <GridCaption rpc={rpc} summary={summary}>
                 {materializing ? <span className="qs-muted">loading all rows…</span> : null}
                 {viewIndices && viewIndices.length !== summary.rowCount ? (
                     <span className="qs-muted">
@@ -841,7 +857,7 @@ export function ResultGridBlock(props: {
     version: number;
     gridStyle?: QsGridStyle;
 }) {
-    const { summary, gridStyle } = props;
+    const { rpc, summary, gridStyle } = props;
     const [mounted, setMounted] = useState(false);
     const placeholderRef = useRef<HTMLDivElement | null>(null);
 
@@ -873,7 +889,7 @@ export function ResultGridBlock(props: {
         Math.min(summary.rowCount, MAX_GRID_ROWS_VISIBLE) * rowHeight + HEADER_HEIGHT + 2;
     return (
         <div className="qs-grid-block" ref={placeholderRef}>
-            <GridCaption summary={summary} />
+            <GridCaption rpc={rpc} summary={summary} />
             <div className="qs-grid-placeholder" style={{ height }}>
                 {summary.rowCount.toLocaleString()} row{summary.rowCount === 1 ? "" : "s"} — scroll
                 to load

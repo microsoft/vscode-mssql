@@ -287,6 +287,17 @@ export namespace QsOpenCellDocumentRequest {
         void
     >("qs/openCellDocument");
 }
+/**
+ * Open a plan-flagged result set (canonical single-cell showplan XML) in
+ * the existing execution-plan viewer webview (QS-1: plans render as plan
+ * views, not grids). {opened:false} when the set is not a plan, the cell
+ * is empty, or the viewer seam is unavailable.
+ */
+export namespace QsOpenPlanRequest {
+    export const type = new RequestType<{ resultSetId: string }, { opened: boolean }, void>(
+        "qs/openPlan",
+    );
+}
 export namespace QsGetMessagesRequest {
     export const type = new RequestType<
         { afterIndex?: number },

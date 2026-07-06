@@ -285,6 +285,10 @@
 .qs-cell-link:hover {
     color: var(--vscode-textLink-activeForeground);
 }
+/* QS-1: "Open execution plan" caption link on plan-flagged result sets. */
+.qs-plan-link {
+    white-space: nowrap;
+}
 
 /* --- column sort + filter (classic headerFilter parity) --- */
 
