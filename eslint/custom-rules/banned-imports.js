@@ -104,6 +104,49 @@ module.exports = {
                     });
                 }
 
+                // OE v2 boundaries (oe-docs oe_view_design §6.2):
+                // (a) pure tree modules import no vscode, no classic OE, no
+                //     data-plane singletons/concrete metadata services;
+                // (b) all of objectExplorer/v2 (except legacy/**) stays off
+                //     classic OE modules and ConnectionManager — legacy
+                //     handoff is the only door.
+                const isFileInOeV2 = /\/src\/objectExplorer\/v2\//.test(filePath);
+                const isFileInOeV2PureTree = /\/src\/objectExplorer\/v2\/(tree|sessions)\//.test(
+                    filePath,
+                );
+                const isFileInOeV2Legacy = /\/src\/objectExplorer\/v2\/legacy\//.test(filePath);
+                if (isFileInOeV2PureTree && !isFileInTest) {
+                    const bansForPure =
+                        importSource === "vscode" ||
+                        /sqlDataPlaneService/.test(importSource) ||
+                        /metadataStoreService/.test(importSource) ||
+                        /\/objectExplorer\/(?!v2\/)/.test(importSource) ||
+                        /\.\.\/\.\.\/(nodes|objectExplorerService|objectExplorerProvider)/.test(
+                            importSource,
+                        );
+                    if (bansForPure) {
+                        context.report({
+                            node,
+                            message:
+                                "OE v2 tree/sessions modules must stay pure: no vscode, no classic Object Explorer modules, no data-plane/metadata singletons (oe_view_design §6.2). Integrate at the provider/activation edge.",
+                        });
+                    }
+                }
+                if (isFileInOeV2 && !isFileInOeV2Legacy && !isFileInTest) {
+                    const bansClassicOe =
+                        /\/objectExplorer\/objectExplorerService/.test(importSource) ||
+                        /\/objectExplorer\/nodes\//.test(importSource) ||
+                        /\/models\/contracts\/objectExplorer\//.test(importSource) ||
+                        /connectionManager$/.test(importSource);
+                    if (bansClassicOe) {
+                        context.report({
+                            node,
+                            message:
+                                "OE v2 must not import classic Object Explorer modules or ConnectionManager outside objectExplorer/v2/legacy/** (explicit handoff is the only door — oe_view_design §7.5/§12).",
+                        });
+                    }
+                }
+
                 // Importing extension code (non-sharedInterfaces src/) from webview (reactviews)
                 if (isFileInReactviews) {
                     // Check if import is a relative path starting with ../ or ../../ etc
