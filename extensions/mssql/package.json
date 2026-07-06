@@ -632,6 +632,21 @@
             ],
             "view/item/context": [
                 {
+                    "command": "mssql.objectExplorerV2.connect",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canConnect\\b/",
+                    "group": "0_oe2_connection@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disconnect",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canDisconnect\\b/",
+                    "group": "0_oe2_connection@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.refresh",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canRefresh\\b/",
+                    "group": "1_oe2_refresh@0"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -1874,6 +1889,16 @@
             {
                 "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
                 "title": "Object Explorer v2: Open Classic Object Explorer",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connect",
+                "title": "Connect",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.disconnect",
+                "title": "Disconnect",
                 "category": "MS SQL"
             },
             {

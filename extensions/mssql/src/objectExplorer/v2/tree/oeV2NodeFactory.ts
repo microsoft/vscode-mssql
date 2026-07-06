@@ -33,35 +33,84 @@ export function connectionGroupNode(group: OeV2GroupRecord): OeV2Node {
     };
 }
 
-export function disconnectedConnectionNode(profile: OeV2ProfileRecord): OeV2Node {
+/** Session state as the factory needs it (registry type stays out of tree/). */
+export type ConnectionNodeState =
+    | "disconnected"
+    | "connecting"
+    | "connected"
+    | "lost"
+    | "disconnecting"
+    | "failed";
+
+export interface ConnectionNodeFacts {
+    readonly state: ConnectionNodeState;
+    readonly serverVersion?: string;
+    readonly failureReason?: string;
+}
+
+export function connectionNode(
+    profile: OeV2ProfileRecord,
+    facts: ConnectionNodeFacts = { state: "disconnected" },
+): OeV2Node {
     const path = { kind: "connection" as const, connectionId: profile.profileId };
+    const kind =
+        facts.state === "connected"
+            ? ("connectedServer" as const)
+            : facts.state === "connecting" || facts.state === "disconnecting"
+              ? ("connectingConnection" as const)
+              : facts.state === "lost"
+                ? ("lostConnection" as const)
+                : ("disconnectedConnection" as const);
+    const description =
+        facts.state === "connected"
+            ? profile.database
+            : facts.state === "connecting"
+              ? "connecting…"
+              : facts.state === "disconnecting"
+                ? "disconnecting…"
+                : facts.state === "lost"
+                  ? "connection lost"
+                  : facts.state === "failed"
+                    ? `failed: ${facts.failureReason ?? "connect error"}`
+                    : profile.database;
     return {
         id: encodePath(path),
         path,
-        kind: "disconnectedConnection",
+        kind,
         label: profile.displayName,
-        description: profile.database,
+        ...(description ? { description } : {}),
         tooltip: `${profile.server}${profile.database ? ` · ${profile.database}` : ""} · ${
             profile.user ?? "integrated"
-        }`,
+        }${facts.serverVersion ? ` · ${facts.serverVersion}` : ""}`,
         collapsible: true,
         connectionId: profile.profileId,
         readiness: NOT_APPLICABLE,
-        capabilities: capabilitiesFor("disconnectedConnection"),
-        icon: "Server_red",
+        capabilities: capabilitiesFor(kind),
+        icon: facts.state === "connected" ? "Server_green" : "Server_red",
     };
 }
+
+/** Back-compat alias (B17 shape). */
+export function disconnectedConnectionNode(profile: OeV2ProfileRecord): OeV2Node {
+    return connectionNode(profile);
+}
+
+export type ConnectionStateLookup = (profileId: string) => ConnectionNodeFacts | undefined;
 
 /**
  * Root children: the ROOT group's subgroups + profiles (groups-first, each
  * alphabetical) — same shape classic getRootNodes produces. Groups other
  * than ROOT render nested via childrenOfGroup.
  */
-export function rootChildren(tree: OeV2ProfileTree): OeV2Node[] {
-    return childrenOfGroup(tree, tree.rootGroupId);
+export function rootChildren(tree: OeV2ProfileTree, stateFor?: ConnectionStateLookup): OeV2Node[] {
+    return childrenOfGroup(tree, tree.rootGroupId, stateFor);
 }
 
-export function childrenOfGroup(tree: OeV2ProfileTree, groupId: string | undefined): OeV2Node[] {
+export function childrenOfGroup(
+    tree: OeV2ProfileTree,
+    groupId: string | undefined,
+    stateFor?: ConnectionStateLookup,
+): OeV2Node[] {
     const subgroups = tree.groups
         .filter((group) => group.parentId === groupId && group.groupId !== groupId)
         .sort((a, z) => a.name.localeCompare(z.name))
@@ -71,7 +120,7 @@ export function childrenOfGroup(tree: OeV2ProfileTree, groupId: string | undefin
             groupId === undefined ? profile.groupId === undefined : profile.groupId === groupId,
         )
         .sort((a, z) => a.displayName.localeCompare(z.displayName))
-        .map(disconnectedConnectionNode);
+        .map((profile) => connectionNode(profile, stateFor?.(profile.profileId)));
     return [...subgroups, ...profiles];
 }
 
