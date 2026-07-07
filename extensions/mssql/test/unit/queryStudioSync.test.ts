@@ -10,7 +10,7 @@
  */
 
 import { expect } from "chai";
-import { applyEdits, TextSyncEngine, textHash } from "../../src/queryStudio/textSync";
+import { applyEdits, diffTextEdit, TextSyncEngine, textHash } from "../../src/queryStudio/textSync";
 import { QueryStudioDocumentRegistry } from "../../src/queryStudio/queryStudioDocumentRegistry";
 import { QsTextEdit } from "../../src/sharedInterfaces/queryStudio";
 
@@ -148,6 +148,22 @@ suite("Query Studio text sync", () => {
             ]),
         ).to.equal("12cd56");
         expect(applyEdits("", [{ start: 0, end: 0, text: "new" }])).to.equal("new");
+    });
+
+    test("diffTextEdit composes sequential typing against one baseline", () => {
+        const before = "";
+        const after = "select";
+        const edits = diffTextEdit(before, after);
+        expect(edits).to.deep.equal([{ start: 0, end: 0, text: "select" }]);
+        expect(applyEdits(before, edits)).to.equal(after);
+    });
+
+    test("diffTextEdit preserves shared prefix and suffix", () => {
+        const before = "select from sys.objects";
+        const after = "select * from sys.objects";
+        const edits = diffTextEdit(before, after);
+        expect(edits).to.deep.equal([{ start: 7, end: 7, text: "* " }]);
+        expect(applyEdits(before, edits)).to.equal(after);
     });
 
     test("stale-base rejection reports current version and no resync (webview must adopt)", () => {

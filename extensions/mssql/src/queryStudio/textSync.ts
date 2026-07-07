@@ -47,6 +47,43 @@ export function applyEdits(text: string, edits: QsTextEdit[]): string {
     return result;
 }
 
+/**
+ * Build the minimal single replacement needed to transform one full text
+ * snapshot into another. This is for coalesced sequential editor events:
+ * their original offsets are not mutually baseline-relative, so the webview
+ * recomposes the burst against the host baseline before syncing.
+ */
+export function diffTextEdit(before: string, after: string): QsTextEdit[] {
+    if (before === after) {
+        return [];
+    }
+    let prefixLength = 0;
+    const minLength = Math.min(before.length, after.length);
+    while (
+        prefixLength < minLength &&
+        before.charCodeAt(prefixLength) === after.charCodeAt(prefixLength)
+    ) {
+        prefixLength++;
+    }
+
+    let suffixLength = 0;
+    while (
+        suffixLength < minLength - prefixLength &&
+        before.charCodeAt(before.length - 1 - suffixLength) ===
+            after.charCodeAt(after.length - 1 - suffixLength)
+    ) {
+        suffixLength++;
+    }
+
+    return [
+        {
+            start: prefixLength,
+            end: before.length - suffixLength,
+            text: after.slice(prefixLength, after.length - suffixLength),
+        },
+    ];
+}
+
 export interface SyncApplyOutcome {
     applied: boolean;
     hostVersion: number;

@@ -70,7 +70,7 @@ import {
     QsLangSignatureHelpRequest,
 } from "../../../sharedInterfaces/queryStudioLanguage";
 import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResultsLayout";
-import { textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
+import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
 import { MessagesView, ResultGridBlock } from "./results";
 import { QsResultsGridProvider, qsGridRowHeight } from "./resultsGrid";
 import { monacoApi } from "./monacoSetup";
@@ -101,6 +101,7 @@ const TERMINAL_KINDS = new Set([
 const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
+const QS_COMPLETION_STALE_GUARD_DELAY_MS = 30;
 
 export function QueryStudioApp() {
     const { extensionRpc: rpc, themeKind } = useVscodeWebview<QsState, void>();
@@ -126,10 +127,14 @@ export function QueryStudioApp() {
     const [actionHint, setActionHint] = useState<string | undefined>(undefined);
     const editorRef = useRef<Editor | null>(null);
     const hostVersionRef = useRef(0);
+    const syncedTextRef = useRef("");
+    const syncInFlightRef = useRef(false);
+    const flushAgainRef = useRef(false);
+    const flushEditsRef = useRef<() => void>(() => undefined);
     const suppressLocalRef = useRef(false);
-    const pendingEditsRef = useRef<QsTextEdit[]>([]);
     const flushTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const expectedEchoGroupsRef = useRef<Set<string>>(new Set());
+    const expectedEchoTextsRef = useRef<Map<string, string>>(new Map());
     const renderedRunRef = useRef<number | undefined>(undefined);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const dbWrapRef = useRef<HTMLSpanElement | null>(null);
@@ -204,53 +209,89 @@ export function QueryStudioApp() {
             flushTimerRef.current = undefined;
         }
         const editor = editorRef.current;
-        const edits = pendingEditsRef.current;
-        if (!editor || edits.length === 0) {
+        if (!editor) {
             return;
         }
-        pendingEditsRef.current = [];
+        if (syncInFlightRef.current) {
+            flushAgainRef.current = true;
+            return;
+        }
+        const currentText = editor.getValue();
+        if (currentText === syncedTextRef.current) {
+            return;
+        }
+        const edits = diffTextEdit(syncedTextRef.current, currentText);
+        if (edits.length === 0) {
+            return;
+        }
         const groupId = `wg_${(++editGroupCounter).toString(36)}`;
         expectedEchoGroupsRef.current.add(groupId);
+        expectedEchoTextsRef.current.set(groupId, currentText);
         const payload: QsSyncEdits = {
             baseHostVersion: hostVersionRef.current,
             editGroupId: groupId,
             edits,
-            textHashAfter: textHash(editor.getValue()),
+            textHashAfter: textHash(currentText),
         };
-        void rpc.sendRequest(QsSyncEditsRequest.type, payload).then((outcome) => {
-            if (outcome.applied) {
+        syncInFlightRef.current = true;
+        void rpc
+            .sendRequest(QsSyncEditsRequest.type, payload)
+            .then((outcome) => {
+                if (outcome.applied) {
+                    hostVersionRef.current = outcome.hostVersion;
+                    syncedTextRef.current = currentText;
+                    return;
+                }
+                // Divergence rejections reconcile via the resync notification;
+                // stale-base rejections carry NO reconciliation (the host assumes
+                // an interleaved remote reached us — false when the init itself
+                // was missed) and would deadlock every subsequent group. Heal by
+                // converging the host to the visible editor content, which is
+                // the user-facing truth.
+                expectedEchoGroupsRef.current.delete(groupId);
+                expectedEchoTextsRef.current.delete(groupId);
                 hostVersionRef.current = outcome.hostVersion;
-                return;
-            }
-            // Divergence rejections reconcile via the resync notification;
-            // stale-base rejections carry NO reconciliation (the host assumes
-            // an interleaved remote reached us — false when the init itself
-            // was missed) and would deadlock every subsequent group. Heal by
-            // converging the host to the visible editor content, which is
-            // the user-facing truth.
-            expectedEchoGroupsRef.current.delete(groupId);
-            hostVersionRef.current = outcome.hostVersion;
-            const liveEditor = editorRef.current;
-            if (!liveEditor) {
-                return;
-            }
-            const adoptGroupId = `wg_${(++editGroupCounter).toString(36)}`;
-            expectedEchoGroupsRef.current.add(adoptGroupId);
-            void rpc
-                .sendRequest(QsSyncAdoptRequest.type, {
-                    text: liveEditor.getValue(),
-                    editGroupId: adoptGroupId,
-                })
-                .then((adopted) => {
-                    hostVersionRef.current = adopted.hostVersion;
-                });
-        });
+                const liveEditor = editorRef.current;
+                if (!liveEditor) {
+                    return undefined;
+                }
+                const adoptText = liveEditor.getValue();
+                if (adoptText === syncedTextRef.current) {
+                    return undefined;
+                }
+                const adoptGroupId = `wg_${(++editGroupCounter).toString(36)}`;
+                expectedEchoGroupsRef.current.add(adoptGroupId);
+                expectedEchoTextsRef.current.set(adoptGroupId, adoptText);
+                return rpc
+                    .sendRequest(QsSyncAdoptRequest.type, {
+                        text: adoptText,
+                        editGroupId: adoptGroupId,
+                    })
+                    .then((adopted) => {
+                        hostVersionRef.current = adopted.hostVersion;
+                        syncedTextRef.current = adoptText;
+                    });
+            })
+            .catch(() => {
+                expectedEchoGroupsRef.current.delete(groupId);
+                expectedEchoTextsRef.current.delete(groupId);
+            })
+            .finally(() => {
+                syncInFlightRef.current = false;
+                if (
+                    flushAgainRef.current ||
+                    editorRef.current?.getValue() !== syncedTextRef.current
+                ) {
+                    flushAgainRef.current = false;
+                    flushTimerRef.current = setTimeout(() => flushEditsRef.current(), 0);
+                }
+            });
     }, [rpc]);
+    flushEditsRef.current = flushEdits;
 
     const queueLocalEdits = useCallback(
         (edits: QsTextEdit[]) => {
-            pendingEditsRef.current.push(...edits);
-            if (!flushTimerRef.current) {
+            if (edits.length > 0 && !flushTimerRef.current) {
                 flushTimerRef.current = setTimeout(flushEdits, SYNC_COALESCE_MS);
             }
         },
@@ -261,6 +302,8 @@ export function QueryStudioApp() {
     const applyRemoteText = useCallback((text: string, hostVersion: number) => {
         const editor = editorRef.current;
         hostVersionRef.current = hostVersion;
+        syncedTextRef.current = text;
+        flushAgainRef.current = false;
         if (!editor || editor.getValue() === text) {
             return;
         }
@@ -286,6 +329,11 @@ export function QueryStudioApp() {
                     expectedEchoGroupsRef.current.delete(remote.echoOfEditGroupId)
                 ) {
                     hostVersionRef.current = remote.toHostVersion;
+                    const echoText = expectedEchoTextsRef.current.get(remote.echoOfEditGroupId);
+                    expectedEchoTextsRef.current.delete(remote.echoOfEditGroupId);
+                    if (echoText !== undefined) {
+                        syncedTextRef.current = echoText;
+                    }
                     return; // our own edit reflected — do not reapply
                 }
                 const editor = editorRef.current;
@@ -450,6 +498,8 @@ export function QueryStudioApp() {
                         applyRemoteText(resync.text, resync.hostVersion);
                     } else {
                         hostVersionRef.current = resync.hostVersion;
+                        syncedTextRef.current = resync.text;
+                        flushEditsRef.current();
                     }
                 });
             editor.onDidChangeModelContent((e) => {
@@ -646,19 +696,33 @@ export function QueryStudioApp() {
         }
         const providerDisposable = monacoApi.languages.registerInlineCompletionsProvider("sql", {
             provideInlineCompletions: async (model, position, context) => {
+                const requestVersion = model.getVersionId();
+                const requestHash = textHash(model.getValue());
+                const trigger =
+                    context.triggerKind === monacoApi.languages.InlineCompletionTriggerKind.Explicit
+                        ? "invoke"
+                        : "automatic";
+                if (trigger === "automatic") {
+                    await delay(QS_COMPLETION_STALE_GUARD_DELAY_MS);
+                    if (!isModelStateCurrent(model, requestVersion, requestHash)) {
+                        return { items: [] };
+                    }
+                }
                 // Same staleness rule as lang completions: the host bridge
                 // resolves positions against its mirror — push edits first.
                 flushEdits();
+                if (trigger === "automatic" && syncInFlightRef.current) {
+                    return { items: [] };
+                }
                 const response = await rpc.sendRequest(QsInlineCompletionRequest.type, {
                     line: position.lineNumber - 1,
                     character: position.column - 1,
-                    textHash: textHash(model.getValue()),
-                    trigger:
-                        context.triggerKind ===
-                        monacoApi.languages.InlineCompletionTriggerKind.Explicit
-                            ? "invoke"
-                            : "automatic",
+                    textHash: requestHash,
+                    trigger,
                 });
+                if (!isModelStateCurrent(model, requestVersion, requestHash)) {
+                    return { items: [] };
+                }
                 if (!response?.text) {
                     return { items: [] };
                 }
@@ -696,14 +760,23 @@ export function QueryStudioApp() {
                 triggerCharacters: [".", " ", "@", "("],
                 provideCompletionItems: async (model, position, context) => {
                     try {
+                        const requestVersion = model.getVersionId();
+                        const requestHash = textHash(model.getValue());
+                        await delay(QS_COMPLETION_STALE_GUARD_DELAY_MS);
+                        if (!isModelStateCurrent(model, requestVersion, requestHash)) {
+                            return { suggestions: [] };
+                        }
                         // Push pending keystrokes NOW and tell the host the
                         // exact text this request was computed against —
                         // otherwise completions bind one keystroke behind.
                         flushEdits();
+                        if (syncInFlightRef.current) {
+                            return { suggestions: [] };
+                        }
                         const result = await rpc.sendRequest(QsLangCompletionRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
-                            textHash: textHash(model.getValue()),
+                            textHash: requestHash,
                             trigger:
                                 context.triggerKind ===
                                 monacoApi.languages.CompletionTriggerKind.TriggerCharacter
@@ -713,6 +786,9 @@ export function QueryStudioApp() {
                                 ? { triggerCharacter: context.triggerCharacter }
                                 : {}),
                         });
+                        if (!isModelStateCurrent(model, requestVersion, requestHash)) {
+                            return { suggestions: [] };
+                        }
                         const word = model.getWordUntilPosition(position);
                         const range = new monacoApi.Range(
                             position.lineNumber,
@@ -1260,6 +1336,18 @@ function monacoRange(model: monacoNs.editor.ITextModel, edit: QsTextEdit): monac
         endLineNumber: end.lineNumber,
         endColumn: end.column,
     };
+}
+
+function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isModelStateCurrent(
+    model: monacoNs.editor.ITextModel,
+    version: number,
+    hash: string,
+): boolean {
+    return model.getVersionId() === version && textHash(model.getValue()) === hash;
 }
 
 // --- language-feature mapping (qs/lang.* DTOs ⇄ Monaco, 0-based ⇄ 1-based) ----
