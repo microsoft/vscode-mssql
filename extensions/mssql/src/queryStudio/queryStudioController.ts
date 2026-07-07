@@ -688,6 +688,19 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         return this.languageService.status();
     }
 
+    public get documentUriKey(): string {
+        return this.model.uriKey;
+    }
+
+    public revealEditorPosition(line: number, column: number): void {
+        this.panel.reveal(undefined, false);
+        void this.sendNotification(QsRevealPositionNotification.type, {
+            line,
+            column,
+            flash: true,
+        });
+    }
+
     public override dispose(): void {
         if (this.statePushTimer) {
             clearTimeout(this.statePushTimer);

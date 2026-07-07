@@ -271,12 +271,23 @@
 
 .qs-messages {
     font-family: var(--vscode-editor-font-family, monospace);
-    font-size: 12px;
+    font-size: var(--vscode-editor-font-size, 12px);
     line-height: 18px;
 }
+.qs-message-row {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    min-height: 18px;
+}
 .qs-message {
-    padding: 1px 4px;
+    min-height: 18px;
+    padding: 0 4px;
     white-space: pre-wrap;
+}
+.qs-message-time {
+    min-height: 18px;
+    padding: 0 4px;
+    white-space: pre;
 }
 .qs-message-error {
     color: var(--vscode-errorForeground);

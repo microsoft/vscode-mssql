@@ -35,6 +35,7 @@ import {
     systemObjectsInSchema,
     SystemCatalogObject,
 } from "../data/systemObjectCatalog";
+import { matchScore, ordinalCompare } from "../core/fuzzy";
 import {
     IPinnedMetadataView,
     LangColumn,
@@ -102,19 +103,26 @@ export function withSystemObjectCatalog(inner: IPinnedMetadataView): IPinnedMeta
             return results;
         }
         const limit = query.limit ?? 100;
-        const prefix = query.prefix?.toLowerCase();
         const taken = new Set(results.map((info) => info.name.toLowerCase()));
         const merged = [...results];
+        const catalogMatches: Array<{ object: SystemCatalogObject; score: number }> = [];
         for (const object of systemObjectsInSchema(query.schema, engineEdition)) {
-            if (merged.length >= limit) {
-                break;
-            }
             const folded = object.name.toLowerCase();
             if (taken.has(folded)) {
                 continue; // live metadata wins
             }
-            if (prefix !== undefined && prefix.length > 0 && !folded.startsWith(prefix)) {
+            const score = matchScore(object.name, query.prefix ?? "");
+            if (score === undefined) {
                 continue;
+            }
+            catalogMatches.push({ object, score });
+        }
+        catalogMatches.sort(
+            (a, b) => b.score - a.score || ordinalCompare(a.object.name, b.object.name),
+        );
+        for (const { object } of catalogMatches) {
+            if (merged.length >= limit) {
+                break;
             }
             merged.push(toObjectInfo(object));
         }

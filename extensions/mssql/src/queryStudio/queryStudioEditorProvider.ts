@@ -33,9 +33,20 @@ const pendingOpenContexts = new Map<
     string,
     { profileId: string; database?: string; autoRun?: boolean }
 >();
+const explicitClassicOpenUntil = new Map<string, number>();
 
 export function findQueryStudioModel(uri: vscode.Uri): QueryStudioDocumentModel | undefined {
     return liveModels.get(uri.toString());
+}
+
+function liveControllerFor(uri: vscode.Uri): QueryStudioController | undefined {
+    const uriKey = uri.toString();
+    for (const controller of liveControllers) {
+        if (controller.documentUriKey === uriKey) {
+            return controller;
+        }
+    }
+    return undefined;
 }
 
 export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvider {
@@ -197,6 +208,7 @@ export function registerQueryStudio(context: vscode.ExtensionContext): void {
 
 function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     registerQueryStudioPerfProbe(context);
+    registerQueryStudioActiveTextEditorRedirect(context);
     // mssql-def: virtual documents for scripted go-to-definition (LS-4);
     // registered once with the QS surface, shared by every controller.
     registerDefinitionContentProvider(context);
@@ -260,6 +272,9 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
             async (uri?: vscode.Uri) => {
                 const target = uri ?? vscode.window.activeTextEditor?.document.uri;
                 if (target) {
+                    const uriKey = target.toString();
+                    explicitClassicOpenUntil.set(uriKey, Date.now() + 2000);
+                    setTimeout(() => explicitClassicOpenUntil.delete(uriKey), 2000);
                     await vscode.commands.executeCommand("vscode.openWith", target, "default");
                 }
             },
@@ -313,6 +328,34 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
             });
         }),
         { dispose: () => replayController?.dispose() },
+    );
+}
+
+function registerQueryStudioActiveTextEditorRedirect(context: vscode.ExtensionContext): void {
+    let redirecting = false;
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            if (redirecting || editor === undefined || editor.document.languageId !== "sql") {
+                return;
+            }
+            const controller = liveControllerFor(editor.document.uri);
+            if (controller === undefined) {
+                return;
+            }
+            const uriKey = editor.document.uri.toString();
+            if ((explicitClassicOpenUntil.get(uriKey) ?? 0) > Date.now()) {
+                return;
+            }
+            redirecting = true;
+            try {
+                const position = editor.selection.active;
+                controller.revealEditorPosition(position.line + 1, position.character + 1);
+            } finally {
+                setTimeout(() => {
+                    redirecting = false;
+                }, 0);
+            }
+        }),
     );
 }
 

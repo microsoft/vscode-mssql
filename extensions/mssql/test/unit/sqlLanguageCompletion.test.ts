@@ -519,6 +519,23 @@ suite("sqlLanguage native completion: static system catalog", () => {
         expect(result.items.some((i) => i.kind === "schema")).to.equal(false);
     });
 
+    test("sys.all lists all catalog views and other fuzzy matches", async () => {
+        const result = await complete("SELECT * FROM sys.all/*caret*/");
+        expect(labels(result)).to.include.members([
+            "all_columns",
+            "all_objects",
+            "all_parameters",
+            "all_sql_modules",
+            "all_views",
+            "allocation_units",
+        ]);
+    });
+
+    test("sys. object prefix uses ordered subsequence matching", async () => {
+        const result = await complete("SELECT * FROM sys.aun/*caret*/");
+        expect(labels(result)).to.include("allocation_units");
+    });
+
     test("INFORMATION_SCHEMA. lists catalog views", async () => {
         const result = await complete("SELECT * FROM INFORMATION_SCHEMA./*caret*/");
         expect(labels(result)).to.include.members(["TABLES", "COLUMNS", "VIEWS"]);

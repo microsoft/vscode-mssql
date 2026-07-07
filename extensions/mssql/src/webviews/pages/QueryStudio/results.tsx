@@ -19,7 +19,7 @@
  * many-result-set runs on viewport proximity.
  */
 
-import { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import {
     QsMessageRow,
     QsGridStyle,
@@ -236,12 +236,16 @@ function messageTimeLabel(epochMs: number): string {
     return new Date(epochMs).toLocaleTimeString();
 }
 
+function messageGetsTimestamp(message: QsMessageRow): boolean {
+    return !/^\(\d+\s+rows?\s+affected\)$/i.test(message.text.trim());
+}
+
 /**
  * Messages tab: monospace log; error blocks navigate to the document line.
  * Server-error rows carry the SSMS "Msg N, Level L, State S, Line D" header
- * as the first line of their text (`white-space: pre-wrap` renders it as its
- * own row). A dim wall-clock header (classic-editor parity) precedes each
- * group of messages sharing the same timestamp second.
+ * as the first line of their text. The layout mirrors the classic message
+ * grid: fixed timestamp column, tight 18px rows, and rows-affected messages
+ * aligned under the message column without repeating the timestamp.
  */
 export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
     const { rpc, messages } = props;
@@ -259,23 +263,29 @@ export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
     return (
         <div className="qs-messages" role="log">
             {messages.map((message, i) => {
-                const time = messageTimeLabel(message.epochMs);
-                const showTime = i === 0 || time !== messageTimeLabel(messages[i - 1].epochMs);
                 return (
-                    <Fragment key={i}>
-                        {showTime ? (
-                            <div className="qs-muted qs-message qs-message-time">{time}</div>
-                        ) : null}
+                    <div
+                        key={i}
+                        className={`qs-message-row${message.navigable ? " qs-message-nav" : ""}`}
+                        onClick={() => navigate(message)}
+                        title={message.navigable ? "Go to line" : undefined}>
+                        <div className="qs-muted qs-message-time">
+                            {messageGetsTimestamp(message) ? messageTimeLabel(message.epochMs) : ""}
+                        </div>
                         <div
-                            className={`qs-message qs-message-${message.kind}${message.navigable ? " qs-message-nav" : ""}`}
-                            onClick={() => navigate(message)}
-                            title={message.navigable ? "Go to line" : undefined}>
+                            className={`qs-message qs-message-${message.kind}`}
+                            aria-label={message.text}>
                             {message.text}
                         </div>
-                    </Fragment>
+                    </div>
                 );
             })}
-            {messages.length === 0 ? <div className="qs-muted qs-message">No messages.</div> : null}
+            {messages.length === 0 ? (
+                <div className="qs-message-row">
+                    <div className="qs-message-time" />
+                    <div className="qs-muted qs-message">No messages.</div>
+                </div>
+            ) : null}
         </div>
     );
 }
