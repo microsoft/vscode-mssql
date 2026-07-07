@@ -39,6 +39,7 @@ import {
     QsListDatabasesRequest,
     QsNavigateToLineRequest,
     QsReconnectRequest,
+    QsRestoreEditorFocusNotification,
     QsSetActualPlanRequest,
     QsSetDatabaseRequest,
     QsSetViewModeRequest,
@@ -98,6 +99,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private readonly languageService: QueryStudioLanguageService;
     /** Database names cached from QsListDatabases for USE completions. */
     private _languageDatabasesCache: string[] | undefined;
+    private restoreEditorFocusWhenActive = false;
 
     private readonly extensionContext: vscode.ExtensionContext;
 
@@ -126,6 +128,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                         `Query Studio webview boot error: ${m.message} @ ${m.source}`,
                     );
                 }
+            }),
+        );
+        this.registerDisposable(
+            this.panel.onDidChangeViewState((event) => {
+                if (!event.webviewPanel.active || !this.restoreEditorFocusWhenActive) {
+                    return;
+                }
+                this.restoreEditorFocusWhenActive = false;
+                void this.sendNotification(QsRestoreEditorFocusNotification.type, undefined);
             }),
         );
         this.languageService = new QueryStudioLanguageService({
@@ -336,6 +347,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.model.applyWebviewEdits(edits),
         );
         this.onRequest(QsShowCommandPaletteRequest.type, async () => {
+            this.restoreEditorFocusWhenActive = true;
             await vscode.commands.executeCommand("workbench.action.showCommands");
         });
         this.onRequest(QsSyncAdoptRequest.type, async ({ text, editGroupId }) =>

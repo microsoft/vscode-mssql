@@ -468,6 +468,21 @@ suite("sqlLanguage native completion: statement start", () => {
         expect(result!.items.some((i) => i.label === "select")).to.equal(true);
         expect(result!.items.some((i) => i.kind === "snippet")).to.equal(false);
     });
+
+    test("space after GO does not auto-popup statement keywords", async () => {
+        const fixture = parseFourslash("GO /*caret*/");
+        const engine = new NativeSqlLanguageEngine(standardProvider);
+        const snapshot = new TextSnapshot(fixture.text, 1);
+        const result = await engine.completion({
+            text: fixture.text,
+            version: 1,
+            position: snapshot.positionAt(fixture.caret!),
+            trigger: "character",
+            triggerCharacter: " ",
+        });
+
+        expect(result).to.deep.equal({ items: [], isIncomplete: false });
+    });
 });
 
 suite("sqlLanguage native completion: static system catalog", () => {

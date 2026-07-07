@@ -395,6 +395,9 @@ export namespace QsRevealPositionNotification {
         "qs/revealPosition",
     );
 }
+export namespace QsRestoreEditorFocusNotification {
+    export const type = new NotificationType<void>("qs/restoreEditorFocus");
+}
 /** Counts ONLY — row data crosses exclusively via QsGetRows (addendum §3.6). */
 export namespace QsRowsAppendedNotification {
     export const type = new NotificationType<{

@@ -37,6 +37,7 @@ import {
     QsSetDatabaseRequest,
     QsState,
     QsStateChangedNotification,
+    QsRestoreEditorFocusNotification,
     QsSyncEdits,
     QsShowCommandPaletteRequest,
     QsSyncAdoptRequest,
@@ -76,6 +77,11 @@ import { monacoApi } from "./monacoSetup";
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 
 let editGroupCounter = 0;
+
+interface EditorFocusBookmark {
+    readonly selection: monacoNs.Selection | null;
+    readonly position: monacoNs.Position | null;
+}
 
 const TERMINAL_KINDS = new Set([
     "succeeded",
@@ -125,6 +131,7 @@ export function QueryStudioApp() {
     const expectedEchoGroupsRef = useRef<Set<string>>(new Set());
     const renderedRunRef = useRef<number | undefined>(undefined);
     const rootRef = useRef<HTMLDivElement | null>(null);
+    const pendingEditorFocusRestoreRef = useRef<EditorFocusBookmark | undefined>(undefined);
     // QS-1 auto-open: runs are always webview-initiated, so plan mode is
     // tracked locally at the point the run is triggered. `planRunArmedRef`
     // is set by the Estimated Plan button (or Execute while the Actual Plan
@@ -136,6 +143,34 @@ export function QueryStudioApp() {
     const planAutoOpenRef = useRef<{ runId?: number; opened: Set<string> }>({
         opened: new Set(),
     });
+
+    const captureEditorFocusBookmark = useCallback(() => {
+        const editor = editorRef.current;
+        if (!editor) {
+            return;
+        }
+        pendingEditorFocusRestoreRef.current = {
+            selection: editor.getSelection(),
+            position: editor.getPosition(),
+        };
+    }, []);
+
+    const restoreEditorFocus = useCallback(() => {
+        const editor = editorRef.current;
+        if (!editor) {
+            return;
+        }
+        const bookmark = pendingEditorFocusRestoreRef.current;
+        pendingEditorFocusRestoreRef.current = undefined;
+        if (bookmark?.selection) {
+            editor.setSelection(bookmark.selection);
+        }
+        const position = bookmark?.position ?? editor.getPosition();
+        if (position) {
+            editor.revealPositionInCenterIfOutsideViewport(position);
+        }
+        editor.focus();
+    }, []);
 
     // --- sync: webview → host --------------------------------------------
     const flushEdits = useCallback(() => {
@@ -292,10 +327,21 @@ export function QueryStudioApp() {
                     editor.focus();
                 },
             ),
+            rpc.onNotification(QsRestoreEditorFocusNotification.type, restoreEditorFocus),
         ];
         // Signal readiness → host ends the open marker.
         void rpc.sendRequest(QsGetDiagnosticsSummaryRequest.type, undefined);
-    }, [rpc, applyRemoteText, flushEdits]);
+    }, [rpc, applyRemoteText, flushEdits, restoreEditorFocus]);
+
+    useEffect(() => {
+        const onFocus = () => {
+            if (pendingEditorFocusRestoreRef.current) {
+                window.setTimeout(restoreEditorFocus, 0);
+            }
+        };
+        window.addEventListener("focus", onFocus);
+        return () => window.removeEventListener("focus", onFocus);
+    }, [restoreEditorFocus]);
 
     // Run lifecycle: reset per-run webview state on a new run; fire the
     // resultsRendered mark once per run after the terminal paint.
@@ -421,6 +467,7 @@ export function QueryStudioApp() {
             // F1: VS Code's palette, not Monaco's quick-command (commands
             // route to this editor through VS Code).
             editor.addCommand(monacoKeyCode().F1, () => {
+                captureEditorFocusBookmark();
                 void rpc.sendRequest(QsShowCommandPaletteRequest.type, undefined);
             });
             editor.addCommand(monacoKeyMod().CtrlCmd | monacoKeyCode().KeyS, () => {
@@ -428,7 +475,7 @@ export function QueryStudioApp() {
                 void rpc.sendRequest(QsSyncSaveRequest.type, undefined);
             });
         },
-        [queueLocalEdits, flushEdits, rpc, applyRemoteText],
+        [queueLocalEdits, flushEdits, rpc, applyRemoteText, captureEditorFocusBookmark],
     );
 
     // --- commands -------------------------------------------------------------

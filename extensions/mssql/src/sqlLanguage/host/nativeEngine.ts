@@ -32,7 +32,7 @@ import {
     SqlLanguageFeatureEngine,
     SqlLanguageRequest,
 } from "../api";
-import { LexResult, lex } from "../core/lexer";
+import { LexResult, Token, TokenKind, isTrivia, lex } from "../core/lexer";
 import { SegmentResult, StatementSegment, segment } from "../core/segmenter";
 import { TextSnapshot } from "../core/text/textSnapshot";
 import { IPinnedMetadataView, ISqlLanguageMetadataProvider } from "../provider/types";
@@ -259,18 +259,27 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
         });
         try {
             const target = this.locateStatement(analysis, req.text, offset);
-            const pinned = this.pinView();
             if (target === undefined) {
+                if (shouldSuppressAutomaticWhitespaceCompletion(req, analysis, offset)) {
+                    span.end("ok", {
+                        contextKind: { raw: "none", cls: "diagnostic.metadata" },
+                        itemCount: { raw: 0, cls: "diagnostic.metadata" },
+                        suppressed: { raw: "emptySpace", cls: "diagnostic.metadata" },
+                    });
+                    return Promise.resolve(emptyCompletionResult());
+                }
                 // Empty document / between statements: statement start.
+                const pinned = this.pinView();
                 const options = this.getOptions();
+                const sketch = emptySketch(offset);
                 const result = computeCompletion({
                     text: req.text,
                     offset,
                     context: { kind: "statementStart" },
-                    sketch: emptySketch(offset),
+                    sketch,
                     binding: bindStatement({
                         text: req.text,
-                        sketch: emptySketch(offset),
+                        sketch,
                         overlay: analysis.overlay,
                         batchIndex: 0,
                         ordinal: 0,
@@ -292,6 +301,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 });
                 return Promise.resolve(result);
             }
+            const pinned = this.pinView();
             const binding = bindStatement({
                 text: req.text,
                 sketch: target.sketch,
@@ -721,6 +731,51 @@ function diagnosticsSpanFields(result: DiagnosticsPassResult): Record<string, Ra
         suppressedTotal: { raw: suppressedTotal, cls: "diagnostic.metadata" },
         suppressionReasons: { raw: reasonParts.sort().join(","), cls: "diagnostic.metadata" },
     };
+}
+
+function emptyCompletionResult(): CompletionResult {
+    return { items: [], isIncomplete: false };
+}
+
+function shouldSuppressAutomaticWhitespaceCompletion(
+    req: CompletionRequest,
+    analysis: DocumentAnalysis,
+    offset: number,
+): boolean {
+    if (req.trigger !== "character" || req.triggerCharacter !== " ") {
+        return false;
+    }
+    const lineTokens = significantTokensOnCurrentLineBeforeOffset(
+        req.text,
+        analysis.lexed.tokens,
+        offset,
+    );
+    if (lineTokens.length === 0) {
+        return true;
+    }
+    return (
+        lineTokens[0].kind === TokenKind.GoSeparator &&
+        lineTokens.slice(1).every((token) => token.kind === TokenKind.NumberLiteral)
+    );
+}
+
+function significantTokensOnCurrentLineBeforeOffset(
+    text: string,
+    tokens: readonly Token[],
+    offset: number,
+): Token[] {
+    const lineStart = text.lastIndexOf("\n", Math.max(0, offset - 1)) + 1;
+    const significant: Token[] = [];
+    for (const token of tokens) {
+        if (token.kind === TokenKind.EndOfFile || token.start >= offset) {
+            break;
+        }
+        if (token.end <= lineStart || isTrivia(token.kind)) {
+            continue;
+        }
+        significant.push(token);
+    }
+    return significant;
 }
 
 /** Zero-width sketch for caret positions outside any statement. */
