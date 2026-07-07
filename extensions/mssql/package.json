@@ -1036,6 +1036,138 @@
             ],
             "commandPalette": [
                 {
+                    "command": "mssql.queryStudio.new",
+                    "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.queryStudio.openActive",
+                    "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.queryStudio.openInClassicEditor",
+                    "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.queryStudio.duplicateAsNewQuery",
+                    "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.queryStudio.openReplayLab",
+                    "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.queryStudio.languageServiceStatus",
+                    "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.showStatus",
+                    "when": "config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.clearAll",
+                    "when": "config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.clearForConnection",
+                    "when": "config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.enableOfflineMode",
+                    "when": "config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.disableOfflineMode",
+                    "when": "config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.sqlDataPlane.showStatus",
+                    "when": "config.mssql.sqlDataPlane.enabled"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.showStatus",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.refresh",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disconnect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyName",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyQualifiedName",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.newQuery",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.selectTop",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.tablePreview",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.filter",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.clearFilters",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.search",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.legacyActions",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.anthropic.setApiKey",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.anthropic.clearApiKey",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.openai.setApiKey",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.openai.clearApiKey",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.xai.setApiKey",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.xai.clearApiKey",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
+                    "command": "mssql.copilot.completions.trace.syncToDatabase",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
+                },
+                {
                     "command": "mssql.openInlineCompletionDebug",
                     "when": "config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.useSchemaContext"
                 },

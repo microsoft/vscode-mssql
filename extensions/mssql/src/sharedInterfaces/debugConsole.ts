@@ -699,6 +699,37 @@ export namespace DcCentralUploadProgressNotification {
     );
 }
 
+// Completions enablement + viewer launch (Debug Console Completions page) --
+
+/** Serializable enablement snapshot for the Completions page. */
+export interface CompletionsStatusInfo {
+    experimentalEnabled: boolean;
+    useSchemaContext: boolean;
+    featureEnabled: boolean;
+    copilotSqlDisabled: boolean;
+    schemaContextProfile: string;
+    modelFamily: string;
+    modelVendors: string[];
+    includeSqlDiagnostics: boolean;
+    traceCaptureEnabled: boolean;
+}
+
+export namespace DcCompletionsStatusRequest {
+    export const type = new RequestType<void, CompletionsStatusInfo, void>("dc/completionsStatus");
+}
+
+export namespace DcCompletionsEnableRequest {
+    export const type = new RequestType<{ enable: boolean }, CompletionsStatusInfo, void>(
+        "dc/completionsEnable",
+    );
+}
+
+export namespace DcOpenCompletionsViewerRequest {
+    export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
+        "dc/openCompletionsViewer",
+    );
+}
+
 // History (cross-session) ---------------------------------------------------
 
 export interface HistorySessionRow {

@@ -18,6 +18,7 @@ import {
     SettingsPage,
     SqlActivityPage,
 } from "./pagesMore";
+import { CompletionsPage } from "./completionsPage";
 import { HistoryPage } from "./pagesPerf";
 import { PerfHistoryPage } from "./pagesPerfHistory";
 
@@ -359,12 +360,7 @@ export function DebugConsoleApp() {
             page = <SettingsPage />;
             break;
         case "completions":
-            page = (
-                <GatedPage
-                    title="Completions"
-                    body="The completions debug experience plugs into this host as a feature page. It migrates from the existing inline-completion debug view in a later iteration — live trace, multi-session analysis, and replay tags land here."
-                />
-            );
+            page = <CompletionsPage />;
             break;
         case "replay":
             page = (

@@ -40,6 +40,9 @@ import {
     DcBackfillGapRequest,
     DcCancelSelfTestRequest,
     DcSelfTestProgressNotification,
+    DcCompletionsStatusRequest,
+    DcCompletionsEnableRequest,
+    DcOpenCompletionsViewerRequest,
     DcCentralPreviewRequest,
     DcCentralUploadProgressNotification,
     DcCentralUploadRequest,
@@ -75,6 +78,13 @@ import {
     UploadPolicyId,
 } from "../sharedInterfaces/centralContract";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import {
+    disableAiCompletions,
+    enableAiCompletions,
+    getCompletionsEnablementStatus,
+} from "../copilot/inlineCompletionEnablement";
+import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
+import * as Constants from "../constants/constants";
 import { lintCorrelation } from "../sharedInterfaces/observabilityContract.generated";
 import {
     PhAddSourceRequest,
@@ -672,6 +682,25 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             } catch (error) {
                 return { events: 0, redactions: 0, error: String(error) };
             }
+        });
+
+        // Completions page: enablement + full-viewer launch. The page shows
+        // substrate activity (redacted protocol metadata); prompt/response
+        // fidelity lives in the dedicated Inline Completion Debug panel.
+        this.onRequest(DcCompletionsStatusRequest.type, async () =>
+            getCompletionsEnablementStatus(),
+        );
+
+        this.onRequest(DcCompletionsEnableRequest.type, async ({ enable }) =>
+            enable ? enableAiCompletions() : disableAiCompletions(),
+        );
+
+        this.onRequest(DcOpenCompletionsViewerRequest.type, async () => {
+            if (!isInlineCompletionFeatureEnabled()) {
+                return { ok: false, error: "Enable AI completions first." };
+            }
+            await vscode.commands.executeCommand(Constants.cmdOpenInlineCompletionDebug);
+            return { ok: true };
         });
 
         // Central observability upload (central design §8.3): preview is the
