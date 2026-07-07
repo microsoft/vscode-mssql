@@ -18,20 +18,6 @@ import { SystemDatabase } from "./typeHelper";
 import { DeploymentScenario } from "./enums";
 
 /**
- * Returns true if version is a valid NuGet floating version ("2.*" or "2.1.*").
- */
-export function isValidMicrosoftBuildSqlVersion(version: string): boolean {
-    if (!version.endsWith(".*")) {
-        return false;
-    }
-    const parts = version.slice(0, -2).split(".");
-    if (parts.length < 1 || parts.length > 2) {
-        return false;
-    }
-    return parts.every((p) => /^\d+$/.test(p));
-}
-
-/**
  * Consolidates on the error message string
  */
 export function getErrorMessage(error: any): string {
