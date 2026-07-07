@@ -3,12 +3,12 @@
 
 import Prompt from "./prompt";
 import EscapeException from "../utils/escapeException";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as figures from "figures";
+import * as vscode from "vscode";
 
 export default class CheckboxPrompt extends Prompt {
-    constructor(question: any, vscodeWrapper: VscodeWrapper, ignoreFocusOut?: boolean) {
-        super(question, vscodeWrapper, ignoreFocusOut);
+    constructor(question: any, ignoreFocusOut?: boolean) {
+        super(question, ignoreFocusOut);
     }
 
     public render(): any {
@@ -26,26 +26,24 @@ export default class CheckboxPrompt extends Prompt {
         let quickPickOptions = Object.keys(choices);
         quickPickOptions.push(figures.tick);
 
-        return this._vscodeWrapper
-            .showQuickPickStrings(quickPickOptions, options)
-            .then((result) => {
-                if (result === undefined) {
-                    throw new EscapeException();
+        return vscode.window.showQuickPick(quickPickOptions, options).then((result) => {
+            if (result === undefined) {
+                throw new EscapeException();
+            }
+
+            if (result !== figures.tick) {
+                choices[result].checked = !choices[result].checked;
+
+                return this.render();
+            }
+
+            return this._question.choices.reduce((result2, choice) => {
+                if (choice.checked === true) {
+                    result2.push(choice.value);
                 }
 
-                if (result !== figures.tick) {
-                    choices[result].checked = !choices[result].checked;
-
-                    return this.render();
-                }
-
-                return this._question.choices.reduce((result2, choice) => {
-                    if (choice.checked === true) {
-                        result2.push(choice.value);
-                    }
-
-                    return result2;
-                }, []);
-            });
+                return result2;
+            }, []);
+        });
     }
 }

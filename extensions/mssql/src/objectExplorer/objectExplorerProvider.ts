@@ -8,10 +8,12 @@ import ConnectionManager from "../controllers/connectionManager";
 import { CreateSessionResult, ObjectExplorerService } from "./objectExplorerService";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { IConnectionInfo } from "vscode-mssql";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionProfile } from "../models/interfaces";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { serverLabel } from "../constants/constants";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
+import { getNodeDescriptor } from "./nodes/nodeUtils";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -20,22 +22,12 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
     private _objectExplorerService: ObjectExplorerService;
+    private _logger: ILogger = logger.withPrefix("ObjectExplorerProvider");
 
-    constructor(
-        private _vscodeWrapper: VscodeWrapper,
-        connectionManager: ConnectionManager,
-    ) {
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-
-        this._objectExplorerService = new ObjectExplorerService(
-            this._vscodeWrapper,
-            connectionManager,
-            (node) => {
-                this.refresh(node);
-            },
-        );
+    constructor(connectionManager: ConnectionManager) {
+        this._objectExplorerService = new ObjectExplorerService(connectionManager, (node) => {
+            this.refresh(node);
+        });
     }
 
     public getParent(element: TreeNodeInfo) {
@@ -43,6 +35,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public refresh(nodeInfo?: TreeNodeInfo): void {
+        this._logger.trace(`refresh fired for ${getNodeDescriptor(nodeInfo)}`);
         this._onDidChangeTreeData.fire(nodeInfo);
     }
 
@@ -51,6 +44,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        this._logger.trace(`getChildren called for ${getNodeDescriptor(element)}`);
         const children = await this._objectExplorerService.getChildren(element);
         if (children) {
             return children;
@@ -106,6 +100,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public async refreshNode(node: TreeNodeInfo): Promise<void> {
+        this._logger.trace(`refreshNode called for ${getNodeDescriptor(node)}`);
         node.shouldRefresh = true;
         this._onDidChangeTreeData.fire(node);
     }

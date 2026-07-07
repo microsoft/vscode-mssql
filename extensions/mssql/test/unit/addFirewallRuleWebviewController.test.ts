@@ -8,18 +8,15 @@ import * as sinon from "sinon";
 import { expect } from "chai";
 
 import { AddFirewallRuleWebviewController } from "../../src/controllers/addFirewallRuleWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as azureHelperStubs from "./azureHelperStubs";
-import { stubVscodeWrapper } from "./utils";
 
 suite("AddFirewallRuleWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: AddFirewallRuleWebviewController;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
 
     const serverName = "TestServerName";
@@ -27,8 +24,6 @@ suite("AddFirewallRuleWebviewController Tests", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
-
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockFirewallService = sandbox.createStubInstance(FirewallService);
 
         mockContext = {
@@ -127,7 +122,6 @@ suite("AddFirewallRuleWebviewController Tests", () => {
 
         controller = new AddFirewallRuleWebviewController(
             mockContext,
-            mockVscodeWrapper,
             {
                 serverName: serverName,
                 errorMessage: errorMessage,

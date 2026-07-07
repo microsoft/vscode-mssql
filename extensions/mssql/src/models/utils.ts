@@ -57,15 +57,11 @@ export function getActiveTextEditor(): vscode.TextEditor {
     return editor;
 }
 
-// Retrieve the URI for the currently open file if there is one; otherwise return the empty string
-export function getActiveTextEditorUri(): string {
-    if (
-        typeof vscode.window.activeTextEditor !== "undefined" &&
-        typeof vscode.window.activeTextEditor.document !== "undefined"
-    ) {
-        return vscode.window.activeTextEditor.document.uri.toString();
-    }
-    return "";
+/**
+ * Retrieve the URI for the currently open file if there is one; otherwise return undefined.
+ */
+export function getActiveTextEditorUri(): string | undefined {
+    return vscode?.window?.activeTextEditor?.document?.uri?.toString();
 }
 
 // Helper to show an info message
@@ -577,6 +573,12 @@ export function isBoolean(obj: any): obj is boolean {
     return obj === true || obj === false;
 }
 
+export type EpochDisplay = {
+    epochMilliseconds: number;
+    iso: string;
+    relative: string;
+};
+
 /**
  * Breaks a Unix-epoch-milliseconds timestamp into the pieces a caller usually wants for
  * human-friendly logs. When `epochMilliseconds` is omitted, formats "now" instead.
@@ -599,7 +601,7 @@ export function isBoolean(obj: any): obj is boolean {
 export function epochToDisplay(
     epochMilliseconds?: number,
     { includeTimezone = false, includeMilliseconds = true } = {},
-): { epochMilliseconds: number; iso: string; relative: string } {
+): EpochDisplay {
     // capture "now"
     const now = Date.now();
     const resolvedMs = epochMilliseconds ?? now;
@@ -701,12 +703,12 @@ export function durationToDisplay(
     return sign + parts.join(" ");
 }
 
-function getConfiguration(): vscode.WorkspaceConfiguration {
+function getExtensionConfiguration(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
 export function getConfigTracingLevel(): string {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return config.get(configTracingLevel);
     } else {
@@ -715,7 +717,7 @@ export function getConfigTracingLevel(): string {
 }
 
 export function getConfigPiiLogging(): boolean {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return config.get(configPiiLogging);
     } else {
@@ -724,7 +726,7 @@ export function getConfigPiiLogging(): boolean {
 }
 
 export function getConfigLogFilesRemovalLimit(): number {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return Number(config.get(configLogFilesRemovalLimit, 0).toFixed(0));
     } else {
@@ -733,7 +735,7 @@ export function getConfigLogFilesRemovalLimit(): number {
 }
 
 export function getConfigLogRetentionSeconds(): number {
-    let config = getConfiguration();
+    let config = getExtensionConfiguration();
     if (config) {
         return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
     } else {

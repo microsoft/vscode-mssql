@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
@@ -95,12 +94,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _messageListener:
         | ((message: SchemaDesigner.SchemaDesignerMessageNotificationParams) => void)
         | undefined;
+    private _initializeSchemaDesignerPromise:
+        | Promise<SchemaDesigner.CreateSessionResponse>
+        | undefined;
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         private connectionString: string,
@@ -114,7 +115,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             SCHEMA_DESIGNER_VIEW_ID,
             SCHEMA_DESIGNER_VIEW_ID,
             {
@@ -174,51 +174,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
     private setupRequestHandlers() {
         this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
-            const schemaDesignerInitActivity = startActivity(
-                TelemetryViews.SchemaDesigner,
-                TelemetryActions.Initialize,
-                undefined, // correlationId
-                undefined, // startActivityAdditionalProps
-                undefined, // startActivityAdditionalMeasurements
-                undefined, // connectionInfo
-                undefined, // serverInfo
-                true, // include callstack in telemetry
-            );
+            if (!this._initializeSchemaDesignerPromise) {
+                this._initializeSchemaDesignerPromise = this.initializeSchemaDesignerSession();
+            }
+
             try {
-                let sessionResponse: SchemaDesigner.CreateSessionResponse;
-                const cacheItem = this.schemaDesignerCache.get(this._key);
-                const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
-
-                if (!hasCachedSession) {
-                    this._sessionId = uuid();
-                    sessionResponse = await this.schemaDesignerService.createSession({
-                        sessionId: this._sessionId,
-                        connectionString: this.connectionString,
-                        accessToken: this.accessToken,
-                        databaseName: this.databaseName,
-                    });
-                    this.baselineSchema = sessionResponse.schema;
-                    this.schemaDesignerCache.set(this._key, {
-                        schemaDesignerDetails: sessionResponse,
-                        baselineSchema: sessionResponse.schema,
-                        dabConfig: cacheItem?.dabConfig,
-                        isDirty: cacheItem?.isDirty ?? false,
-                    });
-                } else {
-                    sessionResponse = cacheItem.schemaDesignerDetails;
-                    this.baselineSchema = cacheItem.baselineSchema;
-                    this._sessionId = sessionResponse.sessionId;
-                }
-
-                this.schemaDesignerDetails = sessionResponse;
-                this._sessionId = sessionResponse.sessionId;
-                schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: sessionResponse?.schema?.tables?.length,
-                });
-                return sessionResponse;
-            } catch (error) {
-                schemaDesignerInitActivity.endFailed(toError(error), false);
-                throw error;
+                return await this._initializeSchemaDesignerPromise;
+            } finally {
+                this._initializeSchemaDesignerPromise = undefined;
             }
         });
 
@@ -660,6 +623,55 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
             return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
         });
+    }
+
+    private async initializeSchemaDesignerSession(): Promise<SchemaDesigner.CreateSessionResponse> {
+        const schemaDesignerInitActivity = startActivity(
+            TelemetryViews.SchemaDesigner,
+            TelemetryActions.Initialize,
+            undefined, // correlationId
+            undefined, // startActivityAdditionalProps
+            undefined, // startActivityAdditionalMeasurements
+            undefined, // connectionInfo
+            undefined, // serverInfo
+            true, // include callstack in telemetry
+        );
+        try {
+            let sessionResponse: SchemaDesigner.CreateSessionResponse;
+            const cacheItem = this.schemaDesignerCache.get(this._key);
+            const hasCachedSession = !!cacheItem?.schemaDesignerDetails?.sessionId;
+
+            if (!hasCachedSession) {
+                this._sessionId = uuid();
+                sessionResponse = await this.schemaDesignerService.createSession({
+                    sessionId: this._sessionId,
+                    connectionString: this.connectionString,
+                    accessToken: this.accessToken,
+                    databaseName: this.databaseName,
+                });
+                this.baselineSchema = sessionResponse.schema;
+                this.schemaDesignerCache.set(this._key, {
+                    schemaDesignerDetails: sessionResponse,
+                    baselineSchema: sessionResponse.schema,
+                    dabConfig: cacheItem?.dabConfig,
+                    isDirty: cacheItem?.isDirty ?? false,
+                });
+            } else {
+                sessionResponse = cacheItem.schemaDesignerDetails;
+                this.baselineSchema = cacheItem.baselineSchema;
+                this._sessionId = sessionResponse.sessionId;
+            }
+
+            this.schemaDesignerDetails = sessionResponse;
+            this._sessionId = sessionResponse.sessionId;
+            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
+                tableCount: sessionResponse?.schema?.tables?.length,
+            });
+            return sessionResponse;
+        } catch (error) {
+            schemaDesignerInitActivity.endFailed(toError(error), false);
+            throw error;
+        }
     }
 
     private setupReducers() {

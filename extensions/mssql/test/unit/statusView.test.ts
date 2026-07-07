@@ -11,10 +11,29 @@ import { IServerInfo } from "vscode-mssql";
 import { IConnectionGroup, IConnectionProfile } from "../../src/models/interfaces";
 import { expect } from "chai";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
+import * as Utils from "../../src/models/utils";
 
 suite("Status View Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    function createMockStatusBarItem(): vscode.StatusBarItem {
+        return {
+            show: sandbox.stub(),
+            hide: sandbox.stub(),
+            dispose: sandbox.stub(),
+        } as unknown as vscode.StatusBarItem;
+    }
+
     test("updateStatusMessage should not immediately update status message for definition request", async () => {
         let statusView = new StatusView();
         let newStatus = LocalizedConstants.definitionRequestedStatus;
@@ -116,9 +135,27 @@ suite("Status View Tests", () => {
         statusView.dispose();
     });
 
+    test("executingQuery hides previous execution time", () => {
+        sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
+            return createMockStatusBarItem();
+        });
+        sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: sandbox.stub().returns("off"),
+        } as unknown as vscode.WorkspaceConfiguration);
+
+        const statusView = new StatusView();
+        const fileUri = "test_uri";
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
+        const executionTime = statusView["getStatusBar"](fileUri).executionTime;
+
+        statusView.executingQuery(fileUri);
+
+        expect(executionTime.hide).to.have.been.called;
+        statusView.dispose();
+    });
+
     suite("Colorization tests", () => {
-        let sandbox: sinon.SinonSandbox;
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+        let getConfigurationStub: sinon.SinonStub;
 
         const testFileUri = "untitledFile";
 
@@ -140,18 +177,19 @@ suite("Status View Tests", () => {
         const testServerInfo = {} as IServerInfo;
 
         setup(() => {
-            sandbox = sinon.createSandbox();
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration");
         });
 
-        teardown(() => {
-            sandbox.restore();
-        });
+        function setColorizationConfig(enabled: boolean): void {
+            getConfigurationStub.returns({
+                get: () => enabled,
+            } as unknown as vscode.WorkspaceConfiguration);
+        }
 
         test("should not colorize if no connection store", async () => {
-            mockVscodeWrapper.getConfiguration.returns({ get: () => false } as any);
+            setColorizationConfig(false);
 
-            const statusView = new StatusView(mockVscodeWrapper);
+            const statusView = new StatusView();
             await statusView.connectSuccess(testFileUri, testConn, testServerInfo);
 
             expect(statusView["getStatusBar"](testFileUri).connectionId).to.equal(testConn.id);
@@ -161,13 +199,13 @@ suite("Status View Tests", () => {
         });
 
         test("should not colorize if flag is disabled", async () => {
-            mockVscodeWrapper.getConfiguration.returns({ get: () => false } as any);
+            setColorizationConfig(false);
 
             let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionStore.getGroupForConnectionId.resolves(testGroup);
 
-            let statusView = new StatusView(mockVscodeWrapper);
+            let statusView = new StatusView();
             statusView.setConnectionStore(mockConnectionStore);
 
             await statusView.connectSuccess(testFileUri, testConn, testServerInfo);
@@ -179,13 +217,13 @@ suite("Status View Tests", () => {
         });
 
         test("should colorize when connection store is accessible and flag is enabled", async () => {
-            mockVscodeWrapper.getConfiguration.returns({ get: () => true } as any);
+            setColorizationConfig(true);
 
             let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionStore.getGroupForConnectionId.resolves(testGroup);
 
-            const statusView = new StatusView(mockVscodeWrapper);
+            const statusView = new StatusView();
             statusView.setConnectionStore(mockConnectionStore);
 
             await statusView.connectSuccess(testFileUri, testConn, testServerInfo);

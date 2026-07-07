@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
@@ -11,7 +10,6 @@ import * as chai from "chai";
 import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
 import { uuid } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -25,7 +23,6 @@ suite("MssqlProtocolHandler Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mssqlProtocolHandler: MssqlProtocolHandler;
     let sqlToolsServiceClientMock: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let openConnectionDialogStub: sinon.SinonStub;
     let connectProfileStub: sinon.SinonStub;
@@ -37,23 +34,12 @@ suite("MssqlProtocolHandler Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         stubLogger(sandbox);
         mockMainController = sandbox.createStubInstance(MainController);
-
-        const outputChannel = sinon.stub({
-            append: () => sinon.stub(),
-            appendLine: () => sinon.stub(),
-        }) as unknown as vscode.OutputChannel;
-
-        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => {
-            return outputChannel;
-        });
 
         sqlToolsServiceClientMock = stubGetCapabilitiesRequest(sandbox);
 
         mssqlProtocolHandler = new MssqlProtocolHandler(
-            mockVscodeWrapper,
             mockMainController,
             sqlToolsServiceClientMock,
         );

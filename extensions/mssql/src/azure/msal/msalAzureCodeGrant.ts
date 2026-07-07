@@ -21,8 +21,10 @@ import * as Constants from "../constants";
 import * as LocalizedConstants from "../../constants/locConstants";
 import * as path from "path";
 import * as http from "http";
+import { UrlWithParsedQuery } from "url";
 import { promises as fs } from "fs";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
+
+export const formPostResponseMode = "form_post";
 
 interface ICryptoValues {
     nonce: string;
@@ -39,17 +41,9 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         protected readonly providerSettings: IProviderSettings,
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
-        protected readonly vscodeWrapper: VscodeWrapper,
         protected readonly logger: ILogger,
     ) {
-        super(
-            providerSettings,
-            context,
-            clientApplication,
-            AzureAuthType.AuthCodeGrant,
-            vscodeWrapper,
-            logger,
-        );
+        super(providerSettings, context, clientApplication, AzureAuthType.AuthCodeGrant, logger);
         this.cryptoProvider = new CryptoProvider();
         this.pkceCodes = {
             nonce: "",
@@ -97,6 +91,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                 codeChallengeMethod: this.pkceCodes.challengeMethod,
                 prompt: Constants.selectAccount,
                 authority: authority,
+                responseMode: formPostResponseMode,
                 state: state,
             };
             authCodeRequest = {
@@ -146,7 +141,6 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
     ): Promise<string> {
         const mediaPath = path.join(this.context.extensionPath, "media");
 
-        // Utility function
         const sendFile = async (
             res: http.ServerResponse,
             filePath: string,
@@ -169,6 +163,37 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
 
             res.end(fileContents);
         };
+
+        const readRequestBody = async (req: http.IncomingMessage): Promise<string> => {
+            return new Promise<string>((resolve, reject) => {
+                const chunks: Buffer[] = [];
+                req.on("data", (chunk: Buffer) => chunks.push(chunk));
+                req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+                req.on("error", reject);
+            });
+        };
+
+        const getAuthResponseParams = async (
+            req: http.IncomingMessage,
+            reqUrl: UrlWithParsedQuery,
+        ): Promise<URLSearchParams> => {
+            if (req.method?.toUpperCase() === "POST") {
+                return new URLSearchParams(await readRequestBody(req));
+            }
+
+            const params = new URLSearchParams();
+            for (const [key, value] of Object.entries(reqUrl.query)) {
+                if (Array.isArray(value)) {
+                    value.forEach((v) => params.append(key, v));
+                } else if (value !== undefined) {
+                    params.append(key, value);
+                }
+            }
+
+            return params;
+        };
+
+        const authResponses = new Map<string, URLSearchParams>();
 
         server.on("/landing.css", (req, reqUrl, res) => {
             sendFile(res, path.join(mediaPath, "landing.css"), "text/css; charset=utf-8").catch(
@@ -199,25 +224,51 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
 
         return new Promise<string>((resolve, reject) => {
             server.on("/redirect", (req, reqUrl, res) => {
-                const state = (reqUrl.query.state as string) ?? "";
-                const split = state.split(",");
-                if (split.length !== 2) {
-                    res.writeHead(400, { "content-type": "text/html" });
-                    res.write(LocalizedConstants.azureAuthStateError);
-                    res.end();
-                    reject(new Error("State mismatch"));
-                    return;
-                }
-                const port = split[0];
-                res.writeHead(302, {
-                    Location: `http://127.0.0.1:${port}/callback${reqUrl.search}`,
-                });
-                res.end();
+                void getAuthResponseParams(req, reqUrl)
+                    .then((params) => {
+                        const state = params.get("state") ?? "";
+                        const split = state.split(",");
+                        if (split.length !== 2) {
+                            res.writeHead(400, { "content-type": "text/html" });
+                            res.write(LocalizedConstants.azureAuthStateError);
+                            res.end();
+                            reject(new Error("State mismatch"));
+                            return;
+                        }
+
+                        const port = split[0];
+                        const callbackId = this.cryptoProvider.createNewGuid();
+                        authResponses.set(callbackId, params);
+
+                        res.writeHead(302, {
+                            Location: `http://127.0.0.1:${port}/callback?callbackId=${encodeURIComponent(callbackId)}`,
+                        });
+                        res.end();
+                    })
+                    .catch((error) => {
+                        this.logger.error("Failed to parse authentication response", error);
+                        res.writeHead(400, { "content-type": "text/html" });
+                        res.write(LocalizedConstants.azureAuthStateError);
+                        res.end();
+                        reject(error);
+                    });
             });
 
             server.on("/callback", (req, reqUrl, res) => {
-                const state = (reqUrl.query.state as string) ?? "";
-                const code = (reqUrl.query.code as string) ?? "";
+                const callbackId = (reqUrl.query.callbackId as string) ?? "";
+                const authResponseParams = authResponses.get(callbackId);
+                authResponses.delete(callbackId);
+
+                if (!authResponseParams) {
+                    res.writeHead(400, { "content-type": "text/html" });
+                    res.write(LocalizedConstants.azureAuthStateError);
+                    res.end();
+                    reject(new Error("Callback ID mismatch"));
+                    return;
+                }
+
+                const state = authResponseParams.get("state") ?? "";
+                const code = authResponseParams.get("code") ?? "";
 
                 const stateSplit = state.split(",");
                 if (stateSplit.length !== 2) {

@@ -36,6 +36,7 @@ export const database_red = "Database_red";
 export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunQueryWithUriOwnership = "mssql.runQueryWithUriOwnership";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";
+export const cmdOpenShortcutsConfiguration = "mssql.shortcutsConfiguration.open";
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";
@@ -148,6 +149,7 @@ export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
+export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
@@ -183,6 +185,23 @@ export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
 export const errorKerberosSubString = "Kerberos";
+
+/**
+ * SqlClient connection timeout error number
+ */
+export const errorConnectionTimeout = -2;
+
+export const oeExpandTimeoutErrorCode = "EXPAND_TIMEOUT";
+export const oeCreateSessionTimeoutErrorCode = "CREATE_SESSION_TIMEOUT";
+
+/**
+ * SQL Tools Service error codes for operation timeouts
+ */
+export const serverlessWakeTimeoutErrorCodes = [
+    oeExpandTimeoutErrorCode,
+    oeCreateSessionTimeoutErrorCode,
+];
+
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -219,7 +238,6 @@ export const restoreDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/restore-statements-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
-export const azureAccountExtensionId = "ms-vscode.azure-account";
 export const dotnetRuntimeExtensionId = "ms-dotnettools.vscode-dotnet-runtime";
 export const dotnetAcquireCommand = "dotnet.acquire";
 export const offlineVsixUrl = "https://github.com/microsoft/vscode-mssql/releases/latest";
@@ -269,7 +287,6 @@ export const configSaveAsCsv = "saveAsCsv";
 export const configSaveAsJson = "saveAsJson";
 export const configSaveAsExcel = "saveAsExcel";
 export const configResultsOpenAfterSave = "results.openAfterSave";
-export const configResultsShowCopyNotification = "results.showCopyNotification";
 export const configRecentConnections = "recentConnections";
 export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
@@ -317,6 +334,7 @@ export const configSavePasswordsUntilRestart =
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
+export const configQuickQueries = "mssql.quickQueries";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
 /** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";

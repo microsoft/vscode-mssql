@@ -19,7 +19,6 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import { AccountSignInTreeNode } from "../../src/objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../../src/objectExplorer/nodes/connectTreeNode";
 import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
@@ -27,7 +26,7 @@ import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGr
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils, stubVscodeWrapper } from "./utils";
+import { initializeIconUtils } from "./utils";
 
 chai.use(sinonChai);
 
@@ -36,7 +35,6 @@ suite("Object Explorer Provider Tests", function () {
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionManager: ConnectionManager;
     let clientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let objectExplorerProvider: ObjectExplorerProvider;
     let objectExplorerServiceStub: sinon.SinonStubbedInstance<ObjectExplorerService>;
     let testObjectExplorerService: ObjectExplorerService;
@@ -90,8 +88,6 @@ suite("Object Explorer Provider Tests", function () {
         clientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         clientStub.onNotification.returnsThis();
 
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
-
         const rootGroup = {
             id: ConnectionConfig.ROOT_GROUP_ID,
             name: ConnectionConfig.ROOT_GROUP_ID,
@@ -126,8 +122,6 @@ suite("Object Explorer Provider Tests", function () {
             clientStub as unknown as SqlToolsServiceClient;
         (connectionManagerStub as unknown as { connectionStore: ConnectionStore }).connectionStore =
             connectionStore;
-        (connectionManagerStub as unknown as { vscodeWrapper: VscodeWrapper }).vscodeWrapper =
-            vscodeWrapperStub as unknown as VscodeWrapper;
 
         connectionManagerStub.disconnect.resolves();
         connectionManagerStub.connect.resolves(true);
@@ -139,23 +133,16 @@ suite("Object Explorer Provider Tests", function () {
 
         connectionManager = connectionManagerStub as unknown as ConnectionManager;
 
-        objectExplorerProvider = new ObjectExplorerProvider(
-            vscodeWrapperStub as unknown as VscodeWrapper,
-            connectionManager,
-        );
+        objectExplorerProvider = new ObjectExplorerProvider(connectionManager);
         expect(objectExplorerProvider, "Object Explorer Provider is initialized properly").to.exist;
 
         objectExplorerServiceStub = sandbox.createStubInstance(ObjectExplorerService);
         objectExplorerProvider.objectExplorerService =
             objectExplorerServiceStub as unknown as ObjectExplorerService;
 
-        testObjectExplorerService = new ObjectExplorerService(
-            vscodeWrapperStub as unknown as VscodeWrapper,
-            connectionManager,
-            () => {
-                /* no-op */
-            },
-        );
+        testObjectExplorerService = new ObjectExplorerService(connectionManager, () => {
+            /* no-op */
+        });
         testObjectExplorerService.initialized.resolve();
     });
 
@@ -405,145 +392,6 @@ suite("Object Explorer Provider Tests", function () {
         const treeItem = objectExplorerProvider.getTreeItem(node);
         expect(treeItem).to.equal(node);
     });
-
-    // TODO: Readd these test
-    // const mockParentTreeNode = new TreeNodeInfo(
-    //     "Parent Node",
-    //     undefined,
-    //     undefined,
-    //     "parentNodePath",
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    // );
-
-    // test("Test handleExpandSessionNotification returns child nodes upon success", async function () {
-    //     const childNodeInfo: NodeInfo = {
-    //         nodePath: `${mockParentTreeNode.nodePath}/childNodePath`,
-    //         nodeStatus: undefined,
-    //         nodeSubType: undefined,
-    //         nodeType: undefined,
-    //         label: "Child Node",
-    //         isLeaf: true,
-    //         errorMessage: undefined,
-    //         metadata: undefined,
-    //     };
-
-    //     const mockExpandResponse: ExpandResponse = {
-    //         sessionId: "test_session",
-    //         nodePath: mockParentTreeNode.nodePath,
-    //         nodes: [childNodeInfo],
-    //         errorMessage: undefined,
-    //     };
-
-    //     const testOeService = new ObjectExplorerService(
-    //         vscodeWrapper.object,
-    //         connectionManager.object,
-    //         objectExplorerProvider,
-    //     );
-
-    //     let notificationObject = testOeService.handleExpandSessionNotification();
-
-    //     const expandParams: ExpandParams = {
-    //         sessionId: mockExpandResponse.sessionId,
-    //         nodePath: mockExpandResponse.nodePath,
-    //     };
-
-    //     testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
-
-    //     testOeService["_sessionIdToConnectionProfileMap"].set(
-    //         mockExpandResponse.sessionId,
-    //         undefined,
-    //     );
-
-    //     const outputPromise = new Deferred<TreeNodeInfo[]>();
-
-    //     testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
-
-    //     notificationObject.call(testOeService, mockExpandResponse);
-
-    //     const childNodes = await outputPromise;
-    //     expect(childNodes.length, "Child nodes length").to.equal(1);
-    //     expect(childNodes[0].label, "Child node label").to.equal(childNodeInfo.label);
-    //     expect(childNodes[0].nodePath, "Child node path").to.equal(childNodeInfo.nodePath);
-    // });
-
-    // test("Test handleExpandSessionNotification returns message node upon failure", async function () {
-    //     this.timeout(0);
-
-    //     const mockExpandResponse: ExpandResponse = {
-    //         sessionId: "test_session",
-    //         nodePath: mockParentTreeNode.nodePath,
-    //         nodes: [],
-    //         errorMessage: "Error occurred when expanding node",
-    //     };
-
-    //     const testOeService = new ObjectExplorerService(
-    //         vscodeWrapper.object,
-    //         connectionManager.object,
-    //         objectExplorerProvider,
-    //     );
-
-    //     let notificationObject = testOeService.handleExpandSessionNotification();
-
-    //     const expandParams: ExpandParams = {
-    //         sessionId: mockExpandResponse.sessionId,
-    //         nodePath: mockExpandResponse.nodePath,
-    //     };
-
-    //     testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
-
-    //     testOeService["_sessionIdToConnectionProfileMap"].set(
-    //         mockExpandResponse.sessionId,
-    //         undefined,
-    //     );
-
-    //     const outputPromise = new Deferred<TreeNodeInfo[]>();
-
-    //     testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
-
-    //     notificationObject.call(testOeService, mockExpandResponse);
-
-    //     const childNodes = await outputPromise;
-
-    //     vscodeWrapper.verify(
-    //         (x) => x.showErrorMessage(mockExpandResponse.errorMessage),
-    //         TypeMoq.Times.once(),
-    //     );
-
-    //     expect(childNodes.length, "Child nodes length").to.equal(1);
-    //     expect(
-    //         childNodes[0].label,
-    //         "Error node label",
-    //     ).to.equal("Error loading; refresh to try again");
-    //     expect(childNodes[0].tooltip, "Error node tooltip").to.equal(
-    //         mockExpandResponse.errorMessage,
-    //     );
-    // });
-
-    // test("Test signInNode function", () => {
-    //     objectExplorerService.setup((s) => s.signInNodeServer(TypeMoq.It.isAny()));
-    //     let node: any = {
-    //         connectionCredentials: undefined,
-    //     };
-    //     objectExplorerProvider.signInNodeServer(node);
-    //     objectExplorerService.verify(
-    //         (s) => s.signInNodeServer(TypeMoq.It.isAny()),
-    //         TypeMoq.Times.once(),
-    //     );
-    // });
-
-    // test("Test updateNode function", () => {
-    //     objectExplorerService.setup((s) => s.updateNode(TypeMoq.It.isAny()));
-    //     let node: any = {
-    //         connectionCredentials: undefined,
-    //     };
-    //     objectExplorerProvider.updateNode(node);
-    //     objectExplorerService.verify((s) => s.updateNode(node), TypeMoq.Times.once());
-    // });
 
     test("Test removeConnectionNodes function", async () => {
         objectExplorerServiceStub.removeConnectionNodes.resolves();

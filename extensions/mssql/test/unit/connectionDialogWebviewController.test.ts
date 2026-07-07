@@ -18,7 +18,6 @@ import {
     Connection as ConnectionLoc,
 } from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import {
     AddFirewallRuleDialogProps,
@@ -47,10 +46,10 @@ import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureau
 import {
     initializeIconUtils,
     stubGetCapabilitiesRequest,
+    stubMessageBoxes,
     stubPreviewService,
     stubTelemetry,
     stubUserSurvey,
-    stubVscodeWrapper,
 } from "./utils";
 import {
     stubVscodeAzureSignIn,
@@ -81,7 +80,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
     let controller: ConnectionDialogWebviewController;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
@@ -118,8 +117,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             subscriptions: [],
             globalState,
         } as unknown as vscode.ExtensionContext;
-
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         mockObjectExplorerProvider = sandbox.createStubInstance(ObjectExplorerProvider);
 
         connectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -162,7 +160,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             } as IAccount,
         ]);
 
-        mainController = new MainController(mockContext, connectionManager, mockVscodeWrapper);
+        mainController = new MainController(mockContext, connectionManager);
 
         sandbox.stub(vscode.commands, "registerCommand");
         sandbox.stub(vscode.window, "registerWebviewViewProvider");
@@ -172,7 +170,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         controller = new ConnectionDialogWebviewController(
             mockContext,
-            mockVscodeWrapper,
             mainController,
             mockObjectExplorerProvider,
             undefined /* connection to edit */,
@@ -290,7 +287,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mainController,
                 mockObjectExplorerProvider,
                 undefined,
@@ -326,7 +322,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mainController,
                 mockObjectExplorerProvider,
                 undefined,
@@ -363,7 +358,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mainController,
                 mockObjectExplorerProvider,
                 undefined,
@@ -400,7 +394,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mainController,
                 mockObjectExplorerProvider,
                 undefined,
@@ -422,7 +415,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mainController,
                 mockObjectExplorerProvider,
                 editedConnection,
@@ -455,7 +447,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mainController,
                 mockObjectExplorerProvider,
                 editedConnection,
@@ -1292,6 +1283,16 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         suite("loadFromConnectionString", () => {
+            setup(() => {
+                // Pin the preview feature to a deterministic value so the Azure MFA
+                // path uses the stubbed azureAccountService instead of waiting on the
+                // background VS Code Entra data load (`_entraDataLoaded`), which depends
+                // on real `vscode.authentication` APIs and hangs in CI.
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
+            });
+
             async function runConnectionStringScenario(
                 mockOutput: ConnectionDetails,
                 errorMessage?: string,
@@ -1455,7 +1456,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         expect(buttons.length).to.equal(1, "Should not surface token refresh for MSAL auth");
         expect(buttons[0].id).to.equal("azureSignIn");
         expect(azureAccountService.getAccountSecurityToken).to.not.have.been.called;
-        expect(mockVscodeWrapper.showErrorMessage).to.not.have.been.called;
+        expect(messageBoxes.showErrorMessage).to.not.have.been.called;
     });
 
     suite("database loading", () => {

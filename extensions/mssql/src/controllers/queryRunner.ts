@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
-import VscodeWrapper from "./vscodeWrapper";
+import * as Utils from "../models/utils";
 import {
     BatchSummary,
     QueryExecuteParams,
@@ -51,7 +51,6 @@ import {
 } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import * as Utils from "../models/utils";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
@@ -69,6 +68,7 @@ export interface IResultSet {
 
 export interface QueryExecutionCompleteEvent {
     totalMilliseconds: string;
+    totalElapsedMilliseconds: number;
     hasError: boolean;
     isRefresh?: boolean;
 }
@@ -82,6 +82,17 @@ export interface ExecutionPlanEvent {
 
 export interface SummaryChanged extends SelectionSummary {
     uri: string;
+    continue?: Deferred<void>;
+}
+
+function getRowsAffectedFromMessage(message: string): number | undefined {
+    const rowsAffectedMatch = message.match(/\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i);
+    if (!rowsAffectedMatch?.[1]) {
+        return undefined;
+    }
+
+    const rowsAffected = Number(rowsAffectedMatch[1]);
+    return Number.isNaN(rowsAffected) ? undefined : rowsAffected;
 }
 
 export const editorEol =
@@ -159,7 +170,6 @@ export default class QueryRunner {
         private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
-        private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -167,10 +177,6 @@ export default class QueryRunner {
 
         if (!_notificationHandler) {
             this._notificationHandler = QueryNotificationHandler.instance;
-        }
-
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
         }
 
         // Store the state
@@ -369,14 +375,12 @@ export default class QueryRunner {
         };
 
         // Getting query text
-        const doc = await this._vscodeWrapper.openTextDocument(
-            this._vscodeWrapper.parseUri(this._ownerUri),
-        );
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
         let queryString: string;
         if (selection) {
-            let range = this._vscodeWrapper.range(
-                this._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                this._vscodeWrapper.position(selection.endLine, selection.endColumn),
+            let range = new vscode.Range(
+                new vscode.Position(selection.startLine, selection.startColumn),
+                new vscode.Position(selection.endLine, selection.endColumn),
             );
             queryString = doc.getText(range);
         } else {
@@ -466,6 +470,7 @@ export default class QueryRunner {
             totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
                 format: "clock",
             }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError,
         });
         sendActionEvent(
@@ -555,6 +560,7 @@ export default class QueryRunner {
     public handleMessage(obj: QueryExecuteMessageParams): void {
         let message = obj.message;
         message.time = new Date(message.time).toLocaleTimeString();
+        message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
         // save the message into the batch summary so it can be restored on view refresh
         if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
@@ -613,14 +619,14 @@ export default class QueryRunner {
             totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
                 format: "clock",
             }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
         });
         this._statusView.executedQuery(this._ownerUri);
-
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {
-            this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
+            vscode.window.showErrorMessage(getErrorMessage(errorMsg));
         }
     }
 
@@ -683,7 +689,7 @@ export default class QueryRunner {
             };
         } catch (error) {
             // TODO: Localize
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             rowsFetchActivity?.endFailed(error, false);
@@ -740,7 +746,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
@@ -850,11 +856,6 @@ export default class QueryRunner {
                         await this.writeStringToClipboard(result.content);
                     }
 
-                    if (this.shouldShowCopyNotification()) {
-                        vscode.window.showInformationMessage(
-                            LocalizedConstants.resultsCopiedToClipboard,
-                        );
-                    }
                     resolve();
                 } catch (error) {
                     // Don't show error if cancelled
@@ -927,7 +928,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
@@ -945,8 +946,15 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
     ): Promise<void> {
-        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-        const csvConfig = config[Constants.configSaveAsCsv] || {};
+        const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+        const csvConfig =
+            config.get<{
+                delimiter?: string;
+                textIdentifier?: string;
+                lineSeperator?: string;
+                encoding?: string;
+                includeHeaders?: boolean;
+            }>(Constants.configSaveAsCsv) ?? {};
 
         const delimiter = csvConfig.delimiter || ",";
         const textIdentifier = csvConfig.textIdentifier || '"';
@@ -1001,14 +1009,6 @@ export default class QueryRunner {
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
 
-    private shouldShowCopyNotification(): boolean {
-        const config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-            this.uri,
-        );
-        return config.get<boolean>(Constants.configResultsShowCopyNotification, true);
-    }
-
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,
@@ -1031,6 +1031,8 @@ export default class QueryRunner {
                 text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
             await proceed.promise;
         };
@@ -1046,6 +1048,8 @@ export default class QueryRunner {
                 text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
         };
 
@@ -1112,10 +1116,23 @@ export default class QueryRunner {
                 return;
             }
 
-            let text = "";
-            let tooltip = "";
+            const stats: NonNullable<SelectionSummary["stats"]> = {
+                count: result.count,
+                distinctCount: result.distinctCount,
+                nullCount: result.nullCount,
+            };
 
-            // the selection is numeric
+            if (result.average !== undefined && result.average !== null) {
+                stats.average = result.average;
+                stats.sum = result.sum;
+                stats.max = result.max;
+                stats.min = result.min;
+            }
+
+            // Build a textual summary used by the editor status bar when the query results footer
+            // preview is disabled. The footer ignores these fields and renders from `stats`.
+            let text: string;
+            let tooltip: string;
             if (result.average !== undefined && result.average !== null) {
                 const average = result.average.toFixed(2);
                 text = LocalizedConstants.QueryResult.numericSelectionSummary(
@@ -1143,7 +1160,6 @@ export default class QueryRunner {
                     result.distinctCount,
                     result.nullCount,
                 );
-                tooltip = text;
             }
 
             // Resolve the cancel confirmation to clean up
@@ -1152,11 +1168,14 @@ export default class QueryRunner {
             }
 
             this.fireSummaryChangedEvent(requestId, {
+                stats,
                 text,
                 tooltip,
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
         } catch (error) {
             // Clean up on error
@@ -1172,6 +1191,8 @@ export default class QueryRunner {
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
             throw error;
         }
@@ -1197,9 +1218,9 @@ export default class QueryRunner {
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this.uri,
+            vscode.Uri.parse(this.uri),
         );
         let showBatchTime: boolean = config.get(Constants.configShowBatchTime);
         if (showBatchTime) {
@@ -1218,19 +1239,17 @@ export default class QueryRunner {
      * @param selection The selection range to select
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
-        const docExists = this._vscodeWrapper.textDocuments.find(
+        const docExists = vscode.workspace.textDocuments.find(
             (textDoc) => textDoc.uri.toString() === this.uri,
         );
         if (docExists) {
             let column = vscode.ViewColumn.One;
-            const doc = await this._vscodeWrapper.openTextDocument(
-                this._vscodeWrapper.parseUri(this.uri),
-            );
-            const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this.uri));
+            const activeTextEditor = vscode.window.activeTextEditor;
             if (activeTextEditor) {
                 column = activeTextEditor.viewColumn;
             }
-            let editor = await this._vscodeWrapper.showTextDocument(doc, {
+            let editor = await vscode.window.showTextDocument(doc, {
                 viewColumn: column,
                 preserveFocus: false,
                 preview: false,

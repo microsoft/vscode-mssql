@@ -6,7 +6,6 @@
 import * as sinon from "sinon";
 import { expect } from "chai";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FileBrowserService } from "../../src/services/fileBrowserService";
 import {
     FileBrowserExpandResponse,
@@ -25,13 +24,11 @@ suite("FileBrowserService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let fileBrowserService: FileBrowserService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockFileTree: FileTree;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
-        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
 
         mockFileTree = {
             rootNode: {
@@ -52,7 +49,7 @@ suite("FileBrowserService Tests", () => {
             selectedNode: undefined,
         };
 
-        fileBrowserService = new FileBrowserService(vscodeWrapperStub, sqlToolsClientStub);
+        fileBrowserService = new FileBrowserService(sqlToolsClientStub);
     });
 
     teardown(() => {

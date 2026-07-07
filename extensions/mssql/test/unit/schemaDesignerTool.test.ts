@@ -23,6 +23,7 @@ import { IConnectionProfile } from "../../src/models/interfaces";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import * as telemetry from "../../src/telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { sqlToolsMcpConnectionRegistry } from "../../src/sqlToolsMcp/sqlToolsMcpConnectionRegistry";
 
 chai.use(sinonChai);
 
@@ -35,6 +36,7 @@ suite("SchemaDesignerTool Tests", () => {
     let schemaDesignerTool: SchemaDesignerTool;
 
     const sampleConnectionId = "connection-schema-123";
+    const sampleConnectionName = "McpSchemaConnection";
     const sampleDatabase = "SampleDb";
     const sampleServer = "testserver";
 
@@ -176,16 +178,18 @@ suite("SchemaDesignerTool Tests", () => {
         mockToken = {} as vscode.CancellationToken;
         showSchemaStub = sandbox.stub();
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        sqlToolsMcpConnectionRegistry.clear();
 
         schemaDesignerTool = new SchemaDesignerTool(mockConnectionManager, showSchemaStub as any);
     });
 
     teardown(() => {
+        sqlToolsMcpConnectionRegistry.clear();
         sandbox.restore();
     });
 
     suite("show", () => {
-        test("returns invalid_request when connectionId is missing", async () => {
+        test("returns invalid_request when connection reference is missing", async () => {
             const options = {
                 input: {
                     operation: "show",
@@ -197,7 +201,7 @@ suite("SchemaDesignerTool Tests", () => {
 
             expect(parsedResult.success).to.be.false;
             expect(parsedResult.reason).to.equal("invalid_request");
-            expect(parsedResult.message).to.equal(loc.schemaDesignerMissingConnectionId);
+            expect(parsedResult.message).to.equal(loc.toolMissingConnectionReference);
             expect(showSchemaStub).to.not.have.been.called;
             expectNoSchemaDump(parsedResult);
 
@@ -206,6 +210,25 @@ suite("SchemaDesignerTool Tests", () => {
                 success: "false",
                 reason: "invalid_request",
             });
+        });
+
+        test("returns invalid_request when connectionId and connectionName are both provided", async () => {
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: sampleConnectionId,
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("invalid_request");
+            expect(parsedResult.message).to.equal(loc.toolAmbiguousConnectionReference);
+            expect(showSchemaStub).to.not.have.been.called;
+            expectNoSchemaDump(parsedResult);
         });
 
         test("returns invalid_request when connectionId is unknown", async () => {
@@ -232,6 +255,26 @@ suite("SchemaDesignerTool Tests", () => {
                 success: "false",
                 reason: "invalid_request",
             });
+        });
+
+        test("returns invalid_request when connectionName is not registered", async () => {
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("invalid_request");
+            expect(parsedResult.message).to.equal(
+                loc.noSqlToolsMcpConnectionName(sampleConnectionName),
+            );
+            expect(showSchemaStub).to.not.have.been.called;
+            expectNoSchemaDump(parsedResult);
         });
 
         test("opens designer and returns a version (no schema)", async () => {
@@ -283,6 +326,95 @@ suite("SchemaDesignerTool Tests", () => {
                 operation: "show",
                 success: "true",
             });
+        });
+
+        test("opens designer from registered SQL Tools MCP connectionName", async () => {
+            const mockCredentials = {
+                database: sampleDatabase,
+            } as IConnectionProfile;
+
+            const mockConnectionInfo = {
+                connectionId: sampleConnectionId,
+                credentials: mockCredentials,
+            } as unknown as ConnectionInfo;
+
+            sqlToolsMcpConnectionRegistry.set(sampleConnectionName, {
+                connectionHandle: "connection-handle",
+                ownerUri: sampleConnectionId,
+                platformContext: { contextSettings: {} },
+                disposed: false,
+                queryTail: Promise.resolve(),
+            });
+            mockConnectionManager.getConnectionInfo.returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            showSchemaStub.resolves(mockDesigner);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionName: sampleConnectionName,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.version).to.equal(computeSchemaVersion(mockSchema));
+            expect(showSchemaStub).to.have.been.calledOnceWith(sampleConnectionId, sampleDatabase);
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("opens designer when MCP connectionName is passed as connectionId", async () => {
+            const mcpConnectionId = "conn_schema_mcp_123";
+            const mockCredentials = {
+                database: sampleDatabase,
+            } as IConnectionProfile;
+
+            const mockConnectionInfo = {
+                connectionId: sampleConnectionId,
+                credentials: mockCredentials,
+            } as unknown as ConnectionInfo;
+
+            sqlToolsMcpConnectionRegistry.set(mcpConnectionId, {
+                connectionHandle: "connection-handle",
+                ownerUri: sampleConnectionId,
+                platformContext: { contextSettings: {} },
+                disposed: false,
+                queryTail: Promise.resolve(),
+            });
+            mockConnectionManager.getConnectionInfo
+                .withArgs(mcpConnectionId)
+                .returns(undefined as any);
+            mockConnectionManager.getConnectionInfo
+                .withArgs(sampleConnectionId)
+                .returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            showSchemaStub.resolves(mockDesigner);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: mcpConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.true;
+            expect(showSchemaStub).to.have.been.calledOnceWith(sampleConnectionId, sampleDatabase);
+            expectNoSchemaDump(parsedResult);
         });
     });
 

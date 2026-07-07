@@ -16,6 +16,7 @@ import type { ReactGridInstanceWithSharedService } from "./fluentResultGridContr
 import type { FluentResultGridDataRow, FluentResultGridDataView } from "./fluentResultGridDataView";
 import { makeFluentResultGridMenuButtonsUntabbable } from "./fluentResultGridDomUtils";
 import { getFluentResultGridDataSelectionsFromRanges } from "./fluentResultGridSelection";
+import { FluentResultGridSelectionModel } from "./fluentResultGridSelectionModel";
 
 export interface FluentResultGridSlickLifecycleController {
     handleReactGridCreated: (event: CustomEvent<SlickgridReactInstance>) => void;
@@ -32,6 +33,7 @@ export function useFluentResultGridSlickLifecycle({
     persistScrollPosition,
     reactGridRef,
     restoreCurrentInitialState,
+    shouldSuppressSelectionSummaryChange,
 }: {
     attachFrozenPaneWheelHandler: (grid: SlickGrid) => void;
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
@@ -43,6 +45,7 @@ export function useFluentResultGridSlickLifecycle({
     persistScrollPosition: (grid: SlickGrid) => void;
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
     restoreCurrentInitialState: (grid: SlickGrid) => void;
+    shouldSuppressSelectionSummaryChange: () => boolean;
 }): FluentResultGridSlickLifecycleController {
     const selectionEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const gridStateEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
@@ -74,6 +77,12 @@ export function useFluentResultGridSlickLifecycle({
             reactGridRef.current = reactGrid;
             dataViewRef.current?.setGrid(grid);
             attachFrozenPaneWheelHandler(grid);
+            grid.setSelectionModel(
+                new FluentResultGridSelectionModel({
+                    ...grid.getOptions().selectionOptions,
+                    selectionType: "cell",
+                }),
+            );
 
             selectionEventHandlerRef.current?.unsubscribeAll();
             selectionEventHandlerRef.current = new SlickEventHandler();
@@ -91,7 +100,9 @@ export function useFluentResultGridSlickLifecycle({
                     selectionModel.onSelectedRangesChanged,
                     (_event, ranges: SlickRange[]) => {
                         const selection = getFluentResultGridDataSelectionsFromRanges(ranges);
-                        void onSelectionSummaryChange?.(selection);
+                        if (!shouldSuppressSelectionSummaryChange()) {
+                            void onSelectionSummaryChange?.(selection);
+                        }
                         emitStateChange(grid);
                     },
                 );
@@ -128,6 +139,7 @@ export function useFluentResultGridSlickLifecycle({
             persistScrollPosition,
             reactGridRef,
             restoreCurrentInitialState,
+            shouldSuppressSelectionSummaryChange,
         ],
     );
 

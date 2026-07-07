@@ -13,7 +13,6 @@ import {
     ISqlChatResult,
 } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as telemetry from "../../src/telemetry/telemetry";
 import {
     GetNextMessageResponse,
@@ -26,7 +25,6 @@ import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connect
 import { connectedLabelPrefix, disconnectedLabelPrefix } from "../../src/copilot/chatConstants";
 import { IConnectionInfo } from "vscode-mssql";
 import * as utils from "../../src/utils/utils";
-import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 const expect = chai.expect;
@@ -36,7 +34,6 @@ suite("Chat Agent Request Handler Tests", () => {
     let mockCopilotService: sinon.SinonStubbedInstance<CopilotService>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let connectionInfo: ConnectionInfo;
     let mockContext: vscode.ExtensionContext;
     let mockLmChat: vscode.LanguageModelChat;
@@ -48,13 +45,12 @@ suite("Chat Agent Request Handler Tests", () => {
     let mockChatContext: vscode.ChatContext;
     let mockToken: vscode.CancellationToken;
     let mockTextDocument: vscode.TextDocument;
-    let mockConfiguration: vscode.WorkspaceConfiguration;
+    let activeTextEditor: vscode.TextEditor | undefined;
     let mockActivityObject: ActivityObject & {
         end: sinon.SinonStub;
         endFailed: sinon.SinonStub;
         update: sinon.SinonStub;
     };
-    let configurationGet: sinon.SinonStub;
     let startActivityStub: sinon.SinonStub;
 
     // Sample data for tests
@@ -98,16 +94,12 @@ suite("Chat Agent Request Handler Tests", () => {
             database: "database",
         } as IConnectionInfo;
 
-        // Mock VscodeWrapper
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
-        sandbox.stub(mockVscodeWrapper, "activeTextEditorUri").get(() => sampleConnectionUri);
-
-        // Mock configuration
-        configurationGet = sandbox.stub().returns(false);
-        mockConfiguration = {
-            get: configurationGet,
-        } as unknown as vscode.WorkspaceConfiguration;
-        mockVscodeWrapper.getConfiguration.returns(mockConfiguration);
+        activeTextEditor = {
+            document: {
+                uri: vscode.Uri.parse(sampleConnectionUri),
+            },
+        } as vscode.TextEditor;
+        sandbox.stub(vscode.window, "activeTextEditor").get(() => activeTextEditor);
 
         // Mock ExtensionContext
         const canSendRequestStub = sandbox.stub().returns("allowed");
@@ -176,12 +168,7 @@ suite("Chat Agent Request Handler Tests", () => {
     });
 
     function createHandler(): ReturnType<typeof createSqlAgentRequestHandler> {
-        return createSqlAgentRequestHandler(
-            mockCopilotService,
-            mockVscodeWrapper,
-            mockContext,
-            mockMainController,
-        );
+        return createSqlAgentRequestHandler(mockCopilotService, mockContext, mockMainController);
     }
 
     function getMarkdownMessages(): string[] {
@@ -595,7 +582,6 @@ suite("Chat Agent Request Handler Tests", () => {
     suite("provideFollowups Tests", () => {
         let followupsSandbox: sinon.SinonSandbox;
         let followupsMainController: sinon.SinonStubbedInstance<MainController>;
-        let followupsVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let followupsConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let followupsResult: ISqlChatResult;
         let followupsConnection: ConnectionInfo;
@@ -604,7 +590,6 @@ suite("Chat Agent Request Handler Tests", () => {
             followupsSandbox = sinon.createSandbox();
 
             followupsMainController = followupsSandbox.createStubInstance(MainController);
-            followupsVscodeWrapper = followupsSandbox.createStubInstance(VscodeWrapper);
             followupsConnectionManager = followupsSandbox.createStubInstance(ConnectionManager);
 
             followupsSandbox
@@ -632,7 +617,6 @@ suite("Chat Agent Request Handler Tests", () => {
                 {} as vscode.ChatContext,
                 {} as vscode.CancellationToken,
                 followupsMainController,
-                followupsVscodeWrapper,
             );
 
             expect(followups).to.be.an("array").that.is.empty;
@@ -640,16 +624,13 @@ suite("Chat Agent Request Handler Tests", () => {
 
         test("should return connect follow-up when disconnected", async () => {
             followupsResult.metadata.command = "help";
-            followupsSandbox
-                .stub(followupsVscodeWrapper, "activeTextEditorUri")
-                .get(() => undefined);
+            activeTextEditor = undefined;
 
             const followups = await provideFollowups(
                 followupsResult,
                 {} as vscode.ChatContext,
                 {} as vscode.CancellationToken,
                 followupsMainController,
-                followupsVscodeWrapper,
             );
 
             expect(followups).to.have.lengthOf(1);
@@ -660,9 +641,11 @@ suite("Chat Agent Request Handler Tests", () => {
         test("should return database exploration follow-ups when connected", async () => {
             followupsResult.metadata.command = "help";
             const mockUriString = "file:///test.sql";
-            followupsSandbox
-                .stub(followupsVscodeWrapper, "activeTextEditorUri")
-                .get(() => mockUriString);
+            activeTextEditor = {
+                document: {
+                    uri: vscode.Uri.parse(mockUriString),
+                },
+            } as vscode.TextEditor;
             followupsConnectionManager.getConnectionInfo
                 .withArgs(mockUriString)
                 .returns(followupsConnection);
@@ -672,7 +655,6 @@ suite("Chat Agent Request Handler Tests", () => {
                 {} as vscode.ChatContext,
                 {} as vscode.CancellationToken,
                 followupsMainController,
-                followupsVscodeWrapper,
             );
 
             expect(followups).to.have.lengthOf(3);

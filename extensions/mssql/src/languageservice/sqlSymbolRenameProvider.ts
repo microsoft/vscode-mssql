@@ -6,12 +6,40 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import SqlToolsServerClient from "./serviceclient";
+import { readRefactorLogPath } from "../publishProject/projectUtils";
 import {
     SqlSymbolRenameParams,
     SqlSymbolRenameRequest,
     SqlSymbolRenameTextEdit,
 } from "../models/contracts/languageService";
-import { SqlSymbolRename as loc } from "../constants/locConstants";
+import { SqlSymbolRename as loc, msgYes } from "../constants/locConstants";
+
+/** Escapes a string for safe use inside an XML attribute value (e.g. an Include path). */
+function escapeXmlAttribute(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+/**
+ * Resolved refactorlog destination for a rename: the owning `.sqlproj`, the refactorlog file, and
+ * the refactorlog's current content (null when the file does not exist yet).
+ */
+interface RefactorLogTarget {
+    sqlprojUri: vscode.Uri;
+    sqlprojDoc: vscode.TextDocument;
+    sqlprojContent: string;
+    /** True when the .sqlproj already declares a <RefactorLog Include="..." /> entry. */
+    isRegistered: boolean;
+    refactorlogUri: vscode.Uri;
+    refactorlogRelPath: string;
+    /** Open document for the refactorlog file when it exists; undefined otherwise. */
+    refactorlogDoc: vscode.TextDocument | undefined;
+    /** Current refactorlog content, or null when the file does not exist yet. */
+    existingContent: string | null;
+}
 
 /**
  * VS Code RenameProvider for SQL project files.
@@ -84,19 +112,24 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         newName: string,
         token: vscode.CancellationToken,
     ): Promise<vscode.WorkspaceEdit | null | undefined> {
-        // Enforce SQL project membership even if prepareRename wasn't called
-        if (!(await SqlSymbolRenameProvider.isInSqlProject(document.uri.fsPath))) {
-            throw new Error(loc.renameOnlyInProjectFiles);
-        }
-
         if (token.isCancellationRequested) {
             return undefined;
+        }
+
+        // Resolve the project's refactorlog target up front so we can hand its current content to
+        // STS. STS appends the new operation and returns the full document for us to write.
+        // This also enforces SQL project membership: a file outside any .sqlproj resolves to
+        // undefined (even if prepareRename wasn't called).
+        const refactorTarget = await SqlSymbolRenameProvider.resolveRefactorLogTarget(document);
+        if (!refactorTarget) {
+            throw new Error(loc.renameOnlyInProjectFiles);
         }
 
         const params: SqlSymbolRenameParams = {
             textDocument: { uri: document.uri.toString() },
             position: { line: position.line, character: position.character },
             newName,
+            existingRefactorLogContent: refactorTarget.existingContent,
         };
 
         let response;
@@ -119,6 +152,23 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             throw new Error(loc.renameOnlyInProjectFiles);
         }
 
+        // Hard rejection — surface the error message and abort.
+        if (response.message && !response.isWarning) {
+            throw new Error(response.message);
+        }
+
+        // Name collision warning — ask the user before proceeding.
+        if (response.message && response.isWarning) {
+            const choice = await vscode.window.showWarningMessage(
+                response.message,
+                { modal: true },
+                msgYes,
+            );
+            if (choice !== msgYes) {
+                return new vscode.WorkspaceEdit(); // user declined — apply nothing silently
+            }
+        }
+
         const workspaceEdit = new vscode.WorkspaceEdit();
 
         if (!response.changes || Object.keys(response.changes).length === 0) {
@@ -136,6 +186,15 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
                     ? `[${newName}]`
                     : newName;
             workspaceEdit.replace(document.uri, wordRange, finalName);
+            // Still write the refactorlog (if STS produced one) so the single-file rename and the
+            // refactorlog update stay atomic under Apply/Discard.
+            if (response.refactorLogContent) {
+                this.applyRefactorLogEdit(
+                    workspaceEdit,
+                    refactorTarget,
+                    response.refactorLogContent,
+                );
+            }
             return workspaceEdit;
         }
 
@@ -158,6 +217,129 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
             workspaceEdit.set(fileUri, vsEdits);
         }
 
+        // ── Refactorlog handling ────────────────────────────────────────────────────
+        // STS returns the full .refactorlog content (existing operations + the new rename) when
+        // the renamed symbol needs one. We write it via the SAME WorkspaceEdit so Apply/Discard
+        // controls the code edits and the refactorlog together.
+        if (response.refactorLogContent) {
+            this.applyRefactorLogEdit(workspaceEdit, refactorTarget, response.refactorLogContent);
+        }
+
         return workspaceEdit;
+    }
+
+    /**
+     * Adds the refactorlog write (and, when needed, its `.sqlproj` registration) to `workspaceEdit`.
+     * The content is produced by STS; this method only decides between create vs. overwrite and
+     * registers the file in the project when it is not already declared.
+     */
+    private applyRefactorLogEdit(
+        workspaceEdit: vscode.WorkspaceEdit,
+        target: RefactorLogTarget,
+        refactorLogContent: string,
+    ): void {
+        if (target.existingContent !== null) {
+            // File already exists — overwrite its whole content with the STS-generated document.
+            const fullRange = new vscode.Range(
+                target.refactorlogDoc!.lineAt(0).range.start,
+                target.refactorlogDoc!.lineAt(target.refactorlogDoc!.lineCount - 1).range.end,
+            );
+            workspaceEdit.replace(target.refactorlogUri, fullRange, refactorLogContent);
+        } else {
+            // File does not exist yet — create it.
+            workspaceEdit.createFile(target.refactorlogUri, {
+                overwrite: false,
+                contents: Buffer.from(refactorLogContent, "utf8"),
+            });
+        }
+
+        if (!target.isRegistered) {
+            // Register <RefactorLog Include="..." /> in the .sqlproj in the same WorkspaceEdit.
+            // Escape the path so project names/paths containing & < > " stay valid XML.
+            const includeValue = escapeXmlAttribute(target.refactorlogRelPath);
+            const itemGroupEntry = `\n  <ItemGroup>\n    <RefactorLog Include="${includeValue}" />\n  </ItemGroup>`;
+            // Use regex to find </Project> tag, accounting for optional whitespace before >
+            const projectCloseMatch = /<\/Project\s*>/i.exec(target.sqlprojContent);
+            const projectCloseIdx = projectCloseMatch?.index ?? -1;
+            const newSqlprojContent =
+                projectCloseIdx >= 0
+                    ? target.sqlprojContent.slice(0, projectCloseIdx) +
+                      itemGroupEntry +
+                      "\n" +
+                      target.sqlprojContent.slice(projectCloseIdx)
+                    : target.sqlprojContent + itemGroupEntry;
+            const sqlprojFullRange = new vscode.Range(
+                target.sqlprojDoc.lineAt(0).range.start,
+                target.sqlprojDoc.lineAt(target.sqlprojDoc.lineCount - 1).range.end,
+            );
+            workspaceEdit.replace(target.sqlprojUri, sqlprojFullRange, newSqlprojContent);
+        }
+    }
+
+    /**
+     * Locates the `.sqlproj` that owns `document`, resolves its refactorlog path, and reads the
+     * refactorlog's current content (null when the file does not exist yet). Returns undefined when
+     * the document is not inside any project.
+     */
+    private static async resolveRefactorLogTarget(
+        document: vscode.TextDocument,
+    ): Promise<RefactorLogTarget | undefined> {
+        // Find the .sqlproj that owns the renamed file.
+        // Pick the most-specific (deepest) match to handle nested project structures.
+        const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
+        const normalizedDocPath = path.normalize(document.uri.fsPath);
+        const sqlprojUri = sqlprojFiles
+            .filter((projUri) => {
+                const projDir = path.normalize(path.dirname(projUri.fsPath));
+                const rel = path.relative(projDir, normalizedDocPath);
+                return !(rel === ".." || rel.startsWith(".." + path.sep)) && !path.isAbsolute(rel);
+            })
+            .sort((a, b) => b.fsPath.length - a.fsPath.length)[0];
+
+        if (!sqlprojUri) {
+            return undefined;
+        }
+
+        const projDir = path.dirname(sqlprojUri.fsPath);
+        const projName = path.basename(sqlprojUri.fsPath, ".sqlproj");
+
+        // Read the .sqlproj XML to find an existing <RefactorLog Include="..." /> entry.
+        const sqlprojDoc = await vscode.workspace.openTextDocument(sqlprojUri);
+        const sqlprojContent = sqlprojDoc.getText();
+        const existingRefactorLogRelPath = readRefactorLogPath(sqlprojContent);
+
+        // Resolve the refactorlog path:
+        // - If already declared in .sqlproj → resolve relative to project dir.
+        // - Otherwise → default to <ProjectName>.refactorlog next to .sqlproj.
+        const refactorlogRelPath = existingRefactorLogRelPath ?? projName + ".refactorlog";
+        const refactorlogAbsPath = path.resolve(projDir, refactorlogRelPath);
+        const refactorlogUri = vscode.Uri.file(refactorlogAbsPath);
+
+        // Read the current refactorlog content so STS can append to it. Null means "no file yet".
+        let existingContent: string | null = null;
+        let refactorlogDoc: vscode.TextDocument | undefined;
+        try {
+            await vscode.workspace.fs.stat(refactorlogUri);
+            refactorlogDoc = await vscode.workspace.openTextDocument(refactorlogUri);
+            existingContent = refactorlogDoc.getText();
+        } catch (err) {
+            // Only treat a genuine "not found" as "no file yet". Rethrow other errors
+            // (permission, transient provider failures) so we don't mistakenly recreate the file.
+            if (!(err instanceof vscode.FileSystemError && err.code === "FileNotFound")) {
+                throw err;
+            }
+            // File does not exist yet — leave existingContent null.
+        }
+
+        return {
+            sqlprojUri,
+            sqlprojDoc,
+            sqlprojContent,
+            isRegistered: existingRefactorLogRelPath !== undefined,
+            refactorlogUri,
+            refactorlogRelPath,
+            refactorlogDoc,
+            existingContent,
+        };
     }
 }

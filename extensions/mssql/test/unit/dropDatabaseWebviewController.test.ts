@@ -9,14 +9,7 @@ import { expect } from "chai";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { DropDatabaseWebviewController } from "../../src/controllers/dropDatabaseWebviewController";
 import { ObjectManagementService } from "../../src/services/objectManagementService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import {
-    stubTelemetry,
-    stubLogger,
-    stubVscodeWrapper,
-    stubWebviewConnectionRpc,
-    stubWebviewPanel,
-} from "./utils";
+import { stubTelemetry, stubLogger, stubWebviewConnectionRpc, stubWebviewPanel } from "./utils";
 import {
     ObjectManagementSubmitRequest,
     ObjectManagementScriptRequest,
@@ -27,7 +20,6 @@ import * as utils from "../../src/utils/utils";
 suite("DropDatabaseWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let objectManagementServiceStub: sinon.SinonStubbedInstance<ObjectManagementService>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let requestHandlers: Map<string, (params: any) => Promise<any>>;
@@ -58,8 +50,6 @@ suite("DropDatabaseWebviewController Tests", () => {
             extensionPath: "/tmp/ext",
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         objectManagementServiceStub = sandbox.createStubInstance(ObjectManagementService);
 
         objectManagementServiceStub.initializeView.resolves({
@@ -74,7 +64,6 @@ suite("DropDatabaseWebviewController Tests", () => {
     function createController(): DropDatabaseWebviewController {
         controller = new DropDatabaseWebviewController(
             mockContext,
-            vscodeWrapperStub,
             objectManagementServiceStub,
             connectionUri,
             serverName,
