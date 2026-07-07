@@ -3745,6 +3745,12 @@
                     "markdownDescription": "Serve metadata exclusively from persisted snapshots without contacting the server. Status surfaces always disclose the snapshot's age; strict operations (scripting) refuse or emit an offline banner.",
                     "scope": "application"
                 },
+                "mssql.debugConsole.richSnapshotHeartbeat": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Also journal the 2s system.rich.snapshot heartbeat while rich collection is active. Off by default — per-span rich deltas cover most investigations; enable only for event-loop/memory timeline studies.",
+                    "scope": "application"
+                },
                 "mssql.centralObservability.enabled": {
                     "type": "boolean",
                     "default": false,

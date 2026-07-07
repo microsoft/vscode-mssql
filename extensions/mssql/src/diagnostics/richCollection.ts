@@ -26,6 +26,24 @@ import { diag } from "./diagnosticsCore";
 
 const SAMPLE_INTERVAL_MS = 2000;
 
+/**
+ * The 2 s system.rich.snapshot heartbeat is NOISY in journals and rarely
+ * needed (per-span rich deltas cover most investigations). It emits only
+ * when mssql.debugConsole.richSnapshotHeartbeat is ALSO on (default off);
+ * the sampler still runs so span deltas and percentiles stay available.
+ */
+function heartbeatEnabled(): boolean {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const vscode = require("vscode") as typeof import("vscode");
+        return vscode.workspace
+            .getConfiguration("mssql.debugConsole")
+            .get<boolean>("richSnapshotHeartbeat", false);
+    } catch {
+        return false;
+    }
+}
+
 class RichStatsCollector {
     private timer: NodeJS.Timeout | undefined;
     private loopHistogram: IntervalHistogram | undefined;
@@ -104,6 +122,11 @@ class RichStatsCollector {
     private sample(): void {
         if (!diag.anySinkActive) {
             return; // nobody listening — skip the work entirely
+        }
+        if (!heartbeatEnabled()) {
+            // Keep sampling internals warm for span deltas; just do not
+            // journal the heartbeat event (Karl: journal noise).
+            return;
         }
         try {
             const metrics = this.snapshotMetrics(true);
