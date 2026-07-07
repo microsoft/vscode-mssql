@@ -847,7 +847,8 @@ export function QueryStudioApp() {
                 provideCompletionItems: async (model, position, context) => {
                     try {
                         const requestVersion = model.getVersionId();
-                        const requestHash = textHash(model.getValue());
+                        const requestText = model.getValue();
+                        const requestHash = textHash(requestText);
                         const triggerCharacter = context.triggerCharacter;
                         const shouldDelay =
                             context.triggerKind ===
@@ -866,6 +867,7 @@ export function QueryStudioApp() {
                         const result = await rpc.sendRequest(QsLangCompletionRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
+                            text: requestText,
                             textHash: requestHash,
                             trigger:
                                 context.triggerKind ===

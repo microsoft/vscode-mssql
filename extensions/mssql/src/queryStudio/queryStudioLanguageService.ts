@@ -479,10 +479,10 @@ export class QueryStudioLanguageService implements vscode.Disposable {
 
     // ---- request surface (controller maps RPC 1:1 onto these) -----------------
 
-    private request(position: SqlLanguagePosition) {
+    private request(position: SqlLanguagePosition, textOverride?: string) {
         const document = this.host.backingDocument();
         return {
-            text: document?.getText() ?? "",
+            text: textOverride ?? document?.getText() ?? "",
             version: document?.version ?? 0,
             position,
         };
@@ -493,6 +493,7 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         trigger: "invoke" | "character",
         triggerCharacter?: string,
         textHash?: string,
+        text?: string,
     ): Promise<CompletionResult | undefined> {
         if (!this.intelliSense("enableSuggestions")) {
             return undefined;
@@ -500,7 +501,9 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         // Converge the mirror to the webview text before classifying: the
         // request races the edit coalescer, and a one-keystroke-stale text
         // binds member access at the wrong place.
-        await this.converge(textHash, true);
+        if (text === undefined) {
+            await this.converge(textHash, true);
+        }
         // CACHE-4 safe-stale: the answer comes synchronously from the
         // pinned snapshot; this policy call is NEVER awaited on the hot
         // path — it schedules a background refresh when the snapshot has
@@ -508,7 +511,7 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         void this.metadataHandle()
             ?.ensureFresh(MetadataPolicies.completion)
             .catch(() => undefined);
-        const req = { ...this.request(position), trigger, triggerCharacter };
+        const req = { ...this.request(position, text), trigger, triggerCharacter };
         return this.router.route("completion", (e) => e.completion(req));
     }
 

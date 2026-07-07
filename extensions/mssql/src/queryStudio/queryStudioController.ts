@@ -651,6 +651,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 params.trigger,
                 params.triggerCharacter,
                 params.textHash,
+                params.text,
             );
             return result ?? { items: [], isIncomplete: false };
         });

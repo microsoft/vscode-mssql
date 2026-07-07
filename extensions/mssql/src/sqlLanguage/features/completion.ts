@@ -159,7 +159,7 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
         }
 
         case "tableSource": {
-            addTableSources(input, "", ctx.afterJoin, add, markIncomplete);
+            addTableSources(input, ctx.prefix, ctx.afterJoin, add, markIncomplete);
             break;
         }
 
@@ -682,6 +682,11 @@ function addTableSources(
             30,
         );
     }
+    const exactSchema = exactKnownSchema(input, prefix);
+    if (exactSchema !== undefined) {
+        addTableObjectsInSchema(input, exactSchema, add, markIncomplete);
+        return;
+    }
     // Catalog objects.
     if (
         input.pinned.readiness.objects !== "ready" &&
@@ -713,6 +718,58 @@ function addTableSources(
         );
     }
     addSchemas(input, prefix, add);
+}
+
+function exactKnownSchema(input: CompletionComputeInput, prefix: string): string | undefined {
+    if (prefix.length === 0) {
+        return undefined;
+    }
+    if (isSystemSchemaName(prefix)) {
+        return prefix;
+    }
+    return input.pinned
+        .listSchemas()
+        .find((schema) => schema.name.toLowerCase() === prefix.toLowerCase())?.name;
+}
+
+function addTableObjectsInSchema(
+    input: CompletionComputeInput,
+    schemaName: string,
+    add: AddFn,
+    markIncomplete: (reason: string) => void,
+): void {
+    if (
+        !isSystemSchemaName(schemaName) &&
+        input.pinned.readiness.objects !== "ready" &&
+        input.pinned.readiness.objects !== "partial"
+    ) {
+        markIncomplete("providerNotReady");
+        add(
+            {
+                label: schemaName,
+                kind: "schema",
+                insertText: quoteIdentifier(schemaName),
+                commitCharacters: ["."],
+            },
+            schemaName,
+        );
+        return;
+    }
+    for (const obj of input.pinned.searchObjects({
+        schema: schemaName,
+        kinds: ["table", "view", "tableFunction", "synonym"],
+        limit: MAX_ITEMS,
+    })) {
+        add(
+            {
+                ...objectItem(obj.name, obj.kind),
+                label: `${obj.schema}.${obj.name}`,
+                insertText: quoteParts([obj.schema, obj.name]),
+                filterText: obj.name,
+            },
+            "",
+        );
+    }
 }
 
 function addSchemas(input: CompletionComputeInput, prefix: string, add: AddFn): void {

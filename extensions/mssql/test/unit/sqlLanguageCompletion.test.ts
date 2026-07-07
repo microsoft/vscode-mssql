@@ -546,6 +546,13 @@ suite("sqlLanguage native completion: static system catalog", () => {
         expect(result.items.some((i) => i.kind === "schema")).to.equal(false);
     });
 
+    test("exact system schema source scopes to system objects only", async () => {
+        const result = await complete("SELECT * FROM sys/*caret*/");
+        expect(labels(result)).to.include.members(["sys.all_columns", "sys.all_objects"]);
+        expect(labels(result)).to.not.include.members(["dbo", "guest", "INFORMATION_SCHEMA"]);
+        expect(result.items.some((i) => i.kind === "schema")).to.equal(false);
+    });
+
     test("sys.all prefix lists all system objects by fuzzy prefix", async () => {
         const result = await complete("SELECT * FROM sys.all/*caret*/");
         expect(labels(result)).to.include.members(["all_columns", "all_objects", "all_views"]);

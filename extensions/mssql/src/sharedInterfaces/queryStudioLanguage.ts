@@ -81,6 +81,13 @@ export interface QsLangCompletionItem {
 
 export interface QsLangCompletionParams extends QsLangPosition {
     /**
+     * Exact webview editor text at request time. Completion is latency
+     * sensitive and can be triggered before the backing TextDocument mirror
+     * accepts the latest keystroke; this lets the host classify against the
+     * same text Monaco used for the position.
+     */
+    readonly text?: string;
+    /**
      * FNV-1a hash of the webview editor text at request time. The host
      * briefly awaits sync convergence to this hash before classifying —
      * completions raced the edit coalescer and bound one keystroke behind.

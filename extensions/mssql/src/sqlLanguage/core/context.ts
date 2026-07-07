@@ -23,7 +23,12 @@ export type CompletionContext =
           readonly prefix: string;
           readonly scopeId: number;
       }
-    | { readonly kind: "tableSource"; readonly scopeId: number; readonly afterJoin: boolean }
+    | {
+          readonly kind: "tableSource";
+          readonly scopeId: number;
+          readonly afterJoin: boolean;
+          readonly prefix: string;
+      }
     | { readonly kind: "joinPredicate"; readonly scopeId: number }
     | {
           readonly kind: "expression";
@@ -160,7 +165,7 @@ export function classifyContext(
         switch (clause) {
             case "from": {
                 const afterJoin = isAfterJoinWord(text, tokens, anchorIndex);
-                return { kind: "tableSource", scopeId, afterJoin };
+                return { kind: "tableSource", scopeId, afterJoin, prefix };
             }
             case "on":
                 return { kind: "joinPredicate", scopeId };
