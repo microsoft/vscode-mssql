@@ -230,10 +230,6 @@
         <source xml:lang="en">Could not build project. Error retrieving files needed to build.</source>
         <target state="translated">No se pudo compilar el proyecto. Error al recuperar los archivos necesarios para compilar.</target>
       </trans-unit>
-      <trans-unit id="++CODE++a825010793e6d8794cb4b894abc9f023e00cda27bc1ba9b486c5e6dedaaa64b1">
-        <source xml:lang="en">Could not resolve Microsoft.Build.Sql version from NuGet ({0}). Using {1}.</source>
-        <target state="new">Could not resolve Microsoft.Build.Sql version from NuGet ({0}). Using {1}.</target>
-      </trans-unit>
       <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
         <source xml:lang="en">Create</source>
         <target state="translated">Crear</target>
@@ -502,10 +498,6 @@
         <source xml:lang="en">Failed</source>
         <target state="translated">Erróneo</target>
       </trans-unit>
-      <trans-unit id="++CODE++7d2c1823b90a39fe88ff00baa05d784fe098405544ceb2885e7acb5d35728f20">
-        <source xml:lang="en">Failed to fetch NuGet index for {0}: HTTP {1}</source>
-        <target state="new">Failed to fetch NuGet index for {0}: HTTP {1}</target>
-      </trans-unit>
       <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
         <source xml:lang="en">File</source>
         <target state="translated">Archivo</target>
@@ -653,10 +645,6 @@
       <trans-unit id="++CODE++3579208a7b43a25bc936763f617afcbd477eca466e85cc62c381423149058572">
         <source xml:lang="en">No data sources in this project</source>
         <target state="translated">No hay ningún origen de datos en este proyecto.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b8af01973b469e78a8e41c0d546c9b4010b0bfe11f9322f2a448db6a034eab48">
-        <source xml:lang="en">No stable versions of {0} found matching {1}.</source>
-        <target state="new">No stable versions of {0} found matching {1}.</target>
       </trans-unit>
       <trans-unit id="++CODE++b9594558be6542faa968aced22d890827c17bb8f852db18c8642093756b72da2">
         <source xml:lang="en">No {0} found</source>
