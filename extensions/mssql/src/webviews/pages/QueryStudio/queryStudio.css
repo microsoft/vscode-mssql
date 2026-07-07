@@ -294,6 +294,26 @@
     .slick-cell:where(.fluent-result-grid-row-number-cell) {
     background-color: var(--fluent-result-grid-row-odd-background);
 }
+.qs-grid-surface
+    .fluent-result-grid
+    .slick-row.even
+    .slick-cell:where(
+        .fluent-result-grid-row-number-cell.active,
+        .fluent-result-grid-row-number-cell.selected
+    ) {
+    background-color: var(--fluent-result-grid-row-even-background);
+    color: var(--fluent-result-grid-table-header-foreground);
+}
+.qs-grid-surface
+    .fluent-result-grid
+    .slick-row.odd
+    .slick-cell:where(
+        .fluent-result-grid-row-number-cell.active,
+        .fluent-result-grid-row-number-cell.selected
+    ) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+    color: var(--fluent-result-grid-table-header-foreground);
+}
 /* Stay mounted (scroll/sort/selection state) while another grid is maximized. */
 .qs-grid-hidden {
     display: none;
