@@ -15,3 +15,6 @@ sqltoolsservice/
 
 # Package lock files
 package-lock.json
+
+# Vendored central-store contract (byte-identical to perftest perf-contracts src/central)
+extensions/mssql/src/sharedInterfaces/centralContract/

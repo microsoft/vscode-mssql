@@ -1,0 +1,747 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* GENERATED — do not edit. Source of truth: perftest/packages/perf-contracts/fixtures/central/.
+ * Golden fixtures + locked digest anchors for the vendored central contract
+ * conformance test (T-B5 product half). */
+
+export const GOLDEN_RUN_SOURCE = {
+    runId: "2026-07-01T10-00-00Z_deadbeef",
+    passType: "measurement",
+    status: "passed",
+    environmentHash: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    createdAtUnixNs: "1751364000000000000",
+    configHash: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    machineId: "GOLDEN-MACHINE-01",
+    notes: "golden run user note",
+    environment: {
+        environmentHash: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        machineId: "GOLDEN-MACHINE-01",
+        capturedAtUnixNs: "1751364000000000000",
+        os: { platform: "win32", version: "10.0.26200", release: "10.0.26200" },
+        cpu: { model: "Golden CPU X1", logicalCores: 16 },
+        memory: { totalMb: 65536 },
+        vscode: { version: "1.101.0" },
+        extensions: { "ms-mssql.mssql": "1.36.0" },
+        sts: { version: "5.0.0" },
+        sql: { imageDigest: null, snapshot: "seed-v2" },
+        config: { scenarioSet: "golden", reps: 2 },
+    },
+    scenarios: [
+        {
+            scenarioId: "golden-query",
+            displayName: "Golden Query",
+            owner: "perf-team",
+            tags: ["query", "golden"],
+            definitionHash: "sha256:aaaa",
+        },
+        {
+            scenarioId: "golden-connect",
+            displayName: "Golden Connect",
+            owner: null,
+            tags: null,
+            definitionHash: null,
+        },
+    ],
+    reps: [
+        {
+            scenarioId: "golden-query",
+            repId: 0,
+            attemptId: 0,
+            repDir: "scenarios/golden-query/reps/rep-00",
+            startUnixNs: "1751364010000000000",
+            endUnixNs: "1751364012000000000",
+            warmup: false,
+            result: {
+                schemaVersion: 2,
+                runId: "2026-07-01T10-00-00Z_deadbeef",
+                repId: 0,
+                scenarioId: "golden-query",
+                attemptId: 0,
+                passType: "measurement",
+                status: "passed",
+                trace: { traceId: "0af7651916cd43dd8448eb211c80319c" },
+                git: [
+                    {
+                        repo: "vscode-mssql",
+                        sha: "091b6712b0000000000000000000000000000000",
+                        dirty: false,
+                        branch: "dev/query",
+                        remote: "https://github.com/microsoft/vscode-mssql",
+                    },
+                    {
+                        repo: "perftest",
+                        sha: "a01dc2c00000000000000000000000000000000",
+                        dirty: true,
+                        branch: "dev/query",
+                    },
+                ],
+                environment: {
+                    environmentHash:
+                        "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                },
+                metrics: [
+                    {
+                        name: "scenario.wallclock",
+                        value: 512.25,
+                        unit: "ms",
+                        component: "harness",
+                        processRole: "extensionHost",
+                        source: "marker",
+                        official: true,
+                        lowerIsBetter: true,
+                        traceId: "0af7651916cd43dd8448eb211c80319c",
+                        startUnixNs: "1751364010000000000",
+                        endUnixNs: "1751364012000000000",
+                        tags: { phase: "measure" },
+                    },
+                    {
+                        name: "query.rowsRendered",
+                        value: 10000,
+                        unit: "rows",
+                        component: "resultsGrid",
+                        processRole: "webview",
+                        source: "webviewMark",
+                        official: false,
+                        lowerIsBetter: false,
+                        confidence: "high",
+                    },
+                ],
+                artifacts: [
+                    {
+                        kind: "markers",
+                        path: "markers.jsonl",
+                        retention: "always",
+                        sizeBytes: 2048,
+                        sha256: "3333333333333333333333333333333333333333333333333333333333333333",
+                        contentType: "application/jsonl",
+                    },
+                    {
+                        kind: "screenshot",
+                        path: "artifacts/final.png",
+                        retention: "on-failure",
+                        sizeBytes: 100000,
+                    },
+                ],
+                validations: [
+                    {
+                        name: "noErrors",
+                        status: "passed",
+                        message: null,
+                        details: { errorCount: 0 },
+                    },
+                ],
+                errors: [],
+            },
+        },
+        {
+            scenarioId: "golden-query",
+            repId: 1,
+            attemptId: 1,
+            repDir: "scenarios/golden-query/reps/rep-01",
+            startUnixNs: "1751364020000000000",
+            endUnixNs: "1751364023000000000",
+            warmup: false,
+            result: {
+                schemaVersion: 2,
+                runId: "2026-07-01T10-00-00Z_deadbeef",
+                repId: 1,
+                scenarioId: "golden-query",
+                attemptId: 1,
+                passType: "measurement",
+                status: "passed",
+                trace: { traceId: "1bf7651916cd43dd8448eb211c80319d" },
+                git: [
+                    {
+                        repo: "vscode-mssql",
+                        sha: "091b6712b0000000000000000000000000000000",
+                        dirty: false,
+                        branch: "dev/query",
+                        remote: "https://github.com/microsoft/vscode-mssql",
+                    },
+                    {
+                        repo: "perftest",
+                        sha: "a01dc2c00000000000000000000000000000000",
+                        dirty: true,
+                        branch: "dev/query",
+                    },
+                ],
+                environment: {
+                    environmentHash:
+                        "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                },
+                metrics: [
+                    {
+                        name: "scenario.wallclock",
+                        value: 498.75,
+                        unit: "ms",
+                        component: "harness",
+                        processRole: "extensionHost",
+                        source: "marker",
+                        official: true,
+                        lowerIsBetter: true,
+                    },
+                ],
+                artifacts: [],
+                validations: [
+                    {
+                        name: "noErrors",
+                        status: "warning",
+                        message: "one retry",
+                        details: null,
+                    },
+                ],
+                errors: [],
+            },
+        },
+        {
+            scenarioId: "golden-connect",
+            repId: 0,
+            attemptId: 0,
+            repDir: "scenarios/golden-connect/reps/rep-00",
+            warmup: true,
+            result: {
+                schemaVersion: 2,
+                runId: "2026-07-01T10-00-00Z_deadbeef",
+                repId: 0,
+                scenarioId: "golden-connect",
+                attemptId: 0,
+                passType: "measurement",
+                status: "failed",
+                trace: { traceId: "2cf7651916cd43dd8448eb211c80319e" },
+                git: [],
+                environment: {
+                    environmentHash:
+                        "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                },
+                metrics: [
+                    {
+                        name: "connect.wallclock",
+                        value: 1500,
+                        unit: "ms",
+                        component: "harness",
+                        processRole: "extensionHost",
+                        source: "marker",
+                        official: true,
+                        lowerIsBetter: true,
+                    },
+                ],
+                artifacts: [
+                    {
+                        kind: "escape-attempt",
+                        path: "C:\\absolute\\path\\leak.txt",
+                        retention: "always",
+                    },
+                ],
+                validations: [],
+                errors: [{ kind: "timeout", message: "connect timed out" }],
+            },
+        },
+    ],
+    files: [
+        {
+            relativePath: "summary.json",
+            sha256: "4444444444444444444444444444444444444444444444444444444444444444",
+            sizeBytes: 512,
+        },
+        {
+            relativePath: "environment.json",
+            sha256: "5555555555555555555555555555555555555555555555555555555555555555",
+            sizeBytes: 1024,
+        },
+        {
+            relativePath: "run-config.snapshot.jsonc",
+            sha256: "2222222222222222222222222222222222222222222222222222222222222222",
+            sizeBytes: 4096,
+        },
+        {
+            relativePath: "scenarios/golden-query/reps/rep-00/result.json",
+            sha256: "6666666666666666666666666666666666666666666666666666666666666666",
+            sizeBytes: 2000,
+        },
+        {
+            relativePath: "scenarios/golden-query/reps/rep-01/result.json",
+            sha256: "7777777777777777777777777777777777777777777777777777777777777777",
+            sizeBytes: 1800,
+        },
+        {
+            relativePath: "scenarios/golden-connect/reps/rep-00/result.json",
+            sha256: "8888888888888888888888888888888888888888888888888888888888888888",
+            sizeBytes: 1500,
+        },
+    ],
+};
+
+export const GOLDEN_RUN_EXPECTED = {
+    sourceDigest: "src_-WGkd0Mr4mJCUnTheLhGiM",
+    contentDigest: "cnt_Hk2A93JWF6nPL3fALvT6hw",
+    projectionDigest: "prj_uHHRTgzAvMo-bUdXL-w14V",
+    previewDigest: "pvw_7MORT57Da-xC69vD2IxJ8w",
+    tables: [
+        {
+            name: "artifact_refs",
+            rows: 2,
+            bytesEstimate: 699,
+        },
+        {
+            name: "environments",
+            rows: 1,
+            bytesEstimate: 572,
+        },
+        {
+            name: "metrics",
+            rows: 4,
+            bytesEstimate: 1711,
+        },
+        {
+            name: "repetitions",
+            rows: 3,
+            bytesEstimate: 894,
+        },
+        {
+            name: "run_repositories",
+            rows: 2,
+            bytesEstimate: 353,
+        },
+        {
+            name: "runs",
+            rows: 1,
+            bytesEstimate: 411,
+        },
+        {
+            name: "scenarios",
+            rows: 2,
+            bytesEstimate: 269,
+        },
+        {
+            name: "validations",
+            rows: 2,
+            bytesEstimate: 363,
+        },
+    ],
+};
+
+export const GOLDEN_SESSION_SOURCE = {
+    manifest: {
+        schemaVersion: "mssql.diag.sessionManifest/1",
+        sessionId: "sess-golden-0001",
+        createdUtc: "2026-07-01T09:00:00.000Z",
+        updatedUtc: "2026-07-01T09:30:00.000Z",
+        source: "live",
+        captureMode: "redacted",
+        policyId: "capture-redacted/1",
+        eventCount: 6,
+        gapCount: 2,
+        segments: [
+            { file: "seg-000.jsonl", firstSeq: 1, lastSeq: 3, events: 3 },
+            { file: "seg-001.jsonl", firstSeq: 6, lastSeq: 8, events: 3 },
+        ],
+        sizeBytes: 8192,
+        droppedRanges: [
+            { fromSeq: 4, throughSeq: 5 },
+            { fromSeq: 9, throughSeq: 12 },
+        ],
+        provenance: {
+            extensionVersion: "1.36.0",
+            commit: "091b6712b0000000000000000000000000000000",
+            dirty: false,
+            environmentHash:
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            vscodeVersion: "1.101.0",
+            stsVersion: "5.0.0",
+            machineLabel: "KARL-DEV-BOX",
+        },
+        status: "closed",
+    },
+    segments: [
+        {
+            file: "seg-000.jsonl",
+            lines: [
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "evt-0001",
+                    sessionId: "sess-golden-0001",
+                    seq: 1,
+                    epochMs: 1751360400000,
+                    monotonicNs: "123456789012345",
+                    process: "extensionHost",
+                    pid: 4242,
+                    feature: "connection",
+                    kind: "span",
+                    type: "connection.open.begin",
+                    status: "ok",
+                    traceId: "0af7651916cd43dd8448eb211c80319c",
+                    entity: { kind: "server", id: "sfp_AbCdEfGhIjKlMnOpQrSt12" },
+                    payload: {
+                        attempt: { v: 1, cls: "diagnostic.metadata", handling: "plain" },
+                        serverName: {
+                            v: "prod-sql-01.contoso.com",
+                            cls: "server.name",
+                            handling: "plain",
+                        },
+                    },
+                    cls: { max: "server.name", redactedFields: 0, policyId: "capture-redacted/1" },
+                    tags: ["viewerInternal"],
+                },
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "evt-0002",
+                    sessionId: "sess-golden-0001",
+                    seq: 2,
+                    epochMs: 1751360401000,
+                    process: "sqlToolsService",
+                    feature: "query",
+                    kind: "sqlActivity",
+                    type: "sql.batch.executed",
+                    status: "ok",
+                    traceId: "0af7651916cd43dd8448eb211c80319c",
+                    causeEventId: "evt-0001",
+                    durationMs: 42.5,
+                    timingClass: "collectorDiagnostic",
+                    payload: {
+                        sqlText: {
+                            v: "SELECT secret_col FROM dbo.Customers",
+                            cls: "sql.text",
+                            handling: "plain",
+                        },
+                        sqlDigest: {
+                            cls: "sql.digest",
+                            handling: "digest",
+                            digest: "sqd_9999999999999999999999",
+                        },
+                        rowCount: { v: 100, cls: "result.shape", handling: "plain" },
+                    },
+                    cls: { max: "sql.text", redactedFields: 0, policyId: "capture-redacted/1" },
+                },
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "evt-0003",
+                    sessionId: "sess-golden-0001",
+                    seq: 3,
+                    epochMs: 1751360402000,
+                    process: "extensionHost",
+                    feature: "objectExplorer",
+                    kind: "event",
+                    type: "oe.node.expand",
+                    status: "error",
+                    entity: { kind: "document", id: "c:/Users/karl/project/query1.sql" },
+                    payload: {
+                        errorClass: { v: "timeout", cls: "diagnostic.metadata", handling: "plain" },
+                        connString: {
+                            cls: "connection.string",
+                            handling: "tokenized",
+                            digest: "tok_8888888888888888888888",
+                        },
+                        password: { cls: "secret", handling: "redacted" },
+                    },
+                    cls: { max: "secret", redactedFields: 1, policyId: "capture-redacted/1" },
+                },
+            ],
+        },
+        {
+            file: "seg-001.jsonl",
+            lines: [
+                {
+                    kind: "gap",
+                    gapId: "gap-0001",
+                    sessionId: "sess-golden-0001",
+                    fromSeq: 4,
+                    throughSeq: 5,
+                    droppedCount: 2,
+                    reason: "subscriberOverflow",
+                    firstAvailableSeq: 6,
+                    backfillStatus: "failed",
+                    epochMs: 1751360403000,
+                },
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "evt-0006",
+                    sessionId: "sess-golden-0001",
+                    seq: 6,
+                    epochMs: 1751360404000,
+                    process: "webview",
+                    feature: "resultsGrid",
+                    kind: "renderPhase",
+                    type: "grid.render.end",
+                    status: "ok",
+                    durationMs: 18.25,
+                    timingClass: "productTimer",
+                    payload: {
+                        rows: { v: 10000, cls: "result.shape", handling: "plain" },
+                        sourcePath: {
+                            v: "C:\\Users\\karl\\Documents\\query-results.csv",
+                            cls: "source.path",
+                            handling: "plain",
+                        },
+                    },
+                    cls: { max: "source.path", redactedFields: 0, policyId: "capture-redacted/1" },
+                },
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "evt-0007",
+                    sessionId: "sess-golden-0001",
+                    seq: 7,
+                    epochMs: 1751360405000,
+                    process: "extensionHost",
+                    feature: "completions",
+                    kind: "metric",
+                    type: "completion.latency",
+                    status: "ok",
+                    durationMs: 95,
+                    payload: {
+                        objectName: { v: "dbo.Customers", cls: "object.name", handling: "plain" },
+                        userText: { v: "why is this slow??", cls: "user.text", handling: "plain" },
+                    },
+                    cls: { max: "user.text", redactedFields: 0, policyId: "capture-redacted/1" },
+                    tags: ["copilot", "schemaContext"],
+                },
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "evt-0008",
+                    sessionId: "sess-golden-0001",
+                    seq: 8,
+                    epochMs: 1751360406000,
+                    process: "system",
+                    feature: "sessionDiag",
+                    kind: "state",
+                    type: "settings.snapshot",
+                    status: "info",
+                    payload: {
+                        captureMode: { v: "redacted", cls: "public", handling: "plain" },
+                    },
+                    cls: { max: "public", redactedFields: 0, policyId: "capture-redacted/1" },
+                },
+            ],
+        },
+    ],
+    files: [
+        {
+            relativePath: "manifest.json",
+            sha256: "aaaa000000000000000000000000000000000000000000000000000000000000",
+            sizeBytes: 900,
+        },
+        {
+            relativePath: "events/seg-000.jsonl",
+            sha256: "bbbb000000000000000000000000000000000000000000000000000000000000",
+            sizeBytes: 4096,
+        },
+        {
+            relativePath: "events/seg-001.jsonl",
+            sha256: "cccc000000000000000000000000000000000000000000000000000000000000",
+            sizeBytes: 3196,
+        },
+    ],
+};
+
+export const GOLDEN_SESSION_EXPECTED = {
+    sourceDigest: "src_sevnRvqjv6hClRtKokWLHY",
+    contentDigest: "cnt_3VhOJJnhYPqaj5rO2isy_v",
+    projectionDigest: "prj_A_j5dLzDz5EbhbsfNcuCTK",
+    previewDigest: "pvw_SS3ESr5cAQRUF4CpTXKBwQ",
+    tables: [
+        {
+            name: "diag_events",
+            rows: 6,
+            bytesEstimate: 4148,
+        },
+        {
+            name: "diag_gaps",
+            rows: 2,
+            bytesEstimate: 424,
+        },
+        {
+            name: "diag_sessions",
+            rows: 1,
+            bytesEstimate: 748,
+        },
+    ],
+};
+
+export const PRIVACY_CANARY_SOURCE = {
+    manifest: {
+        schemaVersion: "mssql.diag.sessionManifest/1",
+        sessionId: "sess-canary-0001",
+        createdUtc: "2026-07-01T09:00:00.000Z",
+        updatedUtc: "2026-07-01T09:10:00.000Z",
+        source: "live",
+        captureMode: "full",
+        policyId: "capture-full/1",
+        eventCount: 3,
+        gapCount: 0,
+        segments: [{ file: "seg-000.jsonl", firstSeq: 1, lastSeq: 3, events: 3 }],
+        sizeBytes: 4096,
+        provenance: {
+            extensionVersion: "1.36.0",
+            commit: "091b6712b0000000000000000000000000000000",
+            dirty: false,
+            environmentHash:
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            vscodeVersion: "1.101.0",
+            stsVersion: "5.0.0",
+            machineLabel: "CANARY-MACHINE-LABEL-7",
+        },
+        status: "closed",
+    },
+    segments: [
+        {
+            file: "seg-000.jsonl",
+            lines: [
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "cnr-0001",
+                    sessionId: "sess-canary-0001",
+                    seq: 1,
+                    epochMs: 1751360400000,
+                    process: "extensionHost",
+                    feature: "connection",
+                    kind: "event",
+                    type: "canary.credentials",
+                    status: "ok",
+                    payload: {
+                        plainSecret: {
+                            v: "CANARY-PASSWORD-hunter2-XYZZY",
+                            cls: "secret",
+                            handling: "plain",
+                        },
+                        plainConnString: {
+                            v: "Server=prod;User Id=sa;Password=CANARY-CONN-PWD-123;",
+                            cls: "connection.string",
+                            handling: "plain",
+                        },
+                        bearerToken: {
+                            v: "Bearer CANARY-TOKEN-eyJhbGciOi",
+                            cls: "token",
+                            handling: "plain",
+                        },
+                        serverName: {
+                            v: "CANARY-SERVER.contoso.com",
+                            cls: "server.name",
+                            handling: "plain",
+                        },
+                        databaseName: {
+                            v: "CanaryProdDB",
+                            cls: "database.name",
+                            handling: "plain",
+                        },
+                        schemaName: { v: "canary_schema", cls: "schema.name", handling: "plain" },
+                        objectName: {
+                            v: "CanarySecretTable",
+                            cls: "object.name",
+                            handling: "plain",
+                        },
+                    },
+                    cls: { max: "secret", redactedFields: 0, policyId: "capture-full/1" },
+                },
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "cnr-0002",
+                    sessionId: "sess-canary-0001",
+                    seq: 2,
+                    epochMs: 1751360401000,
+                    process: "sqlToolsService",
+                    feature: "query",
+                    kind: "sqlActivity",
+                    type: "canary.query",
+                    status: "ok",
+                    entity: { kind: "document", id: "C:/Users/canary/secret-project/plan.sql" },
+                    payload: {
+                        sqlText: {
+                            v: "SELECT ssn, salary FROM CANARY_employees WHERE name = 'O''Brien'",
+                            cls: "sql.text",
+                            handling: "plain",
+                        },
+                        rowData: {
+                            v: "123-45-6789|CANARY-ROW-VALUE",
+                            cls: "row.data",
+                            handling: "plain",
+                        },
+                        modelPrompt: {
+                            v: "CANARY-PROMPT: write sql for salaries",
+                            cls: "model.prompt",
+                            handling: "plain",
+                        },
+                        modelResponse: {
+                            v: "CANARY-RESPONSE: SELECT salary",
+                            cls: "model.response",
+                            handling: "plain",
+                        },
+                        userFreeText: {
+                            v: "CANARY-USER-NOTE about prod outage",
+                            cls: "user.text",
+                            handling: "plain",
+                        },
+                        sourcePath: {
+                            v: "D:\\CANARY\\absolute\\path\\file.sql",
+                            cls: "source.path",
+                            handling: "plain",
+                        },
+                        mysteryField: {
+                            v: "CANARY-UNKNOWN-CLASS-VALUE",
+                            cls: "unknown",
+                            handling: "plain",
+                        },
+                    },
+                    cls: { max: "row.data", redactedFields: 0, policyId: "capture-full/1" },
+                },
+                {
+                    schemaVersion: "mssql.diag.event/1",
+                    eventId: "cnr-0003",
+                    sessionId: "sess-canary-0001",
+                    seq: 3,
+                    epochMs: 1751360402000,
+                    process: "webview",
+                    feature: "resultsGrid",
+                    kind: "event",
+                    type: "canary.escaperBombs",
+                    status: "ok",
+                    payload: {
+                        quoteBomb: {
+                            v: "it''s a trap: ' OR 1=1 --",
+                            cls: "diagnostic.metadata",
+                            handling: "plain",
+                        },
+                        nstringBomb: {
+                            v: "N'nested literal' ];--",
+                            cls: "diagnostic.metadata",
+                            handling: "plain",
+                        },
+                        nulBomb: {
+                            v: "before\u0000after",
+                            cls: "diagnostic.metadata",
+                            handling: "plain",
+                        },
+                        surrogateBomb: {
+                            v: "lonely-high\ud800-surrogate",
+                            cls: "diagnostic.metadata",
+                            handling: "plain",
+                        },
+                        unicodeMix: {
+                            v: "emoji 🎯 and CJK 性能テスト and rtl عربى",
+                            cls: "diagnostic.metadata",
+                            handling: "plain",
+                        },
+                    },
+                    cls: {
+                        max: "diagnostic.metadata",
+                        redactedFields: 0,
+                        policyId: "capture-full/1",
+                    },
+                },
+            ],
+        },
+    ],
+    files: [
+        {
+            relativePath: "manifest.json",
+            sha256: "dddd000000000000000000000000000000000000000000000000000000000000",
+            sizeBytes: 800,
+        },
+        {
+            relativePath: "events/seg-000.jsonl",
+            sha256: "eeee000000000000000000000000000000000000000000000000000000000000",
+            sizeBytes: 3296,
+        },
+    ],
+};

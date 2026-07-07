@@ -186,7 +186,9 @@ export function classifyPayload(
     return { payload, maxClassification: max, redactedFields: redacted };
 }
 
-const RANK_ORDER: DataClassification[] = [
+// Exported for the vendored central-contract equality test (cls-rank/1):
+// the central store's cls_rank column is defined as the index in THIS array.
+export const RANK_ORDER: DataClassification[] = [
     "public",
     "system.metadata",
     "diagnostic.metadata",

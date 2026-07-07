@@ -117,6 +117,8 @@ export default [
             "**/coverage/**/*",
             "**/*.d.ts",
             "**/sqltoolsservice/**/*",
+            // Vendored central-store contract: byte-identical to perftest perf-contracts
+            "**/sharedInterfaces/centralContract/**/*",
         ],
     },
 
