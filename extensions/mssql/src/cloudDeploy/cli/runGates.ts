@@ -37,7 +37,7 @@ import * as path from "path";
 import { buildPrReport } from "../ci/prReporter";
 import { DiagnosticEvent } from "../diagnostics/types";
 import { NodeDiagnosticEventBus } from "../diagnostics/nodeEventBus";
-import { Environment, EnvironmentsFile } from "../environments/types";
+import { Environment, EnvironmentsFile, ValidationType } from "../environments/types";
 import {
     EnvironmentNotFoundError,
     loadEnvironmentsFromPath,
@@ -55,6 +55,7 @@ import {
     RunnerIdentity,
     ValidationResult,
     ValidationStatus,
+    WorkloadObservedStep,
 } from "../runs/types";
 import { createDefaultRegistry } from "../validation/registry";
 import { Runner } from "../validation/runner";
@@ -73,17 +74,32 @@ const CLI_RUNNER_IDENTITY: RunnerIdentity = {
     hostKind: "github-actions",
 };
 
+/**
+ * Resolves the workload performance baseline for a run: given the candidate
+ * run's own schema hash, returns the measured workload steps to compare against
+ * (or `undefined` for no comparison). The runner calls this while dispatching.
+ */
+export type WorkloadBaselineLookup = (
+    envId: string,
+    currentSourceVersionHash: string | undefined,
+) => Promise<readonly WorkloadObservedStep[] | undefined>;
+
 /** The impure edges of `runGates`, injected so the orchestration is testable. */
 export interface RunGatesDeps {
     /** Backs the run-artifact writer (and the artifact provider in `liveDeps`). */
     readonly fileProvider: FileProvider;
     /** Reads + validates the environments file. */
     loadEnvironments(absPath: string): Promise<EnvironmentsFile>;
-    /** Runs every enabled validation for `env` and returns the produced record. */
+    /**
+     * Runs every enabled validation for `env` and returns the produced record.
+     * When `workloadBaselineLookup` is provided, the workload validator compares
+     * its fresh measurements against that baseline.
+     */
     runValidation(
         env: Environment,
         bus: NodeDiagnosticEventBus,
         workspaceRoot: string,
+        workloadBaselineLookup?: WorkloadBaselineLookup,
     ): Promise<RunRecord>;
     /** Loads a previously-written run artifact to diff the new run against. */
     loadRunArtifact(absPath: string): Promise<RunRecord>;
@@ -130,8 +146,19 @@ export async function runGates(
         const bus = new NodeDiagnosticEventBus();
         bus.on((event) => printProgress(event, io.err));
 
+        // Load the baseline (when requested) BEFORE the run so its workload
+        // measurements can seed the candidate run's comparison — the same
+        // run-based baseline the local run store provides. Best-effort: a
+        // missing / unreadable baseline just skips the comparison and the diff.
+        const baseline = await loadBaselineBestEffort(args.baselinePath, deps);
+
         const record = stampSourceLabels(
-            await deps.runValidation(env, bus, workspaceRoot),
+            await deps.runValidation(
+                env,
+                bus,
+                workspaceRoot,
+                baseline !== undefined ? makeCliWorkloadBaselineLookup(baseline) : undefined,
+            ),
             args.sourceCommit,
             args.sourceRef,
         );
@@ -142,7 +169,8 @@ export async function runGates(
 
         printSummary(record, outPath, sizeBytes, io.out);
 
-        const comparison = await maybeCompareBaseline(args.baselinePath, record, deps, io.out);
+        const comparison =
+            baseline !== undefined ? compareAndPrintBaseline(baseline, record, io.out) : undefined;
         await maybeWriteReport(args.reportOut, record, comparison, deps, io.out);
 
         return exitCodeFor(record.status);
@@ -194,24 +222,68 @@ export function stampSourceLabels(
 }
 
 /**
- * Loads the baseline artifact (when one was requested) and diffs the new run
- * against it, printing a per-gate summary. Returns the comparison so the
- * reporter can fold it into the PR comment, or `undefined` when no baseline was
- * given.
+ * Loads the baseline artifact when one was requested. Best-effort: a missing or
+ * unreadable baseline yields `undefined` so the candidate run still validates
+ * (the workload comparison and the diff are simply skipped).
  */
-async function maybeCompareBaseline(
+async function loadBaselineBestEffort(
     baselinePath: string | undefined,
-    record: RunRecord,
     deps: RunGatesDeps,
-    out: NodeJS.WritableStream,
-): Promise<RunComparison | undefined> {
+): Promise<RunRecord | undefined> {
     if (baselinePath === undefined) {
         return undefined;
     }
-    const baseline = await deps.loadRunArtifact(path.resolve(baselinePath));
+    try {
+        return await deps.loadRunArtifact(path.resolve(baselinePath));
+    } catch {
+        return undefined;
+    }
+}
+
+/** Diffs the new run against the pre-loaded baseline and prints a per-gate summary. */
+function compareAndPrintBaseline(
+    baseline: RunRecord,
+    record: RunRecord,
+    out: NodeJS.WritableStream,
+): RunComparison {
     const comparison = compareRuns(baseline, record);
     printComparison(comparison, out);
     return comparison;
+}
+
+/**
+ * Extracts the workload validator's recorded per-step metrics from a run, if it
+ * ran one — used to seed the next run's performance comparison.
+ */
+function extractWorkloadObservedSteps(
+    record: RunRecord,
+): readonly WorkloadObservedStep[] | undefined {
+    for (const validation of record.validations) {
+        if (validation.payload.validationType === ValidationType.WorkloadPlayback) {
+            return validation.payload.observedSteps;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Builds the workload baseline lookup the runner calls with the candidate run's
+ * own schema hash. Feeds the baseline run's measured steps ONLY when the two
+ * runs validated a different schema — mirroring the local run-store selector, so
+ * a same-schema PR compares nothing (identical plans / reads would be noise).
+ */
+function makeCliWorkloadBaselineLookup(baseline: RunRecord): WorkloadBaselineLookup {
+    return (_envId, currentSourceVersionHash) => {
+        const baselineHash = baseline.sourceVersion?.hash;
+        if (
+            baselineHash === undefined ||
+            currentSourceVersionHash === undefined ||
+            baselineHash === currentSourceVersionHash
+        ) {
+            return Promise.resolve(undefined);
+        }
+        return Promise.resolve(extractWorkloadObservedSteps(baseline));
+    };
 }
 
 /**
@@ -249,7 +321,7 @@ function liveDeps(): RunGatesDeps {
         fileProvider,
         loadEnvironments: loadEnvironmentsFromPath,
         loadRunArtifact: (absPath) => new RunArtifactReader(fileProvider).read(absPath),
-        runValidation: (env, bus, workspaceRoot) => {
+        runValidation: (env, bus, workspaceRoot, workloadBaselineLookup) => {
             const processes = new LiveProcessProvider(workspaceRoot);
             const artifact = new LiveArtifactProvider(fileProvider, workspaceRoot);
             const registry = createDefaultRegistry({ process: processes, artifact });
@@ -264,6 +336,7 @@ function liveDeps(): RunGatesDeps {
                 ephemeralProvider,
                 dataGenerator: new LiveDataGenerator(artifact),
                 schemaHasher: new SchemaHasher(new LocalSchemaSourceReader(workspaceRoot)),
+                ...(workloadBaselineLookup !== undefined ? { workloadBaselineLookup } : {}),
             });
             return runner.run(env, { runner: CLI_RUNNER_IDENTITY });
         },

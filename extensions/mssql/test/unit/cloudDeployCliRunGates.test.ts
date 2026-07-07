@@ -11,6 +11,7 @@ import {
     EnvironmentsFile,
     ENVIRONMENTS_FILE_SCHEMA_VERSION,
     SourceOfTruthKind,
+    ValidationType,
 } from "../../src/cloudDeploy/environments/types";
 import { EnvironmentsFileParseError } from "../../src/cloudDeploy/environments/environmentSchema";
 import { FileProvider } from "../../src/cloudDeploy/providers";
@@ -19,6 +20,8 @@ import {
     RunRecord,
     RunStatus,
     SourceVersion,
+    ValidationStatus,
+    WorkloadObservedStep,
 } from "../../src/cloudDeploy/runs/types";
 import {
     exitCodeFor,
@@ -26,6 +29,7 @@ import {
     RunGatesDeps,
     RunGatesIo,
     stampSourceLabels,
+    WorkloadBaselineLookup,
 } from "../../src/cloudDeploy/cli/runGates";
 
 const REQUIRED_ARGS = ["--env", "dev", "--config", "c.json", "--out", "o.zip"] as const;
@@ -272,6 +276,122 @@ suite("CloudDeploy CLI runGates", () => {
         test("is a no-op when the run produced no source version", () => {
             const record = makeRecord(RunStatus.Passed);
             expect(stampSourceLabels(record, "deadbeef", undefined)).to.equal(record);
+        });
+    });
+
+    suite("workload baseline", () => {
+        const BASELINE_STEPS: readonly WorkloadObservedStep[] = [
+            { id: "stepA", latencyMs: 5, planHash: "0xAAA", logicalReads: 100, cpuMs: 2 },
+        ];
+
+        function makeWorkloadRecord(hash: string): RunRecord {
+            return {
+                ...makeRecord(RunStatus.Passed, { hash, algorithm: "sha256" }),
+                validations: [
+                    {
+                        validationId: "workload-playback",
+                        displayName: "Workload Playback",
+                        status: ValidationStatus.Passed,
+                        startedAtMs: 1,
+                        endedAtMs: 2,
+                        payload: {
+                            validationType: ValidationType.WorkloadPlayback,
+                            findings: [],
+                            summary: { steps: BASELINE_STEPS.length, regressions: 0 },
+                            observedSteps: BASELINE_STEPS,
+                        },
+                    },
+                ],
+            };
+        }
+
+        test("passes a workload baseline lookup to the run when --baseline is given", async () => {
+            let captured: WorkloadBaselineLookup | undefined;
+            const { io } = captureIo();
+            await runGates(
+                [...REQUIRED_ARGS, "--baseline", "main.cdrun.zip"],
+                makeDeps({
+                    loadRunArtifact: async () => makeWorkloadRecord("sha256:base"),
+                    runValidation: async (_e, _b, _w, lookup) => {
+                        captured = lookup;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            expect(captured).to.be.a("function");
+        });
+
+        test("does not pass a workload baseline lookup when --baseline is omitted", async () => {
+            let captured: WorkloadBaselineLookup | undefined;
+            const { io } = captureIo();
+            await runGates(
+                [...REQUIRED_ARGS],
+                makeDeps({
+                    runValidation: async (_e, _b, _w, lookup) => {
+                        captured = lookup;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            expect(captured).to.be.undefined;
+        });
+
+        test("the lookup returns the baseline's steps when the schema hash differs", async () => {
+            let captured: WorkloadBaselineLookup | undefined;
+            const { io } = captureIo();
+            await runGates(
+                [...REQUIRED_ARGS, "--baseline", "main.cdrun.zip"],
+                makeDeps({
+                    loadRunArtifact: async () => makeWorkloadRecord("sha256:base"),
+                    runValidation: async (_e, _b, _w, lookup) => {
+                        captured = lookup;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            const steps = await captured!("dev", "sha256:candidate");
+            expect(steps).to.deep.equal(BASELINE_STEPS);
+        });
+
+        test("the lookup returns undefined when the schema hash is unchanged", async () => {
+            let captured: WorkloadBaselineLookup | undefined;
+            const { io } = captureIo();
+            await runGates(
+                [...REQUIRED_ARGS, "--baseline", "main.cdrun.zip"],
+                makeDeps({
+                    loadRunArtifact: async () => makeWorkloadRecord("sha256:same"),
+                    runValidation: async (_e, _b, _w, lookup) => {
+                        captured = lookup;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            const steps = await captured!("dev", "sha256:same");
+            expect(steps).to.be.undefined;
+        });
+
+        test("a baseline that fails to load does not break the run", async () => {
+            let captured: WorkloadBaselineLookup | undefined;
+            const { io } = captureIo();
+            const code = await runGates(
+                [...REQUIRED_ARGS, "--baseline", "missing.cdrun.zip"],
+                makeDeps({
+                    loadRunArtifact: async () => {
+                        throw new Error("no such artifact");
+                    },
+                    runValidation: async (_e, _b, _w, lookup) => {
+                        captured = lookup;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            expect(code).to.equal(0);
+            expect(captured).to.be.undefined;
         });
     });
 });
