@@ -197,3 +197,75 @@ suite("queryStudio language diagnostics publish path (B10)", () => {
         }
     });
 });
+
+suite("queryStudio language service gates and breaker", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    const NATIVE = { "mssql.queryStudio.languageService.engine": "nativeTypeScript" };
+
+    test("breaker: a pass over the cap is withheld entirely (markers clear)", async () => {
+        stubConfiguration(sandbox, NATIVE);
+        const flooded = Array.from({ length: 101 }, () => "GO junk").join(String.fromCharCode(10));
+        const document = await openSqlDocument(flooded);
+        const service = serviceFor(document);
+        const result = await service.diagnostics();
+        expect(result?.diagnostics).to.deep.equal([]);
+        service.dispose();
+    });
+
+    test("breaker: under the cap the same class of errors publishes normally", async () => {
+        stubConfiguration(sandbox, NATIVE);
+        const document = await openSqlDocument(
+            Array.from({ length: 5 }, () => "GO junk").join(String.fromCharCode(10)),
+        );
+        const service = serviceFor(document);
+        const result = await service.diagnostics();
+        expect(result?.diagnostics.length).to.equal(5);
+        service.dispose();
+    });
+
+    test("enableIntelliSense=false shuts off completions, hover, signature help and diagnostics", async () => {
+        stubConfiguration(sandbox, { ...NATIVE, enableIntelliSense: false });
+        const document = await openSqlDocument("SELECT 1");
+        const service = serviceFor(document);
+        expect(await service.completion({ line: 0, character: 7 }, "invoke")).to.equal(undefined);
+        expect(await service.hover({ line: 0, character: 2 })).to.equal(undefined);
+        expect(await service.signatureHelp({ line: 0, character: 8 })).to.equal(undefined);
+        expect((await service.diagnostics())?.diagnostics).to.deep.equal([]);
+        service.dispose();
+    });
+
+    test("enableSuggestions=false gates completions AND signature help; hover survives", async () => {
+        stubConfiguration(sandbox, { ...NATIVE, enableSuggestions: false });
+        const document = await openSqlDocument("SELECT 1");
+        const service = serviceFor(document);
+        expect(await service.completion({ line: 0, character: 7 }, "invoke")).to.equal(undefined);
+        expect(await service.signatureHelp({ line: 0, character: 8 })).to.equal(undefined);
+        service.dispose();
+    });
+
+    test("enableQuickInfo=false gates hover; completions survive", async () => {
+        stubConfiguration(sandbox, { ...NATIVE, enableQuickInfo: false });
+        const document = await openSqlDocument("SELECT 1");
+        const service = serviceFor(document);
+        expect(await service.hover({ line: 0, character: 2 })).to.equal(undefined);
+        const completions = await service.completion({ line: 0, character: 7 }, "invoke");
+        expect(completions?.items.length ?? 0).to.be.greaterThan(0);
+        service.dispose();
+    });
+
+    test("enableErrorChecking=false: native publishes nothing so markers clear", async () => {
+        stubConfiguration(sandbox, { ...NATIVE, enableErrorChecking: false });
+        const document = await openSqlDocument("SELECT (1 + 2))");
+        const service = serviceFor(document);
+        expect((await service.diagnostics())?.diagnostics).to.deep.equal([]);
+        service.dispose();
+    });
+});

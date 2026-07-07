@@ -679,11 +679,13 @@ export function QueryStudioApp() {
                 },
             }),
             monacoApi.languages.registerHoverProvider("sql", {
-                provideHover: async (_model, position) => {
+                provideHover: async (model, position) => {
                     try {
+                        flushEdits();
                         const result = await rpc.sendRequest(QsLangHoverRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
+                            textHash: textHash(model.getValue()),
                         });
                         if (!result) {
                             return null;
@@ -699,11 +701,15 @@ export function QueryStudioApp() {
             }),
             monacoApi.languages.registerSignatureHelpProvider("sql", {
                 signatureHelpTriggerCharacters: ["(", ","],
-                provideSignatureHelp: async (_model, position) => {
+                provideSignatureHelp: async (model, position) => {
                     try {
+                        // "(" fires this the instant it is typed — flush and
+                        // converge or the host resolves one keystroke behind.
+                        flushEdits();
                         const result = await rpc.sendRequest(QsLangSignatureHelpRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
+                            textHash: textHash(model.getValue()),
                         });
                         if (!result) {
                             return null;
@@ -735,9 +741,11 @@ export function QueryStudioApp() {
             monacoApi.languages.registerDefinitionProvider("sql", {
                 provideDefinition: async (model, position) => {
                     try {
+                        flushEdits();
                         const result = await rpc.sendRequest(QsLangDefinitionRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
+                            textHash: textHash(model.getValue()),
                         });
                         if (!result?.range) {
                             return null;

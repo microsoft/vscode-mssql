@@ -30,6 +30,16 @@ export interface QsLangPosition {
     readonly character: number;
 }
 
+/**
+ * Positional feature request (hover/signature/definition). textHash names the
+ * webview editor text the position was computed against; the host converges
+ * its mirror to it first — positional requests race the edit coalescer just
+ * like completions do.
+ */
+export interface QsLangPositionalParams extends QsLangPosition {
+    readonly textHash?: string;
+}
+
 export interface QsLangRange {
     readonly start: QsLangPosition;
     readonly end: QsLangPosition;
@@ -194,19 +204,23 @@ export namespace QsLangCompletionRequest {
     );
 }
 export namespace QsLangHoverRequest {
-    export const type = new RequestType<QsLangPosition, QsLangHoverResult | null, void>(
+    export const type = new RequestType<QsLangPositionalParams, QsLangHoverResult | null, void>(
         "qs/lang.hover",
     );
 }
 export namespace QsLangSignatureHelpRequest {
-    export const type = new RequestType<QsLangPosition, QsLangSignatureHelpResult | null, void>(
-        "qs/lang.signatureHelp",
-    );
+    export const type = new RequestType<
+        QsLangPositionalParams,
+        QsLangSignatureHelpResult | null,
+        void
+    >("qs/lang.signatureHelp");
 }
 export namespace QsLangDefinitionRequest {
-    export const type = new RequestType<QsLangPosition, QsLangDefinitionResult | null, void>(
-        "qs/lang.definition",
-    );
+    export const type = new RequestType<
+        QsLangPositionalParams,
+        QsLangDefinitionResult | null,
+        void
+    >("qs/lang.definition");
 }
 export namespace QsLangFoldingRequest {
     export const type = new RequestType<void, { ranges: readonly QsLangFoldingRange[] }, void>(

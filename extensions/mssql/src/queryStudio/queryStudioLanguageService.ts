@@ -73,6 +73,14 @@ import { DocumentSessionBinding } from "./documentSessionBinding";
 export const LANGUAGE_ENGINE_SETTING = "mssql.queryStudio.languageService.engine";
 export const DIAGNOSTICS_ENABLED_SETTING = "mssql.sqlLanguage.diagnostics.enabled";
 
+/**
+ * A pass producing more errors than this is withheld entirely (published
+ * empty, counted as tooManyDiagnostics). Documents this wrong are not being
+ * written as SQL — prose or data rows pasted into a .sql buffer — and a
+ * wall of squiggles helps nobody. Self-healing per pass, no latch.
+ */
+export const DIAGNOSTICS_BREAKER_MAX = 100;
+
 interface ConnectionManagerSeam {
     connect(
         fileUri: string,
@@ -225,6 +233,13 @@ export class QueryStudioLanguageService implements vscode.Disposable {
             publish: (result, version) => {
                 this.lastDiagnosticsPassVersion = version;
                 const counts: Record<string, number> = { ...(result.suppressed ?? {}) };
+                // Breaker: a document drowning in errors is almost never SQL
+                // being written — it is prose/data opened as .sql. Squiggling
+                // every line is noise, so the whole pass is withheld (counted,
+                // and self-healing: the next pass under the cap publishes).
+                if (result.diagnostics.length > DIAGNOSTICS_BREAKER_MAX) {
+                    counts.tooManyDiagnostics = result.diagnostics.length;
+                }
                 // Drift cancels since the last publish ride the same counted
                 // suppression surface (reason -> count, never identifiers).
                 if (this.pendingMetadataStale > 0) {
@@ -266,7 +281,51 @@ export class QueryStudioLanguageService implements vscode.Disposable {
     }
 
     private diagnosticsEnabled(): boolean {
-        return vscode.workspace.getConfiguration().get<boolean>(DIAGNOSTICS_ENABLED_SETTING, true);
+        return (
+            vscode.workspace.getConfiguration().get<boolean>(DIAGNOSTICS_ENABLED_SETTING, true) &&
+            this.intelliSense("enableErrorChecking")
+        );
+    }
+
+    /**
+     * The classic mssql.intelliSense.* switches apply to the native engine
+     * too — they are editor-generic, not an STS implementation detail.
+     * enableSuggestions covers completions AND signature help;
+     * enableQuickInfo covers hover; enableErrorChecking gates diagnostics
+     * alongside mssql.sqlLanguage.diagnostics.enabled.
+     */
+    private intelliSense(
+        flag: "enableSuggestions" | "enableQuickInfo" | "enableErrorChecking",
+    ): boolean {
+        const config = vscode.workspace.getConfiguration("mssql.intelliSense");
+        return config.get<boolean>("enableIntelliSense", true) && config.get<boolean>(flag, true);
+    }
+
+    /**
+     * Converge the host mirror to the webview text a request was computed
+     * against (bounded wait, never hard) — positional requests race the
+     * edit coalescer exactly like completions. Only completion emits the
+     * converge diag event; it owns that vocabulary and its volume.
+     */
+    private async converge(textHash: string | undefined, emitDiag: boolean): Promise<void> {
+        if (textHash === undefined || this.host.awaitTextHash === undefined) {
+            return;
+        }
+        const waitStart = Date.now();
+        const converged = await this.host.awaitTextHash(textHash, 200);
+        const waitedMs = Date.now() - waitStart;
+        if (emitDiag && (waitedMs > 1 || !converged)) {
+            diag.emit({
+                feature: "sqlLanguage",
+                kind: "event",
+                type: "sqlLanguage.completion.converge",
+                status: converged ? "ok" : "warning",
+                fields: {
+                    waitedMs: { raw: waitedMs, cls: "diagnostic.metadata" },
+                    converged: { raw: converged, cls: "diagnostic.metadata" },
+                },
+            });
+        }
     }
 
     /**
@@ -435,26 +494,13 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         triggerCharacter?: string,
         textHash?: string,
     ): Promise<CompletionResult | undefined> {
+        if (!this.intelliSense("enableSuggestions")) {
+            return undefined;
+        }
         // Converge the mirror to the webview text before classifying: the
         // request races the edit coalescer, and a one-keystroke-stale text
-        // binds member access at the wrong place (bounded wait, never hard).
-        if (textHash !== undefined && this.host.awaitTextHash !== undefined) {
-            const waitStart = Date.now();
-            const converged = await this.host.awaitTextHash(textHash, 200);
-            const waitedMs = Date.now() - waitStart;
-            if (waitedMs > 1 || !converged) {
-                diag.emit({
-                    feature: "sqlLanguage",
-                    kind: "event",
-                    type: "sqlLanguage.completion.converge",
-                    status: converged ? "ok" : "warning",
-                    fields: {
-                        waitedMs: { raw: waitedMs, cls: "diagnostic.metadata" },
-                        converged: { raw: converged, cls: "diagnostic.metadata" },
-                    },
-                });
-            }
-        }
+        // binds member access at the wrong place.
+        await this.converge(textHash, true);
         // CACHE-4 safe-stale: the answer comes synchronously from the
         // pinned snapshot; this policy call is NEVER awaited on the hot
         // path — it schedules a background refresh when the snapshot has
@@ -466,15 +512,35 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         return this.router.route("completion", (e) => e.completion(req));
     }
 
-    hover(position: SqlLanguagePosition): Promise<HoverResult | undefined> {
+    async hover(
+        position: SqlLanguagePosition,
+        textHash?: string,
+    ): Promise<HoverResult | undefined> {
+        if (!this.intelliSense("enableQuickInfo")) {
+            return undefined;
+        }
+        await this.converge(textHash, false);
         return this.router.route("hover", (e) => e.hover(this.request(position)));
     }
 
-    signatureHelp(position: SqlLanguagePosition): Promise<SignatureHelpResult | undefined> {
+    async signatureHelp(
+        position: SqlLanguagePosition,
+        textHash?: string,
+    ): Promise<SignatureHelpResult | undefined> {
+        // Lumped with completions (enableSuggestions): "(" fires this the
+        // instant it is typed, so convergence matters here most of all.
+        if (!this.intelliSense("enableSuggestions")) {
+            return undefined;
+        }
+        await this.converge(textHash, false);
         return this.router.route("signatureHelp", (e) => e.signatureHelp(this.request(position)));
     }
 
-    definition(position: SqlLanguagePosition): Promise<DefinitionLocationResult | undefined> {
+    async definition(
+        position: SqlLanguagePosition,
+        textHash?: string,
+    ): Promise<DefinitionLocationResult | undefined> {
+        await this.converge(textHash, false);
         return this.router.route("definition", (e) => e.definition(this.request(position)));
     }
 
@@ -490,13 +556,19 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         // (a pull right after a pass memo-hits: same version/generation/
         // verdict). The bridge path never sees the field.
         const metadataFreshness = native ? await this.diagnosticsFreshnessVerdict() : undefined;
-        return this.router.route("diagnostics", (e) =>
+        const result = await this.router.route("diagnostics", (e) =>
             e.diagnostics({
                 text: req.text,
                 version: req.version,
                 ...(metadataFreshness !== undefined ? { metadataFreshness } : {}),
             }),
         );
+        // Breaker (see the scheduler publish hook): withhold a pass that
+        // exceeds the cap — an empty result also clears stale markers.
+        if (native && result !== undefined && result.diagnostics.length > DIAGNOSTICS_BREAKER_MAX) {
+            return { ...result, diagnostics: [] };
+        }
+        return result;
     }
 
     folding(): Promise<readonly FoldingRangeResult[] | undefined> {

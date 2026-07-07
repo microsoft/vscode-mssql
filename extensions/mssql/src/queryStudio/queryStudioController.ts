@@ -157,7 +157,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 if (e.affectsConfiguration(LANGUAGE_ENGINE_SETTING)) {
                     this.languageService.onPreferenceChanged();
                 }
-                if (e.affectsConfiguration(DIAGNOSTICS_ENABLED_SETTING)) {
+                if (
+                    e.affectsConfiguration(DIAGNOSTICS_ENABLED_SETTING) ||
+                    e.affectsConfiguration("mssql.intelliSense")
+                ) {
                     this.languageService.onDiagnosticsSettingChanged();
                 }
                 if (
@@ -606,14 +609,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
         this.onRequest(
             QsLangHoverRequest.type,
-            async (position) => (await this.languageService.hover(position)) ?? null,
+            async (position) =>
+                (await this.languageService.hover(position, position.textHash)) ?? null,
         );
         this.onRequest(
             QsLangSignatureHelpRequest.type,
-            async (position) => (await this.languageService.signatureHelp(position)) ?? null,
+            async (position) =>
+                (await this.languageService.signatureHelp(position, position.textHash)) ?? null,
         );
         this.onRequest(QsLangDefinitionRequest.type, async (position) => {
-            const result = await this.languageService.definition(position);
+            const result = await this.languageService.definition(position, position.textHash);
             if (result?.range) {
                 return { range: result.range };
             }
