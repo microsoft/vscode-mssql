@@ -229,6 +229,11 @@ export interface QsMessageRow {
 export namespace QsSyncEditsRequest {
     export const type = new RequestType<QsSyncEdits, QsSyncEditsResult, void>("qs/syncEdits");
 }
+export namespace QsShowCommandPaletteRequest {
+    // F1 inside the embedded Monaco must open the VS CODE palette (commands
+    // route to the editor through VS Code), not Monaco's own quick-command.
+    export const type = new RequestType<void, void, void>("qs/showCommandPalette");
+}
 export namespace QsSyncAdoptRequest {
     // Webview-authoritative full-text adoption: heals stale-base deadlock
     // (missed init/remote). The editor content is the user-facing truth.

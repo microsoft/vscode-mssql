@@ -187,7 +187,6 @@
 
 .qs-grid-block {
     margin-bottom: 8px;
-    /* Anchors the per-column filter popup. */
     position: relative;
 }
 .qs-grid-fill {
@@ -197,12 +196,20 @@
     min-height: 0;
     margin-bottom: 0;
 }
-.qs-grid-fill > :not(.qs-grid-viewport) {
+.qs-grid-fill > :not(.qs-grid-body) {
     flex: 0 0 auto;
 }
-.qs-grid-fill > .qs-grid-viewport {
+.qs-grid-fill > .qs-grid-body {
     flex: 1 1 auto;
     min-height: 0;
+}
+/* Hosts the FluentResultGrid (heightMode fill — 100% of this box). Stacked
+   grids get an inline pixel height from the sizing-v2 layout; fill mode
+   flexes to the pane. */
+.qs-grid-body {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
 }
 /* Stay mounted (scroll/sort/selection state) while another grid is maximized. */
 .qs-grid-hidden {
@@ -226,93 +233,6 @@
     font-weight: 600;
 }
 
-.qs-chip {
-    height: 18px;
-    padding: 0 8px;
-    border: none;
-    border-radius: 9px;
-    background: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    cursor: pointer;
-    font-size: 11px;
-}
-
-.qs-grid-viewport {
-    overflow: auto;
-    border: 1px solid var(--vscode-editorWidget-border);
-    background: var(--vscode-editor-background);
-}
-/* Focusable for scoped grid copy (Ctrl+C) — no focus ring on click. */
-.qs-grid-viewport:focus {
-    outline: none;
-}
-
-.qs-grid-table {
-    border-collapse: collapse;
-    table-layout: fixed;
-    font-size: var(--qs-grid-font-size, 12px);
-    font-family: var(--qs-grid-font-family, var(--vscode-editor-font-family, monospace));
-    width: max-content;
-    min-width: 100%;
-}
-.qs-grid-table th {
-    position: sticky;
-    top: 0;
-    height: 24px;
-    padding: 0 8px;
-    text-align: left;
-    font-weight: 600;
-    background: var(--vscode-editorWidget-background);
-    border-right: 1px solid var(--vscode-editorWidget-border);
-    border-bottom: 1px solid var(--vscode-editorWidget-border);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 280px;
-    min-width: 60px;
-    z-index: 1;
-}
-.qs-grid-table td {
-    height: var(--qs-grid-row-height, 24px);
-    padding: 0 8px;
-    border-right: 1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 50%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 35%, transparent);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 280px;
-}
-/* mssql.resultsGrid.showGridLines: transparent (not none) keeps layout stable. */
-.qs-gridlines-horizontal .qs-grid-table td {
-    border-right-color: transparent;
-}
-.qs-gridlines-vertical .qs-grid-table td {
-    border-bottom-color: transparent;
-}
-.qs-gridlines-none .qs-grid-table td {
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-}
-/* mssql.resultsGrid.alternatingRowColors — qs-row-alt rides absolute row
-   parity (virtualization spacer row breaks nth-child). */
-.qs-grid-alt-rows tr.qs-row-alt td:not(.qs-cell-selected) {
-    background: var(--vscode-list-hoverBackground);
-}
-.qs-grid-row:hover td {
-    background: var(--vscode-list-hoverBackground);
-}
-.qs-grid-rownum {
-    width: 44px;
-    min-width: 44px;
-    text-align: right;
-    color: var(--vscode-editorLineNumber-foreground);
-    background: var(--vscode-editorWidget-background);
-}
-.qs-cell-null {
-    font-style: italic;
-    background: var(--vscode-mssql-resultsGridNullBackground);
-    color: var(--vscode-mssql-resultsGridNullForeground, var(--vscode-editor-foreground));
-}
 .qs-cell-link {
     color: var(--vscode-textLink-foreground);
     cursor: pointer;
@@ -326,39 +246,7 @@
     white-space: nowrap;
 }
 
-/* --- column sort + filter (classic headerFilter parity) --- */
-
-th.qs-col-header {
-    cursor: pointer;
-}
-.qs-col-header-inner {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    max-width: 100%;
-    vertical-align: middle;
-}
-.qs-col-header-inner .codicon {
-    font-size: 12px;
-}
-.qs-col-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-/* Filter affordance appears on header hover; filtered columns keep it. */
-.qs-col-filter {
-    visibility: hidden;
-    color: var(--vscode-descriptionForeground);
-}
-th.qs-col-header:hover .qs-col-filter,
-.qs-col-filter.qs-col-filter-active {
-    visibility: visible;
-}
-.qs-col-filter.qs-col-filter-active {
-    color: var(--vscode-textLink-foreground);
-}
-
-/* Transient inline note (threshold / streaming gating). */
+/* Transient inline note (copy guard / threshold / streaming gating). */
 .qs-grid-notice {
     padding: 2px 6px;
     font-size: 11px;
@@ -366,75 +254,6 @@ th.qs-col-header:hover .qs-col-filter,
     background: var(--vscode-editorWidget-background);
     border: 1px solid var(--vscode-editorWidget-border);
     border-bottom: none;
-}
-
-.qs-filter-popup {
-    position: absolute;
-    z-index: 30;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 6px;
-    font-size: 12px;
-    background: var(--vscode-editorWidget-background);
-    border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 2px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-.qs-filter-title {
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.qs-filter-sort-row {
-    display: flex;
-    gap: 4px;
-}
-.qs-filter-input {
-    height: 24px;
-    padding: 0 6px;
-    background: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border, transparent);
-    border-radius: 2px;
-    font-size: 12px;
-}
-.qs-filter-input:focus {
-    outline: 1px solid var(--vscode-focusBorder);
-    outline-offset: -1px;
-}
-.qs-filter-values {
-    display: flex;
-    flex-direction: column;
-    max-height: 180px;
-    overflow-y: auto;
-    padding: 2px;
-    border: 1px solid var(--vscode-editorWidget-border);
-}
-.qs-filter-value {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 1px 2px;
-    cursor: pointer;
-    white-space: nowrap;
-}
-.qs-filter-value span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.qs-filter-value:hover {
-    background: var(--vscode-list-hoverBackground);
-}
-.qs-filter-more {
-    font-style: italic;
-    padding: 1px 2px;
-}
-.qs-filter-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 4px;
 }
 
 /* Lazy-mount placeholder — same footprint as the mounted grid viewport. */
@@ -475,7 +294,7 @@ th.qs-col-header:hover .qs-col-filter,
     font-weight: 600;
 }
 
-/* --- B4 parity: db menu, toggles, cell selection --- */
+/* --- B4 parity: db menu, toggles --- */
 
 .qs-db-wrap {
     position: relative;
@@ -512,11 +331,4 @@ th.qs-col-header:hover .qs-col-filter,
     background: var(--vscode-inputOption-activeBackground);
     color: var(--vscode-inputOption-activeForeground);
     border-color: var(--vscode-inputOption-activeBorder);
-}
-
-.qs-cell-selected {
-    outline: 1px solid var(--vscode-focusBorder);
-    outline-offset: -1px;
-    background: var(--vscode-list-activeSelectionBackground);
-    color: var(--vscode-list-activeSelectionForeground);
 }

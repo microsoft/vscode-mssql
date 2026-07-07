@@ -44,6 +44,7 @@ import {
     QsSetViewModeRequest,
     QsState,
     QsStateChangedNotification,
+    QsShowCommandPaletteRequest,
     QsSyncAdoptRequest,
     QsSyncEditsRequest,
     QsSyncInitNotification,
@@ -331,6 +332,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsSyncEditsRequest.type, async (edits) =>
             this.model.applyWebviewEdits(edits),
         );
+        this.onRequest(QsShowCommandPaletteRequest.type, async () => {
+            await vscode.commands.executeCommand("workbench.action.showCommands");
+        });
         this.onRequest(QsSyncAdoptRequest.type, async ({ text, editGroupId }) =>
             this.model.adoptWebviewText(text, editGroupId),
         );

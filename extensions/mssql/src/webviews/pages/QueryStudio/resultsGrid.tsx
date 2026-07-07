@@ -1,0 +1,547 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Query Studio ⇄ FluentResultGrid adapter (issue C/D/E — grid reuse).
+ *
+ * The classic results webview's react grid (webviews/common/FluentResultGrid,
+ * slickgrid-react underneath) already provides windowed server-side row
+ * fetch, rectangular cell selection, keyboard navigation, header sort/filter,
+ * column resize/freeze/hide, and copy commands. This module mounts it over
+ * the QS data plane:
+ *
+ * - dataSource "windowed" → QsGetRows cell windows (null bitmap decoded,
+ *   display text clamped at QS_CELL_DISPLAY_CLAMP — bounded windows, never
+ *   an unbounded fetch).
+ * - copy commands → chunked QsGetRows over the selection (SOURCE row space —
+ *   the grid converts sorted/filtered display rows back before emitting) →
+ *   TSV on the clipboard.
+ * - XML/JSON cell links → qs/openCellDocument with the SOURCE row (cell
+ *   rowId rides the adapter rows through sort/filter).
+ * - sort/filter engage only for COMPLETE result sets at or under
+ *   mssql.resultsGrid.inMemoryDataProcessingThreshold (threshold 0 while
+ *   streaming keeps the fetch windowed).
+ */
+
+import { useCallback, useMemo, useRef } from "react";
+import {
+    FluentResultGrid,
+    FluentResultGridCommand,
+    FluentResultGridCommandPlacement,
+    FluentResultGridProvider,
+    type FluentResultGridCommandConfiguration,
+    type FluentResultGridCommandEvent,
+    type FluentResultGridKeyBindingMap,
+    type FluentResultGridStrings,
+    type FluentResultGridTheme,
+} from "../../common/FluentResultGrid";
+import "../../common/FluentResultGrid/FluentResultGrid.vscode.css";
+import { locConstants } from "../../common/locConstants";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import {
+    ColorThemeKind,
+    WebviewAction,
+    type WebviewKeyBindings,
+} from "../../../sharedInterfaces/webview";
+import type {
+    DbCellValue,
+    GridSettings,
+    IDbColumn,
+    ISlickRange,
+    ResultSetSummary,
+} from "../../../sharedInterfaces/queryResult";
+import {
+    QsCellWindow,
+    QsGetRowsRequest,
+    QsGridStyle,
+    QsOpenCellDocumentRequest,
+    QsResultSetSummary,
+    QsState,
+} from "../../../sharedInterfaces/queryStudio";
+import {
+    QS_CELL_DISPLAY_CLAMP,
+    cellDisplayText,
+    clampDisplay,
+} from "../../../sharedInterfaces/queryStudioGridOps";
+
+export interface Rpc {
+    sendRequest<P, R>(type: { method: string }, params: P): Promise<R>;
+}
+
+/** Chunk size for copy fetches (same bounded window scale as materialize). */
+const COPY_CHUNK = 512;
+/** Copy guard: refuse silently-unbounded clipboard payloads. */
+const COPY_MAX_ROWS = 100_000;
+const DEFAULT_FONT_SIZE = 12;
+const BASE_ROW_PADDING = 12;
+
+export const COPY_TOO_LARGE_NOTICE =
+    "Selection is too large to copy to the clipboard — use a smaller selection.";
+export const PROCESSING_DISABLED_NOTICE =
+    "Sorting and filtering are disabled for result sets larger than the in-memory processing " +
+    "threshold (mssql.resultsGrid.inMemoryDataProcessingThreshold).";
+export const PROCESSING_STREAMING_NOTICE =
+    "Sorting and filtering become available when the result set finishes streaming.";
+
+/** Grid row height (classic getRowHeight parity: fontSize + 12 + 2·padding). */
+export function qsGridRowHeight(gridStyle: QsGridStyle | undefined): number {
+    const padding = Math.max(0, gridStyle?.rowPadding ?? 0);
+    return (gridStyle?.fontSize ?? DEFAULT_FONT_SIZE) + BASE_ROW_PADDING + padding * 2;
+}
+
+/** Decode one window's null bitmap into per-cell null flags. */
+function windowNullFlags(window: QsCellWindow): (row: number, col: number) => boolean {
+    const bytes = window.nullBitmap ? atob(window.nullBitmap) : undefined;
+    const colCount = window.columns.length;
+    return (row, col) => {
+        const value = window.values[row]?.[col];
+        if (value === undefined || value === null) {
+            return true;
+        }
+        if (!bytes) {
+            return false;
+        }
+        const index = row * colCount + col;
+        const byteIndex = index >> 3;
+        return byteIndex < bytes.length && (bytes.charCodeAt(byteIndex) & (1 << (index & 7))) !== 0;
+    };
+}
+
+/**
+ * QsCellWindow → grid rows (DbCellValue with the SOURCE row id). Rendered
+ * windows clamp display text (huge cells would bog the DOM); the copy path
+ * passes clamp=false so the clipboard carries the full received value.
+ */
+function windowToGridRows(
+    window: QsCellWindow,
+    columnCount: number,
+    clamp: boolean = true,
+): DbCellValue[][] {
+    const isNull = windowNullFlags(window);
+    return window.values.map((row, r) => {
+        const cells: DbCellValue[] = [];
+        for (let c = 0; c < columnCount; c++) {
+            const nulled = isNull(r, c);
+            const text = nulled ? "" : cellDisplayText(row[c]);
+            cells.push({
+                displayValue: clamp ? clampDisplay(text, QS_CELL_DISPLAY_CLAMP) : text,
+                isNull: nulled,
+                rowId: window.start + r,
+            });
+        }
+        return cells;
+    });
+}
+
+function fabricateColumnInfo(columnNames: readonly string[]): IDbColumn[] {
+    return columnNames.map((name, i) => ({
+        columnName: name || `(col ${i + 1})`,
+        baseCatalogName: "",
+        baseColumnName: "",
+        baseSchemaName: "",
+        baseServerName: "",
+        baseTableName: "",
+        dataType: "",
+        dataTypeName: "",
+        udtAssemblyQualifiedName: "",
+    }));
+}
+
+/** Numeric set ordinal parsed from a "b0r0s0"-shaped result set id. */
+function resultSetOrdinal(resultSetId: string): number {
+    const ordinal = Number(resultSetId.split("s").pop());
+    return Number.isFinite(ordinal) ? ordinal : 0;
+}
+
+// ---------------------------------------------------------------------------
+// Copy (issue C): selection ranges → chunked QsGetRows → TSV
+// ---------------------------------------------------------------------------
+
+async function fetchDecodedRows(
+    rpc: Rpc,
+    resultSetId: string,
+    fromRow: number,
+    toRow: number,
+    columnCount: number,
+): Promise<DbCellValue[][]> {
+    const rows: DbCellValue[][] = [];
+    for (let start = fromRow; start <= toRow; start += COPY_CHUNK) {
+        const count = Math.min(COPY_CHUNK, toRow - start + 1);
+        const window = await rpc.sendRequest<
+            { resultSetId: string; start: number; count: number },
+            QsCellWindow
+        >(QsGetRowsRequest.type, { resultSetId, start, count });
+        const decoded = windowToGridRows(window, columnCount, /* clamp */ false);
+        rows.push(...decoded);
+        if (decoded.length === 0) {
+            break; // defensive: host returned short
+        }
+    }
+    return rows;
+}
+
+/**
+ * Build the clipboard TSV for the selection. Ranges arrive in SOURCE row
+ * space and DATA column space (the grid strips the row-number column and
+ * un-sorts display rows before emitting copy commands).
+ */
+export async function copySelectionAsTsv(
+    rpc: Rpc,
+    summary: QsResultSetSummary,
+    selection: readonly ISlickRange[],
+    includeHeaders: boolean,
+): Promise<"copied" | "tooLarge" | "empty"> {
+    if (selection.length === 0) {
+        return "empty";
+    }
+    const totalRows = selection.reduce((sum, r) => sum + (r.toRow - r.fromRow + 1), 0);
+    if (totalRows > COPY_MAX_ROWS) {
+        return "tooLarge";
+    }
+    const columnCount = summary.columnNames.length;
+    const blocks: string[] = [];
+    for (const range of selection) {
+        const lines: string[] = [];
+        if (includeHeaders) {
+            lines.push(summary.columnNames.slice(range.fromCell, range.toCell + 1).join("\t"));
+        }
+        const rows = await fetchDecodedRows(
+            rpc,
+            summary.resultSetId,
+            range.fromRow,
+            range.toRow,
+            columnCount,
+        );
+        for (const row of rows) {
+            lines.push(
+                row
+                    .slice(range.fromCell, range.toCell + 1)
+                    .map((cell) => (cell.isNull ? "NULL" : cell.displayValue))
+                    .join("\t"),
+            );
+        }
+        blocks.push(lines.join("\n"));
+    }
+    await navigator.clipboard.writeText(blocks.join("\n"));
+    return "copied";
+}
+
+function copyHeaders(summary: QsResultSetSummary, selection: readonly ISlickRange[]): void {
+    const ranges =
+        selection.length > 0
+            ? selection
+            : [{ fromCell: 0, toCell: summary.columnNames.length - 1, fromRow: 0, toRow: 0 }];
+    const text = ranges
+        .map((range) => summary.columnNames.slice(range.fromCell, range.toCell + 1).join("\t"))
+        .join("\n");
+    void navigator.clipboard.writeText(text);
+}
+
+// ---------------------------------------------------------------------------
+// Provider (strings / keybindings / theme / command surface)
+// ---------------------------------------------------------------------------
+
+function qsGridStrings(): FluentResultGridStrings {
+    const command = (label: string) => ({ label, tooltip: label, ariaLabel: label });
+    return {
+        commands: {
+            [FluentResultGridCommand.SelectAll]: command(locConstants.queryResult.selectAll),
+            [FluentResultGridCommand.CopySelection]: command(locConstants.queryResult.copy),
+            [FluentResultGridCommand.CopyWithHeaders]: command(
+                locConstants.queryResult.copyWithHeaders,
+            ),
+            [FluentResultGridCommand.CopyHeaders]: command(locConstants.queryResult.copyHeaders),
+            [FluentResultGridCommand.ToggleSort]: command(locConstants.queryResult.sort),
+            [FluentResultGridCommand.OpenFilter]: command(locConstants.queryResult.filter),
+            [FluentResultGridCommand.OpenResizeDialog]: command(locConstants.queryResult.resize),
+            [FluentResultGridCommand.FreezeColumn]: command(locConstants.slickGrid.freezeColumns),
+            [FluentResultGridCommand.UnfreezeColumn]: command(
+                locConstants.slickGrid.unfreezeColumns,
+            ),
+            [FluentResultGridCommand.ClearAllFilters]: command(
+                locConstants.slickGrid.clearAllFilters,
+            ),
+            [FluentResultGridCommand.ClearSort]: command(locConstants.queryResult.clearSort),
+            [FluentResultGridCommand.ShowAllColumns]: command(
+                locConstants.slickGrid.showAllColumns,
+            ),
+        },
+        menus: {
+            copyAs: locConstants.queryResult.copyAs,
+            moreActions: locConstants.queryResult.moreQueryActions,
+            filterOptions: locConstants.queryResult.filterOptions,
+        },
+        filter: {
+            nullValue: locConstants.queryResult.null,
+            blankValue: locConstants.queryResult.blankString,
+            search: locConstants.queryResult.search,
+            apply: locConstants.queryResult.apply,
+            clear: locConstants.queryResult.clear,
+            close: locConstants.queryResult.close,
+            noResultsToDisplay: locConstants.queryResult.noResultsToDisplay,
+        },
+        resizeDialog: {
+            title: locConstants.queryResult.resizeColumn,
+            widthLabel: locConstants.queryResult.enterDesiredColumnWidth,
+            validationError: (minWidth) => locConstants.queryResult.resizeValidationError(minWidth),
+            submit: locConstants.queryResult.resize,
+            cancel: locConstants.common.cancel,
+        },
+        accessibility: {
+            selectedCount: locConstants.queryResult.selectedCount,
+            gridAriaLabel: locConstants.queryResult.resultSet,
+            toolbarAriaLabel: locConstants.queryResult.moreQueryActions,
+        },
+    };
+}
+
+function qsGridKeyBindings(keyBindings: WebviewKeyBindings): FluentResultGridKeyBindingMap {
+    const map = (command: string, action: WebviewAction) => [command, keyBindings[action]] as const;
+    return Object.fromEntries([
+        map(FluentResultGridCommand.SelectAll, WebviewAction.ResultGridSelectAll),
+        map(FluentResultGridCommand.CopySelection, WebviewAction.ResultGridCopySelection),
+        map(FluentResultGridCommand.CopyWithHeaders, WebviewAction.ResultGridCopyWithHeaders),
+        map(FluentResultGridCommand.CopyHeaders, WebviewAction.ResultGridCopyAllHeaders),
+        map(FluentResultGridCommand.ToggleSort, WebviewAction.ResultGridToggleSort),
+        map(FluentResultGridCommand.OpenFilter, WebviewAction.ResultGridOpenFilterMenu),
+        map(FluentResultGridCommand.OpenResizeDialog, WebviewAction.ResultGridChangeColumnWidth),
+        map(
+            FluentResultGridCommand.ExpandSelectionLeft,
+            WebviewAction.ResultGridExpandSelectionLeft,
+        ),
+        map(
+            FluentResultGridCommand.ExpandSelectionRight,
+            WebviewAction.ResultGridExpandSelectionRight,
+        ),
+        map(FluentResultGridCommand.ExpandSelectionUp, WebviewAction.ResultGridExpandSelectionUp),
+        map(
+            FluentResultGridCommand.ExpandSelectionDown,
+            WebviewAction.ResultGridExpandSelectionDown,
+        ),
+        map(FluentResultGridCommand.OpenColumnMenu, WebviewAction.ResultGridOpenColumnMenu),
+        map(FluentResultGridCommand.MoveToRowStart, WebviewAction.ResultGridMoveToRowStart),
+        map(FluentResultGridCommand.MoveToRowEnd, WebviewAction.ResultGridMoveToRowEnd),
+        map(FluentResultGridCommand.SelectColumn, WebviewAction.ResultGridSelectColumn),
+        map(FluentResultGridCommand.SelectRow, WebviewAction.ResultGridSelectRow),
+    ]) as FluentResultGridKeyBindingMap;
+}
+
+/** Cell context menu: select all + the copy family (host-command surface). */
+function qsGridCommands(): FluentResultGridCommandConfiguration {
+    const placement = FluentResultGridCommandPlacement;
+    return {
+        contributions: [
+            {
+                id: FluentResultGridCommand.SelectAll,
+                label: "",
+                placements: [placement.CellContextMenu, placement.Keyboard],
+                groupId: "selection",
+                order: 100,
+            },
+            {
+                id: FluentResultGridCommand.CopySelection,
+                label: "",
+                placements: [placement.CellContextMenu, placement.Keyboard],
+                groupId: "clipboard",
+                order: 200,
+            },
+            {
+                id: FluentResultGridCommand.CopyWithHeaders,
+                label: "",
+                placements: [placement.CellContextMenu, placement.Keyboard],
+                groupId: "clipboard",
+                order: 210,
+            },
+            {
+                id: FluentResultGridCommand.CopyHeaders,
+                label: "",
+                placements: [placement.CellContextMenu],
+                groupId: "clipboard",
+                order: 220,
+            },
+        ],
+    };
+}
+
+function toFluentThemeKind(themeKind: ColorThemeKind): FluentResultGridTheme["kind"] {
+    switch (themeKind) {
+        case ColorThemeKind.Dark:
+            return "dark";
+        case ColorThemeKind.HighContrast:
+            return "highContrast";
+        case ColorThemeKind.HighContrastLight:
+            return "highContrastLight";
+        default:
+            return "light";
+    }
+}
+
+const vscodeOverlayRootProps = {
+    "data-vscode-context": JSON.stringify({ preventDefaultContextMenuItems: true }),
+};
+
+/** Shared provider for every QS result grid (strings/keybindings/overlays). */
+export function QsResultsGridProvider(props: { children: React.ReactNode }) {
+    const { keyBindings, themeKind } = useVscodeWebview<QsState, void>();
+    const strings = useMemo(() => qsGridStrings(), []);
+    const providerKeyBindings = useMemo(() => qsGridKeyBindings(keyBindings), [keyBindings]);
+    const defaultCommands = useMemo(() => qsGridCommands(), []);
+    const theme = useMemo<FluentResultGridTheme>(
+        () => ({ kind: toFluentThemeKind(themeKind) }),
+        [themeKind],
+    );
+    return (
+        <FluentResultGridProvider
+            strings={strings}
+            keyBindings={providerKeyBindings}
+            theme={theme}
+            overlayRootProps={vscodeOverlayRootProps}
+            defaultCommands={defaultCommands}>
+            {props.children}
+        </FluentResultGridProvider>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// The grid surface
+// ---------------------------------------------------------------------------
+
+export function QsResultGridSurface(props: {
+    rpc: Rpc;
+    summary: QsResultSetSummary;
+    /** Effective row count (state summary vs. QsRowsAppended accumulation). */
+    rowCount: number;
+    gridStyle: QsGridStyle | undefined;
+    /** Transient user-facing notice (copy guard / threshold gating). */
+    notify: (text: string) => void;
+}) {
+    const { rpc, summary, rowCount, gridStyle, notify } = props;
+    const columnCount = summary.columnNames.length;
+
+    // Column identity must stay STABLE across the coarse state pushes while
+    // rows stream (each push rebuilds columnNames) — otherwise the grid
+    // re-derives its column set on every push. Cache on the joined names.
+    const columnsKey = summary.columnNames.join(" ");
+    const columnInfoRef = useRef<{ key: string; value: IDbColumn[] } | undefined>(undefined);
+    if (columnInfoRef.current?.key !== columnsKey) {
+        columnInfoRef.current = {
+            key: columnsKey,
+            value: fabricateColumnInfo(summary.columnNames),
+        };
+    }
+    const columnInfo = columnInfoRef.current.value;
+
+    const classicSummary = useMemo<ResultSetSummary>(
+        () => ({
+            id: resultSetOrdinal(summary.resultSetId),
+            batchId: summary.batchOrdinal,
+            rowCount,
+            columnInfo,
+        }),
+        [summary.resultSetId, summary.batchOrdinal, rowCount, columnInfo],
+    );
+
+    const dataSource = useMemo(
+        () => ({
+            kind: "windowed" as const,
+            rowCount,
+            getRows: async (offset: number, count: number) => {
+                const window = await rpc.sendRequest<
+                    { resultSetId: string; start: number; count: number },
+                    QsCellWindow
+                >(QsGetRowsRequest.type, {
+                    resultSetId: summary.resultSetId,
+                    start: offset,
+                    count,
+                });
+                return windowToGridRows(window, columnCount);
+            },
+        }),
+        [rpc, summary.resultSetId, columnCount, rowCount],
+    );
+
+    const gridSettings = useMemo<GridSettings>(
+        () => ({
+            alternatingRowColors: gridStyle?.alternatingRowColors ?? false,
+            showGridLines: gridStyle?.showGridLines ?? "both",
+            rowPadding: gridStyle?.rowPadding ?? 0,
+        }),
+        [gridStyle],
+    );
+
+    // Sort/filter engage only over COMPLETE sets ≤ the in-memory threshold —
+    // threshold 0 while streaming routes every attempt to the notice below.
+    const inMemoryThreshold = summary.complete
+        ? (gridStyle?.inMemoryDataProcessingThreshold ?? 5000)
+        : 0;
+    const handleThresholdExceeded = useCallback(() => {
+        notify(summary.complete ? PROCESSING_DISABLED_NOTICE : PROCESSING_STREAMING_NOTICE);
+    }, [notify, summary.complete]);
+
+    const handleCommand = useCallback(
+        async (event: FluentResultGridCommandEvent) => {
+            const selection = event.selection ?? [];
+            switch (event.commandId) {
+                case FluentResultGridCommand.CopySelection:
+                case FluentResultGridCommand.CopyWithHeaders: {
+                    const outcome = await copySelectionAsTsv(
+                        rpc,
+                        summary,
+                        selection,
+                        event.commandId === FluentResultGridCommand.CopyWithHeaders,
+                    );
+                    if (outcome === "tooLarge") {
+                        notify(COPY_TOO_LARGE_NOTICE);
+                    }
+                    break;
+                }
+                case FluentResultGridCommand.CopyHeaders:
+                    copyHeaders(summary, selection);
+                    break;
+                case FluentResultGridCommand.OpenCell:
+                    // XML/JSON cells (content-sniffed by the grid) open in a
+                    // side document via the host — the cell's rowId carries
+                    // the SOURCE row through sort/filter reorders.
+                    if (event.cell) {
+                        void rpc.sendRequest(QsOpenCellDocumentRequest.type, {
+                            resultSetId: summary.resultSetId,
+                            row: event.cell.value.rowId ?? event.cell.rowIndex,
+                            column: event.cell.columnIndex,
+                            format: event.cell.languageId === "xml" ? "xml" : "json",
+                        });
+                    }
+                    break;
+                default:
+                    break;
+            }
+        },
+        [rpc, summary, notify],
+    );
+
+    const style = useMemo(
+        () => ({
+            fontFamily: gridStyle?.fontFamily || "var(--vscode-editor-font-family)",
+            fontSize: `${gridStyle?.fontSize ?? DEFAULT_FONT_SIZE}px`,
+        }),
+        [gridStyle],
+    );
+
+    return (
+        <FluentResultGrid
+            gridId={summary.resultSetId}
+            resultSetSummary={classicSummary}
+            dataSource={dataSource}
+            heightMode={{ kind: "fill" }}
+            showRowNumberColumn
+            inMemoryDataProcessingThreshold={inMemoryThreshold}
+            gridSettings={gridSettings}
+            rowHeight={qsGridRowHeight(gridStyle)}
+            style={style}
+            toolbar={{ visible: false }}
+            onCommand={handleCommand}
+            onInMemoryDataProcessingThresholdExceeded={handleThresholdExceeded}
+        />
+    );
+}

@@ -98,7 +98,10 @@ function createDefaultCellValue(cell: DbCellValue | undefined, absoluteRowIndex:
         ariaLabel: displayValue,
         isNull: cell?.isNull ?? false,
         invariantCultureDisplayValue: displayValue,
-        rowId: absoluteRowIndex,
+        // Preserve a source-supplied row id (SOURCE row space) so consumers
+        // can resolve the original row after sort/filter reorders display
+        // rows; fall back to the absolute display index.
+        rowId: cell?.rowId ?? absoluteRowIndex,
     } satisfies FluentResultGridCellValue;
 }
 

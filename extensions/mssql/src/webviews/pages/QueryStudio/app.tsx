@@ -38,6 +38,7 @@ import {
     QsState,
     QsStateChangedNotification,
     QsSyncEdits,
+    QsShowCommandPaletteRequest,
     QsSyncAdoptRequest,
     QsSyncEditsRequest,
     QsSyncInit,
@@ -66,8 +67,10 @@ import {
     QsLangRange,
     QsLangSignatureHelpRequest,
 } from "../../../sharedInterfaces/queryStudioLanguage";
+import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResultsLayout";
 import { textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
 import { MessagesView, ResultGridBlock } from "./results";
+import { QsResultsGridProvider, qsGridRowHeight } from "./resultsGrid";
 import { monacoApi } from "./monacoSetup";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
@@ -82,12 +85,25 @@ const TERMINAL_KINDS = new Set([
     "connectionLost",
 ]);
 
+/**
+ * Results layout metrics (sizing v2): rowHeight rides the grid style; the
+ * header/chrome values approximate the slickgrid header strip plus borders
+ * and the horizontal-scrollbar allowance so "every row visible" never grows
+ * a per-grid scrollbar; captionPx is the caption strip + block margin.
+ */
+const GRID_HEADER_PX = 34;
+const GRID_CHROME_PX = 20;
+const GRID_CAPTION_PX = 30;
+
 export function QueryStudioApp() {
     const { extensionRpc: rpc, themeKind } = useVscodeWebview<QsState, void>();
     const [state, setState] = useState<QsState | undefined>(undefined);
     const [cursor, setCursor] = useState({ line: 1, column: 1 });
     const [messages, setMessages] = useState<QsMessageRow[]>([]);
-    const [rowVersions, setRowVersions] = useState<Record<string, number>>({});
+    // Live per-set row counts accumulated from QsRowsAppended (counts only —
+    // rows never ride notifications). The coarse state's summary rowCount is
+    // debounced (≤10/s); the max of the two keeps grids growing smoothly.
+    const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
     const [activeTab, setActiveTab] = useState<"results" | "messages">("results");
     const [resultsCollapsed, setResultsCollapsed] = useState(false);
     const [resultsHeightPct, setResultsHeightPct] = useState(45);
@@ -252,9 +268,9 @@ export function QueryStudioApp() {
             rpc.onNotification(
                 QsRowsAppendedNotification.type,
                 (p: { resultSetId: string; newRowCount: number }) => {
-                    setRowVersions((v) => ({
-                        ...v,
-                        [p.resultSetId]: (v[p.resultSetId] ?? 0) + 1,
+                    setLiveRowCounts((counts) => ({
+                        ...counts,
+                        [p.resultSetId]: (counts[p.resultSetId] ?? 0) + p.newRowCount,
                     }));
                 },
             ),
@@ -302,7 +318,7 @@ export function QueryStudioApp() {
         ) {
             startedRunRef.current = runId;
             setActionHint(undefined);
-            setRowVersions({});
+            setLiveRowCounts({});
             setActiveTab("results");
             setResultsCollapsed(false);
             setMaximizedGridId(undefined);
@@ -401,6 +417,11 @@ export function QueryStudioApp() {
             editor.addCommand(monacoKeyMod().CtrlCmd | monacoKeyCode().KeyY, () => {
                 flushEdits();
                 void rpc.sendRequest(QsSyncUndoRequest.type, { redo: true });
+            });
+            // F1: VS Code's palette, not Monaco's quick-command (commands
+            // route to this editor through VS Code).
+            editor.addCommand(monacoKeyCode().F1, () => {
+                void rpc.sendRequest(QsShowCommandPaletteRequest.type, undefined);
             });
             editor.addCommand(monacoKeyMod().CtrlCmd | monacoKeyCode().KeyS, () => {
                 flushEdits();
@@ -814,10 +835,11 @@ export function QueryStudioApp() {
     const showResults = (results?.present ?? false) && !resultsCollapsed;
     const errorCount = results?.errorCount ?? 0;
 
-    // Results-pane sizing (issue A): a lone result set (or a maximized one)
-    // FILLS the pane — the grid's virtualized scrollbar is THE scrollbar.
-    // Stacked grids size off the measured pane height (~40% each) and the
-    // pane scrolls through the stack.
+    // Results-pane sizing v2 (issue A): one grid (or a maximized one) FILLS
+    // the pane — the grid's virtualized scrollbar is THE scrollbar. Multiple
+    // grids split the measured pane: exact content heights when everything
+    // fits, otherwise fair shares with a 12-row minimum and pane scrolling
+    // only once even the minimums overflow (queryStudioResultsLayout).
     const resultSetSummaries = results?.resultSets ?? [];
     const maximizedGrid = resultSetSummaries.some((s) => s.resultSetId === maximizedGridId)
         ? maximizedGridId
@@ -827,6 +849,19 @@ export function QueryStudioApp() {
         activeTab === "results" &&
         resultSetSummaries.length > 0 &&
         (singleGrid || maximizedGrid !== undefined);
+    const effectiveRowCount = (summary: (typeof resultSetSummaries)[number]) =>
+        Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0);
+    const resultsLayout = computeResultsLayout(
+        resultSetSummaries.map(effectiveRowCount),
+        // clientHeight includes the body's 4px vertical paddings.
+        resultsPaneHeight !== undefined ? resultsPaneHeight - 8 : undefined,
+        {
+            rowHeight: qsGridRowHeight(state?.gridStyle),
+            headerHeight: GRID_HEADER_PX,
+            chromePx: GRID_CHROME_PX,
+            captionPx: GRID_CAPTION_PX,
+        },
+    );
     useEffect(() => {
         const el = resultsBodyRef.current;
         if (!el) {
@@ -1008,34 +1043,43 @@ export function QueryStudioApp() {
                                 results.resultSets.length > 0 ? (
                                     // Lazy mounting: captions always render; grid
                                     // bodies mount near the viewport (never unmount).
-                                    results.resultSets.map((summary) => {
-                                        const isMaximized = maximizedGrid === summary.resultSetId;
-                                        return (
-                                            <ResultGridBlock
-                                                key={summary.resultSetId}
-                                                rpc={rpc}
-                                                summary={summary}
-                                                version={rowVersions[summary.resultSetId] ?? 0}
-                                                gridStyle={state?.gridStyle}
-                                                sizing={
-                                                    singleGrid || isMaximized ? "fill" : "stacked"
-                                                }
-                                                paneHeight={resultsPaneHeight}
-                                                hidden={maximizedGrid !== undefined && !isMaximized}
-                                                maximized={isMaximized}
-                                                onToggleMaximize={
-                                                    singleGrid
-                                                        ? undefined
-                                                        : () =>
-                                                              setMaximizedGridId(
-                                                                  isMaximized
-                                                                      ? undefined
-                                                                      : summary.resultSetId,
-                                                              )
-                                                }
-                                            />
-                                        );
-                                    })
+                                    <QsResultsGridProvider>
+                                        {results.resultSets.map((summary, index) => {
+                                            const isMaximized =
+                                                maximizedGrid === summary.resultSetId;
+                                            return (
+                                                <ResultGridBlock
+                                                    key={summary.resultSetId}
+                                                    rpc={rpc}
+                                                    summary={summary}
+                                                    rowCount={effectiveRowCount(summary)}
+                                                    gridStyle={state?.gridStyle}
+                                                    sizing={
+                                                        singleGrid || isMaximized
+                                                            ? { kind: "fill" }
+                                                            : (resultsLayout.sizing[index] ?? {
+                                                                  kind: "fill",
+                                                              })
+                                                    }
+                                                    runActive={executing}
+                                                    hidden={
+                                                        maximizedGrid !== undefined && !isMaximized
+                                                    }
+                                                    maximized={isMaximized}
+                                                    onToggleMaximize={
+                                                        singleGrid
+                                                            ? undefined
+                                                            : () =>
+                                                                  setMaximizedGridId(
+                                                                      isMaximized
+                                                                          ? undefined
+                                                                          : summary.resultSetId,
+                                                                  )
+                                                    }
+                                                />
+                                            );
+                                        })}
+                                    </QsResultsGridProvider>
                                 ) : (
                                     <div className="qs-muted qs-message">
                                         No result sets returned.
@@ -1082,6 +1126,11 @@ export function QueryStudioApp() {
                             {connection.spid !== undefined ? ` (${connection.spid})` : ""}
                         </span>
                         <span className="qs-status-seg">{connection.database}</span>
+                        {connection.spid !== undefined ? (
+                            <span className="qs-status-seg" title="Server process id">
+                                SPID {connection.spid}
+                            </span>
+                        ) : null}
                     </>
                 ) : null}
                 <span className="qs-status-seg">

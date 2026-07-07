@@ -120,17 +120,11 @@ export class ExecutionOrchestrator {
 
     async run(text: string, options: RunOptions): Promise<RunResult> {
         // Classic/SSMS message parity: the host synthesizes the run's
-        // bookend messages — the wire only carries real server messages,
-        // so a clean SELECT used to leave the Messages tab empty.
+        // messages — the wire only carries real server messages, so a clean
+        // SELECT used to leave the Messages tab empty. "Started executing
+        // query at Line N" is emitted per GO batch inside runCore; the
+        // closing "Total execution time" bookend is emitted here, always.
         const startedEpochMs = options.startedEpochMs ?? Date.now();
-        this.events.onMessages([
-            {
-                batchIndex: -1,
-                kind: "info",
-                text: `Started executing query at Line ${options.selectionStartLine}`,
-                epochMs: startedEpochMs,
-            },
-        ]);
         try {
             const wrapper = MODE_WRAPPERS[options.mode ?? "normal"];
             if (!wrapper) {
@@ -206,12 +200,29 @@ export class ExecutionOrchestrator {
         let rowsAffectedTotal: number | undefined;
         let status: RunStatus = "succeeded";
         let firstResultSeen = false;
+        const selectionBase = Math.max(1, options.selectionStartLine);
 
         for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
             const batch = batches[batchIndex];
             if (this.cancelRequested) {
                 status = "canceled";
                 break;
+            }
+            if (batch.repeatOrdinal === 0) {
+                // SSMS parity: one "Started executing query at Line N" per GO
+                // batch, N in DOCUMENT coordinates — selection offset plus the
+                // batch TEXT's raw start (leading blank lines included, the
+                // same anchor the server's error Line 1 points at).
+                this.events.onMessages([
+                    {
+                        batchIndex,
+                        kind: "info",
+                        text: `Started executing query at Line ${
+                            selectionBase + batchTextStartLine(batch)
+                        }`,
+                        epochMs: Date.now(),
+                    },
+                ]);
             }
             const summary = await this.runBatch(
                 batch,
@@ -303,7 +314,9 @@ export class ExecutionOrchestrator {
         const rowStore = this.rowStore;
         const orchestrator = this;
         const seenSets = new Set<string>();
+        const endedSets = new Set<string>();
         const planSets = new Set<string>();
+        const rowCounts = new Map<string, number>();
         const synthesizeRowsAffected = (count: number) => {
             events.onMessages([
                 {
@@ -352,6 +365,10 @@ export class ExecutionOrchestrator {
                 });
                 if (accepted) {
                     onRows(page.rowCount);
+                    rowCounts.set(
+                        page.resultSetId,
+                        (rowCounts.get(page.resultSetId) ?? 0) + page.rowCount,
+                    );
                     events.onRowsAppended(storeId, page.rowCount, false);
                 }
             },
@@ -360,6 +377,7 @@ export class ExecutionOrchestrator {
             },
             onResultSetEnded(info) {
                 const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${info.resultSetId}`;
+                endedSets.add(info.resultSetId);
                 rowStore.endResultSet(storeId, info.truncatedReason);
                 events.onResultSetEnded(storeId, info.rowCount, info.truncatedReason);
                 // Classic parity: "(N rows affected)" as each result set's
@@ -388,6 +406,9 @@ export class ExecutionOrchestrator {
             // marked (partial grids never masquerade as complete).
             if (summary.status === "canceled" || summary.status === "connectionLost") {
                 for (const wireId of seenSets) {
+                    if (endedSets.has(wireId)) {
+                        continue; // ended before the cut — its state is truthful
+                    }
                     const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${wireId}`;
                     rowStore.endResultSet(
                         storeId,
@@ -403,6 +424,27 @@ export class ExecutionOrchestrator {
                 // DML batches produce no result set — surface the summary's
                 // rowsAffected as the classic "(N rows affected)" line.
                 synthesizeRowsAffected(summary.rowsAffected);
+            } else {
+                // Adapters that never emit onResultSetEnded (it's optional —
+                // the STS2 binding doesn't) left sets open at completion,
+                // which silently dropped their "(N rows affected)" lines.
+                // Close them with the orchestrator's own streamed counts.
+                for (const wireId of seenSets) {
+                    if (endedSets.has(wireId)) {
+                        continue;
+                    }
+                    const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${wireId}`;
+                    const rowCount = rowCounts.get(wireId) ?? 0;
+                    const truncatedReason = rowStore.summary(storeId)?.truncatedReason;
+                    rowStore.endResultSet(storeId);
+                    events.onResultSetEnded(storeId, rowCount, truncatedReason);
+                    // Same skip rules as the sink path: never print a plan
+                    // set's count or a row-capped (clipped) count as
+                    // "rows affected".
+                    if (!truncatedReason && !planSets.has(storeId)) {
+                        synthesizeRowsAffected(rowCount);
+                    }
+                }
             }
             return summary;
         });
@@ -414,20 +456,41 @@ export class ExecutionOrchestrator {
         batchIndex: number,
         options: RunOptions,
     ): QsMessageRow {
+        const selectionBase = Math.max(1, options.selectionStartLine);
+        // Server error lines are relative to the batch TEXT as submitted
+        // (leading blank lines included) — anchor at the raw text start.
+        // Without a server line, fall back to the first statement line.
         const navigableLine =
             message.kind === "error"
-                ? mapServerLineToDocument(options.selectionStartLine, batch.startLine, message.line)
+                ? mapServerLineToDocument(
+                      selectionBase,
+                      message.line && message.line > 0
+                          ? batchTextStartLine(batch)
+                          : batch.startLine,
+                      message.line,
+                  )
                 : undefined;
+        // SSMS parity: server errors render as the classic two-line block —
+        // "Msg N, Level L, State S, Line D" (document-mapped line) above the
+        // message text. The v2 wire doesn't carry state yet, so default it to
+        // 1 (SQL Server's default state) until the notification grows one.
+        const text =
+            message.kind === "error" && message.number !== undefined && navigableLine !== undefined
+                ? `Msg ${message.number}, Level ${message.severity ?? 0}, State ${
+                      message.state ?? 1
+                  }, Line ${navigableLine}\n${message.text}`
+                : message.text;
         return {
             batchIndex,
             ...(batch.repeatTotal > 1 ? { repeatOrdinal: batch.repeatOrdinal } : {}),
             kind: message.kind,
-            text: message.text,
+            text,
             ...(message.number !== undefined || message.severity !== undefined
                 ? {
                       server: {
                           ...(message.number !== undefined ? { number: message.number } : {}),
                           ...(message.severity !== undefined ? { severity: message.severity } : {}),
+                          ...(message.state !== undefined ? { state: message.state } : {}),
                           ...(message.line !== undefined ? { line: message.line } : {}),
                       },
                   }
@@ -447,6 +510,22 @@ export class ExecutionOrchestrator {
 /** SSMS/classic wording: "(1 row affected)" / "(N rows affected)". */
 function rowsAffectedText(count: number): string {
     return `(${count} row${count === 1 ? "" : "s"} affected)`;
+}
+
+/**
+ * 0-based line where a batch's TEXT begins within the executed text. The
+ * splitter's startLine points at the first non-blank line, but the text sent
+ * to the server keeps its leading blank lines — so the server's "Line 1"
+ * (and SSMS's "Started executing query at Line N") anchor is startLine minus
+ * those leading blanks.
+ */
+function batchTextStartLine(batch: SqlBatch): number {
+    const lines = batch.text.split("\n");
+    let blanks = 0;
+    while (blanks < lines.length && lines[blanks].trim().length === 0) {
+        blanks++;
+    }
+    return Math.max(0, batch.startLine - blanks);
 }
 
 /** SSMS/classic "Total execution time" format: HH:MM:SS.mmm. */
