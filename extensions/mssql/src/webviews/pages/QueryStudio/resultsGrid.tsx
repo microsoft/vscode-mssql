@@ -25,7 +25,7 @@
  *   streaming keeps the fetch windowed).
  */
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, type PointerEvent } from "react";
 import {
     FluentResultGrid,
     FluentResultGridCommand,
@@ -58,6 +58,8 @@ import {
     QsGetRowsRequest,
     QsGridStyle,
     QsOpenCellDocumentRequest,
+    QsSaveResultRequest,
+    QsSetViewModeRequest,
     QsResultSetSummary,
     QsState,
 } from "../../../sharedInterfaces/queryStudio";
@@ -254,6 +256,14 @@ function qsGridStrings(): FluentResultGridStrings {
                 locConstants.queryResult.copyWithHeaders,
             ),
             [FluentResultGridCommand.CopyHeaders]: command(locConstants.queryResult.copyHeaders),
+            [FluentResultGridCommand.SaveAsCsv]: command(locConstants.queryResult.saveAsCSV),
+            [FluentResultGridCommand.SaveAsJson]: command(locConstants.queryResult.saveAsJSON),
+            [FluentResultGridCommand.SaveAsInsert]: command(
+                locConstants.queryResult.saveAsInsert(""),
+            ),
+            [FluentResultGridCommand.SwitchToTextView]: command(
+                locConstants.queryResult.toggleToTextView(""),
+            ),
             [FluentResultGridCommand.ToggleSort]: command(locConstants.queryResult.sort),
             [FluentResultGridCommand.OpenFilter]: command(locConstants.queryResult.filter),
             [FluentResultGridCommand.OpenResizeDialog]: command(locConstants.queryResult.resize),
@@ -305,6 +315,10 @@ function qsGridKeyBindings(keyBindings: WebviewKeyBindings): FluentResultGridKey
         map(FluentResultGridCommand.CopySelection, WebviewAction.ResultGridCopySelection),
         map(FluentResultGridCommand.CopyWithHeaders, WebviewAction.ResultGridCopyWithHeaders),
         map(FluentResultGridCommand.CopyHeaders, WebviewAction.ResultGridCopyAllHeaders),
+        map(FluentResultGridCommand.SaveAsCsv, WebviewAction.QueryResultSaveAsCsv),
+        map(FluentResultGridCommand.SaveAsJson, WebviewAction.QueryResultSaveAsJson),
+        map(FluentResultGridCommand.SaveAsInsert, WebviewAction.QueryResultSaveAsInsert),
+        map(FluentResultGridCommand.SwitchToTextView, WebviewAction.QueryResultSwitchToTextView),
         map(FluentResultGridCommand.ToggleSort, WebviewAction.ResultGridToggleSort),
         map(FluentResultGridCommand.OpenFilter, WebviewAction.ResultGridOpenFilterMenu),
         map(FluentResultGridCommand.OpenResizeDialog, WebviewAction.ResultGridChangeColumnWidth),
@@ -361,6 +375,35 @@ function qsGridCommands(): FluentResultGridCommandConfiguration {
                 placements: [placement.CellContextMenu],
                 groupId: "clipboard",
                 order: 220,
+            },
+            {
+                id: FluentResultGridCommand.SwitchToTextView,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "view",
+                order: 100,
+                isVisible: (context) => context.viewMode !== "text",
+            },
+            {
+                id: FluentResultGridCommand.SaveAsCsv,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "export",
+                order: 300,
+            },
+            {
+                id: FluentResultGridCommand.SaveAsJson,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "export",
+                order: 310,
+            },
+            {
+                id: FluentResultGridCommand.SaveAsInsert,
+                label: "",
+                placements: [placement.Toolbar, placement.Keyboard],
+                groupId: "export",
+                order: 330,
             },
         ],
     };
@@ -419,6 +462,7 @@ export function QsResultGridSurface(props: {
     notify: (text: string) => void;
 }) {
     const { rpc, summary, rowCount, gridStyle, notify } = props;
+    const shellRef = useRef<HTMLDivElement | null>(null);
     const columnCount = summary.columnNames.length;
 
     // Column identity must stay STABLE across the coarse state pushes while
@@ -501,6 +545,23 @@ export function QsResultGridSurface(props: {
                 case FluentResultGridCommand.CopyHeaders:
                     copyHeaders(summary, selection);
                     break;
+                case FluentResultGridCommand.SaveAsCsv:
+                case FluentResultGridCommand.SaveAsJson:
+                case FluentResultGridCommand.SaveAsInsert:
+                    void rpc.sendRequest(QsSaveResultRequest.type, {
+                        resultSetId: summary.resultSetId,
+                        format:
+                            event.commandId === FluentResultGridCommand.SaveAsJson
+                                ? "json"
+                                : event.commandId === FluentResultGridCommand.SaveAsInsert
+                                  ? "insert"
+                                  : "csv",
+                        ...(selection.length > 0 ? { selection: [...selection] } : {}),
+                    });
+                    break;
+                case FluentResultGridCommand.SwitchToTextView:
+                    void rpc.sendRequest(QsSetViewModeRequest.type, { viewMode: "text" });
+                    break;
                 case FluentResultGridCommand.OpenCell:
                     // XML/JSON cells (content-sniffed by the grid) open in a
                     // side document via the host — the cell's rowId carries
@@ -529,20 +590,44 @@ export function QsResultGridSurface(props: {
         [gridStyle],
     );
 
+    const stopSelectionDragClass = useCallback(() => {
+        shellRef.current?.classList.remove("qs-grid-selecting");
+    }, []);
+    const handlePointerDownCapture = useCallback(
+        (event: PointerEvent<HTMLDivElement>) => {
+            if (!(event.target instanceof Element) || !event.target.closest(".slick-cell")) {
+                return;
+            }
+            shellRef.current?.classList.add("qs-grid-selecting");
+            window.addEventListener("pointerup", stopSelectionDragClass, { once: true });
+            window.addEventListener("pointercancel", stopSelectionDragClass, { once: true });
+            window.addEventListener("blur", stopSelectionDragClass, { once: true });
+        },
+        [stopSelectionDragClass],
+    );
+
     return (
-        <FluentResultGrid
-            gridId={summary.resultSetId}
-            resultSetSummary={classicSummary}
-            dataSource={dataSource}
-            heightMode={{ kind: "fill" }}
-            showRowNumberColumn
-            inMemoryDataProcessingThreshold={inMemoryThreshold}
-            gridSettings={gridSettings}
-            rowHeight={qsGridRowHeight(gridStyle)}
-            style={style}
-            toolbar={{ visible: false }}
-            onCommand={handleCommand}
-            onInMemoryDataProcessingThresholdExceeded={handleThresholdExceeded}
-        />
+        <div
+            ref={shellRef}
+            className="qs-grid-surface"
+            onPointerDownCapture={handlePointerDownCapture}>
+            <FluentResultGrid
+                gridId={summary.resultSetId}
+                resultSetSummary={classicSummary}
+                dataSource={dataSource}
+                heightMode={{ kind: "fill" }}
+                showRowNumberColumn
+                enableColumnReorder={false}
+                inMemoryDataProcessingThreshold={inMemoryThreshold}
+                gridSettings={gridSettings}
+                rowHeight={qsGridRowHeight(gridStyle)}
+                style={style}
+                toolbar={{ visible: true }}
+                viewMode="grid"
+                canToggleViewMode
+                onCommand={handleCommand}
+                onInMemoryDataProcessingThresholdExceeded={handleThresholdExceeded}
+            />
+        </div>
     );
 }

@@ -194,6 +194,15 @@ export interface QsGetRowsParams {
     count: number;
 }
 
+export type QsSaveResultFormat = "csv" | "json" | "insert";
+
+export interface QsResultSelectionRange {
+    fromRow: number;
+    toRow: number;
+    fromCell: number;
+    toCell: number;
+}
+
 /** Compact window (Appendix A): values + null bitmap, never tagged unions. */
 export interface QsCellWindow {
     resultSetId: string;
@@ -287,6 +296,17 @@ export namespace QsListDatabasesRequest {
 }
 export namespace QsGetRowsRequest {
     export const type = new RequestType<QsGetRowsParams, QsCellWindow, void>("qs/getRows");
+}
+export namespace QsSaveResultRequest {
+    export const type = new RequestType<
+        {
+            resultSetId: string;
+            format: QsSaveResultFormat;
+            selection?: QsResultSelectionRange[];
+        },
+        { saved: boolean; canceled?: boolean; error?: string },
+        void
+    >("qs/saveResult");
 }
 /**
  * Open one cell's content in a side-by-side text document (classic

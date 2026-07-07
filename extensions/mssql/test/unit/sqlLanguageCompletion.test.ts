@@ -27,6 +27,14 @@ async function complete(
     source: string,
     provider: ISqlLanguageMetadataProvider = standardProvider,
 ): Promise<CompletionResult> {
+    return completeWithTrigger(source, { trigger: "invoke" }, provider);
+}
+
+async function completeWithTrigger(
+    source: string,
+    trigger: { trigger: "invoke" } | { trigger: "character"; triggerCharacter: string },
+    provider: ISqlLanguageMetadataProvider = standardProvider,
+): Promise<CompletionResult> {
     const fixture = parseFourslash(source);
     if (fixture.caret === undefined) {
         throw new Error("fixture needs /*caret*/");
@@ -37,7 +45,7 @@ async function complete(
         text: fixture.text,
         version: 1,
         position: snapshot.positionAt(fixture.caret),
-        trigger: "invoke",
+        ...trigger,
     });
     expect(result).to.not.equal(undefined);
     return result!;
@@ -470,6 +478,27 @@ suite("sqlLanguage native completion: statement start", () => {
         expect(firstSnippetIndex).to.be.greaterThan(lastKeywordIndex);
     });
 
+    test("go prefix ranks the GO batch separator first", async () => {
+        const result = await complete("go/*caret*/");
+        const allLabels = labels(result);
+
+        expect(allLabels.slice(0, 2)).to.deep.equal(["GO", "GOTO"]);
+        expect(allLabels).to.include.members(["GEOGRAPHY", "GEOMETRY", "GROUP BY"]);
+    });
+
+    test("go prefix after a complete query still ranks GO first", async () => {
+        const result = await complete(
+            "SELECT *\nFROM sys.all_columns\nWHERE name IS NOT NULL\n\ngo/*caret*/",
+        );
+        const allLabels = labels(result);
+        const groupingFunctionIndex = allLabels.indexOf("GROUPING(…)");
+
+        expect(allLabels[0]).to.equal("GO");
+        if (groupingFunctionIndex >= 0) {
+            expect(allLabels.indexOf("GO")).to.be.lessThan(groupingFunctionIndex);
+        }
+    });
+
     test("keyword casing honors the engine option", async () => {
         const engine = new NativeSqlLanguageEngine(standardProvider, () => ({
             snippetsEnabled: false,
@@ -486,18 +515,27 @@ suite("sqlLanguage native completion: statement start", () => {
     });
 
     test("space after GO does not auto-popup statement keywords", async () => {
-        const fixture = parseFourslash("GO /*caret*/");
-        const engine = new NativeSqlLanguageEngine(standardProvider);
-        const snapshot = new TextSnapshot(fixture.text, 1);
-        const result = await engine.completion({
-            text: fixture.text,
-            version: 1,
-            position: snapshot.positionAt(fixture.caret!),
+        const result = await completeWithTrigger("GO /*caret*/", {
             trigger: "character",
             triggerCharacter: " ",
         });
 
         expect(result).to.deep.equal({ items: [], isIncomplete: false });
+    });
+
+    test("automatic whitespace completion stays silent after a complete source", async () => {
+        const result = await completeWithTrigger("SELECT * FROM sys.all_objects /*caret*/", {
+            trigger: "character",
+            triggerCharacter: " ",
+        });
+
+        expect(result).to.deep.equal({ items: [], isIncomplete: false });
+    });
+
+    test("explicit completion after whitespace still offers statement keywords", async () => {
+        const result = await complete("GO \n/*caret*/");
+
+        expect(labels(result)).to.include("SELECT");
     });
 });
 
@@ -505,6 +543,12 @@ suite("sqlLanguage native completion: static system catalog", () => {
     test("sys. lists catalog objects", async () => {
         const result = await complete("SELECT * FROM sys./*caret*/");
         expect(labels(result)).to.include.members(["databases", "objects", "tables", "schemas"]);
+        expect(result.items.some((i) => i.kind === "schema")).to.equal(false);
+    });
+
+    test("sys.all prefix lists all system objects by fuzzy prefix", async () => {
+        const result = await complete("SELECT * FROM sys.all/*caret*/");
+        expect(labels(result)).to.include.members(["all_columns", "all_objects", "all_views"]);
         expect(result.items.some((i) => i.kind === "schema")).to.equal(false);
     });
 

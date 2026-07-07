@@ -41,6 +41,7 @@ import {
     QsReconnectRequest,
     QsRestoreEditorFocusNotification,
     QsRunStartedNotification,
+    QsSaveResultRequest,
     QsSetActualPlanRequest,
     QsSetDatabaseRequest,
     QsSetViewModeRequest,
@@ -82,6 +83,7 @@ import { cellDocumentText, prettyPrintCellText } from "./cellDocument";
 import { openExecutionPlanWebview } from "../controllers/sharedExecutionPlanUtils";
 import { readGridStyle } from "./gridStyle";
 import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
+import { saveQueryStudioResult } from "./resultExport";
 
 const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
 
@@ -148,6 +150,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
         this.initializeBase();
         this.registerHandlers();
+        this.state = this.currentState();
 
         this.registerDisposable(
             this.languageService.onDiagnosticsChanged(() => {
@@ -340,8 +343,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         }
         this.statePushTimer = setTimeout(() => {
             this.statePushTimer = undefined;
+            if (this.isDisposed) {
+                return;
+            }
             this.lastStatePush = Date.now();
-            void this.sendNotification(QsStateChangedNotification.type, this.currentState());
+            const next = this.currentState();
+            this.state = next;
+            void this.sendNotification(QsStateChangedNotification.type, next);
         }, wait);
         this.statePushTimer.unref?.();
     }
@@ -448,6 +456,21 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsGetRowsRequest.type, async (params) =>
             this.model.executionHost.getRows(params.resultSetId, params.start, params.count),
         );
+        this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
+            const summary = this.model.executionHost
+                .resultsState()
+                .resultSets.find((set) => set.resultSetId === resultSetId);
+            if (!summary) {
+                return { saved: false, error: "Result set not found." };
+            }
+            return saveQueryStudioResult({
+                sourceUri: this.model.backingDocument.uri,
+                summary,
+                format,
+                selection,
+                getRows: (id, start, count) => this.model.executionHost.getRows(id, start, count),
+            });
+        });
         this.onRequest(
             QsOpenCellDocumentRequest.type,
             async ({ resultSetId, row, column, format }) => {

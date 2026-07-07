@@ -19,7 +19,7 @@ export function matchScore(candidate: string, prefix: string): number | undefine
         return 120;
     }
     if (c.startsWith(p)) {
-        return 100 - Math.min(20, c.length - p.length);
+        return 100;
     }
     // Word-boundary subsequence: every prefix char in order, bonus on
     // boundaries (underscore/camel).

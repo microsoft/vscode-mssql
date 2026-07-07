@@ -23,6 +23,7 @@ import { matchScore, ordinalCompare } from "../core/fuzzy";
 import { quoteIdentifier, quoteParts } from "../core/quote";
 import { ScriptOverlay } from "../core/overlay";
 import { StatementSketch } from "../core/sketch";
+import { TSQL_DEFAULT_COMPLETION_TEXT } from "../data/defaultCompletions.generated";
 import { TSQL_KEYWORDS } from "../data/keywords.generated";
 import { TSQL_BUILTIN_FUNCTIONS } from "../data/builtinFunctions.generated";
 import { TSQL_SNIPPETS } from "../data/snippets";
@@ -91,18 +92,24 @@ const KIND_PRIORITY: Readonly<Record<SqlCompletionItemKind, number>> = {
     parameter: 700,
     database: 600,
     keyword: 300,
-    snippet: 100,
+    snippet: -200000,
     systemObject: 200,
 };
 
-const MAX_ITEMS = 250;
+const MAX_ITEMS = 600;
 const STATEMENT_KEYWORD_BOOSTS: Readonly<Record<string, number | undefined>> = {
     SELECT: 10,
+    GO: 9,
+    GOTO: 8,
+    INSERT: 7,
+    UPDATE: 7,
+    DECLARE: 7,
 };
 
 export function computeCompletion(input: CompletionComputeInput): CompletionComputation {
     const ctx = input.context;
     const candidates: Candidate[] = [];
+    const candidateKeys = new Set<string>();
     let isIncomplete = false;
     let incompleteReason: string | undefined;
     let memberAccess: MemberAccessInfo | undefined;
@@ -121,9 +128,14 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
         if (score === undefined) {
             return;
         }
+        const key = completionDedupeKey(item);
+        if (candidateKeys.has(key)) {
+            return;
+        }
+        candidateKeys.add(key);
         candidates.push({
             item: item as SqlCompletionItem,
-            score: KIND_PRIORITY[item.kind] + score + boost,
+            score: score * 1000 + KIND_PRIORITY[item.kind] + boost,
         });
     };
 
@@ -132,9 +144,11 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
             return { items: [], isIncomplete: false };
 
         case "statementStart": {
-            addStatementKeywords(input, ctx.prefix, add);
+            const prefix = ctx.prefix || wordPrefixBefore(input.text, input.offset);
+            addStatementKeywords(input, prefix, add);
+            addDefaultCompletionKeywords(input, prefix, add);
             if (input.snippetsEnabled) {
-                addSnippets(input, ctx.prefix, add);
+                addSnippets(input, prefix, add);
             }
             break;
         }
@@ -161,6 +175,9 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
             addVariables(input, ctx.prefix, add);
             addBuiltins(input, ctx.prefix, add);
             addExpressionKeywords(input, ctx.prefix, add);
+            if (ctx.prefix.length > 0) {
+                addDefaultCompletionKeywords(input, ctx.prefix, add);
+            }
             if (ctx.clause === "selectList") {
                 addStarExpansion(input, add);
                 add(keywordItem(input, "FROM"), ctx.prefix, 50);
@@ -235,6 +252,29 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
 
 type AddFn = (item: Omit<SqlCompletionItem, "sortText">, prefix: string, boost?: number) => void;
 
+function wordPrefixBefore(text: string, offset: number): string {
+    let start = offset;
+    while (start > 0) {
+        const ch = text.charCodeAt(start - 1);
+        if (
+            (ch >= 65 && ch <= 90) ||
+            (ch >= 97 && ch <= 122) ||
+            (ch >= 48 && ch <= 57) ||
+            ch === 95 ||
+            ch === 36
+        ) {
+            start--;
+            continue;
+        }
+        break;
+    }
+    return start < offset ? text.slice(start, offset) : "";
+}
+
+function completionDedupeKey(item: Omit<SqlCompletionItem, "sortText">): string {
+    return `${item.kind}:${item.label.toLowerCase()}`;
+}
+
 function casing(input: CompletionComputeInput, word: string): string {
     return input.keywordCasing === "lower" ? word.toLowerCase() : word.toUpperCase();
 }
@@ -280,6 +320,30 @@ function addExpressionKeywords(input: CompletionComputeInput, prefix: string, ad
     for (const word of EXPRESSION_KEYWORDS) {
         add(keywordItem(input, word), prefix, 0);
     }
+}
+
+function addDefaultCompletionKeywords(
+    input: CompletionComputeInput,
+    prefix: string,
+    add: AddFn,
+): void {
+    for (const word of TSQL_DEFAULT_COMPLETION_TEXT) {
+        add(defaultCompletionItem(input, word), prefix, 0);
+    }
+}
+
+function defaultCompletionItem(
+    input: CompletionComputeInput,
+    word: string,
+): Omit<SqlCompletionItem, "sortText"> {
+    const text = casing(input, word);
+    return {
+        label: text,
+        kind: "keyword",
+        insertText: text,
+        detail: `${text} keyword`,
+        filterText: word,
+    };
 }
 
 function addSnippets(input: CompletionComputeInput, prefix: string, add: AddFn): void {

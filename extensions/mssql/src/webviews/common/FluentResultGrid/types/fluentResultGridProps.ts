@@ -38,6 +38,7 @@ export interface FluentResultGridBehaviorProps {
     rowHeight?: number;
     toolbar?: FluentResultGridToolbarOptions;
     commands?: FluentResultGridCommandConfiguration;
+    enableColumnReorder?: boolean;
     viewMode?: FluentResultGridViewMode;
     canToggleViewMode?: boolean;
     canToggleMaximize?: boolean;

@@ -80,6 +80,7 @@ export function useFluentResultGridController({
     rowHeight: rowHeightOverride,
     toolbar,
     commands,
+    enableColumnReorder = true,
     viewMode = "grid",
     canToggleViewMode,
     canToggleMaximize,
@@ -149,9 +150,10 @@ export function useFluentResultGridController({
         () =>
             createFluentResultGridColumns({
                 columnInfo: resultSetSummary.columnInfo,
+                enableColumnReorder,
                 showRowNumberColumn,
             }),
-        [columnSignature, resultSetSummary.columnInfo, showRowNumberColumn],
+        [columnSignature, enableColumnReorder, resultSetSummary.columnInfo, showRowNumberColumn],
     );
 
     const emitStateChange = useCallback(
@@ -422,7 +424,7 @@ export function useFluentResultGridController({
             enableAutoSizeColumns: false,
             enableCellNavigation: true,
             enableColumnPicker: false,
-            enableColumnReorder: true,
+            enableColumnReorder,
             enableContextMenu: false,
             enableEmptyDataWarningMessage: false,
             enableExcelCopyBuffer: false,
@@ -513,6 +515,7 @@ export function useFluentResultGridController({
             dataController.filterStateRef,
             dataController.hasActiveSort,
             emitStateChange,
+            enableColumnReorder,
             frozenColumnIndex,
             gridId,
             layoutController,

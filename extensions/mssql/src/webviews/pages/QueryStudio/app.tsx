@@ -14,7 +14,7 @@
  * paint (double-rAF — the user-perceived end of a run).
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type * as monacoNs from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -35,6 +35,7 @@ import {
     QsRowsAppendedNotification,
     QsSetActualPlanRequest,
     QsSetDatabaseRequest,
+    QsSetViewModeRequest,
     QsState,
     QsStateChangedNotification,
     QsRestoreEditorFocusNotification,
@@ -73,6 +74,7 @@ import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResul
 import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
 import { MessagesView, ResultGridBlock } from "./results";
 import { QsResultsGridProvider, qsGridRowHeight } from "./resultsGrid";
+import { QueryStudioResultsTextView } from "./resultsTextView";
 import { monacoApi } from "./monacoSetup";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
@@ -101,11 +103,19 @@ const TERMINAL_KINDS = new Set([
 const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
-const QS_COMPLETION_STALE_GUARD_DELAY_MS = 30;
+const QS_COMPLETION_STALE_GUARD_DELAY_MS = 15;
 
 export function QueryStudioApp() {
-    const { extensionRpc: rpc, themeKind } = useVscodeWebview<QsState, void>();
-    const [state, setState] = useState<QsState | undefined>(undefined);
+    const {
+        extensionRpc: rpc,
+        getSnapshot,
+        subscribe,
+        themeKind,
+    } = useVscodeWebview<QsState, void>();
+    const snapshot = useSyncExternalStore(subscribe, getSnapshot);
+    const providerState = isQueryStudioState(snapshot) ? snapshot : undefined;
+    const [pushedState, setPushedState] = useState<QsState | undefined>(undefined);
+    const state = providerState ?? pushedState;
     const [cursor, setCursor] = useState({ line: 1, column: 1 });
     const [messages, setMessages] = useState<QsMessageRow[]>([]);
     // Live per-set row counts accumulated from QsRowsAppended (counts only —
@@ -114,6 +124,7 @@ export function QueryStudioApp() {
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
     const [activeTab, setActiveTab] = useState<"results" | "messages">("results");
     const [resultsCollapsed, setResultsCollapsed] = useState(false);
+    const [resultsPaneMaximized, setResultsPaneMaximized] = useState(false);
     const [resultsHeightPct, setResultsHeightPct] = useState(45);
     // Grid maximize/restore (issue A): one grid can fill the whole results
     // pane; the others stay mounted but hidden. Reset per run.
@@ -130,7 +141,9 @@ export function QueryStudioApp() {
     const syncedTextRef = useRef("");
     const syncInFlightRef = useRef(false);
     const flushAgainRef = useRef(false);
+    const awaitingResyncRef = useRef(false);
     const flushEditsRef = useRef<() => void>(() => undefined);
+    const applyRemoteTextRef = useRef<(text: string, hostVersion: number) => void>(() => undefined);
     const suppressLocalRef = useRef(false);
     const flushTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const expectedEchoGroupsRef = useRef<Set<string>>(new Set());
@@ -138,6 +151,7 @@ export function QueryStudioApp() {
     const renderedRunRef = useRef<number | undefined>(undefined);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const dbWrapRef = useRef<HTMLSpanElement | null>(null);
+    const dbListRequestRef = useRef(0);
     const pendingEditorFocusRestoreRef = useRef<EditorFocusBookmark | undefined>(undefined);
     // QS-1 auto-open: runs are always webview-initiated, so plan mode is
     // tracked locally at the point the run is triggered. `planRunArmedRef`
@@ -178,6 +192,9 @@ export function QueryStudioApp() {
         }
         editor.focus();
     }, []);
+    const restoreEditorFocusSoon = useCallback(() => {
+        window.setTimeout(restoreEditorFocus, 0);
+    }, [restoreEditorFocus]);
 
     const resetRunViewForStart = useCallback(
         (runId: number, fetchMessageSnapshot: boolean) => {
@@ -210,6 +227,10 @@ export function QueryStudioApp() {
         }
         const editor = editorRef.current;
         if (!editor) {
+            return;
+        }
+        if (awaitingResyncRef.current) {
+            flushAgainRef.current = true;
             return;
         }
         if (syncInFlightRef.current) {
@@ -251,6 +272,10 @@ export function QueryStudioApp() {
                 expectedEchoGroupsRef.current.delete(groupId);
                 expectedEchoTextsRef.current.delete(groupId);
                 hostVersionRef.current = outcome.hostVersion;
+                if (outcome.resyncPending) {
+                    awaitingResyncRef.current = true;
+                    return undefined;
+                }
                 const liveEditor = editorRef.current;
                 if (!liveEditor) {
                     return undefined;
@@ -269,7 +294,21 @@ export function QueryStudioApp() {
                     })
                     .then((adopted) => {
                         hostVersionRef.current = adopted.hostVersion;
-                        syncedTextRef.current = adoptText;
+                        if (adopted.applied) {
+                            syncedTextRef.current = adoptText;
+                            return;
+                        }
+                        expectedEchoGroupsRef.current.delete(adoptGroupId);
+                        expectedEchoTextsRef.current.delete(adoptGroupId);
+                        awaitingResyncRef.current = true;
+                        return rpc
+                            .sendRequest(QsSyncResyncRequest.type, {
+                                webviewVersion: adopted.hostVersion,
+                                textHash: textHash(liveEditor.getValue()),
+                            })
+                            .then((resync) =>
+                                applyRemoteTextRef.current(resync.text, resync.hostVersion),
+                            );
                     });
             })
             .catch(() => {
@@ -278,6 +317,9 @@ export function QueryStudioApp() {
             })
             .finally(() => {
                 syncInFlightRef.current = false;
+                if (awaitingResyncRef.current) {
+                    return;
+                }
                 if (
                     flushAgainRef.current ||
                     editorRef.current?.getValue() !== syncedTextRef.current
@@ -301,6 +343,9 @@ export function QueryStudioApp() {
     // --- sync: host → webview ----------------------------------------------
     const applyRemoteText = useCallback((text: string, hostVersion: number) => {
         const editor = editorRef.current;
+        awaitingResyncRef.current = false;
+        expectedEchoGroupsRef.current.clear();
+        expectedEchoTextsRef.current.clear();
         hostVersionRef.current = hostVersion;
         syncedTextRef.current = text;
         flushAgainRef.current = false;
@@ -315,6 +360,7 @@ export function QueryStudioApp() {
             suppressLocalRef.current = false;
         }
     }, []);
+    applyRemoteTextRef.current = applyRemoteText;
 
     useEffect(() => {
         // onNotification registrations live for the webview lifetime.
@@ -371,7 +417,7 @@ export function QueryStudioApp() {
                 applyRemoteText(resync.text, resync.hostVersion);
             }),
             rpc.onNotification(QsStateChangedNotification.type, (next: QsState) => {
-                setState(next);
+                setPushedState(next);
             }),
             rpc.onNotification(
                 QsRowsAppendedNotification.type,
@@ -481,6 +527,27 @@ export function QueryStudioApp() {
             }
         }
     }, [executionKind, runId, state, rpc, resetRunViewForStart]);
+    const messageCount = state?.results.messageCount ?? 0;
+    useEffect(() => {
+        if (messageCount <= messages.length) {
+            return;
+        }
+        const afterIndex = messages.length;
+        let canceled = false;
+        void rpc.sendRequest(QsGetMessagesRequest.type, { afterIndex }).then((result) => {
+            if (canceled || result.messages.length === 0) {
+                return;
+            }
+            setMessages((current) => {
+                const alreadyAppended = Math.max(0, current.length - afterIndex);
+                const missing = result.messages.slice(alreadyAppended);
+                return missing.length > 0 ? [...current, ...missing] : current;
+            });
+        });
+        return () => {
+            canceled = true;
+        };
+    }, [messageCount, messages.length, rpc]);
 
     // --- editor wiring -------------------------------------------------------
     const onEditorMount = useCallback(
@@ -579,22 +646,31 @@ export function QueryStudioApp() {
     }, [rpc]);
     const [dbList, setDbList] = useState<string[] | undefined>(undefined);
     const toggleDbList = useCallback(() => {
-        setDbList((current) => {
-            if (current) {
-                return undefined;
+        if (dbList !== undefined) {
+            dbListRequestRef.current++;
+            setDbList(undefined);
+            return;
+        }
+        captureEditorFocusBookmark();
+        const requestId = ++dbListRequestRef.current;
+        setDbList([]);
+        void rpc.sendRequest(QsListDatabasesRequest.type, undefined).then((r) => {
+            if (dbListRequestRef.current !== requestId) {
+                return;
             }
-            void rpc
-                .sendRequest(QsListDatabasesRequest.type, undefined)
-                .then((r) => setDbList(r.databases));
-            return [];
+            setDbList(r.databases);
         });
-    }, [rpc]);
+    }, [captureEditorFocusBookmark, dbList, rpc]);
     const pickDatabase = useCallback(
         (database: string) => {
+            dbListRequestRef.current++;
             setDbList(undefined);
-            void rpc.sendRequest(QsSetDatabaseRequest.type, { database });
+            restoreEditorFocusSoon();
+            void rpc
+                .sendRequest(QsSetDatabaseRequest.type, { database })
+                .then(restoreEditorFocusSoon, restoreEditorFocusSoon);
         },
-        [rpc],
+        [restoreEditorFocusSoon, rpc],
     );
     useEffect(() => {
         if (dbList === undefined) {
@@ -605,6 +681,7 @@ export function QueryStudioApp() {
             if (target instanceof Node && dbWrapRef.current?.contains(target)) {
                 return;
             }
+            dbListRequestRef.current++;
             setDbList(undefined);
         };
         window.addEventListener("pointerdown", closeIfOutside, true);
@@ -638,6 +715,12 @@ export function QueryStudioApp() {
             enabled: !(state?.toggles.actualPlan ?? false),
         });
     }, [rpc, state]);
+    const toggleResultsViewMode = useCallback(() => {
+        const current = state?.toggles.viewMode ?? "grid";
+        void rpc.sendRequest(QsSetViewModeRequest.type, {
+            viewMode: current === "text" ? "grid" : "text",
+        });
+    }, [rpc, state?.toggles.viewMode]);
 
     // Keybindings (addendum §4): F5/Ctrl+E execute; Ctrl+R toggles results;
     // Alt+B cancels. CAPTURE phase + stopPropagation: VS Code's webview
@@ -660,10 +743,13 @@ export function QueryStudioApp() {
             } else if (ctrlOnly && e.key.toLowerCase() === "r") {
                 setResultsCollapsed((c) => !c);
                 handled = true;
+            } else if (ctrlOnly && e.key.toLowerCase() === "a") {
+                handled = !shouldAllowBrowserSelectAll(e.target);
             } else if (altOnly && e.key.toLowerCase() === "b") {
                 cancel();
                 handled = true;
             } else if (noMods && e.key === "Escape" && dbList !== undefined) {
+                dbListRequestRef.current++;
                 setDbList(undefined);
                 handled = true;
             }
@@ -762,17 +848,21 @@ export function QueryStudioApp() {
                     try {
                         const requestVersion = model.getVersionId();
                         const requestHash = textHash(model.getValue());
-                        await delay(QS_COMPLETION_STALE_GUARD_DELAY_MS);
-                        if (!isModelStateCurrent(model, requestVersion, requestHash)) {
-                            return { suggestions: [] };
+                        const triggerCharacter = context.triggerCharacter;
+                        const shouldDelay =
+                            context.triggerKind ===
+                                monacoApi.languages.CompletionTriggerKind.TriggerCharacter &&
+                            triggerCharacter !== ".";
+                        if (shouldDelay) {
+                            await delay(QS_COMPLETION_STALE_GUARD_DELAY_MS);
+                            if (!isModelStateCurrent(model, requestVersion, requestHash)) {
+                                return { suggestions: [] };
+                            }
                         }
                         // Push pending keystrokes NOW and tell the host the
                         // exact text this request was computed against —
                         // otherwise completions bind one keystroke behind.
                         flushEdits();
-                        if (syncInFlightRef.current) {
-                            return { suggestions: [] };
-                        }
                         const result = await rpc.sendRequest(QsLangCompletionRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
@@ -782,9 +872,7 @@ export function QueryStudioApp() {
                                 monacoApi.languages.CompletionTriggerKind.TriggerCharacter
                                     ? "character"
                                     : "invoke",
-                            ...(context.triggerCharacter
-                                ? { triggerCharacter: context.triggerCharacter }
-                                : {}),
+                            ...(triggerCharacter ? { triggerCharacter } : {}),
                         });
                         if (!isModelStateCurrent(model, requestVersion, requestHash)) {
                             return { suggestions: [] };
@@ -999,6 +1087,7 @@ export function QueryStudioApp() {
     const results = state?.results;
     const showResults = (results?.present ?? false) && !resultsCollapsed;
     const errorCount = results?.errorCount ?? 0;
+    const resultViewMode = state?.toggles.viewMode ?? "grid";
 
     // Results-pane sizing v2 (issue A): one grid (or a maximized one) FILLS
     // the pane — the grid's virtualized scrollbar is THE scrollbar. Multiple
@@ -1151,7 +1240,14 @@ export function QueryStudioApp() {
             </div>
             <div
                 className="qs-editor"
-                style={showResults ? { flexBasis: `${100 - resultsHeightPct}%` } : undefined}>
+                style={
+                    showResults
+                        ? {
+                              flexBasis: resultsPaneMaximized ? "0%" : `${100 - resultsHeightPct}%`,
+                              display: resultsPaneMaximized ? "none" : undefined,
+                          }
+                        : undefined
+                }>
                 <VscodeEditor
                     themeKind={themeKind}
                     height="100%"
@@ -1164,19 +1260,26 @@ export function QueryStudioApp() {
                         renderLineHighlight: "line",
                         scrollBeyondLastLine: false,
                         inlineSuggest: { enabled: true },
+                        snippetSuggestions: "bottom",
                     }}
                 />
             </div>
             {showResults && results ? (
                 <>
+                    {!resultsPaneMaximized ? (
+                        <div
+                            className="qs-splitter"
+                            onPointerDown={onSplitterDown}
+                            onDoubleClick={resetSplit}
+                            role="separator"
+                            aria-orientation="horizontal"
+                        />
+                    ) : null}
                     <div
-                        className="qs-splitter"
-                        onPointerDown={onSplitterDown}
-                        onDoubleClick={resetSplit}
-                        role="separator"
-                        aria-orientation="horizontal"
-                    />
-                    <div className="qs-results" style={{ flexBasis: `${resultsHeightPct}%` }}>
+                        className="qs-results"
+                        style={{
+                            flexBasis: resultsPaneMaximized ? "100%" : `${resultsHeightPct}%`,
+                        }}>
                         <div className="qs-results-tabs" role="tablist">
                             <button
                                 role="tab"
@@ -1197,6 +1300,42 @@ export function QueryStudioApp() {
                                 {errorCount > 0 ? ` (${errorCount} ⚠)` : ""}
                             </button>
                             <span className="qs-spacer" />
+                            {activeTab === "results" && results.resultSets.length > 0 ? (
+                                <button
+                                    className="qs-tabbar-btn"
+                                    title={
+                                        resultViewMode === "text"
+                                            ? "Switch to Grid View"
+                                            : "Switch to Text View"
+                                    }
+                                    aria-label={
+                                        resultViewMode === "text"
+                                            ? "Switch to Grid View"
+                                            : "Switch to Text View"
+                                    }
+                                    onClick={toggleResultsViewMode}>
+                                    <span
+                                        className={`codicon codicon-${resultViewMode === "text" ? "table" : "file-text"}`}
+                                    />
+                                </button>
+                            ) : null}
+                            <button
+                                className="qs-tabbar-btn"
+                                title={
+                                    resultsPaneMaximized
+                                        ? "Restore editor and results split"
+                                        : "Maximize results pane"
+                                }
+                                aria-label={
+                                    resultsPaneMaximized
+                                        ? "Restore editor and results split"
+                                        : "Maximize results pane"
+                                }
+                                onClick={() => setResultsPaneMaximized((value) => !value)}>
+                                <span
+                                    className={`codicon codicon-${resultsPaneMaximized ? "screen-normal" : "screen-full"}`}
+                                />
+                            </button>
                             {results.streaming ? (
                                 <span className="qs-muted qs-streaming">streaming…</span>
                             ) : null}
@@ -1206,45 +1345,56 @@ export function QueryStudioApp() {
                             ref={resultsBodyRef}>
                             {activeTab === "results" ? (
                                 results.resultSets.length > 0 ? (
-                                    // Lazy mounting: captions always render; grid
-                                    // bodies mount near the viewport (never unmount).
-                                    <QsResultsGridProvider>
-                                        {results.resultSets.map((summary, index) => {
-                                            const isMaximized =
-                                                maximizedGrid === summary.resultSetId;
-                                            return (
-                                                <ResultGridBlock
-                                                    key={summary.resultSetId}
-                                                    rpc={rpc}
-                                                    summary={summary}
-                                                    rowCount={effectiveRowCount(summary)}
-                                                    gridStyle={state?.gridStyle}
-                                                    sizing={
-                                                        singleGrid || isMaximized
-                                                            ? { kind: "fill" }
-                                                            : (resultsLayout.sizing[index] ?? {
-                                                                  kind: "fill",
-                                                              })
-                                                    }
-                                                    runActive={executing}
-                                                    hidden={
-                                                        maximizedGrid !== undefined && !isMaximized
-                                                    }
-                                                    maximized={isMaximized}
-                                                    onToggleMaximize={
-                                                        singleGrid
-                                                            ? undefined
-                                                            : () =>
-                                                                  setMaximizedGridId(
-                                                                      isMaximized
-                                                                          ? undefined
-                                                                          : summary.resultSetId,
-                                                                  )
-                                                    }
-                                                />
-                                            );
-                                        })}
-                                    </QsResultsGridProvider>
+                                    resultViewMode === "text" ? (
+                                        <QueryStudioResultsTextView
+                                            rpc={rpc}
+                                            resultSets={results.resultSets}
+                                            liveRowCounts={liveRowCounts}
+                                            gridStyle={state?.gridStyle}
+                                        />
+                                    ) : (
+                                        // Lazy mounting: captions always render; grid
+                                        // bodies mount near the viewport (never unmount).
+                                        <QsResultsGridProvider>
+                                            {results.resultSets.map((summary, index) => {
+                                                const isMaximized =
+                                                    maximizedGrid === summary.resultSetId;
+                                                return (
+                                                    <ResultGridBlock
+                                                        key={summary.resultSetId}
+                                                        rpc={rpc}
+                                                        summary={summary}
+                                                        displayOrdinal={index + 1}
+                                                        rowCount={effectiveRowCount(summary)}
+                                                        gridStyle={state?.gridStyle}
+                                                        sizing={
+                                                            singleGrid || isMaximized
+                                                                ? { kind: "fill" }
+                                                                : (resultsLayout.sizing[index] ?? {
+                                                                      kind: "fill",
+                                                                  })
+                                                        }
+                                                        runActive={executing}
+                                                        hidden={
+                                                            maximizedGrid !== undefined &&
+                                                            !isMaximized
+                                                        }
+                                                        maximized={isMaximized}
+                                                        onToggleMaximize={
+                                                            singleGrid
+                                                                ? undefined
+                                                                : () =>
+                                                                      setMaximizedGridId(
+                                                                          isMaximized
+                                                                              ? undefined
+                                                                              : summary.resultSetId,
+                                                                      )
+                                                        }
+                                                    />
+                                                );
+                                            })}
+                                        </QsResultsGridProvider>
+                                    )
                                 ) : (
                                     <div className="qs-muted qs-message">
                                         No result sets returned.
@@ -1348,6 +1498,35 @@ function isModelStateCurrent(
     hash: string,
 ): boolean {
     return model.getVersionId() === version && textHash(model.getValue()) === hash;
+}
+
+function shouldAllowBrowserSelectAll(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) {
+        return false;
+    }
+    return (
+        target.closest(
+            [
+                "input",
+                "textarea",
+                "[contenteditable='true']",
+                ".monaco-editor",
+                ".fluent-result-grid",
+                ".monaco-table",
+                ".qs-messages",
+            ].join(","),
+        ) !== null
+    );
+}
+
+function isQueryStudioState(value: unknown): value is QsState {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        "schemaVersion" in value &&
+        "connection" in value &&
+        "results" in value
+    );
 }
 
 // --- language-feature mapping (qs/lang.* DTOs ⇄ Monaco, 0-based ⇄ 1-based) ----

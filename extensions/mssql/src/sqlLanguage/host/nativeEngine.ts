@@ -32,7 +32,7 @@ import {
     SqlLanguageFeatureEngine,
     SqlLanguageRequest,
 } from "../api";
-import { LexResult, Token, TokenKind, isTrivia, lex } from "../core/lexer";
+import { LexResult, lex } from "../core/lexer";
 import { SegmentResult, StatementSegment, segment } from "../core/segmenter";
 import { TextSnapshot } from "../core/text/textSnapshot";
 import { IPinnedMetadataView, ISqlLanguageMetadataProvider } from "../provider/types";
@@ -258,16 +258,16 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             },
         });
         try {
+            if (shouldSuppressAutomaticWhitespaceCompletion(req)) {
+                span.end("ok", {
+                    contextKind: { raw: "none", cls: "diagnostic.metadata" },
+                    itemCount: { raw: 0, cls: "diagnostic.metadata" },
+                    suppressed: { raw: "emptySpace", cls: "diagnostic.metadata" },
+                });
+                return Promise.resolve(emptyCompletionResult());
+            }
             const target = this.locateStatement(analysis, req.text, offset);
             if (target === undefined) {
-                if (shouldSuppressAutomaticWhitespaceCompletion(req, analysis, offset)) {
-                    span.end("ok", {
-                        contextKind: { raw: "none", cls: "diagnostic.metadata" },
-                        itemCount: { raw: 0, cls: "diagnostic.metadata" },
-                        suppressed: { raw: "emptySpace", cls: "diagnostic.metadata" },
-                    });
-                    return Promise.resolve(emptyCompletionResult());
-                }
                 // Empty document / between statements: statement start.
                 const pinned = this.pinView();
                 const options = this.getOptions();
@@ -737,45 +737,17 @@ function emptyCompletionResult(): CompletionResult {
     return { items: [], isIncomplete: false };
 }
 
-function shouldSuppressAutomaticWhitespaceCompletion(
-    req: CompletionRequest,
-    analysis: DocumentAnalysis,
-    offset: number,
-): boolean {
-    if (req.trigger !== "character" || req.triggerCharacter !== " ") {
+function shouldSuppressAutomaticWhitespaceCompletion(req: CompletionRequest): boolean {
+    if (req.trigger !== "character" || !isWhitespaceTrigger(req.triggerCharacter)) {
         return false;
     }
-    const lineTokens = significantTokensOnCurrentLineBeforeOffset(
-        req.text,
-        analysis.lexed.tokens,
-        offset,
-    );
-    if (lineTokens.length === 0) {
-        return true;
-    }
-    return (
-        lineTokens[0].kind === TokenKind.GoSeparator &&
-        lineTokens.slice(1).every((token) => token.kind === TokenKind.NumberLiteral)
-    );
+    // Whitespace is not enough signal to claim metadata candidates. Explicit
+    // invocation still works, but automatic popups after spaces stay quiet.
+    return true;
 }
 
-function significantTokensOnCurrentLineBeforeOffset(
-    text: string,
-    tokens: readonly Token[],
-    offset: number,
-): Token[] {
-    const lineStart = text.lastIndexOf("\n", Math.max(0, offset - 1)) + 1;
-    const significant: Token[] = [];
-    for (const token of tokens) {
-        if (token.kind === TokenKind.EndOfFile || token.start >= offset) {
-            break;
-        }
-        if (token.end <= lineStart || isTrivia(token.kind)) {
-            continue;
-        }
-        significant.push(token);
-    }
-    return significant;
+function isWhitespaceTrigger(triggerCharacter: string | undefined): boolean {
+    return triggerCharacter !== undefined && /^\s$/.test(triggerCharacter);
 }
 
 /** Zero-width sketch for caret positions outside any statement. */

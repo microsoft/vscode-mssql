@@ -20,6 +20,7 @@
     padding: 0 6px;
     background: var(--vscode-editorWidget-background);
     border-bottom: 1px solid var(--vscode-editorWidget-border);
+    user-select: none;
 }
 
 .qs-btn {
@@ -72,6 +73,7 @@
 .qs-muted {
     color: var(--vscode-descriptionForeground);
     padding: 0 6px;
+    user-select: none;
 }
 
 .qs-editor {
@@ -90,6 +92,7 @@
     color: var(--vscode-statusBar-foreground);
     font-size: 12px;
     border-top: 1px solid var(--vscode-panel-border);
+    user-select: none;
 }
 
 .qs-status-message[data-kind="error"] {
@@ -123,6 +126,7 @@
     flex: 0 0 4px;
     cursor: ns-resize;
     background: var(--vscode-editorWidget-border);
+    user-select: none;
 }
 .qs-splitter:hover {
     background: var(--vscode-focusBorder);
@@ -145,6 +149,7 @@
     gap: 2px;
     background: var(--vscode-editorWidget-background);
     border-bottom: 1px solid var(--vscode-editorWidget-border);
+    user-select: none;
 }
 
 .qs-tab {
@@ -165,9 +170,43 @@
     color: var(--vscode-errorForeground);
 }
 
+.qs-tabbar-btn {
+    width: 26px;
+    height: 24px;
+    min-width: 26px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.qs-tabbar-btn:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+.qs-tabbar-btn:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
 .qs-streaming {
     padding-right: 8px;
     font-style: italic;
+    user-select: none;
+}
+
+.qs-text-view,
+.qs-text-view-loading {
+    height: 100%;
+    min-height: 0;
+}
+.qs-text-view-loading {
+    padding: 10px;
+    font-style: italic;
+    color: var(--vscode-descriptionForeground);
 }
 
 .qs-results-body {
@@ -211,6 +250,50 @@
     min-height: 0;
     overflow: hidden;
 }
+.qs-grid-surface {
+    height: 100%;
+    min-height: 0;
+}
+.qs-grid-selecting .fluent-result-grid .slick-row:hover {
+    outline: none;
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.even:hover
+    .slick-cell:where(
+        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
+    ) {
+    background-color: var(--fluent-result-grid-row-even-background);
+    color: var(--fluent-result-grid-foreground);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.odd:hover
+    .slick-cell:where(
+        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
+    ) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+    color: var(--fluent-result-grid-foreground);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row:hover
+    .slick-cell.cell-null:not(.selected):not(.active) {
+    background-color: var(--fluent-result-grid-null-cell-background);
+    color: var(--fluent-result-grid-null-cell-foreground);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.even:hover
+    .slick-cell:where(.fluent-result-grid-row-number-cell) {
+    background-color: var(--fluent-result-grid-row-even-background);
+}
+.qs-grid-selecting
+    .fluent-result-grid
+    .slick-row.odd:hover
+    .slick-cell:where(.fluent-result-grid-row-number-cell) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+}
 /* Stay mounted (scroll/sort/selection state) while another grid is maximized. */
 .qs-grid-hidden {
     display: none;
@@ -228,6 +311,7 @@
     gap: 8px;
     height: 22px;
     font-size: 12px;
+    user-select: none;
 }
 .qs-grid-caption-title {
     font-weight: 600;

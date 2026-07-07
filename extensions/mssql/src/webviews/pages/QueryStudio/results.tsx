@@ -36,6 +36,7 @@ const NOTICE_DISMISS_MS = 6000;
 function GridCaption(props: {
     rpc: Rpc;
     summary: QsResultSetSummary;
+    displayOrdinal: number;
     rowCount: number;
     /** Terminal runs never show "streaming…" even if a summary was missed. */
     runActive: boolean;
@@ -44,13 +45,20 @@ function GridCaption(props: {
     maximized?: boolean | undefined;
     children?: ReactNode;
 }) {
-    const { rpc, summary, rowCount, runActive, onToggleMaximize, maximized, children } = props;
+    const {
+        rpc,
+        summary,
+        displayOrdinal,
+        rowCount,
+        runActive,
+        onToggleMaximize,
+        maximized,
+        children,
+    } = props;
     const streaming = runActive && !summary.complete && !summary.truncatedReason;
     return (
         <div className="qs-grid-caption">
-            <span className="qs-grid-caption-title">
-                Result {summary.batchOrdinal + 1}.{summary.resultSetId.split("s").pop()}
-            </span>
+            <span className="qs-grid-caption-title">Result {displayOrdinal}</span>
             <span className="qs-muted">
                 {rowCount.toLocaleString()} row{rowCount === 1 ? "" : "s"}
                 {summary.truncatedReason ? ` · truncated (${summary.truncatedReason})` : ""}
@@ -106,6 +114,7 @@ interface GridSizingProps {
 interface GridProps extends GridSizingProps {
     rpc: Rpc;
     summary: QsResultSetSummary;
+    displayOrdinal: number;
     /** Effective row count: max(state summary, QsRowsAppended accumulation). */
     rowCount: number;
     /** Grid styling from QsState (classic mssql.resultsGrid.* parity). */
@@ -144,6 +153,7 @@ export function ResultGrid(props: GridProps) {
             <GridCaption
                 rpc={rpc}
                 summary={summary}
+                displayOrdinal={props.displayOrdinal}
                 rowCount={rowCount}
                 runActive={props.runActive}
                 onToggleMaximize={onToggleMaximize}
@@ -219,6 +229,7 @@ export function ResultGridBlock(props: GridProps) {
             <GridCaption
                 rpc={rpc}
                 summary={summary}
+                displayOrdinal={props.displayOrdinal}
                 rowCount={rowCount}
                 runActive={props.runActive}
                 onToggleMaximize={onToggleMaximize}

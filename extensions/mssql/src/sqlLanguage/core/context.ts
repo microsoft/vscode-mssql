@@ -131,6 +131,19 @@ export function classifyContext(
         }
     }
 
+    // `GO` on a batch-separator line gets its own token kind. While the
+    // user is still typing that token, it must still act as the statement
+    // prefix so the batch separator ranks ahead of GROUP/GOTO noise.
+    if (
+        at !== undefined &&
+        at.kind === TokenKind.GoSeparator &&
+        offset > at.start &&
+        offset <= at.end
+    ) {
+        prefix = text.slice(at.start, offset);
+        anchorIndex = atIndex;
+    }
+
     // Variable prefix (@x…) classifies as expression; the engine offers vars.
     if (
         at !== undefined &&
