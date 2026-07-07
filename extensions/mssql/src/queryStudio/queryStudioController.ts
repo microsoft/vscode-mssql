@@ -40,6 +40,7 @@ import {
     QsNavigateToLineRequest,
     QsReconnectRequest,
     QsRestoreEditorFocusNotification,
+    QsRunStartedNotification,
     QsSetActualPlanRequest,
     QsSetDatabaseRequest,
     QsSetViewModeRequest,
@@ -197,6 +198,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.bindingListener = this.model.sessionBinding.onDidChange(() => this.queueStatePush());
 
         this.executionListener = this.model.executionHost.attach({
+            onRunStarted: (startedEpochMs) => {
+                void this.sendNotification(QsRunStartedNotification.type, { startedEpochMs });
+                this.queueStatePush();
+            },
             onResultSetStarted: (summary) => {
                 void this.sendNotification(QsResultSetStartedNotification.type, summary);
                 this.queueStatePush();
@@ -561,6 +566,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             const cts = new vscode.CancellationTokenSource();
             this.inlineCompletionCts = cts;
             try {
+                if (params.textHash !== undefined) {
+                    await this.model.awaitTextHash(params.textHash, 200);
+                    if (cts.token.isCancellationRequested) {
+                        endBridge(false);
+                        return { text: "" };
+                    }
+                }
                 const items = await provider.provideInlineCompletionItems(
                     document,
                     new vscode.Position(params.line, params.character),

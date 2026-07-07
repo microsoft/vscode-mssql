@@ -38,6 +38,7 @@ import {
     QsState,
     QsStateChangedNotification,
     QsRestoreEditorFocusNotification,
+    QsRunStartedNotification,
     QsSyncEdits,
     QsShowCommandPaletteRequest,
     QsSyncAdoptRequest,
@@ -171,6 +172,29 @@ export function QueryStudioApp() {
         }
         editor.focus();
     }, []);
+
+    const resetRunViewForStart = useCallback(
+        (runId: number, fetchMessageSnapshot: boolean) => {
+            startedRunRef.current = runId;
+            setActionHint(undefined);
+            setLiveRowCounts({});
+            setActiveTab("results");
+            setResultsCollapsed(false);
+            setMaximizedGridId(undefined);
+            setMessages([]);
+            if (fetchMessageSnapshot) {
+                void rpc
+                    .sendRequest(QsGetMessagesRequest.type, {})
+                    .then((result) => setMessages(result.messages));
+            }
+            planAutoOpenRef.current = {
+                ...(planRunArmedRef.current ? { runId } : {}),
+                opened: new Set(),
+            };
+            planRunArmedRef.current = false;
+        },
+        [rpc],
+    );
 
     // --- sync: webview → host --------------------------------------------
     const flushEdits = useCallback(() => {
@@ -309,6 +333,9 @@ export function QueryStudioApp() {
                     }));
                 },
             ),
+            rpc.onNotification(QsRunStartedNotification.type, (p: { startedEpochMs: number }) => {
+                resetRunViewForStart(p.startedEpochMs, false);
+            }),
             rpc.onNotification(
                 QsMessagesAppendedNotification.type,
                 (p: { messages: QsMessageRow[] }) => {
@@ -331,7 +358,7 @@ export function QueryStudioApp() {
         ];
         // Signal readiness → host ends the open marker.
         void rpc.sendRequest(QsGetDiagnosticsSummaryRequest.type, undefined);
-    }, [rpc, applyRemoteText, flushEdits, restoreEditorFocus]);
+    }, [rpc, applyRemoteText, flushEdits, resetRunViewForStart, restoreEditorFocus]);
 
     useEffect(() => {
         const onFocus = () => {
@@ -362,28 +389,12 @@ export function QueryStudioApp() {
             runId !== undefined &&
             startedRunRef.current !== runId
         ) {
-            startedRunRef.current = runId;
-            setActionHint(undefined);
-            setLiveRowCounts({});
-            setActiveTab("results");
-            setResultsCollapsed(false);
-            setMaximizedGridId(undefined);
             // Message notifications can beat this (debounced) state push —
             // clearing alone would drop the run's opening lines. Replace
             // with the host's snapshot instead: notifications processed
             // after the response are strictly newer than the snapshot
             // (ordered channel), so nothing is lost or duplicated.
-            setMessages([]);
-            void rpc
-                .sendRequest(QsGetMessagesRequest.type, {})
-                .then((result) => setMessages(result.messages));
-            // QS-1: consume the armed plan-mode flag once per run and reset
-            // the "already auto-opened" tracking for the new run.
-            planAutoOpenRef.current = {
-                ...(planRunArmedRef.current ? { runId } : {}),
-                opened: new Set(),
-            };
-            planRunArmedRef.current = false;
+            resetRunViewForStart(runId, true);
         }
         if (TERMINAL_KINDS.has(executionKind) && runId && renderedRunRef.current !== runId) {
             renderedRunRef.current = runId;
@@ -420,7 +431,7 @@ export function QueryStudioApp() {
                 }
             }
         }
-    }, [executionKind, runId, state, rpc]);
+    }, [executionKind, runId, state, rpc, resetRunViewForStart]);
 
     // --- editor wiring -------------------------------------------------------
     const onEditorMount = useCallback(
@@ -612,13 +623,14 @@ export function QueryStudioApp() {
             // Already registered by a previous enable/disable cycle.
         }
         const providerDisposable = monacoApi.languages.registerInlineCompletionsProvider("sql", {
-            provideInlineCompletions: async (_model, position, context) => {
+            provideInlineCompletions: async (model, position, context) => {
                 // Same staleness rule as lang completions: the host bridge
                 // resolves positions against its mirror — push edits first.
                 flushEdits();
                 const response = await rpc.sendRequest(QsInlineCompletionRequest.type, {
                     line: position.lineNumber - 1,
                     character: position.column - 1,
+                    textHash: textHash(model.getValue()),
                     trigger:
                         context.triggerKind ===
                         monacoApi.languages.InlineCompletionTriggerKind.Explicit
@@ -653,7 +665,7 @@ export function QueryStudioApp() {
             providerDisposable.dispose();
             commandDisposable?.dispose();
         };
-    }, [completionsEnabled, rpc]);
+    }, [completionsEnabled, flushEdits, rpc]);
 
     // --- language features (LS-0): Monaco providers over the qs/lang.* bridge --
     useEffect(() => {

@@ -252,17 +252,16 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 encrypted: session.info.encrypted === true,
                 metadataSession: false,
             });
+            this.spid = session.info.spid;
             this.fireChange();
             // Session options (SSMS parity): apply the mssql.query.* SET
             // batch FIRST — the session serializes queries, so anything the
             // user runs right after connect queues behind the configured
             // state. Reconnect flows re-enter open(), reapplying naturally.
-            void this.applySessionOptions(session);
+            void this.initializeUserSession(session);
             // Metadata catalog (design §8.2): dedicated session over the
             // same profile; hydration never contends with the user's F5.
             this.acquireMetadata(profileRef, store, authKind);
-            // SPID probe only because the open result lacks it (worksheet #5).
-            void this.probeSpid(session);
             return true;
         } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
@@ -285,6 +284,17 @@ export class DocumentSessionBinding implements vscode.Disposable {
             }
             return false;
         }
+    }
+
+    private async initializeUserSession(session: ISqlSession): Promise<void> {
+        await this.applySessionOptions(session);
+        if (this.session !== session || session.state !== "open" || this.spid !== undefined) {
+            return;
+        }
+        // SPID probe only because some backends' open result lacks it
+        // (worksheet #5). Run it after session options so the two background
+        // probes do not collide on the one-active-query user session.
+        await this.probeSpid(session);
     }
 
     /**
@@ -403,7 +413,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
             // callback would race the user's first execute into Busy.
             await handle.completion;
             const spid = Number.isFinite(value) ? value : undefined;
-            if (spid !== undefined) {
+            if (spid !== undefined && this.session === session) {
                 this.spid = spid;
                 this.fireChange();
             }

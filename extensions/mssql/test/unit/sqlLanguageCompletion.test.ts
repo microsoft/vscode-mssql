@@ -454,6 +454,22 @@ suite("sqlLanguage native completion: statement start", () => {
         expect(result.items.some((i) => i.kind === "snippet")).to.equal(true);
     });
 
+    test("typed prefix ranks statement keywords before snippets", async () => {
+        const result = await complete("se/*caret*/");
+        const allLabels = labels(result);
+        const firstSnippetIndex = result.items.findIndex((i) => i.kind === "snippet");
+        let lastKeywordIndex = -1;
+        result.items.forEach((item, index) => {
+            if (item.kind === "keyword") {
+                lastKeywordIndex = index;
+            }
+        });
+
+        expect(allLabels[0]).to.equal("SELECT");
+        expect(result.items[firstSnippetIndex]?.label).to.equal("SELECT ... FROM ... WHERE");
+        expect(firstSnippetIndex).to.be.greaterThan(lastKeywordIndex);
+    });
+
     test("keyword casing honors the engine option", async () => {
         const engine = new NativeSqlLanguageEngine(standardProvider, () => ({
             snippetsEnabled: false,
@@ -489,6 +505,18 @@ suite("sqlLanguage native completion: static system catalog", () => {
     test("sys. lists catalog objects", async () => {
         const result = await complete("SELECT * FROM sys./*caret*/");
         expect(labels(result)).to.include.members(["databases", "objects", "tables", "schemas"]);
+        expect(result.items.some((i) => i.kind === "schema")).to.equal(false);
+    });
+
+    test("sys. uses static catalog objects before live object hydration is ready", async () => {
+        const provider = new FixtureLanguageMetadataProvider({
+            ...STANDARD_FIXTURE_CATALOG,
+            databases: ["FixtureDb", "sys"],
+            readiness: { objects: "loading" },
+        });
+        const result = await complete("SELECT * FROM sys./*caret*/", provider);
+        expect(labels(result)).to.include.members(["databases", "objects", "tables", "schemas"]);
+        expect(result.items.some((i) => i.kind === "schema")).to.equal(false);
     });
 
     test("INFORMATION_SCHEMA. lists catalog views", async () => {

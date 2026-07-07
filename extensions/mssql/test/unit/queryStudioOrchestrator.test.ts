@@ -235,6 +235,37 @@ suite("Query Studio execution orchestrator", () => {
         rowStore.dispose();
     });
 
+    test("terminal summary error is surfaced in Messages when no error message arrived", async () => {
+        const session = scriptedSession(async () => ({
+            status: "failed",
+            resultSetCount: 0,
+            totalRows: 0,
+            errorCount: 1,
+            error: {
+                code: "208",
+                message: "Invalid object name 'sys'.",
+                retryable: false,
+                server: { number: 208, severity: 16, state: 1, line: 1 },
+            },
+        }));
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run("select * from sys.", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+        });
+
+        const error = events.messages.find((m) => m.kind === "error");
+        expect(result.status).to.equal("completedWithErrors");
+        expect(result.errors).to.equal(1);
+        expect(error?.text).to.contain("Msg 208, Level 16, State 1, Line 1");
+        expect(error?.text).to.contain("Invalid object name 'sys'.");
+        expect(error?.navigable?.line).to.equal(1);
+        rowStore.dispose();
+    });
+
     test("synthesizes classic execution messages: started line, rows affected, total time (ordered)", async () => {
         const backend = new FakeBackend({
             scripts: [

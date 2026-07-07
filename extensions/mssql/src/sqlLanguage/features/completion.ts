@@ -91,11 +91,14 @@ const KIND_PRIORITY: Readonly<Record<SqlCompletionItemKind, number>> = {
     parameter: 700,
     database: 600,
     keyword: 300,
-    snippet: 250,
+    snippet: 100,
     systemObject: 200,
 };
 
 const MAX_ITEMS = 250;
+const STATEMENT_KEYWORD_BOOSTS: Readonly<Record<string, number | undefined>> = {
+    SELECT: 10,
+};
 
 export function computeCompletion(input: CompletionComputeInput): CompletionComputation {
     const ctx = input.context;
@@ -129,9 +132,9 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
             return { items: [], isIncomplete: false };
 
         case "statementStart": {
-            addStatementKeywords(input, add);
+            addStatementKeywords(input, ctx.prefix, add);
             if (input.snippetsEnabled) {
-                addSnippets(input, add);
+                addSnippets(input, ctx.prefix, add);
             }
             break;
         }
@@ -244,10 +247,10 @@ function keywordItem(
     return { label: text, kind: "keyword", insertText: text, filterText: word };
 }
 
-function addStatementKeywords(input: CompletionComputeInput, add: AddFn): void {
+function addStatementKeywords(input: CompletionComputeInput, prefix: string, add: AddFn): void {
     for (const kw of TSQL_KEYWORDS) {
         if (kw.category === "statement") {
-            add(keywordItem(input, kw.id), "");
+            add(keywordItem(input, kw.id), prefix, STATEMENT_KEYWORD_BOOSTS[kw.id] ?? 0);
         }
     }
 }
@@ -279,7 +282,7 @@ function addExpressionKeywords(input: CompletionComputeInput, prefix: string, ad
     }
 }
 
-function addSnippets(input: CompletionComputeInput, add: AddFn): void {
+function addSnippets(input: CompletionComputeInput, prefix: string, add: AddFn): void {
     for (const snippet of TSQL_SNIPPETS) {
         add(
             {
@@ -290,7 +293,7 @@ function addSnippets(input: CompletionComputeInput, add: AddFn): void {
                 detail: snippet.description,
                 filterText: snippet.prefix,
             },
-            "",
+            prefix,
         );
     }
 }
@@ -458,11 +461,15 @@ function addMemberAccess(
               ? parts[1]
               : undefined;
     if (schemaName !== undefined) {
-        const knownSchema = input.pinned
-            .listSchemas()
-            .some((s) => s.name.toLowerCase() === schemaName.toLowerCase());
+        const systemSchema = isSystemSchemaName(schemaName);
+        const knownSchema =
+            systemSchema ||
+            input.pinned
+                .listSchemas()
+                .some((s) => s.name.toLowerCase() === schemaName.toLowerCase());
         if (knownSchema) {
             if (
+                !systemSchema &&
                 input.pinned.readiness.objects !== "ready" &&
                 input.pinned.readiness.objects !== "partial"
             ) {

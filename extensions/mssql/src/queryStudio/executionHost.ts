@@ -27,6 +27,7 @@ import { beginRunRecord, completeRunRecord } from "./replay/qsRunCapture";
 import { RowStore } from "./rowStore";
 
 export interface ExecutionHostEvents {
+    onRunStarted?(startedEpochMs: number): void;
     onResultSetStarted(summary: QsResultSetSummary): void;
     onRowsAppended(resultSetId: string, newRowCount: number, complete: boolean): void;
     onResultSetEnded(resultSetId: string, rowCount: number, truncatedReason?: string): void;
@@ -91,7 +92,8 @@ export class ExecutionHost {
             this.executionState.kind === "executing" ||
             this.executionState.kind === "cancelRequested"
         ) {
-            return { started: false, reason: "A query is already executing." };
+            void this.cancel();
+            return { started: false, reason: "Canceling the running query." };
         }
         if (text.trim().length === 0) {
             return { started: false, reason: "Nothing to execute." };
@@ -186,6 +188,7 @@ export class ExecutionHost {
         // first synthesized message (the first batch's "Started executing
         // query at Line N") synchronously inside run() — listeners must
         // already know a new run owns the message stream.
+        this.fan((l) => l.onRunStarted?.(this.startedEpochMs ?? Date.now()));
         this.fan((l) => l.onExecutionStateChanged());
         void this.orchestrator
             .run(text, {
@@ -199,12 +202,14 @@ export class ExecutionHost {
             .then(
                 (result) => this.finishRun(result),
                 (error) => {
-                    this.messages.push({
+                    const row: QsMessageRow = {
                         batchIndex: 0,
                         kind: "error",
                         text: error instanceof Error ? error.message : String(error),
                         epochMs: Date.now(),
-                    });
+                    };
+                    this.messages.push(row);
+                    this.fan((l) => l.onMessages([row]));
                     this.finishRun({
                         status: "failed",
                         batches: 0,

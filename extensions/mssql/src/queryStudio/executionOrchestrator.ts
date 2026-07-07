@@ -317,6 +317,7 @@ export class ExecutionOrchestrator {
         const endedSets = new Set<string>();
         const planSets = new Set<string>();
         const rowCounts = new Map<string, number>();
+        let errorMessagesSeen = 0;
         const synthesizeRowsAffected = (count: number) => {
             events.onMessages([
                 {
@@ -327,6 +328,23 @@ export class ExecutionOrchestrator {
                     epochMs: Date.now(),
                 },
             ]);
+        };
+        const synthesizeSummaryError = (summary: QueryCompleteSummary) => {
+            if (summary.error === undefined || errorMessagesSeen > 0) {
+                return;
+            }
+            const server = summary.error.server;
+            const message: ServerMessage = {
+                kind: "error",
+                text: summary.error.message,
+                ...(server?.number !== undefined ? { number: server.number } : {}),
+                ...(server?.severity !== undefined ? { severity: server.severity } : {}),
+                ...(server?.state !== undefined ? { state: server.state } : {}),
+                ...(server?.line !== undefined ? { line: server.line } : {}),
+                ...(server?.procedure !== undefined ? { procedure: server.procedure } : {}),
+            };
+            errorMessagesSeen++;
+            events.onMessages([orchestrator.toMessageRow(message, batch, batchIndex, options)]);
         };
         const sink: IQueryEventSink = {
             onResultSetStarted(meta) {
@@ -373,6 +391,9 @@ export class ExecutionOrchestrator {
                 }
             },
             onMessage(message) {
+                if (message.kind === "error") {
+                    errorMessagesSeen++;
+                }
                 events.onMessages([orchestrator.toMessageRow(message, batch, batchIndex, options)]);
             },
             onResultSetEnded(info) {
@@ -402,6 +423,7 @@ export class ExecutionOrchestrator {
         );
         this.activeHandle = handle;
         return handle.completion.then((summary) => {
+            synthesizeSummaryError(summary);
             // Cancel/lost truncation truthfulness: any set still open is
             // marked (partial grids never masquerade as complete).
             if (summary.status === "canceled" || summary.status === "connectionLost") {

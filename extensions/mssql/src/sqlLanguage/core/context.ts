@@ -14,7 +14,7 @@ import { ClauseKind, StatementSketch } from "./sketch";
 
 export type CompletionContext =
     | { readonly kind: "none"; readonly reason: "comment" | "string" | "sqlcmd" }
-    | { readonly kind: "statementStart" }
+    | { readonly kind: "statementStart"; readonly prefix: string }
     | {
           readonly kind: "memberAccess";
           /** Qualifier chain before the final dot (e.g. ["o"] or ["Sales"]). */
@@ -216,7 +216,7 @@ export function classifyContext(
     // At/before the first word of the statement → statement start.
     const firstWordEnd = firstSignificantEnd(tokens, sketch, offset);
     if (firstWordEnd === undefined || offset <= firstWordEnd) {
-        return { kind: "statementStart" };
+        return { kind: "statementStart", prefix };
     }
 
     return { kind: "expression", scopeId, clause: "body", prefix };

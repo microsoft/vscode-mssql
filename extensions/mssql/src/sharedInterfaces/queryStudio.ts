@@ -338,6 +338,8 @@ export interface QsInlineCompletionParams {
     line: number;
     /** 0-based UTF-16 column. */
     character: number;
+    /** Hash of the webview text the position was computed against. */
+    textHash?: string;
     trigger: "automatic" | "invoke";
 }
 
@@ -380,6 +382,9 @@ export namespace QsGetDiagnosticsSummaryRequest {
 
 export namespace QsStateChangedNotification {
     export const type = new NotificationType<QsState>("qs/stateChanged");
+}
+export namespace QsRunStartedNotification {
+    export const type = new NotificationType<{ startedEpochMs: number }>("qs/runStarted");
 }
 export namespace QsSyncInitNotification {
     export const type = new NotificationType<QsSyncInit>("qs/syncInit");

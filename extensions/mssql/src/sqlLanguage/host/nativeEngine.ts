@@ -275,7 +275,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 const result = computeCompletion({
                     text: req.text,
                     offset,
-                    context: { kind: "statementStart" },
+                    context: { kind: "statementStart", prefix: "" },
                     sketch,
                     binding: bindStatement({
                         text: req.text,
