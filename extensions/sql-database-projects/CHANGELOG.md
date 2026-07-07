@@ -6,6 +6,8 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+- Updates default Microsoft.Build.Sql version to 2.2.0
+
 ## [1.6.2] - 2026-07-15
 
 - Added **Rename Symbol** refactoring support for SQL project files.
