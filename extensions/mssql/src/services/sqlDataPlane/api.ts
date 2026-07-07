@@ -186,7 +186,7 @@ export interface ExecuteOptions {
     priority?: "interactive" | "background";
     /** Diag/replay label — metadata only, never SQL-derived text. */
     tag?: string;
-    commandKind?: "user" | "metadata" | "plan" | "parse" | "replay";
+    commandKind?: "user" | "metadata" | "plan" | "parse" | "replay" | "centralUpload";
     timeoutMs?: number;
     expectedDatabase?: string;
     catalogGeneration?: number;
