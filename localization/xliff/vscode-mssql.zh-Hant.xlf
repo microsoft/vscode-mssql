@@ -1140,6 +1140,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the error message</note>
         <target state="translated">取消查詢失敗︰{0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++d09d0b9c54e5b4f0d495d4ecb562baa57fced06448e89522241c5b6e1b8641a4">
+        <source xml:lang="en">Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.</source>
+        <target state="new">Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
         <source xml:lang="en">Cannot cancel query as no query is running.</source>
         <target state="translated">在未執行查詢的情況下，無法取消查詢。</target>
