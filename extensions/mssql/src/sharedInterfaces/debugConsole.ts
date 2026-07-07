@@ -495,6 +495,7 @@ export interface SqlActivityRow {
 // ---------------------------------------------------------------------------
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
+import type { InlineCompletionDebugWebviewState } from "./inlineCompletionDebug";
 
 export interface SourceOverview {
     kpis: SourceKpis;
@@ -728,6 +729,31 @@ export namespace DcOpenCompletionsViewerRequest {
     export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
         "dc/openCompletionsViewer",
     );
+}
+
+// Console-hosted Inline Completion Debug (forked Live experience) -----------
+// The Completions page hosts a fork of the standalone viewer's Live tab. State
+// is pull-based: the webview requests the full InlineCompletionDebugWebviewState
+// snapshot, dispatches reducer-named actions over dc/icDebugAction (the fresh
+// state comes back on the response), and re-pulls when the host pokes it with
+// dc/icDebugChanged.
+
+export namespace DcIcDebugStateRequest {
+    export const type = new RequestType<void, InlineCompletionDebugWebviewState, void>(
+        "dc/icDebugState",
+    );
+}
+
+export namespace DcIcDebugActionRequest {
+    export const type = new RequestType<
+        { name: string; payload?: unknown },
+        InlineCompletionDebugWebviewState,
+        void
+    >("dc/icDebugAction");
+}
+
+export namespace DcIcDebugChangedNotification {
+    export const type = new NotificationType<void>("dc/icDebugChanged");
 }
 
 // History (cross-session) ---------------------------------------------------

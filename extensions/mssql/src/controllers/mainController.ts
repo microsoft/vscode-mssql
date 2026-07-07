@@ -43,6 +43,7 @@ import {
     makeCentralProbeSession,
     queryCentralRows,
 } from "../diagnostics/centralUpload";
+import { configureCompletionsDebugHost } from "../diagnostics/completionsDebugConsoleHost";
 import { assertUploadable, projectDiagSession } from "../sharedInterfaces/centralContract";
 import * as os from "os";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
@@ -505,6 +506,10 @@ export default class MainController implements vscode.Disposable {
                 this.inlineCompletionSchemaContextService,
             );
             setSharedInlineCompletionProvider(inlineCompletionProvider);
+            configureCompletionsDebugHost({
+                extensionContext: this._context,
+                schemaContextService: this.inlineCompletionSchemaContextService,
+            });
             const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
             this._context.subscriptions.push(
                 { dispose: () => setSharedInlineCompletionProvider(undefined) },

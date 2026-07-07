@@ -42,6 +42,9 @@ import {
     DcSelfTestProgressNotification,
     DcCompletionsStatusRequest,
     DcCompletionsEnableRequest,
+    DcIcDebugActionRequest,
+    DcIcDebugChangedNotification,
+    DcIcDebugStateRequest,
     DcOpenCompletionsViewerRequest,
     DcCentralPreviewRequest,
     DcCentralUploadProgressNotification,
@@ -59,6 +62,11 @@ import {
     sqlActivityRows,
     userActions,
 } from "../diagnostics/analysis";
+import {
+    ConsoleCompletionsDebugHost,
+    createConsoleCompletionsDebugHost,
+    createEmptyConsoleCompletionsDebugState,
+} from "../diagnostics/completionsDebugConsoleHost";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
 import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
@@ -120,6 +128,8 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     private perfRunCounter = 0;
     private readonly selfTest: SelfTestService;
     private readonly perfHistory: PerfHistoryService;
+    /** Console-hosted Inline Completion Debug host (lazy; gated on the feature). */
+    private icDebugHost: ConsoleCompletionsDebugHost | undefined;
     public disposed = false;
 
     constructor(
@@ -196,6 +206,8 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             this.disposed = true;
             diag.removeSink(this.liveTail.id);
             diag.removeSink(archiveSinkId);
+            this.icDebugHost?.dispose();
+            this.icDebugHost = undefined;
         });
 
         diag.onCaptureModeChanged((mode) => {
@@ -703,6 +715,22 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             return { ok: true };
         });
 
+        // Console-hosted Inline Completion Debug (forked Live experience): the
+        // host wraps the singleton capture store; it comes up lazily on the
+        // first state pull and only while the feature gate is on. When gated
+        // off, the page gets the honest empty default state instead.
+        this.onRequest(DcIcDebugStateRequest.type, async () => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getState() : createEmptyConsoleCompletionsDebugState();
+        });
+
+        this.onRequest(DcIcDebugActionRequest.type, async ({ name, payload }) => {
+            const host = this.ensureIcDebugHost();
+            return host
+                ? host.dispatchAction(name, payload)
+                : createEmptyConsoleCompletionsDebugState();
+        });
+
         // Central observability upload (central design §8.3): preview is the
         // exact projection dry-run; upload streams the same item stream. Only
         // stored (closed/partial) sessions are uploadable in v1 (C-6) — the
@@ -781,6 +809,30 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 return { outcome: "failed", error: (error as Error).message };
             }
         });
+    }
+
+    /**
+     * Lazily create the console-hosted Inline Completion Debug host. Only when
+     * the feature gate is on and the inline-completion module configured its
+     * dependencies (configureCompletionsDebugHost in mainController); returns
+     * undefined otherwise so callers fall back to the empty default state.
+     */
+    private ensureIcDebugHost(): ConsoleCompletionsDebugHost | undefined {
+        if (this.disposed) {
+            return undefined;
+        }
+        if (!this.icDebugHost && isInlineCompletionFeatureEnabled()) {
+            const host = createConsoleCompletionsDebugHost();
+            if (host) {
+                host.onDidChange(() => {
+                    if (!this.disposed) {
+                        void this.sendNotification(DcIcDebugChangedNotification.type, undefined);
+                    }
+                });
+                this.icDebugHost = host;
+            }
+        }
+        return this.icDebugHost;
     }
 
     /** Resolve target + source + projection for the central upload RPCs. */

@@ -4,13 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Completions page: enablement, live substrate activity, and the door to the
- * full-fidelity Inline Completion Debug panel.
+ * Completions page: enablement plus the console-hosted Inline Completion Debug
+ * Live experience (forked from the standalone viewer; replay & sessions stay
+ * in the standalone panel for now).
  *
- * Privacy split (deliberate): this page renders substrate DiagEvents only —
- * protocol metadata (trigger, stages, result, latency), never prompt or
- * document text. Prompt/response/schema-context fidelity lives in the
- * dedicated debug panel, whose capture store is feature-gated.
+ * Privacy split (deliberate): while the feature gate is OFF this page renders
+ * substrate DiagEvents only — protocol metadata (trigger, stages, result,
+ * latency), never prompt or document text. Once the gate is ON, the hosted
+ * debug experience shows the same full-fidelity events (prompts, responses,
+ * schema context) as the standalone viewer — this is the gated debug surface.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -23,6 +25,8 @@ import {
     DiagEvent,
 } from "../../../sharedInterfaces/debugConsole";
 import { EmptyState, PageHeader, formatTime } from "./common";
+import { ConsoleCompletionsDebugStateProvider } from "./completionsDebug/consoleStateProvider";
+import { InlineCompletionDebugPage } from "./completionsDebug/LivePage";
 import { useDc } from "./state";
 
 function Pill({ on, labelOn, labelOff }: { on: boolean; labelOn: string; labelOff: string }) {
@@ -175,47 +179,66 @@ export function CompletionsPage() {
                     <div className="dc-muted">loading…</div>
                 )}
             </div>
-            <div className="dc-card">
-                <div className="dc-card-title">Live activity (substrate, redacted)</div>
-                {events.length === 0 ? (
-                    <EmptyState
-                        title="No completion activity in this source"
-                        body="Requests, stages, results and latency appear here as you type in a .sql editor. Prompt and response text never rides these events — use the debug viewer for full fidelity."
-                    />
-                ) : (
-                    <table className="dc-table">
-                        <thead>
-                            <tr>
-                                <th>time</th>
-                                <th>type</th>
-                                <th>status</th>
-                                <th>trigger/stage</th>
-                                <th>result</th>
-                                <th>latency</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {events.map((e) => (
-                                <tr key={e.eventId}>
-                                    <td className="dc-mono">{formatTime(e.epochMs)}</td>
-                                    <td className="dc-mono">{e.type}</td>
-                                    <td>{e.status}</td>
-                                    <td className="dc-mono">
-                                        {field(e, "trigger") || field(e, "stage")}
-                                    </td>
-                                    <td className="dc-mono">{field(e, "result")}</td>
-                                    <td className="dc-mono">
-                                        {field(e, "latencyMs") ||
-                                            (e.durationMs !== undefined
-                                                ? `${Math.round(e.durationMs)}ms`
-                                                : "")}
-                                    </td>
+            {status?.featureEnabled ? (
+                // Console-hosted fork of the standalone viewer's Live tab: full
+                // fidelity (prompts, responses, schema context) straight from the
+                // shared capture store. Replay & sessions still open the
+                // standalone viewer (button above).
+                <div
+                    className="dc-card"
+                    style={{
+                        flexGrow: 1,
+                        minHeight: 480,
+                        padding: 0,
+                        overflow: "hidden",
+                    }}>
+                    <ConsoleCompletionsDebugStateProvider>
+                        <InlineCompletionDebugPage />
+                    </ConsoleCompletionsDebugStateProvider>
+                </div>
+            ) : (
+                <div className="dc-card">
+                    <div className="dc-card-title">Live activity (substrate, redacted)</div>
+                    {events.length === 0 ? (
+                        <EmptyState
+                            title="No completion activity in this source"
+                            body="Requests, stages, results and latency appear here as you type in a .sql editor. Prompt and response text never rides these events — use the debug viewer for full fidelity."
+                        />
+                    ) : (
+                        <table className="dc-table">
+                            <thead>
+                                <tr>
+                                    <th>time</th>
+                                    <th>type</th>
+                                    <th>status</th>
+                                    <th>trigger/stage</th>
+                                    <th>result</th>
+                                    <th>latency</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+                            </thead>
+                            <tbody>
+                                {events.map((e) => (
+                                    <tr key={e.eventId}>
+                                        <td className="dc-mono">{formatTime(e.epochMs)}</td>
+                                        <td className="dc-mono">{e.type}</td>
+                                        <td>{e.status}</td>
+                                        <td className="dc-mono">
+                                            {field(e, "trigger") || field(e, "stage")}
+                                        </td>
+                                        <td className="dc-mono">{field(e, "result")}</td>
+                                        <td className="dc-mono">
+                                            {field(e, "latencyMs") ||
+                                                (e.durationMs !== undefined
+                                                    ? `${Math.round(e.durationMs)}ms`
+                                                    : "")}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            )}
         </>
     );
 }
