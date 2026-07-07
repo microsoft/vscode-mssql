@@ -18,13 +18,7 @@ import { SqlDatabaseProjectTreeViewProvider } from "./databaseProjectTreeViewPro
 import { FolderNode, FileNode } from "../models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../models/tree/baseTreeItem";
 import { ImportDataModel } from "../models/api/import";
-import {
-    NetCoreTool,
-    DotNetError,
-    getMicrosoftBuildSqlVersion,
-    resolveNugetVersion,
-    OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
-} from "../tools/netcoreTool";
+import { NetCoreTool, DotNetError, getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
 import { BuildHelper } from "../tools/buildHelper";
 import {
     ISystemDatabaseReferenceSettings,
@@ -140,22 +134,7 @@ export class ProjectsController {
         }
 
         const sqlProjectsService = await utils.getSqlProjectsService();
-
-        let microsoftBuildSqlSDKStyleDefaultVersion: string;
-        try {
-            microsoftBuildSqlSDKStyleDefaultVersion = await resolveNugetVersion(
-                "Microsoft.Build.Sql",
-                getMicrosoftBuildSqlVersion(),
-            );
-        } catch (e) {
-            microsoftBuildSqlSDKStyleDefaultVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
-            void vscode.window.showWarningMessage(
-                constants.couldNotResolveNugetVersion(
-                    utils.getErrorMessage(e),
-                    microsoftBuildSqlSDKStyleDefaultVersion,
-                ),
-            );
-        }
+        const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion();
         const projectStyle = creationParams.sdkStyle
             ? mssqlVscode.ProjectType.SdkStyle
             : mssqlVscode.ProjectType.LegacyStyle;
