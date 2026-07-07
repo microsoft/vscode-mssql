@@ -182,12 +182,18 @@ export class ExecutionHost {
             },
         });
 
+        // State fan-out BEFORE the run starts: the orchestrator emits its
+        // first synthesized message ("Started executing query at Line N")
+        // synchronously inside run() — listeners must already know a new
+        // run owns the message stream.
+        this.fan((l) => l.onExecutionStateChanged());
         void this.orchestrator
             .run(text, {
                 selectionStartLine: options.selectionStartLine,
                 stopOnError: false,
                 scope: options.scope,
                 mode: options.mode ?? "normal",
+                startedEpochMs: this.startedEpochMs ?? Date.now(),
                 ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
             })
             .then(
@@ -209,7 +215,6 @@ export class ExecutionHost {
                     });
                 },
             );
-        this.fan((l) => l.onExecutionStateChanged());
         return { started: true };
     }
 

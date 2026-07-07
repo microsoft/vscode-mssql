@@ -24,6 +24,7 @@ import {
     QsConnectRequest,
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
+    QsGetMessagesRequest,
     QsMessageRow,
     QsInlineCompletionAcceptedRequest,
     QsInlineCompletionRequest,
@@ -90,6 +91,12 @@ export function QueryStudioApp() {
     const [activeTab, setActiveTab] = useState<"results" | "messages">("results");
     const [resultsCollapsed, setResultsCollapsed] = useState(false);
     const [resultsHeightPct, setResultsHeightPct] = useState(45);
+    // Grid maximize/restore (issue A): one grid can fill the whole results
+    // pane; the others stay mounted but hidden. Reset per run.
+    const [maximizedGridId, setMaximizedGridId] = useState<string | undefined>(undefined);
+    // Measured results-body height — drives stacked-grid default heights.
+    const resultsBodyRef = useRef<HTMLDivElement | null>(null);
+    const [resultsPaneHeight, setResultsPaneHeight] = useState<number | undefined>(undefined);
     // Transient reason from a refused run attempt (execute guards return
     // { started: false, reason } — silence here was the "Execute does
     // nothing" bug). Overrides the host status line until the next attempt.
@@ -284,21 +291,32 @@ export function QueryStudioApp() {
         actualPlanEnabledRef.current = state?.toggles.actualPlan ?? false;
     }, [state]);
     useEffect(() => {
-        if (executionKind === "executing" && renderedRunRef.current !== runId) {
-            setActionHint(undefined);
-            setMessages([]);
-            setRowVersions({});
-            setActiveTab("results");
-            setResultsCollapsed(false);
-        }
-        // QS-1: consume the armed plan-mode flag once per run and reset the
-        // "already auto-opened" tracking for the new run.
+        // Per-run webview reset: ONCE per run (startedRunRef), never per
+        // state push — the old `renderedRunRef` guard stayed unequal for the
+        // whole run, so EVERY executing-kind push wiped `messages` again and
+        // a finished run showed "No messages".
         if (
             executionKind === "executing" &&
             runId !== undefined &&
             startedRunRef.current !== runId
         ) {
             startedRunRef.current = runId;
+            setActionHint(undefined);
+            setRowVersions({});
+            setActiveTab("results");
+            setResultsCollapsed(false);
+            setMaximizedGridId(undefined);
+            // Message notifications can beat this (debounced) state push —
+            // clearing alone would drop the run's opening lines. Replace
+            // with the host's snapshot instead: notifications processed
+            // after the response are strictly newer than the snapshot
+            // (ordered channel), so nothing is lost or duplicated.
+            setMessages([]);
+            void rpc
+                .sendRequest(QsGetMessagesRequest.type, {})
+                .then((result) => setMessages(result.messages));
+            // QS-1: consume the armed plan-mode flag once per run and reset
+            // the "already auto-opened" tracking for the new run.
             planAutoOpenRef.current = {
                 ...(planRunArmedRef.current ? { runId } : {}),
                 opened: new Set(),
@@ -473,25 +491,38 @@ export function QueryStudioApp() {
         });
     }, [rpc, state]);
 
-    // Keybindings (addendum §4): F5/Ctrl+E execute; Ctrl+R toggles results.
+    // Keybindings (addendum §4): F5/Ctrl+E execute; Ctrl+R toggles results;
+    // Alt+B cancels. CAPTURE phase + stopPropagation: VS Code's webview
+    // bootstrap forwards bubbled keydowns to the workbench keybinding
+    // service, so an un-stopped F5 here ALSO started a debug session in VS
+    // Code. Chords this app does not handle fall through untouched — the
+    // editor's clipboard/typing keys must keep their browser defaults.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === "F5") {
-                e.preventDefault();
+            const noMods = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
+            const ctrlOnly = e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
+            const altOnly = e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey;
+            let handled = false;
+            if (e.key === "F5" && noMods) {
                 execute();
-            } else if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "e") {
-                e.preventDefault();
+                handled = true;
+            } else if (ctrlOnly && e.key.toLowerCase() === "e") {
                 execute();
-            } else if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "r") {
-                e.preventDefault();
+                handled = true;
+            } else if (ctrlOnly && e.key.toLowerCase() === "r") {
                 setResultsCollapsed((c) => !c);
-            } else if (e.altKey && e.key.toLowerCase() === "b") {
-                e.preventDefault();
+                handled = true;
+            } else if (altOnly && e.key.toLowerCase() === "b") {
                 cancel();
+                handled = true;
+            }
+            if (handled) {
+                e.preventDefault();
+                e.stopPropagation();
             }
         };
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
+        window.addEventListener("keydown", onKey, true);
+        return () => window.removeEventListener("keydown", onKey, true);
     }, [execute, cancel]);
 
     // --- inline completions (B6): ghost text via the host's shared provider ----
@@ -783,6 +814,32 @@ export function QueryStudioApp() {
     const showResults = (results?.present ?? false) && !resultsCollapsed;
     const errorCount = results?.errorCount ?? 0;
 
+    // Results-pane sizing (issue A): a lone result set (or a maximized one)
+    // FILLS the pane — the grid's virtualized scrollbar is THE scrollbar.
+    // Stacked grids size off the measured pane height (~40% each) and the
+    // pane scrolls through the stack.
+    const resultSetSummaries = results?.resultSets ?? [];
+    const maximizedGrid = resultSetSummaries.some((s) => s.resultSetId === maximizedGridId)
+        ? maximizedGridId
+        : undefined;
+    const singleGrid = resultSetSummaries.length === 1;
+    const resultsFillActive =
+        activeTab === "results" &&
+        resultSetSummaries.length > 0 &&
+        (singleGrid || maximizedGrid !== undefined);
+    useEffect(() => {
+        const el = resultsBodyRef.current;
+        if (!el) {
+            return;
+        }
+        const measure = () =>
+            setResultsPaneHeight((prev) => (prev === el.clientHeight ? prev : el.clientHeight));
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [showResults]);
+
     // Live elapsed ticker (SSMS parity): while executing, derive elapsed
     // locally from startedEpochMs so the clock counts even when no row or
     // message events arrive; terminal states show the host's final value.
@@ -944,20 +1001,41 @@ export function QueryStudioApp() {
                                 <span className="qs-muted qs-streaming">streaming…</span>
                             ) : null}
                         </div>
-                        <div className="qs-results-body">
+                        <div
+                            className={`qs-results-body${resultsFillActive ? " qs-results-body-fill" : ""}`}
+                            ref={resultsBodyRef}>
                             {activeTab === "results" ? (
                                 results.resultSets.length > 0 ? (
                                     // Lazy mounting: captions always render; grid
                                     // bodies mount near the viewport (never unmount).
-                                    results.resultSets.map((summary) => (
-                                        <ResultGridBlock
-                                            key={summary.resultSetId}
-                                            rpc={rpc}
-                                            summary={summary}
-                                            version={rowVersions[summary.resultSetId] ?? 0}
-                                            gridStyle={state?.gridStyle}
-                                        />
-                                    ))
+                                    results.resultSets.map((summary) => {
+                                        const isMaximized = maximizedGrid === summary.resultSetId;
+                                        return (
+                                            <ResultGridBlock
+                                                key={summary.resultSetId}
+                                                rpc={rpc}
+                                                summary={summary}
+                                                version={rowVersions[summary.resultSetId] ?? 0}
+                                                gridStyle={state?.gridStyle}
+                                                sizing={
+                                                    singleGrid || isMaximized ? "fill" : "stacked"
+                                                }
+                                                paneHeight={resultsPaneHeight}
+                                                hidden={maximizedGrid !== undefined && !isMaximized}
+                                                maximized={isMaximized}
+                                                onToggleMaximize={
+                                                    singleGrid
+                                                        ? undefined
+                                                        : () =>
+                                                              setMaximizedGridId(
+                                                                  isMaximized
+                                                                      ? undefined
+                                                                      : summary.resultSetId,
+                                                              )
+                                                }
+                                            />
+                                        );
+                                    })
                                 ) : (
                                     <div className="qs-muted qs-message">
                                         No result sets returned.

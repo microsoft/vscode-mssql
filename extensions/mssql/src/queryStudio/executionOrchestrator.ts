@@ -61,6 +61,12 @@ export interface RunOptions {
     mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
     /** Per-query timeout (mssql.query.executionTimeout); undefined = none. */
     timeoutMs?: number;
+    /**
+     * Host-run start epoch — anchors the synthesized
+     * "Total execution time" message to the host's clock (SSMS parity).
+     * Defaults to Date.now() at run() entry.
+     */
+    startedEpochMs?: number;
 }
 
 export interface RunResult {
@@ -113,20 +119,45 @@ export class ExecutionOrchestrator {
     }
 
     async run(text: string, options: RunOptions): Promise<RunResult> {
-        const wrapper = MODE_WRAPPERS[options.mode ?? "normal"];
-        if (!wrapper) {
-            return this.runCore(text, options);
-        }
-        // SET wrapper batches run OUTSIDE the user loop; the OFF side is
-        // best-effort ALWAYS (finally), even after cancel/failure — the
-        // session must never stay in parse/plan mode (doc 04 §12.5).
-        await this.runSetBatch(wrapper.on);
+        // Classic/SSMS message parity: the host synthesizes the run's
+        // bookend messages — the wire only carries real server messages,
+        // so a clean SELECT used to leave the Messages tab empty.
+        const startedEpochMs = options.startedEpochMs ?? Date.now();
+        this.events.onMessages([
+            {
+                batchIndex: -1,
+                kind: "info",
+                text: `Started executing query at Line ${options.selectionStartLine}`,
+                epochMs: startedEpochMs,
+            },
+        ]);
         try {
-            return await this.runCore(text, options);
-        } finally {
-            if (this.session.state === "open") {
-                await this.runSetBatch(wrapper.off).catch(() => undefined);
+            const wrapper = MODE_WRAPPERS[options.mode ?? "normal"];
+            if (!wrapper) {
+                return await this.runCore(text, options);
             }
+            // SET wrapper batches run OUTSIDE the user loop; the OFF side is
+            // best-effort ALWAYS (finally), even after cancel/failure — the
+            // session must never stay in parse/plan mode (doc 04 §12.5).
+            await this.runSetBatch(wrapper.on);
+            try {
+                return await this.runCore(text, options);
+            } finally {
+                if (this.session.state === "open") {
+                    await this.runSetBatch(wrapper.off).catch(() => undefined);
+                }
+            }
+        } finally {
+            this.events.onMessages([
+                {
+                    batchIndex: -1,
+                    kind: "info",
+                    text: `Total execution time: ${formatTotalExecutionTime(
+                        Date.now() - startedEpochMs,
+                    )}`,
+                    epochMs: Date.now(),
+                },
+            ]);
         }
     }
 
@@ -272,6 +303,18 @@ export class ExecutionOrchestrator {
         const rowStore = this.rowStore;
         const orchestrator = this;
         const seenSets = new Set<string>();
+        const planSets = new Set<string>();
+        const synthesizeRowsAffected = (count: number) => {
+            events.onMessages([
+                {
+                    batchIndex,
+                    ...(batch.repeatTotal > 1 ? { repeatOrdinal: batch.repeatOrdinal } : {}),
+                    kind: "info",
+                    text: rowsAffectedText(count),
+                    epochMs: Date.now(),
+                },
+            ]);
+        };
         const sink: IQueryEventSink = {
             onResultSetStarted(meta) {
                 onResultSet();
@@ -286,13 +329,17 @@ export class ExecutionOrchestrator {
                     })),
                 );
                 const columnNames = meta.columns.map((c) => c.name);
+                // Heuristic (diagnostics mark planDetection: heuristic):
+                // canonical single showplan-XML column.
+                const isPlanResult = isPlanResultSet(columnNames);
+                if (isPlanResult) {
+                    planSets.add(storeId);
+                }
                 events.onResultSetStarted({
                     resultSetId: storeId,
                     batchOrdinal: batchIndex,
                     columnNames,
-                    // Heuristic (diagnostics mark planDetection: heuristic):
-                    // canonical single showplan-XML column.
-                    isPlanResult: isPlanResultSet(columnNames),
+                    isPlanResult,
                 });
             },
             async onRowsPage(page) {
@@ -315,6 +362,13 @@ export class ExecutionOrchestrator {
                 const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${info.resultSetId}`;
                 rowStore.endResultSet(storeId, info.truncatedReason);
                 events.onResultSetEnded(storeId, info.rowCount, info.truncatedReason);
+                // Classic parity: "(N rows affected)" as each result set's
+                // count completes. Skipped for plan-XML sets and for
+                // truncated/cancelled sets — a clipped count printed as
+                // affected rows would lie.
+                if (!info.truncatedReason && !planSets.has(storeId)) {
+                    synthesizeRowsAffected(info.rowCount);
+                }
             },
             onComplete() {
                 // Aggregation happens on the returned summary.
@@ -345,6 +399,10 @@ export class ExecutionOrchestrator {
                         summary.status === "canceled" ? "cancelled" : "connectionLost",
                     );
                 }
+            } else if (seenSets.size === 0 && summary.rowsAffected !== undefined) {
+                // DML batches produce no result set — surface the summary's
+                // rowsAffected as the classic "(N rows affected)" line.
+                synthesizeRowsAffected(summary.rowsAffected);
             }
             return summary;
         });
@@ -384,4 +442,20 @@ export class ExecutionOrchestrator {
     get nextMessageIndex(): number {
         return this.messageIndex++;
     }
+}
+
+/** SSMS/classic wording: "(1 row affected)" / "(N rows affected)". */
+function rowsAffectedText(count: number): string {
+    return `(${count} row${count === 1 ? "" : "s"} affected)`;
+}
+
+/** SSMS/classic "Total execution time" format: HH:MM:SS.mmm. */
+export function formatTotalExecutionTime(ms: number): string {
+    const clamped = Math.max(0, Math.floor(ms));
+    const pad2 = (n: number) => String(n).padStart(2, "0");
+    const hours = Math.floor(clamped / 3_600_000);
+    const minutes = Math.floor(clamped / 60_000) % 60;
+    const seconds = Math.floor(clamped / 1000) % 60;
+    const millis = String(clamped % 1000).padStart(3, "0");
+    return `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}.${millis}`;
 }

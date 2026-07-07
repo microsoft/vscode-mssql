@@ -48,7 +48,14 @@ import { isXmlCell } from "../../common/xmlUtils";
 const BASE_ROW_HEIGHT = 24;
 const HEADER_HEIGHT = 24;
 const OVERSCAN_ROWS = 10;
+/** Stacked-grid fallback cap while the pane height is still unmeasured. */
 const MAX_GRID_ROWS_VISIBLE = 14;
+/** Stacked default: each grid takes at most ~40% of the results pane. */
+const STACKED_PANE_FRACTION = 0.4;
+/** Stacked grids never shrink below this many data rows. */
+const MIN_STACKED_ROWS = 3;
+/** Room for the grid's own horizontal scrollbar in the stacked height. */
+const HSCROLL_ALLOWANCE = 14;
 /** Chunk size for materializing a full result set (sequential QsGetRows). */
 const MATERIALIZE_CHUNK = 512;
 /** Fallback when gridStyle hasn't arrived (matches readGridStyle's default). */
@@ -132,9 +139,37 @@ function decodeWindowRows(window: QsCellWindow): unknown[][] {
     );
 }
 
+/**
+ * Default height of a STACKED grid (multiple result sets): the full content
+ * height when it fits, else ~40% of the measured results pane — the pane
+ * scrolls through the stack, each grid scrolls its own window (issue A).
+ */
+function stackedGridHeight(
+    rowCount: number,
+    rowHeight: number,
+    paneHeight: number | undefined,
+): number {
+    const content = Math.max(rowCount, 1) * rowHeight + HEADER_HEIGHT + 2 + HSCROLL_ALLOWANCE;
+    const cap =
+        paneHeight !== undefined && paneHeight > 0
+            ? Math.max(
+                  MIN_STACKED_ROWS * rowHeight + HEADER_HEIGHT + 2,
+                  Math.floor(paneHeight * STACKED_PANE_FRACTION),
+              )
+            : MAX_GRID_ROWS_VISIBLE * rowHeight + HEADER_HEIGHT + 2;
+    return Math.min(content, cap);
+}
+
 /** Caption row shared by the live grid and the lazy placeholder. */
-function GridCaption(props: { rpc: Rpc; summary: QsResultSetSummary; children?: ReactNode }) {
-    const { rpc, summary, children } = props;
+function GridCaption(props: {
+    rpc: Rpc;
+    summary: QsResultSetSummary;
+    /** Present when the stacked view offers maximize/restore (issue A). */
+    onToggleMaximize?: (() => void) | undefined;
+    maximized?: boolean | undefined;
+    children?: ReactNode;
+}) {
+    const { rpc, summary, onToggleMaximize, maximized, children } = props;
     return (
         <div className="qs-grid-caption">
             <span className="qs-grid-caption-title">
@@ -161,6 +196,21 @@ function GridCaption(props: { rpc: Rpc; summary: QsResultSetSummary; children?: 
                 </a>
             ) : null}
             {children}
+            {onToggleMaximize ? (
+                <button
+                    className="qs-btn qs-grid-max"
+                    title={
+                        maximized
+                            ? "Restore the stacked results view"
+                            : "Maximize this grid to fill the results pane"
+                    }
+                    aria-label={maximized ? "Restore stacked view" : "Maximize grid"}
+                    onClick={onToggleMaximize}>
+                    <span
+                        className={`codicon codicon-chrome-${maximized ? "restore" : "maximize"}`}
+                    />
+                </button>
+            ) : null}
         </div>
     );
 }
@@ -319,16 +369,32 @@ function FilterPopup(props: {
     );
 }
 
+/** Sizing/maximize props shared by ResultGrid and ResultGridBlock (issue A). */
+interface GridSizingProps {
+    /** "fill": the grid IS the pane (single set / maximized); "stacked": default heights. */
+    sizing?: "fill" | "stacked" | undefined;
+    /** Measured results-body height — caps stacked default heights. */
+    paneHeight?: number | undefined;
+    /** Another grid is maximized — stay mounted, render nothing visible. */
+    hidden?: boolean | undefined;
+    maximized?: boolean | undefined;
+    onToggleMaximize?: (() => void) | undefined;
+}
+
 /** One virtualized grid over a single result set. */
-export function ResultGrid(props: {
-    rpc: Rpc;
-    summary: QsResultSetSummary;
-    /** Bumped by QsRowsAppended for this set — triggers window refresh. */
-    version: number;
-    /** Grid styling from QsState (classic mssql.resultsGrid.* parity). */
-    gridStyle?: QsGridStyle;
-}) {
-    const { rpc, summary, version, gridStyle } = props;
+export function ResultGrid(
+    props: {
+        rpc: Rpc;
+        summary: QsResultSetSummary;
+        /** Bumped by QsRowsAppended for this set — triggers window refresh. */
+        version: number;
+        /** Grid styling from QsState (classic mssql.resultsGrid.* parity). */
+        gridStyle?: QsGridStyle;
+    } & GridSizingProps,
+) {
+    const { rpc, summary, version, gridStyle, paneHeight, hidden, maximized, onToggleMaximize } =
+        props;
+    const sizing = props.sizing ?? "stacked";
     const blockRef = useRef<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [window_, setWindow] = useState<QsCellWindow | undefined>(undefined);
@@ -362,8 +428,25 @@ export function ResultGrid(props: {
     // Row height drives BOTH the virtualization math and the CSS custom
     // property — they must stay the same value (rowPadding parity).
     const rowHeight = BASE_ROW_HEIGHT + Math.max(0, gridStyle?.rowPadding ?? 0);
-    const viewportRows = Math.min(summary.rowCount, MAX_GRID_ROWS_VISIBLE);
-    const viewportHeight = viewportRows * rowHeight + HEADER_HEIGHT + 2;
+    // The MEASURED viewport height drives the virtualization math — fill
+    // mode and pane/splitter resizes change how many rows are on screen.
+    const [viewportPx, setViewportPx] = useState<number | undefined>(undefined);
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) {
+            return;
+        }
+        const measure = () =>
+            setViewportPx((prev) => (prev === el.clientHeight ? prev : el.clientHeight));
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+    const visibleRows =
+        viewportPx !== undefined
+            ? Math.max(1, Math.ceil((viewportPx - HEADER_HEIGHT) / rowHeight))
+            : Math.min(Math.max(summary.rowCount, 1), MAX_GRID_ROWS_VISIBLE);
 
     const showNotice = useCallback((text: string) => {
         setNotice(text);
@@ -511,7 +594,7 @@ export function ResultGrid(props: {
     const fetchWindow = useCallback(
         (top: number) => {
             const first = Math.max(0, Math.floor(top / rowHeight) - OVERSCAN_ROWS);
-            const count = viewportRows + OVERSCAN_ROWS * 2;
+            const count = visibleRows + OVERSCAN_ROWS * 2;
             const seq = ++fetchSeqRef.current;
             void rpc
                 .sendRequest<
@@ -524,11 +607,12 @@ export function ResultGrid(props: {
                     }
                 });
         },
-        [rpc, summary.resultSetId, viewportRows, rowHeight],
+        [rpc, summary.resultSetId, visibleRows, rowHeight],
     );
 
-    // Refetch when rows arrive: follow-tail if pinned, else count unseen.
-    // Materialized grids are complete — render locally, never refetch.
+    // Refetch when rows arrive OR the viewport grows (fill/maximize/resize):
+    // follow-tail if pinned, else count unseen. Materialized grids are
+    // complete — render locally, never refetch.
     useEffect(() => {
         if (materialized) {
             return;
@@ -537,7 +621,7 @@ export function ResultGrid(props: {
         const added = summary.rowCount - lastCountRef.current;
         lastCountRef.current = summary.rowCount;
         if (pinned && container) {
-            const bottom = Math.max(0, summary.rowCount * rowHeight - viewportRows * rowHeight);
+            const bottom = Math.max(0, container.scrollHeight - container.clientHeight);
             container.scrollTop = bottom;
             fetchWindow(bottom);
         } else {
@@ -546,7 +630,7 @@ export function ResultGrid(props: {
             }
             fetchWindow(scrollTop);
         }
-    }, [version, summary.rowCount, materialized]);
+    }, [version, summary.rowCount, materialized, visibleRows]);
 
     const onScroll = useCallback(
         (e: React.UIEvent<HTMLDivElement>) => {
@@ -585,7 +669,7 @@ export function ResultGrid(props: {
      */
     const renderWindow = useMemo(() => {
         if (materialized && viewIndices) {
-            const count = viewportRows + OVERSCAN_ROWS * 2;
+            const count = visibleRows + OVERSCAN_ROWS * 2;
             const first = Math.max(
                 0,
                 Math.min(
@@ -613,14 +697,20 @@ export function ResultGrid(props: {
             };
         }
         return undefined;
-    }, [materialized, viewIndices, window_, scrollTop, rowHeight, viewportRows]);
+    }, [materialized, viewIndices, window_, scrollTop, rowHeight, visibleRows]);
 
-    useEffect(() => {
-        const onKey = (e: KeyboardEvent) => {
-            if (!selected || !renderWindow || !(e.ctrlKey || e.metaKey)) {
-                return;
-            }
-            if (e.key.toLowerCase() !== "c") {
+    // Grid copy (Ctrl+C cell, Ctrl+Shift+C with header) is scoped to the
+    // grid's OWN focus — clicking a cell focuses the viewport (tabIndex).
+    // The previous document-level listener hijacked Ctrl+C from the Monaco
+    // editor whenever any cell had ever been selected (issue B).
+    const onGridKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLDivElement>) => {
+            if (
+                !selected ||
+                !renderWindow ||
+                !(e.ctrlKey || e.metaKey) ||
+                e.key.toLowerCase() !== "c"
+            ) {
                 return;
             }
             const rowInWindow = renderWindow.sourceIndices.indexOf(selected.row);
@@ -636,10 +726,9 @@ export function ResultGrid(props: {
                   row.map((c) => cellDisplayText(c)).join("\t")
                 : cellDisplayText(row[selected.col]);
             void navigator.clipboard.writeText(text);
-        };
-        document.addEventListener("keydown", onKey);
-        return () => document.removeEventListener("keydown", onKey);
-    }, [selected, renderWindow, summary.columnNames]);
+        },
+        [selected, renderWindow, summary.columnNames],
+    );
 
     // XML/JSON/huge-text link formats, sniffed once per rendered window.
     const linkFormats = useMemo(
@@ -676,14 +765,20 @@ export function ResultGrid(props: {
     } as CSSProperties;
     const gridBlockClass =
         `qs-grid-block qs-gridlines-${gridStyle?.showGridLines ?? "both"}` +
-        (gridStyle?.alternatingRowColors ? " qs-grid-alt-rows" : "");
+        (gridStyle?.alternatingRowColors ? " qs-grid-alt-rows" : "") +
+        (sizing === "fill" ? " qs-grid-fill" : "") +
+        (hidden ? " qs-grid-hidden" : "");
 
     const headerTitle =
         canProcessInMemory || materialized ? "Click to sort" : PROCESSING_DISABLED_NOTICE;
 
     return (
         <div className={gridBlockClass} style={gridBlockStyle} ref={blockRef}>
-            <GridCaption rpc={rpc} summary={summary}>
+            <GridCaption
+                rpc={rpc}
+                summary={summary}
+                onToggleMaximize={onToggleMaximize}
+                maximized={maximized}>
                 {materializing ? <span className="qs-muted">loading all rows…</span> : null}
                 {viewIndices && viewIndices.length !== summary.rowCount ? (
                     <span className="qs-muted">
@@ -705,7 +800,14 @@ export function ResultGrid(props: {
             <div
                 ref={containerRef}
                 className="qs-grid-viewport"
-                style={{ height: viewportHeight }}
+                // Fill mode: flex sizing (CSS) — the grid IS the pane.
+                style={
+                    sizing === "fill"
+                        ? undefined
+                        : { height: stackedGridHeight(summary.rowCount, rowHeight, paneHeight) }
+                }
+                tabIndex={-1}
+                onKeyDown={onGridKeyDown}
                 onScroll={onScroll}>
                 <table
                     className="qs-grid-table"
@@ -854,18 +956,22 @@ export function ResultGrid(props: {
  * "150% 0px") — and never unmounts again. The placeholder reserves the same
  * height as the mounted viewport so scroll geometry stays stable.
  */
-export function ResultGridBlock(props: {
-    rpc: Rpc;
-    summary: QsResultSetSummary;
-    version: number;
-    gridStyle?: QsGridStyle;
-}) {
-    const { rpc, summary, gridStyle } = props;
+export function ResultGridBlock(
+    props: {
+        rpc: Rpc;
+        summary: QsResultSetSummary;
+        version: number;
+        gridStyle?: QsGridStyle;
+    } & GridSizingProps,
+) {
+    const { rpc, summary, gridStyle, paneHeight, hidden, maximized, onToggleMaximize } = props;
     const [mounted, setMounted] = useState(false);
     const placeholderRef = useRef<HTMLDivElement | null>(null);
+    // Fill mode (single set / maximized) always mounts — it IS the pane.
+    const fill = props.sizing === "fill";
 
     useEffect(() => {
-        if (mounted) {
+        if (mounted || fill) {
             return;
         }
         const el = placeholderRef.current;
@@ -882,17 +988,27 @@ export function ResultGridBlock(props: {
         );
         observer.observe(el);
         return () => observer.disconnect();
-    }, [mounted]);
+    }, [mounted, fill]);
+    // A grid that ever filled the pane stays mounted after restore.
+    useEffect(() => {
+        if (fill) {
+            setMounted(true);
+        }
+    }, [fill]);
 
-    if (mounted) {
+    if (mounted || fill) {
         return <ResultGrid {...props} />;
     }
     const rowHeight = BASE_ROW_HEIGHT + Math.max(0, gridStyle?.rowPadding ?? 0);
-    const height =
-        Math.min(summary.rowCount, MAX_GRID_ROWS_VISIBLE) * rowHeight + HEADER_HEIGHT + 2;
+    const height = stackedGridHeight(summary.rowCount, rowHeight, paneHeight);
     return (
-        <div className="qs-grid-block" ref={placeholderRef}>
-            <GridCaption rpc={rpc} summary={summary} />
+        <div className={`qs-grid-block${hidden ? " qs-grid-hidden" : ""}`} ref={placeholderRef}>
+            <GridCaption
+                rpc={rpc}
+                summary={summary}
+                onToggleMaximize={onToggleMaximize}
+                maximized={maximized}
+            />
             <div className="qs-grid-placeholder" style={{ height }}>
                 {summary.rowCount.toLocaleString()} row{summary.rowCount === 1 ? "" : "s"} — scroll
                 to load

@@ -176,11 +176,43 @@
     overflow-y: auto;
     padding: 4px 6px;
 }
+/* Fill mode (single result set, or a maximized grid): the grid's own
+   virtualized scrollbar is THE scrollbar — the pane itself never scrolls,
+   so there is exactly one scrollbar and no dead space (issue A). */
+.qs-results-body-fill {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
 
 .qs-grid-block {
     margin-bottom: 8px;
     /* Anchors the per-column filter popup. */
     position: relative;
+}
+.qs-grid-fill {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0;
+}
+.qs-grid-fill > :not(.qs-grid-viewport) {
+    flex: 0 0 auto;
+}
+.qs-grid-fill > .qs-grid-viewport {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+/* Stay mounted (scroll/sort/selection state) while another grid is maximized. */
+.qs-grid-hidden {
+    display: none;
+}
+/* Maximize/restore control on the grid caption strip. */
+.qs-grid-max {
+    margin-left: auto;
+    height: 20px;
+    padding: 0 4px;
 }
 
 .qs-grid-caption {
@@ -209,6 +241,10 @@
     overflow: auto;
     border: 1px solid var(--vscode-editorWidget-border);
     background: var(--vscode-editor-background);
+}
+/* Focusable for scoped grid copy (Ctrl+C) — no focus ring on click. */
+.qs-grid-viewport:focus {
+    outline: none;
 }
 
 .qs-grid-table {

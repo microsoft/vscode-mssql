@@ -193,7 +193,77 @@ suite("Query Studio execution orchestrator", () => {
             stopOnError: false,
             scope: "selection",
         });
-        expect(events.messages[0].navigable?.line).to.equal(12); // 10 + 0 + (3-1)
+        // messages[0] is the synthesized "Started executing" line — find
+        // the server error among the run's messages.
+        const error = events.messages.find((m) => m.kind === "error");
+        expect(error?.navigable?.line).to.equal(12); // 10 + 0 + (3-1)
+        rowStore.dispose();
+    });
+
+    test("synthesizes classic execution messages: started line, rows affected, total time (ordered)", async () => {
+        const backend = new FakeBackend({
+            scripts: [
+                {
+                    match: (t) => t.includes("select 1"),
+                    events: [
+                        { type: "resultSet", columns: ["a"], rows: [[1], [2]] },
+                        { type: "complete", status: "succeeded", rowsAffected: 2 },
+                    ],
+                },
+                {
+                    // DML batch: no result set — rowsAffected rides the summary.
+                    match: (t) => t.includes("update t"),
+                    events: [{ type: "complete", status: "succeeded", rowsAffected: 5 }],
+                },
+            ],
+        });
+        const session = await sessionFor(backend);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        await orchestrator.run("select 1\nGO\nupdate t set x = 1", {
+            selectionStartLine: 3,
+            stopOnError: false,
+            scope: "selection",
+        });
+        const texts = events.messages.map((m) => m.text);
+        // Classic/SSMS wording, in run order.
+        expect(texts[0]).to.equal("Started executing query at Line 3");
+        expect(texts[texts.length - 1]).to.match(
+            /^Total execution time: \d{2}:\d{2}:\d{2}\.\d{3}$/,
+        );
+        const selectAffected = texts.indexOf("(2 rows affected)"); // result-set count
+        const dmlAffected = texts.indexOf("(5 rows affected)"); // summary rowsAffected
+        expect(selectAffected).to.be.greaterThan(0);
+        expect(dmlAffected).to.be.greaterThan(selectAffected); // batch order preserved
+        expect(dmlAffected).to.be.lessThan(texts.length - 1); // before total time
+        rowStore.dispose();
+    });
+
+    test("rows-affected synthesis uses singular wording for one row", async () => {
+        const backend = new FakeBackend({
+            scripts: [
+                {
+                    match: () => true,
+                    events: [
+                        { type: "resultSet", columns: ["n"], rows: [[7]] },
+                        { type: "complete", status: "succeeded", rowsAffected: 1 },
+                    ],
+                },
+            ],
+        });
+        const session = await sessionFor(backend);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        await orchestrator.run("select 7", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+        });
+        const texts = events.messages.map((m) => m.text);
+        expect(texts).to.include("(1 row affected)");
+        expect(texts).to.not.include("(1 rows affected)");
         rowStore.dispose();
     });
 
@@ -233,6 +303,8 @@ suite("Query Studio execution orchestrator", () => {
         const summary = rowStore.summary(events.resultSets[0]);
         expect(summary?.truncatedReason).to.equal("cancelled");
         expect(events.phases).to.include("cancelRequested");
+        // A cancelled set's clipped count must NOT print as "rows affected".
+        expect(events.messages.some((m) => m.text.includes("rows affected"))).to.equal(false);
         rowStore.dispose();
     });
 
