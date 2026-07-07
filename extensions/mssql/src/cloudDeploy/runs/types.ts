@@ -182,7 +182,13 @@ export interface WorkloadRegressionFinding {
     /** Workload step / query identifier. */
     readonly stepId: string;
     /** What changed vs. baseline. */
-    readonly regression: "throughput" | "latency" | "error-rate" | "plan-change";
+    readonly regression:
+        | "throughput"
+        | "latency"
+        | "error-rate"
+        | "plan-change"
+        | "logical-reads"
+        | "cpu";
     /** Numeric delta (interpretation depends on `regression`). */
     readonly delta: number;
     /** Free-form description for the UI; emitted by the workload runner. */
@@ -269,6 +275,12 @@ export interface WorkloadObservedStep {
     readonly latencyMs?: number;
     readonly throughputQps?: number;
     readonly errorRate?: number;
+    /** Actual execution-plan hash (hex) captured from the plan cache. */
+    readonly planHash?: string;
+    /** Logical reads (8 KB pages) for the step's last execution. */
+    readonly logicalReads?: number;
+    /** CPU time in milliseconds for the step's last execution. */
+    readonly cpuMs?: number;
 }
 
 // =============================================================================

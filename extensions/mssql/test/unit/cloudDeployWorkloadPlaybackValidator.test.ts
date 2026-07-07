@@ -14,13 +14,19 @@
  *   * Each spec step's query is executed `iterations` times against the
  *     ephemeral connection.
  *   * First run (no baseline) → Passed, recording observed steps.
- *   * Regression beyond threshold → Warning (not Failed), with the observed
- *     steps recorded.
+ *   * A latency regression alone → Warning (not Failed), with observed steps
+ *     recorded.
  *   * No regression against a baseline → Passed.
- *   * Threshold override changes whether a step trips.
+ *   * Latency threshold override changes whether a step trips.
  *   * A query that throws while being measured → Errored.
  *   * Pre-aborted signal throws `CancellationError` without reading the spec.
  *   * Malformed spec JSON re-throws so the runner classifies as `Errored`.
+ *   * Plan hash, logical reads, and CPU are captured into the observed steps.
+ *   * An unchanged plan with in-range I/O produces no finding.
+ *   * A bare plan change or a CPU regression alone → Warning (advisory).
+ *   * Logical reads out of range, or a plan change that also cost latency,
+ *     → Failed.
+ *   * The logical-reads threshold override changes whether a step trips.
  */
 
 import { expect } from "chai";
@@ -58,10 +64,26 @@ function liveSignal(): AbortSignal {
     return new AbortController().signal;
 }
 
+/** Returns the delay configured for the first fragment contained in `sql`. */
+function matchDelayBySubstring(
+    delays: Readonly<Record<string, number>>,
+    sql: string,
+): number | undefined {
+    for (const [fragment, delay] of Object.entries(delays)) {
+        if (sql.includes(fragment)) {
+            return delay;
+        }
+    }
+    return undefined;
+}
+
 /**
  * Test-double connection that records each executed SQL and optionally sleeps
  * a configured number of milliseconds per query so a step's measured latency
- * is deterministically high (or low). One query may be configured to throw.
+ * is deterministically high (or low). Matching is by substring so a query still
+ * matches once the validator prepends its plan-cache marker comment. One query
+ * may be configured to throw, and the plan-cache probe may be answered with a
+ * canned `[planHash, logicalReads, workerTimeUs]` row.
  */
 class MeasurableConnectionHandle implements ConnectionHandle {
     public readonly executed: string[] = [];
@@ -70,14 +92,20 @@ class MeasurableConnectionHandle implements ConnectionHandle {
     public constructor(
         private readonly _delayMsBySql: Readonly<Record<string, number>> = {},
         private readonly _throwOnSql?: string,
+        private readonly _statsRow?: readonly unknown[],
     ) {}
 
     public async execute(sql: string, _signal: AbortSignal): Promise<unknown[][]> {
         this.executed.push(sql);
-        if (this._throwOnSql !== undefined && sql === this._throwOnSql) {
+        if (this._throwOnSql !== undefined && sql.includes(this._throwOnSql)) {
             throw new Error("query blew up");
         }
-        const delay = this._delayMsBySql[sql] ?? 0;
+        // The best-effort plan-cache probe is answered with the canned stats row
+        // when configured, or an empty result (degrade to latency-only) otherwise.
+        if (sql.includes("dm_exec_query_stats")) {
+            return this._statsRow !== undefined ? [[...this._statsRow]] : [[]];
+        }
+        const delay = matchDelayBySubstring(this._delayMsBySql, sql) ?? 0;
         if (delay > 0) {
             await new Promise((resolve) => setTimeout(resolve, delay));
         }
@@ -88,9 +116,9 @@ class MeasurableConnectionHandle implements ConnectionHandle {
         this.disposed = true;
     }
 
-    /** Count of recorded executions for a given SQL string. */
+    /** Count of recorded executions whose SQL contains the given fragment. */
     public countOf(sql: string): number {
-        return this.executed.filter((s) => s === sql).length;
+        return this.executed.filter((s) => s.includes(sql)).length;
     }
 }
 
@@ -351,5 +379,241 @@ suite("CloudDeploy WorkloadPlaybackValidator", () => {
             expect(err).to.be.instanceOf(Error);
             expect((err as Error).message).to.match(/workload spec/i);
         }
+    });
+
+    test("captures plan hash, logical reads, and CPU into the observed steps", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(WORKLOAD_URI, JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }));
+        const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 512, 3000]);
+
+        const result = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            { ...RUN_OPTS_BASE, signal: liveSignal(), ephemeralConnection: connection },
+        );
+
+        expect(result.status).to.equal(ValidationStatus.Passed);
+        const observed = (result.payload as WorkloadPlaybackPayload).observedSteps?.[0];
+        expect(observed?.planHash).to.equal("0xAAA");
+        expect(observed?.logicalReads).to.equal(512);
+        expect(observed?.cpuMs).to.equal(3);
+    });
+
+    test("no finding when the plan hash and I/O are unchanged", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(WORKLOAD_URI, JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }));
+        const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 512, 3000]);
+
+        const result = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: connection,
+                workloadBaseline: [
+                    {
+                        id: "stepA",
+                        latencyMs: 5000,
+                        planHash: "0xAAA",
+                        logicalReads: 512,
+                        cpuMs: 3,
+                    },
+                ],
+            },
+        );
+
+        expect(result.status).to.equal(ValidationStatus.Passed);
+        expect((result.payload as WorkloadPlaybackPayload).findings).to.have.length(0);
+    });
+
+    test("a bare plan change is advisory (Warning, not Failed)", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(WORKLOAD_URI, JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }));
+        const connection = new MeasurableConnectionHandle({}, undefined, ["0xBBB", 512, 3000]);
+
+        const result = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: connection,
+                workloadBaseline: [
+                    {
+                        id: "stepA",
+                        latencyMs: 5000,
+                        planHash: "0xAAA",
+                        logicalReads: 512,
+                        cpuMs: 3,
+                    },
+                ],
+            },
+        );
+
+        expect(result.status).to.equal(ValidationStatus.Warning);
+        const findings = (result.payload as WorkloadPlaybackPayload).findings;
+        expect(findings.map((f) => f.regression)).to.deep.equal(["plan-change"]);
+    });
+
+    test("a plan change that also cost latency fails the run", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(
+            WORKLOAD_URI,
+            JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A, iterations: 1 }] }),
+        );
+        const connection = new MeasurableConnectionHandle({ [QUERY_A]: 40 }, undefined, [
+            "0xBBB",
+            512,
+            3000,
+        ]);
+
+        const result = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: connection,
+                workloadBaseline: [
+                    { id: "stepA", latencyMs: 1, planHash: "0xAAA", logicalReads: 512, cpuMs: 3 },
+                ],
+            },
+        );
+
+        expect(result.status).to.equal(ValidationStatus.Failed);
+        const regressions = (result.payload as WorkloadPlaybackPayload).findings.map(
+            (f) => f.regression,
+        );
+        expect(regressions).to.include("plan-change");
+        expect(regressions).to.include("latency");
+    });
+
+    test("logical-reads regression beyond threshold fails the run", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(WORKLOAD_URI, JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }));
+        const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 400, 3000]);
+
+        const result = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: connection,
+                workloadBaseline: [
+                    {
+                        id: "stepA",
+                        latencyMs: 5000,
+                        planHash: "0xAAA",
+                        logicalReads: 100,
+                        cpuMs: 3,
+                    },
+                ],
+            },
+        );
+
+        expect(result.status).to.equal(ValidationStatus.Failed);
+        const findings = (result.payload as WorkloadPlaybackPayload).findings;
+        expect(findings.map((f) => f.regression)).to.deep.equal(["logical-reads"]);
+    });
+
+    test("logical reads within range does not fail", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(WORKLOAD_URI, JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }));
+        const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 110, 3000]);
+
+        const result = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: connection,
+                workloadBaseline: [
+                    {
+                        id: "stepA",
+                        latencyMs: 5000,
+                        planHash: "0xAAA",
+                        logicalReads: 100,
+                        cpuMs: 3,
+                    },
+                ],
+            },
+        );
+
+        expect(result.status).to.equal(ValidationStatus.Passed);
+        expect((result.payload as WorkloadPlaybackPayload).findings).to.have.length(0);
+    });
+
+    test("a CPU regression on its own is advisory (Warning)", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(WORKLOAD_URI, JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }));
+        const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 100, 6000]);
+
+        const result = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: connection,
+                workloadBaseline: [
+                    {
+                        id: "stepA",
+                        latencyMs: 5000,
+                        planHash: "0xAAA",
+                        logicalReads: 100,
+                        cpuMs: 2,
+                    },
+                ],
+            },
+        );
+
+        expect(result.status).to.equal(ValidationStatus.Warning);
+        const findings = (result.payload as WorkloadPlaybackPayload).findings;
+        expect(findings.map((f) => f.regression)).to.deep.equal(["cpu"]);
+    });
+
+    test("logical-reads threshold override changes whether a step trips", async () => {
+        const env = makeEnvironmentWithValidations([]);
+        artifacts.set(WORKLOAD_URI, JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }));
+        const baseline = [
+            { id: "stepA", latencyMs: 5000, planHash: "0xAAA", logicalReads: 100, cpuMs: 3 },
+        ];
+
+        // Observed 130 pages vs baseline 100 = +30%: trips at the default 25%.
+        const strict = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: new MeasurableConnectionHandle({}, undefined, [
+                    "0xAAA",
+                    130,
+                    3000,
+                ]),
+                workloadBaseline: baseline,
+            },
+        );
+        expect(strict.status).to.equal(ValidationStatus.Failed);
+
+        // The same +30% is under a 50% override: no regression.
+        const lenient = await validator.run(
+            env,
+            { workloadUri: WORKLOAD_URI, logicalReadsRegressionThreshold: 0.5 },
+            {
+                ...RUN_OPTS_BASE,
+                signal: liveSignal(),
+                ephemeralConnection: new MeasurableConnectionHandle({}, undefined, [
+                    "0xAAA",
+                    130,
+                    3000,
+                ]),
+                workloadBaseline: baseline,
+            },
+        );
+        expect(lenient.status).to.equal(ValidationStatus.Passed);
     });
 });

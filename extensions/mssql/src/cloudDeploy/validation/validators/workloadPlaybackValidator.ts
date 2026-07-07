@@ -7,21 +7,25 @@
  * Cloud Deploy — `WorkloadPlaybackValidator`.
  *
  * Loads a workload spec via the injected `ArtifactProvider`, then measures
- * each step IN-PROCESS by timing its query against the per-run ephemeral
- * database the runner provisioned. Each step is run
- * a few times and the median latency is recorded. The fresh measurements are
- * compared to a RUN-BASED baseline: the measured steps of the
- * most-recent earlier run of this environment whose schema differed, injected
- * by the runner via `opts.workloadBaseline`. One finding is emitted per step
- * whose latency regressed beyond its threshold.
+ * each step IN-PROCESS against the per-run ephemeral database the runner
+ * provisioned. For each step it times the query (median of N iterations) AND,
+ * best-effort, captures two deterministic signals from the plan cache: the
+ * actual execution-plan hash and the logical reads / CPU time of the last
+ * execution. The fresh measurements are compared to a RUN-BASED baseline: the
+ * measured steps of the most-recent earlier run of this environment whose
+ * schema differed, injected by the runner via `opts.workloadBaseline`. One
+ * finding is emitted per step per axis that regressed beyond its threshold.
  *
  * The workload spec is a permissive JSON object `{ steps: [{ id, query,
  * iterations? }] }`; steps missing an `id` or `query` are dropped so a partial
  * spec measures what it can rather than failing the run.
  *
- * A performance regression is surfaced as a `Warning`, NOT a `Failed`: perf
- * cost is a judgment call — a dev may knowingly add an expensive feature — so
- * the validator reports the delta without blocking the run.
+ * Signals are tiered by how deterministic they are. Plan hash and logical
+ * reads depend on schema + query shape, not on how busy the box is, so they
+ * drive the verdict; wall-clock latency and CPU are noisy in a throwaway
+ * container, so they are advisory. A plan change on its own is advisory (the
+ * new plan may be an improvement); a plan change that ALSO cost latency is
+ * treated as a real regression.
  *
  * Outcome mapping:
  *   * No ephemeral connection (no runtime validator provisioned one) →
@@ -32,8 +36,10 @@
  *   * No run-based baseline (first run, or no comparable predecessor) →
  *     `Passed`, recording the fresh measurements for the next run to baseline.
  *   * Baseline present, no step regressed → `Passed`.
- *   * Baseline present, one or more steps regressed → `Warning` with one
- *     finding per regressed step.
+ *   * Baseline present, only advisory signals regressed (latency / CPU /
+ *     throughput / a bare plan change) → `Warning`.
+ *   * Baseline present, a deterministic signal regressed (logical reads out of
+ *     range, or a plan change paired with a latency regression) → `Failed`.
  *   * A workload query throws while being measured → `Errored`.
  *   * `CancellationError` (entry / artifact-read / measurement) → re-thrown
  *     so the runner reconciles `"user"` vs `"timeout"`.
@@ -42,7 +48,9 @@
  * Threshold defaults are deliberately conservative (25 % latency / 25 %
  * throughput / 5pp error-rate) so first-time users see the validator behave
  * sanely without any tuning. `WorkloadPlaybackSettings` overrides each
- * threshold individually.
+ * threshold individually. Plan-hash / logical-read / CPU capture is
+ * best-effort: a connection that cannot surface the plan cache degrades
+ * cleanly to latency-only rather than failing the run.
  */
 
 import { type Environment, ValidationType } from "../../environments/types";
@@ -75,6 +83,10 @@ const DEFAULT_LATENCY_THRESHOLD = 0.25;
 const DEFAULT_THROUGHPUT_THRESHOLD = 0.25;
 /** Error-rate regression flagged when (observed − baseline) exceeds this absolute delta. */
 const DEFAULT_ERROR_RATE_THRESHOLD = 0.05;
+/** Logical-reads regression flagged when observed exceeds baseline by this fraction. */
+const DEFAULT_LOGICAL_READS_THRESHOLD = 0.25;
+/** CPU regression flagged when observed exceeds baseline by this fraction (advisory). */
+const DEFAULT_CPU_THRESHOLD = 0.25;
 
 const SKIPPED_NEEDS_DATABASE_MESSAGE =
     "Workload playback needs a provisioned validation database; none was available for this run.";
@@ -101,12 +113,16 @@ interface WorkloadStep {
     readonly throughputQps?: number;
     readonly errorRate?: number;
     readonly planHash?: string;
+    readonly logicalReads?: number;
+    readonly cpuMs?: number;
 }
 
 interface ResolvedThresholds {
     readonly latency: number;
     readonly throughput: number;
     readonly errorRate: number;
+    readonly logicalReads: number;
+    readonly cpu: number;
 }
 
 // =============================================================================
@@ -183,10 +199,11 @@ export class WorkloadPlaybackValidator implements Validator<ValidationType.Workl
         // connection (median of N iterations to shrug off noise).
         const observed: WorkloadStep[] = [];
         try {
-            for (const step of spec) {
+            for (let i = 0; i < spec.length; i++) {
+                const step = spec[i];
                 throwIfCancelled(opts.signal);
-                const latencyMs = await measureStep(connection, step, opts.signal);
-                observed.push({ id: step.id, latencyMs });
+                const measured = await measureStep(connection, step, i, opts.signal);
+                observed.push({ id: step.id, ...measured });
             }
         } catch (err) {
             if (err instanceof CancellationError) {
@@ -226,26 +243,118 @@ interface WorkloadSpecStep {
     readonly iterations: number;
 }
 
+/** The per-step metrics a single measurement pass produces. */
+interface StepMeasurement {
+    readonly latencyMs: number;
+    readonly planHash?: string;
+    readonly logicalReads?: number;
+    readonly cpuMs?: number;
+}
+
 /**
- * Times `step.query` against `connection` `iterations` times and returns the
- * median elapsed milliseconds. The median (not mean) shrugs off the occasional
- * slow outlier (GC pause, cache miss) so the figure is stable run-to-run.
+ * A per-step block-comment marker prepended to the step's query so its cached
+ * plan can be located in `sys.dm_exec_query_stats` afterwards. The marker is
+ * plan-neutral (SQL Server ignores comments when compiling) and is built from
+ * the step's index alone, so it is unique within a run and injection-safe.
+ */
+function planMarker(index: number): string {
+    return `/* mssql-cd-wl-${index} */`;
+}
+
+/**
+ * Measures one workload step against `connection`. Times `step.query`
+ * `iterations` times (median, to shrug off the occasional slow outlier such as
+ * a GC pause) and, best-effort, reads the deterministic signals — actual plan
+ * hash, logical reads, CPU time — for the last execution from the plan cache.
+ * A connection that cannot surface the plan cache degrades to latency-only.
  */
 async function measureStep(
     connection: ConnectionHandle,
     step: WorkloadSpecStep,
+    index: number,
     signal: AbortSignal,
-): Promise<number> {
+): Promise<StepMeasurement> {
+    const markedQuery = `${planMarker(index)}\n${step.query}`;
     const samples: number[] = [];
     for (let i = 0; i < step.iterations; i++) {
         throwIfCancelled(signal);
         const started = Date.now();
-        await connection.execute(step.query, signal);
+        await connection.execute(markedQuery, signal);
         samples.push(Date.now() - started);
     }
-    samples.sort((a, b) => a - b);
-    const mid = Math.floor(samples.length / 2);
-    return samples.length % 2 === 0 ? (samples[mid - 1] + samples[mid]) / 2 : samples[mid];
+    const stats = await capturePlanAndIo(connection, planMarker(index), signal);
+    return { latencyMs: median(samples), ...stats };
+}
+
+/** Median of a non-empty sample set (not mean — resists slow outliers). */
+function median(samples: number[]): number {
+    const sorted = [...samples].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+/**
+ * Reads the actual plan hash and the last execution's logical reads / CPU time
+ * for the marked statement from `sys.dm_exec_query_stats`. Best-effort: any
+ * failure (permissions, an unsupported host, a cache miss) yields an empty
+ * result so the step falls back to latency-only rather than failing the run.
+ */
+async function capturePlanAndIo(
+    connection: ConnectionHandle,
+    marker: string,
+    signal: AbortSignal,
+): Promise<Omit<StepMeasurement, "latencyMs">> {
+    try {
+        const rows = await connection.execute(buildQueryStatsSql(marker), signal);
+        const first = rows[0];
+        if (!Array.isArray(first)) {
+            return {};
+        }
+        const planHash = typeof first[0] === "string" ? first[0] : undefined;
+        const workerTimeUs = toFiniteNumber(first[2]);
+        return {
+            planHash,
+            logicalReads: toFiniteNumber(first[1]),
+            cpuMs: workerTimeUs === undefined ? undefined : workerTimeUs / 1000,
+        };
+    } catch {
+        return {};
+    }
+}
+
+/**
+ * Builds the plan-cache probe that fetches the plan hash plus the last
+ * execution's logical reads and CPU for the statement tagged with `marker`.
+ * The marker is matched as an anchored prefix (so the probe never matches
+ * itself) and is built from a numeric index only, so inlining it in the `LIKE`
+ * literal is injection-safe.
+ */
+function buildQueryStatsSql(marker: string): string {
+    return [
+        "SELECT TOP 1",
+        "CONVERT(VARCHAR(34), qs.query_plan_hash, 1) AS plan_hash,",
+        "qs.last_logical_reads AS logical_reads,",
+        "qs.last_worker_time AS worker_time_us",
+        "FROM sys.dm_exec_query_stats AS qs",
+        "CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS st",
+        `WHERE st.text LIKE '${marker}%' AND st.text NOT LIKE '%sys.dm_exec_query_stats%'`,
+        "ORDER BY qs.last_execution_time DESC;",
+    ].join(" ");
+}
+
+/** Coerces a DMV cell (number / bigint / numeric string) to a finite number. */
+function toFiniteNumber(value: unknown): number | undefined {
+    if (typeof value === "number") {
+        return Number.isFinite(value) ? value : undefined;
+    }
+    if (typeof value === "bigint") {
+        return Number(value);
+    }
+    if (typeof value === "string") {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : undefined;
+    }
+    return undefined;
 }
 
 /** Default iterations per step when the spec omits a count. */
@@ -302,6 +411,9 @@ function toObservedSteps(steps: readonly WorkloadStep[]): WorkloadObservedStep[]
         ...(s.latencyMs !== undefined ? { latencyMs: s.latencyMs } : {}),
         ...(s.throughputQps !== undefined ? { throughputQps: s.throughputQps } : {}),
         ...(s.errorRate !== undefined ? { errorRate: s.errorRate } : {}),
+        ...(s.planHash !== undefined ? { planHash: s.planHash } : {}),
+        ...(s.logicalReads !== undefined ? { logicalReads: s.logicalReads } : {}),
+        ...(s.cpuMs !== undefined ? { cpuMs: s.cpuMs } : {}),
     }));
 }
 
@@ -312,6 +424,9 @@ function toWorkloadSteps(steps: readonly WorkloadObservedStep[]): WorkloadStep[]
         latencyMs: s.latencyMs,
         throughputQps: s.throughputQps,
         errorRate: s.errorRate,
+        planHash: s.planHash,
+        logicalReads: s.logicalReads,
+        cpuMs: s.cpuMs,
     }));
 }
 
@@ -326,6 +441,8 @@ function resolveThresholds(
         latency: config.latencyRegressionThreshold ?? DEFAULT_LATENCY_THRESHOLD,
         throughput: config.throughputRegressionThreshold ?? DEFAULT_THROUGHPUT_THRESHOLD,
         errorRate: config.errorRateThreshold ?? DEFAULT_ERROR_RATE_THRESHOLD,
+        logicalReads: config.logicalReadsRegressionThreshold ?? DEFAULT_LOGICAL_READS_THRESHOLD,
+        cpu: DEFAULT_CPU_THRESHOLD,
     };
 }
 
@@ -367,6 +484,14 @@ function compareSteps(
         const planFinding = comparePlanHash(base, obs);
         if (planFinding !== undefined) {
             findings.push(planFinding);
+        }
+        const logicalReadsFinding = compareLogicalReads(base, obs, thresholds.logicalReads);
+        if (logicalReadsFinding !== undefined) {
+            findings.push(logicalReadsFinding);
+        }
+        const cpuFinding = compareCpu(base, obs, thresholds.cpu);
+        if (cpuFinding !== undefined) {
+            findings.push(cpuFinding);
         }
     }
     return findings;
@@ -459,6 +584,52 @@ function comparePlanHash(
     };
 }
 
+function compareLogicalReads(
+    base: WorkloadStep,
+    obs: WorkloadStep,
+    threshold: number,
+): WorkloadRegressionFinding | undefined {
+    if (
+        base.logicalReads === undefined ||
+        obs.logicalReads === undefined ||
+        base.logicalReads <= 0
+    ) {
+        return undefined;
+    }
+    const ratio = (obs.logicalReads - base.logicalReads) / base.logicalReads;
+    if (ratio <= threshold) {
+        return undefined;
+    }
+    return {
+        kind: "workload-playback",
+        stepId: base.id,
+        regression: "logical-reads",
+        delta: ratio,
+        message: `Logical-reads regression: ${formatPercent(ratio)} (baseline ${base.logicalReads} pages, observed ${obs.logicalReads} pages).`,
+    };
+}
+
+function compareCpu(
+    base: WorkloadStep,
+    obs: WorkloadStep,
+    threshold: number,
+): WorkloadRegressionFinding | undefined {
+    if (base.cpuMs === undefined || obs.cpuMs === undefined || base.cpuMs <= 0) {
+        return undefined;
+    }
+    const ratio = (obs.cpuMs - base.cpuMs) / base.cpuMs;
+    if (ratio <= threshold) {
+        return undefined;
+    }
+    return {
+        kind: "workload-playback",
+        stepId: base.id,
+        regression: "cpu",
+        delta: ratio,
+        message: `CPU regression: ${formatPercent(ratio)} (baseline ${base.cpuMs.toFixed(1)} ms, observed ${obs.cpuMs.toFixed(1)} ms).`,
+    };
+}
+
 function formatPercent(ratio: number): string {
     return `${(ratio * 100).toFixed(1)}%`;
 }
@@ -481,18 +652,41 @@ function buildComparisonResult(
         },
         observedSteps,
     };
-    // A performance regression is a *signal*, not a
-    // hard failure. Perf cost is a judgment call — a dev may knowingly add an
-    // expensive feature — so we surface the delta as a Warning rather than
-    // blocking the run with a Failed.
+    // Deterministic signals (logical reads, or a plan change that also cost
+    // latency) fail the run; noisy signals (latency, CPU, throughput, a bare
+    // plan change) are advisory and surface as a Warning. Only the signals that
+    // reliably mean "this regressed" block the run.
     return {
         validationId: ValidationType.WorkloadPlayback,
         displayName: DISPLAY_NAME,
-        status: findings.length === 0 ? ValidationStatus.Passed : ValidationStatus.Warning,
+        status: decideStatus(findings),
         startedAtMs,
         endedAtMs: Date.now(),
         payload,
     };
+}
+
+/**
+ * Maps findings onto a status. No findings → `Passed`. A deterministic
+ * regression — logical reads out of range, an error-rate increase, or a plan
+ * change on a step that ALSO regressed on latency — → `Failed`. Otherwise the
+ * findings are advisory (latency / CPU / throughput / a bare plan change) →
+ * `Warning`.
+ */
+function decideStatus(findings: readonly WorkloadRegressionFinding[]): ValidationStatus {
+    if (findings.length === 0) {
+        return ValidationStatus.Passed;
+    }
+    const hasHardSignal = findings.some(
+        (f) => f.regression === "logical-reads" || f.regression === "error-rate",
+    );
+    const latencyStepIds = new Set(
+        findings.filter((f) => f.regression === "latency").map((f) => f.stepId),
+    );
+    const planChangeWithCost = findings.some(
+        (f) => f.regression === "plan-change" && latencyStepIds.has(f.stepId),
+    );
+    return hasHardSignal || planChangeWithCost ? ValidationStatus.Failed : ValidationStatus.Warning;
 }
 
 /**

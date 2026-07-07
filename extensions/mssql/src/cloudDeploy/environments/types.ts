@@ -149,6 +149,13 @@ export interface WorkloadPlaybackSettings {
      * percentage points above baseline).
      */
     errorRateThreshold?: number;
+    /**
+     * Logical-reads-regression threshold expressed as a fraction of the
+     * baseline (e.g. `0.25` flags any step whose observed logical reads are
+     * more than 25 % above the run-based baseline). This is a deterministic
+     * I/O signal, unlike wall-clock latency. Defaults applied by the validator.
+     */
+    logicalReadsRegressionThreshold?: number;
 }
 
 /**

@@ -165,7 +165,14 @@ const WorkloadRegressionFindingSchema = z
     .object({
         kind: z.literal("workload-playback"),
         stepId: z.string().min(1),
-        regression: z.enum(["throughput", "latency", "error-rate", "plan-change"]),
+        regression: z.enum([
+            "throughput",
+            "latency",
+            "error-rate",
+            "plan-change",
+            "logical-reads",
+            "cpu",
+        ]),
         delta: z.number(),
         message: z.string(),
     })
@@ -236,6 +243,9 @@ const WorkloadPlaybackPayloadSchema = z
                         latencyMs: z.number().optional(),
                         throughputQps: z.number().optional(),
                         errorRate: z.number().optional(),
+                        planHash: z.string().optional(),
+                        logicalReads: z.number().optional(),
+                        cpuMs: z.number().optional(),
                     })
                     .passthrough(),
             )
