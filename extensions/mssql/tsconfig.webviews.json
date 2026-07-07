@@ -20,5 +20,8 @@
         "composite": false,
         "allowSyntheticDefaultImports": true
     },
-    "include": ["src/webviews", "typings", "src/sharedInterfaces", "media"]
+    "include": ["src/webviews", "typings", "src/sharedInterfaces", "media"],
+    // The vendored central contract is extension-host-only (node:crypto);
+    // webviews consume the serializable RPC types in debugConsole.ts instead.
+    "exclude": ["src/sharedInterfaces/centralContract"]
 }

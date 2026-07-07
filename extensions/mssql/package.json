@@ -3613,6 +3613,35 @@
                     "markdownDescription": "Serve metadata exclusively from persisted snapshots without contacting the server. Status surfaces always disclose the snapshot's age; strict operations (scripting) refuse or emit an offline banner.",
                     "scope": "application"
                 },
+                "mssql.centralObservability.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Enable uploading diagnostic sessions from the Debug Console to the team central observability store (SQL Server). Uploads are explicit, previewed, policy-filtered, and idempotent — nothing leaves the machine without the preview.",
+                    "scope": "application"
+                },
+                "mssql.centralObservability.targetProfileId": {
+                    "type": "string",
+                    "default": "",
+                    "markdownDescription": "Saved connection (profile id or profile name) whose pinned database holds the central store schema. No connection string is ever stored for uploads.",
+                    "scope": "application"
+                },
+                "mssql.centralObservability.defaultUploadPolicy": {
+                    "type": "string",
+                    "enum": [
+                        "team-default.v1",
+                        "team-names.v1",
+                        "elevated-support.v1"
+                    ],
+                    "default": "team-default.v1",
+                    "markdownDescription": "Upload policy applied at the boundary: team-default digests names/paths and drops SQL text, rows, prompts and credentials; team-names keeps metadata names plaintext; elevated-support additionally keeps paths. Secrets are refused under every policy.",
+                    "scope": "application"
+                },
+                "mssql.centralObservability.maxItemBytes": {
+                    "type": "number",
+                    "default": 1572864,
+                    "markdownDescription": "Per-execute batch text budget for central uploads (encoder budget; addendum C-11). Internal tuning knob for dogfood.",
+                    "scope": "application"
+                },
                 "mssql.objectExplorer.viewMode": {
                     "type": "string",
                     "default": "classic",

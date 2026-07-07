@@ -40,6 +40,11 @@ import {
     DcBackfillGapRequest,
     DcCancelSelfTestRequest,
     DcSelfTestProgressNotification,
+    DcCentralPreviewRequest,
+    DcCentralUploadProgressNotification,
+    DcCentralUploadRequest,
+    CentralPreviewInfo,
+    CentralTargetInfo,
     DiagEvent,
     GapRecord,
 } from "../sharedInterfaces/debugConsole";
@@ -57,6 +62,19 @@ import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryServic
 import { importPerfMetrics, importPerfRun } from "../diagnostics/perfRunImport";
 import { SelfTestService } from "../diagnostics/selfTest/selfTestService";
 import { LiveTailSink } from "../diagnostics/sinks";
+
+import {
+    centralUploadHost,
+    CentralUploadService,
+    CentralUploadTargetConfig,
+    loadDiagSessionSource,
+} from "../diagnostics/centralUpload";
+import {
+    CentralProjection,
+    projectDiagSession,
+    UploadPolicyId,
+} from "../sharedInterfaces/centralContract";
+import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { lintCorrelation } from "../sharedInterfaces/observabilityContract.generated";
 import {
     PhAddSourceRequest,
@@ -655,7 +673,162 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 return { events: 0, redactions: 0, error: String(error) };
             }
         });
+
+        // Central observability upload (central design §8.3): preview is the
+        // exact projection dry-run; upload streams the same item stream. Only
+        // stored (closed/partial) sessions are uploadable in v1 (C-6) — the
+        // live source and imported perf runs return actionable errors.
+        this.onRequest(DcCentralPreviewRequest.type, async ({ sourceId, policyId }) => {
+            const resolved = await this.resolveCentralUpload(sourceId, policyId);
+            if ("error" in resolved) {
+                return { target: resolved.targetInfo, error: resolved.error };
+            }
+            return {
+                target: resolved.targetInfo,
+                preview: toPreviewInfo(resolved.projection),
+            };
+        });
+
+        this.onRequest(DcCentralUploadRequest.type, async ({ sourceId, policyId }) => {
+            const resolved = await this.resolveCentralUpload(sourceId, policyId);
+            if ("error" in resolved) {
+                return { outcome: "notConfigured", error: resolved.error };
+            }
+            if (resolved.projection.preview.refused.length > 0) {
+                return {
+                    outcome: "refusedByPolicy",
+                    reasonCode: resolved.projection.preview.refused[0]!.reason,
+                };
+            }
+            const host = centralUploadHost()!;
+            const service = new CentralUploadService(
+                await SqlDataPlaneService.get().service(),
+                resolved.target,
+            );
+            try {
+                const result = await service.upload(resolved.projection, {
+                    uploadPolicyId: resolved.projection.identity.uploadPolicyId as UploadPolicyId,
+                    ...(host.maxItemBytes() !== undefined
+                        ? { maxItemBytes: host.maxItemBytes() }
+                        : {}),
+                    principalAlias: host.principalAlias(),
+                    toolVersion:
+                        (vscode.extensions.getExtension("ms-mssql.mssql")?.packageJSON
+                            ?.version as string) ?? "unknown",
+                    onProgress: (done, total) => {
+                        void this.sendNotification(DcCentralUploadProgressNotification.type, {
+                            sourceId,
+                            done,
+                            total,
+                        });
+                    },
+                });
+                if (result.receipt) {
+                    return {
+                        outcome: result.receipt.outcome,
+                        receipt: {
+                            uploadBatchId: result.receipt.uploadBatchId,
+                            outcome: result.receipt.outcome,
+                            naturalKey: result.receipt.naturalKey,
+                            policyId: result.receipt.uploadPolicyId,
+                            totalRows: Object.values(result.receipt.rowsByItemKind).reduce(
+                                (a, b) => a + b,
+                                0,
+                            ),
+                            projectionDigest: result.receipt.projectionDigest,
+                            ...(result.receipt.committedAtUtc
+                                ? { committedAtUtc: result.receipt.committedAtUtc }
+                                : {}),
+                        },
+                    };
+                }
+                return {
+                    outcome: result.disposition.disposition,
+                    ...(result.disposition.reasonCode
+                        ? { reasonCode: result.disposition.reasonCode }
+                        : {}),
+                };
+            } catch (error) {
+                return { outcome: "failed", error: (error as Error).message };
+            }
+        });
     }
+
+    /** Resolve target + source + projection for the central upload RPCs. */
+    private async resolveCentralUpload(
+        sourceId: string,
+        policyId: string | undefined,
+    ): Promise<
+        | { targetInfo: CentralTargetInfo; error: string }
+        | {
+              targetInfo: CentralTargetInfo;
+              target: CentralUploadTargetConfig;
+              projection: CentralProjection;
+          }
+    > {
+        const host = centralUploadHost();
+        const effectivePolicy = (policyId ??
+            host?.defaultPolicyId() ??
+            "team-default.v1") as UploadPolicyId;
+        const baseInfo: CentralTargetInfo = {
+            enabled: host?.enabled() ?? false,
+            configured: false,
+            policyId: effectivePolicy,
+        };
+        if (!host) {
+            return { targetInfo: baseInfo, error: "central upload host not configured" };
+        }
+        const resolution = await host.resolveTarget();
+        if (!resolution.target) {
+            return {
+                targetInfo: { ...baseInfo, error: resolution.error ?? "not configured" },
+                error: resolution.error ?? "central upload target not configured",
+            };
+        }
+        const targetInfo: CentralTargetInfo = {
+            ...baseInfo,
+            configured: true,
+            ...(resolution.profileLabel ? { profileLabel: resolution.profileLabel } : {}),
+            ...(resolution.database ? { database: resolution.database } : {}),
+        };
+        if (!sourceId.startsWith("store:")) {
+            return {
+                targetInfo,
+                error: "only stored sessions upload in v1 — close the live session first (perf runs: use `perftest push`)",
+            };
+        }
+        const sessionId = sourceId.slice("store:".length);
+        const sessionDir = path.join(this.diagnostics.store.storeRoot, "sessions", sessionId);
+        try {
+            const source = await loadDiagSessionSource(sessionDir);
+            if (source.manifest.status === "active") {
+                return {
+                    targetInfo,
+                    error: "session is still active — close it before uploading (C-6 v1 rule)",
+                };
+            }
+            const projection = projectDiagSession(source, { uploadPolicyId: effectivePolicy });
+            return { targetInfo, target: resolution.target, projection };
+        } catch (error) {
+            return { targetInfo, error: `cannot load session: ${(error as Error).message}` };
+        }
+    }
+}
+
+function toPreviewInfo(projection: CentralProjection): CentralPreviewInfo {
+    const p = projection.preview;
+    return {
+        sourceKind: p.sourceKind,
+        naturalKey: p.naturalKey,
+        policyId: p.uploadPolicyId,
+        tables: p.tables,
+        dropped: p.dropped,
+        digested: p.digested,
+        refused: p.refused,
+        warnings: p.warnings,
+        sourceSummary: p.sourceSummary,
+        projectionDigest: p.projectionDigest,
+    };
 }
 
 let activeConsole: DebugConsoleWebviewController | undefined;

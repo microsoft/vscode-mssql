@@ -36,6 +36,15 @@ import {
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import {
+    centralUploadHost,
+    CentralUploadService,
+    configureCentralUploadHost,
+    makeCentralProbeSession,
+    queryCentralRows,
+} from "../diagnostics/centralUpload";
+import { assertUploadable, projectDiagSession } from "../sharedInterfaces/centralContract";
+import * as os from "os";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -1388,6 +1397,71 @@ export default class MainController implements vscode.Disposable {
                 vscode.workspace.getConfiguration("mssql.metadata").get<number>("pollSeconds", 60),
         });
 
+        // Central observability upload host (central design §8.3): settings +
+        // profile/secret resolution for the Debug Console writer. Inert unless
+        // mssql.centralObservability.enabled (default false); the target is a
+        // saved connection whose database holds the central schema. No
+        // connection string is ever read, stored, or echoed here.
+        configureCentralUploadHost({
+            enabled: () =>
+                vscode.workspace
+                    .getConfiguration("mssql.centralObservability")
+                    .get<boolean>("enabled", false),
+            defaultPolicyId: () =>
+                vscode.workspace
+                    .getConfiguration("mssql.centralObservability")
+                    .get<string>("defaultUploadPolicy", "team-default.v1"),
+            maxItemBytes: () =>
+                vscode.workspace
+                    .getConfiguration("mssql.centralObservability")
+                    .get<number | undefined>("maxItemBytes", undefined),
+            principalAlias: () => `${os.userInfo().username}@${os.hostname()}`,
+            resolveTarget: async () => {
+                const config = vscode.workspace.getConfiguration("mssql.centralObservability");
+                if (!config.get<boolean>("enabled", false)) {
+                    return {
+                        error: "central upload is disabled (mssql.centralObservability.enabled)",
+                    };
+                }
+                const profileId = config.get<string>("targetProfileId", "");
+                if (!profileId) {
+                    return {
+                        error: "no target profile (mssql.centralObservability.targetProfileId)",
+                    };
+                }
+                const profiles =
+                    vscode.workspace
+                        .getConfiguration("mssql")
+                        .get<StoredConnectionProfile[]>("connections") ?? [];
+                const stored = profiles.find(
+                    (p) =>
+                        (p as { id?: string }).id === profileId ||
+                        (p as { profileName?: string }).profileName === profileId,
+                );
+                if (!stored?.server) {
+                    return { error: `no saved connection matches '${profileId}'` };
+                }
+                if (!stored.database) {
+                    return {
+                        error: "the target profile must pin the central database (profile.database)",
+                    };
+                }
+                const prepared = prepareConnection(
+                    stored,
+                    this._connectionMgr.connectionStore as unknown as ProfileSecretSource,
+                );
+                return {
+                    target: {
+                        profileRef: prepared.profileRef,
+                        ...(prepared.auth ? { auth: prepared.auth } : {}),
+                        database: stored.database,
+                    },
+                    profileLabel: prepared.displayName ?? stored.profileName ?? stored.server,
+                    database: stored.database,
+                };
+            },
+        });
+
         // Persistent metadata snapshot cache (CACHE-3): configured before
         // the first store() consumer; inert unless
         // mssql.metadataCache.enabled (default false). Eviction hygiene
@@ -1482,6 +1556,59 @@ export default class MainController implements vscode.Disposable {
         // over a SECOND throwaway store MUST be served from disk. Throws on
         // every honesty failure so the harness records a real error.
         if (Perf.enabled) {
+            this._context.subscriptions.push(
+                // PERF_MODE central round-trip probe (central design §12.4):
+                // fixture session → preview → upload over the data plane →
+                // readback through the canned visibility join. Throws on every
+                // honesty failure. Unique sessionId per rep so each commit is
+                // a real insert (idempotency is tested elsewhere).
+                vscode.commands.registerCommand("mssql.perf.centralUploadRoundTrip", async () => {
+                    const host = centralUploadHost();
+                    if (!host) {
+                        throw new Error("central upload host not configured");
+                    }
+                    const resolution = await host.resolveTarget();
+                    if (!resolution.target) {
+                        throw new Error(resolution.error ?? "central target not configured");
+                    }
+                    const sessionId = `probe-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+                    const source = makeCentralProbeSession(sessionId, 2000);
+                    Perf.marker("mssql.central.preview.begin", "begin");
+                    const projection = projectDiagSession(source, {
+                        uploadPolicyId: "team-default.v1",
+                    });
+                    Perf.marker("mssql.central.preview.end", "end");
+                    assertUploadable(projection);
+                    const connections = await SqlDataPlaneService.get().service();
+                    const uploadService = new CentralUploadService(connections, resolution.target);
+                    Perf.marker("mssql.central.upload.begin", "begin");
+                    const result = await uploadService.upload(projection, {
+                        uploadPolicyId: "team-default.v1",
+                        principalAlias: "perf-probe@local",
+                        toolVersion: "probe",
+                    });
+                    Perf.marker("mssql.central.upload.end", "end");
+                    if (result.receipt?.outcome !== "committed") {
+                        throw new Error(
+                            `probe upload outcome ${result.receipt?.outcome ?? result.disposition.disposition}`,
+                        );
+                    }
+                    const rows = await queryCentralRows(
+                        connections,
+                        resolution.target,
+                        `SELECT COUNT(*) AS n FROM central.diag_events e ` +
+                            `JOIN central.diag_sessions s ON s.session_sk = e.session_sk ` +
+                            `JOIN central.central_entities x ON x.current_batch_id = s.upload_batch_id ` +
+                            `WHERE s.session_id = '${sessionId}'`,
+                        "centralProbe.readback",
+                    );
+                    const observed = Number(rows[0]?.["n"] ?? 0);
+                    if (observed !== 2000) {
+                        throw new Error(`readback expected 2000 events, saw ${observed}`);
+                    }
+                    return { sessionId, events: observed };
+                }),
+            );
             this._context.subscriptions.push(
                 vscode.commands.registerCommand("mssql.perf.metadataCacheWarmAcquire", async () => {
                     const coordinator = MetadataStoreService.get().cache();

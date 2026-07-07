@@ -486,3 +486,152 @@ export class CentralUploadService {
         });
     }
 }
+
+// ---------------------------------------------------------------------------
+// Host seam: the extension activator (mainController) wires settings +
+// profile/secret resolution; the Debug Console controller consumes it. Keeps
+// this module free of vscode/config imports and unit-testable.
+// ---------------------------------------------------------------------------
+
+export interface CentralUploadResolution {
+    target?: CentralUploadTargetConfig;
+    profileLabel?: string;
+    database?: string;
+    error?: string;
+}
+
+export interface CentralUploadHost {
+    enabled(): boolean;
+    defaultPolicyId(): string;
+    maxItemBytes(): number | undefined;
+    principalAlias(): string;
+    resolveTarget(): Promise<CentralUploadResolution>;
+}
+
+let uploadHost: CentralUploadHost | undefined;
+
+export function configureCentralUploadHost(host: CentralUploadHost): void {
+    uploadHost = host;
+}
+
+export function centralUploadHost(): CentralUploadHost | undefined {
+    return uploadHost;
+}
+
+/**
+ * Read rows from the central store over the data plane (probe + provider
+ * primitive): executes one SELECT against canned views with the same execute
+ * discipline as uploads and returns object rows. Text must reference views/
+ * procs only — never user data (enforced by review, not runtime).
+ */
+export async function queryCentralRows(
+    connections: ISqlConnectionService,
+    target: CentralUploadTargetConfig,
+    text: string,
+    tag: string,
+): Promise<Array<Record<string, unknown>>> {
+    const session = await connections.openSession({
+        profile: target.profileRef,
+        database: target.database,
+        applicationName: CENTRAL_UPLOAD_APPLICATION_NAME,
+        ...(target.auth ? { auth: target.auth } : {}),
+    });
+    try {
+        const sink = new RowCollectingSink();
+        const handle = session.execute(
+            text,
+            {
+                priority: "background",
+                commandKind: "centralUpload",
+                tag,
+                timeoutMs: 30_000,
+                expectedDatabase: target.database,
+                pageRows: 10_000,
+            },
+            sink,
+        );
+        const summary = await handle.completion;
+        if (summary.status !== "succeeded") {
+            throw new CentralUploadError(
+                `central query failed: ${sink.errors[0] ?? summary.status}`,
+                "executeFailed",
+            );
+        }
+        return sink.rows.map((row) => {
+            const out: Record<string, unknown> = {};
+            sink.columns.forEach((name, i) => {
+                out[name] = row[i];
+            });
+            return out;
+        });
+    } finally {
+        await session.close().catch(() => undefined);
+    }
+}
+
+/**
+ * Deterministic fixture session for the PERF_MODE round-trip probe
+ * (mssql.perf.centralUploadRoundTrip, base design §12.4). Payloads exercise
+ * the digest lane (server.name) and the keep lane (diagnostic.metadata).
+ */
+export function makeCentralProbeSession(sessionId: string, events: number): DiagSessionSource {
+    const baseEpochMs = 1_751_000_000_000;
+    const perSegment = Math.ceil(events / 2);
+    const segments: DiagSessionSource["segments"] = [];
+    let seq = 0;
+    for (let s = 0; s < 2 && seq < events; s++) {
+        const lines: JournalLine[] = [];
+        for (let i = 0; i < perSegment && seq < events; i++) {
+            seq++;
+            lines.push({
+                schemaVersion: "mssql.diag.event/1",
+                eventId: `probe-evt-${seq}`,
+                sessionId,
+                seq,
+                epochMs: baseEpochMs + seq,
+                process: "extensionHost",
+                feature: "centralProbe",
+                kind: "event",
+                type: "probe.tick",
+                status: "ok",
+                payload: {
+                    ordinal: { v: seq, cls: "diagnostic.metadata", handling: "plain" },
+                    serverName: {
+                        v: "probe-server.contoso.com",
+                        cls: "server.name",
+                        handling: "plain",
+                    },
+                },
+                cls: { max: "server.name", redactedFields: 0, policyId: "probe/1" },
+            });
+        }
+        segments.push({ file: `seg-${s}.jsonl`, lines });
+    }
+    return {
+        manifest: {
+            schemaVersion: "mssql.diag.sessionManifest/1",
+            sessionId,
+            createdUtc: "2026-07-01T00:00:00.000Z",
+            updatedUtc: "2026-07-01T00:10:00.000Z",
+            source: "live",
+            captureMode: "redacted",
+            policyId: "probe/1",
+            eventCount: events,
+            gapCount: 0,
+            segments: segments.map((s, i) => ({
+                file: s.file,
+                firstSeq: i * perSegment + 1,
+                lastSeq: Math.min((i + 1) * perSegment, events),
+                events: s.lines.length,
+            })),
+            provenance: { extensionVersion: "probe" },
+            status: "closed",
+        },
+        segments,
+        files: segments.map((s) => ({
+            relativePath: `events/${s.file}`,
+            sha256: "probe",
+            sizeBytes: 0,
+        })),
+    };
+}

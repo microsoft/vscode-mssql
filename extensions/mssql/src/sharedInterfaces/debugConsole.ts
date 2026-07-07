@@ -630,6 +630,75 @@ export namespace DcExportRequest {
         void
     >("dc/export");
 }
+// Central observability upload (central design §8.3, addendum C-11) --------
+
+/** Serializable resolution of the central upload target (never a connstring). */
+export interface CentralTargetInfo {
+    enabled: boolean;
+    configured: boolean;
+    profileLabel?: string;
+    database?: string;
+    policyId: string;
+    error?: string;
+}
+
+/** Serializable receipt subset for the webview (digest prefixes only). */
+export interface CentralReceiptInfo {
+    uploadBatchId: number;
+    outcome: string;
+    naturalKey: string;
+    policyId: string;
+    totalRows: number;
+    projectionDigest: string;
+    committedAtUtc?: string;
+}
+
+export interface CentralPreviewInfo {
+    sourceKind: string;
+    naturalKey: string;
+    policyId: string;
+    tables: Array<{ name: string; rows: number; bytesEstimate: number }>;
+    dropped: Array<{ field: string; cls: string; count: number }>;
+    digested: Array<{ field: string; cls: string; count: number }>;
+    refused: Array<{ field: string; cls: string; reason: string }>;
+    warnings: string[];
+    sourceSummary: {
+        files: number;
+        bytes: number;
+        events?: number;
+        gaps?: number;
+        metrics?: number;
+    };
+    projectionDigest: string;
+}
+
+export namespace DcCentralPreviewRequest {
+    export const type = new RequestType<
+        { sourceId: string; policyId?: string },
+        { target: CentralTargetInfo; preview?: CentralPreviewInfo; error?: string },
+        void
+    >("dc/centralPreview");
+}
+
+export namespace DcCentralUploadRequest {
+    export const type = new RequestType<
+        { sourceId: string; policyId?: string },
+        {
+            outcome: string;
+            receipt?: CentralReceiptInfo;
+            reasonCode?: string;
+            error?: string;
+        },
+        void
+    >("dc/centralUpload");
+}
+
+export namespace DcCentralUploadProgressNotification {
+    export const type = new NotificationType<{ sourceId: string; done: number; total: number }>(
+        "dc/centralUploadProgress",
+    );
+}
+
 // History (cross-session) ---------------------------------------------------
 
 export interface HistorySessionRow {

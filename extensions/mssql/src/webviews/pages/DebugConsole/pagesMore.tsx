@@ -27,6 +27,7 @@ import {
     StatusPill,
 } from "./common";
 import { useDc } from "./state";
+import { CentralUploadCard } from "./centralUploadCard";
 
 export function GatedPage({ title, body }: { title: string; body: string }) {
     return (
@@ -554,6 +555,7 @@ export function ExportsPage() {
                     </div>
                 ) : null}
             </div>
+            <CentralUploadCard />
         </>
     );
 }
