@@ -43,7 +43,11 @@ import { ScriptOverlay, SketchedStatement, buildOverlay } from "../core/overlay"
 import { bindStatement } from "../core/binder";
 import { classifyContext } from "../core/context";
 import { buildDatabaseContext } from "../core/databaseContext";
-import { computeCompletion } from "../features/completion";
+import {
+    MemberAccessInfo,
+    MemberAccessResolution,
+    computeCompletion,
+} from "../features/completion";
 import { computeDefinition } from "../features/definition";
 import { DiagnosticsPassResult, createDiagnostics } from "../features/diagnostics";
 import { computeHover } from "../features/hover";
@@ -303,6 +307,10 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 keywordCasing: options.keywordCasing,
                 positionAt: (o) => analysis.snapshot.positionAt(o),
             });
+            // Member-access miss on a lazily-hydrated columns section: KICK
+            // the load — nothing else does, and without it the isIncomplete
+            // retrigger would find the same emptiness forever.
+            const memberResolution = this.settleMemberAccess(result.memberAccess);
             // Visibility fields (classified): offsets/counts are protocol
             // metadata; prefix/parts/labels carry identifier classes — the
             // capture policy digests them by default and reveals them only
@@ -325,13 +333,52 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                         .join(", "),
                     cls: "object.name",
                 },
+                ...(memberResolution !== undefined
+                    ? { memberResolution: { raw: memberResolution, cls: "diagnostic.metadata" } }
+                    : {}),
             });
-            return Promise.resolve(result);
+            // Strip the engine-internal memberAccess block before the RPC.
+            return Promise.resolve({
+                items: result.items,
+                isIncomplete: result.isIncomplete,
+                incompleteReason: result.incompleteReason,
+            });
         } catch (error) {
             span.fail(error);
             throw error;
         }
     }
+
+    /**
+     * Member-access columns outcome (journal field `memberResolution`).
+     * "notLoaded" with a resolved ref means the columns section never
+     * hydrated for that table/view: fire-and-forget the lazy load through
+     * the provider seam — the request already returned isIncomplete:true,
+     * so Monaco re-queries and the retrigger serves the loaded columns.
+     * The provider de-dupes in-flight kicks; without the seam the honest
+     * answer stays "notLoaded".
+     */
+    private settleMemberAccess(
+        info: MemberAccessInfo | undefined,
+    ): MemberAccessResolution | undefined {
+        if (info === undefined) {
+            return undefined;
+        }
+        if (
+            info.resolution === "notLoaded" &&
+            info.columnsRef !== undefined &&
+            this.provider.requestHydration !== undefined
+        ) {
+            this.provider.requestHydration({
+                kind: "columns",
+                object: info.columnsRef,
+                priority: "interactiveFollowup",
+            });
+            return "loading";
+        }
+        return info.resolution;
+    }
+
     hover(req: SqlLanguageRequest): Promise<HoverResult | undefined> {
         const analysis = this.analyze(req.text, req.version);
         const offset = analysis.snapshot.offsetAt(req.position);

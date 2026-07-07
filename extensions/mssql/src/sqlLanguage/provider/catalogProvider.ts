@@ -20,6 +20,7 @@ import {
 } from "../../services/metadata/catalogModel";
 import {
     DefinitionResult,
+    HydrationRequest,
     IPinnedMetadataView,
     ISqlLanguageMetadataProvider,
     LangColumn,
@@ -78,11 +79,64 @@ function parseVersion(version: string | undefined): { major: number; build: numb
     return { major: Number(match[1]), build: Number(match[2]) };
 }
 
+/**
+ * Floor between interactive hydration kicks: a section that keeps failing
+ * (e.g. sys.columns denied) must not turn every completion retrigger into
+ * a full hydration ladder.
+ */
+const HYDRATION_KICK_MIN_INTERVAL_MS = 30_000;
+
 export class CatalogLanguageMetadataProvider implements ISqlLanguageMetadataProvider {
+    /** In-flight interactive hydration kick (de-dupe: one at a time). */
+    private hydrationKick: Promise<void> | undefined;
+    /** One kick per published generation — a new snapshot re-arms it. */
+    private lastKickGeneration: number | undefined;
+    private lastKickAtMs = 0;
+
     constructor(private readonly host: CatalogProviderHost) {}
 
     get generation(): number {
         return this.host.handle()?.status().generation ?? 0;
+    }
+
+    /**
+     * The engine's lazy-load seam (design 05 §8 HydrationRequest): a feature
+     * hit metadata that is notLoaded (e.g. member-access columns) and wants
+     * the load kicked WITHOUT blocking its request. v1 scope (cache/drift
+     * addendum C-12): per-section hydration does not exist — the kick is a
+     * full-ladder refresh through the lease, so the Monaco isIncomplete
+     * retrigger finds the loaded section in the next snapshot. Fire-and-
+     * forget with three stampede guards: one in-flight kick, skip when a
+     * hydration pass is already on the session lane, and one kick per
+     * generation with a floor between kicks.
+     */
+    requestHydration(request: HydrationRequest): void {
+        if (request.kind === "definitions") {
+            return; // definitions are the lazy getDefinition read, never the ladder
+        }
+        const handle = this.host.handle();
+        if (handle === undefined || this.hydrationKick !== undefined) {
+            return;
+        }
+        const status = handle.status();
+        if (status.readiness === "loading" || status.readiness === "stale") {
+            return; // a hydration pass is already in flight on the lane
+        }
+        const now = Date.now();
+        if (
+            status.generation === this.lastKickGeneration ||
+            now - this.lastKickAtMs < HYDRATION_KICK_MIN_INTERVAL_MS
+        ) {
+            return;
+        }
+        this.lastKickGeneration = status.generation;
+        this.lastKickAtMs = now;
+        this.hydrationKick = handle
+            .refresh()
+            .catch(() => undefined)
+            .finally(() => {
+                this.hydrationKick = undefined;
+            });
     }
 
     env(): SqlLanguageEnvironment {

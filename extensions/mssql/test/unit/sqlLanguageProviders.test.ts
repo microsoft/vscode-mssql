@@ -14,7 +14,10 @@ import { expect } from "chai";
 import { FourslashDocument, parseFourslash } from "../../src/sqlLanguage/testSupport/fourslash";
 import { STANDARD_FIXTURE_CATALOG } from "../../src/sqlLanguage/testSupport/fixtureCatalog";
 import { FixtureLanguageMetadataProvider } from "../../src/sqlLanguage/provider/fixtureProvider";
-import { CatalogLanguageMetadataProvider } from "../../src/sqlLanguage/provider/catalogProvider";
+import {
+    CatalogLanguageMetadataProvider,
+    MetadataCatalogHandle,
+} from "../../src/sqlLanguage/provider/catalogProvider";
 import { NullLanguageMetadataProvider } from "../../src/sqlLanguage/provider/nullProvider";
 import { QueryStudioLanguageService } from "../../src/queryStudio/queryStudioLanguageService";
 
@@ -136,6 +139,42 @@ suite("sqlLanguage catalog adapter offline honesty", () => {
         expect(make("13.0.1601.5").createOrAlterProgrammability).to.equal(false); // 2016 RTM
         expect(make("12.0.2000.8").dropIfExists).to.equal(false);
         expect(make(undefined).createOrAlterProgrammability).to.equal(false);
+    });
+
+    test("requestHydration kicks ONE refresh and de-dupes repeat misses", async () => {
+        let refreshCalls = 0;
+        let releaseRefresh: () => void = () => undefined;
+        const refreshGate = new Promise<void>((resolve) => {
+            releaseRefresh = resolve;
+        });
+        const handle = {
+            status: () => ({ readiness: "ready", generation: 7, mode: "full" }),
+            current: () => undefined,
+            refresh: () => {
+                refreshCalls++;
+                return refreshGate;
+            },
+        } as unknown as MetadataCatalogHandle;
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => handle,
+            serverVersion: () => undefined,
+            currentDatabase: () => undefined,
+            databases: () => undefined,
+            subscribeStatus: () => () => undefined,
+        });
+        const request = {
+            kind: "columns" as const,
+            object: { objectId: 42 },
+            priority: "interactiveFollowup" as const,
+        };
+        provider.requestHydration(request);
+        provider.requestHydration(request); // in flight: de-duped
+        expect(refreshCalls).to.equal(1);
+        releaseRefresh();
+        await refreshGate;
+        await new Promise((resolve) => setTimeout(resolve, 0)); // finally clears in-flight
+        provider.requestHydration(request); // same generation: still de-duped
+        expect(refreshCalls).to.equal(1);
     });
 
     test("null provider serves the same surface with nothing to claim", () => {

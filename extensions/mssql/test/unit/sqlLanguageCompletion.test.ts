@@ -371,6 +371,36 @@ suite("sqlLanguage native completion: honesty under partial readiness", () => {
         expect(result.isIncomplete).to.equal(true);
     });
 
+    test("member-access miss on lazy columns kicks the load; retrigger serves items", async () => {
+        // Simulates the LIVE gap: the alias resolves to a catalog table whose
+        // columns section is notLoaded. The first request must stay honest
+        // (0 items + isIncomplete so Monaco re-queries) AND fire-and-forget
+        // the column load through the hydration seam; the retrigger then
+        // finds the loaded columns.
+        const spec: FixtureCatalogSpec = {
+            ...STANDARD_FIXTURE_CATALOG,
+            objects: STANDARD_FIXTURE_CATALOG.objects.map((o) =>
+                o.schema === "Sales" && o.name === "Orders" ? { ...o, columnsLazy: true } : o,
+            ),
+        };
+        const provider = new FixtureLanguageMetadataProvider(spec);
+
+        const first = await complete("SELECT o./*caret*/ FROM Sales.Orders o", provider);
+        expect(first.items).to.have.length(0);
+        expect(first.isIncomplete).to.equal(true);
+        expect(first.incompleteReason).to.equal("columnsNotReady");
+        expect(provider.hydrationRequests).to.have.length(1);
+        expect(provider.hydrationRequests[0].kind).to.equal("columns");
+        expect(provider.hydrationRequests[0].priority).to.equal("interactiveFollowup");
+
+        // The fixture resolves the load on the request (live: async refresh
+        // + didChange). Monaco's isIncomplete retrigger now gets the columns.
+        const second = await complete("SELECT o./*caret*/ FROM Sales.Orders o", provider);
+        expect(labels(second)).to.include.members(["OrderID", "CustomerID", "OrderDate"]);
+        expect(second.isIncomplete).to.equal(false);
+        expect(provider.hydrationRequests).to.have.length(1); // no duplicate kick
+    });
+
     test("case-sensitive catalog does not fold-match aliases", async () => {
         const provider = new FixtureLanguageMetadataProvider({
             ...STANDARD_FIXTURE_CATALOG,

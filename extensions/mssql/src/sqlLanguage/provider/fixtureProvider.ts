@@ -13,6 +13,7 @@
 
 import {
     DefinitionResult,
+    HydrationRequest,
     IPinnedMetadataView,
     ISqlLanguageMetadataProvider,
     LangColumn,
@@ -34,6 +35,12 @@ export interface FixtureObject {
     readonly name: string;
     readonly kind: LangObjectKind;
     readonly columns?: readonly LangColumn[];
+    /**
+     * Simulates the LIVE lazily-hydrated columns section: getColumns yields
+     * undefined (notLoaded) until a requestHydration arrives for the object,
+     * which "loads" the declared columns and fires didChange.
+     */
+    readonly columnsLazy?: boolean;
     readonly parameters?: readonly LangParam[];
     readonly definition?: string;
     /** Honest-unavailability fixture (encrypted / permission-hidden modules). */
@@ -95,6 +102,21 @@ export class FixtureLanguageMetadataProvider implements ISqlLanguageMetadataProv
     databases(): readonly LangDatabase[] | undefined {
         return this.databaseList;
     }
+    /** Hydration requests received through the lazy-load seam (test-visible). */
+    readonly hydrationRequests: HydrationRequest[] = [];
+    /**
+     * The lazy-load seam: records the request and, for a columns request on
+     * a `columnsLazy` object, resolves the "load" (columns become served)
+     * and signals didChange — the fixture analogue of the async catalog
+     * hydration the live provider kicks.
+     */
+    requestHydration(request: HydrationRequest): void {
+        this.hydrationRequests.push(request);
+        if (request.kind === "columns" && request.object !== undefined) {
+            this.view.resolveLazyColumns(request.object.objectId);
+            this.fireDidChange();
+        }
+    }
     onDidChange(listener: () => void): () => void {
         this.listeners.add(listener);
         return () => this.listeners.delete(listener);
@@ -114,6 +136,8 @@ class FixturePinnedView implements IPinnedMetadataView {
 
     private readonly objects: LangObjectInfo[] = [];
     private readonly columnsById = new Map<number, readonly LangColumn[]>();
+    /** Objects whose columns are declared but not yet "loaded" (lazy fixture). */
+    private readonly lazyColumnIds = new Set<number>();
     private readonly paramsById = new Map<number, readonly LangParam[]>();
     private readonly definitionsById = new Map<number, string>();
     private readonly definitionUnavailableById = new Map<number, "encrypted" | "permission">();
@@ -147,6 +171,9 @@ class FixturePinnedView implements IPinnedMetadataView {
             byKey.set(this.fold(`${fixture.schema}.${fixture.name}`), objectId);
             if (fixture.columns !== undefined) {
                 this.columnsById.set(objectId, fixture.columns);
+            }
+            if (fixture.columnsLazy === true) {
+                this.lazyColumnIds.add(objectId);
             }
             if (fixture.parameters !== undefined) {
                 this.paramsById.set(objectId, fixture.parameters);
@@ -223,7 +250,14 @@ class FixturePinnedView implements IPinnedMetadataView {
         return this.objects.find((o) => o.ref.objectId === ref.objectId);
     }
     getColumns(ref: LangObjectRef): readonly LangColumn[] | undefined {
+        if (this.lazyColumnIds.has(ref.objectId)) {
+            return undefined; // notLoaded until a hydration request arrives
+        }
         return this.columnsById.get(ref.objectId);
+    }
+    /** Complete a lazy column "load" (invoked by requestHydration). */
+    resolveLazyColumns(objectId: number): void {
+        this.lazyColumnIds.delete(objectId);
     }
     getParameters(ref: LangObjectRef): readonly LangParam[] | undefined {
         return this.paramsById.get(ref.objectId);

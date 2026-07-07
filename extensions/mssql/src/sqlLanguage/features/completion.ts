@@ -26,7 +26,12 @@ import { StatementSketch } from "../core/sketch";
 import { TSQL_KEYWORDS } from "../data/keywords.generated";
 import { TSQL_BUILTIN_FUNCTIONS } from "../data/builtinFunctions.generated";
 import { TSQL_SNIPPETS } from "../data/snippets";
-import { IPinnedMetadataView, LangDatabase, LangObjectKind } from "../provider/types";
+import {
+    IPinnedMetadataView,
+    LangDatabase,
+    LangObjectKind,
+    LangObjectRef,
+} from "../provider/types";
 
 export interface CompletionComputeInput {
     readonly text: string;
@@ -50,6 +55,29 @@ interface Candidate {
     readonly score: number;
 }
 
+/**
+ * How member-access qualifier resolution fared (LS journal field):
+ * - "loaded":     the qualifier resolved and candidates were served.
+ * - "loading":    columns of the resolved table/view are hydrating right now.
+ * - "notLoaded":  columns of the resolved table/view are NOT loaded and no
+ *                 load is known to be in flight — the HOST must kick one
+ *                 (fire-and-forget) so the isIncomplete retrigger can serve.
+ * - "unresolved": the qualifier did not resolve to anything claimable.
+ */
+export type MemberAccessResolution = "loaded" | "loading" | "notLoaded" | "unresolved";
+
+export interface MemberAccessInfo {
+    readonly resolution: MemberAccessResolution;
+    /** The resolved catalog object whose columns are missing (kick target). */
+    readonly columnsRef?: LangObjectRef;
+}
+
+/** Engine-internal completion result: never crosses the RPC (host strips it). */
+export interface CompletionComputation extends CompletionResult {
+    /** Present only for memberAccess contexts. */
+    readonly memberAccess?: MemberAccessInfo;
+}
+
 const KIND_PRIORITY: Readonly<Record<SqlCompletionItemKind, number>> = {
     join: 900,
     column: 700,
@@ -68,11 +96,12 @@ const KIND_PRIORITY: Readonly<Record<SqlCompletionItemKind, number>> = {
 
 const MAX_ITEMS = 250;
 
-export function computeCompletion(input: CompletionComputeInput): CompletionResult {
+export function computeCompletion(input: CompletionComputeInput): CompletionComputation {
     const ctx = input.context;
     const candidates: Candidate[] = [];
     let isIncomplete = false;
     let incompleteReason: string | undefined;
+    let memberAccess: MemberAccessInfo | undefined;
 
     const markIncomplete = (reason: string): void => {
         isIncomplete = true;
@@ -107,7 +136,7 @@ export function computeCompletion(input: CompletionComputeInput): CompletionResu
         }
 
         case "memberAccess": {
-            addMemberAccess(input, ctx.parts, ctx.prefix, add, markIncomplete);
+            memberAccess = addMemberAccess(input, ctx.parts, ctx.prefix, add, markIncomplete);
             break;
         }
 
@@ -195,7 +224,7 @@ export function computeCompletion(input: CompletionComputeInput): CompletionResu
     if (candidates.length > MAX_ITEMS) {
         isIncomplete = true;
     }
-    return { items, isIncomplete, incompleteReason };
+    return { items, isIncomplete, incompleteReason, memberAccess };
 }
 
 // ---- candidate groups -------------------------------------------------------
@@ -369,7 +398,7 @@ function addMemberAccess(
     prefix: string,
     add: AddFn,
     markIncomplete: (reason: string) => void,
-): void {
+): MemberAccessInfo {
     const qualifier = parts[parts.length - 1];
     // 1. Alias / visible source (columns).
     if (parts.length === 1) {
@@ -387,7 +416,18 @@ function addMemberAccess(
             const columns = input.binding.columnsOf(bound);
             if (columns === undefined) {
                 markIncomplete(suppressionOf(bound));
-                return;
+                // Columns are a lazily-hydrated section: a RESOLVED table or
+                // view with missing columns must surface the miss so the host
+                // can kick the load — otherwise the isIncomplete retrigger
+                // finds the same emptiness forever (§4.2 honesty loop).
+                if (bound.resolution.kind === "catalog") {
+                    return {
+                        resolution:
+                            input.pinned.readiness.columns === "loading" ? "loading" : "notLoaded",
+                        columnsRef: bound.resolution.ref,
+                    };
+                }
+                return { resolution: "unresolved" };
             }
             for (const col of columns) {
                 add(
@@ -404,7 +444,7 @@ function addMemberAccess(
             }
             // alias.* star expansion offer.
             addStarExpansion(input, add, bound);
-            return;
+            return { resolution: "loaded" };
         }
     }
     // 2. Schema objects: qualifier (or [db,schema] with current db).
@@ -426,7 +466,7 @@ function addMemberAccess(
                 input.pinned.readiness.objects !== "partial"
             ) {
                 markIncomplete("providerNotReady");
-                return;
+                return { resolution: "notLoaded" };
             }
             for (const obj of input.pinned.searchObjects({
                 schema: schemaName,
@@ -435,7 +475,7 @@ function addMemberAccess(
             })) {
                 add(objectItem(obj.name, obj.kind), prefix);
             }
-            return;
+            return { resolution: "loaded" };
         }
     }
     // 3. Database qualifier → schemas of that database (only current db hydrated).
@@ -456,13 +496,14 @@ function addMemberAccess(
                         prefix,
                     );
                 }
-            } else {
-                markIncomplete("crossDatabaseUnhydrated");
+                return { resolution: "loaded" };
             }
-            return;
+            markIncomplete("crossDatabaseUnhydrated");
+            return { resolution: "unresolved" };
         }
     }
     // Unknown qualifier: stay silent rather than wrong (§ honesty).
+    return { resolution: "unresolved" };
 }
 
 function suppressionOf(bound: BoundSource): string {
