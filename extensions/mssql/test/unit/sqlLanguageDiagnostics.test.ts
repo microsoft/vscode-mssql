@@ -241,8 +241,16 @@ suite("sqlLanguage diagnostics T1: unrecognized statement", () => {
         expectClean(await diagnose("myproc @a = 1", nullProvider));
     });
 
+    test("known catalog procedure invocation stays silent when metadata is ready", async () => {
+        expectClean(await diagnose("Sales.GetOrders @CustomerID = 1"));
+    });
+
     test("bare proc call with identifier args stays silent (sp_help style)", async () => {
         expectClean(await diagnose("sp_help Orders", nullProvider));
+    });
+
+    test("system proc-shaped call stays silent even with user-object metadata ready", async () => {
+        expectClean(await diagnose("sp_help Orders"));
     });
 
     test("EXEC call stays silent", async () => {
@@ -251,6 +259,18 @@ suite("sqlLanguage diagnostics T1: unrecognized statement", () => {
 
     test("lone unknown head stays silent (possible proc call / mid-edit)", async () => {
         expectClean(await diagnose("sel", nullProvider));
+    });
+
+    test("connected lone statement typo gets a syntax suggestion", async () => {
+        const d = only(await diagnose("sel"));
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean SELECT?");
+    });
+
+    test("connected unknown bare command reports a missing stored procedure", async () => {
+        const d = only(await diagnose("scasdf"));
+        expect(d.code).to.equal("mssql(2812)");
+        expect(d.message).to.contain("Could not find stored procedure 'scasdf'.");
     });
 
     test("unknown head as the last statement without body keywords stays silent", async () => {

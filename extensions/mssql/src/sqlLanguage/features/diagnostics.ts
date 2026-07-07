@@ -10,7 +10,8 @@
  * block comments / delimited identifiers, invalid GO lines ("GO abc" ships to
  * the server as content), unbalanced parentheses where recovery is certain,
  * duplicate exposed source names in one FROM scope, unknown statement heads
- * whose body betrays a mistyped keyword (bare proc invocations stay silent).
+ * whose body betrays a mistyped keyword, and metadata-proven missing
+ * EXEC-less procedure calls (offline/uncertain proc invocations stay silent).
  *
  * Tier T2 (warnings — binder-backed): invalid object name (208-style),
  * invalid column name (207-style), ambiguous column name (209-style) — under
@@ -36,6 +37,7 @@ import {
 } from "../core/binder";
 import { buildDatabaseContext } from "../core/databaseContext";
 import { Token, TokenKind, isTrivia } from "../core/lexer";
+import { isNameKind, namePartText } from "../core/nameChain";
 import { ScriptOverlay } from "../core/overlay";
 import { StatementSegment } from "../core/segmenter";
 import { ClauseKind, StatementSketch } from "../core/sketch";
@@ -217,6 +219,13 @@ const UNKNOWN_HEAD_BETRAYAL_WORDS = new Set([
     "HAVING",
 ]);
 
+/**
+ * Common system procedure prefixes that are callable without EXEC and are not
+ * part of the user-object metadata snapshot. Keep them quiet unless/until the
+ * provider exposes a first-class system-procedure catalog.
+ */
+const EXEC_LESS_SYSTEM_PROCEDURE_PREFIXES = ["sp_", "xp_"];
+
 // ---------------------------------------------------------------------------
 // Pass implementation
 // ---------------------------------------------------------------------------
@@ -243,6 +252,13 @@ interface TargetInfo {
     readonly columns?: ReadonlySet<string>;
     /** True when a target exists but its columns cannot be claimed. */
     readonly untrusted: boolean;
+}
+
+interface LeadingStatementName {
+    readonly parts: readonly string[];
+    readonly raw: string;
+    readonly start: number;
+    readonly end: number;
 }
 
 export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsComputation {
@@ -453,13 +469,17 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
     };
 
     /**
-     * T1: unrecognized statement head. An identifier-led statement whose head
-     * is no keyword at all is normally a bare procedure invocation
-     * ("myproc @p = 1" — legal as the first statement of a batch) and MUST
-     * stay silent; but a depth-0 betrayal word (FROM/WHERE/...) can never
-     * follow a proc call, so its presence proves the head was a mistyped
-     * statement keyword ("sel ect * from x"). Betrayal-free unknown heads —
-     * including the lone head mid-edit at the document tail — never flag.
+     * T1: unrecognized statement head. A depth-0 betrayal word
+     * (FROM/WHERE/...) can never follow the one legal unknown-head shape,
+     * a bare procedure invocation ("myproc @p = 1"), so its presence proves
+     * the head was a mistyped statement keyword ("sel ect * from x").
+     *
+     * When metadata is fully trustworthy, a betrayal-free unknown head can
+     * also be checked as an EXEC-less procedure call. Known procedures stay
+     * silent; missing/non-procedure heads become diagnostics. Offline,
+     * partial, stale, cross-database, ambiguous, and system-proc-shaped heads
+     * stay silent to avoid dishonest claims.
+     *
      * The head text is quoted only in the marker message (in-editor), never
      * in telemetry fields.
      */
@@ -474,6 +494,10 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
             head.keyword !== undefined
         ) {
             return; // keyword-led (maybe unmodeled), quoted, temp, variable, sqlcmd…
+        }
+        const headName = readLeadingStatementName(text, tokens, s.segment);
+        if (headName === undefined) {
+            return;
         }
         let depth = 0;
         let betrayed = false;
@@ -492,9 +516,6 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
                 depth === 0 &&
                 t.kind === TokenKind.Identifier &&
                 UNKNOWN_HEAD_BETRAYAL_WORDS.has(text.slice(t.start, t.end).toUpperCase());
-        }
-        if (!betrayed) {
-            return; // possible EXEC-less proc call / lone head mid-edit
         }
         const headRaw = text.slice(head.start, head.end);
         const headUpper = headRaw.toUpperCase();
@@ -517,6 +538,36 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
             }
         }
         suggestion ??= suggestStatementKeyword(headUpper);
+
+        if (!betrayed) {
+            if (headRaw.length < 3) {
+                return; // too likely to be a transient mid-edit token
+            }
+            const procVerdict = resolveExecLessProcedureHead(s, headName);
+            if (procVerdict === "procedure" || procVerdict === "unknown") {
+                return; // legal/uncertain EXEC-less proc call
+            }
+            if (suggestion !== undefined) {
+                report(
+                    "error",
+                    head.start,
+                    end,
+                    `Incorrect syntax near '${headRaw}' — not a recognized statement` +
+                        ` (did you mean ${suggestion}?).`,
+                    "mssql(102)",
+                );
+                return;
+            }
+            report(
+                "error",
+                headName.start,
+                headName.end,
+                `Could not find stored procedure '${headName.raw}'.`,
+                "mssql(2812)",
+            );
+            return;
+        }
+
         report(
             "error",
             head.start,
@@ -525,6 +576,47 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
                 (suggestion !== undefined ? ` (did you mean ${suggestion}?).` : "."),
             "mssql(102)",
         );
+    };
+
+    const resolveExecLessProcedureHead = (
+        s: AnalyzedStatementInput,
+        headName: LeadingStatementName,
+    ): "procedure" | "notFound" | "unknown" => {
+        if (!metadataValidated) {
+            return "unknown";
+        }
+        const effectiveDb = databaseContext.effectiveDatabaseAt(s.ordinal);
+        const current = pinned.env.currentDatabase;
+        if (
+            effectiveDb !== undefined &&
+            (current === undefined || fold(effectiveDb) !== fold(current))
+        ) {
+            return "unknown";
+        }
+        if (pinned.readiness.objects !== "ready" || pinned.readiness.mode !== "full") {
+            return "unknown";
+        }
+        const parts = headName.parts;
+        const last = parts[parts.length - 1];
+        if (last === undefined || isSystemProcedureShapedName(last)) {
+            return "unknown";
+        }
+        if (parts.length > 3) {
+            return "unknown";
+        }
+        const lookupParts =
+            parts.length === 3 && current !== undefined && fold(parts[0]) === fold(current)
+                ? parts.slice(1)
+                : parts;
+        if (parts.length === 3 && lookupParts === parts) {
+            return "unknown";
+        }
+        const resolution = pinned.resolveObject(lookupParts);
+        if (resolution.kind === "resolved") {
+            const object = pinned.getObject(resolution.ref);
+            return object?.kind === "procedure" ? "procedure" : "notFound";
+        }
+        return resolution.kind === "notFound" ? "notFound" : "unknown";
     };
 
     // ---- T2 helpers ---------------------------------------------------------
@@ -1290,6 +1382,57 @@ function isInvalidGoLine(text: string, tokens: readonly Token[], goIndex: number
         break;
     }
     return true;
+}
+
+function readLeadingStatementName(
+    text: string,
+    tokens: readonly Token[],
+    segment: StatementSegment,
+): LeadingStatementName | undefined {
+    const first = tokens[segment.firstToken];
+    if (first === undefined || !isNameKind(first.kind)) {
+        return undefined;
+    }
+    const parts: string[] = [namePartText(text, first)];
+    let end = first.end;
+    let cursor = segment.firstToken + 1;
+    for (;;) {
+        const dot = nextSignificantInStatement(tokens, cursor, segment.lastToken);
+        if (dot < 0 || text.slice(tokens[dot].start, tokens[dot].end) !== ".") {
+            break;
+        }
+        const name = nextSignificantInStatement(tokens, dot + 1, segment.lastToken);
+        if (name < 0 || !isNameKind(tokens[name].kind)) {
+            break;
+        }
+        parts.push(namePartText(text, tokens[name]));
+        end = tokens[name].end;
+        cursor = name + 1;
+    }
+    return {
+        parts,
+        raw: text.slice(first.start, end),
+        start: first.start,
+        end,
+    };
+}
+
+function nextSignificantInStatement(
+    tokens: readonly Token[],
+    start: number,
+    lastInclusive: number,
+): number {
+    for (let i = start; i <= lastInclusive; i++) {
+        if (!isTrivia(tokens[i].kind)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function isSystemProcedureShapedName(name: string): boolean {
+    const folded = name.toLowerCase();
+    return EXEC_LESS_SYSTEM_PROCEDURE_PREFIXES.some((prefix) => folded.startsWith(prefix));
 }
 
 /**

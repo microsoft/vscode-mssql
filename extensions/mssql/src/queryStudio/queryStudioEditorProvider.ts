@@ -34,6 +34,7 @@ const pendingOpenContexts = new Map<
     { profileId: string; database?: string; autoRun?: boolean }
 >();
 const explicitClassicOpenUntil = new Map<string, number>();
+const PROBLEM_REDIRECT_SELECTION_SETTLE_MS = 25;
 
 export function findQueryStudioModel(uri: vscode.Uri): QueryStudioDocumentModel | undefined {
     return liveModels.get(uri.toString());
@@ -333,30 +334,59 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
 
 function registerQueryStudioActiveTextEditorRedirect(context: vscode.ExtensionContext): void {
     let redirecting = false;
-    context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor((editor) => {
-            if (redirecting || editor === undefined || editor.document.languageId !== "sql") {
-                return;
-            }
-            const controller = liveControllerFor(editor.document.uri);
-            if (controller === undefined) {
-                return;
-            }
-            const uriKey = editor.document.uri.toString();
-            if ((explicitClassicOpenUntil.get(uriKey) ?? 0) > Date.now()) {
-                return;
-            }
-            redirecting = true;
-            try {
-                const position = editor.selection.active;
-                controller.revealEditorPosition(position.line + 1, position.character + 1);
-            } finally {
+    let redirectTimer: ReturnType<typeof setTimeout> | undefined;
+    const subscription = vscode.window.onDidChangeActiveTextEditor((editor) => {
+        if (redirecting || editor === undefined || editor.document.languageId !== "sql") {
+            return;
+        }
+        const controller = liveControllerFor(editor.document.uri);
+        if (controller === undefined) {
+            return;
+        }
+        const uriKey = editor.document.uri.toString();
+        if ((explicitClassicOpenUntil.get(uriKey) ?? 0) > Date.now()) {
+            return;
+        }
+        redirecting = true;
+        if (redirectTimer !== undefined) {
+            clearTimeout(redirectTimer);
+        }
+        redirectTimer = setTimeout(() => {
+            redirectTimer = undefined;
+            void redirectClassicSqlEditorToQueryStudio(editor, controller, uriKey).finally(() => {
                 setTimeout(() => {
                     redirecting = false;
                 }, 0);
+            });
+        }, PROBLEM_REDIRECT_SELECTION_SETTLE_MS);
+    });
+    context.subscriptions.push(subscription, {
+        dispose: () => {
+            if (redirectTimer !== undefined) {
+                clearTimeout(redirectTimer);
+                redirectTimer = undefined;
+                redirecting = false;
             }
-        }),
-    );
+        },
+    });
+}
+
+async function redirectClassicSqlEditorToQueryStudio(
+    openedEditor: vscode.TextEditor,
+    controller: QueryStudioController,
+    uriKey: string,
+): Promise<void> {
+    const activeEditor = vscode.window.activeTextEditor;
+    const activeMatches =
+        activeEditor !== undefined &&
+        activeEditor.document.uri.toString() === uriKey &&
+        activeEditor.document.languageId === "sql";
+    const sourceEditor = activeMatches ? activeEditor : openedEditor;
+    const position = sourceEditor.selection.active;
+    if (activeMatches) {
+        await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+    }
+    controller.revealEditorPosition(position.line + 1, position.character + 1);
 }
 
 let replayController: QueryStudioReplayController | undefined;
