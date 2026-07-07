@@ -70,6 +70,12 @@ export interface QsLangCompletionItem {
 }
 
 export interface QsLangCompletionParams extends QsLangPosition {
+    /**
+     * FNV-1a hash of the webview editor text at request time. The host
+     * briefly awaits sync convergence to this hash before classifying —
+     * completions raced the edit coalescer and bound one keystroke behind.
+     */
+    readonly textHash?: string;
     readonly trigger: "invoke" | "character";
     readonly triggerCharacter?: string;
 }

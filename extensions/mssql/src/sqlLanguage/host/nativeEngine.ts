@@ -303,10 +303,28 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 keywordCasing: options.keywordCasing,
                 positionAt: (o) => analysis.snapshot.positionAt(o),
             });
+            // Visibility fields (classified): offsets/counts are protocol
+            // metadata; prefix/parts/labels carry identifier classes — the
+            // capture policy digests them by default and reveals them only
+            // under the explicit, time-bounded elevated capture.
+            const contextPrefix = "prefix" in context ? context.prefix : "";
+            const contextParts = "parts" in context ? context.parts.join(".") : "";
             span.end("ok", {
                 contextKind: { raw: context.kind, cls: "diagnostic.metadata" },
                 itemCount: { raw: result.items.length, cls: "diagnostic.metadata" },
                 isIncomplete: { raw: result.isIncomplete, cls: "diagnostic.metadata" },
+                offset: { raw: offset, cls: "diagnostic.metadata" },
+                docLength: { raw: req.text.length, cls: "diagnostic.metadata" },
+                prefixLength: { raw: contextPrefix.length, cls: "diagnostic.metadata" },
+                prefix: { raw: contextPrefix, cls: "user.text" },
+                parts: { raw: contextParts, cls: "object.name" },
+                topLabels: {
+                    raw: result.items
+                        .slice(0, 5)
+                        .map((item) => item.label)
+                        .join(", "),
+                    cls: "object.name",
+                },
             });
             return Promise.resolve(result);
         } catch (error) {

@@ -131,6 +131,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             backingDocument: () => this.model.backingDocument,
             sessionBinding: () => this.model.sessionBinding,
             databases: () => this._languageDatabasesCache,
+            awaitTextHash: (hash, timeoutMs) => this.model.awaitTextHash(hash, timeoutMs),
         });
         this.initializeBase();
         this.registerHandlers();
@@ -595,6 +596,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 { line: params.line, character: params.character },
                 params.trigger,
                 params.triggerCharacter,
+                params.textHash,
             );
             return result ?? { items: [], isIncomplete: false };
         });

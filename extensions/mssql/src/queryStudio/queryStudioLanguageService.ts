@@ -50,6 +50,7 @@ import {
     SqlMetadataFreshnessVerdict,
 } from "../sqlLanguage/api";
 import { MetadataPolicies } from "../services/metadata/cache/metadataFreshness";
+import { diag } from "../diagnostics/diagnosticsCore";
 import { Sts2BridgeEngine } from "../sqlLanguage/host/bridgeEngine";
 import { NativeSqlLanguageEngine } from "../sqlLanguage/host/nativeEngine";
 import {
@@ -89,6 +90,13 @@ async function connectionManagerSeam(): Promise<ConnectionManagerSeam | undefine
 }
 
 export interface QueryStudioLanguageServiceHost {
+    /**
+     * Await the host mirror reaching the webview text hash (bounded).
+     * Language requests race the edit coalescer; without convergence the
+     * engine classifies one keystroke behind (sys.| binding as sys|.).
+     * Resolves false on timeout — serve current text, never block.
+     */
+    awaitTextHash?(hash: string, timeoutMs: number): Promise<boolean>;
     backingDocument(): vscode.TextDocument | undefined;
     sessionBinding(): DocumentSessionBinding | undefined;
     /** Cached database names for USE completions; refreshed by the controller. */
@@ -421,11 +429,32 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         };
     }
 
-    completion(
+    async completion(
         position: SqlLanguagePosition,
         trigger: "invoke" | "character",
         triggerCharacter?: string,
+        textHash?: string,
     ): Promise<CompletionResult | undefined> {
+        // Converge the mirror to the webview text before classifying: the
+        // request races the edit coalescer, and a one-keystroke-stale text
+        // binds member access at the wrong place (bounded wait, never hard).
+        if (textHash !== undefined && this.host.awaitTextHash !== undefined) {
+            const waitStart = Date.now();
+            const converged = await this.host.awaitTextHash(textHash, 200);
+            const waitedMs = Date.now() - waitStart;
+            if (waitedMs > 1 || !converged) {
+                diag.emit({
+                    feature: "sqlLanguage",
+                    kind: "event",
+                    type: "sqlLanguage.completion.converge",
+                    status: converged ? "ok" : "warning",
+                    fields: {
+                        waitedMs: { raw: waitedMs, cls: "diagnostic.metadata" },
+                        converged: { raw: converged, cls: "diagnostic.metadata" },
+                    },
+                });
+            }
+        }
         // CACHE-4 safe-stale: the answer comes synchronously from the
         // pinned snapshot; this policy call is NEVER awaited on the hot
         // path — it schedules a background refresh when the snapshot has

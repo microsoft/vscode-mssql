@@ -514,6 +514,9 @@ export function QueryStudioApp() {
         }
         const providerDisposable = monacoApi.languages.registerInlineCompletionsProvider("sql", {
             provideInlineCompletions: async (_model, position, context) => {
+                // Same staleness rule as lang completions: the host bridge
+                // resolves positions against its mirror — push edits first.
+                flushEdits();
                 const response = await rpc.sendRequest(QsInlineCompletionRequest.type, {
                     line: position.lineNumber - 1,
                     character: position.column - 1,
@@ -560,9 +563,14 @@ export function QueryStudioApp() {
                 triggerCharacters: [".", " ", "@", "("],
                 provideCompletionItems: async (model, position, context) => {
                     try {
+                        // Push pending keystrokes NOW and tell the host the
+                        // exact text this request was computed against —
+                        // otherwise completions bind one keystroke behind.
+                        flushEdits();
                         const result = await rpc.sendRequest(QsLangCompletionRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
+                            textHash: textHash(model.getValue()),
                             trigger:
                                 context.triggerKind ===
                                 monacoApi.languages.CompletionTriggerKind.TriggerCharacter
@@ -744,7 +752,7 @@ export function QueryStudioApp() {
                 disposable.dispose();
             }
         };
-    }, [rpc]);
+    }, [rpc, flushEdits]);
 
     // --- splitter --------------------------------------------------------------
     const onSplitterDown = useCallback((down: React.PointerEvent) => {

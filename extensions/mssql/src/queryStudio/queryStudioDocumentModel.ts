@@ -97,6 +97,40 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         return this.sync.hostVersion;
     }
 
+    get currentTextHash(): string {
+        return this.sync.currentHash;
+    }
+
+    /**
+     * Bounded wait for the mirror to reach a webview text hash. Change
+     * signal: every applied edit fires handleHostChange -> listeners; a
+     * short poll backstops applies that complete without a listener tick.
+     */
+    awaitTextHash(hash: string, timeoutMs: number): Promise<boolean> {
+        if (this.sync.currentHash === hash) {
+            return Promise.resolve(true);
+        }
+        return new Promise((resolve) => {
+            const done = (ok: boolean) => {
+                clearInterval(poll);
+                clearTimeout(deadline);
+                listener.dispose();
+                resolve(ok);
+            };
+            const check = () => {
+                if (this.sync.currentHash === hash) {
+                    done(true);
+                }
+            };
+            const listener = this.attachListener({
+                onRemote: () => check(),
+                onResync: () => check(),
+            });
+            const poll = setInterval(check, 15);
+            const deadline = setTimeout(() => done(false), timeoutMs);
+        });
+    }
+
     get syncResyncCount(): number {
         return this.sync.resyncCount;
     }
