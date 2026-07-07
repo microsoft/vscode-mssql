@@ -184,10 +184,14 @@ suite("BuildHelper: Build Helper tests", function (): void {
             if (filePath === buildDirPath) {
                 return true; // The directory itself exists — don't try to mkdir it
             }
-            if (filePath.startsWith(buildDirPath)) {
-                return false; // Pretend individual DLL files are missing
+            // Only pretend files directly in BuildDirectory are missing (not in subdirectories)
+            if (filePath.startsWith(buildDirPath + path.sep)) {
+                const relativePath = path.relative(buildDirPath, filePath);
+                if (!relativePath.includes(path.sep)) {
+                    return false; // File directly in BuildDirectory - pretend it's missing
+                }
             }
-            return fs.existsSync(filePath); // Real check for the extracted folder
+            return fs.existsSync(filePath); // Real check for extracted folders
         });
 
         // Stub the download so no real network call is made; create dummy files in the
