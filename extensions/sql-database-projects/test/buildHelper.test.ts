@@ -178,9 +178,14 @@ suite("BuildHelper: Build Helper tests", function (): void {
 
         // Simulate all DLLs missing from BuildDirectory, but allow real fs checks
         // on the extracted folder so the copy-to-BuildDirectory step works correctly.
+        // Also allow the directory-existence check (buildDirPath itself) to return true
+        // so createBuildDirFolder does not attempt to re-create the existing directory.
         sandbox.stub(utils, "exists").callsFake(async (filePath: string): Promise<boolean> => {
+            if (filePath === buildDirPath) {
+                return true; // The directory itself exists — don't try to mkdir it
+            }
             if (filePath.startsWith(buildDirPath)) {
-                return false; // Pretend nothing is in BuildDirectory
+                return false; // Pretend individual DLL files are missing
             }
             return fs.existsSync(filePath); // Real check for the extracted folder
         });
