@@ -204,6 +204,27 @@ suite("sqlLanguage native hover: schema and database parts", () => {
 });
 
 suite("sqlLanguage native hover: columns", () => {
+    test("select-star hover lists combined columns from all FROM sources", async () => {
+        const content = await md(
+            "SELECT /*caret*/* FROM Sales.Orders o JOIN Sales.Customers c ON o.CustomerID = c.CustomerID",
+        );
+        expect(content).to.contain("**columns for `*`**");
+        expect(content).to.contain("`o.OrderID`");
+        expect(content).to.contain("`o.CustomerID`");
+        expect(content).to.contain("`c.CustomerID`");
+        expect(content).to.contain("`c.CustomerName`");
+        expect(content).to.contain("datetime2(7)");
+    });
+
+    test("qualified select-star hover lists only that source's columns", async () => {
+        const content = await md(
+            "SELECT o./*caret*/* FROM Sales.Orders o JOIN Sales.Customers c ON o.CustomerID = c.CustomerID",
+        );
+        expect(content).to.contain("`o.OrderID`");
+        expect(content).to.contain("`o.Comments`");
+        expect(content).to.not.contain("`c.CustomerName`");
+    });
+
     test("alias-qualified column: type and NOT NULL", async () => {
         const content = await md("SELECT o./*caret*/OrderID FROM Sales.Orders o");
         expect(content).to.contain("**column** `o.OrderID`");

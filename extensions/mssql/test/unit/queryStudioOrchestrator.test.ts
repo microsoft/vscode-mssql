@@ -266,6 +266,69 @@ suite("Query Studio execution orchestrator", () => {
         rowStore.dispose();
     });
 
+    test("parse-only wrapper batches wait for active-query cleanup before the next execute", async () => {
+        const seen: string[] = [];
+        const backend = new FakeBackend({
+            scripts: [
+                {
+                    match: (text) => {
+                        const matched = text.trim().toUpperCase() === "SET PARSEONLY ON;";
+                        if (matched) {
+                            seen.push("on");
+                        }
+                        return matched;
+                    },
+                    events: [{ type: "complete", status: "succeeded" }],
+                },
+                {
+                    match: (text) => {
+                        const matched = text.includes("EXEC");
+                        if (matched) {
+                            seen.push("user");
+                        }
+                        return matched;
+                    },
+                    events: [
+                        {
+                            type: "message",
+                            kind: "error",
+                            text: "Incorrect syntax near 'EXEC'.",
+                            line: 1,
+                        },
+                        { type: "complete", status: "failed" },
+                    ],
+                },
+                {
+                    match: (text) => {
+                        const matched = text.trim().toUpperCase() === "SET PARSEONLY OFF;";
+                        if (matched) {
+                            seen.push("off");
+                        }
+                        return matched;
+                    },
+                    events: [{ type: "complete", status: "succeeded" }],
+                },
+            ],
+        });
+        const session = await sessionFor(backend);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run("EXEC", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+            mode: "parseOnly",
+        });
+
+        expect(result.status).to.equal("completedWithErrors");
+        expect(seen).to.deep.equal(["on", "user", "off"]);
+        expect(events.messages.some((message) => /one active query/i.test(message.text))).to.equal(
+            false,
+        );
+        rowStore.dispose();
+    });
+
     test("synthesizes classic execution messages: started line, rows affected, total time (ordered)", async () => {
         const backend = new FakeBackend({
             scripts: [

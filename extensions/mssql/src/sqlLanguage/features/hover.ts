@@ -58,6 +58,7 @@ export type HoverSymbolKind =
     | "builtinFunction"
     | "schema"
     | "database"
+    | "star"
     | "none";
 
 export interface HoverComputeInput {
@@ -137,6 +138,16 @@ export function computeHover(input: HoverComputeInput): HoverComputation {
         symbolKind,
     });
     const tokenSpan: SketchSpan = { start: token.start, end: token.end };
+
+    // ---- SELECT * / alias.* ------------------------------------------------
+    if (text.slice(token.start, token.end) === "*") {
+        const star = input.sketch.selectItems.find(
+            (item) => item.isStar && offset >= item.span.start && offset <= item.span.end,
+        );
+        if (star !== undefined) {
+            return starHover(input, star, catalogSuppressed, hover, tokenSpan);
+        }
+    }
 
     // ---- variables and EXEC parameters ------------------------------------
     if (token.kind === TokenKind.Variable) {
@@ -417,6 +428,68 @@ function cteColumns(input: HoverComputeInput, cte: CteDecl): readonly string[] |
         label: cte.name,
     };
     return input.binding.columnsOf(bound)?.map((c) => c.name);
+}
+
+function starHover(
+    input: HoverComputeInput,
+    star: StatementSketch["selectItems"][number],
+    catalogSuppressed: boolean,
+    hover: HoverFn,
+    tokenSpan: SketchSpan,
+): HoverComputation {
+    const sources =
+        star.starQualifier !== undefined
+            ? [input.binding.resolveQualifier(input.offset, star.starQualifier)].filter(
+                  (source): source is BoundSource => source !== undefined,
+              )
+            : input.binding
+                  .sourcesAt(input.offset)
+                  .filter((source) => source.source.scopeId === star.scopeId);
+    if (sources.length === 0) {
+        return NONE;
+    }
+
+    const lines = ["**columns for `*`**"];
+    for (const source of sources) {
+        if (source.resolution.kind === "catalog") {
+            if (catalogSuppressed) {
+                return NONE;
+            }
+            const info = input.pinned.getObject(source.resolution.ref);
+            if (info !== undefined && isSystemSchemaName(info.schema)) {
+                return NONE;
+            }
+        }
+        const columns = input.binding.columnsOf(source);
+        if (columns === undefined) {
+            return NONE;
+        }
+        const qualify = sources.length > 1 || source.source.alias !== undefined;
+        for (const column of columns) {
+            lines.push(
+                starColumnHoverLine(
+                    qualify ? source.label + "." + column.name : column.name,
+                    column,
+                ),
+            );
+        }
+    }
+    if (lines.length === 1) {
+        return NONE;
+    }
+    return hover("star", lines.join("  \n"), tokenSpan);
+}
+
+function starColumnHoverLine(label: string, column: BoundColumn): string {
+    let line = "- `" + label + "`";
+    if (column.typeDisplay !== undefined) {
+        line +=
+            " - `" +
+            column.typeDisplay +
+            "`" +
+            (column.nullable === true ? " NULL" : column.nullable === false ? " NOT NULL" : "");
+    }
+    return line;
 }
 
 /** Alias-target display for the alias hover, or undefined when unclaimable. */

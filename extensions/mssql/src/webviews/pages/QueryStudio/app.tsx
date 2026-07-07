@@ -132,6 +132,7 @@ export function QueryStudioApp() {
     const expectedEchoGroupsRef = useRef<Set<string>>(new Set());
     const renderedRunRef = useRef<number | undefined>(undefined);
     const rootRef = useRef<HTMLDivElement | null>(null);
+    const dbWrapRef = useRef<HTMLSpanElement | null>(null);
     const pendingEditorFocusRestoreRef = useRef<EditorFocusBookmark | undefined>(undefined);
     // QS-1 auto-open: runs are always webview-initiated, so plan mode is
     // tracked locally at the point the run is triggered. `planRunArmedRef`
@@ -545,6 +546,24 @@ export function QueryStudioApp() {
         },
         [rpc],
     );
+    useEffect(() => {
+        if (dbList === undefined) {
+            return;
+        }
+        const closeIfOutside = (event: MouseEvent | FocusEvent) => {
+            const target = event.target;
+            if (target instanceof Node && dbWrapRef.current?.contains(target)) {
+                return;
+            }
+            setDbList(undefined);
+        };
+        window.addEventListener("pointerdown", closeIfOutside, true);
+        window.addEventListener("focusin", closeIfOutside, true);
+        return () => {
+            window.removeEventListener("pointerdown", closeIfOutside, true);
+            window.removeEventListener("focusin", closeIfOutside, true);
+        };
+    }, [dbList]);
     const parse = useCallback(() => {
         flushEdits();
         setActionHint(undefined);
@@ -594,6 +613,9 @@ export function QueryStudioApp() {
             } else if (altOnly && e.key.toLowerCase() === "b") {
                 cancel();
                 handled = true;
+            } else if (noMods && e.key === "Escape" && dbList !== undefined) {
+                setDbList(undefined);
+                handled = true;
             }
             if (handled) {
                 e.preventDefault();
@@ -602,7 +624,7 @@ export function QueryStudioApp() {
         };
         window.addEventListener("keydown", onKey, true);
         return () => window.removeEventListener("keydown", onKey, true);
-    }, [execute, cancel]);
+    }, [execute, cancel, dbList]);
 
     // --- inline completions (B6): ghost text via the host's shared provider ----
     const completionsEnabled = state?.completions?.enabled === true;
@@ -970,7 +992,7 @@ export function QueryStudioApp() {
                     <span className="codicon codicon-plug" /> {connected ? "Change" : "Connect"}
                 </button>
                 <div className="qs-sep" />
-                <span className="qs-db-wrap">
+                <span className="qs-db-wrap" ref={dbWrapRef}>
                     <button
                         className="qs-btn qs-database"
                         disabled={!connected || executing}

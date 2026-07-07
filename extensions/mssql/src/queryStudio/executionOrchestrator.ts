@@ -158,29 +158,37 @@ export class ExecutionOrchestrator {
     /** Fire one SET batch through a silent sink; failures surface as messages. */
     private async runSetBatch(sql: string): Promise<void> {
         const events = this.events;
-        await new Promise<void>((resolve) => {
-            const sink: IQueryEventSink = {
-                onResultSetStarted: () => undefined,
-                onRowsPage: () => undefined,
-                onMessage: (message) => {
-                    if (message.kind === "error") {
-                        events.onMessages([
-                            {
-                                batchIndex: -1,
-                                kind: "error",
-                                text: message.text,
-                                epochMs: Date.now(),
-                            },
-                        ]);
-                    }
-                },
-                onComplete: () => resolve(),
-            };
-            this.session.execute(
-                sql,
-                { priority: "interactive", commandKind: "plan", tag: "queryStudio:setWrapper" },
-                sink,
-            );
+        const sink: IQueryEventSink = {
+            onResultSetStarted: () => undefined,
+            onRowsPage: () => undefined,
+            onMessage: (message) => {
+                if (message.kind === "error") {
+                    events.onMessages([
+                        {
+                            batchIndex: -1,
+                            kind: "error",
+                            text: message.text,
+                            epochMs: Date.now(),
+                        },
+                    ]);
+                }
+            },
+            onComplete: () => undefined,
+        };
+        const handle = this.session.execute(
+            sql,
+            {
+                priority: "interactive",
+                commandKind: "plan",
+                tag: "queryStudio:setWrapper",
+            },
+            sink,
+        );
+        this.activeHandle = handle;
+        await handle.completion.finally(() => {
+            if (this.activeHandle === handle) {
+                this.activeHandle = undefined;
+            }
         });
     }
 
@@ -422,54 +430,60 @@ export class ExecutionOrchestrator {
             sink,
         );
         this.activeHandle = handle;
-        return handle.completion.then((summary) => {
-            synthesizeSummaryError(summary);
-            // Cancel/lost truncation truthfulness: any set still open is
-            // marked (partial grids never masquerade as complete).
-            if (summary.status === "canceled" || summary.status === "connectionLost") {
-                for (const wireId of seenSets) {
-                    if (endedSets.has(wireId)) {
-                        continue; // ended before the cut — its state is truthful
+        return handle.completion
+            .then((summary) => {
+                synthesizeSummaryError(summary);
+                // Cancel/lost truncation truthfulness: any set still open is
+                // marked (partial grids never masquerade as complete).
+                if (summary.status === "canceled" || summary.status === "connectionLost") {
+                    for (const wireId of seenSets) {
+                        if (endedSets.has(wireId)) {
+                            continue; // ended before the cut — its state is truthful
+                        }
+                        const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${wireId}`;
+                        rowStore.endResultSet(
+                            storeId,
+                            summary.status === "canceled" ? "cancelled" : "connectionLost",
+                        );
+                        events.onResultSetEnded(
+                            storeId,
+                            0,
+                            summary.status === "canceled" ? "cancelled" : "connectionLost",
+                        );
                     }
-                    const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${wireId}`;
-                    rowStore.endResultSet(
-                        storeId,
-                        summary.status === "canceled" ? "cancelled" : "connectionLost",
-                    );
-                    events.onResultSetEnded(
-                        storeId,
-                        0,
-                        summary.status === "canceled" ? "cancelled" : "connectionLost",
-                    );
+                } else if (seenSets.size === 0 && summary.rowsAffected !== undefined) {
+                    // DML batches produce no result set — surface the summary's
+                    // rowsAffected as the classic "(N rows affected)" line.
+                    synthesizeRowsAffected(summary.rowsAffected);
+                } else {
+                    // Adapters that never emit onResultSetEnded (it's optional —
+                    // the STS2 binding doesn't) left sets open at completion,
+                    // which silently dropped their "(N rows affected)" lines.
+                    // Close them with the orchestrator's own streamed counts.
+                    for (const wireId of seenSets) {
+                        if (endedSets.has(wireId)) {
+                            continue;
+                        }
+                        const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${wireId}`;
+                        const rowCount = rowCounts.get(wireId) ?? 0;
+                        const truncatedReason = rowStore.summary(storeId)?.truncatedReason;
+                        rowStore.endResultSet(storeId);
+                        events.onResultSetEnded(storeId, rowCount, truncatedReason);
+                        // Same skip rules as the sink path: never print a plan
+                        // set's count or a row-capped (clipped) count as
+                        // "rows affected".
+                        if (!truncatedReason && !planSets.has(storeId)) {
+                            synthesizeRowsAffected(rowCount);
+                        }
+                    }
                 }
-            } else if (seenSets.size === 0 && summary.rowsAffected !== undefined) {
-                // DML batches produce no result set — surface the summary's
-                // rowsAffected as the classic "(N rows affected)" line.
-                synthesizeRowsAffected(summary.rowsAffected);
-            } else {
-                // Adapters that never emit onResultSetEnded (it's optional —
-                // the STS2 binding doesn't) left sets open at completion,
-                // which silently dropped their "(N rows affected)" lines.
-                // Close them with the orchestrator's own streamed counts.
-                for (const wireId of seenSets) {
-                    if (endedSets.has(wireId)) {
-                        continue;
-                    }
-                    const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${wireId}`;
-                    const rowCount = rowCounts.get(wireId) ?? 0;
-                    const truncatedReason = rowStore.summary(storeId)?.truncatedReason;
-                    rowStore.endResultSet(storeId);
-                    events.onResultSetEnded(storeId, rowCount, truncatedReason);
-                    // Same skip rules as the sink path: never print a plan
-                    // set's count or a row-capped (clipped) count as
-                    // "rows affected".
-                    if (!truncatedReason && !planSets.has(storeId)) {
-                        synthesizeRowsAffected(rowCount);
-                    }
+                return summary;
+            })
+            .finally(() => {
+                if (this.activeHandle === handle) {
+                    this.activeHandle = undefined;
                 }
-            }
-            return summary;
-        });
+            });
     }
 
     private toMessageRow(

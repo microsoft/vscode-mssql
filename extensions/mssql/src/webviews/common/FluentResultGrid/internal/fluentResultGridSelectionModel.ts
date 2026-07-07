@@ -32,6 +32,13 @@ export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
             return false;
         }
 
+        this._grid.setActiveCell(
+            args.range.fromRow,
+            args.range.fromCell,
+            args.allowAutoEdit ? undefined : false,
+            false,
+            true,
+        );
         this.setSelectedRanges([args.range], undefined, args.selectionMode);
         return true;
     }
