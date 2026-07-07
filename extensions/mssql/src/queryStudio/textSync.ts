@@ -156,6 +156,22 @@ export class TextSyncEngine {
     }
 
     /**
+     * Webview-authoritative full-text adoption. Used to heal a stale-base
+     * deadlock (the webview missed the init or a remote and can never send
+     * an acceptable group). Registers the echo like an accepted group so the
+     * TextDocument change this triggers is not bounced back to Monaco.
+     */
+    adopt(text: string, editGroupId: string): { hostVersion: number } {
+        this.text = text;
+        this.version++;
+        this.pendingEchoes.push({ editGroupId, expectedHash: textHash(text) });
+        if (this.pendingEchoes.length > 64) {
+            this.pendingEchoes.shift();
+        }
+        return { hostVersion: this.version };
+    }
+
+    /**
      * Host TextDocument changed (any origin). Returns the remote message for
      * the webview — flagged as the echo of a webview group when it matches a
      * pending echo (the webview then skips re-applying).

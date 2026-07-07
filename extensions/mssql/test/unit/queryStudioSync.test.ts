@@ -149,6 +149,38 @@ suite("Query Studio text sync", () => {
         ).to.equal("12cd56");
         expect(applyEdits("", [{ start: 0, end: 0, text: "new" }])).to.equal("new");
     });
+
+    test("stale-base rejection reports current version and no resync (webview must adopt)", () => {
+        // The missed-init deadlock (tested end-to-end via adopt below): the
+        // webview thinks the base is 0 while the host starts at 1. The
+        // rejection returns the real host version so the webview can heal.
+        const engine = new TextSyncEngine("");
+        const outcome = engine.applyWebviewEdits({
+            baseHostVersion: 0,
+            editGroupId: "g1",
+            edits: [{ start: 0, end: 0, text: "s" }],
+            textHashAfter: textHash("s"),
+        });
+        expect(outcome.applied).to.equal(false);
+        expect(outcome.resyncNeeded).to.equal(false);
+        expect(outcome.hostVersion).to.equal(1);
+    });
+
+    test("adopt converges the host to the webview text and suppresses its echo", () => {
+        const engine = new TextSyncEngine("");
+        const typed = ["select *", "from sys.objects"].join("\n");
+        const adopted = engine.adopt(typed, "wg_adopt");
+        expect(adopted.hostVersion).to.equal(2);
+        expect(engine.currentText).to.equal(typed);
+        // The full-range WorkspaceEdit change flows back — recognized as OUR
+        // echo, not bounced to Monaco.
+        const echo = engine.onHostTextChanged(typed, [], "hostEdit");
+        expect(echo.remote?.reason).to.equal("echo");
+        expect(echo.remote?.echoOfEditGroupId).to.equal("wg_adopt");
+        // Normal editing continues against the adopted version.
+        const group = webviewGroup(engine, [{ start: 0, end: 0, text: "-- " }], "g2");
+        expect(engine.applyWebviewEdits(group.edits).applied).to.equal(true);
+    });
 });
 
 suite("Query Studio document registry", () => {

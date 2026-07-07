@@ -208,6 +208,50 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         return { applied: true, hostVersion: outcome.hostVersion };
     }
 
+    /**
+     * Full-text adoption from the webview (qs/syncAdopt): the stale-base
+     * rejection path never reconciles when the init/remote was missed, so
+     * the webview converges the host to its visible editor content — the
+     * user-facing truth. One engine adopt + one full-range document replace.
+     */
+    async adoptWebviewText(
+        text: string,
+        editGroupId: string,
+    ): Promise<{ applied: boolean; hostVersion: number }> {
+        const before = this.document.getText();
+        diag.emit({
+            feature: "queryStudio",
+            type: "queryStudio.sync.adopt",
+            fields: {
+                chars: { raw: text.length, cls: "diagnostic.metadata" },
+                hostChars: { raw: before.length, cls: "diagnostic.metadata" },
+            },
+        });
+        if (before === text) {
+            // Already converged textually — just re-align the version.
+            return { applied: true, hostVersion: this.sync.hostVersion };
+        }
+        const outcome = this.sync.adopt(text, editGroupId);
+        const wsEdit = new vscode.WorkspaceEdit();
+        wsEdit.replace(
+            this.document.uri,
+            new vscode.Range(this.document.positionAt(0), this.document.positionAt(before.length)),
+            text,
+        );
+        this.applyingWebviewEdit = true;
+        try {
+            const ok = await vscode.workspace.applyEdit(wsEdit);
+            if (!ok) {
+                this.sync = new TextSyncEngine(this.document.getText());
+                this.broadcastResync("workspace edit rejected (adopt)");
+                return { applied: false, hostVersion: this.sync.hostVersion };
+            }
+        } finally {
+            this.applyingWebviewEdit = false;
+        }
+        return { applied: true, hostVersion: outcome.hostVersion };
+    }
+
     async undo(redo: boolean): Promise<void> {
         // Host-owned undo (doc 04 §8.4): route through VS Code commands so
         // the TextDocument stack stays authoritative. The resulting change

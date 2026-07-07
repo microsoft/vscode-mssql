@@ -44,6 +44,7 @@ import {
     QsSetViewModeRequest,
     QsState,
     QsStateChangedNotification,
+    QsSyncAdoptRequest,
     QsSyncEditsRequest,
     QsSyncInitNotification,
     QsSyncRemoteNotification,
@@ -328,6 +329,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         // --- text sync -----------------------------------------------------
         this.onRequest(QsSyncEditsRequest.type, async (edits) =>
             this.model.applyWebviewEdits(edits),
+        );
+        this.onRequest(QsSyncAdoptRequest.type, async ({ text, editGroupId }) =>
+            this.model.adoptWebviewText(text, editGroupId),
         );
         this.onRequest(QsSyncResyncRequest.type, async ({ webviewVersion, textHash }) =>
             this.model.resyncFor(webviewVersion, textHash),

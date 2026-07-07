@@ -229,6 +229,15 @@ export interface QsMessageRow {
 export namespace QsSyncEditsRequest {
     export const type = new RequestType<QsSyncEdits, QsSyncEditsResult, void>("qs/syncEdits");
 }
+export namespace QsSyncAdoptRequest {
+    // Webview-authoritative full-text adoption: heals stale-base deadlock
+    // (missed init/remote). The editor content is the user-facing truth.
+    export const type = new RequestType<
+        { text: string; editGroupId: string },
+        { applied: boolean; hostVersion: number },
+        void
+    >("qs/syncAdopt");
+}
 export namespace QsSyncResyncRequest {
     export const type = new RequestType<
         { webviewVersion: number; textHash: string },

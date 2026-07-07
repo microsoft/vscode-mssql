@@ -37,6 +37,7 @@ import {
     QsState,
     QsStateChangedNotification,
     QsSyncEdits,
+    QsSyncAdoptRequest,
     QsSyncEditsRequest,
     QsSyncInit,
     QsSyncInitNotification,
@@ -89,6 +90,10 @@ export function QueryStudioApp() {
     const [activeTab, setActiveTab] = useState<"results" | "messages">("results");
     const [resultsCollapsed, setResultsCollapsed] = useState(false);
     const [resultsHeightPct, setResultsHeightPct] = useState(45);
+    // Transient reason from a refused run attempt (execute guards return
+    // { started: false, reason } — silence here was the "Execute does
+    // nothing" bug). Overrides the host status line until the next attempt.
+    const [actionHint, setActionHint] = useState<string | undefined>(undefined);
     const editorRef = useRef<Editor | null>(null);
     const hostVersionRef = useRef(0);
     const suppressLocalRef = useRef(false);
@@ -132,8 +137,30 @@ export function QueryStudioApp() {
         void rpc.sendRequest(QsSyncEditsRequest.type, payload).then((outcome) => {
             if (outcome.applied) {
                 hostVersionRef.current = outcome.hostVersion;
+                return;
             }
-            // Rejections reconcile via the remote/resync notifications.
+            // Divergence rejections reconcile via the resync notification;
+            // stale-base rejections carry NO reconciliation (the host assumes
+            // an interleaved remote reached us — false when the init itself
+            // was missed) and would deadlock every subsequent group. Heal by
+            // converging the host to the visible editor content, which is
+            // the user-facing truth.
+            expectedEchoGroupsRef.current.delete(groupId);
+            hostVersionRef.current = outcome.hostVersion;
+            const liveEditor = editorRef.current;
+            if (!liveEditor) {
+                return;
+            }
+            const adoptGroupId = `wg_${(++editGroupCounter).toString(36)}`;
+            expectedEchoGroupsRef.current.add(adoptGroupId);
+            void rpc
+                .sendRequest(QsSyncAdoptRequest.type, {
+                    text: liveEditor.getValue(),
+                    editGroupId: adoptGroupId,
+                })
+                .then((adopted) => {
+                    hostVersionRef.current = adopted.hostVersion;
+                });
         });
     }, [rpc]);
 
@@ -258,6 +285,7 @@ export function QueryStudioApp() {
     }, [state]);
     useEffect(() => {
         if (executionKind === "executing" && renderedRunRef.current !== runId) {
+            setActionHint(undefined);
             setMessages([]);
             setRowVersions({});
             setActiveTab("results");
@@ -318,6 +346,20 @@ export function QueryStudioApp() {
     const onEditorMount = useCallback(
         (editor: Editor) => {
             editorRef.current = editor;
+            // Pull the sync baseline instead of trusting the pushed init
+            // alone — the push races webview startup, and a missed init used
+            // to deadlock every edit group as stale-base. Gentle: never
+            // clobber text the user already typed (the adopt path converges
+            // that case).
+            void rpc
+                .sendRequest(QsSyncResyncRequest.type, { webviewVersion: 0, textHash: "" })
+                .then((resync) => {
+                    if (editor.getValue().length === 0) {
+                        applyRemoteText(resync.text, resync.hostVersion);
+                    } else {
+                        hostVersionRef.current = resync.hostVersion;
+                    }
+                });
             editor.onDidChangeModelContent((e) => {
                 if (suppressLocalRef.current) {
                     return;
@@ -347,31 +389,40 @@ export function QueryStudioApp() {
                 void rpc.sendRequest(QsSyncSaveRequest.type, undefined);
             });
         },
-        [queueLocalEdits, flushEdits, rpc],
+        [queueLocalEdits, flushEdits, rpc, applyRemoteText],
     );
 
     // --- commands -------------------------------------------------------------
+    // Every run request surfaces a refused outcome in the status bar — a
+    // guard reason (not connected / already executing / nothing to execute)
+    // must never look like a dead button.
+    const runOutcome = useCallback((outcome: { started: boolean; reason?: string }) => {
+        setActionHint(outcome.started ? undefined : (outcome.reason ?? "Could not start the run."));
+    }, []);
     const execute = useCallback(() => {
         flushEdits();
+        setActionHint(undefined);
         // QS-1: an execute while the Actual Plan toggle is on is a plan-mode
         // run — its plan result sets auto-open on completion.
         planRunArmedRef.current = actualPlanEnabledRef.current;
         const editor = editorRef.current;
         const selection = editor?.getSelection();
         if (selection && !selection.isEmpty()) {
-            void rpc.sendRequest(QsExecuteRequest.type, {
-                scope: "selection",
-                selection: {
-                    startLine: selection.startLineNumber,
-                    startColumn: selection.startColumn,
-                    endLine: selection.endLineNumber,
-                    endColumn: selection.endColumn,
-                },
-            });
+            void rpc
+                .sendRequest(QsExecuteRequest.type, {
+                    scope: "selection",
+                    selection: {
+                        startLine: selection.startLineNumber,
+                        startColumn: selection.startColumn,
+                        endLine: selection.endLineNumber,
+                        endColumn: selection.endColumn,
+                    },
+                })
+                .then(runOutcome);
         } else {
-            void rpc.sendRequest(QsExecuteRequest.type, { scope: "document" });
+            void rpc.sendRequest(QsExecuteRequest.type, { scope: "document" }).then(runOutcome);
         }
-    }, [rpc, flushEdits]);
+    }, [rpc, flushEdits, runOutcome]);
     const cancel = useCallback(() => {
         void rpc.sendRequest(QsCancelRequest.type, undefined);
     }, [rpc]);
@@ -399,17 +450,23 @@ export function QueryStudioApp() {
     );
     const parse = useCallback(() => {
         flushEdits();
+        setActionHint(undefined);
         planRunArmedRef.current = false; // parse-only runs never open plans
-        void rpc.sendRequest(QsExecuteRequest.type, { scope: "document", parseOnly: true });
-    }, [rpc, flushEdits]);
+        void rpc
+            .sendRequest(QsExecuteRequest.type, { scope: "document", parseOnly: true })
+            .then(runOutcome);
+    }, [rpc, flushEdits, runOutcome]);
     const estimatedPlan = useCallback(() => {
         flushEdits();
+        setActionHint(undefined);
         planRunArmedRef.current = true; // QS-1: auto-open the estimated plan
-        void rpc.sendRequest(QsExecuteRequest.type, {
-            scope: "document",
-            estimatedPlanOnly: true,
-        });
-    }, [rpc, flushEdits]);
+        void rpc
+            .sendRequest(QsExecuteRequest.type, {
+                scope: "document",
+                estimatedPlanOnly: true,
+            })
+            .then(runOutcome);
+    }, [rpc, flushEdits, runOutcome]);
     const toggleActualPlan = useCallback(() => {
         void rpc.sendRequest(QsSetActualPlanRequest.type, {
             enabled: !(state?.toggles.actualPlan ?? false),
@@ -908,8 +965,8 @@ export function QueryStudioApp() {
             <div className="qs-statusbar" role="status">
                 <span
                     className="qs-status-message"
-                    data-kind={state?.statusMessage.kind ?? "ready"}>
-                    {state?.statusMessage.text ?? "Ready — not connected"}
+                    data-kind={actionHint ? "error" : (state?.statusMessage.kind ?? "ready")}>
+                    {actionHint ?? state?.statusMessage.text ?? "Ready — not connected"}
                 </span>
                 <span className="qs-spacer" />
                 {results?.present ? (
