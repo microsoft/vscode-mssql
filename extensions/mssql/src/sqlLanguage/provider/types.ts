@@ -61,7 +61,8 @@ export interface LangObjectInfo {
 
 export interface LangColumn {
     readonly name: string;
-    readonly typeDisplay: string;
+    /** Absent = type unknown (e.g. static system-catalog columns) — never "". */
+    readonly typeDisplay?: string;
     readonly nullable?: boolean;
     readonly isPrimaryKey?: boolean;
     readonly isIdentity?: boolean;

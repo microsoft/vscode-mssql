@@ -9,7 +9,8 @@
  * Tier T1 (errors — lexical/structural certainty): unterminated strings /
  * block comments / delimited identifiers, invalid GO lines ("GO abc" ships to
  * the server as content), unbalanced parentheses where recovery is certain,
- * duplicate exposed source names in one FROM scope.
+ * duplicate exposed source names in one FROM scope, unknown statement heads
+ * whose body betrays a mistyped keyword (bare proc invocations stay silent).
  *
  * Tier T2 (warnings — binder-backed): invalid object name (208-style),
  * invalid column name (207-style), ambiguous column name (209-style) — under
@@ -38,7 +39,8 @@ import { Token, TokenKind, isTrivia } from "../core/lexer";
 import { ScriptOverlay } from "../core/overlay";
 import { StatementSegment } from "../core/segmenter";
 import { ClauseKind, StatementSketch } from "../core/sketch";
-import { IPinnedMetadataView } from "../provider/types";
+import { TSQL_KEYWORDS } from "../data/keywords.generated";
+import { IPinnedMetadataView, LangObjectRef } from "../provider/types";
 
 export const NATIVE_DIAGNOSTIC_SOURCE = "T-SQL (native)";
 
@@ -57,7 +59,7 @@ export type DiagnosticSuppressionReason =
     | "unknownSketchRegion" // sketch cannot name the shape (derived/CTE column set)
     | "unknownOverlayType" // overlay shape untrusted (SELECT INTO, ALTER'd, undeclared @t)
     | "tempTableUnknown" // #temp not visible in the overlay (session may own it)
-    | "systemObject" // sys/INFORMATION_SCHEMA/legacy system catalog names
+    | "systemObject" // system names beyond the static catalog + system column claims
     | "ambiguousName" // object resolution ambiguous — never guess
     | "unresolvedQualifier" // qualifier matches no visible source (multi-part honesty)
     | "quotedIdentifierAmbiguous" // "..." may be a string under QUOTED_IDENTIFIER OFF
@@ -92,6 +94,15 @@ export interface DiagnosticsComputeInput {
      * would have been bound); absent/"validated" changes nothing.
      */
     readonly metadataFreshness?: "validated" | "notValidated";
+    /**
+     * Lazy-columns kick seam (host-wired to provider.requestHydration, see
+     * nativeEngine). Fired at most once per distinct object per pass when the
+     * column tier suppresses `columnsNotReady` because the object's lazy
+     * columns section was never loaded; the provider's own in-flight /
+     * generation / floor de-dupe makes repeat kicks cheap. Absent in pure
+     * contexts — suppression accounting is unchanged either way.
+     */
+    readonly requestColumnsHydration?: (ref: LangObjectRef) => void;
 }
 
 export interface DiagnosticsPassResult {
@@ -175,6 +186,37 @@ const LEGACY_SYSTEM_TABLES = new Set([
 
 const SYSTEM_SCHEMAS = new Set(["sys", "information_schema"]);
 
+/**
+ * Words that can start a statement (the keyword asset's "statement" category,
+ * plus WITH — a CTE prologue heads DML). Feeds the unrecognized-statement
+ * split-keyword repair ("SEL ECT" -> SELECT) and the did-you-mean suggestion;
+ * GO is excluded (batch separator, not a statement).
+ */
+const STATEMENT_START_KEYWORDS: ReadonlySet<string> = new Set([
+    ...TSQL_KEYWORDS.filter((k) => k.category === "statement" && k.id !== "GO").map((k) => k.id),
+    "WITH",
+]);
+
+/**
+ * Depth-0 clause words that can never appear in the ONE legal unknown-head
+ * statement shape — a bare procedure invocation ("procName @p = 1, arg"):
+ * arguments are constants/variables/plain non-reserved words, and these are
+ * all reserved (a bare argument would need quoting), so any of them at top
+ * level betrays a mistyped statement keyword. SET here is the NON-head
+ * occurrence only (as a head it is its own statement kind).
+ */
+const UNKNOWN_HEAD_BETRAYAL_WORDS = new Set([
+    "FROM",
+    "WHERE",
+    "GROUP",
+    "ORDER",
+    "VALUES",
+    "SET",
+    "JOIN",
+    "INTO",
+    "HAVING",
+]);
+
 // ---------------------------------------------------------------------------
 // Pass implementation
 // ---------------------------------------------------------------------------
@@ -215,6 +257,21 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
 
     const count = (reason: DiagnosticSuppressionReason): void => {
         suppressed.set(reason, (suppressed.get(reason) ?? 0) + 1);
+    };
+
+    // Per-pass distinct-object de-dupe for the lazy-columns hydration kick;
+    // everything beyond that (in-flight, generation, 30s floor) belongs to
+    // the provider — no extra throttling here.
+    const kickedColumnRefs = new Set<string>();
+    const kickColumnsHydration = (ref: LangObjectRef): void => {
+        if (input.requestColumnsHydration === undefined) {
+            return;
+        }
+        const key = `${ref.database ?? ""}|${ref.objectId}`;
+        if (!kickedColumnRefs.has(key)) {
+            kickedColumnRefs.add(key);
+            input.requestColumnsHydration(ref);
+        }
     };
 
     const report = (
@@ -395,6 +452,81 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
         }
     };
 
+    /**
+     * T1: unrecognized statement head. An identifier-led statement whose head
+     * is no keyword at all is normally a bare procedure invocation
+     * ("myproc @p = 1" — legal as the first statement of a batch) and MUST
+     * stay silent; but a depth-0 betrayal word (FROM/WHERE/...) can never
+     * follow a proc call, so its presence proves the head was a mistyped
+     * statement keyword ("sel ect * from x"). Betrayal-free unknown heads —
+     * including the lone head mid-edit at the document tail — never flag.
+     * The head text is quoted only in the marker message (in-editor), never
+     * in telemetry fields.
+     */
+    const checkUnrecognizedStatement = (s: AnalyzedStatementInput): void => {
+        if (s.sketch.kind !== "other") {
+            return; // known statement families are classified by the sketcher
+        }
+        const head = tokens[s.segment.firstToken];
+        if (
+            head === undefined ||
+            head.kind !== TokenKind.Identifier ||
+            head.keyword !== undefined
+        ) {
+            return; // keyword-led (maybe unmodeled), quoted, temp, variable, sqlcmd…
+        }
+        let depth = 0;
+        let betrayed = false;
+        for (let i = s.segment.firstToken + 1; i <= s.segment.lastToken && !betrayed; i++) {
+            const t = tokens[i];
+            if (t.kind === TokenKind.Punctuation) {
+                const ch = text.charCodeAt(t.start);
+                if (ch === 40 /* ( */) {
+                    depth++;
+                } else if (ch === 41 /* ) */) {
+                    depth = Math.max(0, depth - 1);
+                }
+                continue;
+            }
+            betrayed =
+                depth === 0 &&
+                t.kind === TokenKind.Identifier &&
+                UNKNOWN_HEAD_BETRAYAL_WORDS.has(text.slice(t.start, t.end).toUpperCase());
+        }
+        if (!betrayed) {
+            return; // possible EXEC-less proc call / lone head mid-edit
+        }
+        const headRaw = text.slice(head.start, head.end);
+        const headUpper = headRaw.toUpperCase();
+        // Split-keyword shape — head + next token concatenate to a statement
+        // keyword (SEL+ECT): squiggle both and prefer the joined suggestion.
+        let end = head.end;
+        let suggestion: string | undefined;
+        let next: Token | undefined;
+        for (let i = s.segment.firstToken + 1; i <= s.segment.lastToken; i++) {
+            if (!isTrivia(tokens[i].kind)) {
+                next = tokens[i];
+                break;
+            }
+        }
+        if (next !== undefined && next.kind === TokenKind.Identifier) {
+            const joined = headUpper + text.slice(next.start, next.end).toUpperCase();
+            if (STATEMENT_START_KEYWORDS.has(joined)) {
+                suggestion = joined;
+                end = next.end;
+            }
+        }
+        suggestion ??= suggestStatementKeyword(headUpper);
+        report(
+            "error",
+            head.start,
+            end,
+            `Incorrect syntax near '${headRaw}' — not a recognized statement` +
+                (suggestion !== undefined ? ` (did you mean ${suggestion}?).` : "."),
+            "mssql(102)",
+        );
+    };
+
     // ---- T2 helpers ---------------------------------------------------------
 
     const nameCtx = (s: AnalyzedStatementInput): NameResolutionContext => ({
@@ -525,6 +657,13 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
             if (info === undefined || info.kind === "synonym") {
                 return { kind: "suppress", reason: "opaqueSource" };
             }
+            // System objects resolve through the static catalog fallback
+            // (no 208), but its column lists are curated SUBSETS — never
+            // complete — so a 207-style absence claim would be a guess.
+            // Column checks stay suppressed under the systemObject reason.
+            if (SYSTEM_SCHEMAS.has(info.schema.toLowerCase())) {
+                return { kind: "suppress", reason: "systemObject" };
+            }
             if (overlay.alteredNames.has(info.name.toLowerCase())) {
                 return { kind: "suppress", reason: "unknownOverlayType" };
             }
@@ -533,6 +672,9 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
             }
             const columns = pinned.getColumns(resolution.ref);
             if (columns === undefined) {
+                // Lazy section never loaded: kick the load so the provider's
+                // didChange reschedules a pass that can claim honestly.
+                kickColumnsHydration(resolution.ref);
                 return { kind: "suppress", reason: "columnsNotReady" };
             }
             return { kind: "columns", names: new Set(columns.map((c) => fold(c.name))) };
@@ -990,6 +1132,7 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
     const runStatement = (s: AnalyzedStatementInput): void => {
         checkParenBalance(s);
         checkDuplicateSourceNames(s);
+        checkUnrecognizedStatement(s);
 
         // T2 gate ladder (design §11.2) — statement families first.
         const kind = s.sketch.kind;
@@ -1147,4 +1290,53 @@ function isInvalidGoLine(text: string, tokens: readonly Token[], goIndex: number
         break;
     }
     return true;
+}
+
+/**
+ * Did-you-mean candidate for an unrecognized statement head: a unique
+ * statement-keyword completion (prefix) or 1-edit-distance neighbor. Prefix
+ * wins ("sel" -> SELECT, not the edit-1 SET); a prefix family with a common
+ * stem resolves to the stem ("updat" -> UPDATE over UPDATETEXT); anything
+ * still ambiguous suggests nothing — the error stands on its own.
+ */
+function suggestStatementKeyword(headUpper: string): string | undefined {
+    if (headUpper.length < 2) {
+        return undefined;
+    }
+    const prefixes = [...STATEMENT_START_KEYWORDS].filter((k) => k.startsWith(headUpper));
+    if (prefixes.length > 0) {
+        const stem = prefixes.reduce((a, b) => (b.length < a.length ? b : a));
+        return prefixes.every((k) => k.startsWith(stem)) ? stem : undefined;
+    }
+    const near = [...STATEMENT_START_KEYWORDS].filter((k) => isOneEditAway(headUpper, k));
+    return near.length === 1 ? near[0] : undefined;
+}
+
+/** Levenshtein distance exactly 1 (one substitution, insertion or deletion). */
+function isOneEditAway(a: string, b: string): boolean {
+    if (a === b || Math.abs(a.length - b.length) > 1) {
+        return false;
+    }
+    let i = 0;
+    let j = 0;
+    let edits = 0;
+    while (i < a.length && j < b.length) {
+        if (a[i] === b[j]) {
+            i++;
+            j++;
+            continue;
+        }
+        if (++edits > 1) {
+            return false;
+        }
+        if (a.length === b.length) {
+            i++;
+            j++;
+        } else if (a.length > b.length) {
+            i++;
+        } else {
+            j++;
+        }
+    }
+    return edits + (a.length - i) + (b.length - j) === 1;
 }

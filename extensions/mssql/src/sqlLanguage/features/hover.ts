@@ -30,6 +30,7 @@ import { NameChain, isNameKind, readChainAround } from "../core/nameChain";
 import { OverlayObject, ScriptOverlay } from "../core/overlay";
 import { CteDecl, SketchSpan, StatementSketch } from "../core/sketch";
 import { BuiltinFunctionInfo, TSQL_BUILTIN_FUNCTIONS } from "../data/builtinFunctions.generated";
+import { isSystemSchemaName } from "../data/systemObjectCatalog";
 import {
     IPinnedMetadataView,
     LangDatabase,
@@ -493,9 +494,13 @@ function catalogObjectHover(
 
     if (info.kind === "table" || info.kind === "view" || info.kind === "tableFunction") {
         // Column facts only from fully-ready sections for shapes the script
-        // did not ALTER (mirrors trustedColumnsOf in diagnostics).
-        const altered = input.overlay.alteredNames.has(info.name.toLowerCase());
-        if (!altered && pinned.readiness.columns === "ready") {
+        // did not ALTER (mirrors trustedColumnsOf in diagnostics). System
+        // objects served by the static catalog carry curated column SUBSETS,
+        // so a count/PK/FK claim would overclaim — kind + name only.
+        const unclaimable =
+            input.overlay.alteredNames.has(info.name.toLowerCase()) ||
+            isSystemSchemaName(info.schema);
+        if (!unclaimable && pinned.readiness.columns === "ready") {
             const columns = pinned.getColumns(ref);
             if (columns !== undefined && columns.length > 0) {
                 const facts: string[] = [
@@ -723,9 +728,20 @@ function columnHover(
                     complete = false;
                     continue;
                 }
+                let matched = false;
                 for (const col of columns) {
                     if (fold(col.name) === fold(word)) {
                         matches.push({ col, bound });
+                        matched = true;
+                    }
+                }
+                // Static-catalog system shapes are curated SUBSETS: a match
+                // is a true positive, but a miss may still own the column —
+                // it breaks single-ownership confidence for other sources.
+                if (!matched && bound.resolution.kind === "catalog") {
+                    const info = pinned.getObject(bound.resolution.ref);
+                    if (info !== undefined && isSystemSchemaName(info.schema)) {
+                        complete = false;
                     }
                 }
             }

@@ -202,6 +202,71 @@ suite("sqlLanguage diagnostics T1: structure", () => {
 });
 
 // ---------------------------------------------------------------------------
+// T1 — unrecognized statement head (flag ONLY on body betrayal; a bare
+// unknown identifier may be an EXEC-less proc call and must stay silent)
+// ---------------------------------------------------------------------------
+
+suite("sqlLanguage diagnostics T1: unrecognized statement", () => {
+    test("split statement keyword with a betraying FROM is an error (SEL ECT)", async () => {
+        const d = only(await diagnose("sel ect * from x", nullProvider));
+        expect(d.severity).to.equal("error");
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("'sel'");
+        expect(d.message).to.contain("did you mean SELECT?");
+        // The squiggle covers the split pair "sel ect", not just the head.
+        expect(d.range.start.character).to.equal(0);
+        expect(d.range.end.character).to.equal(7);
+    });
+
+    test("split INSERT with INTO/VALUES gets the INSERT suggestion", async () => {
+        const d = only(await diagnose("ins ert into t values (1)", nullProvider));
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean INSERT?");
+    });
+
+    test("one-edit-away head gets a did-you-mean; squiggle is the head only", async () => {
+        const d = only(await diagnose("slect * from x", nullProvider));
+        expect(d.severity).to.equal("error");
+        expect(d.message).to.contain("did you mean SELECT?");
+        expect(d.range.end.character).to.equal(5);
+    });
+
+    test("unknown head with a top-level clause word but no near keyword — no suggestion", async () => {
+        const d = only(await diagnose("frobnicate x from y", nullProvider));
+        expect(d.severity).to.equal("error");
+        expect(d.message).to.not.contain("did you mean");
+    });
+
+    test("bare procedure invocation stays silent (EXEC-less first statement)", async () => {
+        expectClean(await diagnose("myproc @a = 1", nullProvider));
+    });
+
+    test("bare proc call with identifier args stays silent (sp_help style)", async () => {
+        expectClean(await diagnose("sp_help Orders", nullProvider));
+    });
+
+    test("EXEC call stays silent", async () => {
+        expectClean(await diagnose("EXEC myproc", nullProvider));
+    });
+
+    test("lone unknown head stays silent (possible proc call / mid-edit)", async () => {
+        expectClean(await diagnose("sel", nullProvider));
+    });
+
+    test("unknown head as the last statement without body keywords stays silent", async () => {
+        expectClean(await diagnose("SELECT 1;\nsel", nullProvider));
+    });
+
+    test("WITH-led CTE statement stays silent", async () => {
+        expectClean(await diagnose("WITH x AS (SELECT 1 AS a) SELECT a FROM x", nullProvider));
+    });
+
+    test("unmodeled keyword-led statements stay silent", async () => {
+        expectClean(await diagnose("TRUNCATE TABLE dbo.T1", nullProvider));
+    });
+});
+
+// ---------------------------------------------------------------------------
 // T2 — 208-style invalid object
 // ---------------------------------------------------------------------------
 
@@ -852,6 +917,81 @@ suite("sqlLanguage diagnostics suppression accounting", () => {
 
     test("case-insensitive catalog accepts any casing", async () => {
         expectClean(await diagnose("select ORDERID from sales.ORDERS"));
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Lazy-columns hydration kick (diagnostics analogue of the completion path)
+// ---------------------------------------------------------------------------
+
+suite("sqlLanguage diagnostics T2: lazy column hydration kick", () => {
+    /** Fresh provider per test: hydration state and requests are mutable. */
+    const lazyColumnsProvider = (): FixtureLanguageMetadataProvider =>
+        new FixtureLanguageMetadataProvider({
+            objects: [
+                {
+                    schema: "Sales",
+                    name: "LazyOrders",
+                    kind: "table",
+                    columns: [{ name: "OrderID", typeDisplay: "int" }],
+                    columnsLazy: true,
+                },
+                // No declared columns: stays notLoaded even after the fixture
+                // "load", keeping the per-pass kick de-dupe observable.
+                { schema: "Sales", name: "LazyNoCols", kind: "table", columnsLazy: true },
+            ],
+            env: { currentDatabase: "FixtureDb", defaultSchema: "dbo", caseSensitive: false },
+        });
+
+    test("columnsNotReady suppression kicks hydration; re-run emits the real 207", async () => {
+        const provider = lazyColumnsProvider();
+        const engine = new NativeSqlLanguageEngine(provider);
+        const first = await engine.diagnostics({
+            text: "SELECT Missing FROM Sales.LazyOrders",
+            version: 1,
+        });
+        expect(first?.diagnostics).to.have.length(0);
+        expect(first?.suppressed?.columnsNotReady ?? 0).to.be.at.least(1);
+        expect(provider.hydrationRequests).to.have.length(1);
+        expect(provider.hydrationRequests[0].kind).to.equal("columns");
+        expect(provider.hydrationRequests[0].priority).to.equal("background");
+        expect(provider.hydrationRequests[0].object).to.not.equal(undefined);
+        // The fixture "load" completed (and fired didChange — the
+        // orchestrator's provider-change listener reschedules a pass on
+        // that); the re-run pass now claims honestly.
+        const second = await engine.diagnostics({
+            text: "SELECT Missing FROM Sales.LazyOrders",
+            version: 2,
+        });
+        expect(second?.diagnostics).to.have.length(1);
+        expect(second?.diagnostics[0].code).to.equal("mssql(207)");
+        expect(second?.diagnostics[0].message).to.contain("Missing");
+        expect(provider.hydrationRequests).to.have.length(1); // no duplicate kick
+    });
+
+    test("one de-duped kick per distinct object within a pass", async () => {
+        const provider = lazyColumnsProvider();
+        const engine = new NativeSqlLanguageEngine(provider);
+        const result = await engine.diagnostics({
+            text: "SELECT a.X9, b.Y8 FROM Sales.LazyNoCols a JOIN Sales.LazyNoCols b ON 1 = 1",
+            version: 1,
+        });
+        expect(result?.diagnostics).to.have.length(0);
+        expect(result?.suppressed?.columnsNotReady ?? 0).to.be.at.least(2);
+        expect(provider.hydrationRequests).to.have.length(1);
+    });
+
+    test("distinct lazy objects each get one kick", async () => {
+        const provider = lazyColumnsProvider();
+        const engine = new NativeSqlLanguageEngine(provider);
+        const result = await engine.diagnostics({
+            text: "SELECT o.M1, l.M2 FROM Sales.LazyOrders o JOIN Sales.LazyNoCols l ON 1 = 1",
+            version: 1,
+        });
+        expect(result?.diagnostics).to.have.length(0);
+        expect(provider.hydrationRequests).to.have.length(2);
+        const ids = new Set(provider.hydrationRequests.map((r) => r.object?.objectId));
+        expect(ids.size).to.equal(2);
     });
 });
 

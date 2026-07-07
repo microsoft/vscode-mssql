@@ -875,3 +875,48 @@ suite("sqlLanguage native hover: never-hover positions", () => {
         expect(content).to.contain("**table** `dbo.Status`");
     });
 });
+
+suite("sqlLanguage native hover: static system catalog", () => {
+    test("sys object hover: kind + name, no column-count overclaim", async () => {
+        const content = await md("SELECT * FROM sys./*caret*/databases");
+        expect(content).to.contain("**view** `sys.databases`");
+        // Curated column lists are subsets — a count would overclaim.
+        expect(content).to.not.contain("columns");
+    });
+
+    test("INFORMATION_SCHEMA object hover: kind + name", async () => {
+        const content = await md("SELECT * FROM INFORMATION_SCHEMA./*caret*/TABLES");
+        expect(content).to.contain("**view** `INFORMATION_SCHEMA.TABLES`");
+    });
+
+    test("sys column hover via alias: same card shape as user columns", async () => {
+        const content = await md("SELECT d./*caret*/name FROM sys.databases d");
+        expect(content).to.contain("**column** `d.name`");
+        expect(content).to.contain("sys.databases");
+    });
+
+    test("unqualified sys column hover resolves from the curated list", async () => {
+        const content = await md("SELECT /*caret*/state_desc FROM sys.databases");
+        expect(content).to.contain("**column** `state_desc`");
+        expect(content).to.contain("sys.databases");
+    });
+
+    test("column missing from the curated list never claims", async () => {
+        expect(await hover("SELECT d./*caret*/owner_sid FROM sys.databases d")).to.equal(undefined);
+    });
+
+    test("partial system shapes break unqualified single-ownership claims", async () => {
+        // state_desc matches only sys.databases' curated list, but the other
+        // system source's list is a subset — ownership cannot be claimed.
+        expect(
+            await hover(
+                "SELECT /*caret*/state_desc FROM sys.databases d JOIN sys.objects o ON d.database_id = o.object_id",
+            ),
+        ).to.equal(undefined);
+    });
+
+    test("hover on the sys schema qualifier", async () => {
+        const content = await md("SELECT * FROM /*caret*/sys.databases");
+        expect(content).to.contain("**schema** `sys`");
+    });
+});

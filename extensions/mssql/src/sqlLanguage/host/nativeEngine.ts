@@ -35,7 +35,8 @@ import {
 import { LexResult, lex } from "../core/lexer";
 import { SegmentResult, StatementSegment, segment } from "../core/segmenter";
 import { TextSnapshot } from "../core/text/textSnapshot";
-import { ISqlLanguageMetadataProvider } from "../provider/types";
+import { IPinnedMetadataView, ISqlLanguageMetadataProvider } from "../provider/types";
+import { withSystemObjectCatalog } from "../provider/systemCatalogView";
 import { computeDocumentSymbols } from "../features/documentSymbols";
 import { computeFolding } from "../features/folding";
 import { StatementSketch, sketchStatement } from "../core/sketch";
@@ -108,6 +109,16 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
 
     get metadataProvider(): ISqlLanguageMetadataProvider {
         return this.provider;
+    }
+
+    /**
+     * Pin one metadata generation for a request, decorated with the static
+     * system-object catalog fallback (provider/systemCatalogView): sys /
+     * INFORMATION_SCHEMA names resolve for every feature through the one
+     * resolution path, and live metadata always wins.
+     */
+    private pinView(): IPinnedMetadataView {
+        return withSystemObjectCatalog(this.provider.pin());
     }
 
     private analyze(text: string, version: number): DocumentAnalysis {
@@ -248,7 +259,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
         });
         try {
             const target = this.locateStatement(analysis, req.text, offset);
-            const pinned = this.provider.pin();
+            const pinned = this.pinView();
             if (target === undefined) {
                 // Empty document / between statements: statement start.
                 const options = this.getOptions();
@@ -399,7 +410,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 });
                 return Promise.resolve(undefined);
             }
-            const pinned = this.provider.pin();
+            const pinned = this.pinView();
             const binding = bindStatement({
                 text: req.text,
                 sketch: target.sketch,
@@ -455,7 +466,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 });
                 return Promise.resolve(undefined);
             }
-            const pinned = this.provider.pin();
+            const pinned = this.pinView();
             const databaseContext = buildDatabaseContext(analysis.statements);
             const computation = computeSignatureHelp({
                 text: req.text,
@@ -526,7 +537,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             };
         }
         const analysis = this.analyze(req.text, req.version);
-        const pinned = this.provider.pin();
+        const pinned = this.pinView();
         const span = diag.startSpan({
             feature: "sqlLanguage",
             kind: "span",
@@ -538,6 +549,12 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 metadataFreshness: { raw: metadataFreshness, cls: "diagnostic.metadata" },
             },
         });
+        // Diagnostics analogue of settleMemberAccess: a columnsNotReady
+        // suppression on a never-loaded lazy columns section kicks the load
+        // through the provider seam (fire-and-forget; provider de-dupes).
+        // The provider's didChange then reschedules a pass that can claim
+        // honestly (orchestrator-owned listener).
+        const requestHydration = this.provider.requestHydration?.bind(this.provider);
         const computation = createDiagnostics({
             text: req.text,
             tokens: analysis.lexed.tokens,
@@ -545,6 +562,15 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             overlay: analysis.overlay,
             pinned,
             metadataFreshness,
+            requestColumnsHydration:
+                requestHydration === undefined
+                    ? undefined
+                    : (ref) =>
+                          requestHydration({
+                              kind: "columns",
+                              object: ref,
+                              priority: "background",
+                          }),
             positionAt: (offset) => analysis.snapshot.positionAt(offset),
         });
         let settled = false;
@@ -609,7 +635,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 });
                 return undefined;
             }
-            const pinned = this.provider.pin();
+            const pinned = this.pinView();
             const binding = bindStatement({
                 text: req.text,
                 sketch: target.sketch,

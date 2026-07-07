@@ -17,7 +17,7 @@ import {
     SqlCompletionItemKind,
     SqlLanguageRange,
 } from "../api";
-import { BoundSource, StatementBinding } from "../core/binder";
+import { BoundSource, StatementBinding, resolveNameParts } from "../core/binder";
 import { CompletionContext } from "../core/context";
 import { matchScore, ordinalCompare } from "../core/fuzzy";
 import { quoteIdentifier, quoteParts } from "../core/quote";
@@ -26,6 +26,7 @@ import { StatementSketch } from "../core/sketch";
 import { TSQL_KEYWORDS } from "../data/keywords.generated";
 import { TSQL_BUILTIN_FUNCTIONS } from "../data/builtinFunctions.generated";
 import { TSQL_SNIPPETS } from "../data/snippets";
+import { isSystemSchemaName } from "../data/systemObjectCatalog";
 import {
     IPinnedMetadataView,
     LangDatabase,
@@ -478,7 +479,51 @@ function addMemberAccess(
             return { resolution: "loaded" };
         }
     }
-    // 3. Database qualifier → schemas of that database (only current db hydrated).
+    // 3. Dotted catalog object (schema.object / db.schema.object): columns
+    // through the same resolution path FROM sources use (resolveNameParts,
+    // which includes the static system-catalog fallback — sys.databases.
+    // serves its curated columns).
+    if (parts.length === 2 || parts.length === 3) {
+        const resolution = resolveNameParts(parts, {
+            overlay: input.overlay,
+            batchIndex: input.batchIndex,
+            ordinal: input.ordinal,
+            pinned: input.pinned,
+            caseSensitive: input.pinned.env.caseSensitive,
+        });
+        if (resolution.kind === "catalog") {
+            const columnsReady =
+                input.pinned.readiness.columns === "ready" ||
+                input.pinned.readiness.columns === "partial";
+            const columns = columnsReady ? input.pinned.getColumns(resolution.ref) : undefined;
+            if (columns === undefined) {
+                markIncomplete("columnsNotReady");
+                return {
+                    resolution:
+                        input.pinned.readiness.columns === "loading" ? "loading" : "notLoaded",
+                    columnsRef: resolution.ref,
+                };
+            }
+            const info = input.pinned.getObject(resolution.ref);
+            const fromLabel =
+                info !== undefined ? `${info.schema}.${info.name}` : parts[parts.length - 1];
+            for (const col of columns) {
+                add(
+                    {
+                        label: col.name,
+                        kind: "column",
+                        insertText: quoteIdentifier(col.name),
+                        detail: columnDetail(col.typeDisplay, col.isPrimaryKey, fromLabel),
+                        filterText: col.name,
+                    },
+                    prefix,
+                    col.isPrimaryKey === true ? 10 : 0,
+                );
+            }
+            return { resolution: "loaded" };
+        }
+    }
+    // 4. Database qualifier → schemas of that database (only current db hydrated).
     if (parts.length === 1 && input.databases !== undefined) {
         const isDatabase = input.databases.some(
             (d) => d.name.toLowerCase() === qualifier.toLowerCase(),
@@ -715,6 +760,14 @@ function addStarExpansion(
               : input.binding.sourcesAt(input.offset);
     const names: string[] = [];
     for (const bound of sources) {
+        // Static-catalog system shapes are curated subsets — expanding *
+        // into a partial column list would silently drop columns (§10.4).
+        if (bound.resolution.kind === "catalog") {
+            const info = input.pinned.getObject(bound.resolution.ref);
+            if (info !== undefined && isSystemSchemaName(info.schema)) {
+                return;
+            }
+        }
         const columns = input.binding.columnsOf(bound);
         if (columns === undefined) {
             return; // incomplete metadata: do not offer expansion (§10.4)

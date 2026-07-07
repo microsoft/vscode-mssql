@@ -469,3 +469,67 @@ suite("sqlLanguage native completion: statement start", () => {
         expect(result!.items.some((i) => i.kind === "snippet")).to.equal(false);
     });
 });
+
+suite("sqlLanguage native completion: static system catalog", () => {
+    test("sys. lists catalog objects", async () => {
+        const result = await complete("SELECT * FROM sys./*caret*/");
+        expect(labels(result)).to.include.members(["databases", "objects", "tables", "schemas"]);
+    });
+
+    test("INFORMATION_SCHEMA. lists catalog views", async () => {
+        const result = await complete("SELECT * FROM INFORMATION_SCHEMA./*caret*/");
+        expect(labels(result)).to.include.members(["TABLES", "COLUMNS", "VIEWS"]);
+    });
+
+    test("sys.databases. lists curated columns", async () => {
+        const result = await complete("SELECT sys.databases./*caret*/ FROM sys.databases");
+        expect(labels(result)).to.include.members(["name", "database_id", "state_desc"]);
+    });
+
+    test("alias of a sys table lists curated columns, types unclaimed", async () => {
+        const result = await complete("SELECT d./*caret*/ FROM sys.databases d");
+        expect(labels(result)).to.include.members(["name", "database_id", "collation_name"]);
+        const col = result.items.find((i) => i.label === "database_id");
+        expect(col?.detail).to.not.contain("int"); // no type facts in the catalog
+    });
+
+    test("live metadata wins over the static catalog", async () => {
+        const provider = new FixtureLanguageMetadataProvider({
+            ...STANDARD_FIXTURE_CATALOG,
+            objects: [
+                ...STANDARD_FIXTURE_CATALOG.objects,
+                {
+                    schema: "sys",
+                    name: "databases",
+                    kind: "view" as const,
+                    columns: [{ name: "LiveCol", typeDisplay: "int", nullable: false }],
+                },
+            ],
+        });
+        const result = await complete("SELECT d./*caret*/ FROM sys.databases d", provider);
+        expect(labels(result)).to.include("LiveCol");
+        expect(labels(result)).to.not.include("database_id");
+    });
+
+    test("user schemas are never served by the catalog", async () => {
+        const result = await complete("SELECT * FROM dbo./*caret*/");
+        expect(labels(result)).to.not.include("databases");
+        expect(labels(result)).to.include("OrdersByCustomer");
+    });
+
+    test("edition-gated DMVs only list under a matching engine edition", async () => {
+        const unknownEdition = await complete("SELECT * FROM sys./*caret*/");
+        expect(labels(unknownEdition)).to.not.include("dm_exec_requests");
+        const azure = new FixtureLanguageMetadataProvider({
+            ...STANDARD_FIXTURE_CATALOG,
+            env: { ...STANDARD_FIXTURE_CATALOG.env, engineEdition: 5 },
+        });
+        const withEdition = await complete("SELECT * FROM sys./*caret*/", azure);
+        expect(labels(withEdition)).to.include("dm_exec_requests");
+    });
+
+    test("no star expansion over partial system shapes", async () => {
+        const result = await complete("SELECT */*caret*/ FROM sys.databases");
+        expect(result.items.find((i) => i.label === "Expand columns")).to.equal(undefined);
+    });
+});
