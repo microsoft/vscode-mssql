@@ -151,6 +151,7 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         this.provider = new CatalogLanguageMetadataProvider({
             handle: () => this.metadataHandle(),
             serverVersion: () => this.binding()?.connectionState.serverVersion,
+            engineEdition: () => this.binding()?.connectionState.engineEdition,
             currentDatabase: () => this.binding()?.connectionState.database,
             databases: () => this.host.databases(),
             subscribeStatus: (listener) => {

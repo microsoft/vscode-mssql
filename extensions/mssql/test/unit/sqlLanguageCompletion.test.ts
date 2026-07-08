@@ -731,6 +731,19 @@ suite("sqlLanguage native completion: static system catalog", () => {
         });
         const withEdition = await complete("SELECT * FROM sys./*caret*/", azure);
         expect(labels(withEdition)).to.include("dm_exec_requests");
+        expect(labels(withEdition)).to.include("dm_exec_cached_plans");
+    });
+
+    test("sys.dm_exec_cached_plans has curated column completions", async () => {
+        const azure = new FixtureLanguageMetadataProvider({
+            ...STANDARD_FIXTURE_CATALOG,
+            env: { ...STANDARD_FIXTURE_CATALOG.env, engineEdition: 5 },
+        });
+        const result = await complete(
+            "SELECT p./*caret*/ FROM sys.dm_exec_cached_plans AS p",
+            azure,
+        );
+        expect(labels(result)).to.include.members(["plan_handle", "cacheobjtype", "usecounts"]);
     });
 
     test("no star expansion over partial system shapes", async () => {

@@ -43,6 +43,8 @@ export type MetadataCatalogHandle = ReturnType<MetadataService["acquire"]>;
 export interface CatalogProviderHost {
     handle(): MetadataCatalogHandle | undefined;
     serverVersion(): string | undefined;
+    /** Session-level fallback until the metadata environment probe publishes. */
+    engineEdition?(): number | undefined;
     currentDatabase(): string | undefined;
     /** Cached database list; the facade refreshes it out of band. */
     databases(): readonly string[] | undefined;
@@ -152,7 +154,7 @@ export class CatalogLanguageMetadataProvider implements ISqlLanguageMetadataProv
             currentDatabase: this.host.currentDatabase(),
             defaultSchema: snapshot?.defaultSchema ?? "dbo",
             caseSensitive: snapshot?.caseSensitive ?? false,
-            engineEdition: snapshot?.engineEdition,
+            engineEdition: snapshot?.engineEdition ?? this.host.engineEdition?.(),
             serverVersion: this.host.serverVersion(),
             capabilities: { createOrAlterProgrammability: createOrAlter, dropIfExists },
         };

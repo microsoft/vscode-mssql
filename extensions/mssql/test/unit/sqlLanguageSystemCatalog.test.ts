@@ -89,6 +89,11 @@ suite("sqlLanguage system catalog: data helpers", () => {
         // scope=broad requires a known broad-surface edition.
         expect(findSystemObject("sys", "dm_exec_requests", undefined)).to.equal(undefined);
         expect(findSystemObject("sys", "dm_exec_requests", 5)).to.not.equal(undefined);
+        expect(findSystemObject("sys", "dm_exec_cached_plans", 5)?.columns).to.include.members([
+            "plan_handle",
+            "cacheobjtype",
+            "usecounts",
+        ]);
         // scope=full excludes Azure SQL DB (edition 5).
         expect(findSystemObject("sys", "dm_os_wait_stats", 5)).to.equal(undefined);
         expect(findSystemObject("sys", "dm_os_wait_stats", 2)).to.not.equal(undefined);

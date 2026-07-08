@@ -90,6 +90,7 @@ import {
     QS_TAB_ACCEPT_SUGGESTION_CONTEXT,
     QS_TAB_INSERT_CONTEXT,
 } from "./keybindings";
+import { executeParamsForSelection } from "./executionRequests";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
@@ -734,30 +735,18 @@ export function QueryStudioApp() {
     const runOutcome = useCallback((outcome: { started: boolean; reason?: string }) => {
         setActionHint(outcome.started ? undefined : (outcome.reason ?? "Could not start the run."));
     }, []);
+    const selectedExecuteParams = useCallback(
+        () => executeParamsForSelection(editorRef.current?.getSelection()),
+        [],
+    );
     const execute = useCallback(() => {
         flushEdits();
         setActionHint(undefined);
         // QS-1: an execute while the Actual Plan toggle is on is a plan-mode
         // run — its plan result sets auto-open on completion.
         planRunArmedRef.current = actualPlanEnabledRef.current;
-        const editor = editorRef.current;
-        const selection = editor?.getSelection();
-        if (selection && !selection.isEmpty()) {
-            void rpc
-                .sendRequest(QsExecuteRequest.type, {
-                    scope: "selection",
-                    selection: {
-                        startLine: selection.startLineNumber,
-                        startColumn: selection.startColumn,
-                        endLine: selection.endLineNumber,
-                        endColumn: selection.endColumn,
-                    },
-                })
-                .then(runOutcome);
-        } else {
-            void rpc.sendRequest(QsExecuteRequest.type, { scope: "document" }).then(runOutcome);
-        }
-    }, [rpc, flushEdits, runOutcome]);
+        void rpc.sendRequest(QsExecuteRequest.type, selectedExecuteParams()).then(runOutcome);
+    }, [rpc, flushEdits, runOutcome, selectedExecuteParams]);
     const cancel = useCallback(() => {
         void rpc.sendRequest(QsCancelRequest.type, undefined);
     }, [rpc]);
@@ -825,11 +814,11 @@ export function QueryStudioApp() {
         planRunArmedRef.current = true; // QS-1: auto-open the estimated plan
         void rpc
             .sendRequest(QsExecuteRequest.type, {
-                scope: "document",
+                ...selectedExecuteParams(),
                 estimatedPlanOnly: true,
             })
             .then(runOutcome);
-    }, [rpc, flushEdits, runOutcome]);
+    }, [rpc, flushEdits, runOutcome, selectedExecuteParams]);
     const toggleActualPlan = useCallback(() => {
         void rpc.sendRequest(QsSetActualPlanRequest.type, {
             enabled: !(state?.toggles.actualPlan ?? false),
@@ -1232,6 +1221,7 @@ export function QueryStudioApp() {
     const allResultSetSummaries = results?.resultSets ?? [];
     const effectiveRowCount = (summary: (typeof allResultSetSummaries)[number]) =>
         Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0);
+    const gridResultSetSummaries = allResultSetSummaries;
     const resultSetSummaries = allResultSetSummaries.filter(
         (summary) => summary.isPlanResult !== true,
     );
@@ -1251,17 +1241,17 @@ export function QueryStudioApp() {
         planResultSetSummaries.every(
             (summary) => effectiveRowCount(summary) > 0 || summary.complete,
         );
-    const maximizedGrid = resultSetSummaries.some((s) => s.resultSetId === maximizedGridId)
+    const maximizedGrid = gridResultSetSummaries.some((s) => s.resultSetId === maximizedGridId)
         ? maximizedGridId
         : undefined;
-    const singleGrid = resultSetSummaries.length === 1;
+    const singleGrid = gridResultSetSummaries.length === 1;
     const resultsFillActive =
         (activeTab === "results" &&
-            resultSetSummaries.length > 0 &&
+            gridResultSetSummaries.length > 0 &&
             (singleGrid || maximizedGrid !== undefined)) ||
         activeTab === "queryPlan";
     const resultsLayout = computeResultsLayout(
-        resultSetSummaries.map(effectiveRowCount),
+        gridResultSetSummaries.map(effectiveRowCount),
         // clientHeight includes the body's 4px vertical paddings.
         resultsPaneHeight !== undefined ? resultsPaneHeight - 8 : undefined,
         {
@@ -1348,9 +1338,9 @@ export function QueryStudioApp() {
     ]);
     useEffect(() => {
         if (activeTab === "queryPlan" && planResultSetSummaries.length === 0) {
-            setActiveTab(resultSetSummaries.length > 0 ? "results" : "messages");
+            setActiveTab(gridResultSetSummaries.length > 0 ? "results" : "messages");
         }
-    }, [activeTab, planResultSetSummaries.length, resultSetSummaries.length]);
+    }, [activeTab, gridResultSetSummaries.length, planResultSetSummaries.length]);
 
     // Live elapsed ticker (SSMS parity): while executing, derive elapsed
     // locally from startedEpochMs so the clock counts even when no row or
@@ -1535,7 +1525,7 @@ export function QueryStudioApp() {
                                 </button>
                             ) : null}
                             <span className="qs-spacer" />
-                            {activeTab === "results" && resultSetSummaries.length > 0 ? (
+                            {activeTab === "results" && gridResultSetSummaries.length > 0 ? (
                                 <button
                                     className="qs-tabbar-btn"
                                     title={
@@ -1599,7 +1589,7 @@ export function QueryStudioApp() {
                                     resultViewMode === "text" ? (
                                         <QueryStudioResultsTextView
                                             rpc={rpc}
-                                            resultSets={results.resultSets}
+                                            resultSets={gridResultSetSummaries}
                                             liveRowCounts={liveRowCounts}
                                             gridStyle={state?.gridStyle}
                                         />
@@ -1607,7 +1597,7 @@ export function QueryStudioApp() {
                                         // Lazy mounting: captions always render; grid
                                         // bodies mount near the viewport (never unmount).
                                         <QsResultsGridProvider>
-                                            {results.resultSets.map((summary, index) => {
+                                            {gridResultSetSummaries.map((summary, index) => {
                                                 const isMaximized =
                                                     maximizedGrid === summary.resultSetId;
                                                 return (

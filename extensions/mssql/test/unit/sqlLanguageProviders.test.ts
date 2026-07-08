@@ -141,6 +141,19 @@ suite("sqlLanguage catalog adapter offline honesty", () => {
         expect(make(undefined).createOrAlterProgrammability).to.equal(false);
     });
 
+    test("session engine edition fills env before metadata environment is ready", () => {
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => undefined,
+            serverVersion: () => undefined,
+            engineEdition: () => 5,
+            currentDatabase: () => undefined,
+            databases: () => undefined,
+            subscribeStatus: () => () => undefined,
+        });
+
+        expect(provider.env().engineEdition).to.equal(5);
+    });
+
     test("requestHydration kicks ONE refresh and de-dupes repeat misses", async () => {
         let refreshCalls = 0;
         let releaseRefresh: () => void = () => undefined;

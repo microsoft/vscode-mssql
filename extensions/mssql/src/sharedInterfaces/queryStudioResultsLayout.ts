@@ -12,8 +12,9 @@
  * - One grid → fill the whole results area; the grid's virtualized
  *   scrollbar is THE scrollbar (no dead space, no pane scroll).
  * - Multiple grids, all of whose rows fit in the visible area → each grid
- *   gets exactly its content height (every row visible, no per-grid
- *   scrollbars, no pane scroll).
+ *   gets at least QS_MIN_VISIBLE_GRID_ROWS rows of visual height, then exact
+ *   content height above that floor (no one-row slivers, no pane scroll
+ *   unless the visual floors themselves overflow).
  * - Otherwise: grids whose full content fits within their fair share keep
  *   every row; the remaining space splits evenly among the rest with a
  *   per-grid minimum of QS_MIN_GRID_ROWS data rows. When even the minimums
@@ -22,6 +23,9 @@
  */
 
 export const QS_MIN_GRID_ROWS = 12;
+
+/** Minimum visible rows for stacked grids even when a set has 0–1 rows. */
+export const QS_MIN_VISIBLE_GRID_ROWS = 4;
 
 /** Fallback rows per grid while the pane height is still unmeasured. */
 export const QS_FALLBACK_GRID_ROWS = 14;
@@ -37,6 +41,8 @@ export interface QsResultsLayoutMetrics {
     captionPx: number;
     /** Minimum data rows for a grid that cannot show everything. */
     minRows?: number;
+    /** Minimum visible data rows for any stacked grid. */
+    minVisibleRows?: number;
 }
 
 export type QsGridSizing = { kind: "fill" } | { kind: "height"; bodyPx: number };
@@ -66,7 +72,13 @@ export function computeResultsLayout(
         return { sizing: [{ kind: "fill" }], paneScrolls: false };
     }
 
-    const contents = rowCounts.map((rows) => qsGridContentHeight(rows, metrics));
+    const visualFloor = qsGridContentHeight(
+        metrics.minVisibleRows ?? QS_MIN_VISIBLE_GRID_ROWS,
+        metrics,
+    );
+    const contents = rowCounts.map((rows) =>
+        Math.max(qsGridContentHeight(rows, metrics), visualFloor),
+    );
 
     if (paneHeight === undefined || paneHeight <= 0) {
         // Unmeasured first paint: content height capped at the fallback rows;
@@ -119,5 +131,5 @@ export function computeResultsLayout(
     }
     const sizing = assigned.map((px) => ({ kind: "height" as const, bodyPx: px ?? 0 }));
     const assignedTotal = sizing.reduce((sum, s) => sum + s.bodyPx, 0);
-    return { sizing, paneScrolls: assignedTotal > available + 1 };
+    return { sizing, paneScrolls: assignedTotal > available + 1 || available < 0 };
 }

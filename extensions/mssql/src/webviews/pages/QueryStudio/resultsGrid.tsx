@@ -58,6 +58,7 @@ import {
     QsGetRowsRequest,
     QsGridStyle,
     QsOpenCellDocumentRequest,
+    QsResultColumn,
     QsSaveResultRequest,
     QsSetViewModeRequest,
     QsResultSetSummary,
@@ -65,6 +66,7 @@ import {
 } from "../../../sharedInterfaces/queryStudio";
 import {
     QS_CELL_DISPLAY_CLAMP,
+    cellDocumentLanguage,
     cellDisplayText,
     clampDisplay,
 } from "../../../sharedInterfaces/queryStudioGridOps";
@@ -128,28 +130,47 @@ function windowToGridRows(
         for (let c = 0; c < columnCount; c++) {
             const nulled = isNull(r, c);
             const text = nulled ? "" : cellDisplayText(row[c]);
+            const languageId = nulled
+                ? undefined
+                : cellDocumentLanguage(row[c], {
+                      sqlType: window.columns[c]?.sqlType,
+                      typeHint: window.typeHints?.[c],
+                      isXml: window.columns[c]?.isXml,
+                      isJson: window.columns[c]?.isJson,
+                  });
             cells.push({
                 displayValue: clamp ? clampDisplay(text, QS_CELL_DISPLAY_CLAMP) : text,
                 isNull: nulled,
                 rowId: window.start + r,
+                ...(languageId ? { languageId } : {}),
             });
         }
         return cells;
     });
 }
 
-function fabricateColumnInfo(columnNames: readonly string[]): IDbColumn[] {
-    return columnNames.map((name, i) => ({
-        columnName: name || `(col ${i + 1})`,
-        baseCatalogName: "",
-        baseColumnName: "",
-        baseSchemaName: "",
-        baseServerName: "",
-        baseTableName: "",
-        dataType: "",
-        dataTypeName: "",
-        udtAssemblyQualifiedName: "",
-    }));
+function fabricateColumnInfo(
+    columnNames: readonly string[],
+    columns?: readonly QsResultColumn[],
+): IDbColumn[] {
+    return columnNames.map((name, i) => {
+        const column = columns?.[i];
+        const sqlType = column?.sqlType ?? "";
+        const typeName = sqlType.trim().toLowerCase();
+        return {
+            columnName: name || `(col ${i + 1})`,
+            baseCatalogName: "",
+            baseColumnName: "",
+            baseSchemaName: "",
+            baseServerName: "",
+            baseTableName: "",
+            dataType: sqlType,
+            dataTypeName: sqlType,
+            isXml: column?.isXml === true || typeName === "xml",
+            isJson: column?.isJson === true || typeName === "json",
+            udtAssemblyQualifiedName: "",
+        };
+    });
 }
 
 /** Numeric set ordinal parsed from a "b0r0s0"-shaped result set id. */
@@ -468,12 +489,12 @@ export function QsResultGridSurface(props: {
     // Column identity must stay STABLE across the coarse state pushes while
     // rows stream (each push rebuilds columnNames) — otherwise the grid
     // re-derives its column set on every push. Cache on the joined names.
-    const columnsKey = summary.columnNames.join(" ");
+    const columnsKey = JSON.stringify(summary.columns ?? summary.columnNames);
     const columnInfoRef = useRef<{ key: string; value: IDbColumn[] } | undefined>(undefined);
     if (columnInfoRef.current?.key !== columnsKey) {
         columnInfoRef.current = {
             key: columnsKey,
-            value: fabricateColumnInfo(summary.columnNames),
+            value: fabricateColumnInfo(summary.columnNames, summary.columns),
         };
     }
     const columnInfo = columnInfoRef.current.value;

@@ -89,10 +89,15 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     get connectionState(): QsConnectionState {
         const info = this.session?.info;
+        const engineEdition =
+            info?.engineEdition !== undefined && Number.isFinite(Number(info.engineEdition))
+                ? Number(info.engineEdition)
+                : undefined;
         return {
             kind: this.stateKind,
             ...(info?.serverDisplayName ? { serverDisplayName: info.serverDisplayName } : {}),
             ...(info?.serverVersion ? { serverVersion: info.serverVersion } : {}),
+            ...(engineEdition !== undefined ? { engineEdition } : {}),
             ...(info?.loginName ? { loginName: info.loginName } : {}),
             ...(this.spid !== undefined ? { spid: this.spid } : {}),
             ...(info?.database ? { database: info.database } : {}),

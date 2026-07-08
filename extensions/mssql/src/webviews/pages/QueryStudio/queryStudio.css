@@ -268,6 +268,11 @@
 }
 .qs-grid-surface .fluent-result-grid .slick-cell a.grid-cell-value-container {
     cursor: pointer;
+    pointer-events: auto;
+}
+.qs-grid-surface .fluent-result-grid .slick-cell span.grid-cell-value-container,
+.qs-grid-surface .fluent-result-grid .slick-cell .fluent-result-grid-row-number {
+    pointer-events: none;
 }
 .qs-grid-selecting .fluent-result-grid .slick-row:hover {
     outline: none;

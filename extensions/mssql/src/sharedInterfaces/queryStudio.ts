@@ -92,6 +92,7 @@ export interface QsConnectionState {
     kind: QsConnectionStateKind;
     serverDisplayName?: string;
     serverVersion?: string;
+    engineEdition?: number;
     loginName?: string;
     spid?: number;
     database?: string;
@@ -125,6 +126,7 @@ export interface QsResultSetSummary {
     resultSetId: string;
     batchOrdinal: number;
     columnNames: string[];
+    columns?: QsResultColumn[];
     rowCount: number;
     complete: boolean;
     truncatedReason?: string;
@@ -205,12 +207,20 @@ export interface QsResultSelectionRange {
     toCell: number;
 }
 
+export interface QsResultColumn {
+    name: string;
+    displayName: string;
+    sqlType?: string;
+    isXml?: boolean;
+    isJson?: boolean;
+}
+
 /** Compact window (Appendix A): values + null bitmap, never tagged unions. */
 export interface QsCellWindow {
     resultSetId: string;
     start: number;
     rowCount: number;
-    columns: Array<{ name: string; displayName: string; sqlType?: string }>;
+    columns: QsResultColumn[];
     values: unknown[][];
     nullBitmap?: string;
     typeHints?: string[];

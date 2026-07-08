@@ -114,6 +114,22 @@ export const curatedSystemObjects: readonly CuratedSystemObject[] = [
     },
     {
         schema: "sys",
+        name: "dm_exec_cached_plans",
+        scope: "broad",
+        columns: [
+            "bucketid",
+            "refcounts",
+            "usecounts",
+            "size_in_bytes",
+            "memory_object_address",
+            "cacheobjtype",
+            "objtype",
+            "plan_handle",
+            "pool_id",
+        ],
+    },
+    {
+        schema: "sys",
         name: "dm_exec_sql_text",
         scope: "broad",
         columns: ["sql_handle", "dbid", "objectid", "number", "encrypted", "text"],

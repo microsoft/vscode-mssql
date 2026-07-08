@@ -139,6 +139,7 @@ export class ExecutionHost {
                     resultSetId: started.resultSetId,
                     batchOrdinal: started.batchOrdinal,
                     columnNames: started.columnNames,
+                    ...(started.columns ? { columns: started.columns } : {}),
                     rowCount: 0,
                     complete: false,
                     ...(started.isPlanResult ? { isPlanResult: true } : {}),

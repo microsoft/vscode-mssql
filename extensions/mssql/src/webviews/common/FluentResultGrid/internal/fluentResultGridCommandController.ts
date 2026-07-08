@@ -797,15 +797,22 @@ export function useFluentResultGridCommandController({
             }
 
             const column = resultSetSummary.columnInfo[resultColumnIndex];
-            const languageId = column?.isXml
-                ? FLUENT_RESULT_GRID_XML_LANGUAGE_ID
-                : column?.isJson
-                  ? FLUENT_RESULT_GRID_JSON_LANGUAGE_ID
-                  : isXmlCell(cellValue.displayValue)
+            const cellLanguageId =
+                cellValue.languageId === FLUENT_RESULT_GRID_XML_LANGUAGE_ID ||
+                cellValue.languageId === FLUENT_RESULT_GRID_JSON_LANGUAGE_ID
+                    ? cellValue.languageId
+                    : undefined;
+            const languageId =
+                cellLanguageId ??
+                (column?.isXml
                     ? FLUENT_RESULT_GRID_XML_LANGUAGE_ID
-                    : isJson(cellValue.displayValue)
+                    : column?.isJson
                       ? FLUENT_RESULT_GRID_JSON_LANGUAGE_ID
-                      : undefined;
+                      : isXmlCell(cellValue.displayValue)
+                        ? FLUENT_RESULT_GRID_XML_LANGUAGE_ID
+                        : isJson(cellValue.displayValue)
+                          ? FLUENT_RESULT_GRID_JSON_LANGUAGE_ID
+                          : undefined);
             if (!languageId) {
                 return;
             }

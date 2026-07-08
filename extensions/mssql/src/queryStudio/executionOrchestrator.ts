@@ -17,13 +17,14 @@
 
 import { Perf } from "../perf/perfTelemetry";
 import {
+    ColumnMetadata,
     IQueryEventSink,
     ISqlSession,
     QueryCompleteSummary,
     QueryHandle,
     ServerMessage,
 } from "../services/sqlDataPlane/api";
-import { QsMessageRow } from "../sharedInterfaces/queryStudio";
+import { QsMessageRow, QsResultColumn } from "../sharedInterfaces/queryStudio";
 import { mapServerLineToDocument, splitBatches, SqlBatch } from "../sql/batchSplitter";
 import { RowStore } from "./rowStore";
 
@@ -39,6 +40,7 @@ export interface RunEvents {
         resultSetId: string;
         batchOrdinal: number;
         columnNames: string[];
+        columns?: QsResultColumn[];
         isPlanResult?: boolean;
     }): void;
     onRowsAppended(resultSetId: string, newRowCount: number, complete: boolean): void;
@@ -84,6 +86,16 @@ const SHOWPLAN_COLUMN = /^Microsoft SQL Server .*XML Showplan$/i;
 
 export function isPlanResultSet(columnNames: string[]): boolean {
     return columnNames.length === 1 && SHOWPLAN_COLUMN.test(columnNames[0] ?? "");
+}
+
+function toQsResultColumn(column: ColumnMetadata): QsResultColumn {
+    return {
+        name: column.name,
+        displayName: column.displayName,
+        ...(column.sqlType ? { sqlType: column.sqlType } : {}),
+        ...(column.isXml ? { isXml: true } : {}),
+        ...(column.isJson ? { isJson: true } : {}),
+    };
 }
 
 const MODE_WRAPPERS: Record<string, { on: string; off: string } | undefined> = {
@@ -365,9 +377,12 @@ export class ExecutionOrchestrator {
                         name: c.name,
                         displayName: c.displayName,
                         ...(c.sqlType ? { sqlType: c.sqlType } : {}),
+                        ...(c.isXml ? { isXml: true } : {}),
+                        ...(c.isJson ? { isJson: true } : {}),
                     })),
                 );
                 const columnNames = meta.columns.map((c) => c.name);
+                const columns = meta.columns.map(toQsResultColumn);
                 // Heuristic (diagnostics mark planDetection: heuristic):
                 // canonical single showplan-XML column.
                 const isPlanResult = isPlanResultSet(columnNames);
@@ -378,6 +393,7 @@ export class ExecutionOrchestrator {
                     resultSetId: storeId,
                     batchOrdinal: batchIndex,
                     columnNames,
+                    columns,
                     isPlanResult,
                 });
             },

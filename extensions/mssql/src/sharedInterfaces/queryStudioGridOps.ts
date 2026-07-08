@@ -32,6 +32,9 @@ export const QS_DISTINCT_VALUES_CAP = 200;
 export const QS_CELL_DISPLAY_CLAMP = 2048;
 /** Cell tooltip (title attribute) clamp. */
 export const QS_CELL_TITLE_CLAMP = 512;
+/** Avoid parsing large cell documents on the UI thread just to decide link styling. */
+export const QS_CELL_DOCUMENT_PARSE_LIMIT = 256 * 1024;
+export type QsCellDocumentLanguage = "xml" | "json";
 
 /**
  * Structural check for the byte-capped cell marker
@@ -64,6 +67,84 @@ export function cellDisplayText(value: unknown): string {
         return JSON.stringify(value);
     }
     return String(value);
+}
+
+export interface QsCellDocumentMetadata {
+    readonly sqlType?: string;
+    readonly typeHint?: string;
+    readonly isXml?: boolean;
+    readonly isJson?: boolean;
+}
+
+function metadataDocumentLanguage(
+    metadata: QsCellDocumentMetadata | undefined,
+): QsCellDocumentLanguage | undefined {
+    if (metadata?.isXml === true || metadata?.typeHint === "xml") {
+        return "xml";
+    }
+    if (metadata?.isJson === true || metadata?.typeHint === "json") {
+        return "json";
+    }
+    const sqlType = metadata?.sqlType?.trim().toLowerCase();
+    if (sqlType === "xml") {
+        return "xml";
+    }
+    if (sqlType === "json") {
+        return "json";
+    }
+    return undefined;
+}
+
+function hasJsonShape(text: string): boolean {
+    const trimmed = text.trim();
+    return (
+        trimmed.length > 0 &&
+        ((trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+            (trimmed.startsWith("[") && trimmed.endsWith("]")))
+    );
+}
+
+function hasXmlShape(text: string): boolean {
+    const trimmed = text.trim();
+    return trimmed.length > 0 && trimmed.startsWith("<") && trimmed.endsWith(">");
+}
+
+function isJsonDocumentText(text: string): boolean {
+    if (!hasJsonShape(text)) {
+        return false;
+    }
+    if (text.length > QS_CELL_DOCUMENT_PARSE_LIMIT) {
+        return true;
+    }
+    try {
+        JSON.parse(text);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Classify cells that should render as openable XML/JSON documents.
+ * Metadata wins. Backend byte-capped cells are classified only by metadata
+ * because their retained prefix is not enough to prove string JSON/XML.
+ */
+export function cellDocumentLanguage(
+    value: unknown,
+    metadata?: QsCellDocumentMetadata,
+): QsCellDocumentLanguage | undefined {
+    const fromMetadata = metadataDocumentLanguage(metadata);
+    if (fromMetadata !== undefined) {
+        return fromMetadata;
+    }
+    if (value === undefined || value === null || isTruncatedCellMarker(value)) {
+        return undefined;
+    }
+    const text = cellDisplayText(value);
+    if (isJsonDocumentText(text)) {
+        return "json";
+    }
+    return hasXmlShape(text) ? "xml" : undefined;
 }
 
 /**

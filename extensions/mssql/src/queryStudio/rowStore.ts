@@ -19,7 +19,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { Perf } from "../perf/perfTelemetry";
 import { CompactPage } from "../services/sqlDataPlane/api";
-import { QsCellWindow } from "../sharedInterfaces/queryStudio";
+import { QsCellWindow, QsResultColumn } from "../sharedInterfaces/queryStudio";
 
 export interface RowStoreLimits {
     maxMemoryBytes: number;
@@ -46,11 +46,7 @@ interface StoredPage {
     spillLength?: number;
 }
 
-export interface ResultSetColumns {
-    name: string;
-    displayName: string;
-    sqlType?: string;
-}
+export type ResultSetColumns = QsResultColumn;
 
 class ResultSetStore {
     readonly pages: StoredPage[] = [];

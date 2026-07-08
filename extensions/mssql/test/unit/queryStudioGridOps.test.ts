@@ -12,8 +12,10 @@
 import { expect } from "chai";
 import {
     QS_CELL_DISPLAY_CLAMP,
+    QS_CELL_DOCUMENT_PARSE_LIMIT,
     QS_DISTINCT_VALUES_CAP,
     applyFilterSort,
+    cellDocumentLanguage,
     cellDisplayText,
     clampDisplay,
     compareCells,
@@ -177,6 +179,37 @@ suite("Query Studio grid client ops", () => {
             expect(cellDisplayText(undefined)).to.equal("NULL");
             expect(cellDisplayText({ a: 1 })).to.equal('{"a":1}');
             expect(cellDisplayText(42)).to.equal("42");
+        });
+    });
+
+    suite("cellDocumentLanguage", () => {
+        test("metadata and type hints classify XML/JSON without sniffing display text", () => {
+            expect(cellDocumentLanguage("not xml", { sqlType: "xml" })).to.equal("xml");
+            expect(cellDocumentLanguage("not json", { typeHint: "json" })).to.equal("json");
+            expect(cellDocumentLanguage("x", { isJson: true })).to.equal("json");
+            expect(cellDocumentLanguage("x", { isXml: true })).to.equal("xml");
+        });
+
+        test("small JSON must be parseable", () => {
+            expect(cellDocumentLanguage('{"a":1}')).to.equal("json");
+            expect(cellDocumentLanguage("{not json}")).to.equal(undefined);
+        });
+
+        test("large JSON-shaped text is linkable without a full parse", () => {
+            const text = `{"payload":"${"x".repeat(QS_CELL_DOCUMENT_PARSE_LIMIT + 1)}"}`;
+            expect(cellDocumentLanguage(text)).to.equal("json");
+        });
+
+        test("truncated string cells do not claim JSON/XML without metadata", () => {
+            expect(cellDocumentLanguage({ $t: "truncated", of: "string", v: '{"a":' })).to.equal(
+                undefined,
+            );
+            expect(
+                cellDocumentLanguage(
+                    { $t: "truncated", of: "string", v: "<root>" },
+                    { sqlType: "xml" },
+                ),
+            ).to.equal("xml");
         });
     });
 });
