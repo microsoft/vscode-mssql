@@ -911,7 +911,6 @@ suite("ConnectionManager Tests", () => {
                 mockPrompter,
                 mockLogger,
                 undefined, // serviceClient
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
             );
@@ -1126,7 +1125,6 @@ suite("ConnectionManager Tests", () => {
                 mockPrompter,
                 mockLogger,
                 undefined, // serviceClient
-                mockVscodeWrapper,
                 mockConnectionStore,
                 mockCredentialStore,
             );

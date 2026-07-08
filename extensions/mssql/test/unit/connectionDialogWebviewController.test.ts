@@ -171,9 +171,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
         await mainController["initializeObjectExplorer"](mockObjectExplorerProvider);
 
         // Neutralize the constructor's fire-and-forget background VS Code Entra data load so it
-        // does not call updateState after the controller is disposed (which surfaces as an
-        // unhandled "Cannot send notification on disposed controller" rejection). Tests that
-        // exercise the real method restore this stub first.
+        // does not call updateState after the controller is disposed.
+        // Tests that use the real method restore this stub first.
         loadVscodeEntraDataAsyncStub = sandbox
             .stub(ConnectionDialogWebviewController.prototype, "loadVscodeEntraDataAsync")
             .resolves();
