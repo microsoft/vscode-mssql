@@ -21,7 +21,9 @@ import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
 import { LanguageServiceStatus } from "./queryStudioLanguageService";
 import {
     cleanupQueryStudioScratchFile,
+    isQueryStudioScratchUri,
     openQueryStudioScratchDocument,
+    queryStudioScratchDisplayTitle,
     queryStudioScratchRoot,
 } from "./queryStudioScratchFiles";
 import { QueryStudioReplayController } from "./replay/queryStudioReplayController";
@@ -80,15 +82,24 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
                 "querystudio-spill",
                 Buffer.from(uriKey).toString("base64url").slice(0, 32),
             );
-            model = new QueryStudioDocumentModel(document, spillRoot, (m) => {
-                this.models.delete(m.uriKey);
-                liveModels.delete(m.uriKey);
-            });
+            model = new QueryStudioDocumentModel(
+                document,
+                spillRoot,
+                (m) => {
+                    this.models.delete(m.uriKey);
+                    liveModels.delete(m.uriKey);
+                },
+                queryStudioScratchRoot(this.context.globalStorageUri),
+            );
             this.models.set(uriKey, model);
             liveModels.set(uriKey, model);
         } else if (model.backingDocument !== document) {
             // Re-resolve (Save As / revert): rebind-safe per doc 04 §7.2.
             model.rebind(document);
+        }
+        const scratchRoot = queryStudioScratchRoot(this.context.globalStorageUri);
+        if (isQueryStudioScratchUri(document.uri, scratchRoot)) {
+            panel.title = queryStudioScratchDisplayTitle(document.getText());
         }
         model.panelCount++;
 

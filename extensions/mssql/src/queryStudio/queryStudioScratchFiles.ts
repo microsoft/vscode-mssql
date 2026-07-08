@@ -46,6 +46,20 @@ export function queryStudioScratchTitle(initialSql: string, fallback = "Query St
     return (sanitized || fallback).slice(0, 64).replace(/[. ]+$/g, "") || fallback;
 }
 
+export function queryStudioScratchDisplayTitle(
+    initialSql: string,
+    fallback = "Query Studio.sql",
+): string {
+    const firstMeaningfulLine =
+        initialSql
+            .split(/\r\n|\r|\n/g)
+            .map((line) => line.trim())
+            .find((line) => line.length > 0) ?? fallback;
+    const collapsed = firstMeaningfulLine.replace(/\s+/g, " ").trim();
+    const title = (collapsed || fallback).slice(0, 64).replace(/[. ]+$/g, "");
+    return title.toLowerCase().endsWith(".sql") ? title : `${title}.sql`;
+}
+
 export function queryStudioScratchFileName(
     initialSql: string,
     now = new Date(),

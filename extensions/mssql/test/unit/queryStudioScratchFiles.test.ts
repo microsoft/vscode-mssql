@@ -10,6 +10,7 @@ import {
     cleanupQueryStudioScratchFile,
     createQueryStudioScratchFile,
     openQueryStudioScratchDocument,
+    queryStudioScratchDisplayTitle,
     queryStudioScratchFileName,
     queryStudioScratchMetadataUri,
     queryStudioScratchTitle,
@@ -28,6 +29,13 @@ suite("Query Studio scratch files", () => {
             "SELECT TOP (100) _ FROM [dbo].[perfblobs];-20260708T123456Z-z.sql",
         );
         expect(/[<>:"/\\|?*\x00-\x1f]/.test(fileName)).to.equal(false);
+    });
+
+    test("builds a display title without filesystem sanitization or paths", () => {
+        expect(
+            queryStudioScratchDisplayTitle("  SELECT TOP (100) * FROM [dbo].[perfblobs]\n"),
+        ).to.equal("SELECT TOP (100) * FROM [dbo].[perfblobs].sql");
+        expect(queryStudioScratchDisplayTitle("")).to.equal("Query Studio.sql");
     });
 
     test("cleanup decision only deletes unchanged baselines", () => {
