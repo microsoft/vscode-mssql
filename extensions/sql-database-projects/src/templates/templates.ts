@@ -7,7 +7,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 import { ItemType } from "sqldbproj";
 import * as constants from "../common/constants";
-import { getMicrosoftBuildSqlVersion, resolveNugetVersion } from "../tools/netcoreTool";
+import { getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
 
 export let newSqlProjectTemplate: string;
 export let newSdkSqlProjectTemplate: string;
@@ -82,15 +82,7 @@ export async function loadTemplates(templateFolderPath: string) {
         Promise.resolve(
             (newSdkSqlProjectTemplate = macroExpansion(
                 await loadTemplate(templateFolderPath, "newSdkSqlProjectTemplate.xml"),
-                new Map([
-                    [
-                        "MICROSOFT_BUILD_SQL_VERSION",
-                        await resolveNugetVersion(
-                            "Microsoft.Build.Sql",
-                            getMicrosoftBuildSqlVersion(),
-                        ),
-                    ],
-                ]),
+                new Map([["MICROSOFT_BUILD_SQL_VERSION", getMicrosoftBuildSqlVersion()]]),
             )),
         ),
         loadObjectTypeInfo(
