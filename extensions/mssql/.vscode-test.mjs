@@ -1,13 +1,19 @@
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { defineConfig } from "@vscode/test-cli";
 import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-test-config.mjs";
 
-// VS Code creates an IPC socket under the test user-data-dir. On macOS, Unix domain socket
-// paths are limited to ~103 characters, and the default `.vscode-test/user-data` path can
-// exceed that when the repository lives under a long or space-containing path. Point the test
-// user-data-dir at a short path in the OS temp directory to stay under the limit.
-const userDataDir = join(tmpdir(), "vscode-mssql-test");
+// TODO: Workaround for macOS CI EINVAL error — revert once the upstream VS Code issue is fixed.
+// A recent VS Code build changed the socket filename format (e.g. "1.12-main.sock"), pushing the
+// default .vscode-test/user-data/ path over macOS's hard 103-char Unix socket path limit.
+// Tracked in: https://github.com/microsoft/vscode/issues/319752
+// Use a short temp user-data-dir to avoid macOS's 103-char Unix socket path limit.
+const tmpBaseDir = process.platform === "darwin" ? "/tmp" : os.tmpdir();
+const userDataDir = fs.mkdtempSync(path.join(tmpBaseDir, "vsc-mssql-"));
+process.on("exit", () => {
+    fs.rmSync(userDataDir, { recursive: true, force: true });
+});
 
 export default defineConfig({
     tests: [
@@ -29,6 +35,7 @@ export default defineConfig({
         //     files: "out/test/activation/**/*.test.js",
         //     version: "insiders",
         //     installExtensions: ["ms-dotnettools.vscode-dotnet-runtime"],
+        //     launchArgs: ["--user-data-dir", userDataDir],
         //     env: {
         //         VSCODE_LOG_LEVEL: "error",
         //     },
