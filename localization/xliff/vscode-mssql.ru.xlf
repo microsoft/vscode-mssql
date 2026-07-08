@@ -11921,6 +11921,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
         <target state="translated">Открыть в GitHub Copilot Chat</target>
       </trans-unit>
+      <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
+        <source xml:lang="en">Open in MSSQL extension</source>
+        <target state="new">Open in MSSQL extension</target>
+      </trans-unit>
       <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
         <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
         <target state="translated">Откройте запрос в редакторе SQL и сразу выполните его.</target>

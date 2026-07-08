@@ -11921,6 +11921,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
         <target state="translated">Abrir no GitHub Copilot Chat</target>
       </trans-unit>
+      <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
+        <source xml:lang="en">Open in MSSQL extension</source>
+        <target state="new">Open in MSSQL extension</target>
+      </trans-unit>
       <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
         <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
         <target state="translated">Abra a consulta em um editor SQL e execute-a imediatamente.</target>

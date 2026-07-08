@@ -11921,6 +11921,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
         <target state="translated">Abrir en GitHub Copilot Chat</target>
       </trans-unit>
+      <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
+        <source xml:lang="en">Open in MSSQL extension</source>
+        <target state="new">Open in MSSQL extension</target>
+      </trans-unit>
       <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
         <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
         <target state="translated">Abra la consulta en un editor de SQL y ejecútela inmediatamente.</target>
