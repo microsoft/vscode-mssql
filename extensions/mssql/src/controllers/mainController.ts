@@ -137,6 +137,7 @@ import {
     normalizeQuickQueries,
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
+import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
 
 /**
  * The main controller class that initializes the extension
@@ -185,6 +186,8 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    public protocolHandler: MssqlProtocolHandler;
+    public azureResourcesIntegration: AzureResourcesExtensionIntegration;
 
     /**
      * The main controller constructor
@@ -759,18 +762,23 @@ export default class MainController implements vscode.Disposable {
                 xelProviderInstance,
             );
 
-            const self = this;
-            const uriHandler: vscode.UriHandler = {
-                async handleUri(uri: vscode.Uri): Promise<void> {
-                    const mssqlProtocolHandler = new MssqlProtocolHandler(
-                        self,
-                        self._connectionMgr.client,
-                    );
+            this.protocolHandler = new MssqlProtocolHandler(this, this._connectionMgr.client);
 
-                    await mssqlProtocolHandler.handleUri(uri);
+            const uriHandler: vscode.UriHandler = {
+                handleUri: async (uri: vscode.Uri) => {
+                    await this.protocolHandler.handleUri(uri);
                 },
             };
+
             vscode.window.registerUriHandler(uriHandler);
+
+            this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
+                this.protocolHandler,
+            );
+
+            this._context.subscriptions.push(
+                this.azureResourcesIntegration.registerOpenInMssqlCommand(),
+            );
 
             // Register a virtual document provider once during extension activation
             vscode.workspace.registerTextDocumentContentProvider("query-result-link", {
