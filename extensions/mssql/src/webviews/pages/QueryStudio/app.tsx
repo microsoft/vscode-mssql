@@ -78,6 +78,7 @@ import { QueryStudioResultsTextView } from "./resultsTextView";
 import { monacoApi } from "./monacoSetup";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
+type QueryStudioEol = "\n" | "\r\n";
 
 let editGroupCounter = 0;
 
@@ -104,6 +105,26 @@ const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
 const QS_COMPLETION_STALE_GUARD_DELAY_MS = 15;
+
+function eolPreference(eol: QueryStudioEol): monacoNs.editor.EndOfLinePreference {
+    return eol === "\r\n"
+        ? monacoApi.editor.EndOfLinePreference.CRLF
+        : monacoApi.editor.EndOfLinePreference.LF;
+}
+
+function eolSequence(eol: QueryStudioEol): monacoNs.editor.EndOfLineSequence {
+    return eol === "\r\n"
+        ? monacoApi.editor.EndOfLineSequence.CRLF
+        : monacoApi.editor.EndOfLineSequence.LF;
+}
+
+function editorValue(editor: Editor, eol: QueryStudioEol): string {
+    return editor.getModel()?.getValue(eolPreference(eol)) ?? editor.getValue();
+}
+
+function applyEditorEol(editor: Editor, eol: QueryStudioEol): void {
+    editor.getModel()?.pushEOL(eolSequence(eol));
+}
 
 export function QueryStudioApp() {
     const {
@@ -139,11 +160,14 @@ export function QueryStudioApp() {
     const editorRef = useRef<Editor | null>(null);
     const hostVersionRef = useRef(0);
     const syncedTextRef = useRef("");
+    const preferredEolRef = useRef<QueryStudioEol>("\n");
     const syncInFlightRef = useRef(false);
     const flushAgainRef = useRef(false);
     const awaitingResyncRef = useRef(false);
     const flushEditsRef = useRef<() => void>(() => undefined);
-    const applyRemoteTextRef = useRef<(text: string, hostVersion: number) => void>(() => undefined);
+    const applyRemoteTextRef = useRef<
+        (text: string, hostVersion: number, eol?: QueryStudioEol) => void
+    >(() => undefined);
     const suppressLocalRef = useRef(false);
     const flushTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const expectedEchoGroupsRef = useRef<Set<string>>(new Set());
@@ -237,7 +261,7 @@ export function QueryStudioApp() {
             flushAgainRef.current = true;
             return;
         }
-        const currentText = editor.getValue();
+        const currentText = editorValue(editor, preferredEolRef.current);
         if (currentText === syncedTextRef.current) {
             return;
         }
@@ -280,7 +304,7 @@ export function QueryStudioApp() {
                 if (!liveEditor) {
                     return undefined;
                 }
-                const adoptText = liveEditor.getValue();
+                const adoptText = editorValue(liveEditor, preferredEolRef.current);
                 if (adoptText === syncedTextRef.current) {
                     return undefined;
                 }
@@ -304,10 +328,16 @@ export function QueryStudioApp() {
                         return rpc
                             .sendRequest(QsSyncResyncRequest.type, {
                                 webviewVersion: adopted.hostVersion,
-                                textHash: textHash(liveEditor.getValue()),
+                                textHash: textHash(
+                                    editorValue(liveEditor, preferredEolRef.current),
+                                ),
                             })
                             .then((resync) =>
-                                applyRemoteTextRef.current(resync.text, resync.hostVersion),
+                                applyRemoteTextRef.current(
+                                    resync.text,
+                                    resync.hostVersion,
+                                    resync.eol,
+                                ),
                             );
                     });
             })
@@ -322,7 +352,9 @@ export function QueryStudioApp() {
                 }
                 if (
                     flushAgainRef.current ||
-                    editorRef.current?.getValue() !== syncedTextRef.current
+                    (editorRef.current !== null &&
+                        editorValue(editorRef.current, preferredEolRef.current) !==
+                            syncedTextRef.current)
                 ) {
                     flushAgainRef.current = false;
                     flushTimerRef.current = setTimeout(() => flushEditsRef.current(), 0);
@@ -341,36 +373,51 @@ export function QueryStudioApp() {
     );
 
     // --- sync: host → webview ----------------------------------------------
-    const applyRemoteText = useCallback((text: string, hostVersion: number) => {
-        if (hostVersion < hostVersionRef.current) {
+    const applyRemoteText = useCallback(
+        (text: string, hostVersion: number, eol?: QueryStudioEol) => {
+            if (hostVersion < hostVersionRef.current) {
+                awaitingResyncRef.current = false;
+                return;
+            }
+            if (eol !== undefined) {
+                preferredEolRef.current = eol;
+            }
+            const editor = editorRef.current;
             awaitingResyncRef.current = false;
-            return;
-        }
-        const editor = editorRef.current;
-        awaitingResyncRef.current = false;
-        expectedEchoGroupsRef.current.clear();
-        expectedEchoTextsRef.current.clear();
-        hostVersionRef.current = hostVersion;
-        syncedTextRef.current = text;
-        flushAgainRef.current = false;
-        if (!editor || editor.getValue() === text) {
-            return;
-        }
-        suppressLocalRef.current = true;
-        try {
-            const model = editor.getModel();
-            model?.pushEditOperations([], [{ range: model.getFullModelRange(), text }], () => null);
-        } finally {
-            suppressLocalRef.current = false;
-        }
-    }, []);
+            expectedEchoGroupsRef.current.clear();
+            expectedEchoTextsRef.current.clear();
+            hostVersionRef.current = hostVersion;
+            syncedTextRef.current = text;
+            flushAgainRef.current = false;
+            if (!editor) {
+                return;
+            }
+            applyEditorEol(editor, preferredEolRef.current);
+            if (editorValue(editor, preferredEolRef.current) === text) {
+                return;
+            }
+            suppressLocalRef.current = true;
+            try {
+                const model = editor.getModel();
+                model?.pushEditOperations(
+                    [],
+                    [{ range: model.getFullModelRange(), text }],
+                    () => null,
+                );
+                applyEditorEol(editor, preferredEolRef.current);
+            } finally {
+                suppressLocalRef.current = false;
+            }
+        },
+        [],
+    );
     applyRemoteTextRef.current = applyRemoteText;
 
     useEffect(() => {
         // onNotification registrations live for the webview lifetime.
         [
             rpc.onNotification(QsSyncInitNotification.type, (init: QsSyncInit) => {
-                applyRemoteText(init.text, init.hostVersion);
+                applyRemoteText(init.text, init.hostVersion, init.eol);
             }),
             rpc.onNotification(QsSyncRemoteNotification.type, (remote: QsSyncRemote) => {
                 if (
@@ -400,9 +447,11 @@ export function QueryStudioApp() {
                     void rpc
                         .sendRequest(QsSyncResyncRequest.type, {
                             webviewVersion: hostVersionRef.current,
-                            textHash: textHash(editor.getValue()),
+                            textHash: textHash(editorValue(editor, preferredEolRef.current)),
                         })
-                        .then((resync) => applyRemoteText(resync.text, resync.hostVersion));
+                        .then((resync) =>
+                            applyRemoteText(resync.text, resync.hostVersion, resync.eol),
+                        );
                     return;
                 }
                 // Apply host-origin edits; verify hash, else request resync.
@@ -423,18 +472,21 @@ export function QueryStudioApp() {
                     suppressLocalRef.current = false;
                 }
                 hostVersionRef.current = remote.toHostVersion;
-                if (editor.getValue() && textHash(editor.getValue()) !== remote.textHash) {
+                const currentText = editorValue(editor, preferredEolRef.current);
+                if (currentText && textHash(currentText) !== remote.textHash) {
                     awaitingResyncRef.current = true;
                     void rpc
                         .sendRequest(QsSyncResyncRequest.type, {
                             webviewVersion: remote.toHostVersion,
-                            textHash: textHash(editor.getValue()),
+                            textHash: textHash(currentText),
                         })
-                        .then((resync) => applyRemoteText(resync.text, resync.hostVersion));
+                        .then((resync) =>
+                            applyRemoteText(resync.text, resync.hostVersion, resync.eol),
+                        );
                 }
             }),
             rpc.onNotification(QsSyncResyncNotification.type, (resync: QsSyncResync) => {
-                applyRemoteText(resync.text, resync.hostVersion);
+                applyRemoteText(resync.text, resync.hostVersion, resync.eol);
             }),
             rpc.onNotification(QsStateChangedNotification.type, (next: QsState) => {
                 setPushedState(next);
@@ -581,8 +633,12 @@ export function QueryStudioApp() {
             void rpc
                 .sendRequest(QsSyncResyncRequest.type, { webviewVersion: 0, textHash: "" })
                 .then((resync) => {
+                    if (resync.eol !== undefined) {
+                        preferredEolRef.current = resync.eol;
+                        applyEditorEol(editor, resync.eol);
+                    }
                     if (editor.getValue().length === 0) {
-                        applyRemoteText(resync.text, resync.hostVersion);
+                        applyRemoteText(resync.text, resync.hostVersion, resync.eol);
                     } else {
                         hostVersionRef.current = resync.hostVersion;
                         syncedTextRef.current = resync.text;

@@ -141,7 +141,7 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
         }),
         vscode.commands.registerCommand(
             "mssql.perf.queryStudioExecute",
-            (args?: { uri?: string; text?: string }) => {
+            async (args?: { uri?: string; text?: string }) => {
                 const model = args?.uri
                     ? liveModels.get(args.uri)
                     : liveModels.values().next().value;
@@ -151,6 +151,7 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
                     };
                 }
                 const text = args?.text ?? model.backingDocument?.getText() ?? "";
+                await model.sessionBinding.waitForUserSessionReady();
                 return model.executionHost.execute(text, {
                     selectionStartLine: 0,
                     scope: "document",

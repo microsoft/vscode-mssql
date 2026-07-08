@@ -66,6 +66,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             context.database,
         );
         if (connected && context.autoRun) {
+            await this.sessionBinding.waitForUserSessionReady();
             this.executionHost.execute(this.document.getText(), {
                 selectionStartLine: 0,
                 scope: "document",
@@ -154,7 +155,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             text: this.sync.currentText,
             hostVersion: this.sync.hostVersion,
             textHash: this.sync.currentHash,
-            eol: this.document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n",
+            eol: this.documentEol(),
         };
     }
 
@@ -310,7 +311,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
                 },
             });
         }
-        return this.sync.resync("webview requested");
+        return { ...this.sync.resync("webview requested"), eol: this.documentEol() };
     }
 
     private pendingUndoReason: "undo" | "redo" | undefined;
@@ -337,10 +338,14 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     }
 
     private broadcastResync(reason: string): void {
-        const resync = this.sync.resync(reason);
+        const resync: QsSyncResync = { ...this.sync.resync(reason), eol: this.documentEol() };
         for (const listener of this.listeners) {
             listener.onResync(resync);
         }
+    }
+
+    private documentEol(): "\n" | "\r\n" {
+        return this.document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
     }
 
     dispose(): void {

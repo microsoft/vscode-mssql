@@ -73,6 +73,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private lastAuthKind: "sql" | "integrated" | undefined;
     private onChangeHandlers = new Set<() => void>();
     private metadataLease: DatabaseCatalogLease | undefined;
+    private userSessionReady: Promise<void> = Promise.resolve();
     metadataStatus: MetadataStatus | undefined;
 
     onDidChange(handler: () => void): vscode.Disposable {
@@ -108,6 +109,10 @@ export class DocumentSessionBinding implements vscode.Disposable {
         return this.stateKind === "connected" || this.stateKind === "executing"
             ? this.session
             : undefined;
+    }
+
+    async waitForUserSessionReady(): Promise<void> {
+        await this.userSessionReady;
     }
 
     /**
@@ -207,6 +212,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     private async open(stored: StoredProfile, store: ConnectionStoreSeam): Promise<boolean> {
         this.lastStoredProfile = stored;
+        this.userSessionReady = Promise.resolve();
         this.stateKind = "connecting";
         this.lostReason = undefined;
         this.fireChange();
@@ -258,7 +264,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
             // batch FIRST — the session serializes queries, so anything the
             // user runs right after connect queues behind the configured
             // state. Reconnect flows re-enter open(), reapplying naturally.
-            void this.initializeUserSession(session);
+            const initialization = this.initializeUserSession(session).catch(() => undefined);
+            this.userSessionReady = initialization;
+            void initialization;
             // Metadata catalog (design §8.2): dedicated session over the
             // same profile; hydration never contends with the user's F5.
             this.acquireMetadata(profileRef, store, authKind);
@@ -444,6 +452,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
         this.fireChange();
         await this.session.close().catch(() => undefined);
         this.session = undefined;
+        this.userSessionReady = Promise.resolve();
         this.spid = undefined;
         this.openTransactions = undefined;
         this.stateKind = "disconnected";
@@ -494,6 +503,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     dispose(): void {
         this.releaseMetadata();
+        this.userSessionReady = Promise.resolve();
         void this.session?.close().catch(() => undefined);
         this.onChangeHandlers.clear();
     }

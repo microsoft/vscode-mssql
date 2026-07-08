@@ -418,6 +418,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             const timeoutMs = executionTimeoutMs(
                 readQuerySessionOptions((key, fallback) => config.get(key, fallback)),
             );
+            await this.model.sessionBinding.waitForUserSessionReady();
             const outcome = this.model.executionHost.execute(text, {
                 selectionStartLine,
                 scope,

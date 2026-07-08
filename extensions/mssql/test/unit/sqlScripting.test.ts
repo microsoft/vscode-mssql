@@ -598,6 +598,7 @@ suite("sqlScripting service: capabilities and routing", () => {
         const { engine, pinned } = engineOf();
         expect(engine.capabilities({ ref: refOf(pinned, "Sales", "Orders") })).to.deep.equal([
             "create",
+            "drop",
             "selectTop",
             "insert",
             "update",
@@ -611,6 +612,7 @@ suite("sqlScripting service: capabilities and routing", () => {
             "create",
             "alter",
             "createOrAlter",
+            "drop",
             "execute",
         ]);
     });
@@ -620,6 +622,7 @@ suite("sqlScripting service: capabilities and routing", () => {
         expect(engine.capabilities({ ref: refOf(pinned, "Sales", "GetOrders") })).to.deep.equal([
             "create",
             "alter",
+            "drop",
             "execute",
         ]);
     });
@@ -627,15 +630,15 @@ suite("sqlScripting service: capabilities and routing", () => {
     test("view capabilities", () => {
         const { engine, pinned } = engineOf();
         expect(engine.capabilities({ ref: refOf(pinned, "Sales", "vOrderSummary") })).to.deep.equal(
-            ["create", "alter", "createOrAlter", "selectTop"],
+            ["create", "alter", "createOrAlter", "drop", "selectTop"],
         );
     });
 
-    test("synonym capabilities are empty (target not hydrated)", () => {
+    test("synonym capabilities include drop only (target not hydrated)", () => {
         const { engine, pinned } = engineOf();
-        expect(engine.capabilities({ ref: refOf(pinned, "dbo", "OrdersSynonym") })).to.deep.equal(
-            [],
-        );
+        expect(engine.capabilities({ ref: refOf(pinned, "dbo", "OrdersSynonym") })).to.deep.equal([
+            "drop",
+        ]);
     });
 
     test("unknown object: empty capabilities + honest notLoaded script", async () => {
@@ -648,9 +651,14 @@ suite("sqlScripting service: capabilities and routing", () => {
         expect(result.unavailableReason).to.equal("notLoaded");
     });
 
-    test("drop / dropAndCreate are not implemented yet — honest refusal", async () => {
+    test("drop emits object-kind-aware DROP script", async () => {
         const drop = await scriptOf("Sales", "GetOrders", "drop");
-        expect(drop.unavailableReason).to.equal("unsupported");
+        expect(drop.unavailableReason).to.equal(undefined);
+        expect(drop.text).to.equal("DROP PROCEDURE Sales.GetOrders;\r\n");
+        expect(drop.source).to.equal("template");
+    });
+
+    test("dropAndCreate is not implemented yet — honest refusal", async () => {
         const dropAndCreate = await scriptOf("Sales", "GetOrders", "dropAndCreate");
         expect(dropAndCreate.unavailableReason).to.equal("unsupported");
     });

@@ -251,11 +251,23 @@ function messageGetsTimestamp(message: QsMessageRow): boolean {
     return !/^\(\d+\s+rows?\s+affected\)$/i.test(message.text.trim());
 }
 
+const MESSAGE_TIME_COLUMN_WIDTH = 12;
+const MESSAGE_SEPARATOR = "  ";
+
+function formatMessageForDisplay(message: QsMessageRow): string {
+    const time = messageGetsTimestamp(message)
+        ? messageTimeLabel(message.epochMs).padEnd(MESSAGE_TIME_COLUMN_WIDTH, " ")
+        : " ".repeat(MESSAGE_TIME_COLUMN_WIDTH);
+    const prefix = `${time}${MESSAGE_SEPARATOR}`;
+    const continuationPrefix = " ".repeat(prefix.length);
+    return prefix + message.text.replace(/\r\n?/g, "\n").replace(/\n/g, `\n${continuationPrefix}`);
+}
+
 /**
  * Messages tab: monospace log; error blocks navigate to the document line.
  * Server-error rows carry the SSMS "Msg N, Level L, State S, Line D" header
  * as the first line of their text. The layout mirrors the classic message
- * grid: fixed timestamp column, tight 18px rows, and rows-affected messages
+ * grid: fixed timestamp field, tight 18px rows, and rows-affected messages
  * aligned under the message column without repeating the timestamp.
  */
 export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
@@ -271,32 +283,43 @@ export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
         },
         [rpc],
     );
+    const copyAllMessages = useCallback(() => {
+        void navigator.clipboard.writeText(messages.map(formatMessageForDisplay).join("\n"));
+    }, [messages]);
     return (
-        <div className="qs-messages" role="log">
-            {messages.map((message, i) => {
-                return (
-                    <div
-                        key={i}
-                        className={`qs-message-row${message.navigable ? " qs-message-nav" : ""}`}
-                        onClick={() => navigate(message)}
-                        title={message.navigable ? "Go to line" : undefined}>
-                        <div className="qs-muted qs-message-time">
-                            {messageGetsTimestamp(message) ? messageTimeLabel(message.epochMs) : ""}
-                        </div>
+        <div className="qs-messages-shell">
+            <div className="qs-messages-toolbar">
+                <button
+                    type="button"
+                    className="qs-btn qs-messages-copy"
+                    title="Copy all messages"
+                    aria-label="Copy all messages"
+                    disabled={messages.length === 0}
+                    onClick={copyAllMessages}>
+                    <span className="codicon codicon-copy" aria-hidden="true" />
+                    <span>Copy All</span>
+                </button>
+            </div>
+            <div className="qs-messages" role="log">
+                {messages.map((message, i) => {
+                    return (
                         <div
-                            className={`qs-message qs-message-${message.kind}`}
+                            key={i}
+                            className={`qs-message-row qs-message-${message.kind}${message.navigable ? " qs-message-nav" : ""}`}
+                            onClick={() => navigate(message)}
+                            title={message.navigable ? "Go to line" : undefined}
                             aria-label={message.text}>
-                            {message.text}
+                            {formatMessageForDisplay(message)}
                         </div>
+                    );
+                })}
+                {messages.length === 0 ? (
+                    <div className="qs-muted qs-message-row">
+                        {" ".repeat(MESSAGE_TIME_COLUMN_WIDTH + MESSAGE_SEPARATOR.length)}
+                        No messages.
                     </div>
-                );
-            })}
-            {messages.length === 0 ? (
-                <div className="qs-message-row">
-                    <div className="qs-message-time" />
-                    <div className="qs-muted qs-message">No messages.</div>
-                </div>
-            ) : null}
+                ) : null}
+            </div>
         </div>
     );
 }

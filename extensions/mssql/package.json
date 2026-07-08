@@ -446,6 +446,11 @@
                 "id": "mssql.sqlScriptsSubmenu",
                 "title": "%mssql.sqlScriptsSubmenu%",
                 "label": "%mssql.sqlScriptsSubmenu%"
+            },
+            {
+                "id": "mssql.objectExplorerV2.generateScriptSubmenu",
+                "title": "Generate Script",
+                "label": "Generate Script"
             }
         ],
         "menus": {
@@ -563,6 +568,16 @@
                     "group": "1_scripts@2"
                 }
             ],
+            "mssql.objectExplorerV2.generateScriptSubmenu": [
+                {
+                    "command": "mssql.objectExplorerV2.scriptCreate",
+                    "group": "1_scripts@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.scriptDrop",
+                    "group": "1_scripts@2"
+                }
+            ],
             "view/title": [
                 {
                     "command": "mssql.objectExplorerV2.refresh",
@@ -660,6 +675,11 @@
                     "command": "mssql.objectExplorerV2.selectTop",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSelectTop\\b/",
                     "group": "2_oe2_query@2"
+                },
+                {
+                    "submenu": "mssql.objectExplorerV2.generateScriptSubmenu",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canGenerateScript\\b/",
+                    "group": "2_oe2_query@3"
                 },
                 {
                     "command": "mssql.objectExplorerV2.filter",
@@ -1121,6 +1141,14 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.tablePreview",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.scriptCreate",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.scriptDrop",
                     "when": "false"
                 },
                 {
@@ -2120,12 +2148,22 @@
             },
             {
                 "command": "mssql.objectExplorerV2.selectTop",
-                "title": "Script SELECT TOP",
+                "title": "Select Top 100",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.objectExplorerV2.tablePreview",
                 "title": "Preview Table Data",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.scriptCreate",
+                "title": "Script as Create",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.scriptDrop",
+                "title": "Script as Drop",
                 "category": "MS SQL"
             },
             {

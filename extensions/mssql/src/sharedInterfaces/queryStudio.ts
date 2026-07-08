@@ -49,6 +49,7 @@ export interface QsSyncResync {
     hostVersion: number;
     textHash: string;
     reason: string;
+    eol?: "\n" | "\r\n";
 }
 
 export interface QsSyncEdits {

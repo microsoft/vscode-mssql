@@ -372,6 +372,7 @@ export function objectNode(
         capabilities: {
             canCopyName: true,
             canCopyQualifiedName: true,
+            canGenerateScript: true,
             ...(isTable || objectKind === "view"
                 ? { canSelectTop: true, canPreviewTable: isTable }
                 : {}),

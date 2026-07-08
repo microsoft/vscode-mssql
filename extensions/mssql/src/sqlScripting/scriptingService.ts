@@ -22,6 +22,7 @@
  */
 
 import { IPinnedMetadataView, LangObjectInfo, LangObjectKind } from "../sqlLanguage/provider/types";
+import { quoteIdentifier } from "../sqlLanguage/core/quote";
 import {
     ScriptMetadataProvenance,
     ScriptOperation,
@@ -40,6 +41,7 @@ import {
     emitUpdate,
 } from "./dmlTemplateEmitter";
 import { emitModuleScript, moduleOperations } from "./moduleEmitter";
+import { ScriptWriter } from "./scriptWriter";
 
 const MODULE_KINDS: ReadonlySet<LangObjectKind> = new Set([
     "view",
@@ -59,16 +61,17 @@ export class SqlScriptingEngine implements SqlScriptingService {
         const createOrAlter = this.pinned.env.capabilities.createOrAlterProgrammability;
         switch (info.kind) {
             case "table":
-                return ["create", "selectTop", "insert", "update", "delete"];
+                return ["create", "drop", "selectTop", "insert", "update", "delete"];
             case "view":
-                return [...moduleOperations(createOrAlter), "selectTop"];
+                return [...moduleOperations(createOrAlter), "drop", "selectTop"];
             case "procedure":
-                return [...moduleOperations(createOrAlter), "execute"];
+                return [...moduleOperations(createOrAlter), "drop", "execute"];
             case "scalarFunction":
-                return moduleOperations(createOrAlter);
+                return [...moduleOperations(createOrAlter), "drop"];
             case "tableFunction":
-                return [...moduleOperations(createOrAlter), "selectTop"];
+                return [...moduleOperations(createOrAlter), "drop", "selectTop"];
             case "synonym":
+                return ["drop"];
             default:
                 return []; // target metadata not hydrated — nothing honest to offer
         }
@@ -128,6 +131,7 @@ export class SqlScriptingEngine implements SqlScriptingService {
             case "execute":
                 return this.scriptExecute(request, info);
             case "drop":
+                return this.scriptDrop(request, info);
             case "dropAndCreate":
             default:
                 return this.unavailable(request, info, "unsupported", [
@@ -176,6 +180,25 @@ export class SqlScriptingEngine implements SqlScriptingService {
             ...(emitted.unavailable !== undefined
                 ? { unavailableReason: emitted.unavailable }
                 : {}),
+        };
+    }
+
+    private scriptDrop(request: ScriptRequest, info: LangObjectInfo): ScriptResult {
+        const keyword = dropKeyword(info.kind);
+        const writer = new ScriptWriter();
+        writer.anchored({ kind: "header" }, `DROP ${keyword}`);
+        writer.append(` ${quoteIdentifier(info.schema)}.`);
+        writer.anchored({ kind: "objectName" }, quoteIdentifier(info.name));
+        writer.append(";\r\n");
+        return {
+            text: writer.text,
+            anchors: writer.anchors,
+            fidelityNotes: [],
+            fidelity: "F0",
+            source: "template",
+            metadataGeneration: this.pinned.generation,
+            operation: request.operation,
+            objectKind: info.kind,
         };
     }
 
@@ -285,6 +308,22 @@ export class SqlScriptingEngine implements SqlScriptingService {
             objectKind: info?.kind ?? "table",
             unavailableReason: reason,
         };
+    }
+}
+
+function dropKeyword(kind: LangObjectKind): string {
+    switch (kind) {
+        case "table":
+            return "TABLE";
+        case "view":
+            return "VIEW";
+        case "procedure":
+            return "PROCEDURE";
+        case "scalarFunction":
+        case "tableFunction":
+            return "FUNCTION";
+        case "synonym":
+            return "SYNONYM";
     }
 }
 
