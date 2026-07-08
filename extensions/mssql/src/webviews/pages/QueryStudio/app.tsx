@@ -862,6 +862,19 @@ export function QueryStudioApp() {
         return () => window.removeEventListener("keydown", onKey, true);
     }, [execute, cancel, dbList]);
 
+    useEffect(() => {
+        const stopEditorClipboardChord = (e: KeyboardEvent) => {
+            if (e.defaultPrevented || !isEditorClipboardChord(e) || !isFromMonacoEditor(e.target)) {
+                return;
+            }
+            // Let Monaco and the browser clipboard event run first, then keep the
+            // chord from bubbling into VS Code's webview keybinding bridge.
+            e.stopPropagation();
+        };
+        document.addEventListener("keydown", stopEditorClipboardChord, false);
+        return () => document.removeEventListener("keydown", stopEditorClipboardChord, false);
+    }, []);
+
     // --- inline completions (B6): ghost text via the host's shared provider ----
     const completionsEnabled = state?.completions?.enabled === true;
     useEffect(() => {
@@ -1621,6 +1634,29 @@ function shouldAllowBrowserSelectAll(target: EventTarget | null): boolean {
             ].join(","),
         ) !== null
     );
+}
+
+function isEditorClipboardChord(event: KeyboardEvent): boolean {
+    const primaryOnly =
+        (event.ctrlKey || event.metaKey) &&
+        !(event.ctrlKey && event.metaKey) &&
+        !event.shiftKey &&
+        !event.altKey;
+    if (!primaryOnly) {
+        return false;
+    }
+    switch (event.key.toLowerCase()) {
+        case "c":
+        case "x":
+        case "v":
+            return true;
+        default:
+            return false;
+    }
+}
+
+function isFromMonacoEditor(target: EventTarget | null): boolean {
+    return target instanceof Element && target.closest(".monaco-editor") !== null;
 }
 
 function isQueryStudioState(value: unknown): value is QsState {
