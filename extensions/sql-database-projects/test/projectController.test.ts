@@ -24,7 +24,7 @@ import { ProjectRootTreeItem } from "../src/models/tree/projectTreeItem";
 import { FolderNode, FileNode } from "../src/models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../src/models/tree/baseTreeItem";
 import { ImportDataModel } from "../src/models/api/import";
-import { EntryType, ItemType, SqlTargetPlatform } from "sqldbproj";
+import { ItemType, SqlTargetPlatform } from "sqldbproj";
 import { FileProjectEntry } from "../src/models/projectEntry";
 
 let testContext: TestContext;
@@ -1523,73 +1523,6 @@ suite("ProjectsController", function (): void {
             // make sure reference to outsideFolderTest.dacpac was added to project file
             projFileText = (await fs.readFile(projFilePath)).toString();
             expect(projFileText).to.contain("..\\someFolder\\outsideFolderTest.dacpac");
-        });
-    });
-
-    suite("AutoRest generation", function (): void {
-        // skipping for now because this feature is hidden under preview flag
-        test("Should create project from autorest-generated files", async function (): Promise<void> {
-            const parentFolder = await testUtils.generateTestFolderPath(this.test);
-            await testUtils.createDummyFileStructure(this.test);
-            const specName = "DummySpec.yaml";
-            const renamedProjectName = "RenamedProject";
-            const newProjFolder = path.join(parentFolder, renamedProjectName);
-            let fileList: vscode.Uri[] = [];
-
-            const projController = new ProjectsController(testContext.outputChannel);
-
-            sandbox.stub(projController, "selectAutorestSpecFile").resolves(specName);
-            sandbox.stub(projController, "selectAutorestProjectLocation").callsFake(async () => {
-                await fs.mkdir(newProjFolder);
-                return {
-                    newProjectFolder: newProjFolder,
-                    outputFolder: parentFolder,
-                    projectName: renamedProjectName,
-                };
-            });
-            sandbox.stub(projController, "generateAutorestFiles").callsFake(async () => {
-                await testUtils.createDummyFileStructure(this.test, true, fileList, newProjFolder);
-                await testUtils.createTestFile(
-                    this.test,
-                    "SELECT 'This is a post-deployment script'",
-                    constants.autorestPostDeploymentScriptName,
-                    newProjFolder,
-                );
-                return "some dummy console output";
-            });
-            sandbox
-                .stub(projController, "promptForAutorestProjectName")
-                .resolves(renamedProjectName);
-            sandbox.stub(projController, "openProjectInWorkspace").resolves();
-
-            const project = (await projController.generateProjectFromOpenApiSpec())!;
-
-            expect(project.projectFileName).to.equal(renamedProjectName);
-            expect(project.projectFolderPath.endsWith(renamedProjectName)).to.be.true; // Expected: '${project.projectFolderPath}' to include '${renamedProjectName}'
-
-            expect(project.postDeployScripts.length).to.equal(
-                1,
-                `Expected 1 post-deployment script, got ${project?.postDeployScripts.length}`,
-            );
-            const actual = path.basename(project.postDeployScripts[0].fsUri.fsPath);
-            expect(actual).to.equal(
-                constants.autorestPostDeploymentScriptName,
-                `Unexpected post-deployment script name: ${actual}, expected ${constants.autorestPostDeploymentScriptName}`,
-            );
-
-            const expectedScripts = fileList.filter((f) => path.extname(f.fsPath) === ".sql");
-            expect(
-                project.sqlObjectScripts.filter((f) => f.type === EntryType.File).length,
-            ).to.equal(expectedScripts.length, "Unexpected number of scripts in project");
-
-            const expectedFolders = fileList.filter(
-                (f) =>
-                    path.extname(f.fsPath) === "" &&
-                    f.fsPath.toUpperCase() !== newProjFolder.toUpperCase(),
-            );
-            expect(
-                project.sqlObjectScripts.filter((f) => f.type === EntryType.Folder).length,
-            ).to.equal(expectedFolders.length, "Unexpected number of folders in project");
         });
     });
 

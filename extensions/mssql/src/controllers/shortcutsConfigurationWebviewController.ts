@@ -10,8 +10,11 @@ import { getErrorMessage } from "../utils/utils";
 import { WebviewAction } from "../sharedInterfaces/webview";
 import {
     CloseShortcutsConfigurationRequest,
+    configurableKeyCommands,
     getQuickQueryCommandId,
     quickQueryCommandPrefix,
+    OpenKeymapCommandKeybindingRequest,
+    OpenKeymapCommandKeybindingsRequest,
     OpenQuickQueryKeybindingRequest,
     OpenQuickQueryKeybindingsRequest,
     ReadClipboardTextRequest,
@@ -28,7 +31,6 @@ import {
     WriteClipboardTextRequest,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 
 export class ShortcutsConfigurationWebviewController extends WebviewPanelController<
     ShortcutsConfigurationWebviewState,
@@ -37,14 +39,9 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
 > {
     private focusNonce = 1;
 
-    constructor(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        focusedQuickQuerySlot?: number,
-    ) {
+    constructor(context: vscode.ExtensionContext, focusedQuickQuerySlot?: number) {
         super(
             context,
-            vscodeWrapper,
             "shortcutsConfiguration",
             "shortcutsConfiguration",
             {
@@ -55,16 +52,8 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                 title: Loc.shortcutsConfigurationTitle,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
-                    dark: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "settingsGear_dark.svg",
-                    ),
-                    light: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "settingsGear_light.svg",
-                    ),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "keyboard_dark.svg"),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", "keyboard_light.svg"),
                 },
             },
         );
@@ -103,6 +92,14 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
 
         this.onRequest(OpenQuickQueryKeybindingsRequest.type, async () => {
             await this.openQuickQueryKeybindings();
+        });
+
+        this.onRequest(OpenKeymapCommandKeybindingRequest.type, async (commandId) => {
+            await this.openKeymapCommandKeybinding(commandId);
+        });
+
+        this.onRequest(OpenKeymapCommandKeybindingsRequest.type, async () => {
+            await this.openKeymapCommandKeybindings();
         });
     }
 
@@ -195,6 +192,25 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
             "workbench.action.openGlobalKeybindings",
             quickQueryCommandPrefix,
         );
+    }
+
+    private getKeymapCommandIds(): string[] {
+        return configurableKeyCommands.map((shortcut) => shortcut.command);
+    }
+
+    private async openKeymapCommandKeybinding(commandId: string): Promise<void> {
+        if (!this.getKeymapCommandIds().includes(commandId)) {
+            return;
+        }
+
+        await vscode.commands.executeCommand(
+            "workbench.action.openGlobalKeybindings",
+            `@command:${commandId}`,
+        );
+    }
+
+    private async openKeymapCommandKeybindings(): Promise<void> {
+        await vscode.commands.executeCommand("workbench.action.openGlobalKeybindings", "mssql");
     }
 
     private nextFocusNonce(): number {

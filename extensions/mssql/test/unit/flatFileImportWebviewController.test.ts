@@ -10,7 +10,6 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { SimpleExecuteResult } from "vscode-mssql";
 
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FlatFileImportWebviewController } from "../../src/controllers/flatFileImportWebviewController";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as Loc from "../../src/constants/locConstants";
@@ -28,7 +27,7 @@ import {
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { defaultSchema } from "../../src/constants/constants";
-import { stubExtensionContext, stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubTelemetry } from "./utils";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import * as path from "path";
 import {
@@ -42,7 +41,6 @@ chai.use(sinonChai);
 suite("FlatFileImportWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let controller: FlatFileImportWebviewController;
 
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -78,8 +76,6 @@ suite("FlatFileImportWebviewController", () => {
         sandbox = sinon.createSandbox();
 
         mockContext = stubExtensionContext(sandbox);
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
 
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -95,7 +91,6 @@ suite("FlatFileImportWebviewController", () => {
 
         controller = new FlatFileImportWebviewController(
             mockContext,
-            vscodeWrapper,
             mockClient,
             mockConnectionManager,
             mockConnectionProfile,

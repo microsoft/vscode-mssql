@@ -19,7 +19,6 @@ import {
 } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
 import { observeWebviewReady } from "../utils";
-import VscodeWrapper from "../../../src/controllers/vscodeWrapper";
 import { uuid } from "../../../src/utils/utils";
 
 chai.use(sinonChai);
@@ -44,29 +43,9 @@ function createMockProfilerService(): ProfilerService {
     } as unknown as ProfilerService;
 }
 
-/**
- * Creates a mock VscodeWrapper for testing.
- */
-function createMockVscodeWrapper(sandbox: sinon.SinonSandbox): VscodeWrapper {
-    return {
-        outputChannel: {
-            appendLine: sandbox.stub(),
-            append: sandbox.stub(),
-            show: sandbox.stub(),
-            clear: sandbox.stub(),
-        },
-        getConfiguration: sandbox.stub().returns({
-            get: sandbox.stub().returns(10000),
-        }),
-        showInformationMessage: sandbox.stub(),
-        showErrorMessage: sandbox.stub(),
-    } as unknown as VscodeWrapper;
-}
-
 suite("ProfilerWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: VscodeWrapper;
     let mockSessionManager: ProfilerSessionManager;
     let mockProfilerService: ProfilerService;
     let createWebviewPanelStub: sinon.SinonStub;
@@ -141,8 +120,6 @@ suite("ProfilerWebviewController Tests", () => {
             extensionPath: "/test/path",
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
-
-        mockVscodeWrapper = createMockVscodeWrapper(sandbox);
         mockProfilerService = createMockProfilerService();
         mockSessionManager = new ProfilerSessionManager(mockProfilerService);
     });
@@ -158,7 +135,6 @@ suite("ProfilerWebviewController Tests", () => {
     ): ProfilerWebviewController {
         const controller = new ProfilerWebviewController(
             mockContext,
-            mockVscodeWrapper,
             mockSessionManager,
             availableSessions,
             sessionName,

@@ -10,7 +10,6 @@ import * as Utils from "../models/utils";
 import ConnectionManager from "../controllers/connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { QueryHistoryNode, EmptyHistoryNode } from "./queryHistoryNode";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import StatusView from "../views/statusView";
@@ -48,13 +47,12 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     constructor(
         private _connectionManager: ConnectionManager,
         private _outputContentProvider: SqlOutputContentProvider,
-        private _vscodeWrapper: VscodeWrapper,
         private _sqlDocumentService: SqlDocumentService,
         private _statusView: StatusView,
         private _prompter: IPrompter,
         private _context: vscode.ExtensionContext,
     ) {
-        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
         this._queryHistoryUI = new QueryHistoryUI(this._prompter);
         void this.restoreQueryHistory();
@@ -138,11 +136,13 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
      * and changes context for menu actions
      */
     public async startQueryHistoryCapture(): Promise<void> {
-        await this._vscodeWrapper.setConfiguration(
-            Constants.extensionConfigSectionName,
-            Constants.configEnableQueryHistoryCapture,
-            true,
-        );
+        await vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName)
+            .update(
+                Constants.configEnableQueryHistoryCapture,
+                true,
+                vscode.ConfigurationTarget.Global,
+            );
     }
 
     /**
@@ -150,11 +150,13 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
      * and changes context for menu actions
      */
     public async pauseQueryHistoryCapture(): Promise<void> {
-        await this._vscodeWrapper.setConfiguration(
-            Constants.extensionConfigSectionName,
-            Constants.configEnableQueryHistoryCapture,
-            false,
-        );
+        await vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName)
+            .update(
+                Constants.configEnableQueryHistoryCapture,
+                false,
+                vscode.ConfigurationTarget.Global,
+            );
     }
 
     /**

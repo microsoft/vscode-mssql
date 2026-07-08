@@ -16,13 +16,12 @@ export abstract class FormWebviewController<
 > extends WebviewPanelController<TState, TReducers, TResult> {
     constructor(
         context,
-        vscodeWrapper,
         sourceFile: string,
         _viewId: string,
         initialData: TState,
         options: MssqlWebviewPanelOptions,
     ) {
-        super(context, vscodeWrapper, sourceFile, _viewId, initialData, options);
+        super(context, sourceFile, _viewId, initialData, options);
 
         this.registerFormRpcHandlers();
     }

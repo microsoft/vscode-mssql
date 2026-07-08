@@ -8,7 +8,6 @@ import * as path from "path";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import ConnectionManager from "../controllers/connectionManager";
 import { IConnectionProfile } from "../models/interfaces";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -76,7 +75,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     constructor(
         context: vscode.ExtensionContext,
-        _vscodeWrapper: VscodeWrapper,
         connectionManager: ConnectionManager,
         projectFilePath: string,
         mainController: MainController,
@@ -86,7 +84,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     ) {
         super(
             context,
-            _vscodeWrapper,
             "publishProject",
             "publishProject",
             {

@@ -28,10 +28,9 @@ import {
     stubExtensionContext,
     stubPreviewService,
     stubTelemetry,
-    stubVscodeWrapper,
+    stubVscodeEnv,
 } from "./utils";
 import * as constants from "../../src/constants/constants";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 chai.use(sinonChai);
 
@@ -41,18 +40,15 @@ suite("UserSurvey Tests", () => {
     let context: vscode.ExtensionContext;
     let showInformationMessageStub: sinon.SinonStub;
     let sendActionEvent: sinon.SinonStub;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     const mockVersion = "1.2.3";
 
     setup(() => {
         sandbox = sinon.createSandbox();
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         context = stubExtensionContext(sandbox, { version: mockVersion });
         globalState = context.globalState;
 
-        UserSurvey.createInstance(context, vscodeWrapper);
+        UserSurvey.createInstance(context);
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
 
         ({ sendActionEvent } = stubTelemetry(sandbox));
@@ -225,7 +221,7 @@ suite("UserSurvey Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            controller = new UserSurveyWebviewController(context, vscodeWrapper, mockState);
+            controller = new UserSurveyWebviewController(context, mockState);
             observeWebviewReady(controller);
         });
 
@@ -234,7 +230,7 @@ suite("UserSurvey Tests", () => {
         });
 
         test("should open GitHub issue when NPS is below 7", async () => {
-            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const openExternalStub = stubVscodeEnv(sandbox).openExternal.resolves(true);
             const expectedIssueBody = encodeURIComponent(
                 getGithubIssueText("this feature has issues", mockVersion),
             );
@@ -253,7 +249,7 @@ suite("UserSurvey Tests", () => {
         });
 
         test("should open Marketplace review when NPS is 7 or higher", async () => {
-            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const openExternalStub = stubVscodeEnv(sandbox).openExternal.resolves(true);
             const expectedReviewUrl =
                 `https://marketplace.visualstudio.com/items?` +
                 encodeURIComponent(`itemName=${constants.extensionId}&ssr=false`) +

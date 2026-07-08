@@ -185,6 +185,23 @@ export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
 export const errorKerberosSubString = "Kerberos";
+
+/**
+ * SqlClient connection timeout error number
+ */
+export const errorConnectionTimeout = -2;
+
+export const oeExpandTimeoutErrorCode = "EXPAND_TIMEOUT";
+export const oeCreateSessionTimeoutErrorCode = "CREATE_SESSION_TIMEOUT";
+
+/**
+ * SQL Tools Service error codes for operation timeouts
+ */
+export const serverlessWakeTimeoutErrorCodes = [
+    oeExpandTimeoutErrorCode,
+    oeCreateSessionTimeoutErrorCode,
+];
+
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -221,7 +238,6 @@ export const restoreDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/restore-statements-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
-export const azureAccountExtensionId = "ms-vscode.azure-account";
 export const dotnetRuntimeExtensionId = "ms-dotnettools.vscode-dotnet-runtime";
 export const dotnetAcquireCommand = "dotnet.acquire";
 export const offlineVsixUrl = "https://github.com/microsoft/vscode-mssql/releases/latest";
@@ -384,6 +400,13 @@ export const flatFileImportFileTypes = ["csv", "txt"];
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
+
+/**
+ * Error substrings from Docker daemon stderr that indicate a socket permission
+ * problem (not a stopped daemon). These are system-level strings from Linux/Docker
+ * and are not locale-dependent.
+ */
+export const dockerPermissionErrorPatterns = ["permission denied", "eacces"];
 
 // SQL Database Projects Constants
 export const DSP_PREFIX = "Microsoft.Data.Tools.Schema.Sql.Sql";

@@ -11,7 +11,6 @@ import * as chai from "chai";
 import { expect } from "chai";
 
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ChangePasswordService } from "../../src/services/changePasswordService";
 import { ChangePasswordRequest } from "../../src/models/contracts/changePassword";
 import { IConnectionInfo } from "vscode-mssql";
@@ -25,7 +24,6 @@ chai.use(sinonChai);
 suite("ChangePasswordService", () => {
     let sandbox: sinon.SinonSandbox;
     let clientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let extensionContext: vscode.ExtensionContext;
     let service: ChangePasswordService;
 
@@ -38,13 +36,12 @@ suite("ChangePasswordService", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         clientStub = sandbox.createStubInstance(SqlToolsServiceClient);
-        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
         extensionContext = {
             extensionUri: vscode.Uri.file("/tmp/test"),
             extensionPath: "/tmp/test",
         } as unknown as vscode.ExtensionContext;
 
-        service = new ChangePasswordService(clientStub, extensionContext, vscodeWrapperStub);
+        service = new ChangePasswordService(clientStub, extensionContext);
     });
 
     teardown(() => {
@@ -69,7 +66,6 @@ suite("ChangePasswordService", () => {
         expect(result).to.equal("newSecurePassword");
         expect(controllerCtorStub).to.have.been.calledOnceWithExactly(
             extensionContext,
-            vscodeWrapperStub,
             credentials,
             service,
         );

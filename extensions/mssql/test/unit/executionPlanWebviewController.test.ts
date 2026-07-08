@@ -17,8 +17,6 @@ import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -30,7 +28,6 @@ suite("ExecutionPlanWebviewController", () => {
     let controller: ExecutionPlanWebviewController;
     let mockInitialState: ep.ExecutionPlanWebviewState;
     let mockResultState: ep.ExecutionPlanWebviewState;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     const executionPlanContents = contents;
     const xmlPlanFileName = "testPlan.sqlplan";
@@ -44,8 +41,6 @@ suite("ExecutionPlanWebviewController", () => {
 
         mockExecutionPlanService = sandbox.createStubInstance(ExecutionPlanService);
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
 
         mockInitialState = {
             executionPlanState: {
@@ -65,7 +60,6 @@ suite("ExecutionPlanWebviewController", () => {
 
         controller = new ExecutionPlanWebviewController(
             mockContext,
-            vscodeWrapper,
             mockExecutionPlanService,
             mockSqlDocumentService,
             executionPlanContents,

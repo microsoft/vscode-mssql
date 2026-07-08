@@ -7,17 +7,20 @@ import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
+import * as figures from "figures";
+import * as vscode from "vscode";
 import CodeAdapter from "../../src/prompts/adapter";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IQuestion } from "../../src/prompts/question";
-import { stubVscodeWrapper } from "./utils";
+import { createStubLogger, stubMessageBoxes } from "./utils";
+import * as Logger from "../../src/models/logger";
 
 chai.use(sinonChai);
 
 suite("Code Adapter Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let adapter: CodeAdapter;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
+    let loggerStub: ReturnType<typeof createStubLogger>;
 
     const testMessage = {
         message: "test_message",
@@ -34,35 +37,32 @@ suite("Code Adapter Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        loggerStub = createStubLogger(sandbox);
+        sandbox.stub(Logger, "getLogger").returns(loggerStub);
+        messageBoxes = stubMessageBoxes(sandbox);
 
-        mockVscodeWrapper.showErrorMessage.resolves(undefined);
+        messageBoxes.showErrorMessage.resolves(undefined);
 
-        adapter = new CodeAdapter(mockVscodeWrapper);
+        adapter = new CodeAdapter();
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("logError should append message to the channel", () => {
+    test("logError should write to logger", () => {
         adapter.logError(testMessage);
-        expect(mockVscodeWrapper.outputChannel.appendLine).to.have.been.calledOnce;
+        expect(loggerStub.error).to.have.been.calledOnce;
     });
 
-    test("log should format message and append to the channel", () => {
+    test("log should format message and write to logger", () => {
         adapter.log(testMessage);
-        expect(mockVscodeWrapper.outputChannel.appendLine).to.have.been.calledOnce;
+        expect(loggerStub.info).to.have.been.calledOnce;
     });
 
-    test("clearLog should clear from output channel", () => {
-        adapter.clearLog();
-        expect(mockVscodeWrapper.outputChannel.clear).to.have.been.calledOnce;
-    });
-
-    test("showLog should show the output channel", () => {
+    test("showLog should show the logger", () => {
         adapter.showLog();
-        expect(mockVscodeWrapper.outputChannel.show).to.have.been.calledOnce;
+        expect(loggerStub.show).to.have.been.calledOnce;
     });
 
     test("promptSingle and promptCallback should call prompt", async () => {
@@ -73,6 +73,7 @@ suite("Code Adapter Tests", () => {
     });
 
     test("prompting a checkbox question should call fixQuestion", async () => {
+        sandbox.stub(vscode.window, "showQuickPick").resolves(figures.tick);
         const formattedQuestion: IQuestion = {
             type: "checkbox",
             message: "test",

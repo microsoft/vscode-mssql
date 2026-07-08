@@ -14,9 +14,8 @@ import * as Interfaces from "../../src/models/interfaces";
 import ResultsSerializer, { SaveAsRequestParams } from "../../src/models/resultsSerializer";
 import { SaveResultsAsCsvRequestParams } from "../../src/models/contracts";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Contracts from "../../src/models/contracts";
-import { stubVscodeWrapper } from "./utils";
+import { stubVscodeWindow, stubVscodeWorkspace } from "./utils";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
@@ -26,24 +25,19 @@ suite("save results tests", () => {
     let sandbox: sinon.SinonSandbox;
     let fileUri: vscode.Uri;
     let serverClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let vscodeWindow: ReturnType<typeof stubVscodeWindow>;
+    let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
+    let executeCommandStub: sinon.SinonStub;
+    let getConfigurationStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         serverClient = sandbox.createStubInstance(SqlToolsServerClient);
-        vscodeWrapper = stubVscodeWrapper(sandbox);
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(undefined);
-        (vscodeWrapper.openTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextDocument,
-        );
-        (vscodeWrapper.showTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextEditor,
-        );
-        (vscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(
-            (extensionName: string, resource?: vscode.ConfigurationScope) => {
-                return vscode.workspace.getConfiguration(extensionName, resource);
-            },
-        );
+        vscodeWindow = stubVscodeWindow(sandbox);
+        vscodeWorkspace = stubVscodeWorkspace(sandbox);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
+        getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration");
+        setWorkspaceConfiguration({});
         if (os.platform() === "win32") {
             fileUri = vscode.Uri.file("c:\\test.csv");
         } else {
@@ -56,27 +50,31 @@ suite("save results tests", () => {
     });
 
     function createSerializer(): ResultsSerializer {
-        return new ResultsSerializer(serverClient, vscodeWrapper);
+        return new ResultsSerializer(serverClient);
+    }
+
+    function setWorkspaceConfiguration(items: { [key: string]: unknown }): void {
+        getConfigurationStub.returns({
+            ...items,
+            get: (key: string, defaultValue?: unknown) =>
+                Object.prototype.hasOwnProperty.call(items, key) ? items[key] : defaultValue,
+        });
     }
 
     function configureSuccess(
         saveDialogUri: vscode.Uri = fileUri,
         response: Partial<Contracts.SaveResultRequestResult> = {},
     ): void {
-        (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(saveDialogUri);
-        (vscodeWrapper.openTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextDocument,
-        );
-        (vscodeWrapper.showTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextEditor,
-        );
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(undefined);
+        vscodeWindow.showSaveDialog.resolves(saveDialogUri);
+        vscodeWorkspace.openTextDocument.resolves(undefined as unknown as vscode.TextDocument);
+        vscodeWindow.showTextDocument.resolves(undefined as unknown as vscode.TextEditor);
+        vscodeWindow.showInformationMessage.resolves(undefined);
         serverClient.sendRequest.resolves({ messages: undefined, ...response });
     }
 
     function configureFailure(message: string): void {
-        (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
-        (vscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
+        vscodeWindow.showSaveDialog.resolves(fileUri);
+        vscodeWindow.showErrorMessage.returns(undefined);
         serverClient.sendRequest.resolves({ messages: message });
     }
 
@@ -85,7 +83,7 @@ suite("save results tests", () => {
     }
 
     test("check if filepath prompt displays and right value is set", (done) => {
-        (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
+        vscodeWindow.showSaveDialog.resolves(fileUri);
         serverClient.sendRequest.callsFake((type, details: SaveResultsAsCsvRequestParams) => {
             try {
                 expect(details.ownerUri).to.equal(testFile);
@@ -106,7 +104,7 @@ suite("save results tests", () => {
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(vscodeWindow.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.have.been.calledOnceWith(fileUri.fsPath, format);
         });
     }
@@ -116,7 +114,7 @@ suite("save results tests", () => {
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
         return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
-            expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+            expect(vscodeWindow.showErrorMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
         });
     }
@@ -157,26 +155,20 @@ suite("save results tests", () => {
 
     test("Save as CSV - does not open saved file when openAfterSave is disabled", () => {
         configureSuccess();
-        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
-            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
-        } as unknown as vscode.WorkspaceConfiguration);
+        setWorkspaceConfiguration({ "results.openAfterSave": false });
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
         return saveResults.onSaveResults(testFile, 0, 0, "csv", undefined).then(() => {
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(vscodeWindow.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
         });
     });
 
     test("Save as CSV - opens saved file when notification action is selected", async () => {
         configureSuccess();
-        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
-            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
-        } as unknown as vscode.WorkspaceConfiguration);
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(
-            LocalizedConstants.Common.openFile,
-        );
+        setWorkspaceConfiguration({ "results.openAfterSave": false });
+        vscodeWindow.showInformationMessage.resolves(LocalizedConstants.Common.openFile);
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
@@ -194,10 +186,8 @@ suite("save results tests", () => {
                 : os.platform() === "win32"
                   ? LocalizedConstants.Common.revealInExplorer
                   : LocalizedConstants.Common.openContainingFolder;
-        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
-            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
-        } as unknown as vscode.WorkspaceConfiguration);
-        (vscodeWrapper.showInformationMessage as sinon.SinonStub).resolves(revealFileAction);
+        setWorkspaceConfiguration({ "results.openAfterSave": false });
+        vscodeWindow.showInformationMessage.resolves(revealFileAction);
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
@@ -205,7 +195,7 @@ suite("save results tests", () => {
         await waitForPendingPromises();
 
         expect(openSavedFileStub).to.not.have.been.called;
-        expect(vscodeWrapper.executeCommand).to.have.been.calledOnceWith(
+        expect(executeCommandStub).to.have.been.calledOnceWith(
             "revealFileInOS",
             sinon.match.has("fsPath", fileUri.fsPath),
         );
@@ -213,14 +203,12 @@ suite("save results tests", () => {
 
     test("Save as Excel - does not open saved file when openAfterSave is disabled", () => {
         configureSuccess();
-        (vscodeWrapper.getConfiguration as sinon.SinonStub).returns({
-            get: (key: string) => (key === "results.openAfterSave" ? false : undefined),
-        } as unknown as vscode.WorkspaceConfiguration);
+        setWorkspaceConfiguration({ "results.openAfterSave": false });
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
 
         return saveResults.onSaveResults(testFile, 0, 0, "excel", undefined).then(() => {
-            expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+            expect(vscodeWindow.showInformationMessage).to.have.been.calledOnce;
             expect(openSavedFileStub).to.not.have.been.called;
         });
     });
@@ -272,7 +260,7 @@ suite("save results tests", () => {
     });
 
     test("canceling out of save file dialog cancels serialization", async () => {
-        (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(undefined);
+        vscodeWindow.showSaveDialog.resolves(undefined);
 
         const saveResults = createSerializer();
         const openSavedFileStub = sandbox.stub(saveResults, "openSavedFile");
@@ -283,17 +271,10 @@ suite("save results tests", () => {
     });
 
     test("CSV configuration options are properly applied", (done) => {
-        const customWrapper = stubVscodeWrapper(sandbox);
-        (customWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
-        (customWrapper.showInformationMessage as sinon.SinonStub).resolves(undefined);
-        (customWrapper.openTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextDocument,
-        );
-        (customWrapper.showTextDocument as sinon.SinonStub).resolves(
-            undefined as unknown as vscode.TextEditor,
-        );
-        (customWrapper.getConfiguration as sinon.SinonStub).returns({
-            get: sandbox.stub().returns(false),
+        vscodeWindow.showSaveDialog.resolves(fileUri);
+        vscodeWorkspace.openTextDocument.resolves(undefined as unknown as vscode.TextDocument);
+        vscodeWindow.showTextDocument.resolves(undefined as unknown as vscode.TextEditor);
+        setWorkspaceConfiguration({
             saveAsCsv: {
                 delimiter: "\t",
                 encoding: "utf-16le",
@@ -301,7 +282,7 @@ suite("save results tests", () => {
                 textIdentifier: "'",
                 lineSeparator: "\r\n",
             },
-        } as unknown as vscode.WorkspaceConfiguration);
+        });
 
         serverClient.sendRequest.callsFake((_type, params: SaveResultsAsCsvRequestParams) => {
             try {
@@ -317,7 +298,7 @@ suite("save results tests", () => {
             return Promise.resolve({ messages: undefined });
         });
 
-        const saveResults = new ResultsSerializer(serverClient, customWrapper);
+        const saveResults = new ResultsSerializer(serverClient);
         void saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
     });
 
@@ -330,21 +311,18 @@ suite("save results tests", () => {
     });
 
     test("Save as INSERT - test if correct file extension is used", (done) => {
-        (vscodeWrapper.showSaveDialog as sinon.SinonStub).callsFake(
-            (options: vscode.SaveDialogOptions) => {
-                try {
-                    expect(options.filters?.["SQL Files"], "Should have SQL Files filter").to.exist;
-                    expect(
-                        options.filters?.["SQL Files"],
-                        "Should use .sql extension",
-                    ).to.deep.equal(["sql"]);
-                    done();
-                } catch (error) {
-                    done(error);
-                }
-                return Promise.resolve(fileUri);
-            },
-        );
+        vscodeWindow.showSaveDialog.callsFake((options: vscode.SaveDialogOptions) => {
+            try {
+                expect(options.filters?.["SQL Files"], "Should have SQL Files filter").to.exist;
+                expect(options.filters?.["SQL Files"], "Should use .sql extension").to.deep.equal([
+                    "sql",
+                ]);
+                done();
+            } catch (error) {
+                done(error);
+            }
+            return Promise.resolve(fileUri);
+        });
         serverClient.sendRequest.resolves({ messages: undefined });
 
         const saveResults = createSerializer();
@@ -352,7 +330,7 @@ suite("save results tests", () => {
     });
 
     test("Save as INSERT - test if correct request type is used", (done) => {
-        (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
+        vscodeWindow.showSaveDialog.resolves(fileUri);
         serverClient.sendRequest.callsFake((type, params: SaveAsRequestParams) => {
             try {
                 expect(type.method, "Should use INSERT request type").to.equal("query/saveInsert");

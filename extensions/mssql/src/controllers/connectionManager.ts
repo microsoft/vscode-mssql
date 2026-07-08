@@ -11,7 +11,7 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
-import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { azureStatusesToRetry, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
@@ -41,7 +41,6 @@ import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
-import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import {
     ActivityObject,
@@ -55,11 +54,17 @@ import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewContro
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import { getServerTypes } from "../models/connectionInfo";
+import { getServerTypes, canCheckDatabasePauseStatus } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
+
+/**
+ * Maximum number of connection retries when a target serverless Azure SQL database is
+ * not online.
+ */
+export const serverlessWakeMaxRetryAttempts = 2;
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -153,7 +158,6 @@ export default class ConnectionManager {
         prompter: IPrompter,
         private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
-        private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
         private _credentialStore?: CredentialStore,
         private _connectionUI?: ConnectionUI,
@@ -170,10 +174,6 @@ export default class ConnectionManager {
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
         }
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
-        }
-
         if (!this._logger) {
             this._logger = logger.withPrefix("ConnectionManager");
         }
@@ -181,7 +181,7 @@ export default class ConnectionManager {
         this._entraLogger = logger.withPrefix("Entra Auth");
 
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
+            this._credentialStore = new CredentialStore(context);
         }
 
         if (!this._connectionStore) {
@@ -189,16 +189,11 @@ export default class ConnectionManager {
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context, this.vscodeWrapper);
+            this._accountStore = new AccountStore(context);
         }
 
         if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(
-                this,
-                this._accountStore,
-                prompter,
-                this.vscodeWrapper,
-            );
+            this._connectionUI = new ConnectionUI(this, this._accountStore, prompter);
         }
 
         if (!this.azureController) {
@@ -217,11 +212,7 @@ export default class ConnectionManager {
         );
         this._firewallService = new FirewallService(this._accountService);
 
-        this._changePasswordService = new ChangePasswordService(
-            this.client,
-            this.context,
-            this.vscodeWrapper,
-        );
+        this._changePasswordService = new ChangePasswordService(this.client, this.context);
 
         if (this.client !== undefined) {
             this.client.onNotification(
@@ -257,20 +248,6 @@ export default class ConnectionManager {
         await this.migrateLegacyConnectionProfiles();
 
         this.initialized.resolve();
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set vscodeWrapper(wrapper: VscodeWrapper) {
-        this._vscodeWrapper = wrapper;
     }
 
     public get activeConnections(): { [fileUri: string]: ConnectionInfo } {
@@ -518,7 +495,7 @@ export default class ConnectionManager {
         // Using a lambda here to perform variable capture on the 'this' reference
 
         return async (event: LanguageServiceContracts.NonTSqlParams): Promise<void> => {
-            const autoDisable: boolean | undefined = await this._vscodeWrapper
+            const autoDisable: boolean | undefined = await vscode.workspace
                 .getConfiguration()
                 .get(Constants.configAutoDisableNonTSqlLanguageService);
 
@@ -557,7 +534,7 @@ export default class ConnectionManager {
                         { selectedOption: LocalizedConstants.msgYes },
                     );
 
-                    await this._vscodeWrapper
+                    await vscode.workspace
                         .getConfiguration()
                         .update(
                             Constants.configAutoDisableNonTSqlLanguageService,
@@ -565,7 +542,7 @@ export default class ConnectionManager {
                             vscode.ConfigurationTarget.Global,
                         );
                 } else if (selectedOption === LocalizedConstants.msgNo) {
-                    await this._vscodeWrapper
+                    await vscode.workspace
                         .getConfiguration()
                         .update(
                             Constants.configAutoDisableNonTSqlLanguageService,
@@ -838,16 +815,14 @@ export default class ConnectionManager {
         profile: IConnectionProfile,
         reconnectAction: IReconnectAction,
     ): Promise<void> {
-        const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
+        const selection = await vscode.window.showWarningMessage(
             LocalizedConstants.Connection.trustServerCertificateMustBeEnabledMessage +
                 " " +
                 LocalizedConstants.Connection.trustServerCertificateMustBeEnabledPrompt,
             { modal: false },
-            [
-                LocalizedConstants.enableTrustServerCertificate,
-                LocalizedConstants.readMore,
-                LocalizedConstants.Common.cancel,
-            ],
+            LocalizedConstants.enableTrustServerCertificate,
+            LocalizedConstants.readMore,
+            LocalizedConstants.Common.cancel,
         );
         if (selection === LocalizedConstants.enableTrustServerCertificate) {
             if (profile.connectionString) {
@@ -860,7 +835,7 @@ export default class ConnectionManager {
             profile.trustServerCertificate = true;
             await reconnectAction(profile);
         } else if (selection === LocalizedConstants.readMore) {
-            this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
+            void vscode.env.openExternal(vscode.Uri.parse(Constants.encryptionBlogLink));
             await this.showInstructionTextAsWarning(profile, reconnectAction);
         } else if (selection === LocalizedConstants.Common.cancel) {
             await reconnectAction(undefined);
@@ -900,7 +875,6 @@ export default class ConnectionManager {
     ): Promise<boolean> {
         const addFirewallRuleController = new AddFirewallRuleWebviewController(
             this.context,
-            this._vscodeWrapper,
             {
                 serverName: credentials.server,
                 errorMessage: errorMessage,
@@ -976,9 +950,8 @@ export default class ConnectionManager {
 
     // choose database to use on current server from UI
     public async onChooseDatabase(): Promise<boolean> {
-        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = Utils.getActiveTextEditorUri();
         if (!this.isConnected(fileUri)) {
-            this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
         }
 
@@ -1035,9 +1008,8 @@ export default class ConnectionManager {
     }
 
     public async changeDatabase(newDatabaseCredentials: IConnectionInfo): Promise<boolean> {
-        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = Utils.getActiveTextEditorUri();
         if (!this.isConnected(fileUri)) {
-            this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
             return false;
         }
         await this.disconnect(fileUri);
@@ -1056,8 +1028,8 @@ export default class ConnectionManager {
         isSqlCmdMode: boolean = false,
         isSqlCmd: boolean = false,
     ): Promise<boolean> {
-        const fileUri = this._vscodeWrapper.activeTextEditorUri;
-        if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+        const fileUri = Utils.getActiveTextEditorUri();
+        if (fileUri && Utils.isEditingSqlFile()) {
             if (isSqlCmdMode) {
                 SqlToolsServerClient.instance.sendNotification(
                     LanguageServiceContracts.LanguageFlavorChangedNotification.type,
@@ -1084,14 +1056,19 @@ export default class ConnectionManager {
             );
             return true;
         } else {
-            await this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            await vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return false;
         }
     }
 
     // close active connection, if any
     public onDisconnect(): Promise<boolean> {
-        return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
+        const fileUri = Utils.getActiveTextEditorUri();
+        if (!fileUri) {
+            vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            return Promise.resolve(false);
+        }
+        return this.disconnect(fileUri);
     }
 
     /**
@@ -1221,14 +1198,14 @@ export default class ConnectionManager {
      * @returns the connection profile selected by the user, or undefined if canceled
      */
     public async promptToConnect(): Promise<IConnectionInfo> {
-        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = Utils.getActiveTextEditorUri();
         if (!fileUri) {
             // A text document needs to be open before we can connect
-            this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return undefined;
         }
 
-        if (!this.vscodeWrapper.isEditingSqlFile) {
+        if (!Utils.isEditingSqlFile()) {
             if (!(await this.connectionUI.promptToChangeLanguageMode())) {
                 return undefined; // cancel operation
             }
@@ -1420,9 +1397,14 @@ export default class ConnectionManager {
         options: {
             shouldHandleErrors?: boolean;
             connectionSource?: string;
+            serverlessWakeFailedAttempts?: number;
         } = {},
     ): Promise<boolean> {
-        const { shouldHandleErrors = true, connectionSource = "" } = options;
+        const {
+            shouldHandleErrors = true,
+            connectionSource = "",
+            serverlessWakeFailedAttempts = 0,
+        } = options;
 
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
@@ -1445,6 +1427,15 @@ export default class ConnectionManager {
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
 
+        // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
+        const isPauseAwareConnection =
+            shouldHandleErrors && canCheckDatabasePauseStatus(credentials);
+
+        // If the connection can be checked, start the serverless status check in parallel with the connection attempt.
+        // The result determines silent retry if the connection attempt times out.
+        const serverlessStatusPromise = isPauseAwareConnection
+            ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(credentials, undefined, "direct connect")
+            : undefined;
         // Add the connection to the active connections list
         let connectionInfo: ConnectionInfo = new ConnectionInfo();
         connectionInfo.credentials = credentials;
@@ -1556,6 +1547,28 @@ export default class ConnectionManager {
             return true;
         } else {
             let errorType = "";
+
+            // If the connection is pause-aware and the timeout is retryable, attempt a silent retry.
+            if (isPauseAwareConnection && this.isServerlessWakeRetryableTimeout(result)) {
+                const failedAttempts = serverlessWakeFailedAttempts + 1;
+                if (
+                    await this.shouldRetryForPausedServerlessDatabase(
+                        connectionInfo.credentials,
+                        failedAttempts,
+                        serverlessStatusPromise,
+                    )
+                ) {
+                    connectionActivity.update({ retryConnection: "true" });
+                    connectionActivity.end(ActivityStatus.Retrying);
+
+                    return await this.connect(fileUri, connectionInfo.credentials, {
+                        shouldHandleErrors,
+                        connectionSource,
+                        serverlessWakeFailedAttempts: failedAttempts,
+                    });
+                }
+            }
+
             if (shouldHandleErrors) {
                 const errorHandlingResult = await this.handleConnectionErrors(
                     result,
@@ -1603,6 +1616,64 @@ export default class ConnectionManager {
             );
             return false;
         }
+    }
+
+    /**
+     * Determines whether a failed connection/expand result represents a timeout that could
+     * be caused by a paused/resuming serverless database.
+     */
+    public isServerlessWakeRetryableTimeout(error: SqlConnectionError): boolean {
+        if (!error) {
+            return false;
+        }
+
+        if (
+            error.errorCode &&
+            Constants.serverlessWakeTimeoutErrorCodes.includes(error.errorCode)
+        ) {
+            return true;
+        }
+
+        if (error.errorNumber === Constants.errorConnectionTimeout) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines whether a timed-out connection/expand attempt should be silently retried.
+     *
+     * @param credentials the connection being attempted.
+     * @param failedAttempts number of connection attempts that have already failed (including initial attempt).
+     * @param statusPromise In-flight status check promise
+     * @param databaseName optional database name override for the status check.
+     */
+    public async shouldRetryForPausedServerlessDatabase(
+        credentials: IConnectionInfo,
+        failedAttempts: number,
+        statusPromise: Promise<string | undefined>,
+        databaseName?: string,
+    ): Promise<boolean> {
+        if (
+            failedAttempts >= serverlessWakeMaxRetryAttempts + 1 ||
+            !canCheckDatabasePauseStatus(credentials, databaseName)
+        ) {
+            return false;
+        }
+
+        const status = await statusPromise;
+
+        if (!status || !azureStatusesToRetry.includes(status)) {
+            return false;
+        }
+
+        this._logger.info(
+            `Serverless pause-aware retry: database "${databaseName ?? credentials.database}" on "${credentials.server}" is ${status}; suppressing the connection timeout and retrying silently (attempt ${
+                failedAttempts + 1
+            }/${serverlessWakeMaxRetryAttempts + 1}).`,
+        );
+        return true;
     }
 
     /**
@@ -1784,7 +1855,7 @@ export default class ConnectionManager {
     }> {
         // Helper for "learn more" prompts
         const showWithHelp = async (message: string, helpLabel: string, helpUrl: string) => {
-            const action = await this.vscodeWrapper.showErrorMessage(message, helpLabel);
+            const action = await vscode.window.showErrorMessage(message, helpLabel);
             if (action === helpLabel) {
                 await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
             }
@@ -1922,7 +1993,7 @@ export default class ConnectionManager {
     }
 
     public async cancelConnect(): Promise<void> {
-        let fileUri = this.vscodeWrapper.activeTextEditorUri;
+        let fileUri = Utils.getActiveTextEditorUri();
         if (!fileUri || Utils.isEmpty(fileUri)) {
             return;
         }
@@ -2071,11 +2142,11 @@ export default class ConnectionManager {
     public async addAccount(): Promise<IAccount> {
         let account = await this.connectionUI.addNewAccount();
         if (account) {
-            this.vscodeWrapper.showInformationMessage(
+            vscode.window.showInformationMessage(
                 LocalizedConstants.accountAddedSuccessfully(account.displayInfo.displayName),
             );
         } else {
-            this.vscodeWrapper.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
+            vscode.window.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
         }
         return account;
     }
@@ -2102,26 +2173,24 @@ export default class ConnectionManager {
                             await this._accountStore.pruneInvalidAccounts();
                         }
                         void this.azureController.removeAccount(answers.account);
-                        this.vscodeWrapper.showInformationMessage(
+                        vscode.window.showInformationMessage(
                             LocalizedConstants.accountRemovedSuccessfully,
                         );
                     } catch (e) {
-                        this.vscodeWrapper.showErrorMessage(
+                        vscode.window.showErrorMessage(
                             LocalizedConstants.accountRemovalFailed(e.message),
                         );
                     }
                 }
             });
         } else {
-            this.vscodeWrapper.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
+            vscode.window.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
         }
     }
 
     public onClearAzureTokenCache(): void {
         this.azureController.clearTokenCache();
-        this.vscodeWrapper.showInformationMessage(
-            LocalizedConstants.Accounts.clearedEntraTokenCache,
-        );
+        vscode.window.showInformationMessage(LocalizedConstants.Accounts.clearedEntraTokenCache);
     }
 
     private async migrateLegacyConnectionProfiles(): Promise<void> {
@@ -2213,7 +2282,7 @@ export default class ConnectionManager {
                 `Error migrating legacy connection with ID ${profile.id}: ${getErrorMessage(err)}`,
             );
 
-            this.vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.Connection.errorMigratingLegacyConnection(
                     profile.id,
                     getErrorMessage(err),
@@ -2321,8 +2390,10 @@ export default class ConnectionManager {
         }
 
         try {
-            const activeAccountId =
-                this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials?.accountId;
+            const activeUri = Utils.getActiveTextEditorUri();
+            const activeAccountId = activeUri
+                ? this._connections[activeUri]?.credentials?.accountId
+                : undefined;
 
             let getAccounts: () => Promise<
                 { label: string; description: string | undefined; value: string }[]
@@ -2425,7 +2496,7 @@ export default class ConnectionManager {
             return { accountKey: result.key, token: result.token, expiresOn: result.expiresOn };
         } catch (error) {
             this._logger.error(`Security token request failed: ${getErrorMessage(error)}`);
-            this.vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.Connection.securityTokenRequestFailed(
                     getErrorMessage(error),
                     "Azure Key Vault",
@@ -2513,6 +2584,7 @@ export interface SqlConnectionError {
     message?: string;
     errorNumber?: number;
     errorMessage?: string;
+    errorCode?: string;
 }
 
 export enum SqlConnectionErrorType {

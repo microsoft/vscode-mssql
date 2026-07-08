@@ -74,12 +74,10 @@ suite("BuildHelper: Build Helper tests", function (): void {
         }
     });
 
-    test("Should get correct build folder", async function (): Promise<void> {
-        const testContext: TestContext = createContext();
+    test("Should get correct build folder", function (): void {
         const buildHelper = new BuildHelper();
-        await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
-        // get expected path for build
+        // extensionBuildDirPath is set in the constructor — no network calls needed.
         const extensionPath =
             vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
         expect(buildHelper.extensionBuildDirPath).to.equal(
@@ -126,12 +124,18 @@ suite("BuildHelper: Build Helper tests", function (): void {
     });
 
     test("Should have all required DLLs in build directory", async function (): Promise<void> {
+        // Treat all files as present and fail the test if a network download is attempted.
+        sandbox.stub(utils, "exists").resolves(true);
+        sandbox
+            .stub(HttpClient.prototype, "download")
+            .throws(new Error("download should not be called"));
+
         const testContext: TestContext = createContext();
         const buildHelper = new BuildHelper();
         const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
-        // Verify that the build directory was created successfully
-        expect(success, "Build directory creation should succeed").to.be.true;
+        expect(success, "Build directory creation should succeed when all files are present").to.be
+            .true;
 
         const buildDirPath = buildHelper.extensionBuildDirPath;
 
@@ -164,6 +168,96 @@ suite("BuildHelper: Build Helper tests", function (): void {
             expect(
                 exists,
                 `Required file '${fileName}' should exist in build directory at ${filePath}`,
+            ).to.be.true;
+        }
+    });
+
+    test("createBuildDirFolder downloads and places all DLLs in BuildDirectory when files are missing", async function (): Promise<void> {
+        const buildHelper = new BuildHelper();
+        const buildDirPath = buildHelper.extensionBuildDirPath;
+
+        // Simulate all DLLs missing from BuildDirectory, but allow real fs checks
+        // on the extracted folder so the copy-to-BuildDirectory step works correctly.
+        // Also allow the directory-existence check (buildDirPath itself) to return true
+        // so createBuildDirFolder does not attempt to re-create the existing directory.
+        sandbox.stub(utils, "exists").callsFake(async (filePath: string): Promise<boolean> => {
+            if (filePath === buildDirPath) {
+                return true; // The directory itself exists — don't try to mkdir it
+            }
+            // Only pretend files directly in BuildDirectory are missing (not in subdirectories)
+            if (filePath.startsWith(buildDirPath + path.sep)) {
+                const relativePath = path.relative(buildDirPath, filePath);
+                if (!relativePath.includes(path.sep)) {
+                    return false; // File directly in BuildDirectory - pretend it's missing
+                }
+            }
+            return fs.existsSync(filePath); // Real check for extracted folders
+        });
+
+        // Stub the download so no real network call is made; create dummy files in the
+        // expected extracted-folder structure so the production copy logic can run normally.
+        sandbox
+            .stub(BuildHelper.prototype, "downloadAndExtractNuget")
+            .callsFake(
+                async (
+                    _url: string,
+                    _nupkgPath: string,
+                    extractFolderPath: string,
+                ): Promise<void> => {
+                    const nugetName = path.basename(extractFolderPath);
+                    const isScriptDom = nugetName.includes("ScriptDom");
+                    const subFolder = isScriptDom
+                        ? path.join("lib", "netstandard2.1")
+                        : path.join("tools", "net8.0");
+                    const dirPath = path.join(extractFolderPath, subFolder);
+                    fs.mkdirSync(dirPath, { recursive: true });
+                    const files = isScriptDom
+                        ? ["Microsoft.SqlServer.TransactSql.ScriptDom.dll"]
+                        : [
+                              "Microsoft.Build.Sql.dll",
+                              "Microsoft.Data.SqlClient.dll",
+                              "Microsoft.Data.Tools.Schema.Sql.dll",
+                              "Microsoft.Data.Tools.Schema.Tasks.Sql.dll",
+                              "Microsoft.Data.Tools.Utilities.dll",
+                              "Microsoft.SqlServer.Dac.dll",
+                              "Microsoft.SqlServer.Dac.Extensions.dll",
+                              "Microsoft.SqlServer.Types.dll",
+                              "System.ComponentModel.Composition.dll",
+                              "System.IO.Packaging.dll",
+                              "Microsoft.Data.Tools.Schema.SqlTasks.targets",
+                              "Microsoft.SqlServer.Server.dll",
+                          ];
+                    for (const file of files) {
+                        fs.writeFileSync(path.join(dirPath, file), "");
+                    }
+                },
+            );
+
+        const testContext: TestContext = createContext();
+        const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
+
+        expect(success, "createBuildDirFolder should return true after placing DLLs").to.be.true;
+
+        const allExpectedFiles = [
+            "Microsoft.Build.Sql.dll",
+            "Microsoft.Data.SqlClient.dll",
+            "Microsoft.Data.Tools.Schema.Sql.dll",
+            "Microsoft.Data.Tools.Schema.Tasks.Sql.dll",
+            "Microsoft.Data.Tools.Utilities.dll",
+            "Microsoft.SqlServer.Dac.dll",
+            "Microsoft.SqlServer.Dac.Extensions.dll",
+            "Microsoft.SqlServer.Types.dll",
+            "System.ComponentModel.Composition.dll",
+            "System.IO.Packaging.dll",
+            "Microsoft.Data.Tools.Schema.SqlTasks.targets",
+            "Microsoft.SqlServer.Server.dll",
+            "Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+        ];
+
+        for (const fileName of allExpectedFiles) {
+            expect(
+                fs.existsSync(path.join(buildDirPath, fileName)),
+                `${fileName} should exist in BuildDirectory after download`,
             ).to.be.true;
         }
     });

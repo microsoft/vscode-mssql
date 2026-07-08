@@ -672,6 +672,40 @@ suite("Docker Utilities", () => {
         expect(result.error).to.equal(LocalContainers.dockerDesktopPathError);
     });
 
+    test("startDocker: should return socket permission error on Linux when docker info fails with permission denied", async () => {
+        sandbox.stub(os, "platform").returns(Platform.Linux);
+        const spawnStub = sandbox.stub(childProcess, "spawn");
+
+        spawnStub.returns(
+            createSpawnFailureByExitProcess(
+                "permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock",
+                1,
+            ),
+        );
+
+        const result = await dockerUtils.startDocker();
+        expect(result.success).to.be.false;
+        expect(result.error).to.equal(LocalContainers.dockerSocketPermissionError);
+        expect(result.fullErrorText).to.include("permission denied");
+        // Should NOT have attempted systemctl start docker
+        expect(spawnStub).to.have.been.calledOnceWith("docker", ["info"]);
+    });
+
+    test("startDocker: should return socket permission error on Linux when docker info fails with EACCES", async () => {
+        sandbox.stub(os, "platform").returns(Platform.Linux);
+        const spawnStub = sandbox.stub(childProcess, "spawn");
+
+        spawnStub.returns(
+            createSpawnFailureByExitProcess("dial unix /var/run/docker.sock: connect: EACCES", 1),
+        );
+
+        const result = await dockerUtils.startDocker();
+        expect(result.success).to.be.false;
+        expect(result.error).to.equal(LocalContainers.dockerSocketPermissionError);
+        // Should NOT have attempted systemctl start docker
+        expect(spawnStub).to.have.been.calledOnceWith("docker", ["info"]);
+    });
+
     test("deleteContainer: should delete the container and return success or error", async () => {
         const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
         const stopStub = sandbox.stub().resolves();

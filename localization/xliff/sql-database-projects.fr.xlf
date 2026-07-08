@@ -134,14 +134,6 @@
         <source xml:lang="en">Artifact Reference</source>
         <target state="translated">Référence d’artefact</target>
       </trans-unit>
-      <trans-unit id="++CODE++4fa5980f3277436a189597dad4082bd5c63766bb49272d1c44bc873ab5b9ce64">
-        <source xml:lang="en">Autorest is not installed. To proceed, choose whether to run Autorest from a temporary location via 'npx' or install Autorest globally then run.</source>
-        <target state="translated">Autorest n’est pas installé. Pour continuer, choisissez d’exécuter Autorest à partir d’un emplacement temporaire via 'npx' ou d’installer Autorest globalement, puis de l’exécuter.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9d80929a1211d26226a7f7c02586075784c0a0ef8effc98e3d46645baaff3338">
-        <source xml:lang="en">Autorest tool not found in system path, but found Node.js.  Prompting user for how to proceed.  Execute 'npm install autorest -g' to install permanently and avoid this message.</source>
-        <target state="translated">Outil Autorest introuvable dans le chemin système, mais Node.js trouvé. Inviter l'utilisateur à savoir comment procéder. Exécutez 'npm install autorest -g' pour installer définitivement et éviter ce message.</target>
-      </trans-unit>
       <trans-unit id="++CODE++bbe331f8e32243066afbce22f5a989fac4ccc48b7f8902da20c35b50117276af">
         <source xml:lang="en">Azure SQL Database</source>
         <target state="translated">Base de données Azure SQL</target>
@@ -538,14 +530,6 @@
         <source xml:lang="en">Folder structure</source>
         <target state="translated">Structure de dossier</target>
       </trans-unit>
-      <trans-unit id="++CODE++a76ed378462a07646dbca3fbacf6097b26d2eb689a0a145c5305b0d9c19d8613">
-        <source xml:lang="en">Generating new SQL project from {0}...  Check output window for details.</source>
-        <target state="translated">Génération d’un nouveau projet SQL à partir de {0}...  Pour plus d’informations, consultez la fenêtre Sortie.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++3c62b1e4d310e129e88e6543457c18ebd2fcf5f51adeb147e8caf70573a29965">
-        <source xml:lang="en">Generating project via AutoRest failed.  Check output pane for more details. Error: {0}</source>
-        <target state="translated">Échec de la génération du projet via AutoRest.  Pour plus d’informations, consultez le volet de sortie. Erreur : {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++459f619c9ccfe5e3fa7210a22a69e5a512c7c7c7c0ee12e38b2ff119582bc322">
         <source xml:lang="en">Import Elements</source>
         <target state="translated">Importer des éléments</target>
@@ -569,10 +553,6 @@
       <trans-unit id="++CODE++569ca49f4aaf7846e952c1d4aeca72febd0b79fa1c4f9db08fd3127551218572">
         <source xml:lang="en">Install</source>
         <target state="translated">Installer</target>
-      </trans-unit>
-      <trans-unit id="++CODE++4ab5b5e2e38fbf1f70fdbe2c82a3a5d4e4a83e200a25312ad2e32f28e70eac8a">
-        <source xml:lang="en">Install globally</source>
-        <target state="translated">Installer globalement</target>
       </trans-unit>
       <trans-unit id="++CODE++d59b6e89d0bb69378dc30cfc172f685e81c2f66c35f77bdc65b25e99c0a3896c">
         <source xml:lang="en">Invalid DSP in .sqlproj file</source>
@@ -642,17 +622,9 @@
         <source xml:lang="en">Name must not be empty</source>
         <target state="translated">Le nom ne doit pas être vide</target>
       </trans-unit>
-      <trans-unit id="++CODE++c1676e5f50d1d87a99f45228e12f39c8fb3efb26b18a0dcfa3077ccfc0963e47">
-        <source xml:lang="en">Neither Autorest nor Node.js (npx) found in system path.  Please install Node.js for Autorest generation to work.</source>
-        <target state="translated">Autorest ou Node.js (npx) introuvable dans le chemin d’accès système.  Installez Node.js pour que la génération autorest fonctionne.</target>
-      </trans-unit>
       <trans-unit id="++CODE++18fdd549b2ed367ac0c74cbec1214644728515b30edbcb78e7d322757a7c8359">
         <source xml:lang="en">New</source>
         <target state="translated">Nouveau</target>
-      </trans-unit>
-      <trans-unit id="++CODE++80072a8f865870a414d28b946e37df3c8a579ee173d9d086b5bfeee2227e1804">
-        <source xml:lang="en">New SQL project name</source>
-        <target state="translated">Nouveau nom du projet SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++aec6326c0bb66b39024ab339ed5e37127b38cb27b0483212893b761124e3d604">
         <source xml:lang="en">New {0} name:</source>
@@ -665,10 +637,6 @@
       <trans-unit id="++CODE++ec6464b2feeed0b33e9708ee331e698c5fd334fc406c62fd856681d6bd292b2a">
         <source xml:lang="en">No (default)</source>
         <target state="translated">Non (pas de valeur par défaut)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d8370c05d52e5072f7cce975a2079f75c465d29babb35aea61f47d855706190e">
-        <source xml:lang="en">No .sql files were generated by Autorest. Please confirm that your spec contains model definitions, or check the output log for details.</source>
-        <target state="translated">Aucun fichier .sql n’a été généré par Autorest. Confirmez que votre spécification contient des définitions de modèle ou consultez le journal de sortie pour plus de détails.</target>
       </trans-unit>
       <trans-unit id="++CODE++af62d5c5fc57bafe879cd3a63346b4135adb2042b15590584cd6fdd26f4cd0ab">
         <source xml:lang="en">No .sqlproj file selected; please select one.</source>
@@ -709,10 +677,6 @@
       <trans-unit id="++CODE++48e14153027233f6e54dc79e65b53aee173c9fb483db51acbd55140694502620">
         <source xml:lang="en">Open License Agreement</source>
         <target state="translated">Ouvrir le contrat de licence</target>
-      </trans-unit>
-      <trans-unit id="++CODE++320792798b0c8a396285b88b5a3cdd21bec7af6e418aef59c79fe12633f04e9e">
-        <source xml:lang="en">OpenAPI/Swagger spec</source>
-        <target state="translated">Spécification OpenAPI/Swagger</target>
       </trans-unit>
       <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
         <source xml:lang="en">Option Description</source>
@@ -830,10 +794,6 @@
         <source xml:lang="en">Revert values to project defaults</source>
         <target state="translated">Rétablir les valeurs par défaut du projet</target>
       </trans-unit>
-      <trans-unit id="++CODE++3d5a16c9d23ac52584e85fb75c804eb9bb25af61fd490caed052e4e0c6a71215">
-        <source xml:lang="en">Run via npx</source>
-        <target state="translated">Exécuter via npx</target>
-      </trans-unit>
       <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
         <source xml:lang="en">SDK-style project</source>
         <target state="translated">Projet de style SDK</target>
@@ -921,10 +881,6 @@
       <trans-unit id="++CODE++79f376f90b59c3bc990ce225ac8c8fdd6093ae81003f60c53bc6aa3939e47988">
         <source xml:lang="en">Select File</source>
         <target state="translated">Sélectionner un fichier</target>
-      </trans-unit>
-      <trans-unit id="++CODE++a231fe96024f95e8eda0010e2b4e482324cd6b43d333a3bc30db359e5fd98ed3">
-        <source xml:lang="en">Select OpenAPI/Swagger spec file</source>
-        <target state="translated">Sélectionner un fichier de spécification OpenAPI/Swagger</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
@@ -1138,10 +1094,6 @@
         <source xml:lang="en">Unable to read proxy agent options.</source>
         <target state="translated">Impossible de lire les options de l'agent proxy.</target>
       </trans-unit>
-      <trans-unit id="++CODE++c9df623e3c064d4e8d9a2233567158801a01366b17b33096e85bcfcc714ea0c6">
-        <source xml:lang="en">Unexpected number of {0} files: {1}</source>
-        <target state="translated">Nombre de cellules inattendu {0} fichiers: {1}</target>
-      </trans-unit>
       <trans-unit id="++CODE++768599fd8afd8acd64dffa68e96ad5970f54933220398e5b545b222719c8b353">
         <source xml:lang="en">Unhandled item type during delete: '{0}</source>
         <target state="translated">Type d’élément non géré durant la suppression : '{0}</target>
@@ -1185,18 +1137,6 @@
       <trans-unit id="++CODE++9a6565ec4e8fda62572630799ef7a2581b04afa9e96adf8cc413237611337e62">
         <source xml:lang="en">Updating {0} from {1}...</source>
         <target state="translated">Mise à jour de {0} à partir de {1}...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e82b1c1823ceb2298da0a21e1f78b26478770748ce60081471ae63a0dd1ce4ca">
-        <source xml:lang="en">User has cancelled selection for how to run autorest.</source>
-        <target state="translated">L'utilisateur a annulé la sélection de la manière d'exécuter l'arrêt automatique.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++de554ddaf72fbc2e0ad0e75fc128d75b3422ebc13af1eea553bf73baa62f6eda">
-        <source xml:lang="en">User selected to install autorest gloablly.  Installing now...</source>
-        <target state="translated">L'utilisateur a choisi d'installer l'autorest dans le monde entier. Installation maintenant...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++db5b6b4a22933d3ab59428635443e86de89e8eb88223b917e2348634d33f2665">
-        <source xml:lang="en">User selected to run via npx.</source>
-        <target state="translated">Utilisateur sélectionné pour exécuter via npx.</target>
       </trans-unit>
       <trans-unit id="++CODE++865e5c3f2fa53737682b267dac4c8de18416009fd8d7af469d7b6afff4637b68">
         <source xml:lang="en">Validation of external streaming job passed.</source>
@@ -1416,10 +1356,6 @@ Projets :
         <source xml:lang="en">Full path to .NET SDK on the machine. For example, if dotnet.exe is located at C:\folder1\dotnet\dotnet.exe, set the path for this setting to C:\folder1\dotnet</source>
         <target state="translated">Chemin d’accès complet au kit SDK .NET sur l’ordinateur. Par exemple, si dotnet.exe se trouve à C:\folder1\dotnet\dotnet.exe, définissez le chemin d’accès de ce paramètre sur C:\folder1\dotnet</target>
       </trans-unit>
-      <trans-unit id="sqlDatabaseProjects.generateProjectFromOpenApiSpec">
-        <source xml:lang="en">Generate SQL Project from OpenAPI/Swagger spec (Preview)</source>
-        <target state="translated">Générer un projet SQL à partir de OpenAPI/Swagger spec (préversion)</target>
-      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.new">
         <source xml:lang="en">New Database Project</source>
         <target state="translated">Nouveau projet de base de données</target>
@@ -1489,14 +1425,6 @@ Projets :
       <trans-unit id="sqlDatabaseProjects.netCoreDoNotAsk">
         <source xml:lang="en">Whether to prompt the user to install .NET SDK when not detected.</source>
         <target state="translated">Indique si l’utilisateur doit être invité à installer le Kit de développement logiciel (SDK) .NET quand il n’est pas détecté.</target>
-      </trans-unit>
-      <trans-unit id="sqlDatabaseProjects.nodejsDoNotAsk">
-        <source xml:lang="en">Whether to prompt the user to install Node.js when not detected.</source>
-        <target state="translated">Indique si l’utilisateur doit être invité à installer Node.js quand il n’est pas détecté.</target>
-      </trans-unit>
-      <trans-unit id="sqlDatabaseProjects.autorestSqlVersion">
-        <source xml:lang="en">Which version of Autorest.Sql to use from NPM.  Latest will be used if not set.</source>
-        <target state="translated">Version d’autorest. SQL à utiliser à partir de NPM.  La dernière version sera utilisée si elle n’est pas définie.</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.microsoftBuildSqlVersion">
         <source xml:lang="en">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</source>
