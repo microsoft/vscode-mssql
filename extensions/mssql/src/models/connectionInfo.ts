@@ -371,3 +371,60 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
 export function isAzureSqlDbCompatible(serverTypes: ServerType[]): boolean {
     return serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric);
 }
+
+/**
+ * Determines whether a connection is able to be checked for online/pause state:
+ * * Must be an Azure SQL database (no Fabric or Synapse/DW)
+ * * Must have a database specified ('master' doesn't sleep, can't construct ARM URL with <default>)
+ * * Must use Entra MFA authentication (for access to Azure ARM APIs)
+ *
+ * @param connection the connection being attempted.
+ * @param databaseName optional database name override (e.g. the specific database node being
+ *   expanded on a server connection); defaults to the connection's database.
+ */
+export function canCheckDatabasePauseStatus(
+    connection: IConnectionInfo,
+    databaseName?: string,
+): boolean {
+    if (!connection) {
+        return false;
+    }
+
+    if (connection.authenticationType !== Constants.azureMfa) {
+        logger.trace(
+            `Connection to ${connection.server} does not use Entra MFA auth; skipping serverless pause check.`,
+        );
+
+        return false;
+    }
+
+    const serverTypes = getServerTypes(connection);
+
+    if (!(serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql))) {
+        logger.trace(
+            `Connection to ${connection.server} is not an Azure SQL database; skipping serverless pause check.`,
+        );
+        return false;
+    }
+
+    const database = databaseName ?? connection.database;
+
+    if (!database || database === LocalizedConstants.defaultDatabaseLabel) {
+        logger.trace(
+            `Connection to ${connection.server} targets default database; skipping serverless pause check.`,
+        );
+
+        return false;
+    }
+
+    if (Constants.systemDatabases.includes(database.toLowerCase())) {
+        logger.trace(
+            `Connection to ${connection.server} targets a system database; skipping serverless pause check.`,
+        );
+
+        return false;
+    }
+
+    logger.trace(`Connection to ${connection.server} can be checked for serverless pause.`);
+    return true;
+}

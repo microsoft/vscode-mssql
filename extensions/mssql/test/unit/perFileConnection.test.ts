@@ -16,17 +16,17 @@ import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { languageId } from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
+import * as Utils from "../../src/models/utils";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
 import { uuid } from "../../src/utils/utils";
-import { stubExtensionContext, stubPrompter, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubPrompter } from "./utils";
 
 const expect = chai.expect;
 
@@ -211,15 +211,16 @@ suite("Per File Connection Tests", () => {
             connectionCreds: newDatabaseCredentials,
             quickPickItemType: Interfaces.CredentialsQuickPickItemType.Mru,
         };
-
-        const vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        vscodeWrapperStub.showQuickPick.resolves(newDatabaseChoice);
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
+        const showQuickPickStub = sandbox
+            .stub(vscode.window, "showQuickPick")
+            .resolves(newDatabaseChoice);
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            document: {
+                uri: vscode.Uri.parse(testFile),
+            },
+        } as vscode.TextEditor);
 
         manager.client = serviceClientStub;
-        manager.vscodeWrapper = vscodeWrapperStub;
-        manager.connectionUI.vscodeWrapper = vscodeWrapperStub;
-
         const connectionCreds = createTestCredentials();
 
         const connectResult = await manager.connect(testFile, connectionCreds);
@@ -237,7 +238,7 @@ suite("Per File Connection Tests", () => {
             .getCalls()
             .filter((call) => call.args[0] === ConnectionContracts.ListDatabasesRequest.type);
         expect(listDbCalls).to.have.lengthOf(1);
-        expect(vscodeWrapperStub.showQuickPick).to.have.been.calledOnce;
+        expect(showQuickPickStub).to.have.been.calledOnce;
 
         expect(manager.isConnected(testFile)).to.equal(true);
         expect(manager.getConnectionInfo(testFile).credentials.database).to.equal("master");
@@ -261,21 +262,20 @@ suite("Per File Connection Tests", () => {
         serviceClientStub.sendRequest
             .withArgs(ConnectionContracts.ListDatabasesRequest.type, sinon.match.any)
             .resolves(createTestListDatabasesResult());
-
-        const vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
-        vscodeWrapperStub.showQuickPick.callsFake(
-            async (options: Interfaces.IConnectionCredentialsQuickPickItem[]) => {
+        sandbox
+            .stub(vscode.window, "showQuickPick")
+            .callsFake(async (options: Interfaces.IConnectionCredentialsQuickPickItem[]) => {
                 return options.find(
                     (option) => option.label === LocalizedConstants.disconnectOptionLabel,
                 );
+            });
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            document: {
+                uri: vscode.Uri.parse(testFile),
             },
-        );
+        } as vscode.TextEditor);
 
         manager.client = serviceClientStub;
-        manager.vscodeWrapper = vscodeWrapperStub;
-        manager.connectionUI.vscodeWrapper = vscodeWrapperStub;
-
         prompterStub.promptSingle.resolves(true);
 
         const connectionCreds = createTestCredentials();
@@ -300,22 +300,17 @@ suite("Per File Connection Tests", () => {
 
     test("Prompts for new connection before running query if disconnected", async () => {
         const testFile = "file://my/test/file.sql";
-        const vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        sandbox.stub(vscodeWrapperStub, "isEditingSqlFile").get(() => true);
-        sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns(testFile);
+        sandbox.stub(Utils, "isEditingSqlFile").returns(true);
         sandbox
-            .stub(vscodeWrapperStub, "activeTextEditor")
+            .stub(vscode.window, "activeTextEditor")
             .get(() => createQueryTextEditor(testFile, "SELECT 1"));
 
         const connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         connectionManagerStub.isConnected.returns(false);
         connectionManagerStub.promptToConnect.resolves();
 
-        const controller = new MainController(
-            extensionContext,
-            connectionManagerStub,
-            vscodeWrapperStub,
-        );
+        const controller = new MainController(extensionContext, connectionManagerStub);
 
         await controller.onRunQuery();
 
@@ -519,7 +514,6 @@ suite("Per File Connection Tests", () => {
 
     function createTestConnectionManager(
         serviceClient?: SqlToolsServiceClient,
-        wrapper?: VscodeWrapper,
         statusView?: StatusView,
         connectionStore?: ConnectionStore,
         connectionUI?: ConnectionUI,
@@ -543,7 +537,6 @@ suite("Per File Connection Tests", () => {
             prompterStub,
             undefined, // logger
             serviceClient,
-            wrapper,
             connectionStoreInstance,
             undefined, // credentialStore
             connectionUI,

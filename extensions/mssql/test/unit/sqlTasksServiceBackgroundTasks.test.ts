@@ -10,7 +10,6 @@ import * as chai from "chai";
 import { expect } from "chai";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     SqlTasksService,
     TaskCompletionHandler,
@@ -24,7 +23,6 @@ import {
     BackgroundTasksService,
     BackgroundTaskState,
 } from "../../src/backgroundTasks/backgroundTasksService";
-import { stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -32,12 +30,12 @@ suite("SqlTasksService Background Tasks Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let sqlDocumentServiceStub: sinon.SinonStubbedInstance<SqlDocumentService>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let backgroundTasksServiceStub: sinon.SinonStubbedInstance<BackgroundTasksService>;
     let backgroundTaskHandle: sinon.SinonStubbedInstance<BackgroundTaskHandle>;
     let sqlTasksService: SqlTasksService;
     let taskCreatedHandler: (taskInfo: TaskInfo) => void;
     let taskStatusChangedHandler: (progressInfo: TaskProgressInfo) => Promise<void>;
+    let executeCommandStub: sinon.SinonStub;
 
     const baseTaskInfo: TaskInfo = {
         taskId: "task-1",
@@ -57,7 +55,6 @@ suite("SqlTasksService Background Tasks Tests", () => {
         sandbox = sinon.createSandbox();
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         backgroundTasksServiceStub = sandbox.createStubInstance(BackgroundTasksService);
         backgroundTaskHandle = {
             id: "background-task-1",
@@ -71,11 +68,11 @@ suite("SqlTasksService Background Tasks Tests", () => {
         );
         sqlToolsClientStub.onNotification.returnsThis();
         sqlToolsClientStub.sendRequest.resolves(true);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
 
         sqlTasksService = new SqlTasksService(
             sqlToolsClientStub,
             sqlDocumentServiceStub,
-            vscodeWrapperStub,
             backgroundTasksServiceStub,
         );
 
@@ -172,7 +169,7 @@ suite("SqlTasksService Background Tasks Tests", () => {
         expect(update.open).to.be.a("function");
 
         await update.open!();
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledWith(
+        expect(executeCommandStub).to.have.been.calledWith(
             "revealFileInOS",
             sinon.match.instanceOf(vscode.Uri),
         );

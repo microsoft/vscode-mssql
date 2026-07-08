@@ -12,7 +12,6 @@ import { ProfilerController } from "../../../src/profiler/profilerController";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import { ProfilerService } from "../../../src/services/profilerService";
 import ConnectionManager from "../../../src/controllers/connectionManager";
-import VscodeWrapper from "../../../src/controllers/vscodeWrapper";
 import { ConnectionStore } from "../../../src/models/connectionStore";
 import { ConnectionUI } from "../../../src/views/connectionUI";
 import { SessionState, SessionType } from "../../../src/profiler/profilerTypes";
@@ -35,19 +34,6 @@ function createStubbedProfilerService(
     stub.onEventsAvailable.returns(new vscode.Disposable(() => {}));
     stub.onSessionStopped.returns(new vscode.Disposable(() => {}));
     stub.onSessionCreated.returns(new vscode.Disposable(() => {}));
-    return stub;
-}
-
-/**
- * Creates a stubbed VscodeWrapper for testing.
- */
-function createStubbedVscodeWrapper(
-    sandbox: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<VscodeWrapper> {
-    const stub = sandbox.createStubInstance(VscodeWrapper);
-    stub.getConfiguration.returns({
-        get: sandbox.stub().returns(10000),
-    } as unknown as vscode.WorkspaceConfiguration);
     return stub;
 }
 
@@ -76,7 +62,6 @@ suite("ProfilerController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let sessionManager: ProfilerSessionManager;
     let profilerService: sinon.SinonStubbedInstance<ProfilerService>;
     let registerCommandStub: sinon.SinonStub;
@@ -149,8 +134,6 @@ suite("ProfilerController Tests", () => {
             extensionPath: "/test/path",
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
-
-        vscodeWrapper = createStubbedVscodeWrapper(sandbox);
         connectionManager = createStubbedConnectionManager(sandbox);
         profilerService = createStubbedProfilerService(sandbox);
         sessionManager = new ProfilerSessionManager(profilerService);
@@ -162,12 +145,7 @@ suite("ProfilerController Tests", () => {
     });
 
     function createController(): ProfilerController {
-        return new ProfilerController(
-            mockContext,
-            connectionManager,
-            vscodeWrapper,
-            sessionManager,
-        );
+        return new ProfilerController(mockContext, connectionManager, sessionManager);
     }
 
     suite("constructor", () => {
@@ -579,7 +557,6 @@ suite("ProfilerController Server Type Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let sessionManager: ProfilerSessionManager;
     let profilerService: sinon.SinonStubbedInstance<ProfilerService>;
     let registeredCommands: Map<string, (...args: unknown[]) => unknown>;
@@ -649,7 +626,6 @@ suite("ProfilerController Server Type Tests", () => {
 
         connectionManager = createStubbedConnectionManager(sandbox);
         connectionManager.listDatabases.resolves(["UserDB1", "UserDB2", "master", "tempdb"]);
-        vscodeWrapper = createStubbedVscodeWrapper(sandbox);
         profilerService = createStubbedProfilerService(sandbox);
         sessionManager = new ProfilerSessionManager(profilerService);
     });
@@ -660,12 +636,7 @@ suite("ProfilerController Server Type Tests", () => {
     });
 
     function createController(): ProfilerController {
-        return new ProfilerController(
-            mockContext,
-            connectionManager,
-            vscodeWrapper,
-            sessionManager,
-        );
+        return new ProfilerController(mockContext, connectionManager, sessionManager);
     }
 
     test("should connect and launch profiler for Fabric server", async () => {

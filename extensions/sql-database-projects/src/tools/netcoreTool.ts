@@ -37,7 +37,7 @@ export const minSupportedNetCoreVersionForBuild = "8.0.0";
  * NOTE: Keep this in sync with the default value in package.json:
  * sqlDatabaseProjects.microsoftBuildSqlVersion.default
  */
-export const FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.1.0";
+export const FALLBACK_MICROSOFT_BUILD_SQL_VERSION = "2.2.0";
 
 export const enum netCoreInstallState {
     netCoreNotPresent,

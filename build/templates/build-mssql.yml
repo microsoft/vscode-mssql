@@ -35,12 +35,12 @@ steps:
     condition: succeededOrFailed()
 
   - pwsh: |
-      npm run package -- --target mssql --online
+      npm run package -- --target mssql --online --preview
     displayName: MSSQL - Package extension (online)
     workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
-      npm run package -- --target mssql --offline
+      npm run package -- --target mssql --offline --preview
     displayName: MSSQL - Package extension (offline)
     workingDirectory: "$(Build.SourcesDirectory)"
     condition: eq( ${{ parameters.packageOffline }}, 'true')

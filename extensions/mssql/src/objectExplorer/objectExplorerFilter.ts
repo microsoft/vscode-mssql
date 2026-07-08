@@ -15,7 +15,6 @@ import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "../telemetry/telemetry";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class ObjectExplorerFilterWebviewController extends WebviewPanelController<
     ObjectExplorerFilterState,
@@ -29,14 +28,9 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
     private _onCancel: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
-    constructor(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        data?: ObjectExplorerFilterState,
-    ) {
+    constructor(context: vscode.ExtensionContext, data?: ObjectExplorerFilterState) {
         super(
             context,
-            vscodeWrapper,
             "objectExplorerFilter",
             "objectExplorerFilter",
             data ?? {
@@ -82,7 +76,6 @@ export class ObjectExplorerFilter {
      */
     public static async getFilters(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         treeNode: TreeNodeInfo,
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         const correlationId = randomUUID();
@@ -91,15 +84,11 @@ export class ObjectExplorerFilter {
             correlationId,
         });
         if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
-            this._filterWebviewController = new ObjectExplorerFilterWebviewController(
-                context,
-                vscodeWrapper,
-                {
-                    filterProperties: treeNode.filterableProperties,
-                    existingFilters: treeNode.filters,
-                    nodePath: treeNode.nodePath,
-                },
-            );
+            this._filterWebviewController = new ObjectExplorerFilterWebviewController(context, {
+                filterProperties: treeNode.filterableProperties,
+                existingFilters: treeNode.filters,
+                nodePath: treeNode.nodePath,
+            });
         } else {
             this._filterWebviewController.loadData({
                 filterProperties: treeNode.filterableProperties,
@@ -109,38 +98,57 @@ export class ObjectExplorerFilter {
         }
         await this._filterWebviewController.whenWebviewReady();
         this._filterWebviewController.revealToForeground();
-        return await new Promise((resolve, _reject) => {
-            this._filterWebviewController.onSubmit((e) => {
-                if (e) {
-                    sendActionEvent(
-                        TelemetryViews.ObjectExplorerFilter,
-                        TelemetryActions.Submit,
-                        {
-                            nodeType: treeNode.nodeType,
-                            correlationId,
-                            filters: JSON.stringify(e.map((e) => e.name)),
-                        },
-                        {
-                            filterCount: e.length,
-                        },
-                    );
+        return await new Promise<vscodeMssql.NodeFilter[] | undefined>((resolve) => {
+            let settled = false;
+            const disposables: vscode.Disposable[] = [];
+
+            const complete = (filters: vscodeMssql.NodeFilter[] | undefined) => {
+                if (settled) {
+                    return;
                 }
-                resolve(e);
-            });
-            this._filterWebviewController.onCancel(() => {
-                sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                    nodeType: treeNode.nodeType,
-                    correlationId,
-                });
-                resolve(undefined);
-            });
-            this._filterWebviewController.onDisposed(() => {
-                sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                    nodeType: treeNode.nodeType,
-                    correlationId,
-                });
-                resolve(undefined);
-            });
+
+                settled = true;
+                disposables.forEach((d) => d.dispose());
+                resolve(filters);
+            };
+
+            disposables.push(
+                this._filterWebviewController.onSubmit((e) => {
+                    if (e) {
+                        sendActionEvent(
+                            TelemetryViews.ObjectExplorerFilter,
+                            TelemetryActions.Submit,
+                            {
+                                nodeType: treeNode.nodeType,
+                                correlationId,
+                                filters: JSON.stringify(e.map((e) => e.name)),
+                            },
+                            {
+                                filterCount: e.length,
+                            },
+                        );
+                    }
+                    complete(e);
+                }),
+            );
+            disposables.push(
+                this._filterWebviewController.onCancel(() => {
+                    sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                        nodeType: treeNode.nodeType,
+                        correlationId,
+                    });
+                    complete(undefined);
+                }),
+            );
+            disposables.push(
+                this._filterWebviewController.onDisposed(() => {
+                    sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                        nodeType: treeNode.nodeType,
+                        correlationId,
+                    });
+                    complete(undefined);
+                }),
+            );
         });
     }
 }

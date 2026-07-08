@@ -10,7 +10,6 @@ import { expect } from "chai";
 import * as chai from "chai";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
@@ -22,7 +21,6 @@ chai.use(sinonChai);
 suite("SchemaDesignerWebviewManager tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let mockSchemaDesignerService: sinon.SinonStubbedInstance<SchemaDesigner.ISchemaDesignerService>;
     let manager: SchemaDesignerWebviewManager;
@@ -57,8 +55,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         mockContext = stubExtensionContext(sandbox, { name: "mssql", version: "1.0.0" });
         stubUserSurvey(sandbox);
 
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => ({ name: "MSSQL" }) as any);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub().resolves(mockCreateSessionResponse),
@@ -138,7 +134,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should create new schema designer when not cached", async () => {
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -158,7 +153,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should give controller the mode-qualified cache key", async () => {
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -172,7 +166,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should update connection profile with database name", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -188,7 +181,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should create new schema designer using connection URI", async () => {
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -222,7 +214,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should use azureAccountToken from connection URI", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -240,7 +231,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should create new designer after previous one is disposed", async () => {
             const designer1 = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -253,7 +243,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer2 = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -273,7 +262,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer1 = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 database1,
@@ -283,7 +271,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer2 = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 database2,
@@ -300,7 +287,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should use connection string with includePassword and includeApplicationName", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -316,7 +302,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should handle connectionUri with connection string parameters", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -341,7 +326,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should maintain cache across multiple getSchemaDesigner calls", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -377,7 +361,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -423,7 +406,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should use azureAccountToken from tree node connection profile", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -438,7 +420,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should use azureAccountToken from connection info when using URI", async () => {
             await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -462,7 +443,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
             try {
                 await manager.getSchemaDesigner(
                     mockContext,
-                    mockVscodeWrapper,
                     mockMainController,
                     mockSchemaDesignerService,
                     databaseName,
@@ -484,7 +464,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
             try {
                 await manager.getSchemaDesigner(
                     mockContext,
-                    mockVscodeWrapper,
                     mockMainController,
                     mockSchemaDesignerService,
                     databaseName,
@@ -502,7 +481,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should clean up designer from map when disposed with clean cache", async () => {
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -531,7 +509,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -562,7 +539,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -590,7 +566,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -620,7 +595,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should dispose session on backend when cache is cleaned", async () => {
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -654,7 +628,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,
@@ -687,7 +660,6 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const designer = await manager.getSchemaDesigner(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 databaseName,

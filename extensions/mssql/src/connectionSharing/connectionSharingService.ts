@@ -10,7 +10,6 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile } from "../models/interfaces";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import * as Constants from "../constants/constants";
@@ -54,7 +53,6 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         private readonly _context: vscode.ExtensionContext,
         private readonly _client: SqlToolsServiceClient,
         private readonly _connectionManager: ConnectionManager,
-        _vscodeWrapper: VscodeWrapper,
         private readonly _scriptingService: ScriptingService,
     ) {
         this._logger = logger.withPrefix("ConnectionSharingService");

@@ -12,7 +12,6 @@ import {
     ObjectExplorerService,
 } from "../../src/objectExplorer/objectExplorerService";
 import { expect } from "chai";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager, { SqlConnectionErrorType } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { ILogger } from "../../src/sharedInterfaces/logger";
@@ -56,7 +55,13 @@ import {
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { createStubLogger, initializeIconUtils, stubLogger, stubPreviewService } from "./utils";
+import {
+    createStubLogger,
+    initializeIconUtils,
+    stubLogger,
+    stubMessageBoxes,
+    stubPreviewService,
+} from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
@@ -67,7 +72,6 @@ chai.use(sinonChai);
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -77,7 +81,6 @@ suite("OE Service Tests", () => {
         setup(() => {
             initializeIconUtils();
             sandbox = sinon.createSandbox();
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -86,11 +89,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
 
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -196,7 +195,7 @@ suite("OE Service Tests", () => {
     });
 
     suite("expandNode", () => {
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+        let messageBoxes: ReturnType<typeof stubMessageBoxes>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -208,7 +207,7 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            messageBoxes = stubMessageBoxes(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -225,11 +224,7 @@ suite("OE Service Tests", () => {
                 startTime: 0,
                 update: sandbox.stub(),
             });
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -442,6 +437,190 @@ suite("OE Service Tests", () => {
             expect(mockNode.shouldRefresh, "Node shouldRefresh should be false").to.be.false;
         });
 
+        const makeExpandNode = (): TreeNodeInfo =>
+            new TreeNodeInfo(
+                "testNode",
+                { type: "server", filterable: false, hasFilters: false, subType: "" },
+                vscode.TreeItemCollapsibleState.Collapsed,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+            );
+
+        test("expandNode retries with a refresh and succeeds when a paused serverless database resumes", async () => {
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);
+            const mockNode = makeExpandNode();
+            const mockSessionId = "session123";
+            const key = `${mockSessionId}${mockNode.nodePath}`;
+
+            mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
+            mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
+
+            // The first expand times out; the pause check approves a single retry.
+            mockConnectionManager.isServerlessWakeRetryableTimeout.returns(true);
+            mockConnectionManager.shouldRetryForPausedServerlessDatabase
+                .onFirstCall()
+                .resolves(true);
+
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
+
+            // First attempt: resolve with a serverless expand-timeout error.
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            const firstPending = (objectExplorerService as any)._pendingExpands.get(
+                key,
+            ) as Deferred<any>;
+            expect(firstPending, "First pending expand should exist").to.exist;
+            firstPending.resolve({
+                sessionId: mockSessionId,
+                nodes: undefined,
+                errorMessage: "Object Explorer task didn't complete within 45 seconds.",
+                errorCode: Constants.oeExpandTimeoutErrorCode,
+            });
+
+            // Second (retry) attempt: a fresh pending is created; resolve it with children.
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            const secondPending = (objectExplorerService as any)._pendingExpands.get(
+                key,
+            ) as Deferred<any>;
+            expect(secondPending, "Retry pending expand should exist").to.exist;
+            expect(secondPending, "Retry should use a fresh pending expand").to.not.equal(
+                firstPending,
+            );
+            secondPending.resolve({
+                sessionId: mockSessionId,
+                nodes: [
+                    {
+                        nodePath: "server/testNode/child1",
+                        nodeType: "table",
+                        nodeSubType: "",
+                        label: "child1",
+                    },
+                ],
+                errorMessage: "",
+            });
+
+            const result = await expandPromise;
+
+            expect(result, "Expand should return children after the retry").to.not.be.undefined;
+            expect(result!.length, "Expand should return 1 child").to.equal(1);
+
+            // First attempt uses ExpandRequest, retry uses RefreshRequest (to bypass the stale cached error).
+            expect(mockClient.sendRequest.callCount, "Two requests should be sent").to.equal(2);
+            expect(mockClient.sendRequest.args[0][0], "First request is an expand").to.equal(
+                ExpandRequest.type,
+            );
+            expect(mockClient.sendRequest.args[1][0], "Retry request is a refresh").to.equal(
+                RefreshRequest.type,
+            );
+
+            expect(
+                mockConnectionManager.shouldRetryForPausedServerlessDatabase.calledOnce,
+                "Retry decision should be consulted once",
+            ).to.be.true;
+        });
+
+        test("expandNode surfaces the error when the serverless retry is not approved", async () => {
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);
+            const mockNode = makeExpandNode();
+            const mockSessionId = "session123";
+            const key = `${mockSessionId}${mockNode.nodePath}`;
+
+            mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
+
+            // The failure looks retryable, but the pause check declines to retry (e.g. already online).
+            mockConnectionManager.isServerlessWakeRetryableTimeout.returns(true);
+            mockConnectionManager.shouldRetryForPausedServerlessDatabase.resolves(false);
+
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            const pending = (objectExplorerService as any)._pendingExpands.get(
+                key,
+            ) as Deferred<any>;
+            expect(pending, "Pending expand should exist").to.exist;
+            pending.resolve({
+                sessionId: mockSessionId,
+                nodes: undefined,
+                errorMessage: "The operation was canceled.",
+                errorCode: Constants.oeExpandTimeoutErrorCode,
+            });
+
+            const result = await expandPromise;
+
+            expect(result, "An error node should be returned").to.have.lengthOf(1);
+            expect(result![0], "The returned node should be an ExpandErrorNode").to.be.instanceOf(
+                ExpandErrorNode,
+            );
+            // Only the initial attempt is made; no refresh retry.
+            expect(mockClient.sendRequest.callCount, "Only one request should be sent").to.equal(1);
+            expect(messageBoxes.showErrorMessage.called, "The error should be shown to the user").to
+                .be.true;
+        });
+
+        suite("showResumingDatabaseLabelWhenWaking", () => {
+            setup(() => {
+                // TreeNodeInfo's constructor resolves an icon path; stub it so makeExpandNode()
+                // works even when this suite is run in isolation.
+                sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);
+            });
+
+            const callHelper = (
+                node: TreeNodeInfo | undefined,
+                statusPromise: Promise<string | undefined> | undefined,
+                isStillLoading: () => boolean = () => true,
+            ) =>
+                (objectExplorerService as any).showResumingDatabaseLabelWhenWaking(
+                    () => node,
+                    statusPromise,
+                    isStillLoading,
+                );
+
+            test("sets the 'Resuming database' label when the database is waking", async () => {
+                const node = makeExpandNode();
+
+                callHelper(node, Promise.resolve("Resuming"));
+                await new Promise((resolve) => setTimeout(resolve, 10));
+
+                expect(node.loadingLabel).to.equal(
+                    LocalizedConstants.ObjectExplorer.ResumingDatabase,
+                );
+            });
+
+            test("does nothing when the database is already online", async () => {
+                const node = makeExpandNode();
+
+                callHelper(node, Promise.resolve("Online"));
+                await new Promise((resolve) => setTimeout(resolve, 10));
+
+                expect(node.loadingLabel).to.be.undefined;
+            });
+
+            test("does nothing when the node is no longer loading", async () => {
+                const node = makeExpandNode();
+
+                callHelper(node, Promise.resolve("Paused"), () => false);
+                await new Promise((resolve) => setTimeout(resolve, 10));
+
+                expect(node.loadingLabel).to.be.undefined;
+            });
+
+            test("is a no-op when there is no status check in flight", async () => {
+                const node = makeExpandNode();
+
+                callHelper(node, undefined);
+                await new Promise((resolve) => setTimeout(resolve, 10));
+
+                expect(node.loadingLabel).to.be.undefined;
+            });
+        });
+
         test("getNodeChildren should reuse the in-flight fetch when re-entered", async () => {
             const connectionProfile = createMockConnectionProfile({ id: "conn1" });
             setUpOETreeRoot(objectExplorerService, [connectionProfile]);
@@ -517,6 +696,144 @@ suite("OE Service Tests", () => {
             ).to.be.false;
         });
 
+        test("getNodeChildren should send RefreshRequest when node is marked for refresh", async () => {
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            setUpOETreeRoot(objectExplorerService, [connectionProfile]);
+
+            const connectionNode = (objectExplorerService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+            connectionNode.filters = [
+                { name: "Name", operator: 8, value: "cdwi" },
+            ] as import("vscode-mssql").NodeFilter[];
+            connectionNode.shouldRefresh = true;
+
+            mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
+
+            await (objectExplorerService as any).getNodeChildren(connectionNode);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(mockClient.sendRequest, "Refresh request should be sent").to.have.been
+                .calledOnce;
+            expect(
+                mockClient.sendRequest.args[0][0],
+                "Request type should be RefreshRequest",
+            ).to.equal(RefreshRequest.type);
+            expect(
+                mockClient.sendRequest.args[0][1],
+                "Refresh payload should include filters",
+            ).to.deep.equal({
+                sessionId: connectionNode.sessionId,
+                nodePath: connectionNode.nodePath,
+                filters: connectionNode.filters,
+            });
+
+            const pendingExpandKey = `${connectionNode.sessionId}${connectionNode.nodePath}`;
+            const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            ) as Deferred<any>;
+            const inFlightPromise = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+
+            pendingExpand.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [],
+                errorMessage: "",
+            });
+            await inFlightPromise;
+
+            expect(connectionNode.shouldRefresh, "Refresh flag should be cleared after refresh").to
+                .be.false;
+        });
+
+        test("getNodeChildren should queue a filtered refresh when refresh is requested during an in-flight load", async () => {
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            setUpOETreeRoot(objectExplorerService, [connectionProfile]);
+
+            const connectionNode = (objectExplorerService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+
+            mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
+            mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
+
+            await (objectExplorerService as any).getNodeChildren(connectionNode);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            const pendingExpandKey = `${connectionNode.sessionId}${connectionNode.nodePath}`;
+            const firstPending = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            ) as Deferred<any>;
+            const firstInFlight = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+
+            connectionNode.filters = [
+                { name: "Name", operator: 8, value: "cdwi" },
+            ] as import("vscode-mssql").NodeFilter[];
+            connectionNode.shouldRefresh = true;
+            await (objectExplorerService as any).getNodeChildren(connectionNode);
+
+            expect(
+                mockClient.sendRequest,
+                "Refresh should wait for the current load to finish",
+            ).to.have.been.calledOnceWithExactly(ExpandRequest.type, sinon.match.any);
+
+            firstPending.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [
+                    {
+                        nodePath: `${connectionNode.nodePath}/oldChild`,
+                        nodeType: "table",
+                        nodeSubType: "",
+                        label: "oldChild",
+                    },
+                ],
+                errorMessage: "",
+            });
+            await firstInFlight;
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            expect(
+                mockClient.sendRequest.callCount,
+                "Queued refresh should send a second request",
+            ).to.equal(2);
+            expect(
+                mockClient.sendRequest.args[1][0],
+                "Queued request should be RefreshRequest",
+            ).to.equal(RefreshRequest.type);
+            expect(
+                mockClient.sendRequest.args[1][1],
+                "Queued refresh should use latest filters",
+            ).to.deep.equal({
+                sessionId: connectionNode.sessionId,
+                nodePath: connectionNode.nodePath,
+                filters: connectionNode.filters,
+            });
+
+            const secondPending = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            ) as Deferred<any>;
+            const secondInFlight = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+
+            secondPending.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [],
+                errorMessage: "",
+            });
+            await secondInFlight;
+
+            expect(
+                (objectExplorerService as any)._refreshQueuedAfterInFlight.has(connectionNode),
+                "Queued refresh marker should be cleared",
+            ).to.be.false;
+        });
+
         test("expandNode should handle error response from SQL Tools Service", async () => {
             // Mock node and session ID
             const mockNode = new TreeNodeInfo(
@@ -575,11 +892,11 @@ suite("OE Service Tests", () => {
 
             // Verify error message was shown to user
             expect(
-                mockVscodeWrapper.showErrorMessage.calledOnce,
+                messageBoxes.showErrorMessage.calledOnce,
                 "Error message should be shown to user",
             ).to.be.true;
             expect(
-                mockVscodeWrapper.showErrorMessage.args[0][0],
+                messageBoxes.showErrorMessage.args[0][0],
                 "Error message should be mock error message",
             ).to.equal(mockErrorMessage);
 
@@ -697,11 +1014,11 @@ suite("OE Service Tests", () => {
 
             // Verify error message was shown to user
             expect(
-                mockVscodeWrapper.showErrorMessage.calledOnce,
+                messageBoxes.showErrorMessage.calledOnce,
                 "Error message should be shown to user",
             ).to.be.true;
             expect(
-                mockVscodeWrapper.showErrorMessage.args[0][0],
+                messageBoxes.showErrorMessage.args[0][0],
                 "Error message should be mock error message",
             ).to.equal(LocalizedConstants.msgUnableToExpand);
         });
@@ -748,7 +1065,6 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
         let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
         let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
@@ -764,7 +1080,7 @@ suite("OE Service Tests", () => {
                 isHandled: false,
                 updatedCredentials: undefined,
             });
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            stubMessageBoxes(sandbox);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockFirewallService = sandbox.createStubInstance(FirewallService);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -783,11 +1099,7 @@ suite("OE Service Tests", () => {
             };
             mockLogger = stubLogger(sandbox);
 
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
             (objectExplorerService as any).connectionUI = mockConnectionUI;
@@ -798,7 +1110,6 @@ suite("OE Service Tests", () => {
         });
 
         test("handleSessionCreationFailure should handle basic error without error number", async () => {
-            mockVscodeWrapper.showErrorMessage = sandbox.stub();
             // Create a failure response with just an error message
             const failureResponse = createMockFailureResponse({
                 errorMessage: "Connection failed",
@@ -982,7 +1293,6 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
         let mockLogger: sinon.SinonStubbedInstance<ILogger>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let objectExplorerService: ObjectExplorerService;
@@ -992,7 +1302,6 @@ suite("OE Service Tests", () => {
             sandbox = sinon.createSandbox();
             mockLogger = stubLogger(sandbox);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -1001,11 +1310,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
 
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
         });
@@ -1188,16 +1493,11 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             const mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             stubLogger(sandbox);
             mockConnectionManager.client = mockClient;
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -1254,7 +1554,6 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
 
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -1274,11 +1573,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             };
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivity);
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
 
@@ -1938,7 +2233,6 @@ suite("OE Service Tests", () => {
 
     suite("getRootNodes test", () => {
         let sandbox: sinon.SinonSandbox;
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
@@ -1949,7 +2243,6 @@ suite("OE Service Tests", () => {
 
         setup(() => {
             sandbox = sinon.createSandbox();
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -1966,11 +2259,7 @@ suite("OE Service Tests", () => {
                 update: sandbox.stub(),
             });
             stubLogger(sandbox);
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
         });
 
         teardown(() => {
@@ -1983,11 +2272,7 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
             // recreate service to reset any cached nodes
-            objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
-                mockConnectionManager,
-                () => {},
-            );
+            objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
 
             // Setup getAddConnectionNodes to return a mock nodes
             const mockAddConnectionNodes = [
@@ -2241,8 +2526,7 @@ suite("OE Service Tests", () => {
         let objectExplorerService: ObjectExplorerService;
 
         let sandbox: sinon.SinonSandbox;
-
-        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+        let messageBoxes: ReturnType<typeof stubMessageBoxes>;
         let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
@@ -2262,10 +2546,8 @@ suite("OE Service Tests", () => {
             initializeIconUtils();
             sandbox = sinon.createSandbox();
             // Create stubs for dependencies
-            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-            mockVscodeWrapper.showErrorMessage = sandbox
-                .stub<[string, ...string[]], Thenable<string>>()
-                .resolves();
+            messageBoxes = stubMessageBoxes(sandbox);
+            messageBoxes.showErrorMessage.resolves();
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -2312,7 +2594,6 @@ suite("OE Service Tests", () => {
             mockLogger.error = sandbox.stub();
 
             objectExplorerService = new ObjectExplorerService(
-                mockVscodeWrapper,
                 mockConnectionManager,
                 mockRefreshCallback,
             );
@@ -2503,7 +2784,7 @@ suite("OE Service Tests", () => {
         () => {
             let sandbox: sinon.SinonSandbox;
             let objectExplorerService: ObjectExplorerService;
-            let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+            let messageBoxes: ReturnType<typeof stubMessageBoxes>;
             let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
             let signInStub: sinon.SinonStub;
             let executeCommandStub: sinon.SinonStub;
@@ -2511,8 +2792,7 @@ suite("OE Service Tests", () => {
             setup(() => {
                 initializeIconUtils();
                 sandbox = sinon.createSandbox();
-
-                mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+                messageBoxes = stubMessageBoxes(sandbox);
                 mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
                 mockConnectionManager.connectionStore = sandbox.createStubInstance(ConnectionStore);
                 mockConnectionManager.client = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -2535,11 +2815,7 @@ suite("OE Service Tests", () => {
                 // Stub vscode.commands.executeCommand for the "Edit Connection Profile" path
                 executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
 
-                objectExplorerService = new ObjectExplorerService(
-                    mockVscodeWrapper,
-                    mockConnectionManager,
-                    () => {},
-                );
+                objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
                 objectExplorerService.initialized.resolve();
             });
 
@@ -2554,7 +2830,7 @@ suite("OE Service Tests", () => {
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2566,11 +2842,11 @@ suite("OE Service Tests", () => {
                 expect(result, "Result should be undefined when user dismisses dialog").to.be
                     .undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    messageBoxes.showErrorMessage.calledOnce,
                     "showErrorMessage should be called once",
                 ).to.be.true;
 
-                const [, signInButton, editButton] = mockVscodeWrapper.showErrorMessage.args[0];
+                const [, signInButton, editButton] = messageBoxes.showErrorMessage.args[0];
                 expect(signInButton, "First button should be Sign In and Retry").to.equal(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
@@ -2599,7 +2875,7 @@ suite("OE Service Tests", () => {
                     .onSecondCall()
                     .resolves(preparedProfile);
 
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
 
@@ -2629,7 +2905,7 @@ suite("OE Service Tests", () => {
                 // Both the initial call and the retry fail
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
 
@@ -2652,7 +2928,7 @@ suite("OE Service Tests", () => {
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
                 );
 
@@ -2683,7 +2959,7 @@ suite("OE Service Tests", () => {
                 });
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2713,7 +2989,7 @@ suite("OE Service Tests", () => {
 
                 expect(result, "Result should be undefined for generic errors").to.be.undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.called,
+                    messageBoxes.showErrorMessage.called,
                     "showErrorMessage should not be called for generic errors",
                 ).to.be.false;
             });
@@ -2725,7 +3001,7 @@ suite("OE Service Tests", () => {
 
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
-                mockVscodeWrapper.showErrorMessage.resolves(undefined);
+                messageBoxes.showErrorMessage.resolves(undefined);
 
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2737,7 +3013,7 @@ suite("OE Service Tests", () => {
                 expect(result, "Result should be undefined when user dismisses dialog").to.be
                     .undefined;
                 expect(
-                    mockVscodeWrapper.showErrorMessage.calledOnce,
+                    messageBoxes.showErrorMessage.calledOnce,
                     "showErrorMessage should be called even when feature is disabled",
                 ).to.be.true;
                 expect(
@@ -2767,7 +3043,7 @@ suite("OE Service Tests", () => {
                     .resolves(preparedProfile);
 
                 mockConnectionManager.addAccount.resolves();
-                mockVscodeWrapper.showErrorMessage.resolves(
+                messageBoxes.showErrorMessage.resolves(
                     LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn,
                 );
 

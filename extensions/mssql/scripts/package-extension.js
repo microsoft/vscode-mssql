@@ -14,6 +14,7 @@ const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
 const isOffline = args.includes("--offline");
 const skipServiceInstall = args.includes("--skip-service-install");
+const isPreRelease = args.includes("--pre-release");
 const packageMcp = args.includes("--package-mcp");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
@@ -133,11 +134,15 @@ async function cleanMcpInstallFolder() {
 /**
  * Package extension using vsce
  */
-function packageExtension(packageName = null) {
+function packageExtension(packageName = null, preRelease = false) {
     logger.step("Packaging extension with vsce...");
 
     try {
         const vsceArgs = ["exec", "--", "vsce", "package", "--no-dependencies"];
+
+        if (preRelease) {
+            vsceArgs.push("--pre-release");
+        }
 
         if (packageName) {
             vsceArgs.push("-o", packageName);
@@ -160,7 +165,7 @@ function packageExtension(packageName = null) {
  * Package extension for online distribution
  */
 async function packageOnline(options = {}) {
-    const { skipServiceInstall = false, packageMcp = false } = options;
+    const { skipServiceInstall = false, preRelease = false, packageMcp = false } = options;
 
     logger.header("Package extension (Online Mode)");
     logger.info(
@@ -189,7 +194,7 @@ async function packageOnline(options = {}) {
         }
 
         // Package the extension
-        packageExtension();
+        packageExtension(null, preRelease);
         logger.success("Online packaging completed successfully!");
     } catch (error) {
         logger.error(`Online packaging failed: ${error.message}`);
@@ -202,7 +207,7 @@ async function packageOnline(options = {}) {
  */
 async function packageOfflinePlatform(platformConfig, packageName, options = {}) {
     const { rid, runtime } = platformConfig;
-    const { packageMcp = false } = options;
+    const { packageMcp = false, preRelease = false } = options;
 
     logger.step(`Packaging for ${rid}...`);
 
@@ -220,7 +225,7 @@ async function packageOfflinePlatform(platformConfig, packageName, options = {})
         }
         // Package with platform-specific name
         const platformPackageName = `${packageName}-${rid}.vsix`;
-        packageExtension(platformPackageName);
+        packageExtension(platformPackageName, preRelease);
         logger.success(`${rid} package created`);
     } catch (error) {
         logger.error(`Failed to package ${rid}: ${error.message}`);
@@ -232,7 +237,7 @@ async function packageOfflinePlatform(platformConfig, packageName, options = {})
  * Package extension for offline distribution (all platforms)
  */
 async function packageOffline(options = {}) {
-    const { packageMcp = false } = options;
+    const { packageMcp = false, preRelease = false } = options;
 
     logger.header("Package extension (Offline Mode)");
 
@@ -257,7 +262,10 @@ async function packageOffline(options = {}) {
                 );
 
                 try {
-                    await packageOfflinePlatform(platformConfig, packageName, { packageMcp });
+                    await packageOfflinePlatform(platformConfig, packageName, {
+                        packageMcp,
+                        preRelease,
+                    });
                 } catch (error) {
                     logger.warning(`Skipping ${platformConfig.rid}: ${error.message}`);
                 }
@@ -286,7 +294,8 @@ Usage:
 Modes:
   --online     Package with portable SQL Tools Service (requires dotnet runtime at runtime). Default if not specified.
   --offline    Package with native self-contained SQL Tools Service for each platform (no dotnet needed).
-  --skip-service-install  Online mode only. Reuse existing SQL Tools Service files and skip service install.
+  --skip-service-install  Online mode only. Reuse existing SQL Tools Service files and skip clean/install.
+  --pre-release  Mark the package as a pre-release extension.
   --package-mcp           Install and include SQL Tools MCP payloads. Without this flag, MCP payloads are removed before packaging.
   --help       Show this help message
 
@@ -333,9 +342,9 @@ async function main() {
 
     try {
         if (isOnline) {
-            await packageOnline({ skipServiceInstall, packageMcp });
+            await packageOnline({ skipServiceInstall, preRelease: isPreRelease, packageMcp });
         } else if (isOffline) {
-            await packageOffline({ packageMcp });
+            await packageOffline({ preRelease: isPreRelease, packageMcp });
         }
 
         logger.success("Packaging script completed successfully!");

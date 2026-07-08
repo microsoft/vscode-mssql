@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     CodeAnalysisState,
     CodeAnalysisReducers,
@@ -34,7 +33,6 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
         private dacFxService: DacFxService,
         private sqlProjectsService: SqlProjectsService,
@@ -43,7 +41,6 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
 
         super(
             context,
-            vscodeWrapper,
             constants.codeAnalysisViewId,
             constants.codeAnalysisViewId,
             {

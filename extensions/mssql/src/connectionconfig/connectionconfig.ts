@@ -10,7 +10,6 @@ import * as vscode from "vscode";
 import { uuid } from "../utils/utils";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { Deferred } from "../protocol";
@@ -36,11 +35,7 @@ export class ConnectionConfig implements IConnectionConfig {
     /**
      * Constructor
      */
-    public constructor(private _vscodeWrapper?: VscodeWrapper) {
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-
+    public constructor() {
         this._logger = logger.withPrefix("ConnectionConfig");
         void this.initialize();
     }
@@ -64,7 +59,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * a saved connection or change the behavior setting.
      */
     private async validateDefaultConnectionId(): Promise<void> {
-        const behavior = this._vscodeWrapper
+        const behavior = vscode.workspace
             .getConfiguration()
             .get<string>(Constants.configNewEditorConnectionBehavior);
 
@@ -72,7 +67,7 @@ export class ConnectionConfig implements IConnectionConfig {
             return;
         }
 
-        const defaultId = this._vscodeWrapper
+        const defaultId = vscode.workspace
             .getConfiguration()
             .get<string>(Constants.configDefaultConnectionId);
 
@@ -94,10 +89,12 @@ export class ConnectionConfig implements IConnectionConfig {
         }
         this._hasDisplayedDefaultConnectionIdWarning = true;
 
-        const choice = await this._vscodeWrapper.showWarningMessageAdvanced(warningMessage, {}, [
+        const choice = await vscode.window.showWarningMessage(
+            warningMessage,
+            {},
             LocalizedConstants.Connection.defaultConnectionSelectConnection,
             LocalizedConstants.Connection.defaultConnectionChangeSetting,
-        ]);
+        );
 
         if (choice === LocalizedConstants.Connection.defaultConnectionSelectConnection) {
             await this.promptSelectDefaultConnection();
@@ -124,17 +121,18 @@ export class ConnectionConfig implements IConnectionConfig {
             profile,
         }));
 
-        const selected = await this._vscodeWrapper.showQuickPick<ConnectionQuickPickItem>(items, {
+        const selected = await vscode.window.showQuickPick<ConnectionQuickPickItem>(items, {
             placeHolder: LocalizedConstants.Connection.defaultConnectionSelectConnectionPlaceholder,
         });
 
         if (selected) {
-            await this._vscodeWrapper.setConfiguration(
-                Constants.extensionName,
-                "defaultConnectionId",
-                selected.profile.id,
-                vscode.ConfigurationTarget.Global,
-            );
+            await vscode.workspace
+                .getConfiguration(Constants.extensionName)
+                .update(
+                    "defaultConnectionId",
+                    selected.profile.id,
+                    vscode.ConfigurationTarget.Global,
+                );
         }
     }
 
@@ -155,17 +153,18 @@ export class ConnectionConfig implements IConnectionConfig {
             },
         ];
 
-        const selected = await this._vscodeWrapper.showQuickPick<BehaviorQuickPickItem>(items, {
+        const selected = await vscode.window.showQuickPick<BehaviorQuickPickItem>(items, {
             placeHolder: LocalizedConstants.Connection.defaultConnectionChangeSettingPlaceholder,
         });
 
         if (selected) {
-            await this._vscodeWrapper.setConfiguration(
-                Constants.extensionName,
-                "newEditorConnectionBehavior",
-                selected.value,
-                vscode.ConfigurationTarget.Global,
-            );
+            await vscode.workspace
+                .getConfiguration(Constants.extensionName)
+                .update(
+                    "newEditorConnectionBehavior",
+                    selected.value,
+                    vscode.ConfigurationTarget.Global,
+                );
         }
     }
 
@@ -191,7 +190,7 @@ export class ConnectionConfig implements IConnectionConfig {
                         (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
                     )
                 ) {
-                    this._vscodeWrapper.showErrorMessage(
+                    vscode.window.showErrorMessage(
                         LocalizedConstants.Connection.missingConnectionInformation(conn.id),
                     );
 
@@ -292,7 +291,7 @@ export class ConnectionConfig implements IConnectionConfig {
             this._logger.error(
                 `Multiple connection groups with ID "${ConnectionConfig.ROOT_GROUP_ID}" found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.`,
             );
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.Connection.multipleRootGroupsFoundError(
                     ConnectionConfig.ROOT_GROUP_ID,
                 ),
@@ -783,12 +782,9 @@ export class ConnectionConfig implements IConnectionConfig {
             return cleanedProfile;
         });
 
-        await this._vscodeWrapper.setConfiguration(
-            Constants.extensionName,
-            Constants.connectionsArrayName,
-            cleanedProfiles,
-            target,
-        );
+        await vscode.workspace
+            .getConfiguration(Constants.extensionName)
+            .update(Constants.connectionsArrayName, cleanedProfiles, target);
     }
 
     /**
@@ -839,12 +835,9 @@ export class ConnectionConfig implements IConnectionConfig {
             return cleanedGroup;
         });
 
-        await this._vscodeWrapper.setConfiguration(
-            Constants.extensionName,
-            Constants.connectionGroupsArrayName,
-            cleanedGroups,
-            target,
-        );
+        await vscode.workspace
+            .getConfiguration(Constants.extensionName)
+            .update(Constants.connectionGroupsArrayName, cleanedGroups, target);
     }
 
     /**
@@ -943,7 +936,7 @@ export class ConnectionConfig implements IConnectionConfig {
                     invalidGroups.map((group) => group.name).join(", "),
                 );
 
-            void this._vscodeWrapper.showWarningMessage(orphanedGroupsMessage);
+            void vscode.window.showWarningMessage(orphanedGroupsMessage);
         }
 
         return groupsToKeep;
@@ -993,7 +986,7 @@ export class ConnectionConfig implements IConnectionConfig {
                     orphanedConnections.map((conn) => getConnectionDisplayName(conn)),
                 );
 
-            void this._vscodeWrapper.showWarningMessage(orphanedConnectionsMessage);
+            void vscode.window.showWarningMessage(orphanedConnectionsMessage);
         }
 
         return filteredConnections;
@@ -1027,9 +1020,10 @@ export class ConnectionConfig implements IConnectionConfig {
             | ConfigurationTarget.Global
             | ConfigurationTarget.Workspace = ConfigurationTarget.Global,
     ): T[] {
-        let configuration = this._vscodeWrapper.getConfiguration(
+        const activeEditorUri = Utils.getActiveTextEditorUri();
+        let configuration = vscode.workspace.getConfiguration(
             Constants.extensionName,
-            this._vscodeWrapper.activeTextEditorUri,
+            activeEditorUri ? vscode.Uri.parse(activeEditorUri) : undefined,
         );
 
         let configValue = configuration.inspect<T[]>(configSection);

@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as ConnInfo from "../models/connectionInfo";
 import * as Utils from "../models/utils";
 import { ConnectionStore } from "../models/connectionStore";
@@ -50,12 +49,9 @@ export default class StatusView implements vscode.Disposable {
     private _onDidCloseTextDocumentEvent: vscode.Disposable;
     private _connectionStore: ConnectionStore;
 
-    constructor(private _vscodeWrapper?: VscodeWrapper) {
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
+    constructor() {
         this._statusBars = {};
-        this._onDidCloseTextDocumentEvent = this._vscodeWrapper.onDidCloseTextDocument((params) =>
+        this._onDidCloseTextDocumentEvent = vscode.workspace.onDidCloseTextDocument((params) =>
             this.onDidCloseTextDocument(params),
         );
 
@@ -309,7 +305,7 @@ export default class StatusView implements vscode.Disposable {
         if (
             !this._connectionStore ||
             !connectionId ||
-            this._vscodeWrapper
+            vscode.workspace
                 .getConfiguration()
                 .get<boolean>(Constants.configStatusBarEnableConnectionColor) !== true
         ) {

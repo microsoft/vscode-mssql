@@ -11,7 +11,6 @@ import * as utils from "../../src/utils/utils";
 import * as Constants from "../../src/constants/constants";
 import * as Loc from "../../src/constants/locConstants";
 import { ShortcutsConfigurationWebviewController } from "../../src/controllers/shortcutsConfigurationWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     getQuickQueryCommandId,
     SaveShortcutsConfigurationPayload,
@@ -21,7 +20,7 @@ import {
     QuickQueryExecutionMode,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../src/sharedInterfaces/webview";
-import { stubTelemetry, stubVscodeWrapper, stubWebviewPanel } from "./utils";
+import { stubTelemetry, stubWebviewPanel } from "./utils";
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -29,7 +28,6 @@ chai.use(sinonChai);
 suite("shortcutsConfiguration Webview Controller", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: ShortcutsConfigurationWebviewController;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let updateConfigurationStub: sinon.SinonStub;
     let quickQueriesSetting: unknown;
     let webviewShortcutsSetting: Record<string, string>;
@@ -80,16 +78,11 @@ suite("shortcutsConfiguration Webview Controller", () => {
         } as unknown as vscode.WorkspaceConfiguration);
 
         executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
-        controller = new ShortcutsConfigurationWebviewController(
-            {
-                extensionUri: vscode.Uri.parse("file:///extension"),
-                extensionPath: "extension",
-                globalStorageUri: vscode.Uri.file("globalStorage"),
-            } as vscode.ExtensionContext,
-            vscodeWrapper,
-        );
+        controller = new ShortcutsConfigurationWebviewController({
+            extensionUri: vscode.Uri.parse("file:///extension"),
+            extensionPath: "extension",
+            globalStorageUri: vscode.Uri.file("globalStorage"),
+        } as vscode.ExtensionContext);
     });
 
     teardown(() => {
@@ -108,6 +101,8 @@ suite("shortcutsConfiguration Webview Controller", () => {
             ) => Promise<SaveShortcutsConfigurationResult>;
             openQuickQueryKeybinding: (commandId: string) => Promise<void>;
             openQuickQueryKeybindings: () => Promise<void>;
+            openKeymapCommandKeybinding: (commandId: string) => Promise<void>;
+            openKeymapCommandKeybindings: () => Promise<void>;
         };
     }
 
@@ -216,6 +211,39 @@ suite("shortcutsConfiguration Webview Controller", () => {
         expect(executeCommandStub).to.have.been.calledWith(
             "workbench.action.openGlobalKeybindings",
             "mssql.quickQueries.run",
+        );
+    });
+
+    test("openKeymapCommandKeybinding opens Keyboard Shortcuts filtered to the command", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openKeymapCommandKeybinding("mssql.runQuery");
+
+        expect(executeCommandStub).to.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            "@command:mssql.runQuery",
+        );
+    });
+
+    test("openKeymapCommandKeybinding ignores non-configurable commands", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openKeymapCommandKeybinding("workbench.action.closeActiveEditor");
+
+        expect(executeCommandStub).to.not.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            sinon.match.string,
+        );
+    });
+
+    test("openKeymapCommandKeybindings opens Keyboard Shortcuts filtered to MSSQL commands", async () => {
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.openKeymapCommandKeybindings();
+
+        expect(executeCommandStub).to.have.been.calledWith(
+            "workbench.action.openGlobalKeybindings",
+            "mssql",
         );
     });
 
