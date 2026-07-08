@@ -159,6 +159,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         private _objectExplorerProvider: ObjectExplorerProvider,
         connectionToEdit?: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
+        private _openAsNewDraft?: boolean,
     ) {
         super(
             context,
@@ -199,7 +200,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this._fabricBrowseProvider = new FabricBrowseProvider(host);
 
         this.registerRpcHandlers();
-        void this.initializeDialog(connectionToEdit, initialConnectionGroup)
+        void this.initializeDialog(connectionToEdit, initialConnectionGroup, this._openAsNewDraft)
             .then(() => {
                 this.updateState();
                 this.initialized.resolve();
@@ -224,6 +225,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async initializeDialog(
         connectionToEdit: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
+        openAsNewDraft?: boolean,
     ): Promise<void> {
         const useVscodeAccounts = previewService.isFeatureEnabled(
             PreviewFeature.UseVscodeAccountsForEntraMFA,
@@ -290,6 +292,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (connectionToEdit) {
             try {
                 await this.loadConnectionToEdit(connectionToEdit);
+                if (openAsNewDraft) {
+                    this._connectionBeingEdited = undefined;
+                    this.state.isEditingConnection = false;
+                    this.state.editingConnectionDisplayName = undefined;
+                }
             } catch (err) {
                 this.loadEmptyConnection();
                 void vscode.window.showErrorMessage(getErrorMessage(err));
