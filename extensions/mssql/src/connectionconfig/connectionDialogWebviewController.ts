@@ -101,6 +101,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     public static mainOptions: readonly (keyof IConnectionDialogProfile)[] = [
         "server",
+        "port",
         "trustServerCertificate",
         "authenticationType",
         "user",
@@ -1441,7 +1442,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return undefined;
         }
 
+        this.combineServerAndPort(cleanedConnection);
+
         return cleanedConnection;
+    }
+
+    private combineServerAndPort(connection: IConnectionDialogProfile): void {
+        if (connection.port !== undefined) {
+            if (connection.server && !connection.server.includes(",")) {
+                connection.server = `${connection.server},${connection.port}`;
+            }
+            connection.port = undefined;
+        }
     }
 
     private async testConnectionStep(
@@ -1910,6 +1922,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.logger.debug(
                 "Connection string connection found in Connection Dialog initialization; should have been converted.",
             );
+        }
+
+        // The server is serialized to config in "server,port" form; split the port into its own
+        // field so it can be shown in the dedicated port input next to the server input.
+        if (connection.server?.includes(",")) {
+            const commaIndex = connection.server.indexOf(",");
+            const portString = connection.server.substring(commaIndex + 1).trim();
+            const parsedPort = Number(portString);
+
+            if (portString !== "" && !isNaN(parsedPort)) {
+                connection.server = connection.server.substring(0, commaIndex).trim();
+                connection.port = parsedPort;
+            }
         }
 
         return connection;
