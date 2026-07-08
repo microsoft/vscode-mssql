@@ -30,6 +30,7 @@ import {
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
+    QsGetPlanStateRequest,
     QsGetRowsRequest,
     QsGridStyle,
     QsOpenCellDocumentRequest,
@@ -41,6 +42,7 @@ import {
     QsReconnectRequest,
     QsRestoreEditorFocusNotification,
     QsRunStartedNotification,
+    QsSaveExecutionPlanRequest,
     QsSaveResultRequest,
     QsSetActualPlanRequest,
     QsSetDatabaseRequest,
@@ -48,6 +50,8 @@ import {
     QsState,
     QsStateChangedNotification,
     QsShowCommandPaletteRequest,
+    QsShowPlanQueryRequest,
+    QsShowPlanXmlRequest,
     QsSyncAdoptRequest,
     QsSyncEditsRequest,
     QsSyncInitNotification,
@@ -71,6 +75,7 @@ import {
 } from "../sharedInterfaces/queryStudioLanguage";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { getSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
+import SqlDocumentService from "../controllers/sqlDocumentService";
 import { definitionContentProvider, openScriptedDefinition } from "./definitionContentProvider";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import {
@@ -80,7 +85,16 @@ import {
     QueryStudioLanguageService,
 } from "./queryStudioLanguageService";
 import { cellDocumentText, prettyPrintCellText } from "./cellDocument";
-import { openExecutionPlanWebview } from "../controllers/sharedExecutionPlanUtils";
+import {
+    createExecutionPlanGraphs,
+    openExecutionPlanWebview,
+    saveExecutionPlan,
+    showPlanXml,
+    showQuery,
+} from "../controllers/sharedExecutionPlanUtils";
+import { ExecutionPlanWebviewState } from "../sharedInterfaces/executionPlan";
+import { ExecutionPlanService } from "../services/executionPlanService";
+import { ApiStatus } from "../sharedInterfaces/webview";
 import { readGridStyle } from "./gridStyle";
 import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
 import { saveQueryStudioResult } from "./resultExport";
@@ -234,6 +248,43 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         // Initial sync payload once the webview is live.
         void this.sendNotification(QsSyncInitNotification.type, this.model.syncInit());
         this.queueStatePush();
+    }
+
+    private async executionPlanSeam(): Promise<
+        | {
+              context?: vscode.ExtensionContext;
+              executionPlanService: ExecutionPlanService;
+              sqlDocumentService: SqlDocumentService;
+          }
+        | undefined
+    > {
+        const seam = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
+            | {
+                  context?: vscode.ExtensionContext;
+                  executionPlanService?: ExecutionPlanService;
+                  sqlDocumentService?: SqlDocumentService;
+              }
+            | undefined;
+        if (!seam?.executionPlanService || !seam.sqlDocumentService) {
+            return undefined;
+        }
+        return {
+            ...(seam.context ? { context: seam.context } : {}),
+            executionPlanService: seam.executionPlanService,
+            sqlDocumentService: seam.sqlDocumentService,
+        };
+    }
+
+    private planXmlForResultSet(resultSetId: string): string | undefined {
+        const summary = this.model.executionHost
+            .resultsState()
+            .resultSets.find((set) => set.resultSetId === resultSetId);
+        if (!summary?.isPlanResult) {
+            return undefined;
+        }
+        const window = this.model.executionHost.getRows(resultSetId, 0, 1);
+        const value = window.values[0]?.[0];
+        return value === undefined || value === null ? undefined : cellDocumentText(value);
     }
 
     protected override _getHtmlTemplate(): string {
@@ -502,45 +553,84 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             },
         );
         this.onRequest(QsOpenPlanRequest.type, async ({ resultSetId }) => {
-            // QS-1: reuse the classic execution-plan viewer — fetch the
-            // canonical single-cell showplan XML and hand it to the existing
-            // webview (plan PARSING rides the same STS v1 service classic
-            // uses; this is viewer reuse, not a data-plane dependency).
+            // "Open in New Tab": reuse the classic execution-plan viewer.
             try {
-                const summary = this.model.executionHost
-                    .resultsState()
-                    .resultSets.find((set) => set.resultSetId === resultSetId);
-                if (!summary?.isPlanResult) {
+                const planXml = this.planXmlForResultSet(resultSetId);
+                if (!planXml) {
                     return { opened: false };
                 }
-                const window = this.model.executionHost.getRows(resultSetId, 0, 1);
-                const value = window.values[0]?.[0];
-                if (value === undefined || value === null) {
-                    return { opened: false };
-                }
-                const seam = (await vscode.commands.executeCommand(
-                    "mssql.getControllerForTests",
-                )) as
-                    | {
-                          context?: vscode.ExtensionContext;
-                          executionPlanService?: unknown;
-                          sqlDocumentService?: unknown;
-                      }
-                    | undefined;
-                if (!seam?.executionPlanService || !seam.sqlDocumentService) {
+                const seam = await this.executionPlanSeam();
+                if (!seam) {
                     return { opened: false };
                 }
                 openExecutionPlanWebview(
                     seam.context ?? this.extensionContext,
-                    seam.executionPlanService as never,
-                    seam.sqlDocumentService as never,
-                    cellDocumentText(value),
+                    seam.executionPlanService,
+                    seam.sqlDocumentService,
+                    planXml,
                     `${this.model.backingDocument?.uri.path.split("/").pop() ?? "Query Studio"} plan`,
                 );
                 return { opened: true };
             } catch {
                 return { opened: false };
             }
+        });
+        this.onRequest(QsGetPlanStateRequest.type, async ({ resultSetIds }) => {
+            try {
+                const xmlPlans = resultSetIds
+                    .map((id) => this.planXmlForResultSet(id))
+                    .filter((xml): xml is string => xml !== undefined);
+                if (xmlPlans.length === 0) {
+                    return { error: "No execution plan results are available yet." };
+                }
+                const seam = await this.executionPlanSeam();
+                if (!seam) {
+                    return { error: "Execution plan service is unavailable." };
+                }
+                const state: ExecutionPlanWebviewState = {
+                    executionPlanState: {
+                        loadState: ApiStatus.Loading,
+                        executionPlanGraphs: [],
+                        totalCost: 0,
+                    },
+                };
+                const result = await createExecutionPlanGraphs(
+                    state,
+                    seam.executionPlanService,
+                    xmlPlans,
+                    "QueryResults",
+                );
+                return { executionPlanState: result.executionPlanState };
+            } catch (error) {
+                return { error: error instanceof Error ? error.message : String(error) };
+            }
+        });
+        this.onRequest(QsSaveExecutionPlanRequest.type, async ({ sqlPlanContent }) => {
+            const state: ExecutionPlanWebviewState = {
+                executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
+            };
+            await saveExecutionPlan(state, { sqlPlanContent });
+        });
+        this.onRequest(QsShowPlanXmlRequest.type, async ({ sqlPlanContent }) => {
+            const state: ExecutionPlanWebviewState = {
+                executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
+            };
+            await showPlanXml(state, { sqlPlanContent });
+        });
+        this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
+            const seam = await this.executionPlanSeam();
+            if (!seam) {
+                return;
+            }
+            const state: ExecutionPlanWebviewState = {
+                executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
+            };
+            await showQuery(
+                state,
+                { query },
+                seam.sqlDocumentService,
+                this.model.backingDocument.uri.toString(),
+            );
         });
         this.onRequest(QsGetMessagesRequest.type, async (params) =>
             this.model.executionHost.getMessages(params?.afterIndex),

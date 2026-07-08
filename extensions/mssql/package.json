@@ -667,19 +667,14 @@
                     "group": "2_oe2_query@0"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.tablePreview",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canPreviewTable\\b/",
-                    "group": "2_oe2_query@1"
-                },
-                {
                     "command": "mssql.objectExplorerV2.selectTop",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSelectTop\\b/",
-                    "group": "2_oe2_query@2"
+                    "group": "2_oe2_query@1"
                 },
                 {
                     "submenu": "mssql.objectExplorerV2.generateScriptSubmenu",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canGenerateScript\\b/",
-                    "group": "2_oe2_query@3"
+                    "group": "2_oe2_query@2"
                 },
                 {
                     "command": "mssql.objectExplorerV2.filter",
@@ -1137,10 +1132,6 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.selectTop",
-                    "when": "false"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.tablePreview",
                     "when": "false"
                 },
                 {
@@ -2149,11 +2140,6 @@
             {
                 "command": "mssql.objectExplorerV2.selectTop",
                 "title": "Select Top 100",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.objectExplorerV2.tablePreview",
-                "title": "Preview Table Data",
                 "category": "MS SQL"
             },
             {
@@ -3833,14 +3819,6 @@
                     "default": true,
                     "description": "Ask before an Object Explorer v2 command creates a legacy (SQL Tools Service v1) connection for a feature handoff.",
                     "scope": "application"
-                },
-                "mssql.objectExplorer.v2.tablePreviewRowLimit": {
-                    "type": "number",
-                    "default": 1000,
-                    "minimum": 1,
-                    "maximum": 100000,
-                    "description": "Row limit for Object Explorer v2 table preview (SELECT TOP N).",
-                    "scope": "window"
                 },
                 "mssql.objectExplorer.v2.groupBySchema": {
                     "type": "boolean",

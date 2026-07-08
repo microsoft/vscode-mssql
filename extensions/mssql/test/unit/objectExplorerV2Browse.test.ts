@@ -461,7 +461,7 @@ suite("Object Explorer v2 browse (B18)", () => {
         const tables = await h.controller.children(folders[0]);
         expect(tables.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
         expect(tables[0].icon).to.equal("Table");
-        expect(tables[0].capabilities.canPreviewTable).to.equal(true);
+        expect(tables[0].capabilities.canSelectTop).to.equal(true);
 
         const views = await h.controller.children(folders[1]);
         expect(views.map((n) => n.label)).to.deep.equal(["dbo.OrdersView"]);

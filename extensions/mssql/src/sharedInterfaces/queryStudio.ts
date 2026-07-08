@@ -11,6 +11,7 @@
  */
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { ExecutionPlanState } from "./executionPlan";
 
 export const QS_SCHEMA_VERSION = 1;
 
@@ -332,6 +333,29 @@ export namespace QsOpenPlanRequest {
     export const type = new RequestType<{ resultSetId: string }, { opened: boolean }, void>(
         "qs/openPlan",
     );
+}
+/**
+ * Load plan-flagged result sets into the execution-plan graph state used by
+ * the existing plan renderer. Query Studio keeps this embedded in its own tab;
+ * QsOpenPlanRequest remains the "Open in New Tab" escape hatch.
+ */
+export namespace QsGetPlanStateRequest {
+    export const type = new RequestType<
+        { resultSetIds: string[] },
+        { executionPlanState?: ExecutionPlanState; error?: string },
+        void
+    >("qs/getPlanState");
+}
+export namespace QsSaveExecutionPlanRequest {
+    export const type = new RequestType<{ sqlPlanContent: string }, void, void>(
+        "qs/saveExecutionPlan",
+    );
+}
+export namespace QsShowPlanXmlRequest {
+    export const type = new RequestType<{ sqlPlanContent: string }, void, void>("qs/showPlanXml");
+}
+export namespace QsShowPlanQueryRequest {
+    export const type = new RequestType<{ query: string }, void, void>("qs/showPlanQuery");
 }
 export namespace QsGetMessagesRequest {
     export const type = new RequestType<

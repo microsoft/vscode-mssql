@@ -5,8 +5,8 @@
 
 /**
  * OE v2 native commands (oe_view_design §11): copy name / qualified name,
- * folder filter + clear, database object search, New Query, SELECT TOP and
- * table preview into Query Studio via mssql.queryStudio.newQueryFromContext.
+ * folder filter + clear, database object search, New Query, and SELECT TOP
+ * into Query Studio via mssql.queryStudio.newQueryFromContext.
  * Every operation is data-plane/metadata-native — no v1, no handoff here.
  * Generated SQL composes ONLY through sqlIdentifierFormatter and is never
  * logged (command diag events carry route + node kind, not text).
@@ -14,7 +14,6 @@
 
 import * as vscode from "vscode";
 import { diag } from "../../../diagnostics/diagnosticsCore";
-import { oeV2Settings } from "../settings";
 import { OeV2Node } from "../tree/oeV2Node";
 import { OeV2TreeController } from "../tree/oeV2TreeController";
 import { qualifiedName, selectTopSql } from "./sqlIdentifierFormatter";
@@ -140,25 +139,6 @@ export function registerOeV2NativeCommands(
                         node.schema,
                         node.objectName,
                         SCRIPT_SELECT_TOP_ROW_LIMIT,
-                    ),
-                    autoRun: true,
-                });
-            },
-        ),
-        vscode.commands.registerCommand(
-            "mssql.objectExplorerV2.tablePreview",
-            async (node?: OeV2Node) => {
-                if (!node?.connectionId || !node.schema || !node.objectName) {
-                    return;
-                }
-                emitCommand("tablePreview", "native", node);
-                await openQueryStudioFromContext({
-                    profileId: node.connectionId,
-                    ...(node.database ? { database: node.database } : {}),
-                    initialSql: selectTopSql(
-                        node.schema,
-                        node.objectName,
-                        oeV2Settings().tablePreviewRowLimit,
                     ),
                     autoRun: true,
                 });

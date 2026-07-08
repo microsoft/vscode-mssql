@@ -23,7 +23,6 @@ const FLAG_ORDER: readonly (keyof OeV2NodeCapabilities & string)[] = [
     "canCopyQualifiedName",
     "canOpenQuery",
     "canSelectTop",
-    "canPreviewTable",
     "canGenerateScript",
 ];
 

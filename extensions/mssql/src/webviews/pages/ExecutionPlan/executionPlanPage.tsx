@@ -6,7 +6,7 @@
 import { useContext, useEffect } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ExecutionPlanGraph } from "./executionPlanGraph";
+import { ExecutionPlanGraphView } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
@@ -40,26 +40,13 @@ interface ExecutionPlanPageProps {
     autoLoad?: boolean;
 }
 
-export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) => {
-    const classes = useStyles();
-    const context = useContext(ExecutionPlanContext);
-    const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
-        (s) => s.executionPlanState,
-    );
-    const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
-    useEffect(() => {
-        if (
-            autoLoad &&
-            context &&
-            executionPlanState &&
-            // checks if execution plans have already been gotten
-            executionPlanState.executionPlanGraphs &&
-            !executionPlanState.executionPlanGraphs.length
-        ) {
-            context.getExecutionPlan();
-        }
-    }, [autoLoad, executionPlanState]);
+interface ExecutionPlanPageContentProps {
+    executionPlanState?: ExecutionPlanState;
+}
 
+export const ExecutionPlanPageContent = ({ executionPlanState }: ExecutionPlanPageContentProps) => {
+    const classes = useStyles();
+    const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
     const renderMainContent = () => {
         switch (loadState) {
             case ApiStatus.Loading:
@@ -73,8 +60,12 @@ export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) =
                 );
             case ApiStatus.Loaded:
                 const executionPlanGraphs = executionPlanState?.executionPlanGraphs ?? [];
-                return executionPlanGraphs?.map((_: any, index: number) => (
-                    <ExecutionPlanGraph key={index} graphIndex={index} />
+                return executionPlanGraphs?.map((graph, index: number) => (
+                    <ExecutionPlanGraphView
+                        key={`${index}:${graph.root.id}:${graph.graphFile.graphFileContent.length}`}
+                        graphIndex={index}
+                        executionPlanState={executionPlanState!}
+                    />
                 ));
             case ApiStatus.Error:
                 return (
@@ -87,4 +78,25 @@ export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) =
     };
 
     return <div className={classes.outerDiv}>{renderMainContent()}</div>;
+};
+
+export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) => {
+    const context = useContext(ExecutionPlanContext);
+    const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
+        (s) => s.executionPlanState,
+    );
+    useEffect(() => {
+        if (
+            autoLoad &&
+            context &&
+            executionPlanState &&
+            // checks if execution plans have already been gotten
+            executionPlanState.executionPlanGraphs &&
+            !executionPlanState.executionPlanGraphs.length
+        ) {
+            context.getExecutionPlan();
+        }
+    }, [autoLoad, context, executionPlanState]);
+
+    return <ExecutionPlanPageContent executionPlanState={executionPlanState} />;
 };

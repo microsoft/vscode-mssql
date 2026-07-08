@@ -66,7 +66,6 @@ export interface OeV2NodeCapabilities {
     readonly canCopyQualifiedName?: boolean;
     readonly canOpenQuery?: boolean;
     readonly canSelectTop?: boolean;
-    readonly canPreviewTable?: boolean;
     readonly canGenerateScript?: boolean;
     /** Legacy features reachable via explicit handoff (B20). */
     readonly legacyHandoff?: readonly string[];

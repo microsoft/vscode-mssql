@@ -91,12 +91,28 @@ interface ExecutionPlanGraphProps {
     graphIndex: number;
 }
 
+interface ExecutionPlanGraphViewProps extends ExecutionPlanGraphProps {
+    executionPlanState: ExecutionPlanState;
+}
+
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
-    const classes = useStyles();
-    const { themeKind } = useVscodeWebview();
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );
+    if (!executionPlanState) {
+        return null;
+    }
+    return (
+        <ExecutionPlanGraphView graphIndex={graphIndex} executionPlanState={executionPlanState} />
+    );
+};
+
+export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
+    graphIndex,
+    executionPlanState,
+}) => {
+    const classes = useStyles();
+    const { themeKind } = useVscodeWebview();
     const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");

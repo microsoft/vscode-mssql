@@ -224,6 +224,12 @@
     overflow: hidden;
 }
 
+.qs-query-plan-view {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+
 .qs-grid-block {
     margin-bottom: 8px;
     position: relative;

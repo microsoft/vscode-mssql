@@ -373,9 +373,7 @@ export function objectNode(
             canCopyName: true,
             canCopyQualifiedName: true,
             canGenerateScript: true,
-            ...(isTable || objectKind === "view"
-                ? { canSelectTop: true, canPreviewTable: isTable }
-                : {}),
+            ...(isTable || objectKind === "view" ? { canSelectTop: true } : {}),
         },
         icon: OBJECT_ICONS[objectKind],
     };

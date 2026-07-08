@@ -19,12 +19,15 @@ import type * as monacoNs from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
+import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 import {
     QsCancelRequest,
     QsConnectRequest,
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
+    QsGetPlanStateRequest,
     QsMessageRow,
     QsInlineCompletionAcceptedRequest,
     QsInlineCompletionRequest,
@@ -75,10 +78,17 @@ import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/t
 import { MessagesView, ResultGridBlock } from "./results";
 import { QsResultsGridProvider, qsGridRowHeight } from "./resultsGrid";
 import { QueryStudioResultsTextView } from "./resultsTextView";
+import { QueryStudioExecutionPlanView } from "./queryPlanTab";
 import { monacoApi } from "./monacoSetup";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
+type QueryStudioTab = "results" | "messages" | "queryPlan";
+
+interface QueryPlanTabState {
+    readonly key: string;
+    readonly executionPlanState: ExecutionPlanState;
+}
 
 let editGroupCounter = 0;
 
@@ -143,7 +153,10 @@ export function QueryStudioApp() {
     // rows never ride notifications). The coarse state's summary rowCount is
     // debounced (≤10/s); the max of the two keeps grids growing smoothly.
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
-    const [activeTab, setActiveTab] = useState<"results" | "messages">("results");
+    const [activeTab, setActiveTab] = useState<QueryStudioTab>("results");
+    const [queryPlanTabState, setQueryPlanTabState] = useState<QueryPlanTabState | undefined>(
+        undefined,
+    );
     const [resultsCollapsed, setResultsCollapsed] = useState(false);
     const [resultsPaneMaximized, setResultsPaneMaximized] = useState(false);
     const [resultsHeightPct, setResultsHeightPct] = useState(45);
@@ -177,17 +190,15 @@ export function QueryStudioApp() {
     const dbWrapRef = useRef<HTMLSpanElement | null>(null);
     const dbListRequestRef = useRef(0);
     const pendingEditorFocusRestoreRef = useRef<EditorFocusBookmark | undefined>(undefined);
-    // QS-1 auto-open: runs are always webview-initiated, so plan mode is
+    // Plan-tab focus: runs are always webview-initiated, so plan mode is
     // tracked locally at the point the run is triggered. `planRunArmedRef`
     // is set by the Estimated Plan button (or Execute while the Actual Plan
     // toggle is on) and consumed once when the run starts; terminal states
-    // then open each plan-flagged result set exactly once.
+    // then focus the embedded Query Plan tab exactly once.
     const actualPlanEnabledRef = useRef(false);
     const planRunArmedRef = useRef(false);
     const startedRunRef = useRef<number | undefined>(undefined);
-    const planAutoOpenRef = useRef<{ runId?: number; opened: Set<string> }>({
-        opened: new Set(),
-    });
+    const planTabFocusRef = useRef<{ runId?: number; focused: boolean }>({ focused: false });
 
     const captureEditorFocusBookmark = useCallback(() => {
         const editor = editorRef.current;
@@ -229,14 +240,15 @@ export function QueryStudioApp() {
             setResultsCollapsed(false);
             setMaximizedGridId(undefined);
             setMessages([]);
+            setQueryPlanTabState(undefined);
             if (fetchMessageSnapshot) {
                 void rpc
                     .sendRequest(QsGetMessagesRequest.type, {})
                     .then((result) => setMessages(result.messages));
             }
-            planAutoOpenRef.current = {
+            planTabFocusRef.current = {
                 ...(planRunArmedRef.current ? { runId } : {}),
-                opened: new Set(),
+                focused: false,
             };
             planRunArmedRef.current = false;
         },
@@ -578,25 +590,18 @@ export function QueryStudioApp() {
                 setActiveTab("messages");
             }
         }
-        // QS-1 auto-open: a plan-mode run that completed opens each of its
-        // plan-flagged result sets exactly once (dedupe by resultSetId so
-        // later state pushes/re-renders never re-open).
+        // Plan-mode runs land on the embedded Query Plan tab once the
+        // plan-flagged result sets exist. The tabbar exposes Open in New Tab
+        // for the previous external viewer behavior.
         if (
             (executionKind === "succeeded" || executionKind === "completedWithErrors") &&
             runId !== undefined &&
-            planAutoOpenRef.current.runId === runId
+            planTabFocusRef.current.runId === runId &&
+            !planTabFocusRef.current.focused &&
+            (state?.results.planCount ?? 0) > 0
         ) {
-            for (const summary of state?.results.resultSets ?? []) {
-                if (
-                    summary.isPlanResult === true &&
-                    !planAutoOpenRef.current.opened.has(summary.resultSetId)
-                ) {
-                    planAutoOpenRef.current.opened.add(summary.resultSetId);
-                    void rpc.sendRequest(QsOpenPlanRequest.type, {
-                        resultSetId: summary.resultSetId,
-                    });
-                }
-            }
+            planTabFocusRef.current.focused = true;
+            setActiveTab("queryPlan");
         }
     }, [executionKind, runId, state, rpc, resetRunViewForStart]);
     const messageCount = state?.results.messageCount ?? 0;
@@ -1209,17 +1214,37 @@ export function QueryStudioApp() {
     // grids split the measured pane: exact content heights when everything
     // fits, otherwise fair shares with a 12-row minimum and pane scrolling
     // only once even the minimums overflow (queryStudioResultsLayout).
-    const resultSetSummaries = results?.resultSets ?? [];
+    const allResultSetSummaries = results?.resultSets ?? [];
+    const effectiveRowCount = (summary: (typeof allResultSetSummaries)[number]) =>
+        Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0);
+    const resultSetSummaries = allResultSetSummaries.filter(
+        (summary) => summary.isPlanResult !== true,
+    );
+    const planResultSetSummaries = allResultSetSummaries.filter(
+        (summary) => summary.isPlanResult === true,
+    );
+    const dataTotalRows = resultSetSummaries.reduce(
+        (total, summary) => total + effectiveRowCount(summary),
+        0,
+    );
+    const planResultSetIdsKey = planResultSetSummaries
+        .map((summary) => summary.resultSetId)
+        .join("|");
+    const planResultSetKey = `${runId ?? "idle"}:${planResultSetIdsKey}`;
+    const planRowsAvailable =
+        planResultSetSummaries.length > 0 &&
+        planResultSetSummaries.every(
+            (summary) => effectiveRowCount(summary) > 0 || summary.complete,
+        );
     const maximizedGrid = resultSetSummaries.some((s) => s.resultSetId === maximizedGridId)
         ? maximizedGridId
         : undefined;
     const singleGrid = resultSetSummaries.length === 1;
     const resultsFillActive =
-        activeTab === "results" &&
-        resultSetSummaries.length > 0 &&
-        (singleGrid || maximizedGrid !== undefined);
-    const effectiveRowCount = (summary: (typeof resultSetSummaries)[number]) =>
-        Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0);
+        (activeTab === "results" &&
+            resultSetSummaries.length > 0 &&
+            (singleGrid || maximizedGrid !== undefined)) ||
+        activeTab === "queryPlan";
     const resultsLayout = computeResultsLayout(
         resultSetSummaries.map(effectiveRowCount),
         // clientHeight includes the body's 4px vertical paddings.
@@ -1243,6 +1268,74 @@ export function QueryStudioApp() {
         observer.observe(el);
         return () => observer.disconnect();
     }, [showResults]);
+    useEffect(() => {
+        if (planResultSetSummaries.length === 0) {
+            setQueryPlanTabState(undefined);
+            return;
+        }
+        const key = planResultSetKey;
+        const loadingState: QueryPlanTabState = {
+            key,
+            executionPlanState: {
+                loadState: ApiStatus.Loading,
+                executionPlanGraphs: [],
+                totalCost: 0,
+            },
+        };
+        if (!planRowsAvailable) {
+            setQueryPlanTabState((current) => (current?.key === key ? current : loadingState));
+            return;
+        }
+        const resultSetIds = planResultSetIdsKey.length > 0 ? planResultSetIdsKey.split("|") : [];
+        setQueryPlanTabState((current) => (current?.key === key ? current : loadingState));
+        let canceled = false;
+        void rpc
+            .sendRequest(QsGetPlanStateRequest.type, { resultSetIds })
+            .then((result) => {
+                if (canceled) {
+                    return;
+                }
+                setQueryPlanTabState({
+                    key,
+                    executionPlanState:
+                        result.executionPlanState ??
+                        ({
+                            loadState: ApiStatus.Error,
+                            executionPlanGraphs: [],
+                            totalCost: 0,
+                            errorMessage: result.error ?? "Execution plan could not be loaded.",
+                        } satisfies ExecutionPlanState),
+                });
+            })
+            .catch((error) => {
+                if (canceled) {
+                    return;
+                }
+                setQueryPlanTabState({
+                    key,
+                    executionPlanState: {
+                        loadState: ApiStatus.Error,
+                        executionPlanGraphs: [],
+                        totalCost: 0,
+                        errorMessage: error instanceof Error ? error.message : String(error),
+                    },
+                });
+            });
+        return () => {
+            canceled = true;
+        };
+    }, [
+        planRowsAvailable,
+        planResultSetIdsKey,
+        planResultSetKey,
+        planResultSetSummaries.length,
+        rpc,
+    ]);
+    useEffect(() => {
+        if (activeTab === "queryPlan" && planResultSetSummaries.length === 0) {
+            setActiveTab(resultSetSummaries.length > 0 ? "results" : "messages");
+        }
+    }, [activeTab, planResultSetSummaries.length, resultSetSummaries.length]);
 
     // Live elapsed ticker (SSMS parity): while executing, derive elapsed
     // locally from startedEpochMs so the clock counts even when no row or
@@ -1404,9 +1497,7 @@ export function QueryStudioApp() {
                                 className={`qs-tab ${activeTab === "results" ? "active" : ""}`}
                                 onClick={() => setActiveTab("results")}>
                                 Results
-                                {results.totalRows > 0
-                                    ? ` (${results.totalRows.toLocaleString()})`
-                                    : ""}
+                                {dataTotalRows > 0 ? ` (${dataTotalRows.toLocaleString()})` : ""}
                             </button>
                             <button
                                 role="tab"
@@ -1416,8 +1507,20 @@ export function QueryStudioApp() {
                                 Messages
                                 {errorCount > 0 ? ` (${errorCount} ⚠)` : ""}
                             </button>
+                            {planResultSetSummaries.length > 0 ? (
+                                <button
+                                    role="tab"
+                                    aria-selected={activeTab === "queryPlan"}
+                                    className={`qs-tab ${activeTab === "queryPlan" ? "active" : ""}`}
+                                    onClick={() => setActiveTab("queryPlan")}>
+                                    Query Plan
+                                    {planResultSetSummaries.length > 1
+                                        ? ` (${planResultSetSummaries.length})`
+                                        : ""}
+                                </button>
+                            ) : null}
                             <span className="qs-spacer" />
-                            {activeTab === "results" && results.resultSets.length > 0 ? (
+                            {activeTab === "results" && resultSetSummaries.length > 0 ? (
                                 <button
                                     className="qs-tabbar-btn"
                                     title={
@@ -1434,6 +1537,22 @@ export function QueryStudioApp() {
                                     <span
                                         className={`codicon codicon-${resultViewMode === "text" ? "table" : "file-text"}`}
                                     />
+                                </button>
+                            ) : null}
+                            {activeTab === "queryPlan" && planResultSetSummaries.length > 0 ? (
+                                <button
+                                    className="qs-tabbar-btn"
+                                    title="Open in New Tab"
+                                    aria-label="Open query plan in new tab"
+                                    onClick={() => {
+                                        const resultSetId = planResultSetIdsKey.split("|")[0];
+                                        if (resultSetId) {
+                                            void rpc.sendRequest(QsOpenPlanRequest.type, {
+                                                resultSetId,
+                                            });
+                                        }
+                                    }}>
+                                    <span className="codicon codicon-link-external" />
                                 </button>
                             ) : null}
                             <button
@@ -1517,6 +1636,11 @@ export function QueryStudioApp() {
                                         No result sets returned.
                                     </div>
                                 )
+                            ) : activeTab === "queryPlan" ? (
+                                <QueryStudioExecutionPlanView
+                                    rpc={rpc}
+                                    executionPlanState={queryPlanTabState?.executionPlanState}
+                                />
                             ) : (
                                 <MessagesView rpc={rpc} messages={messages} />
                             )}
@@ -1532,7 +1656,7 @@ export function QueryStudioApp() {
                 </span>
                 <span className="qs-spacer" />
                 {results?.present ? (
-                    <span className="qs-status-seg">{results.totalRows.toLocaleString()} rows</span>
+                    <span className="qs-status-seg">{dataTotalRows.toLocaleString()} rows</span>
                 ) : null}
                 {elapsed !== undefined ? (
                     <span className="qs-status-seg">{formatElapsed(elapsed)}</span>
