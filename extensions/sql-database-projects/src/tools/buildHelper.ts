@@ -226,14 +226,17 @@ export class BuildHelper {
                 let cmd: string;
                 let args: string[];
                 if (process.platform === "win32") {
+                    // Escape single quotes for PowerShell single-quoted strings ('' is the escape sequence)
+                    const psNugetPath = nugetPath.replace(/'/g, "''");
+                    const psExtractPath = extractFolderPath.replace(/'/g, "''");
                     cmd = "powershell.exe";
                     args = [
                         "-NoProfile",
                         "-NonInteractive",
                         "-Command",
                         `Add-Type -AssemblyName System.IO.Compression.FileSystem; ` +
-                            `if (Test-Path '${extractFolderPath}') { Remove-Item '${extractFolderPath}' -Recurse -Force }; ` +
-                            `[System.IO.Compression.ZipFile]::ExtractToDirectory('${nugetPath}', '${extractFolderPath}')`,
+                            `if (Test-Path -LiteralPath '${psExtractPath}') { Remove-Item -LiteralPath '${psExtractPath}' -Recurse -Force }; ` +
+                            `[System.IO.Compression.ZipFile]::ExtractToDirectory('${psNugetPath}', '${psExtractPath}')`,
                     ];
                 } else {
                     cmd = "unzip";
@@ -264,7 +267,7 @@ export class BuildHelper {
                     if (isNotFound) {
                         reject(
                             new Error(
-                                `'${cmd}' not found. On Linux, install it with: sudo apt-get install unzip`,
+                                `'${cmd}' not found in PATH. Please install 'unzip' (or ensure it is available on PATH) and retry.`,
                             ),
                         );
                     } else {
