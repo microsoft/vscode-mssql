@@ -16,6 +16,9 @@ import MainController from "./controllers/mainController";
 import { cmdAddObjectExplorer } from "./constants/constants";
 import { getConnectionDisplayName } from "./models/connectionInfo";
 import { MatchScore } from "./models/utils";
+import { sendActionEvent, sendErrorEvent } from "./telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
+import { getErrorMessage } from "./utils/utils";
 
 enum Command {
     connect = "/connect",
@@ -51,26 +54,56 @@ export class MssqlProtocolHandler {
     public async handleUri(uri: vscode.Uri): Promise<void> {
         this._logger.info(`URI: ${uri.toString()}`);
 
-        switch (uri.path) {
-            // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
-            case Command.connect:
-                await this.handleConnectCommand(uri);
-                return;
+        try {
+            let handled = false;
+            switch (uri.path) {
+                // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
+                case Command.connect:
+                    await this.handleConnectCommand(uri);
+                    handled = true;
+                    break;
 
-            // Open the connection dialog, pre-filled with the provided parameters.
-            case Command.openConnectionDialog:
-                await this.handleOpenConnectionDialogCommand(uri);
-                return;
+                // Open the connection dialog, pre-filled with the provided parameters.
+                case Command.openConnectionDialog:
+                    await this.handleOpenConnectionDialogCommand(uri);
+                    handled = true;
+                    break;
 
-            // Default behavior for unknown URIs: open the connection dialog with no pre-filled parameters
-            default: {
-                this._logger.warn(
-                    `Unknown URI action '${uri.path}'; defaulting to ${Command.openConnectionDialog}`,
-                );
+                // Default behavior for unknown URIs: open the connection dialog with no pre-filled parameters
+                default: {
+                    this._logger.warn(
+                        `Unknown URI action '${uri.path}'; defaulting to ${Command.openConnectionDialog}`,
+                    );
 
-                this.openConnectionDialog(undefined);
-                return;
+                    this.openConnectionDialog(undefined);
+                    handled = false;
+                    break;
+                }
             }
+
+            if (handled) {
+                sendActionEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
+                    action: uri.path,
+                    source: new URLSearchParams(uri.query).get("source"),
+                });
+            } else {
+                throw new Error(`Unknown URI command: ${uri.toString()}`);
+            }
+        } catch (err) {
+            this._logger.error(`Error handling URI: ${getErrorMessage(err)}`);
+
+            sendErrorEvent(
+                TelemetryViews.ProtocolHandler,
+                TelemetryActions.Invoke,
+                err,
+                false, // includeErrorMessage
+                undefined, //errorCode
+                undefined, // errorType
+                {
+                    command: uri.path,
+                    source: new URLSearchParams(uri.query).get("source"),
+                },
+            );
         }
     }
 

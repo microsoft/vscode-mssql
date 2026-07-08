@@ -156,6 +156,7 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
+        "@microsoft/vscode-azureresources-api": "^3.1.1",
         "@xmldom/xmldom": "^0.9.10",
         "axios": "^1.16.0",
         "dockerode": "^4.0.9",
@@ -585,7 +586,7 @@
             ],
             "view/item/context": [
                 {
-                    "command": "mssql.openInMssqlExtension",
+                    "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "view == azureResourceGroups && viewItem =~ /\\btype=(Server|Database)\\b/",
                     "group": "1_MSSQL_primary@0"
                 },
@@ -933,6 +934,10 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.openInMssqlExtensionFromAzureResources",
+                    "when": "false"
+                },
                 {
                     "command": "mssql.viewBackgroundTaskLogs",
                     "when": "false"
@@ -1754,8 +1759,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.openInMssqlExtension",
-                "title": "%mssql.openInMssqlExtension%",
+                "command": "mssql.openInMssqlExtensionFromAzureResources",
+                "title": "%mssql.openInMssqlExtensionFromAzureResources%",
                 "category": "MS SQL"
             }
         ],
