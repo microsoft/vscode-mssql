@@ -20,7 +20,7 @@ import {
     QuickQueryExecutionMode,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../src/sharedInterfaces/webview";
-import { stubTelemetry, stubWebviewPanel } from "./utils";
+import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -83,6 +83,7 @@ suite("shortcutsConfiguration Webview Controller", () => {
             extensionPath: "extension",
             globalStorageUri: vscode.Uri.file("globalStorage"),
         } as vscode.ExtensionContext);
+        observeWebviewReady(controller);
     });
 
     teardown(() => {

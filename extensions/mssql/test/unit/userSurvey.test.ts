@@ -24,6 +24,7 @@ import {
 import {
     TestFeature,
     TestFeatureTwo,
+    observeWebviewReady,
     stubExtensionContext,
     stubPreviewService,
     stubTelemetry,
@@ -221,6 +222,7 @@ suite("UserSurvey Tests", () => {
         setup(() => {
             sandbox = sinon.createSandbox();
             controller = new UserSurveyWebviewController(context, mockState);
+            observeWebviewReady(controller);
         });
 
         teardown(() => {

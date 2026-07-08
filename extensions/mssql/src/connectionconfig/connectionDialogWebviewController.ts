@@ -1920,9 +1920,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Azure helpers
 
     /**
-     * Loads VS Code Entra accounts and tenants for all accounts in the background
+     * Loads VS Code Entra accounts and tenants for all accounts in the background.
+     * Public for testing purposes only.
      */
-    private async loadVscodeEntraDataAsync(): Promise<void> {
+    public async loadVscodeEntraDataAsync(): Promise<void> {
         this._entraDataLoaded = new Deferred<void>();
         this._cachedEntraAccounts = undefined;
         this._cachedEntraTenants.clear();

@@ -728,7 +728,7 @@ suite("ConnectionManager Tests", () => {
             };
         }
 
-        setup(() => {
+        setup(async () => {
             stubPreviewService(sandbox, {
                 [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
             });
@@ -750,6 +750,7 @@ suite("ConnectionManager Tests", () => {
             sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
             sendNotificationStub.reset();
             connectionManager["client"] = mockServiceClient;
+            await connectionManager.initialized;
         });
 
         test("happy path: sends TokenRefreshedNotification with token and expiresOn", async () => {
@@ -809,7 +810,7 @@ suite("ConnectionManager Tests", () => {
             } as IConnectionInfo;
         }
 
-        setup(() => {
+        setup(async () => {
             // Test the MSAL (non-VS-Code-accounts) path
             stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
             connectionManager = new ConnectionManager(
@@ -823,6 +824,7 @@ suite("ConnectionManager Tests", () => {
                 undefined,
                 undefined,
             );
+            await connectionManager.initialized;
 
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(MsalAzureController);
@@ -887,11 +889,18 @@ suite("ConnectionManager Tests", () => {
         let handlePasswordBasedCredentialsStub: sinon.SinonStub;
         let refreshEntraTokenIfNeededStub: sinon.SinonStub;
 
-        setup(() => {
+        setup(async () => {
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(AzureController);
+
+            const initializedDeferred = new Deferred<void>();
+            initializedDeferred.resolve();
+            Object.defineProperty(mockConnectionStore, "initialized", {
+                get: () => initializedDeferred,
+            });
+            mockConnectionStore.readAllConnections.resolves([]);
 
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
@@ -901,6 +910,9 @@ suite("ConnectionManager Tests", () => {
                 mockStatusView,
                 mockPrompter,
                 mockLogger,
+                undefined, // serviceClient
+                mockConnectionStore,
+                mockCredentialStore,
             );
 
             testConnectionManager.connectionStore = mockConnectionStore;
@@ -916,6 +928,7 @@ suite("ConnectionManager Tests", () => {
             refreshEntraTokenIfNeededStub = sandbox
                 .stub(testConnectionManager, "refreshEntraTokenIfNeeded")
                 .resolves();
+            await testConnectionManager.initialized;
         });
 
         teardown(() => {
@@ -1093,9 +1106,16 @@ suite("ConnectionManager Tests", () => {
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
         let testConnectionManager: ConnectionManager;
 
-        setup(() => {
+        setup(async () => {
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
+
+            const initializedDeferred = new Deferred<void>();
+            initializedDeferred.resolve();
+            Object.defineProperty(mockConnectionStore, "initialized", {
+                get: () => initializedDeferred,
+            });
+            mockConnectionStore.readAllConnections.resolves([]);
 
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
@@ -1104,10 +1124,14 @@ suite("ConnectionManager Tests", () => {
                 mockStatusView,
                 mockPrompter,
                 mockLogger,
+                undefined, // serviceClient
+                mockConnectionStore,
+                mockCredentialStore,
             );
 
             testConnectionManager.connectionStore = mockConnectionStore;
             (testConnectionManager as any)._connectionUI = mockConnectionUI;
+            await testConnectionManager.initialized;
         });
 
         teardown(() => {
