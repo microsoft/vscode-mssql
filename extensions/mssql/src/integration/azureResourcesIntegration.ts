@@ -7,31 +7,22 @@ import * as vscode from "vscode";
 import { getLogger } from "../models/logger";
 
 import { AzureResource } from "@microsoft/vscode-azureresources-api";
-import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
-import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { cmdOpenInMssqlExtensionFromAzureResources } from "../constants/constants";
+import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
+import { getCloudProviderSettings } from "../azure/providerSettings";
+import { extractFromResourceId } from "../connectionconfig/azureHelpers";
 import { ILogger } from "../sharedInterfaces/logger";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 
 /**
- * Lightweight placeholder returned synchronously by `getResourceItem`.
- * The OE session is created lazily the first time the user expands the node.
+ * Node from the Azure Resources tree
  */
-export interface SqlServerRootModel {
-    /** ARM resource ID — required by ResourceModelBase */
-    readonly id: string;
+interface AzureResourceNode {
     readonly resource: AzureResource;
-    /** Populated on first expansion */
-    connectionNode?: ConnectionNode;
-    /** Populated on first expansion */
-    sessionId?: string;
 }
 
-/** Union type covering both the server root and any OE child node */
-export type SqlBranchModel = SqlServerRootModel | TreeNodeInfo;
-
-export function isSqlServerRootModel(node: unknown): node is SqlServerRootModel {
-    return typeof node === "object" && node !== null && "resource" in node && !("nodePath" in node);
+function isAzureResourceNode(node: unknown): node is AzureResourceNode {
+    return typeof node === "object" && !!node && "resource" in node;
 }
 
 export class AzureResourcesExtensionIntegration {
@@ -44,26 +35,48 @@ export class AzureResourcesExtensionIntegration {
     public registerOpenInMssqlCommand(): vscode.Disposable {
         const openInMssqlExtensionCommand = vscode.commands.registerCommand(
             cmdOpenInMssqlExtensionFromAzureResources,
-            async (rawNode: unknown) => {
-                const maybeWrapper = rawNode as { unwrap?: () => unknown } | null | undefined;
-                const inner =
-                    maybeWrapper && typeof maybeWrapper.unwrap === "function"
-                        ? maybeWrapper.unwrap()
-                        : rawNode;
-
-                if (!isSqlServerRootModel(inner)) {
+            async (node: unknown) => {
+                if (!isAzureResourceNode(node)) {
                     return;
                 }
 
-                const serverName = `${inner.resource.name}.database.windows.net`;
-                const profileName = inner.resource.name;
+                const { resource } = node;
+                const { subscription } = resource;
+
+                const dnsSuffix =
+                    subscription.environment.sqlServerHostnameSuffix ??
+                    getCloudProviderSettings().settings.sqlResource?.dnsSuffix;
+
+                const serverResourceName =
+                    extractFromResourceId(resource.id, "servers") ?? resource.name;
+                const databaseName = extractFromResourceId(resource.id, "databases");
+
+                const serverName = `${serverResourceName}${dnsSuffix}`;
+                const profileName = databaseName
+                    ? `${serverResourceName}/${databaseName}`
+                    : serverResourceName;
+
+                const params = new URLSearchParams({
+                    server: serverName,
+                    authenticationType: AuthenticationType.AzureMFA,
+                    profileName,
+                    source: "vscode-azureresourcegroups",
+                });
+
+                if (databaseName) {
+                    params.set("database", databaseName);
+                }
+
+                // Connect using the same account and tenant the user was browsing with
+                if (subscription.account?.id) {
+                    params.set("accountId", subscription.account.id);
+                }
+                if (subscription.tenantId) {
+                    params.set("tenantId", subscription.tenantId);
+                }
 
                 const uri = vscode.Uri.parse(
-                    `${vscode.env.uriScheme}://ms-mssql.mssql/connect` +
-                        `?server=${encodeURIComponent(serverName)}` +
-                        `&authenticationType=AzureMFA` +
-                        `&profileName=${encodeURIComponent(profileName)}` +
-                        `&source=vscode-azureresourcegroups}`,
+                    `${vscode.env.uriScheme}://ms-mssql.mssql/connect?${params.toString()}`,
                 );
 
                 this._logger.info(

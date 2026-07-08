@@ -587,7 +587,7 @@
             "view/item/context": [
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
-                    "when": "view == azureResourceGroups && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
                     "group": "1_MSSQL_primary@0"
                 },
                 {
@@ -1114,7 +1114,7 @@
                     "when": "false"
                 },
                 {
-                    "command": "mssql.openInMssqlExtension",
+                    "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "false"
                 }
             ],
