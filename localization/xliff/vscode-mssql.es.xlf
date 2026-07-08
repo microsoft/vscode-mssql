@@ -11921,6 +11921,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">Open in GitHub Copilot Chat</source>
         <target state="translated">Abrir en GitHub Copilot Chat</target>
       </trans-unit>
+      <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
+        <source xml:lang="en">Open in MSSQL extension</source>
+        <target state="new">Open in MSSQL extension</target>
+      </trans-unit>
       <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
         <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
         <target state="translated">Abra la consulta en un editor de SQL y ejecútela inmediatamente.</target>
@@ -12396,6 +12400,14 @@ También puedes hacer clic en el botón 'Abrir en nueva pestaña' para ver los r
       <trans-unit id="mssql.walkthroughs.getStarted.description">
         <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
         <target state="translated">Los primeros pasos para conectarse y desarrollar con una base de datos SQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.order">
+        <source xml:lang="en">[Optional] A non-negative number used to sort this connection group in the Object Explorer sidebar. Groups with an 'order' value are displayed first, lowest to highest; remaining groups follow in alphabetical order.</source>
+        <target state="new">[Optional] A non-negative number used to sort this connection group in the Object Explorer sidebar. Groups with an 'order' value are displayed first, lowest to highest; remaining groups follow in alphabetical order.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.order">
+        <source xml:lang="en">[Optional] A non-negative number used to sort this connection in the Object Explorer sidebar. Connections with an 'order' value are displayed first, lowest to highest; remaining connections follow in alphabetical order.</source>
+        <target state="new">[Optional] A non-negative number used to sort this connection in the Object Explorer sidebar. Connections with an 'order' value are displayed first, lowest to highest; remaining connections follow in alphabetical order.</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.textIdentifier">
         <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>
