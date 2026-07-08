@@ -644,6 +644,7 @@ export function QueryStudioApp() {
                         syncedTextRef.current = resync.text;
                         flushEditsRef.current();
                     }
+                    restoreEditorFocusSoon();
                 });
             editor.onDidChangeModelContent((e) => {
                 if (suppressLocalRef.current) {
@@ -679,8 +680,31 @@ export function QueryStudioApp() {
                 flushEdits();
                 void rpc.sendRequest(QsSyncSaveRequest.type, undefined);
             });
+            editor.addCommand(
+                monacoKeyCode().Tab,
+                () => editor.trigger("keyboard", "acceptSelectedSuggestion", undefined),
+                "suggestWidgetVisible && textInputFocus",
+            );
+            editor.addCommand(
+                monacoKeyCode().Tab,
+                () => editor.trigger("keyboard", "tab", undefined),
+                "editorTextFocus && !suggestWidgetVisible",
+            );
+            editor.addCommand(
+                monacoKeyMod().Shift | monacoKeyCode().Tab,
+                () => editor.trigger("keyboard", "outdent", undefined),
+                "editorTextFocus",
+            );
+            restoreEditorFocusSoon();
         },
-        [queueLocalEdits, flushEdits, rpc, applyRemoteText, captureEditorFocusBookmark],
+        [
+            queueLocalEdits,
+            flushEdits,
+            rpc,
+            applyRemoteText,
+            captureEditorFocusBookmark,
+            restoreEditorFocusSoon,
+        ],
     );
 
     // --- commands -------------------------------------------------------------
@@ -1318,6 +1342,7 @@ export function QueryStudioApp() {
             </div>
             <div
                 className="qs-editor"
+                data-tabster='{"focusable": {"ignoreKeydown": {"Tab": true}}, "uncontrolled": {}}'
                 style={
                     showResults
                         ? {
@@ -1339,6 +1364,7 @@ export function QueryStudioApp() {
                         scrollBeyondLastLine: false,
                         inlineSuggest: { enabled: true },
                         snippetSuggestions: "bottom",
+                        tabFocusMode: false,
                     }}
                 />
             </div>
