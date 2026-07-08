@@ -37,6 +37,7 @@
     ],
     "activationEvents": [
         "onUri",
+        "onCustomEditor:mssql.queryStudio",
         "onCommand:mssql.loadCompletionExtension",
         "onNotebook:jupyter-notebook"
     ],

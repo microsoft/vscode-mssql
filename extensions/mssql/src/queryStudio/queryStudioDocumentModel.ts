@@ -25,7 +25,6 @@ import {
 import { TextSyncEngine } from "./textSync";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionHost } from "./executionHost";
-import { isQueryStudioScratchUri } from "./queryStudioScratchFiles";
 
 export interface ModelTextEvents {
     onRemote(remote: QsSyncRemote): void;
@@ -79,7 +78,6 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         private document: vscode.TextDocument,
         spillRoot: string,
         private readonly onLastDispose?: (model: QueryStudioDocumentModel) => void,
-        private readonly scratchRoot?: vscode.Uri,
     ) {
         this.uriKey = document.uri.toString();
         this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this.uriKey);
@@ -298,10 +296,6 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     }
 
     async save(): Promise<void> {
-        if (this.scratchRoot && isQueryStudioScratchUri(this.document.uri, this.scratchRoot)) {
-            await vscode.workspace.saveAs(this.document.uri);
-            return;
-        }
         await this.document.save();
     }
 

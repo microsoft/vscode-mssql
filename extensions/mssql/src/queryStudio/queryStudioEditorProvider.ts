@@ -19,13 +19,6 @@ import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
 import { LanguageServiceStatus } from "./queryStudioLanguageService";
-import {
-    cleanupQueryStudioScratchFile,
-    isQueryStudioScratchUri,
-    openQueryStudioScratchDocument,
-    queryStudioScratchDisplayTitle,
-    queryStudioScratchRoot,
-} from "./queryStudioScratchFiles";
 import { QueryStudioReplayController } from "./replay/queryStudioReplayController";
 
 export const QUERY_STUDIO_VIEW_TYPE = "mssql.queryStudio";
@@ -74,6 +67,19 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
     ): Promise<void> {
         Perf.marker("mssql.queryStudio.open.begin", "begin");
         const uriKey = document.uri.toString();
+        diag.emit({
+            feature: "queryStudio",
+            kind: "event",
+            type: "queryStudio.open.resolve",
+            status: "ok",
+            fields: {
+                uriScheme: { raw: document.uri.scheme, cls: "diagnostic.metadata" },
+                languageId: { raw: document.languageId, cls: "diagnostic.metadata" },
+                isUntitled: { raw: document.isUntitled, cls: "diagnostic.metadata" },
+                isDirty: { raw: document.isDirty, cls: "diagnostic.metadata" },
+                chars: { raw: document.getText().length, cls: "diagnostic.metadata" },
+            },
+        });
 
         let model = this.models.get(uriKey);
         if (!model) {
@@ -82,24 +88,15 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
                 "querystudio-spill",
                 Buffer.from(uriKey).toString("base64url").slice(0, 32),
             );
-            model = new QueryStudioDocumentModel(
-                document,
-                spillRoot,
-                (m) => {
-                    this.models.delete(m.uriKey);
-                    liveModels.delete(m.uriKey);
-                },
-                queryStudioScratchRoot(this.context.globalStorageUri),
-            );
+            model = new QueryStudioDocumentModel(document, spillRoot, (m) => {
+                this.models.delete(m.uriKey);
+                liveModels.delete(m.uriKey);
+            });
             this.models.set(uriKey, model);
             liveModels.set(uriKey, model);
         } else if (model.backingDocument !== document) {
             // Re-resolve (Save As / revert): rebind-safe per doc 04 §7.2.
             model.rebind(document);
-        }
-        const scratchRoot = queryStudioScratchRoot(this.context.globalStorageUri);
-        if (isQueryStudioScratchUri(document.uri, scratchRoot)) {
-            panel.title = queryStudioScratchDisplayTitle(document.getText());
         }
         model.panelCount++;
 
@@ -228,12 +225,10 @@ export function registerQueryStudio(context: vscode.ExtensionContext): void {
 function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     registerQueryStudioPerfProbe(context);
     registerQueryStudioActiveTextEditorRedirect(context);
-    registerQueryStudioScratchCleanup(context);
     // mssql-def: virtual documents for scripted go-to-definition (LS-4);
     // registered once with the QS surface, shared by every controller.
     registerDefinitionContentProvider(context);
     const provider = new QueryStudioEditorProvider(context);
-    const scratchRoot = queryStudioScratchRoot(context.globalStorageUri);
     context.subscriptions.push(
         vscode.window.registerCustomEditorProvider(QUERY_STUDIO_VIEW_TYPE, provider, {
             webviewOptions: { retainContextWhenHidden: true },
@@ -260,33 +255,10 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 autoRun?: boolean;
                 source?: string;
             }) => {
-                const initialSql = args?.initialSql ?? "";
-                const doc =
-                    initialSql.length > 0
-                        ? await openQueryStudioScratchDocument(
-                              scratchRoot,
-                              initialSql,
-                              args?.source,
-                          )
-                        : await vscode.workspace.openTextDocument({
-                              language: "sql",
-                              content: "",
-                          });
-                if (initialSql.length > 0) {
-                    diag.emit({
-                        feature: "queryStudio",
-                        kind: "event",
-                        type: "queryStudio.scratch.open",
-                        status: "ok",
-                        fields: {
-                            chars: { raw: initialSql.length, cls: "diagnostic.metadata" },
-                            source: {
-                                raw: args?.source ?? "unknown",
-                                cls: "diagnostic.metadata",
-                            },
-                        },
-                    });
-                }
+                const doc = await vscode.workspace.openTextDocument({
+                    language: "sql",
+                    content: args?.initialSql ?? "",
+                });
                 if (args?.profileId) {
                     pendingOpenContexts.set(doc.uri.toString(), {
                         profileId: args.profileId,
@@ -372,28 +344,6 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
             });
         }),
         { dispose: () => replayController?.dispose() },
-    );
-}
-
-function registerQueryStudioScratchCleanup(context: vscode.ExtensionContext): void {
-    const scratchRoot = queryStudioScratchRoot(context.globalStorageUri);
-    context.subscriptions.push(
-        vscode.workspace.onDidCloseTextDocument((document) => {
-            void cleanupQueryStudioScratchFile(document.uri, scratchRoot).then((result) => {
-                if (result === "skipped") {
-                    return;
-                }
-                diag.emit({
-                    feature: "queryStudio",
-                    kind: "event",
-                    type: "queryStudio.scratch.cleanup",
-                    status: result === "deleted" ? "ok" : "info",
-                    fields: {
-                        result: { raw: result, cls: "diagnostic.metadata" },
-                    },
-                });
-            });
-        }),
     );
 }
 
