@@ -13,7 +13,10 @@ import { Token, TokenKind, isTrivia, tokenIndexAt } from "./lexer";
 import { ClauseKind, StatementSketch } from "./sketch";
 
 export type CompletionContext =
-    | { readonly kind: "none"; readonly reason: "comment" | "string" | "sqlcmd" }
+    | {
+          readonly kind: "none";
+          readonly reason: "comment" | "string" | "sqlcmd" | "declarationSymbol";
+      }
     | { readonly kind: "statementStart"; readonly prefix: string }
     | {
           readonly kind: "memberAccess";
@@ -76,6 +79,158 @@ function prevSignificant(tokens: readonly Token[], index: number): number {
     return -1;
 }
 
+function nextSignificant(tokens: readonly Token[], index: number): number {
+    for (let i = index; i < tokens.length; i++) {
+        if (!isTrivia(tokens[i].kind)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function tokenText(text: string, t: Token | undefined): string | undefined {
+    return t !== undefined ? text.slice(t.start, t.end) : undefined;
+}
+
+function tokenWord(text: string, t: Token | undefined): string | undefined {
+    return t !== undefined && t.kind === TokenKind.Identifier
+        ? text.slice(t.start, t.end).toUpperCase()
+        : undefined;
+}
+
+function tokenPunct(text: string, t: Token | undefined): string | undefined {
+    return t !== undefined && (t.kind === TokenKind.Punctuation || t.kind === TokenKind.Operator)
+        ? text.slice(t.start, t.end)
+        : undefined;
+}
+
+function isCreateTableDeclarationSymbolContext(
+    text: string,
+    tokens: readonly Token[],
+    sketch: StatementSketch,
+    offset: number,
+): boolean {
+    if (sketch.kind !== "createTable") {
+        return false;
+    }
+
+    const first = firstSignificantIndex(tokens, sketch);
+    if (first < 0) {
+        return false;
+    }
+    const leading = tokenWord(text, tokens[first]);
+    if (leading !== "CREATE") {
+        return false;
+    }
+    const table = nextSignificant(tokens, first + 1);
+    if (table < 0 || tokenWord(text, tokens[table]) !== "TABLE") {
+        return false;
+    }
+    if (offset <= tokens[table].end) {
+        return false;
+    }
+
+    const open = firstTopLevelOpenParenAfter(tokens, text, table + 1, sketch.span.end);
+    if (open < 0 || offset <= tokens[open].start) {
+        return true;
+    }
+
+    if (offset <= tokens[open].end) {
+        return true;
+    }
+    if (parenDepthAfter(tokens, text, open, offset) !== 1) {
+        return false;
+    }
+
+    const atIndex = tokenIndexAt(tokens, Math.max(0, offset - 1));
+    const at = tokens[atIndex];
+    const prev =
+        at !== undefined && isNameKind(at.kind) && offset > at.start && offset <= at.end
+            ? prevSignificant(tokens, atIndex)
+            : previousSignificantBeforeOffset(tokens, offset);
+    const previousText = tokenText(text, prev >= 0 ? tokens[prev] : undefined);
+    return previousText === "(" || previousText === ",";
+}
+
+function firstSignificantIndex(tokens: readonly Token[], sketch: StatementSketch): number {
+    for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i];
+        if (t.start >= sketch.span.start && !isTrivia(t.kind) && t.kind !== TokenKind.EndOfFile) {
+            return i;
+        }
+        if (t.start > sketch.span.end) {
+            break;
+        }
+    }
+    return -1;
+}
+
+function firstTopLevelOpenParenAfter(
+    tokens: readonly Token[],
+    text: string,
+    index: number,
+    endOffset: number,
+): number {
+    let depth = 0;
+    for (let i = index; i < tokens.length; i++) {
+        const t = tokens[i];
+        if (t.start > endOffset || t.kind === TokenKind.EndOfFile) {
+            break;
+        }
+        if (isTrivia(t.kind)) {
+            continue;
+        }
+        const p = tokenPunct(text, t);
+        if (p === "(") {
+            if (depth === 0) {
+                return i;
+            }
+            depth++;
+        } else if (p === ")") {
+            depth = Math.max(0, depth - 1);
+        }
+    }
+    return -1;
+}
+
+function parenDepthAfter(
+    tokens: readonly Token[],
+    text: string,
+    openIndex: number,
+    offset: number,
+): number {
+    let depth = 0;
+    for (let i = openIndex; i < tokens.length; i++) {
+        const t = tokens[i];
+        if (t.start >= offset || t.kind === TokenKind.EndOfFile) {
+            break;
+        }
+        if (isTrivia(t.kind)) {
+            continue;
+        }
+        const p = tokenPunct(text, t);
+        if (p === "(") {
+            depth++;
+        } else if (p === ")") {
+            depth = Math.max(0, depth - 1);
+        }
+    }
+    return depth;
+}
+
+function previousSignificantBeforeOffset(tokens: readonly Token[], offset: number): number {
+    const idx = tokenIndexAt(tokens, Math.max(0, offset - 1));
+    const t = tokens[idx];
+    let i = idx;
+    if (t !== undefined && offset <= t.start) {
+        i = idx - 1;
+    }
+    while (i >= 0 && isTrivia(tokens[i].kind)) {
+        i--;
+    }
+    return i;
+}
+
 export function classifyContext(
     text: string,
     tokens: readonly Token[],
@@ -101,6 +256,9 @@ export function classifyContext(
     }
 
     const scopeId = deepestScopeAt(sketch, offset);
+    if (isCreateTableDeclarationSymbolContext(text, tokens, sketch, offset)) {
+        return { kind: "none", reason: "declarationSymbol" };
+    }
 
     // --- member access: word-prefix directly after a dot -------------------
     let prefix = "";

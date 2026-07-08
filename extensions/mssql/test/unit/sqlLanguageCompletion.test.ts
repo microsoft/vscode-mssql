@@ -334,6 +334,29 @@ suite("sqlLanguage native completion: INSERT / UPDATE / EXEC / DECLARE / USE", (
     });
 });
 
+suite("sqlLanguage native completion: DDL declaration symbols", () => {
+    test("CREATE TABLE object name position stays silent", async () => {
+        const result = await complete("CREATE TABLE My/*caret*/");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("CREATE TABLE schema-qualified object name position stays silent", async () => {
+        const result = await complete("CREATE TABLE dbo./*caret*/");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("CREATE TABLE column name position stays silent", async () => {
+        const result = await complete("CREATE TABLE My (/*caret*/");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+});
+
 suite("sqlLanguage native completion: star expansion", () => {
     test("caret at * offers Expand columns replacing the star", async () => {
         const result = await complete("SELECT */*caret*/ FROM Sales.Orders o");
