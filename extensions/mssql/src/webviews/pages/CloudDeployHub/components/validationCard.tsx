@@ -57,10 +57,19 @@ type FindingShape =
     | UnitTestFindingShape
     | WorkloadFindingShape;
 
+type WorkloadChangeShape = {
+    readonly stepId: string;
+    readonly axis: string;
+    readonly severity: "pass" | "warning" | "fail";
+    readonly delta: number;
+    readonly message: string;
+};
+
 type PayloadShape = {
     readonly validationType: string;
     readonly findings: readonly FindingShape[];
     readonly summary?: Record<string, unknown>;
+    readonly changes?: readonly WorkloadChangeShape[];
 };
 
 interface ValidationLike {
@@ -186,6 +195,41 @@ const useStyles = makeStyles({
         fontSize: "10px",
         color: tokens.colorNeutralForeground3,
     },
+    changesHeader: {
+        display: "block",
+        fontSize: "10px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: tokens.colorNeutralForeground3,
+        marginBottom: "4px",
+    },
+    changesList: {
+        display: "flex",
+        flexDirection: "column",
+    },
+    changeRow: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: "8px",
+        padding: "3px 0",
+        fontSize: "12px",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
+    },
+    changeSeverityTag: {
+        fontSize: "10px",
+        fontWeight: 700,
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        minWidth: "48px",
+    },
+    changeStep: {
+        fontFamily: "var(--vscode-editor-font-family), monospace",
+        fontSize: "11px",
+        color: tokens.colorNeutralForeground2,
+    },
+    changeMessage: {
+        color: tokens.colorNeutralForeground1,
+    },
 });
 
 const SEVERITY_COLOR: Record<
@@ -195,6 +239,54 @@ const SEVERITY_COLOR: Record<
     info: "informative",
     warning: "warning",
     error: "danger",
+};
+
+const CHANGE_SEVERITY_COLOR: Record<"pass" | "warning" | "fail", string> = {
+    pass: tokens.colorPaletteGreenForeground1,
+    warning: tokens.colorPaletteYellowForeground1,
+    fail: tokens.colorPaletteRedForeground1,
+};
+
+function changeSeverityLabel(severity: "pass" | "warning" | "fail"): string {
+    const strings = locConstants.cloudDeployHub;
+    switch (severity) {
+        case "pass":
+            return strings.changeSeverityPass;
+        case "warning":
+            return strings.changeSeverityWarning;
+        case "fail":
+            return strings.changeSeverityFail;
+    }
+}
+
+/**
+ * The workload "observed changes" view: every axis that drifted vs the baseline,
+ * tagged pass / warning / fail. Shows drifts even on a passing run so a reviewer
+ * sees everything that moved, not only what tripped a threshold.
+ */
+const WorkloadChangesList: React.FC<{
+    changes: readonly WorkloadChangeShape[];
+    classes: ReturnType<typeof useStyles>;
+}> = ({ changes, classes }) => {
+    const strings = locConstants.cloudDeployHub;
+    return (
+        <div>
+            <Text className={classes.changesHeader}>{strings.changesHeader}</Text>
+            <div className={classes.changesList}>
+                {changes.map((c, i) => (
+                    <div key={`${c.stepId}-${c.axis}-${i}`} className={classes.changeRow}>
+                        <span
+                            className={classes.changeSeverityTag}
+                            style={{ color: CHANGE_SEVERITY_COLOR[c.severity] }}>
+                            {changeSeverityLabel(c.severity)}
+                        </span>
+                        <span className={classes.changeStep}>{c.stepId}</span>
+                        <span className={classes.changeMessage}>{c.message}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 };
 
 interface ValidationCardProps {
@@ -216,6 +308,10 @@ function shouldExpandByDefault(status: string): boolean {
 export const ValidationCard: React.FC<ValidationCardProps> = ({ validation }) => {
     const classes = useStyles();
     const findings = validation.payload?.findings ?? [];
+    const workloadChanges =
+        validation.payload?.validationType === "workload-playback"
+            ? (validation.payload?.changes ?? [])
+            : [];
     const [expanded, setExpanded] = React.useState(shouldExpandByDefault(validation.status));
 
     return (
@@ -261,7 +357,9 @@ export const ValidationCard: React.FC<ValidationCardProps> = ({ validation }) =>
                         <div className={classes.error}>{validation.errorMessage}</div>
                     ) : null}
 
-                    {findings.length === 0 ? (
+                    {workloadChanges.length > 0 ? (
+                        <WorkloadChangesList changes={workloadChanges} classes={classes} />
+                    ) : findings.length === 0 ? (
                         <Text className={classes.empty}>
                             {noFindingsText(validation.payload?.validationType)}
                         </Text>

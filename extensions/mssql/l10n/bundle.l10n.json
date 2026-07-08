@@ -2013,6 +2013,9 @@
     "Total": "Total",
     "Steps": "Steps",
     "Regressions": "Regressions",
+    "Observed changes": "Observed changes",
+    "Pass": "Pass",
+    "Fail": "Fail",
     "Cancelled": "Cancelled",
     "{0}s/{0} is a duration in whole seconds": {
         "message": "{0}s",

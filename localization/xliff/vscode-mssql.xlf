@@ -2953,6 +2953,9 @@
       <note>{0} is the error code
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++09230b3dbc35635f04595dc627c267a62174ba6435078ab5083dce4252c999a1">
+      <source xml:lang="en">Fail</source>
+    </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>
@@ -5119,6 +5122,9 @@
     <trans-unit id="++CODE++46e7c345a4106f8dba31dee33a1559a12f24d16a1678241d55e84ae55c107d81">
       <source xml:lang="en">Object type</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e87b862e3a735acc8cad20607213773cd5b7986d0ba947e6e356684a8a84ed6">
+      <source xml:lang="en">Observed changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
     </trans-unit>
@@ -5298,6 +5304,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ebdf8cc00bc4d9ceee633c56c63b49955769a92ca060825c9b08e4af61326e2b">
+      <source xml:lang="en">Pass</source>
     </trans-unit>
     <trans-unit id="++CODE++dec029129bfc9f4110ba1a2898fc93700b7a66252951afb8b5a441bf9879fbed">
       <source xml:lang="en">Pass rate</source>

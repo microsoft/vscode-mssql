@@ -21,7 +21,13 @@ import {
 } from "../../cloudDeploy/environments/types";
 import { compareRuns, RunComparison } from "../../cloudDeploy/runs/runComparison";
 import type { RunStore } from "../../cloudDeploy/runs/runStore";
-import { Finding, RunListEntry, RunRecord, ValidationStatus } from "../../cloudDeploy/runs/types";
+import {
+    Finding,
+    RunListEntry,
+    RunRecord,
+    ValidationStatus,
+    WorkloadObservedChange,
+} from "../../cloudDeploy/runs/types";
 
 /**
  * Cloud Deploy — Copilot agent tools.
@@ -104,6 +110,17 @@ function summarizeFinding(finding: Finding): Record<string, unknown> {
     }
 }
 
+/** Projects one observed workload change into the agent-facing shape. */
+function summarizeChange(change: WorkloadObservedChange): Record<string, unknown> {
+    return {
+        step: change.stepId,
+        axis: change.axis,
+        severity: change.severity,
+        delta: change.delta,
+        message: change.message,
+    };
+}
+
 /**
  * Projects a run record into the shape the agent reasons over: the rollup
  * status, a pass/total tally, and each gate with its concrete findings. This
@@ -119,6 +136,11 @@ function summarizeRun(record: RunRecord): Record<string, unknown> {
             ? { error: validation.errorMessage }
             : {}),
         findings: validation.payload.findings.map(summarizeFinding),
+        ...(validation.payload.validationType === ValidationType.WorkloadPlayback &&
+        validation.payload.changes !== undefined &&
+        validation.payload.changes.length > 0
+            ? { changes: validation.payload.changes.map(summarizeChange) }
+            : {}),
     }));
     const gatesPassed = record.validations.filter(
         (validation) => validation.status === ValidationStatus.Passed,

@@ -195,6 +195,32 @@ export interface WorkloadRegressionFinding {
     readonly message: string;
 }
 
+/**
+ * A single observed change on one step + axis versus the baseline run. Unlike a
+ * `WorkloadRegressionFinding` — emitted only when a threshold is crossed and
+ * used to drive the verdict — a change is emitted for ANY drift, even one
+ * within tolerance, and is tagged with its own severity so a reviewer can see
+ * everything that moved rather than only what was flagged. Purely
+ * informational: it never affects the run status.
+ */
+export interface WorkloadObservedChange {
+    readonly stepId: string;
+    /** Which measured axis drifted. */
+    readonly axis:
+        | "throughput"
+        | "latency"
+        | "error-rate"
+        | "plan-change"
+        | "logical-reads"
+        | "cpu";
+    /** `"pass"` = drifted but within tolerance; `"warning"` / `"fail"` = crossed a threshold. */
+    readonly severity: "pass" | "warning" | "fail";
+    /** Numeric delta (fraction of baseline); `0` for a plan change. */
+    readonly delta: number;
+    /** Free-form description for the UI; emitted by the workload runner. */
+    readonly message: string;
+}
+
 // =============================================================================
 // Validation payloads
 // =============================================================================
@@ -264,6 +290,13 @@ export interface WorkloadPlaybackPayload {
      * runs that predate in-process measurement.
      */
     readonly observedSteps?: readonly WorkloadObservedStep[];
+    /**
+     * Every axis that drifted vs the baseline, each tagged with its own
+     * severity — the full "what changed" view, including sub-threshold drifts
+     * that are not findings. Informational only; the run status comes from
+     * `findings`. Absent on first runs (no baseline) and pre-feature artifacts.
+     */
+    readonly changes?: readonly WorkloadObservedChange[];
 }
 
 /**

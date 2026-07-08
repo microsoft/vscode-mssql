@@ -250,6 +250,26 @@ const WorkloadPlaybackPayloadSchema = z
                     .passthrough(),
             )
             .optional(),
+        changes: z
+            .array(
+                z
+                    .object({
+                        stepId: z.string().min(1),
+                        axis: z.enum([
+                            "throughput",
+                            "latency",
+                            "error-rate",
+                            "plan-change",
+                            "logical-reads",
+                            "cpu",
+                        ]),
+                        severity: z.enum(["pass", "warning", "fail"]),
+                        delta: z.number(),
+                        message: z.string(),
+                    })
+                    .passthrough(),
+            )
+            .optional(),
     })
     .passthrough();
 

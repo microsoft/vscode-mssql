@@ -616,4 +616,102 @@ suite("CloudDeploy WorkloadPlaybackValidator", () => {
         );
         expect(lenient.status).to.equal(ValidationStatus.Passed);
     });
+
+    suite("observed changes", () => {
+        test("records a sub-threshold logical-reads drift as a pass change", async () => {
+            const env = makeEnvironmentWithValidations([]);
+            artifacts.set(
+                WORKLOAD_URI,
+                JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }),
+            );
+            const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 105, 3000]);
+
+            const result = await validator.run(
+                env,
+                { workloadUri: WORKLOAD_URI },
+                {
+                    ...RUN_OPTS_BASE,
+                    signal: liveSignal(),
+                    ephemeralConnection: connection,
+                    workloadBaseline: [{ id: "stepA", logicalReads: 100 }],
+                },
+            );
+
+            expect(result.status).to.equal(ValidationStatus.Passed);
+            const changes = (result.payload as WorkloadPlaybackPayload).changes ?? [];
+            const reads = changes.filter((c) => c.axis === "logical-reads");
+            expect(reads).to.have.length(1);
+            expect(reads[0].severity).to.equal("pass");
+        });
+
+        test("records an over-threshold logical-reads drift as a fail change", async () => {
+            const env = makeEnvironmentWithValidations([]);
+            artifacts.set(
+                WORKLOAD_URI,
+                JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }),
+            );
+            const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 300, 3000]);
+
+            const result = await validator.run(
+                env,
+                { workloadUri: WORKLOAD_URI },
+                {
+                    ...RUN_OPTS_BASE,
+                    signal: liveSignal(),
+                    ephemeralConnection: connection,
+                    workloadBaseline: [{ id: "stepA", logicalReads: 100 }],
+                },
+            );
+
+            expect(result.status).to.equal(ValidationStatus.Failed);
+            const changes = (result.payload as WorkloadPlaybackPayload).changes ?? [];
+            const reads = changes.filter((c) => c.axis === "logical-reads");
+            expect(reads).to.have.length(1);
+            expect(reads[0].severity).to.equal("fail");
+        });
+
+        test("records a plan change as a warning change", async () => {
+            const env = makeEnvironmentWithValidations([]);
+            artifacts.set(
+                WORKLOAD_URI,
+                JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }),
+            );
+            const connection = new MeasurableConnectionHandle({}, undefined, ["0xBBB", 100, 3000]);
+
+            const result = await validator.run(
+                env,
+                { workloadUri: WORKLOAD_URI },
+                {
+                    ...RUN_OPTS_BASE,
+                    signal: liveSignal(),
+                    ephemeralConnection: connection,
+                    workloadBaseline: [{ id: "stepA", planHash: "0xAAA" }],
+                },
+            );
+
+            expect(result.status).to.equal(ValidationStatus.Warning);
+            const changes = (result.payload as WorkloadPlaybackPayload).changes ?? [];
+            const plan = changes.filter((c) => c.axis === "plan-change");
+            expect(plan).to.have.length(1);
+            expect(plan[0].severity).to.equal("warning");
+        });
+
+        test("does not record changes on a first run with no baseline", async () => {
+            const env = makeEnvironmentWithValidations([]);
+            artifacts.set(
+                WORKLOAD_URI,
+                JSON.stringify({ steps: [{ id: "stepA", query: QUERY_A }] }),
+            );
+            const connection = new MeasurableConnectionHandle({}, undefined, ["0xAAA", 100, 3000]);
+
+            const result = await validator.run(
+                env,
+                { workloadUri: WORKLOAD_URI },
+                { ...RUN_OPTS_BASE, signal: liveSignal(), ephemeralConnection: connection },
+            );
+
+            expect(result.status).to.equal(ValidationStatus.Passed);
+            expect((result.payload as WorkloadPlaybackPayload).changes).to.be.undefined;
+        });
+    });
 });

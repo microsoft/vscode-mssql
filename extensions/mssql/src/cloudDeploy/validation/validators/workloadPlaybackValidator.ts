@@ -57,6 +57,7 @@ import { type Environment, ValidationType } from "../../environments/types";
 import {
     type ValidationResult,
     ValidationStatus,
+    type WorkloadObservedChange,
     type WorkloadObservedStep,
     type WorkloadPlaybackPayload,
     type WorkloadRegressionFinding,
@@ -87,6 +88,10 @@ const DEFAULT_ERROR_RATE_THRESHOLD = 0.05;
 const DEFAULT_LOGICAL_READS_THRESHOLD = 0.25;
 /** CPU regression flagged when observed exceeds baseline by this fraction (advisory). */
 const DEFAULT_CPU_THRESHOLD = 0.25;
+/** Latency must move at least this fraction to surface as a change (wall-clock is noisy). */
+const NOTABLE_LATENCY_DRIFT = 0.1;
+/** CPU must move at least this fraction to surface as a change (small floor to shed float noise). */
+const NOTABLE_CPU_DRIFT = 0.02;
 
 const SKIPPED_NEEDS_DATABASE_MESSAGE =
     "Workload playback needs a provisioned validation database; none was available for this run.";
@@ -227,8 +232,10 @@ export class WorkloadPlaybackValidator implements Validator<ValidationType.Workl
         }
 
         const thresholds = resolveThresholds(config);
-        const findings = compareSteps(toWorkloadSteps(baseline), observed, thresholds);
-        return buildComparisonResult(findings, observedSteps, startedAtMs);
+        const baselineSteps = toWorkloadSteps(baseline);
+        const findings = compareSteps(baselineSteps, observed, thresholds);
+        const changes = computeChanges(baselineSteps, observed, thresholds);
+        return buildComparisonResult(findings, changes, observedSteps, startedAtMs);
     }
 }
 
@@ -640,6 +647,7 @@ function formatPercent(ratio: number): string {
 
 function buildComparisonResult(
     findings: readonly WorkloadRegressionFinding[],
+    changes: readonly WorkloadObservedChange[],
     observedSteps: readonly WorkloadObservedStep[],
     startedAtMs: number,
 ): ValidationResult {
@@ -651,6 +659,7 @@ function buildComparisonResult(
             regressions: findings.length,
         },
         observedSteps,
+        ...(changes.length > 0 ? { changes } : {}),
     };
     // Deterministic signals (logical reads, or a plan change that also cost
     // latency) fail the run; noisy signals (latency, CPU, throughput, a bare
@@ -687,6 +696,151 @@ function decideStatus(findings: readonly WorkloadRegressionFinding[]): Validatio
         (f) => f.regression === "plan-change" && latencyStepIds.has(f.stepId),
     );
     return hasHardSignal || planChangeWithCost ? ValidationStatus.Failed : ValidationStatus.Warning;
+}
+
+/**
+ * Builds the full "what changed" view: one entry per step + axis that drifted
+ * vs the baseline, each tagged with its own severity. Unlike findings, this
+ * includes sub-threshold drifts (tagged `"pass"`) so a reviewer sees everything
+ * that moved, not only what was flagged. It never affects the verdict — that
+ * stays driven by `findings`. Deterministic axes (plan hash, logical reads)
+ * surface on ANY change; noisy wall-clock latency surfaces only past a notable
+ * delta.
+ */
+function computeChanges(
+    baseline: readonly WorkloadStep[],
+    observed: readonly WorkloadStep[],
+    thresholds: ResolvedThresholds,
+): readonly WorkloadObservedChange[] {
+    const observedById = new Map<string, WorkloadStep>();
+    for (const step of observed) {
+        observedById.set(step.id, step);
+    }
+    const changes: WorkloadObservedChange[] = [];
+    for (const base of baseline) {
+        const obs = observedById.get(base.id);
+        if (obs === undefined) {
+            continue;
+        }
+        const plan = planChangeDrift(base, obs);
+        if (plan !== undefined) {
+            changes.push(plan);
+        }
+        const reads = metricDrift(base.id, "logical-reads", base.logicalReads, obs.logicalReads, {
+            threshold: thresholds.logicalReads,
+            notable: 0,
+            overSeverity: "fail",
+            unit: "pages",
+        });
+        if (reads !== undefined) {
+            changes.push(reads);
+        }
+        const cpu = metricDrift(base.id, "cpu", base.cpuMs, obs.cpuMs, {
+            threshold: thresholds.cpu,
+            notable: NOTABLE_CPU_DRIFT,
+            overSeverity: "warning",
+            unit: "ms",
+        });
+        if (cpu !== undefined) {
+            changes.push(cpu);
+        }
+        const latency = metricDrift(base.id, "latency", base.latencyMs, obs.latencyMs, {
+            threshold: thresholds.latency,
+            notable: NOTABLE_LATENCY_DRIFT,
+            overSeverity: "warning",
+            unit: "ms",
+        });
+        if (latency !== undefined) {
+            changes.push(latency);
+        }
+    }
+    return changes;
+}
+
+/** A plan-hash change (always `warning`; the combo rule escalates only the rollup, never a row). */
+function planChangeDrift(
+    base: WorkloadStep,
+    obs: WorkloadStep,
+): WorkloadObservedChange | undefined {
+    if (
+        base.planHash === undefined ||
+        obs.planHash === undefined ||
+        base.planHash === obs.planHash
+    ) {
+        return undefined;
+    }
+    return {
+        stepId: base.id,
+        axis: "plan-change",
+        severity: "warning",
+        delta: 0,
+        message: `Plan changed: ${base.planHash} → ${obs.planHash}.`,
+    };
+}
+
+/** How a numeric axis is classified into a change row. */
+interface MetricDriftSpec {
+    readonly threshold: number;
+    readonly notable: number;
+    readonly overSeverity: "warning" | "fail";
+    readonly unit: string;
+}
+
+/**
+ * A numeric-axis drift row, or `undefined` when the axis didn't move enough to
+ * surface. `notable` is the minimum |fraction| worth showing (`0` = any
+ * change); an upward move past `threshold` is tagged `overSeverity`, otherwise
+ * the drift is within tolerance and tagged `"pass"` (this includes an
+ * improvement, i.e. a decrease).
+ */
+function metricDrift(
+    stepId: string,
+    axis: WorkloadObservedChange["axis"],
+    baseValue: number | undefined,
+    obsValue: number | undefined,
+    spec: MetricDriftSpec,
+): WorkloadObservedChange | undefined {
+    if (baseValue === undefined || obsValue === undefined || baseValue <= 0) {
+        return undefined;
+    }
+    const ratio = (obsValue - baseValue) / baseValue;
+    const drifted = spec.notable === 0 ? obsValue !== baseValue : Math.abs(ratio) >= spec.notable;
+    if (!drifted) {
+        return undefined;
+    }
+    const severity: WorkloadObservedChange["severity"] =
+        ratio > spec.threshold ? spec.overSeverity : "pass";
+    return {
+        stepId,
+        axis,
+        severity,
+        delta: ratio,
+        message: `${axisLabel(axis)} ${formatSignedPercent(ratio)} (${baseValue} → ${obsValue} ${spec.unit}).`,
+    };
+}
+
+/** Human label for a change axis. */
+function axisLabel(axis: WorkloadObservedChange["axis"]): string {
+    switch (axis) {
+        case "logical-reads":
+            return "Logical reads";
+        case "cpu":
+            return "CPU";
+        case "latency":
+            return "Latency";
+        case "throughput":
+            return "Throughput";
+        case "error-rate":
+            return "Error rate";
+        case "plan-change":
+            return "Plan";
+    }
+}
+
+/** Formats a ratio as a signed percentage, e.g. `+38.1%` / `-84.6%`. */
+function formatSignedPercent(ratio: number): string {
+    const pct = (ratio * 100).toFixed(1);
+    return ratio >= 0 ? `+${pct}%` : `${pct}%`;
 }
 
 /**

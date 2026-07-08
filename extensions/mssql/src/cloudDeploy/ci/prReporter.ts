@@ -18,8 +18,16 @@
  * one every time.
  */
 
+import { ValidationType } from "../environments/types";
 import { RunComparison, ValidationDelta } from "../runs/runComparison";
-import { Finding, RunRecord, RunStatus, ValidationResult, ValidationStatus } from "../runs/types";
+import {
+    Finding,
+    RunRecord,
+    RunStatus,
+    ValidationResult,
+    ValidationStatus,
+    WorkloadObservedChange,
+} from "../runs/types";
 
 // =============================================================================
 // Types
@@ -79,6 +87,13 @@ const STATUS_ICON: Readonly<Record<ValidationStatus, string>> = {
 
 /** Latency deltas below this magnitude are treated as noise and not shown. */
 const LATENCY_NOISE_FLOOR_MS = 1;
+
+/** Glyphs for an observed-change severity tag: within tolerance / advisory / blocking. */
+const CHANGE_SEVERITY_ICON: Readonly<Record<"pass" | "warning" | "fail", string>> = {
+    pass: "✅",
+    warning: "⚠️",
+    fail: "❌",
+};
 
 // =============================================================================
 // buildPrReport
@@ -300,10 +315,37 @@ function allFindingLines(v: ValidationResult): string[] {
     if (v.errorMessage !== undefined && v.errorMessage.length > 0) {
         lines.push(`- ${v.errorMessage}`);
     }
+    const changeLines = workloadChangeLines(v);
+    if (changeLines !== undefined) {
+        lines.push(...changeLines);
+        return lines;
+    }
     for (const finding of v.payload.findings) {
         lines.push(`- ${renderFinding(finding)}`);
     }
     return lines;
+}
+
+/**
+ * For a workload gate that recorded observed changes, renders the full "what
+ * changed" view — every drifted axis tagged pass/warning/fail — instead of only
+ * the threshold-crossing findings. Returns `undefined` for other gates (and for
+ * pre-feature workload runs) so the caller falls back to findings.
+ */
+function workloadChangeLines(v: ValidationResult): string[] | undefined {
+    if (v.payload.validationType !== ValidationType.WorkloadPlayback) {
+        return undefined;
+    }
+    const changes = v.payload.changes;
+    if (changes === undefined || changes.length === 0) {
+        return undefined;
+    }
+    return changes.map(renderChange);
+}
+
+/** One-line rendering of an observed workload change, tagged by its severity. */
+function renderChange(c: WorkloadObservedChange): string {
+    return `- ${CHANGE_SEVERITY_ICON[c.severity]} \`${c.stepId}\` — ${c.message}`;
 }
 
 /** Maps each gate id to its baseline status, for the "(was ...)" annotations. */
