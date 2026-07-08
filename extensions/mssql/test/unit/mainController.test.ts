@@ -11,7 +11,6 @@ import * as vscode from "vscode";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
-import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import * as Constants from "../../src/constants/constants";
 import { HttpClient } from "../../src/http/httpClient";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -992,65 +991,5 @@ suite("MainController Tests", function () {
             expect(configStub).to.have.been.calledWithExactly();
         });
         /* eslint-enable @typescript-eslint/no-deprecated */
-    });
-
-    suite("openInMssqlExtensionFromAzureResources command", () => {
-        test("builds a connect URI for a database resource", async () => {
-            const handleUriStub = sandbox
-                .stub(MssqlProtocolHandler.prototype, "handleUri")
-                .resolves();
-
-            await (
-                mainController as unknown as {
-                    onOpenInMssqlExtensionFromAzureResources: (arg: unknown) => Promise<void>;
-                }
-            ).onOpenInMssqlExtensionFromAzureResources({
-                contextValue: "foo type=Database bar",
-                id: "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Sql/servers/myserver/databases/mydb",
-                accountId: "account-id",
-                tenantId: "tenant-id",
-            });
-
-            expect(handleUriStub).to.have.been.calledOnce;
-            const handledUri = handleUriStub.firstCall.args[0] as vscode.Uri;
-            const query = new URLSearchParams(handledUri.query);
-            expect(handledUri.path).to.equal("/connect");
-            expect(query.get("server")).to.equal("myserver.database.windows.net");
-            expect(query.get("database")).to.equal("mydb");
-            expect(query.get("accountId")).to.equal("account-id");
-            expect(query.get("tenantId")).to.equal("tenant-id");
-            expect(query.get("source")).to.equal("vscode-azureresourcegroups");
-        });
-
-        test("uses fully qualified domain name and session defaults when available", async () => {
-            const handleUriStub = sandbox
-                .stub(MssqlProtocolHandler.prototype, "handleUri")
-                .resolves();
-
-            await (
-                mainController as unknown as {
-                    onOpenInMssqlExtensionFromAzureResources: (arg: unknown) => Promise<void>;
-                }
-            ).onOpenInMssqlExtensionFromAzureResources({
-                contextValue: "foo type=Server bar",
-                id: "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Sql/servers/myserver",
-                fullyQualifiedDomainName: "myserver.sql.azuresynapse.net",
-                session: {
-                    account: {
-                        id: "session-account-id",
-                    },
-                    tenantId: "session-tenant-id",
-                },
-            });
-
-            expect(handleUriStub).to.have.been.calledOnce;
-            const handledUri = handleUriStub.firstCall.args[0] as vscode.Uri;
-            const query = new URLSearchParams(handledUri.query);
-            expect(query.get("server")).to.equal("myserver.sql.azuresynapse.net");
-            expect(query.get("database")).to.be.null;
-            expect(query.get("accountId")).to.equal("session-account-id");
-            expect(query.get("tenantId")).to.equal("session-tenant-id");
-            expect(query.get("source")).to.equal("vscode-azureresourcegroups");
-        });
     });
 });

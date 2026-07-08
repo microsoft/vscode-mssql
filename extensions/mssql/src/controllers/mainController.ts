@@ -764,6 +764,14 @@ export default class MainController implements vscode.Disposable {
 
             this.protocolHandler = new MssqlProtocolHandler(this, this._connectionMgr.client);
 
+            const uriHandler: vscode.UriHandler = {
+                handleUri: async (uri: vscode.Uri) => {
+                    await this.protocolHandler.handleUri(uri);
+                },
+            };
+
+            vscode.window.registerUriHandler(uriHandler);
+
             this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
                 this.protocolHandler,
             );

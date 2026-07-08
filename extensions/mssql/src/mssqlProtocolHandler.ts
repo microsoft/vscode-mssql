@@ -40,7 +40,7 @@ export class MssqlProtocolHandler {
         private mainController: MainController,
         private client: SqlToolsServiceClient,
     ) {
-        this._logger = logger.withPrefix("MssqlProtocolHandler");
+        this._logger = logger.withPrefix("Protocol Handler");
     }
 
     /**
@@ -52,7 +52,7 @@ export class MssqlProtocolHandler {
      * @returns The connection information or undefined if not applicable.
      */
     public async handleUri(uri: vscode.Uri): Promise<void> {
-        this._logger.info(`URI: ${uri.toString()}`);
+        this._logger.info(`Handling URI: ${uri.toString()}`);
 
         try {
             let handled = false;
@@ -82,9 +82,10 @@ export class MssqlProtocolHandler {
             }
 
             if (handled) {
+                this._logger.info(`Successfully handled URI: ${uri.toString()}`);
                 sendActionEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
                     action: uri.path,
-                    source: new URLSearchParams(uri.query).get("source"),
+                    source: new URLSearchParams(uri.query).get("source") ?? "unknown",
                 });
             } else {
                 throw new Error(`Unknown URI command: ${uri.toString()}`);
@@ -101,7 +102,7 @@ export class MssqlProtocolHandler {
                 undefined, // errorType
                 {
                     command: uri.path,
-                    source: new URLSearchParams(uri.query).get("source"),
+                    source: new URLSearchParams(uri.query).get("source") ?? "unknown",
                 },
             );
         }

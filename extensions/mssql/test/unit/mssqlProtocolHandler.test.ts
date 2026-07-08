@@ -15,8 +15,7 @@ import { uuid } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
-import { stubGetCapabilitiesRequest, stubLogger, stubTelemetry } from "./utils";
-import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { stubGetCapabilitiesRequest, stubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -27,7 +26,6 @@ suite("MssqlProtocolHandler Tests", () => {
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let openConnectionDialogStub: sinon.SinonStub;
     let connectProfileStub: sinon.SinonStub;
-    let sendActionEventStub: sinon.SinonStub;
 
     const testServer = "TestServer";
     const testDatabase = "TestDatabase";
@@ -37,7 +35,6 @@ suite("MssqlProtocolHandler Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubLogger(sandbox);
-        sendActionEventStub = stubTelemetry(sandbox).sendActionEvent;
         mockMainController = sandbox.createStubInstance(MainController);
 
         sqlToolsServiceClientMock = stubGetCapabilitiesRequest(sandbox);
@@ -65,46 +62,6 @@ suite("MssqlProtocolHandler Tests", () => {
         await mssqlProtocolHandler.handleUri(Uri.parse("vscode://ms-mssql.mssql/"));
 
         expect(openConnectionDialogStub).to.have.been.calledOnceWith(undefined);
-    });
-
-    suite("Source telemetry", () => {
-        test("emits azureresourcegroups source telemetry", async () => {
-            await mssqlProtocolHandler.handleUri(
-                Uri.parse(
-                    "vscode://ms-mssql.mssql/connect?server=myServer&source=vscode-azureresourcegroups",
-                ),
-            );
-
-            expect(sendActionEventStub).to.have.been.calledWith(
-                TelemetryViews.Connection,
-                TelemetryActions.Invoke,
-                { source: "vscode-azureresourcegroups" },
-            );
-        });
-
-        test("emits fabric source telemetry", async () => {
-            await mssqlProtocolHandler.handleUri(
-                Uri.parse("vscode://ms-mssql.mssql/connect?server=myServer&source=vscode-fabric"),
-            );
-
-            expect(sendActionEventStub).to.have.been.calledWith(
-                TelemetryViews.Connection,
-                TelemetryActions.Invoke,
-                { source: "vscode-fabric" },
-            );
-        });
-
-        test("emits unknown source telemetry when source is missing", async () => {
-            await mssqlProtocolHandler.handleUri(
-                Uri.parse("vscode://ms-mssql.mssql/connect?server=myServer"),
-            );
-
-            expect(sendActionEventStub).to.have.been.calledWith(
-                TelemetryViews.Connection,
-                TelemetryActions.Invoke,
-                { source: "unknown" },
-            );
-        });
     });
 
     suite("Connect command", () => {
@@ -146,6 +103,7 @@ suite("MssqlProtocolHandler Tests", () => {
                 server: "myServer",
                 database: "dbName",
                 user: "testUser",
+                source: "testSource",
             };
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -159,7 +117,8 @@ suite("MssqlProtocolHandler Tests", () => {
                     server: "myServer",
                     database: "dbName",
                     user: "testUser",
-                } as IConnectionProfile,
+                    source: "testSource",
+                } as unknown as IConnectionProfile,
                 score: MatchScore.ServerDatabaseAndAuth,
             });
 
