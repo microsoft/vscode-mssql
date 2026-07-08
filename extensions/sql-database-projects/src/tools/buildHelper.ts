@@ -6,9 +6,9 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { promises as fs } from "fs";
+import * as child_process from "child_process";
 import * as utils from "../common/utils";
 import * as sqldbproj from "sqldbproj";
-import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
@@ -161,6 +161,7 @@ export class BuildHelper {
                 nugetUrl,
                 fullNugetPath,
                 extractedFolderPath,
+                nugetFolderWithExpectedfiles,
                 outputChannel,
             );
         } catch (e) {
@@ -207,6 +208,7 @@ export class BuildHelper {
         downloadUrl: string,
         nugetPath: string,
         extractFolderPath: string,
+        filterPath: string,
         outputChannel: vscode.OutputChannel,
     ): Promise<void> {
         try {
@@ -220,7 +222,56 @@ export class BuildHelper {
         }
 
         try {
-            await extractZip(nugetPath, { dir: extractFolderPath });
+            await new Promise<void>((resolve, reject) => {
+                let cmd: string;
+                let args: string[];
+                if (process.platform === "win32") {
+                    cmd = "powershell.exe";
+                    args = [
+                        "-NoProfile",
+                        "-NonInteractive",
+                        "-Command",
+                        `Add-Type -AssemblyName System.IO.Compression.FileSystem; ` +
+                            `if (Test-Path '${extractFolderPath}') { Remove-Item '${extractFolderPath}' -Recurse -Force }; ` +
+                            `[System.IO.Compression.ZipFile]::ExtractToDirectory('${nugetPath}', '${extractFolderPath}')`,
+                    ];
+                } else {
+                    cmd = "unzip";
+                    // -q quiet, -o overwrite, extract only files under filterPath
+                    const filter = filterPath.replace(/\\/g, "/") + "/*";
+                    args = ["-q", "-o", nugetPath, filter, "-d", extractFolderPath];
+                }
+                const proc = child_process.spawn(cmd, args, {
+                    stdio: ["ignore", "ignore", "pipe"],
+                });
+                let stderrOutput = "";
+                proc.stderr?.on("data", (data: Buffer) => {
+                    stderrOutput += data.toString();
+                });
+                proc.on("close", (code) => {
+                    if (code === 0) {
+                        resolve();
+                    } else {
+                        reject(
+                            new Error(
+                                `Extraction process exited with code ${code}${stderrOutput ? `: ${stderrOutput.trim()}` : ""}`,
+                            ),
+                        );
+                    }
+                });
+                proc.on("error", (err) => {
+                    const isNotFound = (err as NodeJS.ErrnoException).code === "ENOENT";
+                    if (isNotFound) {
+                        reject(
+                            new Error(
+                                `'${cmd}' not found. On Linux, install it with: sudo apt-get install unzip`,
+                            ),
+                        );
+                    } else {
+                        reject(err);
+                    }
+                });
+            });
         } catch (e) {
             throw new NugetExtractionError(
                 constants.errorExtracting(nugetPath, utils.getErrorMessage(e)),
