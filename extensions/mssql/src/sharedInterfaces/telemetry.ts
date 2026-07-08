@@ -287,6 +287,7 @@ export enum TelemetryActions {
     NotebookChangeDatabase = "NotebookChangeDatabase",
     CancelCellExecution = "CancelCellExecution",
     KernelSelected = "KernelSelected",
+    Stats = "Stats",
 }
 
 /**

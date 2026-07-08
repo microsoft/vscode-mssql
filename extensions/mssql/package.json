@@ -1949,6 +1949,11 @@
                                     null
                                 ],
                                 "description": "%mssql.connectionGroup.parentId%"
+                            },
+                            "order": {
+                                "type": "number",
+                                "minimum": 0,
+                                "description": "%mssql.connectionGroup.order%"
                             }
                         }
                     }
@@ -2150,6 +2155,11 @@
                                 "type": "string",
                                 "default": "",
                                 "description": "%mssql.connection.containerName%"
+                            },
+                            "order": {
+                                "type": "number",
+                                "minimum": 0,
+                                "description": "%mssql.connection.order%"
                             }
                         }
                     },
