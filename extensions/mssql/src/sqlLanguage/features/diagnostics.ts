@@ -66,6 +66,7 @@ export type DiagnosticSuppressionReason =
     | "unresolvedQualifier" // qualifier matches no visible source (multi-part honesty)
     | "quotedIdentifierAmbiguous" // "..." may be a string under QUOTED_IDENTIFIER OFF
     | "setOperationScope" // UNION/EXCEPT/INTERSECT branches share one sketch scope
+    | "syntaxUntrusted" // syntax recovery found a T1 error; binder claims are unsafe
     | "unsupportedSyntax" // statement families the binder does not model yet
     // CACHE-5 (§7.3) freshness reasons. metadataNotValidated is counted here
     // (per binder-eligible statement) when the host's ensureFresh verdict is
@@ -217,6 +218,16 @@ const UNKNOWN_HEAD_BETRAYAL_WORDS = new Set([
     "JOIN",
     "INTO",
     "HAVING",
+]);
+
+const SELECT_CLAUSE_SPLIT_REPAIRS: ReadonlySet<string> = new Set([
+    "FROM",
+    "WHERE",
+    "GROUP",
+    "ORDER",
+    "HAVING",
+    "WINDOW",
+    "OPTION",
 ]);
 
 /**
@@ -576,6 +587,67 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
                 (suggestion !== undefined ? ` (did you mean ${suggestion}?).` : "."),
             "mssql(102)",
         );
+    };
+
+    const checkSelectSyntaxRecovery = (s: AnalyzedStatementInput): boolean => {
+        if (s.sketch.kind !== "select") {
+            return false;
+        }
+        let recovered = false;
+        let depth = 0;
+        for (let i = s.segment.firstToken; i <= s.segment.lastToken; i++) {
+            const t = tokens[i];
+            if (t.kind === TokenKind.Punctuation) {
+                const ch = text.charCodeAt(t.start);
+                if (ch === 40 /* ( */) {
+                    depth++;
+                } else if (ch === 41 /* ) */) {
+                    depth = Math.max(0, depth - 1);
+                }
+                continue;
+            }
+            if (depth !== 0 || t.kind !== TokenKind.Identifier) {
+                continue;
+            }
+
+            const current = text.slice(t.start, t.end).toUpperCase();
+            const nextIndex = nextSignificantInStatement(tokens, i + 1, s.segment.lastToken);
+            const next = nextIndex >= 0 ? tokens[nextIndex] : undefined;
+            if (next !== undefined && next.kind === TokenKind.Identifier) {
+                const joined = current + text.slice(next.start, next.end).toUpperCase();
+                if (SELECT_CLAUSE_SPLIT_REPAIRS.has(joined)) {
+                    report(
+                        "error",
+                        t.start,
+                        next.end,
+                        `Incorrect syntax near '${text.slice(t.start, next.end)}' ` +
+                            `(did you mean ${joined}?).`,
+                        "mssql(102)",
+                    );
+                    recovered = true;
+                    i = nextIndex;
+                    continue;
+                }
+            }
+
+            if ((current === "GROUP" || current === "ORDER") && next !== undefined) {
+                const nextWord =
+                    next.kind === TokenKind.Identifier
+                        ? text.slice(next.start, next.end).toUpperCase()
+                        : undefined;
+                if (nextWord !== "BY") {
+                    report(
+                        "error",
+                        t.start,
+                        next.end,
+                        `Expected BY after ${current}.`,
+                        "mssql(102)",
+                    );
+                    recovered = true;
+                }
+            }
+        }
+        return recovered;
     };
 
     const resolveExecLessProcedureHead = (
@@ -1225,6 +1297,10 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
         checkParenBalance(s);
         checkDuplicateSourceNames(s);
         checkUnrecognizedStatement(s);
+        if (checkSelectSyntaxRecovery(s)) {
+            count("syntaxUntrusted");
+            return;
+        }
 
         // T2 gate ladder (design §11.2) — statement families first.
         const kind = s.sketch.kind;

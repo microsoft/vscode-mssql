@@ -286,6 +286,47 @@ suite("sqlLanguage diagnostics T1: unrecognized statement", () => {
     });
 });
 
+suite("sqlLanguage diagnostics T1: SELECT syntax recovery", () => {
+    test("split FROM inside SELECT is an error", async () => {
+        const result = await diagnose("select * fr om Sales.Orders");
+        const d = only(result);
+
+        expect(d.severity).to.equal("error");
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean FROM?");
+        expect(d.range.start.character).to.equal(9);
+        expect(d.range.end.character).to.equal(14);
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+
+    test("split WHERE inside SELECT is an error", async () => {
+        const result = await diagnose("select * from Sales.Orders wh ere OrderID = 1");
+        const d = only(result);
+
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean WHERE?");
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+
+    test("ORDER without BY is an error when the next token exists", async () => {
+        const result = await diagnose("select * from Sales.Orders order OrderID");
+        const d = only(result);
+
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("Expected BY after ORDER.");
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+
+    test("top-level split clause text stays silent as possible proc text", async () => {
+        expectClean(await diagnose("fr om", nullProvider));
+    });
+
+    test("EXEC-less procedure protections still stay silent", async () => {
+        expectClean(await diagnose("sp_help Orders", nullProvider));
+        expectClean(await diagnose("Sales.GetOrders @CustomerID = 1"));
+    });
+});
+
 // ---------------------------------------------------------------------------
 // T2 — 208-style invalid object
 // ---------------------------------------------------------------------------

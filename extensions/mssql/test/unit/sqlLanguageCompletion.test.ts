@@ -355,6 +355,53 @@ suite("sqlLanguage native completion: DDL declaration symbols", () => {
         expect(result.items).to.have.length(0);
         expect(result.isIncomplete).to.equal(false);
     });
+
+    test("CREATE TABLE column type position offers types", async () => {
+        const result = await complete("CREATE TABLE My (Id i/*caret*/");
+
+        expect(labels(result)).to.include.members(["INT", "BIGINT"]);
+    });
+
+    test("CREATE PROCEDURE object name position stays silent", async () => {
+        const result = await complete("CREATE PROCEDURE dbo.p/*caret*/ AS SELECT 1");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("CREATE VIEW object name position stays silent", async () => {
+        const result = await complete("CREATE VIEW dbo.v/*caret*/ AS SELECT 1 AS c");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("DECLARE variable name position stays silent", async () => {
+        const result = await complete("DECLARE @x/*caret*/");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("table variable column name position stays silent", async () => {
+        const result = await complete("DECLARE @t TABLE (/*caret*/");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("ALTER TABLE ADD column declaration stays silent before type", async () => {
+        const result = await complete("ALTER TABLE Sales.Orders ADD NewColumn/*caret*/");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("ALTER TABLE ADD column type position offers types", async () => {
+        const result = await complete("ALTER TABLE Sales.Orders ADD NewColumn nvar/*caret*/");
+
+        expect(labels(result)).to.include("NVARCHAR");
+    });
 });
 
 suite("sqlLanguage native completion: star expansion", () => {

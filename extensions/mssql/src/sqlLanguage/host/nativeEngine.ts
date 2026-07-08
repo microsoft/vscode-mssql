@@ -42,7 +42,10 @@ import { computeFolding } from "../features/folding";
 import { StatementSketch, sketchStatement } from "../core/sketch";
 import { ScriptOverlay, SketchedStatement, buildOverlay } from "../core/overlay";
 import { bindStatement } from "../core/binder";
-import { classifyContext } from "../core/context";
+import {
+    completionContextFromExpectation,
+    completionExpectationAt,
+} from "../core/parser/cursorExpectation";
 import { buildDatabaseContext } from "../core/databaseContext";
 import {
     MemberAccessInfo,
@@ -261,6 +264,8 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             if (shouldSuppressAutomaticWhitespaceCompletion(req)) {
                 span.end("ok", {
                     contextKind: { raw: "none", cls: "diagnostic.metadata" },
+                    expectationKind: { raw: "none", cls: "diagnostic.metadata" },
+                    expectationConfidence: { raw: "high", cls: "diagnostic.metadata" },
                     itemCount: { raw: 0, cls: "diagnostic.metadata" },
                     suppressed: { raw: "emptySpace", cls: "diagnostic.metadata" },
                 });
@@ -297,6 +302,8 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 });
                 span.end("ok", {
                     contextKind: { raw: "statementStart", cls: "diagnostic.metadata" },
+                    expectationKind: { raw: "statementKeyword", cls: "diagnostic.metadata" },
+                    expectationConfidence: { raw: "medium", cls: "diagnostic.metadata" },
                     itemCount: { raw: result.items.length, cls: "diagnostic.metadata" },
                 });
                 return Promise.resolve(result);
@@ -311,7 +318,13 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 pinned,
                 caseSensitive: pinned.env.caseSensitive,
             });
-            const context = classifyContext(req.text, analysis.lexed.tokens, target.sketch, offset);
+            const expectation = completionExpectationAt(
+                req.text,
+                analysis.lexed.tokens,
+                target.sketch,
+                offset,
+            );
+            const context = completionContextFromExpectation(expectation);
             const options = this.getOptions();
             const result = computeCompletion({
                 text: req.text,
@@ -340,6 +353,11 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             const contextParts = "parts" in context ? context.parts.join(".") : "";
             span.end("ok", {
                 contextKind: { raw: context.kind, cls: "diagnostic.metadata" },
+                expectationKind: { raw: expectation.kind, cls: "diagnostic.metadata" },
+                expectationConfidence: {
+                    raw: expectation.confidence,
+                    cls: "diagnostic.metadata",
+                },
                 itemCount: { raw: result.items.length, cls: "diagnostic.metadata" },
                 isIncomplete: { raw: result.isIncomplete, cls: "diagnostic.metadata" },
                 offset: { raw: offset, cls: "diagnostic.metadata" },
@@ -354,6 +372,14 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                         .join(", "),
                     cls: "object.name",
                 },
+                ...(expectation.suppressReason !== undefined
+                    ? {
+                          suppressReason: {
+                              raw: expectation.suppressReason,
+                              cls: "diagnostic.metadata",
+                          },
+                      }
+                    : {}),
                 ...(memberResolution !== undefined
                     ? { memberResolution: { raw: memberResolution, cls: "diagnostic.metadata" } }
                     : {}),
