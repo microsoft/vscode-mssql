@@ -34,11 +34,24 @@ function statementAt(
 }
 
 suite("sqlLanguage completion expectation", () => {
-    test("module object names are declaration symbols", () => {
-        const e = expectation("CREATE PROCEDURE dbo.p/*caret*/ AS SELECT 1");
+    for (const moduleSql of [
+        "CREATE PROCEDURE dbo.p/*caret*/ AS SELECT 1",
+        "CREATE VIEW dbo.v/*caret*/ AS SELECT 1 AS c",
+        "CREATE FUNCTION dbo.f/*caret*/() RETURNS int AS BEGIN RETURN 1 END",
+        "CREATE TRIGGER dbo.tr/*caret*/ ON dbo.T AFTER INSERT AS SELECT 1",
+    ]) {
+        test(`module object names are declaration symbols: ${moduleSql.split("/*caret*/")[0]}`, () => {
+            const e = expectation(moduleSql);
 
-        expect(e.kind).to.equal("declarationName");
-        expect(e.suppressReason).to.equal("declarationSymbol");
+            expect(e.kind).to.equal("declarationName");
+            expect(e.suppressReason).to.equal("declarationSymbol");
+        });
+    }
+
+    test("module body positions fall back to expression expectations", () => {
+        const e = expectation("CREATE PROCEDURE dbo.p AS SELECT /*caret*/ FROM Sales.Orders");
+
+        expect(e.kind).to.equal("columnExpression");
     });
 
     test("DECLARE variable names are declaration symbols", () => {
@@ -61,6 +74,12 @@ suite("sqlLanguage completion expectation", () => {
         expect(e.kind).to.equal("declarationName");
     });
 
+    test("table variable column names after commas are declaration symbols", () => {
+        const e = expectation("DECLARE @t TABLE (Id int, /*caret*/)");
+
+        expect(e.kind).to.equal("declarationName");
+    });
+
     test("CREATE TABLE column types remain type expectations", () => {
         const e = expectation("CREATE TABLE dbo.T (Id i/*caret*/)");
 
@@ -68,8 +87,21 @@ suite("sqlLanguage completion expectation", () => {
         expect(e.context).to.deep.equal({ kind: "declareType", prefix: "i" });
     });
 
+    test("CREATE TABLE later column types remain type expectations", () => {
+        const e = expectation("CREATE TABLE dbo.T (Id int, Name nvar/*caret*/)");
+
+        expect(e.kind).to.equal("typeName");
+        expect(e.context).to.deep.equal({ kind: "declareType", prefix: "nvar" });
+    });
+
     test("ALTER TABLE ADD column names are declaration symbols", () => {
         const e = expectation("ALTER TABLE Sales.Orders ADD NewColumn/*caret*/");
+
+        expect(e.kind).to.equal("declarationName");
+    });
+
+    test("ALTER TABLE ADD COLUMN column names are declaration symbols", () => {
+        const e = expectation("ALTER TABLE Sales.Orders ADD COLUMN NewColumn/*caret*/");
 
         expect(e.kind).to.equal("declarationName");
     });
@@ -79,5 +111,12 @@ suite("sqlLanguage completion expectation", () => {
 
         expect(e.kind).to.equal("typeName");
         expect(e.context).to.deep.equal({ kind: "declareType", prefix: "nvar" });
+    });
+
+    test("ALTER TABLE ADD COLUMN column types remain type expectations", () => {
+        const e = expectation("ALTER TABLE Sales.Orders ADD COLUMN NewColumn dec/*caret*/");
+
+        expect(e.kind).to.equal("typeName");
+        expect(e.context).to.deep.equal({ kind: "declareType", prefix: "dec" });
     });
 });

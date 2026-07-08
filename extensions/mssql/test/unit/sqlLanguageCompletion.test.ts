@@ -376,6 +376,24 @@ suite("sqlLanguage native completion: DDL declaration symbols", () => {
         expect(result.isIncomplete).to.equal(false);
     });
 
+    test("CREATE FUNCTION object name position stays silent", async () => {
+        const result = await complete(
+            "CREATE FUNCTION dbo.f/*caret*/() RETURNS int AS BEGIN RETURN 1 END",
+        );
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
+    test("CREATE TRIGGER object name position stays silent", async () => {
+        const result = await complete(
+            "CREATE TRIGGER dbo.tr/*caret*/ ON dbo.T AFTER INSERT AS SELECT 1",
+        );
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
     test("DECLARE variable name position stays silent", async () => {
         const result = await complete("DECLARE @x/*caret*/");
 
@@ -401,6 +419,12 @@ suite("sqlLanguage native completion: DDL declaration symbols", () => {
         const result = await complete("ALTER TABLE Sales.Orders ADD NewColumn nvar/*caret*/");
 
         expect(labels(result)).to.include("NVARCHAR");
+    });
+
+    test("ALTER TABLE ADD COLUMN type position offers types", async () => {
+        const result = await complete("ALTER TABLE Sales.Orders ADD COLUMN NewColumn dec/*caret*/");
+
+        expect(labels(result)).to.include("DECIMAL");
     });
 });
 

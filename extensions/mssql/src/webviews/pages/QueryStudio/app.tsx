@@ -80,6 +80,16 @@ import { QsResultsGridProvider, qsGridRowHeight } from "./resultsGrid";
 import { QueryStudioResultsTextView } from "./resultsTextView";
 import { QueryStudioExecutionPlanView } from "./queryPlanTab";
 import { monacoApi } from "./monacoSetup";
+import {
+    QS_ACCEPT_INLINE_SUGGESTION_ACTION,
+    QS_ACCEPT_SELECTED_SUGGESTION_ACTION,
+    QS_INSERT_TAB_ACTION,
+    QS_OUTDENT_ACTION,
+    QS_SHIFT_TAB_OUTDENT_CONTEXT,
+    QS_TAB_ACCEPT_INLINE_CONTEXT,
+    QS_TAB_ACCEPT_SUGGESTION_CONTEXT,
+    QS_TAB_INSERT_CONTEXT,
+} from "./keybindings";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
@@ -687,18 +697,23 @@ export function QueryStudioApp() {
             });
             editor.addCommand(
                 monacoKeyCode().Tab,
-                () => editor.trigger("keyboard", "acceptSelectedSuggestion", undefined),
-                "suggestWidgetVisible && textInputFocus",
+                () => editor.trigger("keyboard", QS_ACCEPT_SELECTED_SUGGESTION_ACTION, undefined),
+                QS_TAB_ACCEPT_SUGGESTION_CONTEXT,
             );
             editor.addCommand(
                 monacoKeyCode().Tab,
-                () => editor.trigger("keyboard", "tab", undefined),
-                "editorTextFocus && !suggestWidgetVisible",
+                () => editor.trigger("keyboard", QS_ACCEPT_INLINE_SUGGESTION_ACTION, undefined),
+                QS_TAB_ACCEPT_INLINE_CONTEXT,
+            );
+            editor.addCommand(
+                monacoKeyCode().Tab,
+                () => editor.trigger("keyboard", QS_INSERT_TAB_ACTION, undefined),
+                QS_TAB_INSERT_CONTEXT,
             );
             editor.addCommand(
                 monacoKeyMod().Shift | monacoKeyCode().Tab,
-                () => editor.trigger("keyboard", "outdent", undefined),
-                "editorTextFocus",
+                () => editor.trigger("keyboard", QS_OUTDENT_ACTION, undefined),
+                QS_SHIFT_TAB_OUTDENT_CONTEXT,
             );
             restoreEditorFocusSoon();
         },

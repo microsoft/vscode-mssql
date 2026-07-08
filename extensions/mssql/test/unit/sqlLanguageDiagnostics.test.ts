@@ -317,6 +317,42 @@ suite("sqlLanguage diagnostics T1: SELECT syntax recovery", () => {
         expect(result.suppressed.syntaxUntrusted).to.equal(1);
     });
 
+    test("GROUP without BY is an error when the next token exists", async () => {
+        const result = await diagnose("select OrderID from Sales.Orders group OrderID");
+        const d = only(result);
+
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("Expected BY after GROUP.");
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+
+    test("split ORDER inside SELECT is an error", async () => {
+        const result = await diagnose("select OrderID from Sales.Orders ord er by OrderID");
+        const d = only(result);
+
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean ORDER?");
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+
+    test("split GROUP inside SELECT is an error", async () => {
+        const result = await diagnose("select OrderID from Sales.Orders gro up by OrderID");
+        const d = only(result);
+
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean GROUP?");
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+
+    test("complete ORDER BY and GROUP BY clauses are clean", async () => {
+        expectClean(await diagnose("select OrderID from Sales.Orders order by OrderID"));
+        expectClean(await diagnose("select OrderID from Sales.Orders group by OrderID"));
+    });
+
+    test("trailing ORDER stays clean while the user is still typing", async () => {
+        expectClean(await diagnose("select * from Sales.Orders order", nullProvider));
+    });
+
     test("top-level split clause text stays silent as possible proc text", async () => {
         expectClean(await diagnose("fr om", nullProvider));
     });

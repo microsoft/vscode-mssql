@@ -29,6 +29,7 @@ import {
     HoverResult,
     SemanticTokensResult,
     SignatureHelpResult,
+    SqlCompletionItemKind,
     SqlLanguageFeatureEngine,
     SqlLanguageRequest,
 } from "../api";
@@ -43,9 +44,11 @@ import { StatementSketch, sketchStatement } from "../core/sketch";
 import { ScriptOverlay, SketchedStatement, buildOverlay } from "../core/overlay";
 import { bindStatement } from "../core/binder";
 import {
+    CompletionExpectation,
     completionContextFromExpectation,
     completionExpectationAt,
 } from "../core/parser/cursorExpectation";
+import { CompletionContext } from "../core/context";
 import { buildDatabaseContext } from "../core/databaseContext";
 import {
     MemberAccessInfo,
@@ -203,6 +206,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             overlay = buildOverlay(statements);
             parseSpan.end("ok", {
                 statementCount: { raw: statements.length, cls: "diagnostic.metadata" },
+                ...(diag.richMode ? richParseSpanFields(statements, overlay) : {}),
             });
         } catch (error) {
             parseSpan.fail(error);
@@ -372,6 +376,9 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                         .join(", "),
                     cls: "object.name",
                 },
+                ...(diag.richMode
+                    ? richCompletionSpanFields(target, context, expectation, result)
+                    : {}),
                 ...(expectation.suppressReason !== undefined
                     ? {
                           suppressReason: {
@@ -626,7 +633,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 const result = computation.result();
                 if (!settled) {
                     settled = true;
-                    span.end("ok", diagnosticsSpanFields(result));
+                    span.end("ok", diagnosticsSpanFields(result, diag.richMode));
                 }
                 const diagnosticsResult: DiagnosticsResult = {
                     diagnostics: result.diagnostics,
@@ -734,14 +741,21 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
 }
 
 /** Privacy-safe end-of-pass span fields: counts and reason names only. */
-function diagnosticsSpanFields(result: DiagnosticsPassResult): Record<string, RawField> {
+function diagnosticsSpanFields(
+    result: DiagnosticsPassResult,
+    richMode: boolean,
+): Record<string, RawField> {
     let errorCount = 0;
     let warningCount = 0;
+    const codeCounts = new Map<string, number>();
     for (const d of result.diagnostics) {
         if (d.severity === "error") {
             errorCount++;
         } else if (d.severity === "warning") {
             warningCount++;
+        }
+        if (d.code !== undefined) {
+            addCount(codeCounts, d.code);
         }
     }
     let suppressedTotal = 0;
@@ -756,7 +770,123 @@ function diagnosticsSpanFields(result: DiagnosticsPassResult): Record<string, Ra
         warningCount: { raw: warningCount, cls: "diagnostic.metadata" },
         suppressedTotal: { raw: suppressedTotal, cls: "diagnostic.metadata" },
         suppressionReasons: { raw: reasonParts.sort().join(","), cls: "diagnostic.metadata" },
+        ...(richMode
+            ? {
+                  diagnosticCodes: {
+                      raw: formatCounts(codeCounts),
+                      cls: "diagnostic.metadata",
+                  },
+                  syntaxUntrustedCount: {
+                      raw: result.suppressed.syntaxUntrusted ?? 0,
+                      cls: "diagnostic.metadata",
+                  },
+              }
+            : {}),
     };
+}
+
+function richParseSpanFields(
+    statements: readonly AnalyzedStatement[],
+    overlay: ScriptOverlay,
+): Record<string, RawField> {
+    const statementKinds = new Map<string, number>();
+    const clauseKinds = new Map<string, number>();
+    let sourceCount = 0;
+    let selectItemCount = 0;
+    let cteCount = 0;
+    let declareCount = 0;
+    let createdTableCount = 0;
+    let alterTableCount = 0;
+    let selectIntoCount = 0;
+    let execCallCount = 0;
+    let targetCount = 0;
+    for (const statement of statements) {
+        const sketch = statement.sketch;
+        addCount(statementKinds, sketch.kind);
+        sourceCount += sketch.sources.length;
+        selectItemCount += sketch.selectItems.length;
+        cteCount += sketch.ctes.length;
+        declareCount += sketch.declares.length;
+        createdTableCount += sketch.createdTable !== undefined ? 1 : 0;
+        alterTableCount += sketch.createdTable?.isAlter === true ? 1 : 0;
+        selectIntoCount += sketch.selectInto !== undefined ? 1 : 0;
+        execCallCount += sketch.exec !== undefined ? 1 : 0;
+        targetCount += sketch.target !== undefined ? 1 : 0;
+        for (const clause of sketch.clauses) {
+            addCount(clauseKinds, clause.kind);
+        }
+    }
+    const overlayKinds = new Map<string, number>();
+    for (const object of overlay.objects) {
+        addCount(overlayKinds, object.kind);
+    }
+    return {
+        statementKinds: { raw: formatCounts(statementKinds), cls: "diagnostic.metadata" },
+        clauseKinds: { raw: formatCounts(clauseKinds), cls: "diagnostic.metadata" },
+        sourceCount: { raw: sourceCount, cls: "diagnostic.metadata" },
+        selectItemCount: { raw: selectItemCount, cls: "diagnostic.metadata" },
+        cteCount: { raw: cteCount, cls: "diagnostic.metadata" },
+        declareCount: { raw: declareCount, cls: "diagnostic.metadata" },
+        createdTableCount: { raw: createdTableCount, cls: "diagnostic.metadata" },
+        alterTableCount: { raw: alterTableCount, cls: "diagnostic.metadata" },
+        selectIntoCount: { raw: selectIntoCount, cls: "diagnostic.metadata" },
+        execCallCount: { raw: execCallCount, cls: "diagnostic.metadata" },
+        targetCount: { raw: targetCount, cls: "diagnostic.metadata" },
+        overlayObjectCount: { raw: overlay.objects.length, cls: "diagnostic.metadata" },
+        overlayObjectKinds: { raw: formatCounts(overlayKinds), cls: "diagnostic.metadata" },
+        overlayAlteredNameCount: { raw: overlay.alteredNames.size, cls: "diagnostic.metadata" },
+        overlayVariableCount: { raw: overlay.variables.length, cls: "diagnostic.metadata" },
+    };
+}
+
+function richCompletionSpanFields(
+    target: AnalyzedStatement,
+    context: CompletionContext,
+    expectation: CompletionExpectation,
+    result: CompletionResult,
+): Record<string, RawField> {
+    const itemKinds = new Map<SqlCompletionItemKind, number>();
+    for (const item of result.items) {
+        addCount(itemKinds, item.kind);
+    }
+    const fields: Record<string, RawField> = {
+        statementKind: { raw: target.sketch.kind, cls: "diagnostic.metadata" },
+        batchIndex: { raw: target.batchIndex, cls: "diagnostic.metadata" },
+        statementOrdinal: { raw: target.ordinal, cls: "diagnostic.metadata" },
+        clauseCount: { raw: target.sketch.clauses.length, cls: "diagnostic.metadata" },
+        sourceCount: { raw: target.sketch.sources.length, cls: "diagnostic.metadata" },
+        selectItemCount: { raw: target.sketch.selectItems.length, cls: "diagnostic.metadata" },
+        cteCount: { raw: target.sketch.ctes.length, cls: "diagnostic.metadata" },
+        declareCount: { raw: target.sketch.declares.length, cls: "diagnostic.metadata" },
+        completionItemKinds: { raw: formatCounts(itemKinds), cls: "diagnostic.metadata" },
+    };
+    if ("scopeId" in context) {
+        fields.contextScopeId = { raw: context.scopeId, cls: "diagnostic.metadata" };
+    }
+    if (context.kind === "expression") {
+        fields.contextClause = { raw: context.clause, cls: "diagnostic.metadata" };
+    }
+    if (context.kind === "tableSource") {
+        fields.contextAfterJoin = { raw: context.afterJoin, cls: "diagnostic.metadata" };
+    }
+    if (context.kind === "memberAccess") {
+        fields.memberPartCount = { raw: context.parts.length, cls: "diagnostic.metadata" };
+    }
+    if (expectation.suppressReason !== undefined) {
+        fields.expectationSuppressed = { raw: true, cls: "diagnostic.metadata" };
+    }
+    return fields;
+}
+
+function addCount<T extends string>(counts: Map<T, number>, key: T): void {
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+}
+
+function formatCounts<T extends string>(counts: ReadonlyMap<T, number>): string {
+    return [...counts.entries()]
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(([key, value]) => `${key}:${value}`)
+        .join(",");
 }
 
 function emptyCompletionResult(): CompletionResult {
