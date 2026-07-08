@@ -12397,6 +12397,14 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
         <target state="translated">Первые шаги по подключению к базе данных SQL и ее использованию в разработке</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.order">
+        <source xml:lang="en">[Optional] A non-negative number used to sort this connection group in the Object Explorer sidebar. Groups with an 'order' value are displayed first, lowest to highest; remaining groups follow in alphabetical order.</source>
+        <target state="new">[Optional] A non-negative number used to sort this connection group in the Object Explorer sidebar. Groups with an 'order' value are displayed first, lowest to highest; remaining groups follow in alphabetical order.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.order">
+        <source xml:lang="en">[Optional] A non-negative number used to sort this connection in the Object Explorer sidebar. Connections with an 'order' value are displayed first, lowest to highest; remaining connections follow in alphabetical order.</source>
+        <target state="new">[Optional] A non-negative number used to sort this connection in the Object Explorer sidebar. Connections with an 'order' value are displayed first, lowest to highest; remaining connections follow in alphabetical order.</target>
+      </trans-unit>
       <trans-unit id="mssql.saveAsCsv.textIdentifier">
         <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>
         <target state="translated">[Необязательно] Символы, используемые для обрамления текстовых полей при сохранении результатов в формате CSV</target>
