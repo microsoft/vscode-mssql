@@ -9075,6 +9075,9 @@
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
+    <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
+      <source xml:lang="en">Open in MSSQL extension</source>
+    </trans-unit>
     <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
       <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
     </trans-unit>
