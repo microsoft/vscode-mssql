@@ -595,8 +595,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 previousResultSet?.columnInfo?.length !== resultSet.columnInfo.length;
             const rowCountChanged = previousResultSet?.subset?.length !== resultSet.subset.length;
 
+            const insertedFirstRow =
+                (previousResultSet?.subset?.length ?? 0) === 0 && resultSet.subset.length > 0;
+
             // Scenario 1: Initial load or structural changes - full recreation
-            if (isInitialLoad || columnCountChanged) {
+            if (isInitialLoad || columnCountChanged || insertedFirstRow) {
                 const dataColumns = createColumns(resultSet.columnInfo, currentTheme);
                 const newColumns = [createUndoColumn(), ...dataColumns];
                 setColumns(newColumns);
