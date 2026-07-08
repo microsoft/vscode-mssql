@@ -110,6 +110,7 @@ export function registerOeV2NativeCommands(
                         node.objectName,
                         oeV2Settings().tablePreviewRowLimit,
                     ),
+                    autoRun: true,
                 });
             },
         ),

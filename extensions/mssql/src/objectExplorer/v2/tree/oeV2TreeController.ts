@@ -13,7 +13,8 @@
  *
  * Expansion rules per oe_view_design §10: pin once per expand; database
  * catalogs acquire lazily on database expand; readiness renders honestly
- * (failure ≠ emptiness); connect is EXPLICIT (no auto-connect-on-expand).
+ * (failure ≠ emptiness); saved connection expansion opens through the data
+ * plane like classic OE unless the user explicitly disconnected it.
  */
 
 import {
@@ -75,6 +76,7 @@ export class OeV2TreeController {
     private tree: OeV2ProfileTree | undefined;
     private listeners = new Set<(node?: OeV2Node) => void>();
     private runtimes = new Map<string, ConnectionRuntime>();
+    private explicitlyDisconnected = new Set<string>();
     private registrySubscription: { dispose(): void } | undefined;
 
     constructor(private readonly deps: OeV2TreeControllerDeps) {
@@ -154,6 +156,7 @@ export class OeV2TreeController {
 
     /** Explicit connect: opens the data-plane session + metadata coordinator. */
     async connectProfile(connectionId: string): Promise<boolean> {
+        this.explicitlyDisconnected.delete(connectionId);
         const { sessions, secrets, coordinatorFactory } = this.deps;
         if (!sessions || !secrets || !coordinatorFactory) {
             return false;
@@ -185,6 +188,7 @@ export class OeV2TreeController {
             this.runtimes.delete(connectionId);
         }
         await this.deps.sessions?.disconnect(connectionId);
+        this.explicitlyDisconnected.add(connectionId);
     }
 
     /** Route a refresh request to the right lease scope. */
@@ -334,7 +338,11 @@ export class OeV2TreeController {
     }
 
     private async connectionChildren(connectionId: string): Promise<OeV2Node[]> {
-        const state = this.deps.sessions?.stateOf(connectionId) ?? "disconnected";
+        let state = this.deps.sessions?.stateOf(connectionId) ?? "disconnected";
+        if (state === "disconnected" && !this.explicitlyDisconnected.has(connectionId)) {
+            await this.connectProfile(connectionId);
+            state = this.deps.sessions?.stateOf(connectionId) ?? "disconnected";
+        }
         switch (state) {
             case "connected":
                 return serverChildren(connectionId);

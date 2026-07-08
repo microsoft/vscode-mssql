@@ -74,7 +74,7 @@ export class OeV2SessionRegistry {
         return this.entries.get(connectionId)?.state ?? "disconnected";
     }
 
-    /** Explicit user connect (no auto-connect-on-expand in preview). */
+    /** Open or reuse the OE v2 data-plane session for a saved profile. */
     async connect(
         connectionId: string,
         prepared: PreparedConnection,

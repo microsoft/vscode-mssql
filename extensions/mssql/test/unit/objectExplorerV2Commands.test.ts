@@ -32,11 +32,11 @@ suite("Object Explorer v2 command primitives (B19)", () => {
 
     test("selectTopSql: clamped limits, escaped identifiers, no interpolation leaks", () => {
         expect(selectTopSql("dbo", "Orders", 1000)).to.equal(
-            "SELECT TOP (1000) *\nFROM [dbo].[Orders];\n",
+            "SELECT TOP 1000 *\nFROM [dbo].[Orders];\n",
         );
-        expect(selectTopSql("dbo", "T", 0)).to.contain("TOP (1000)"); // invalid → default
-        expect(selectTopSql("dbo", "T", 3.5)).to.contain("TOP (1000)");
-        expect(selectTopSql("dbo", "T", 999_999)).to.contain("TOP (100000)"); // ceiling
+        expect(selectTopSql("dbo", "T", 0)).to.contain("TOP 1000"); // invalid → default
+        expect(selectTopSql("dbo", "T", 3.5)).to.contain("TOP 1000");
+        expect(selectTopSql("dbo", "T", 999_999)).to.contain("TOP 100000"); // ceiling
         const hostile = selectTopSql("dbo", "x]; SHUTDOWN; --", 10);
         expect(hostile).to.contain("[x]]; SHUTDOWN; --]");
         expect(hostile).to.not.match(/FROM \[dbo\]\.\[x\];/);

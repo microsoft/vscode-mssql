@@ -19,8 +19,8 @@ export function qualifiedName(schema: string, name: string): string {
     return `${bracketQuote(schema)}.${bracketQuote(name)}`;
 }
 
-/** SELECT TOP (n) * FROM [schema].[name]; — n clamped to [1, 100000]. */
+/** SELECT TOP n * FROM [schema].[name]; — n clamped to [1, 100000]. */
 export function selectTopSql(schema: string, name: string, rowLimit: number): string {
     const limit = Number.isInteger(rowLimit) && rowLimit > 0 ? Math.min(rowLimit, 100_000) : 1000;
-    return `SELECT TOP (${limit}) *\nFROM ${qualifiedName(schema, name)};\n`;
+    return `SELECT TOP ${limit} *\nFROM ${qualifiedName(schema, name)};\n`;
 }

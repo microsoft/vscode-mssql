@@ -366,6 +366,18 @@ suite("Object Explorer v2 browse (B18)", () => {
         connect.restore();
     });
 
+    test("expanding a disconnected saved profile opens it and renders server children", async () => {
+        const h = harness();
+        const roots = await h.controller.children();
+        const server = roots.find((n) => n.connectionId === "p1")!;
+        expect(server.kind).to.equal("disconnectedConnection");
+
+        const children = await h.controller.children(server);
+        expect(h.registry.stateOf("p1")).to.equal("connected");
+        expect(children.map((n) => n.label)).to.deep.equal(["Databases"]);
+        h.controller.dispose();
+    });
+
     test("connect → server node; Databases folder renders catalog states honestly", async () => {
         const h = harness();
         const { dbFolder } = await browseToDatabases(h);

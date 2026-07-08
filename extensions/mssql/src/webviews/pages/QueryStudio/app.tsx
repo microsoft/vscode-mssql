@@ -342,6 +342,10 @@ export function QueryStudioApp() {
 
     // --- sync: host → webview ----------------------------------------------
     const applyRemoteText = useCallback((text: string, hostVersion: number) => {
+        if (hostVersion < hostVersionRef.current) {
+            awaitingResyncRef.current = false;
+            return;
+        }
         const editor = editorRef.current;
         awaitingResyncRef.current = false;
         expectedEchoGroupsRef.current.clear();
@@ -374,16 +378,31 @@ export function QueryStudioApp() {
                     remote.echoOfEditGroupId &&
                     expectedEchoGroupsRef.current.delete(remote.echoOfEditGroupId)
                 ) {
-                    hostVersionRef.current = remote.toHostVersion;
                     const echoText = expectedEchoTextsRef.current.get(remote.echoOfEditGroupId);
                     expectedEchoTextsRef.current.delete(remote.echoOfEditGroupId);
-                    if (echoText !== undefined) {
+                    if (remote.toHostVersion >= hostVersionRef.current) {
+                        hostVersionRef.current = remote.toHostVersion;
+                    }
+                    if (echoText !== undefined && remote.toHostVersion >= hostVersionRef.current) {
                         syncedTextRef.current = echoText;
                     }
                     return; // our own edit reflected — do not reapply
                 }
+                if (remote.toHostVersion <= hostVersionRef.current) {
+                    return;
+                }
                 const editor = editorRef.current;
                 if (!editor) {
+                    return;
+                }
+                if (remote.fromHostVersion !== hostVersionRef.current) {
+                    awaitingResyncRef.current = true;
+                    void rpc
+                        .sendRequest(QsSyncResyncRequest.type, {
+                            webviewVersion: hostVersionRef.current,
+                            textHash: textHash(editor.getValue()),
+                        })
+                        .then((resync) => applyRemoteText(resync.text, resync.hostVersion));
                     return;
                 }
                 // Apply host-origin edits; verify hash, else request resync.
@@ -405,6 +424,7 @@ export function QueryStudioApp() {
                 }
                 hostVersionRef.current = remote.toHostVersion;
                 if (editor.getValue() && textHash(editor.getValue()) !== remote.textHash) {
+                    awaitingResyncRef.current = true;
                     void rpc
                         .sendRequest(QsSyncResyncRequest.type, {
                             webviewVersion: remote.toHostVersion,

@@ -6,11 +6,10 @@
 /**
  * OE v2 activation (V2-0/V2-2): registers the preview tree view when
  * mssql.objectExplorer.viewMode == "v2Preview", composes the session
- * registry + shared-MetadataStore coordinators, and wires the explicit
- * connect/disconnect commands. Reacts to config flips WITHOUT a reload
- * (the B3 lesson). Activation itself creates NO connections of any kind;
- * connect happens only on the user's explicit command, and only through
- * the data plane — never ConnectionManager (lint + spy enforced).
+ * registry + shared-MetadataStore coordinators, and wires connect/disconnect
+ * commands. Reacts to config flips WITHOUT a reload (the B3 lesson). All
+ * connects go through the data plane — never ConnectionManager (lint + spy
+ * enforced).
  */
 
 import * as vscode from "vscode";
