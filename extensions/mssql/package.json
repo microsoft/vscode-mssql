@@ -999,6 +999,14 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.addAadAccount",
+                    "when": "!config.mssql.preview.useVscodeAccountsForEntraMFA"
+                },
+                {
+                    "command": "mssql.removeAadAccount",
+                    "when": "!config.mssql.preview.useVscodeAccountsForEntraMFA"
+                },
+                {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
