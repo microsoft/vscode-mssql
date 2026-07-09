@@ -404,7 +404,7 @@ function qsGridCommands(): FluentResultGridCommandConfiguration {
             {
                 id: FluentResultGridCommand.SwitchToTextView,
                 label: "",
-                placements: [placement.Toolbar, placement.Keyboard],
+                placements: [placement.Keyboard],
                 groupId: "view",
                 order: 100,
                 isVisible: (context) => context.viewMode !== "text",
