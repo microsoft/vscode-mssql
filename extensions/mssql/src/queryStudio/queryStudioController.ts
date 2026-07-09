@@ -275,14 +275,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         };
     }
 
-    private planXmlForResultSet(resultSetId: string): string | undefined {
+    private async planXmlForResultSet(resultSetId: string): Promise<string | undefined> {
         const summary = this.model.executionHost
             .resultsState()
             .resultSets.find((set) => set.resultSetId === resultSetId);
         if (!summary?.isPlanResult) {
             return undefined;
         }
-        const window = this.model.executionHost.getRows(resultSetId, 0, 1);
+        const window = await this.model.executionHost.getRows(resultSetId, 0, 1, "cellDocument");
         const value = window.values[0]?.[0];
         return value === undefined || value === null ? undefined : cellDocumentText(value);
     }
@@ -520,7 +520,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 summary,
                 format,
                 selection,
-                getRows: (id, start, count) => this.model.executionHost.getRows(id, start, count),
+                getRows: (id, start, count) =>
+                    this.model.executionHost.getRows(id, start, count, "export"),
             });
         });
         this.onRequest(
@@ -531,7 +532,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 // format "text" = display-clamped huge cell: raw text, no
                 // pretty-print, plaintext language.
                 try {
-                    const window = this.model.executionHost.getRows(resultSetId, row, 1);
+                    const window = await this.model.executionHost.getRows(
+                        resultSetId,
+                        row,
+                        1,
+                        "cellDocument",
+                    );
                     const value = window.values[0]?.[column];
                     if (value === undefined || value === null) {
                         return { opened: false };
@@ -555,7 +561,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsOpenPlanRequest.type, async ({ resultSetId }) => {
             // "Open in New Tab": reuse the classic execution-plan viewer.
             try {
-                const planXml = this.planXmlForResultSet(resultSetId);
+                const planXml = await this.planXmlForResultSet(resultSetId);
                 if (!planXml) {
                     return { opened: false };
                 }
@@ -577,9 +583,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
         this.onRequest(QsGetPlanStateRequest.type, async ({ resultSetIds }) => {
             try {
-                const xmlPlans = resultSetIds
-                    .map((id) => this.planXmlForResultSet(id))
-                    .filter((xml): xml is string => xml !== undefined);
+                const xmlPlans = (
+                    await Promise.all(resultSetIds.map((id) => this.planXmlForResultSet(id)))
+                ).filter((xml): xml is string => xml !== undefined);
                 if (xmlPlans.length === 0) {
                     return { error: "No execution plan results are available yet." };
                 }

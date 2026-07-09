@@ -24,7 +24,7 @@ interface ExportOptions {
     summary: QsResultSetSummary;
     format: QsSaveResultFormat;
     selection?: readonly QsResultSelectionRange[];
-    getRows: (resultSetId: string, start: number, count: number) => QsCellWindow;
+    getRows: (resultSetId: string, start: number, count: number) => Promise<QsCellWindow>;
 }
 
 interface CsvOptions {
@@ -222,7 +222,7 @@ async function* readExportRows(
 
     for (let start = range.rowStart; start <= range.rowEnd; start += EXPORT_CHUNK_SIZE) {
         const count = Math.min(EXPORT_CHUNK_SIZE, range.rowEnd - start + 1);
-        const window = options.getRows(options.summary.resultSetId, start, count);
+        const window = await options.getRows(options.summary.resultSetId, start, count);
         const isNull = windowNullFlags(window);
         for (let row = 0; row < window.values.length; row++) {
             const cells: ExportCell[] = [];

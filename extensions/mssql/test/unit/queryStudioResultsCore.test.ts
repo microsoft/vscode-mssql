@@ -104,22 +104,22 @@ suite("RowStore", () => {
         return fs.mkdtempSync(path.join(os.tmpdir(), "qs-rowstore-"));
     }
 
-    test("append + window serve with null bitmap and column metadata", () => {
+    test("append + window serve with null bitmap and column metadata", async () => {
         const store = new RowStore(tempDir());
         store.beginResultSet("rs1", [
             { name: "a", displayName: "a" },
             { name: "b", displayName: "b" },
         ]);
-        store.appendPage(
+        await store.appendPage(
             "rs1",
             page(0, [
                 [1, "x"],
                 [2, null],
             ]),
         );
-        store.appendPage("rs1", page(2, [[3, "z"]]));
+        await store.appendPage("rs1", page(2, [[3, "z"]]));
         store.endResultSet("rs1");
-        const window = store.getRows("rs1", 1, 2);
+        const window = await store.getRows("rs1", 1, 2);
         expect(window.rowCount).to.equal(2);
         expect(window.values[0][0]).to.equal(2);
         expect(window.values[1][0]).to.equal(3);
@@ -129,17 +129,17 @@ suite("RowStore", () => {
         store.dispose();
     });
 
-    test("windows clamp to bounds and empty sets serve honestly", () => {
+    test("windows clamp to bounds and empty sets serve honestly", async () => {
         const store = new RowStore(tempDir());
         store.beginResultSet("rs1", [{ name: "n", displayName: "n" }]);
-        store.appendPage("rs1", page(0, [[1], [2], [3]]));
-        expect(store.getRows("rs1", 2, 10).rowCount).to.equal(1);
-        expect(store.getRows("rs1", 99, 10).rowCount).to.equal(0);
-        expect(store.getRows("missing", 0, 10).rowCount).to.equal(0);
+        await store.appendPage("rs1", page(0, [[1], [2], [3]]));
+        expect((await store.getRows("rs1", 2, 10)).rowCount).to.equal(1);
+        expect((await store.getRows("rs1", 99, 10)).rowCount).to.equal(0);
+        expect((await store.getRows("missing", 0, 10)).rowCount).to.equal(0);
         store.dispose();
     });
 
-    test("memory cap evicts to spill and windows read back from frames", () => {
+    test("memory cap evicts to spill and windows read back from frames", async () => {
         const dir = tempDir();
         const store = new RowStore(dir, {
             ...DEFAULT_LIMITS,
@@ -147,7 +147,7 @@ suite("RowStore", () => {
         });
         store.beginResultSet("rs1", [{ name: "n", displayName: "n" }]);
         for (let i = 0; i < 5; i++) {
-            store.appendPage(
+            await store.appendPage(
                 "rs1",
                 page(
                     i * 10,
@@ -155,25 +155,28 @@ suite("RowStore", () => {
                 ),
             );
         }
+        // Spill writes are ASYNC now (QO-6): settle the queue before asserting.
+        await store.flushSpill();
         expect(store.stats.spillBytes).to.be.greaterThan(0);
         // Earliest page was evicted; the window must read it back from spill.
-        const window = store.getRows("rs1", 0, 5);
+        const window = await store.getRows("rs1", 0, 5);
         expect(window.rowCount).to.equal(5);
         expect(window.values[0][0]).to.equal(0);
         expect(window.values[4][0]).to.equal(4);
         store.dispose();
+        await store.flushSpill();
         // Spill artifacts removed with the store (privacy rule).
         expect(fs.existsSync(path.join(dir, "resultsets.pages"))).to.equal(false);
     });
 
-    test("row cap truncates the set honestly", () => {
+    test("row cap truncates the set honestly", async () => {
         const store = new RowStore(tempDir(), {
             ...DEFAULT_LIMITS,
             maxRowsPerResultSet: 15,
         });
         store.beginResultSet("rs1", [{ name: "n", displayName: "n" }]);
         expect(
-            store.appendPage(
+            await store.appendPage(
                 "rs1",
                 page(
                     0,
@@ -182,7 +185,7 @@ suite("RowStore", () => {
             ),
         ).to.equal(true);
         expect(
-            store.appendPage(
+            await store.appendPage(
                 "rs1",
                 page(
                     10,
@@ -196,7 +199,7 @@ suite("RowStore", () => {
         store.dispose();
     });
 
-    test("spill disabled: memory keeps pages (honest backpressure posture)", () => {
+    test("spill disabled: memory keeps pages (honest backpressure posture)", async () => {
         const store = new RowStore(tempDir(), {
             ...DEFAULT_LIMITS,
             maxMemoryBytes: 1500,
@@ -204,7 +207,7 @@ suite("RowStore", () => {
         });
         store.beginResultSet("rs1", [{ name: "n", displayName: "n" }]);
         for (let i = 0; i < 4; i++) {
-            store.appendPage(
+            await store.appendPage(
                 "rs1",
                 page(
                     i * 5,
@@ -213,7 +216,7 @@ suite("RowStore", () => {
             );
         }
         expect(store.stats.spillBytes).to.equal(0);
-        expect(store.getRows("rs1", 0, 20).rowCount).to.equal(20);
+        expect((await store.getRows("rs1", 0, 20)).rowCount).to.equal(20);
         store.dispose();
     });
 });

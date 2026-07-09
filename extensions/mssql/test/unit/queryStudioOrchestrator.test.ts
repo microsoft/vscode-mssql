@@ -128,8 +128,8 @@ suite("Query Studio execution orchestrator", () => {
         expect(result.totalRows).to.equal(3);
         expect(result.rowsAffected).to.equal(3);
         // Store ids are batch-scoped; both windows serve.
-        expect(rowStore.getRows(events.resultSets[0], 0, 10).rowCount).to.equal(2);
-        expect(rowStore.getRows(events.resultSets[1], 0, 10).rowCount).to.equal(1);
+        expect((await rowStore.getRows(events.resultSets[0], 0, 10)).rowCount).to.equal(2);
+        expect((await rowStore.getRows(events.resultSets[1], 0, 10)).rowCount).to.equal(1);
         expect(events.phases[0]).to.equal("executing");
         expect(events.phases[events.phases.length - 1]).to.equal("succeeded");
         rowStore.dispose();
@@ -575,7 +575,7 @@ suite("Query Studio execution orchestrator", () => {
         // Continue-on-error: batch 2's rows still streamed and closed.
         expect(result.status).to.equal("completedWithErrors");
         expect(result.totalRows).to.equal(5);
-        expect(rowStore.getRows(events.resultSets[0], 0, 10).rowCount).to.equal(5);
+        expect((await rowStore.getRows(events.resultSets[0], 0, 10)).rowCount).to.equal(5);
         expect(rowStore.summary(events.resultSets[0])?.complete).to.equal(true);
         rowStore.dispose();
     });

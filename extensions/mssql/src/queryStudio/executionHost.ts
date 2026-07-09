@@ -26,7 +26,7 @@ import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionOrchestrator, RunResult } from "./executionOrchestrator";
 import { beginRunRecord, completeRunRecord } from "./replay/qsRunCapture";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
-import { RowStore, RowStoreLimits } from "./rowStore";
+import { RowReadReason, RowStore, RowStoreLimits, RowStoreTuning } from "./rowStore";
 
 export interface ExecutionHostEvents {
     onRunStarted?(startedEpochMs: number): void;
@@ -117,6 +117,7 @@ export class ExecutionHost {
             path.join(this.spillRoot, `run${this.runCounter}`),
             rowStoreLimitsFrom(tuning),
             tuning.params.diagnosticsLevel,
+            rowStoreTuningFrom(tuning),
         );
         this.messages = [];
         this.summaries.clear();
@@ -285,15 +286,21 @@ export class ExecutionHost {
         return this.orchestrator?.requestCancel() ?? Promise.resolve({ acknowledged: false });
     }
 
-    getRows(resultSetId: string, start: number, count: number): QsCellWindow {
+    async getRows(
+        resultSetId: string,
+        start: number,
+        count: number,
+        reason: RowReadReason = "grid",
+    ): Promise<QsCellWindow> {
         return (
-            this.rowStore?.getRows(resultSetId, start, count) ?? {
+            this.rowStore?.getRows(resultSetId, start, count, reason) ??
+            Promise.resolve({
                 resultSetId,
                 start,
                 rowCount: 0,
                 columns: [],
                 values: [],
-            }
+            })
         );
     }
 
@@ -407,5 +414,14 @@ function rowStoreLimitsFrom(tuning: QueryTuningSnapshot): RowStoreLimits {
         spillEnabled: tuning.params.spillEnabled,
         maxSpillBytes: tuning.params.storeSpillBytes,
         maxRowsPerResultSet: tuning.params.maxRowsPerResultSet,
+    };
+}
+
+/** QO-6 cache/backpressure knobs from the same snapshot. */
+function rowStoreTuningFrom(tuning: QueryTuningSnapshot): RowStoreTuning {
+    return {
+        maxPendingSpillBytes: tuning.params.maxPendingSpillBytes,
+        protectedCacheRatio: tuning.params.protectedCacheRatio,
+        windowCacheEntries: tuning.params.windowCacheEntries,
     };
 }

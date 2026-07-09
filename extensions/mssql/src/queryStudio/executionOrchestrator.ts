@@ -419,7 +419,9 @@ export class ExecutionOrchestrator {
             },
             async onRowsPage(page) {
                 const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${page.resultSetId}`;
-                const accepted = rowStore.appendPage(storeId, {
+                // Async acceptance (QO-6): this await is the backpressure
+                // point — the STS2 ack is held while the spill queue drains.
+                const accepted = await rowStore.appendPage(storeId, {
                     rowOffset: page.rowOffset,
                     rowCount: page.rowCount,
                     approxBytes: page.approxBytes,
@@ -435,37 +437,40 @@ export class ExecutionOrchestrator {
                     return;
                 }
                 const storeSummary = rowStore.summary(storeId);
-                if (
-                    storeSummary?.truncatedReason === "maxRowsPerResultSet" &&
-                    !rowLimitCancelRequested
-                ) {
-                    rowLimitCancelRequested = true;
-                    const rowLimit = rowStore.stats.maxRowsPerResultSet;
-                    endedSets.add(page.resultSetId);
-                    rowStore.endResultSet(storeId, "maxRowsPerResultSet");
-                    events.onResultSetEnded(storeId, storeSummary.rowCount, "maxRowsPerResultSet");
+                const reason = storeSummary?.truncatedReason;
+                if (!reason || rowLimitCancelRequested) {
+                    return;
+                }
+                rowLimitCancelRequested = true;
+                const rowLimit = rowStore.stats.maxRowsPerResultSet;
+                endedSets.add(page.resultSetId);
+                rowStore.endResultSet(storeId, reason);
+                events.onResultSetEnded(storeId, storeSummary.rowCount, reason);
+                if (reason === "maxRowsPerResultSet") {
                     Perf.marker("mssql.queryStudio.rows.maxRowsPerResultSet", "instant", {
                         batchIndex,
                         resultSetId: storeId,
                         rowLimit,
                         retainedRows: storeSummary.rowCount,
                     });
-                    events.onMessages([
-                        {
-                            batchIndex,
-                            ...(batch.repeatTotal > 1
-                                ? { repeatOrdinal: batch.repeatOrdinal }
-                                : {}),
-                            kind: "warning",
-                            text:
-                                `Query Studio reached the result row limit of ${formatInteger(rowLimit)} rows. ` +
-                                "The result set was truncated and the query was canceled. " +
-                                "Increase mssql.queryStudio.maxRowsPerResultSet to allow more rows.",
-                            epochMs: Date.now(),
-                        },
-                    ]);
-                    void orchestrator.requestCancel();
                 }
+                events.onMessages([
+                    {
+                        batchIndex,
+                        ...(batch.repeatTotal > 1 ? { repeatOrdinal: batch.repeatOrdinal } : {}),
+                        kind: "warning",
+                        text:
+                            reason === "maxRowsPerResultSet"
+                                ? `Query Studio reached the result row limit of ${formatInteger(rowLimit)} rows. ` +
+                                  "The result set was truncated and the query was canceled. " +
+                                  "Increase mssql.queryStudio.maxRowsPerResultSet to allow more rows."
+                                : "Stopped because local result storage reached its configured limit. " +
+                                  "The result set was truncated and the query was canceled. " +
+                                  "Adjust the Query Studio tuning storage limits to allow more.",
+                        epochMs: Date.now(),
+                    },
+                ]);
+                void orchestrator.requestCancel();
             },
             onMessage(message) {
                 if (message.kind === "error") {

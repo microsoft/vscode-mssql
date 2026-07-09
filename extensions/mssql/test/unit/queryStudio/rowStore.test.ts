@@ -10,7 +10,7 @@ import * as path from "path";
 import { RowStore } from "../../../src/queryStudio/rowStore";
 
 suite("Query Studio RowStore", () => {
-    test("serves high-offset windows from many small pages", () => {
+    test("serves high-offset windows from many small pages", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir);
         try {
@@ -19,7 +19,7 @@ suite("Query Studio RowStore", () => {
                 { name: "name", displayName: "name" },
             ]);
             for (let i = 0; i < 1000; i++) {
-                store.appendPage("r0", {
+                await store.appendPage("r0", {
                     rowOffset: i,
                     rowCount: 1,
                     approxBytes: 16,
@@ -27,7 +27,7 @@ suite("Query Studio RowStore", () => {
                 });
             }
 
-            const window = store.getRows("r0", 995, 3);
+            const window = await store.getRows("r0", 995, 3);
 
             expect(window.rowCount).to.equal(3);
             expect(window.values).to.deep.equal([
@@ -41,7 +41,7 @@ suite("Query Studio RowStore", () => {
         }
     });
 
-    test("spill round-trip: eviction under memory cap, windows served from spill, stats attribute it", () => {
+    test("spill round-trip: eviction under memory cap, windows served from spill, stats attribute it", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         // Tiny memory cap forces early pages out to spill.
         const store = new RowStore(spillDir, {
@@ -53,7 +53,7 @@ suite("Query Studio RowStore", () => {
         try {
             store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
             for (let i = 0; i < 100; i++) {
-                store.appendPage("r0", {
+                await store.appendPage("r0", {
                     rowOffset: i * 10,
                     rowCount: 10,
                     approxBytes: 512,
@@ -62,12 +62,13 @@ suite("Query Studio RowStore", () => {
                     },
                 });
             }
+            await store.flushSpill();
             expect(store.stats.spillWrites).to.be.greaterThan(0);
             expect(store.stats.spillBytes).to.be.greaterThan(0);
             expect(store.stats.memoryBytes).to.be.at.most(4 * 1024 + 512);
 
             // A window over early (spilled) pages materializes correctly.
-            const window = store.getRows("r0", 0, 5);
+            const window = await store.getRows("r0", 0, 5);
             expect(window.rowCount).to.equal(5);
             expect(window.values).to.deep.equal([
                 ["row-0"],
@@ -84,7 +85,7 @@ suite("Query Studio RowStore", () => {
         }
     });
 
-    test("row cap rejects the overflowing page and records the truncation reason", () => {
+    test("row cap rejects the overflowing page and records the truncation reason", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir, {
             maxMemoryBytes: 64 * 1024 * 1024,
@@ -95,7 +96,7 @@ suite("Query Studio RowStore", () => {
         try {
             store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
             expect(
-                store.appendPage("r0", {
+                await store.appendPage("r0", {
                     rowOffset: 0,
                     rowCount: 10,
                     approxBytes: 100,
@@ -103,7 +104,7 @@ suite("Query Studio RowStore", () => {
                 }),
             ).to.equal(true);
             expect(
-                store.appendPage("r0", {
+                await store.appendPage("r0", {
                     rowOffset: 10,
                     rowCount: 10,
                     approxBytes: 100,
@@ -117,7 +118,7 @@ suite("Query Studio RowStore", () => {
         }
     });
 
-    test("diagnostics level does not change served windows (verbose only prices counting)", () => {
+    test("diagnostics level does not change served windows (verbose only prices counting)", async () => {
         for (const level of ["minimal", "verbose"] as const) {
             const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
             const store = new RowStore(
@@ -135,7 +136,7 @@ suite("Query Studio RowStore", () => {
                     { name: "a", displayName: "a" },
                     { name: "b", displayName: "b" },
                 ]);
-                store.appendPage("r0", {
+                await store.appendPage("r0", {
                     rowOffset: 0,
                     rowCount: 3,
                     approxBytes: 64,
@@ -147,13 +148,98 @@ suite("Query Studio RowStore", () => {
                         ],
                     },
                 });
-                const window = store.getRows("r0", 0, 3);
+                const window = await store.getRows("r0", 0, 3);
                 expect(window.rowCount, level).to.equal(3);
                 expect(window.nullBitmap, level).to.be.a("string");
                 expect(window.values[1]?.[1], level).to.equal(undefined);
             } finally {
                 store.dispose();
             }
+        }
+    });
+
+    test("export-reason reads stream from spill WITHOUT evicting the viewport (QO-6)", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(
+            spillDir,
+            {
+                maxMemoryBytes: 4 * 1024,
+                spillEnabled: true,
+                maxSpillBytes: 64 * 1024 * 1024,
+                maxRowsPerResultSet: 1_000_000,
+            },
+            "minimal",
+            {
+                maxPendingSpillBytes: 32 * 1024 * 1024,
+                protectedCacheRatio: 0.5,
+                windowCacheEntries: 8,
+            },
+        );
+        try {
+            store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+            for (let i = 0; i < 100; i++) {
+                await store.appendPage("r0", {
+                    rowOffset: i * 10,
+                    rowCount: 10,
+                    approxBytes: 512,
+                    compact: {
+                        values: Array.from({ length: 10 }, (_, r) => [`row-${i * 10 + r}`]),
+                    },
+                });
+            }
+            await store.flushSpill();
+            // Pin a viewport window (grid reason promotes to protected).
+            const viewport = await store.getRows("r0", 990, 10, "grid");
+            expect(viewport.rowCount).to.equal(10);
+            const memoryBefore = store.stats.memoryBytes;
+
+            // Full export scan over the (mostly spilled) set: values correct,
+            // and NOTHING was re-admitted — the viewport stays resident.
+            let exported = 0;
+            for (let start = 0; start < 1000; start += 100) {
+                const window = await store.getRows("r0", start, 100, "export");
+                exported += window.rowCount;
+            }
+            expect(exported).to.equal(1000);
+            expect(store.stats.memoryBytes).to.equal(memoryBefore);
+
+            // The viewport re-fetch is a warm window-cache hit (no spill read).
+            const spillReadsBefore = store.stats.spillReads;
+            const again = await store.getRows("r0", 990, 10, "grid");
+            expect(again.rowCount).to.equal(10);
+            expect(store.stats.spillReads).to.equal(spillReadsBefore);
+            expect(store.stats.windowCacheHits).to.be.greaterThan(0);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("spill cap rejects with spillLimit and the run truncates honestly (QO-6)", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(spillDir, {
+            maxMemoryBytes: 1024,
+            spillEnabled: true,
+            maxSpillBytes: 2048, // tiny: the spill file fills almost immediately
+            maxRowsPerResultSet: 1_000_000,
+        });
+        try {
+            store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+            let accepted = true;
+            for (let i = 0; i < 200 && accepted; i++) {
+                accepted = await store.appendPage("r0", {
+                    rowOffset: i * 10,
+                    rowCount: 10,
+                    approxBytes: 600,
+                    compact: {
+                        values: Array.from({ length: 10 }, (_, r) => [`row-${i * 10 + r}`]),
+                    },
+                });
+                await store.flushSpill();
+            }
+            expect(accepted).to.equal(false);
+            expect(store.summary("r0")?.truncatedReason).to.equal("spillLimit");
+        } finally {
+            store.dispose();
         }
     });
 });

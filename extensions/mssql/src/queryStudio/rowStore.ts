@@ -4,10 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * RowStore (doc 04 §13.1–13.3): per-execution result storage. Appends
- * compact pages from the sink, keeps a bounded memory LRU, spills the
- * remainder to length-prefixed JSON frames (addendum §3.3 spill format v1),
- * and serves random cell windows for the grid.
+ * RowStore (doc 04 §13.1–13.3, QO-6): per-execution result storage. Appends
+ * compact pages from the sink, keeps a bounded memory cache split into
+ * PROTECTED (viewport-fetched) and PROBATIONARY (appended/scanned) segments,
+ * spills the remainder to length-prefixed JSON frames through a bounded
+ * ASYNC write queue (the extension host hot path never blocks on spill I/O;
+ * queue saturation back-pressures appendPage, which holds the STS2 ack),
+ * and serves random cell windows with a small served-window cache.
+ *
+ * Cache rules (EXECUTION_PLAN QO-6): grid-reason window fetches promote
+ * pages to the protected segment; export/text streaming reads materialize
+ * WITHOUT re-admission so a background export cannot evict the viewport.
+ * Cell values are immutable once appended, so complete served windows cache
+ * safely for the run's lifetime.
  *
  * Spill files CONTAIN RESULT DATA (doc 04 §13.2 binding rules): created
  * under the caller-provided root, deleted on dispose/new execution, excluded
@@ -20,7 +29,10 @@ import * as path from "path";
 import { Perf } from "../perf/perfTelemetry";
 import { CompactPage } from "../services/sqlDataPlane/api";
 import { QsCellWindow, QsResultColumn } from "../sharedInterfaces/queryStudio";
-import { QueryTuningDiagnosticsLevel } from "../sharedInterfaces/queryTuning";
+import {
+    QUERY_TUNING_DEFAULTS,
+    QueryTuningDiagnosticsLevel,
+} from "../sharedInterfaces/queryTuning";
 
 export interface RowStoreLimits {
     maxMemoryBytes: number;
@@ -36,12 +48,35 @@ export const DEFAULT_LIMITS: RowStoreLimits = {
     maxRowsPerResultSet: 5_000_000,
 };
 
+/** QO-6 cache/backpressure knobs (QueryTuning params; defaults mirror the registry). */
+export interface RowStoreTuning {
+    /** Spill queue saturation point — appendPage awaits below this. */
+    maxPendingSpillBytes: number;
+    /** Fraction of maxMemoryBytes reserved for viewport-fetched pages. */
+    protectedCacheRatio: number;
+    /** Served-window cache entries (0 disables). */
+    windowCacheEntries: number;
+}
+
+export const DEFAULT_ROW_STORE_TUNING: RowStoreTuning = {
+    maxPendingSpillBytes: QUERY_TUNING_DEFAULTS.maxPendingSpillBytes,
+    protectedCacheRatio: QUERY_TUNING_DEFAULTS.protectedCacheRatio,
+    windowCacheEntries: QUERY_TUNING_DEFAULTS.windowCacheEntries,
+};
+
+/** Why a window is being read — drives cache admission policy. */
+export type RowReadReason = "grid" | "copy" | "export" | "text" | "cellDocument" | "diagnostic";
+
 interface StoredPage {
     rowOffset: number;
     rowCount: number;
     approxBytes: number;
     /** In memory when present; otherwise read from spill. */
     compact?: CompactPage;
+    /** Queued for spill write; stays in memory until the write confirms. */
+    spillPending?: boolean;
+    /** Resident in the protected LRU segment (viewport-fetched). */
+    protected?: boolean;
     /** Spill frame location when evicted. */
     spillOffset?: number;
     spillLength?: number;
@@ -63,15 +98,30 @@ class ResultSetStore {
     ) {}
 }
 
+interface SpillJob {
+    set: ResultSetStore;
+    page: StoredPage;
+}
+
 export class RowStore {
     private resultSets = new Map<string, ResultSetStore>();
     private memoryBytes = 0;
     private spillBytes = 0;
     private spillFd: number | undefined;
     private spillPath: string | undefined;
-    /** LRU of in-memory pages (resultSetId + index). */
-    private lru: Array<{ set: ResultSetStore; page: StoredPage }> = [];
+    /** Probationary LRU segment: appended + streaming-scanned pages. */
+    private probationary: Array<{ set: ResultSetStore; page: StoredPage }> = [];
+    /** Protected LRU segment: viewport-fetched pages (bounded slice of memory). */
+    private protectedPages: Array<{ set: ResultSetStore; page: StoredPage }> = [];
     private disposed = false;
+    /** Spill write pipeline: serialized, off the append hot path. */
+    private spillChain: Promise<void> = Promise.resolve();
+    private pendingSpillBytes = 0;
+    private spillWaiters: Array<() => void> = [];
+    /** Sticky spill failure: storage limit reached or I/O failed. */
+    private spillFailed = false;
+    /** Served-window cache (immutable values ⇒ complete windows cache safely). */
+    private windowCache = new Map<string, QsCellWindow>();
     // Row-pipeline attribution accumulators (QO-2): cheap adds on the hot
     // path, emitted as aggregates on query.complete via `stats`.
     private appendMsTotal = 0;
@@ -80,12 +130,16 @@ export class RowStore {
     private spillReads = 0;
     private spillReadMsTotal = 0;
     private materializeMsTotal = 0;
+    private windowCacheHits = 0;
+    private windowCacheMisses = 0;
+    private appendBackpressureMsTotal = 0;
 
     constructor(
         private readonly spillDir: string,
         private readonly limits: RowStoreLimits = DEFAULT_LIMITS,
         /** Verbose/full adds per-page markers + per-cell window scan counts. */
         private readonly diagnostics: QueryTuningDiagnosticsLevel = "minimal",
+        private readonly tuning: RowStoreTuning = DEFAULT_ROW_STORE_TUNING,
     ) {}
 
     private get verbose(): boolean {
@@ -96,17 +150,36 @@ export class RowStore {
         this.resultSets.set(resultSetId, new ResultSetStore(resultSetId, columns));
     }
 
-    /** Append a page; returns false when the row cap truncated the set. */
-    appendPage(
+    /**
+     * Append a page; resolves false when the row cap or a storage limit
+     * truncated the set (`summary().truncatedReason` says which). Awaits
+     * spill-queue capacity when saturated — this is the backpressure point
+     * that holds the STS2 ack (invariant: ack = real bounded acceptance).
+     */
+    async appendPage(
         resultSetId: string,
         page: { rowOffset: number; rowCount: number; approxBytes: number; compact: CompactPage },
-    ): boolean {
+    ): Promise<boolean> {
         const set = this.resultSets.get(resultSetId);
         if (!set || this.disposed) {
             return false;
         }
         if (set.rowCount + page.rowCount > this.limits.maxRowsPerResultSet) {
             set.truncatedReason = "maxRowsPerResultSet";
+            return false;
+        }
+        if (this.spillFailed) {
+            set.truncatedReason = "spillLimit";
+            return false;
+        }
+        if (
+            !this.limits.spillEnabled &&
+            this.memoryBytes + page.approxBytes >
+                this.limits.maxMemoryBytes + this.tuning.maxPendingSpillBytes
+        ) {
+            // No spill and past the hard memory allowance: honest refusal —
+            // the orchestrator cancels with a clear storage-limit message.
+            set.truncatedReason = "memoryLimit";
             return false;
         }
         const startedAt = performance.now();
@@ -120,7 +193,7 @@ export class RowStore {
         set.pages.push(stored);
         set.rowCount += page.rowCount;
         this.memoryBytes += page.approxBytes;
-        this.lru.push({ set, page: stored });
+        this.probationary.push({ set, page: stored });
         this.evictIfNeeded();
         const elapsed = performance.now() - startedAt;
         this.appendMsTotal += elapsed;
@@ -131,6 +204,16 @@ export class RowStore {
                 bytes: page.approxBytes,
                 ms: roundMs(elapsed),
             });
+        }
+        if (this.pendingSpillBytes > this.tuning.maxPendingSpillBytes) {
+            const waitStartedAt = performance.now();
+            await this.waitForSpillDrain();
+            this.appendBackpressureMsTotal += performance.now() - waitStartedAt;
+        }
+        if (this.spillFailed) {
+            // Storage limit / write failure surfaced while this page waited.
+            set.truncatedReason ??= "spillLimit";
+            return false;
         }
         return true;
     }
@@ -149,6 +232,12 @@ export class RowStore {
         const set = this.resultSets.get(resultSetId);
         if (set) {
             set.corrupt = true;
+        }
+        // Served windows for a corrupt set may be short — drop them.
+        for (const key of [...this.windowCache.keys()]) {
+            if (key.startsWith(resultSetId + " ")) {
+                this.windowCache.delete(key);
+            }
         }
     }
 
@@ -186,6 +275,11 @@ export class RowStore {
         spillWriteMsTotal: number;
         spillReadMsTotal: number;
         materializeMsTotal: number;
+        pendingSpillBytes: number;
+        appendBackpressureMsTotal: number;
+        windowCacheHits: number;
+        windowCacheMisses: number;
+        protectedPages: number;
     } {
         return {
             memoryBytes: this.memoryBytes,
@@ -202,19 +296,32 @@ export class RowStore {
             spillWriteMsTotal: roundMs(this.spillWriteMsTotal),
             spillReadMsTotal: roundMs(this.spillReadMsTotal),
             materializeMsTotal: roundMs(this.materializeMsTotal),
+            pendingSpillBytes: this.pendingSpillBytes,
+            appendBackpressureMsTotal: roundMs(this.appendBackpressureMsTotal),
+            windowCacheHits: this.windowCacheHits,
+            windowCacheMisses: this.windowCacheMisses,
+            protectedPages: this.protectedPages.length,
         };
     }
 
     /**
      * Serve a cell window (doc 04 §13.3): locate pages by rowOffset, decode
-     * from memory or spill, return the compact webview shape.
+     * from memory or spill, return the compact webview shape. Grid-reason
+     * reads promote pages to the protected cache segment; export/text reads
+     * stream WITHOUT admission so scans never evict the viewport.
      */
-    getRows(resultSetId: string, start: number, count: number): QsCellWindow {
+    async getRows(
+        resultSetId: string,
+        start: number,
+        count: number,
+        reason: RowReadReason = "grid",
+    ): Promise<QsCellWindow> {
         const startedAt = Date.now();
         Perf.marker("mssql.queryStudio.rows.windowFetch.begin", "begin", {
             resultSetId,
             start,
             count,
+            reason,
         });
         const set = this.resultSets.get(resultSetId);
         const empty: QsCellWindow = {
@@ -243,6 +350,38 @@ export class RowStore {
             });
             return empty;
         }
+
+        const cacheKey = `${resultSetId} ${start} ${count}`;
+        const cacheable = this.tuning.windowCacheEntries > 0 && reason === "grid";
+        if (cacheable) {
+            const cached = this.windowCache.get(cacheKey);
+            if (cached) {
+                // LRU touch.
+                this.windowCache.delete(cacheKey);
+                this.windowCache.set(cacheKey, cached);
+                this.windowCacheHits++;
+                Perf.marker("mssql.queryStudio.rows.windowFetch.end", "end", {
+                    resultSetId,
+                    start,
+                    count,
+                    rows: cached.rowCount,
+                    fromSpill: false,
+                    cacheHit: true,
+                    windowCache: true,
+                    columnCount: set.columns.length,
+                    pageCount: set.pages.length,
+                    availableRows: set.rowCount,
+                    pagesVisited: 0,
+                    materializedPages: 0,
+                    pagesMissing: 0,
+                    shortWindow: false,
+                    ms: Date.now() - startedAt,
+                });
+                return cached;
+            }
+            this.windowCacheMisses++;
+        }
+
         const end = Math.min(start + count, set.rowCount);
         const values: unknown[][] = [];
         const nullBits: boolean[] = [];
@@ -256,6 +395,8 @@ export class RowStore {
         // Per-cell content inspection is diagnostics-only work — priced only
         // at verbose/full (QO-2). The null bitmap is UI data and always built.
         const countCells = this.verbose;
+        // Streaming reads (export/text) must not evict the viewport (QO-6).
+        const admit = reason !== "export" && reason !== "text";
         const firstPageIndex = firstOverlappingPageIndex(set.pages, start);
         for (let pageIndex = firstPageIndex; pageIndex < set.pages.length; pageIndex++) {
             const page = set.pages[pageIndex];
@@ -267,12 +408,15 @@ export class RowStore {
             if (!page.compact) {
                 fromSpill = true;
             }
-            const compact = this.materialize(set, page);
+            const compact = await this.materialize(set, page, admit);
             if (!compact) {
                 pagesMissing++;
                 continue; // spill read failure surfaces as short window
             }
             pagesMaterialized++;
+            if (admit && reason === "grid" && page.compact) {
+                this.promoteToProtected(set, page);
+            }
             const from = Math.max(0, start - page.rowOffset);
             const to = Math.min(page.rowCount, end - page.rowOffset);
             const columnCount = set.columns.length;
@@ -324,7 +468,7 @@ export class RowStore {
                   }
                 : {}),
         });
-        return {
+        const window: QsCellWindow = {
             resultSetId,
             start,
             rowCount: values.length,
@@ -333,29 +477,175 @@ export class RowStore {
             nullBitmap: packBits(nullBits),
             ...(set.typeHints ? { typeHints: set.typeHints } : {}),
         };
+        // Only complete, full-height windows cache (values are immutable, so
+        // a fully-populated window stays valid as the set keeps streaming).
+        if (cacheable && values.length === count && pagesMissing === 0) {
+            this.windowCache.set(cacheKey, window);
+            while (this.windowCache.size > this.tuning.windowCacheEntries) {
+                const oldest = this.windowCache.keys().next().value;
+                if (oldest === undefined) {
+                    break;
+                }
+                this.windowCache.delete(oldest);
+            }
+        }
+        return window;
+    }
+
+    // --- cache segments --------------------------------------------------------
+
+    private promoteToProtected(set: ResultSetStore, page: StoredPage): void {
+        if (page.protected) {
+            return;
+        }
+        const index = this.probationary.findIndex((entry) => entry.page === page);
+        if (index >= 0) {
+            this.probationary.splice(index, 1);
+        }
+        page.protected = true;
+        this.protectedPages.push({ set, page });
+        // Protected segment is a bounded slice of memory: overflow demotes
+        // the oldest protected page back to probationary (it stays resident
+        // until ordinary eviction reaches it).
+        const protectedCap = Math.max(
+            0,
+            Math.floor(this.limits.maxMemoryBytes * this.tuning.protectedCacheRatio),
+        );
+        let protectedBytes = this.protectedPages.reduce(
+            (total, entry) => total + entry.page.approxBytes,
+            0,
+        );
+        while (protectedBytes > protectedCap && this.protectedPages.length > 1) {
+            const demoted = this.protectedPages.shift()!;
+            demoted.page.protected = false;
+            protectedBytes -= demoted.page.approxBytes;
+            this.probationary.push(demoted);
+        }
     }
 
     // --- spill machinery -----------------------------------------------------
 
     private evictIfNeeded(): void {
-        while (this.memoryBytes > this.limits.maxMemoryBytes && this.lru.length > 0) {
-            const victim = this.lru.shift()!;
-            if (!victim.page.compact) {
+        // Victims come from probationary first; protected pages spill only
+        // when nothing else remains. Pages stay resident (spillPending) until
+        // the async write confirms — memory releases on completion.
+        while (
+            this.memoryBytes - this.pendingSpillBytes > this.limits.maxMemoryBytes &&
+            this.limits.spillEnabled &&
+            !this.spillFailed
+        ) {
+            const victim = this.takeEvictionVictim();
+            if (!victim) {
+                return;
+            }
+            if (!victim.page.compact || victim.page.spillPending) {
                 continue;
             }
-            if (!this.limits.spillEnabled) {
-                // Honest backpressure: keep in memory, stop evicting; the
-                // orchestrator pauses ingestion on memory pressure instead.
-                this.lru.unshift(victim);
-                return;
-            }
-            if (this.spillPage(victim.set, victim.page)) {
+            if (victim.page.spillOffset !== undefined) {
+                // Churn protection: a re-admitted page already has a spill
+                // frame — drop the decoded copy instead of rewriting it.
+                victim.page.compact = undefined;
                 this.memoryBytes -= victim.page.approxBytes;
-            } else {
-                this.lru.unshift(victim);
-                return;
+                continue;
+            }
+            this.queueSpill(victim.set, victim.page);
+        }
+    }
+
+    private takeEvictionVictim(): { set: ResultSetStore; page: StoredPage } | undefined {
+        while (this.probationary.length > 0) {
+            const candidate = this.probationary.shift()!;
+            if (candidate.page.compact && !candidate.page.spillPending) {
+                return candidate;
             }
         }
+        while (this.protectedPages.length > 0) {
+            const candidate = this.protectedPages.shift()!;
+            candidate.page.protected = false;
+            if (candidate.page.compact && !candidate.page.spillPending) {
+                return candidate;
+            }
+        }
+        return undefined;
+    }
+
+    private queueSpill(set: ResultSetStore, page: StoredPage): void {
+        page.spillPending = true;
+        this.pendingSpillBytes += page.approxBytes;
+        const job: SpillJob = { set, page };
+        this.spillChain = this.spillChain.then(() => this.writeSpillJob(job));
+    }
+
+    private async writeSpillJob(job: SpillJob): Promise<void> {
+        const { set, page } = job;
+        try {
+            if (this.disposed || !page.compact) {
+                return;
+            }
+            const fd = this.ensureSpillFile();
+            if (fd === undefined) {
+                this.spillFailed = true;
+                return;
+            }
+            const startedAt = performance.now();
+            // Serialization happens HERE, off the append call stack (QO-5
+            // will hand the store pre-encoded frames and delete this step).
+            const frame = Buffer.from(JSON.stringify(page.compact), "utf8");
+            if (this.spillBytes + frame.length + 4 > this.limits.maxSpillBytes) {
+                this.spillFailed = true;
+                return;
+            }
+            const header = Buffer.alloc(4);
+            header.writeUInt32LE(frame.length, 0);
+            const offset = this.spillBytes;
+            await writeAt(fd, header, offset);
+            await writeAt(fd, frame, offset + 4);
+            page.spillOffset = offset;
+            page.spillLength = frame.length;
+            page.compact = undefined;
+            this.spillBytes += frame.length + 4;
+            this.memoryBytes -= page.approxBytes;
+            const elapsed = performance.now() - startedAt;
+            this.spillWrites++;
+            this.spillWriteMsTotal += elapsed;
+            if (this.verbose) {
+                Perf.marker("mssql.queryStudio.rows.spill.write", "instant", {
+                    resultSetId: set.resultSetId,
+                    bytes: frame.length,
+                    ms: roundMs(elapsed),
+                });
+            }
+        } catch {
+            this.spillFailed = true;
+        } finally {
+            page.spillPending = false;
+            this.pendingSpillBytes -= page.approxBytes;
+            const waiters = this.spillWaiters;
+            this.spillWaiters = [];
+            for (const release of waiters) {
+                release();
+            }
+        }
+    }
+
+    private waitForSpillDrain(): Promise<void> {
+        if (this.pendingSpillBytes <= this.tuning.maxPendingSpillBytes || this.disposed) {
+            return Promise.resolve();
+        }
+        return new Promise((resolve) => {
+            const check = () => {
+                if (
+                    this.pendingSpillBytes <= this.tuning.maxPendingSpillBytes ||
+                    this.disposed ||
+                    this.spillFailed
+                ) {
+                    resolve();
+                } else {
+                    this.spillWaiters.push(check);
+                }
+            };
+            this.spillWaiters.push(check);
+        });
     }
 
     private ensureSpillFile(): number | undefined {
@@ -372,44 +662,16 @@ export class RowStore {
         }
     }
 
-    /** Length-prefixed JSON frame (spill format v1, addendum §3.3.2). */
-    private spillPage(set: ResultSetStore, page: StoredPage): boolean {
-        const fd = this.ensureSpillFile();
-        if (fd === undefined || !page.compact) {
-            return false;
-        }
-        const startedAt = performance.now();
-        const frame = Buffer.from(JSON.stringify(page.compact), "utf8");
-        if (this.spillBytes + frame.length + 4 > this.limits.maxSpillBytes) {
-            return false;
-        }
-        const header = Buffer.alloc(4);
-        header.writeUInt32LE(frame.length, 0);
-        try {
-            const offset = this.spillBytes;
-            fs.writeSync(fd, header, 0, 4, offset);
-            fs.writeSync(fd, frame, 0, frame.length, offset + 4);
-            page.spillOffset = offset;
-            page.spillLength = frame.length;
-            page.compact = undefined;
-            this.spillBytes += frame.length + 4;
-            const elapsed = performance.now() - startedAt;
-            this.spillWrites++;
-            this.spillWriteMsTotal += elapsed;
-            if (this.verbose) {
-                Perf.marker("mssql.queryStudio.rows.spill.write", "instant", {
-                    resultSetId: set.resultSetId,
-                    bytes: frame.length,
-                    ms: roundMs(elapsed),
-                });
-            }
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    private materialize(set: ResultSetStore, page: StoredPage): CompactPage | undefined {
+    /**
+     * Decode one page from memory or spill. `admit` controls memory
+     * re-admission: viewport reads re-admit (likely re-read), streaming
+     * export/text reads return a transient decode and leave the cache alone.
+     */
+    private async materialize(
+        set: ResultSetStore,
+        page: StoredPage,
+        admit: boolean,
+    ): Promise<CompactPage | undefined> {
         if (page.compact) {
             return page.compact;
         }
@@ -419,14 +681,16 @@ export class RowStore {
         const startedAt = performance.now();
         try {
             const frame = Buffer.alloc(page.spillLength!);
-            fs.readSync(this.spillFd, frame, 0, page.spillLength!, page.spillOffset + 4);
+            await readAt(this.spillFd, frame, page.spillOffset + 4);
             const readMs = performance.now() - startedAt;
             const compact = JSON.parse(frame.toString("utf8")) as CompactPage;
-            // Re-admit to memory LRU (read pages are likely re-read).
-            page.compact = compact;
-            this.memoryBytes += page.approxBytes;
-            this.lru.push({ set, page });
-            this.evictIfNeeded();
+            if (admit && !this.disposed) {
+                // Re-admit to memory (read pages are likely re-read).
+                page.compact = compact;
+                this.memoryBytes += page.approxBytes;
+                this.probationary.push({ set, page });
+                this.evictIfNeeded();
+            }
             const elapsed = performance.now() - startedAt;
             this.spillReads++;
             this.spillReadMsTotal += readMs;
@@ -451,23 +715,57 @@ export class RowStore {
         }
         this.disposed = true;
         this.resultSets.clear();
-        this.lru = [];
-        if (this.spillFd !== undefined) {
-            try {
-                fs.closeSync(this.spillFd);
-            } catch {
-                /* already closed */
-            }
+        this.probationary = [];
+        this.protectedPages = [];
+        this.windowCache.clear();
+        const waiters = this.spillWaiters;
+        this.spillWaiters = [];
+        for (const release of waiters) {
+            release();
         }
-        if (this.spillPath) {
-            try {
-                fs.rmSync(this.spillPath, { force: true });
-                fs.rmdirSync(this.spillDir);
-            } catch {
-                /* best-effort delete; deactivate sweep catches leftovers */
+        // Close + delete after any in-flight write settles (best-effort; the
+        // writer checks `disposed` before touching the fd). Chained so
+        // flushSpill() awaited after dispose observes the cleanup too.
+        this.spillChain = this.spillChain.then(() => {
+            if (this.spillFd !== undefined) {
+                try {
+                    fs.closeSync(this.spillFd);
+                } catch {
+                    /* already closed */
+                }
+                this.spillFd = undefined;
             }
-        }
+            if (this.spillPath) {
+                try {
+                    fs.rmSync(this.spillPath, { force: true });
+                    fs.rmdirSync(this.spillDir);
+                } catch {
+                    /* best-effort delete; deactivate sweep catches leftovers */
+                }
+            }
+        });
     }
+
+    /** Test/diagnostic seam: resolves when queued spill writes have settled. */
+    async flushSpill(): Promise<void> {
+        await this.spillChain;
+    }
+}
+
+function writeAt(fd: number, buffer: Buffer, position: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        fs.write(fd, buffer, 0, buffer.length, position, (error) =>
+            error ? reject(error) : resolve(),
+        );
+    });
+}
+
+function readAt(fd: number, buffer: Buffer, position: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        fs.read(fd, buffer, 0, buffer.length, position, (error) =>
+            error ? reject(error) : resolve(),
+        );
+    });
 }
 
 function firstOverlappingPageIndex(pages: readonly StoredPage[], start: number): number {
