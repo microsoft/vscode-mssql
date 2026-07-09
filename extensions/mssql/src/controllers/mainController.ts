@@ -2619,9 +2619,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Let users pick from a list of connections
-     */
-    /**
      * Opens the connection dialog prepopulated with the given connection info, in "create new connection" mode
      * (as opposed to "edit existing connection" mode). Used when an external source (e.g. protocol handler)
      * provides connection parameters that don't match any existing saved profile.
@@ -2638,6 +2635,9 @@ export default class MainController implements vscode.Disposable {
         connDialog.revealToForeground();
     }
 
+    /**
+     * Let users pick from a list of connections
+     */
     public async promptToConnect(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             let credentials = await this._connectionMgr.promptToConnect();

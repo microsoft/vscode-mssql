@@ -291,12 +291,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // Load connection (if specified); happens after form is loaded so that the form can be updated
         if (connectionToEdit) {
             try {
-                await this.loadConnectionToEdit(connectionToEdit);
-                if (openAsNewDraft) {
-                    this._connectionBeingEdited = undefined;
-                    this.state.isEditingConnection = false;
-                    this.state.editingConnectionDisplayName = undefined;
-                }
+                await this.loadConnectionToEdit(connectionToEdit, openAsNewDraft);
             } catch (err) {
                 this.loadEmptyConnection();
                 void vscode.window.showErrorMessage(getErrorMessage(err));
@@ -1852,9 +1847,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
+    private async loadConnectionToEdit(
+        connectionToEdit: IConnectionInfo,
+        openAsNewDraft: boolean = false,
+    ): Promise<void> {
         if (connectionToEdit) {
-            await this.setConnectionForEdit(connectionToEdit);
+            await this.setConnectionForEdit(connectionToEdit, openAsNewDraft);
             this.updateState();
 
             if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
@@ -1870,17 +1868,32 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.state.editingConnectionDisplayName = undefined;
     }
 
-    private async setConnectionForEdit(connectionToLoad: IConnectionInfo): Promise<void> {
+    private async setConnectionForEdit(
+        connectionToLoad: IConnectionInfo,
+        openAsNewDraft: boolean = false,
+    ): Promise<void> {
         this.clearFormError();
         const initializedConnection = await this.initializeConnectionForDialog(
             structuredClone(connectionToLoad),
         );
 
-        this._connectionBeingEdited = structuredClone(initializedConnection);
         this.state.connectionProfile = initializedConnection;
         this.state.selectedInputMode = ConnectionInputMode.Parameters;
-        this.state.isEditingConnection = true;
-        this.state.editingConnectionDisplayName = getConnectionDisplayName(initializedConnection);
+
+        if (openAsNewDraft) {
+            // pre-filling the form, but not editing an existing connection
+            this.state.connectionProfile.id = undefined;
+            this.state.connectionProfile.groupId = undefined;
+            this._connectionBeingEdited = undefined;
+            this.state.isEditingConnection = false;
+            this.state.editingConnectionDisplayName = undefined;
+        } else {
+            // editing an existing connection
+            this._connectionBeingEdited = structuredClone(initializedConnection);
+            this.state.isEditingConnection = true;
+            this.state.editingConnectionDisplayName =
+                getConnectionDisplayName(initializedConnection);
+        }
 
         await this.updateItemVisibility();
         await this.handleAzureMFAEdits("authenticationType");
