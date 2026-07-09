@@ -64,6 +64,14 @@ export interface RunOptions {
     /** Per-query timeout (mssql.query.executionTimeout); undefined = none. */
     timeoutMs?: number;
     /**
+     * Resolved wire options from the QueryTuning snapshot (QO-1) — sent with
+     * every user batch so the backend pages by the run's parameters.
+     */
+    wire?: { pageRows: number; pageBytes: number; maxCellBytes: number };
+    /** Tuning attribution stamped on the submit marker (QO-1). */
+    tuningDigest?: string;
+    tuningProfileId?: string;
+    /**
      * Host-run start epoch — anchors the synthesized
      * "Total execution time" message to the host's clock (SSMS parity).
      * Defaults to Date.now() at run() entry.
@@ -211,6 +219,8 @@ export class ExecutionOrchestrator {
             scope: options.scope,
             batchCount: batches.length,
             selection: options.scope === "selection",
+            ...(options.tuningDigest ? { tuningDigest: options.tuningDigest } : {}),
+            ...(options.tuningProfileId ? { tuningProfile: options.tuningProfileId } : {}),
         });
         this.events.onPhase("executing");
 
@@ -479,6 +489,16 @@ export class ExecutionOrchestrator {
             {
                 priority: "interactive",
                 ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+                // Resolved tuning wire params (QO-1). The backend honors what
+                // its capabilities cover (pageRows/maxCellBytes today;
+                // pageBytes once QO-3 lands service-side).
+                ...(options.wire
+                    ? {
+                          pageRows: options.wire.pageRows,
+                          pageBytes: options.wire.pageBytes,
+                          maxCellBytes: options.wire.maxCellBytes,
+                      }
+                    : {}),
             },
             sink,
         );

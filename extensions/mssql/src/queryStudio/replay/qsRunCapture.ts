@@ -31,6 +31,10 @@ import {
     QsRunRecord,
 } from "../../sharedInterfaces/queryStudioReplay";
 import { FeatureReplayTags } from "../../sharedInterfaces/featureReplay";
+import {
+    QueryTuningSnapshot,
+    normalizeQueryTuningOverrides,
+} from "../../sharedInterfaces/queryTuning";
 import { splitBatches } from "../../sql/batchSplitter";
 
 export const QS_REPLAY_ENABLED_SETTING = "mssql.queryStudio.replay.enabled";
@@ -44,7 +48,16 @@ const defaultReplayConfig: QsReplayConfig = {
     database: null,
     mode: null,
     stopOnError: null,
+    tuning: null,
 };
+
+function normalizeTuning(value: unknown): QsReplayConfig["tuning"] {
+    if (value === null || value === undefined || typeof value !== "object") {
+        return null;
+    }
+    const normalized = normalizeQueryTuningOverrides(value);
+    return Object.keys(normalized).length > 0 ? normalized : null;
+}
 
 function normalizeConfig(config: Partial<QsReplayConfig>): QsReplayConfig {
     return {
@@ -57,6 +70,7 @@ function normalizeConfig(config: Partial<QsReplayConfig>): QsReplayConfig {
                 ? config.mode
                 : null,
         stopOnError: typeof config.stopOnError === "boolean" ? config.stopOnError : null,
+        tuning: normalizeTuning(config.tuning),
     };
 }
 
@@ -77,6 +91,9 @@ function normalizePartialConfig(config: Partial<QsReplayConfig>): Partial<QsRepl
     if (Object.prototype.hasOwnProperty.call(config, "stopOnError")) {
         normalized.stopOnError =
             typeof config.stopOnError === "boolean" ? config.stopOnError : null;
+    }
+    if (Object.prototype.hasOwnProperty.call(config, "tuning")) {
+        normalized.tuning = normalizeTuning(config.tuning);
     }
     return normalized;
 }
@@ -112,6 +129,8 @@ export interface BeginRunRecordInput {
     server?: string;
     database?: string;
     catalogGeneration?: number;
+    /** Resolved QueryTuning snapshot the run executes with (QO-1). */
+    tuning?: QueryTuningSnapshot;
     replayTags?: FeatureReplayTags;
 }
 
@@ -156,6 +175,7 @@ export function beginRunRecord(input: BeginRunRecordInput): string | undefined {
         batches,
         elevated,
         capturePolicyId: diag.capturePolicy.policyId,
+        ...(input.tuning ? { tuning: input.tuning } : {}),
         ...(input.replayTags ? { replayTags: input.replayTags } : {}),
     });
 

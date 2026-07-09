@@ -21,6 +21,7 @@ import {
     FeatureReplayState,
     FeatureReplayTags,
 } from "./featureReplay";
+import { QueryTuningOverrides, QueryTuningSnapshot } from "./queryTuning";
 
 export const QS_RUN_RECORD_VERSION = 1;
 
@@ -65,6 +66,8 @@ export interface QsRunRecord {
     msToFirstResult?: number;
     elevated: boolean;
     capturePolicyId: string;
+    /** Resolved QueryTuning snapshot the run executed with (QO-1). */
+    tuning?: QueryTuningSnapshot;
     /** Present when this run was itself a replay. */
     replayTags?: FeatureReplayTags;
 }
@@ -74,11 +77,19 @@ export interface QsReplayConfig {
     database: string | null;
     mode: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan" | null;
     stopOnError: boolean | null;
+    /**
+     * QueryTuning overrides the replay executes with (QO-1); null = replay
+     * with the record's captured tuning snapshot when present, else current
+     * resolution. Matrix cells vary this to sweep parameters.
+     */
+    tuning: QueryTuningOverrides | null;
 }
 
 export interface QsReplayMatrixCell extends FeatureReplayMatrixCellBase {
     database?: string;
     mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
+    /** Tuning axis for parameter-sweep experiments (QO-1). */
+    tuning?: QueryTuningOverrides;
     label: string;
 }
 

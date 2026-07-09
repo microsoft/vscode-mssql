@@ -643,4 +643,44 @@ suite("Query Studio execution orchestrator", () => {
         expect(affected).to.have.length(1);
         rowStore.dispose();
     });
+
+    test("tuning wire params flow into every user batch's ExecuteOptions (QO-1)", async () => {
+        const seenOptions: Array<Record<string, unknown>> = [];
+        const session: ISqlSession = {
+            state: "open",
+            execute(_text: string, opts: unknown, sink: IQueryEventSink): QueryHandle {
+                seenOptions.push({ ...(opts as Record<string, unknown>) });
+                const completion = (async (): Promise<QueryCompleteSummary> => {
+                    const summary: QueryCompleteSummary = {
+                        clientQueryId: "q",
+                        status: "succeeded",
+                    } as QueryCompleteSummary;
+                    await sink.onComplete(summary);
+                    return summary;
+                })();
+                return {
+                    clientQueryId: "q",
+                    completion,
+                    cancel: async () => ({ acknowledged: false }),
+                    dispose: async () => undefined,
+                } as QueryHandle;
+            },
+        } as unknown as ISqlSession;
+        const rowStore = store();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, new RecordingEvents());
+        await orchestrator.run("select 1\nGO\nselect 2", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+            wire: { pageRows: 512, pageBytes: 131072, maxCellBytes: 65536 },
+        });
+        expect(seenOptions).to.have.length(2);
+        for (const opts of seenOptions) {
+            expect(opts.pageRows).to.equal(512);
+            expect(opts.pageBytes).to.equal(131072);
+            expect(opts.maxCellBytes).to.equal(65536);
+            expect(opts.priority).to.equal("interactive");
+        }
+        rowStore.dispose();
+    });
 });

@@ -13,7 +13,6 @@
  */
 
 import * as path from "path";
-import * as vscode from "vscode";
 import {
     QsExecutionState,
     QsMessageRow,
@@ -22,12 +21,12 @@ import {
     QsCellWindow,
 } from "../sharedInterfaces/queryStudio";
 import { FeatureReplayTags } from "../sharedInterfaces/featureReplay";
+import { QueryTuningOverrides, QueryTuningSnapshot } from "../sharedInterfaces/queryTuning";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionOrchestrator, RunResult } from "./executionOrchestrator";
 import { beginRunRecord, completeRunRecord } from "./replay/qsRunCapture";
-import { DEFAULT_LIMITS, RowStore, RowStoreLimits } from "./rowStore";
-
-const MAX_ROWS_PER_RESULT_SET_SETTING = "mssql.queryStudio.maxRowsPerResultSet";
+import { resolveQueryTuning } from "./tuning/queryTuningResolver";
+import { RowStore, RowStoreLimits } from "./rowStore";
 
 export interface ExecutionHostEvents {
     onRunStarted?(startedEpochMs: number): void;
@@ -83,6 +82,8 @@ export class ExecutionHost {
             mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
             /** Per-query timeout (mssql.query.executionTimeout), host-resolved. */
             timeoutMs?: number;
+            /** Highest-precedence QueryTuning overrides for THIS run (replay/experiments). */
+            tuningOverrides?: QueryTuningOverrides;
             /** Present when this run is a replay-engine re-execution. */
             replayTags?: FeatureReplayTags;
         },
@@ -102,12 +103,19 @@ export class ExecutionHost {
             return { started: false, reason: "Nothing to execute." };
         }
 
+        // Resolve the QueryTuning snapshot ONCE for the whole run (QO-1):
+        // it drives store limits, wire options, and is stamped on the run
+        // record + submit marker so the run self-describes its parameters.
+        const tuning = resolveQueryTuning(
+            options.tuningOverrides ? { runOverrides: options.tuningOverrides } : {},
+        );
+
         // Fresh run: previous results (and spill) are released NOW.
         this.rowStore?.dispose();
         this.runCounter++;
         this.rowStore = new RowStore(
             path.join(this.spillRoot, `run${this.runCounter}`),
-            queryStudioRowStoreLimits(),
+            rowStoreLimitsFrom(tuning),
         );
         this.messages = [];
         this.summaries.clear();
@@ -134,6 +142,7 @@ export class ExecutionHost {
             ...(this.binding.metadataStatus
                 ? { catalogGeneration: this.binding.metadataStatus.generation }
                 : {}),
+            tuning,
             ...(options.replayTags ? { replayTags: options.replayTags } : {}),
         });
         this.msToFirstResult = undefined;
@@ -205,6 +214,13 @@ export class ExecutionHost {
                 mode: options.mode ?? "normal",
                 startedEpochMs: this.startedEpochMs ?? Date.now(),
                 ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+                wire: {
+                    pageRows: tuning.params.pageRows,
+                    pageBytes: tuning.params.pageBytes,
+                    maxCellBytes: tuning.params.maxCellBytes,
+                },
+                tuningDigest: tuning.digest,
+                tuningProfileId: tuning.profileId,
             })
             .then(
                 (result) => this.finishRun(result),
@@ -383,16 +399,12 @@ export class ExecutionHost {
     }
 }
 
-function queryStudioRowStoreLimits(): RowStoreLimits {
-    const configured = vscode.workspace
-        .getConfiguration()
-        .get<number>(MAX_ROWS_PER_RESULT_SET_SETTING, DEFAULT_LIMITS.maxRowsPerResultSet);
-    const maxRowsPerResultSet =
-        configured !== undefined && Number.isFinite(configured)
-            ? Math.max(1, Math.floor(configured))
-            : DEFAULT_LIMITS.maxRowsPerResultSet;
+/** Store limits come from the resolved tuning snapshot — no hardcoded caps (QO-1). */
+function rowStoreLimitsFrom(tuning: QueryTuningSnapshot): RowStoreLimits {
     return {
-        ...DEFAULT_LIMITS,
-        maxRowsPerResultSet,
+        maxMemoryBytes: tuning.params.storeMemoryBytes,
+        spillEnabled: tuning.params.spillEnabled,
+        maxSpillBytes: tuning.params.storeSpillBytes,
+        maxRowsPerResultSet: tuning.params.maxRowsPerResultSet,
     };
 }

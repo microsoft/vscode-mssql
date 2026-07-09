@@ -3401,6 +3401,24 @@
                     "description": "Capture Query Studio run records for the Replay Lab even when the Replay Lab panel is closed. Records store SQL text digests only; replayable SQL text additionally requires Debug Console elevated capture.",
                     "scope": "application"
                 },
+                "mssql.queryStudio.tuning.profile": {
+                    "type": "string",
+                    "enum": [
+                        "interactive",
+                        "throughput",
+                        "lowMemory",
+                        "custom"
+                    ],
+                    "default": "interactive",
+                    "description": "Query Studio performance tuning profile. 'interactive' optimizes for fast first results, 'throughput' for large result streaming and export, 'lowMemory' for constrained hosts. 'custom' applies only explicit overrides.",
+                    "scope": "application"
+                },
+                "mssql.queryStudio.tuning.overrides": {
+                    "type": "object",
+                    "default": {},
+                    "markdownDescription": "Advanced (preview): per-knob Query Studio performance parameter overrides applied above the tuning profile — e.g. `{ \"pageRows\": 512, \"pageBytes\": 131072 }`. Keys follow the QueryTuning parameter registry; unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.languageService.engine": {
                     "type": "string",
                     "enum": [

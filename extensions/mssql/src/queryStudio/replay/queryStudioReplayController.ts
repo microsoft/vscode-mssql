@@ -27,6 +27,7 @@ import {
 } from "../../diagnostics/featureCapture/replayEngine";
 import { logger2 } from "../../models/logger2";
 import { FeatureReplayTags } from "../../sharedInterfaces/featureReplay";
+import { queryTuningParamsToOverrides } from "../../sharedInterfaces/queryTuning";
 import {
     QsReplayConfig,
     QsReplayMatrixCell,
@@ -197,18 +198,24 @@ export class QueryStudioReplayController extends WebviewPanelController<
                 database: record.database ?? null,
                 mode: record.mode,
                 stopOnError: null,
+                // Snapshot mode replays with the CAPTURED tuning params (QO-1)
+                // so a faithful replay reproduces the run's parameter set.
+                tuning: record.tuning ? queryTuningParamsToOverrides(record.tuning) : null,
             }),
             resolveLiveConfig: () => qsRunCaptureStore.getOverrides(),
             compactConfig: (config) => ({
                 database: config.database ?? null,
                 mode: config.mode ?? null,
                 stopOnError: config.stopOnError ?? null,
+                tuning: config.tuning ?? null,
             }),
             compactPartialConfig: (partial) => ({ ...(partial ?? {}) }),
             resolveMatrixCellConfig: (cell) => ({
                 ...qsRunCaptureStore.getOverrides(),
                 database: cell.database ?? null,
                 mode: cell.mode ?? null,
+                // Tuning axis for parameter-sweep experiments (QO-1).
+                ...(cell.tuning ? { tuning: cell.tuning } : {}),
             }),
             formatCellLabel: (cell) => cell.label,
             formatSourceLabel: (record) =>
@@ -261,6 +268,7 @@ export class QueryStudioReplayController extends WebviewPanelController<
                 selectionStartLine: 0,
                 scope: record.scope,
                 mode: config.mode ?? record.mode,
+                ...(config.tuning ? { tuningOverrides: config.tuning } : {}),
                 replayTags: tags,
             });
             if (!outcome.started) {
