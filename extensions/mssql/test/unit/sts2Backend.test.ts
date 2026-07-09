@@ -240,6 +240,44 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect((acks[0].params as { throughPageSeq: number }).throughPageSeq).to.equal(0);
     });
 
+    test("multi-result-set pages ack with PER-QUERY ordinals — no credit deadlock (D-0015)", async () => {
+        // Wire pageSeq restarts at 0 per result set; the service credit ledger
+        // counts pages per query. Acking the per-set seq froze the high-water
+        // after set 0 and stalled 100-result-set queries at the 4-page window
+        // (found by querystudio-query-100-resultsets). Every set's page must
+        // ack with a strictly increasing per-query ordinal.
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        for (let set = 0; set < 6; set++) {
+            rpc.push(STS2_METHODS.queryResultSet, {
+                queryId: "q-1",
+                resultSetId: set,
+                columns: [{ name: "n", engineType: "int" }],
+            });
+            rpc.push(STS2_METHODS.queryRows, {
+                queryId: "q-1",
+                resultSetId: set,
+                pageSeq: 0, // per-set seq restarts every set
+                rowOffset: 0,
+                rows: [[set]],
+            });
+        }
+        await new Promise((r) => setTimeout(r, 20));
+        const acks = rpc.notificationsSent
+            .filter((n) => n.method === STS2_METHODS.queryAck)
+            .map((n) => (n.params as { throughPageSeq: number }).throughPageSeq);
+        expect(acks).to.deep.equal([0, 1, 2, 3, 4, 5]);
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        const summary = await handle.completion;
+        expect(summary.status).to.equal("succeeded");
+        expect(summary.totalRows).to.equal(6);
+    });
+
     test("rows before metadata → ProtocolViolation failure, backend cancel attempted", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();

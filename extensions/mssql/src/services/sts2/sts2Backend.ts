@@ -597,7 +597,10 @@ export class Sts2Query {
     private cancelDeadlineTimer: ReturnType<typeof setTimeout> | undefined;
     private lane: Promise<void> = Promise.resolve();
     private ledgers = new Map<number, ResultSetLedger>();
+    /** Per-QUERY ack high-water (D-0015) — wire pageSeq is per result set. */
     private highestAckedPageSeq = -1;
+    /** Per-QUERY page ordinal assigned in wire order (the ack currency). */
+    private receivedPageOrdinal = 0;
     private totalRows = 0;
     private resultSets = 0;
     private errors = 0;
@@ -799,16 +802,24 @@ export class Sts2Query {
         };
         this.convertMsTotal += performance.now() - convertStartedAt;
         this.wireApproxBytes += page.approxBytes;
+        // Ack ordinals are PER QUERY (D-0015): the wire pageSeq restarts at 0
+        // for every result set, but the service's credit ledger counts pages
+        // per query — acking the per-set pageSeq froze the high-water after
+        // the first set and DEADLOCKED multi-result-set queries once the
+        // credit window (4 pages) drained. Assign the per-query ordinal in
+        // wire order; the FIFO lane acks it after durable acceptance.
+        const ackOrdinal = this.receivedPageOrdinal++;
         this.enqueue(async () => {
             // Durable acceptance first, THEN the high-water ack (§8.5).
             const sinkStartedAt = performance.now();
             await this.sink.onRowsPage(page);
             this.sinkWaitMsTotal += performance.now() - sinkStartedAt;
-            if (!this.terminalSent && params.pageSeq > this.highestAckedPageSeq) {
-                this.highestAckedPageSeq = params.pageSeq;
+            if (!this.terminalSent && ackOrdinal > this.highestAckedPageSeq) {
+                this.highestAckedPageSeq = ackOrdinal;
                 this.rpc.sendNotification(STS2_METHODS.queryAck, {
                     queryId: this.backendId,
-                    throughPageSeq: params.pageSeq,
+                    resultSetId: params.resultSetId,
+                    throughPageSeq: ackOrdinal,
                 });
             }
         });
