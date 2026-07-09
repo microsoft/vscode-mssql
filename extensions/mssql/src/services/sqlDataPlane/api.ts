@@ -84,7 +84,9 @@ export interface SqlBackendCapabilities {
     actualPlan: boolean;
     typedCells: boolean;
     maxCellBytesHonored: boolean;
+    pageRowsHonored: boolean;
     pageBytesHonored: boolean;
+    queryTimeoutHonored: boolean;
     captureControl: boolean;
     replayDescriptors: boolean;
     resumeAfterDisconnect: boolean;

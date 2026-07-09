@@ -512,6 +512,69 @@ suite("STS2 binding conformance (scripted wire)", () => {
         await handle2.completion;
     });
 
+    test("page limits and timeout ride the execute params inside options (QO-3)", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { session, handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        rpc.responders.set(STS2_METHODS.queryExecute, () => ({ queryId: "q-2" }));
+        const handle2 = session.execute(
+            "select 2",
+            { pageRows: 512, pageBytes: 131_072, maxCellBytes: 65_536, timeoutMs: 30_000 },
+            new RecordingSink(),
+        );
+        await new Promise((r) => setTimeout(r, 5));
+        const executes = rpc.requests.filter((r) => r.method === STS2_METHODS.queryExecute);
+        expect(executes).to.have.length(2);
+        expect((executes[1].params as { options?: unknown }).options).to.deep.equal({
+            pageRows: 512,
+            pageBytes: 131_072,
+            maxCellBytes: 65_536,
+            queryTimeoutMs: 30_000,
+        });
+        // pageRows no longer rides top-level (the service only honors options.*).
+        expect(executes[1].params).to.not.have.property("pageRows");
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-2",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle2.completion;
+    });
+
+    test("page/timeout capabilities derive from the initialize result (QO-3)", async () => {
+        const yes = standardRpc();
+        yes.responders.set(STS2_METHODS.initialize, () => ({
+            specVersion: "2.0.0-preview.1",
+            capabilities: {
+                maxCellBytesHonored: true,
+                pageRowsHonored: true,
+                pageBytesHonored: true,
+                queryTimeoutHonored: true,
+            },
+        }));
+        const availability = await new Sts2Backend(yes).start();
+        expect(availability.state).to.equal("available");
+        if (availability.state === "available") {
+            expect(availability.capabilities.pageRowsHonored).to.equal(true);
+            expect(availability.capabilities.pageBytesHonored).to.equal(true);
+            expect(availability.capabilities.queryTimeoutHonored).to.equal(true);
+        }
+
+        // Absent capability object → honestly false for all three.
+        const absent = await new Sts2Backend(standardRpc()).start();
+        if (absent.state === "available") {
+            expect(absent.capabilities.pageRowsHonored).to.equal(false);
+            expect(absent.capabilities.pageBytesHonored).to.equal(false);
+            expect(absent.capabilities.queryTimeoutHonored).to.equal(false);
+        }
+    });
+
     test("capability maxCellBytesHonored derives from the initialize result (both ways)", async () => {
         const capabilityOf = (availability: DataPlaneAvailability) =>
             availability.state === "available"

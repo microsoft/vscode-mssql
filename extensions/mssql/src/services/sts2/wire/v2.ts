@@ -127,13 +127,19 @@ export interface V2ConnectionOpenResult {
 export interface V2QueryExecuteParams {
     connectionId: string;
     sql: string;
-    pageRows?: number;
     /**
-     * Per-query bounds. `maxCellBytes`: byte cap per cell (absent/0 = the
-     * service's 1 MiB default; lower-only — the service never raises it).
-     * Capped cells arrive as truncated-cell markers (V2TruncatedCell).
+     * Per-query bounds and timeout (SPEC §7.5, QO-3). Page limits and
+     * `maxCellBytes` are lower-only (absent/0 = pinned service defaults; the
+     * service never raises them); `queryTimeoutMs` 0/absent = provider
+     * default. Capped cells arrive as truncated-cell markers (V2TruncatedCell).
      */
-    options?: { maxCellBytes?: number; [key: string]: unknown };
+    options?: {
+        pageRows?: number;
+        pageBytes?: number;
+        maxCellBytes?: number;
+        queryTimeoutMs?: number;
+        [key: string]: unknown;
+    };
     [key: string]: unknown;
 }
 

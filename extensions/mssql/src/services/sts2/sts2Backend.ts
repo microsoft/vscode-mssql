@@ -111,7 +111,9 @@ const STS2_CAPABILITIES: SqlBackendCapabilities = {
     actualPlan: true,
     typedCells: true,
     maxCellBytesHonored: false,
+    pageRowsHonored: false,
     pageBytesHonored: false,
+    queryTimeoutHonored: false,
     captureControl: true,
     replayDescriptors: true,
     resumeAfterDisconnect: false,
@@ -201,6 +203,9 @@ export class Sts2Backend implements ISqlConnectionService {
                     ...STS2_CAPABILITIES,
                     // Service-declared, honestly false unless explicitly true.
                     maxCellBytesHonored: result.capabilities?.["maxCellBytesHonored"] === true,
+                    pageRowsHonored: result.capabilities?.["pageRowsHonored"] === true,
+                    pageBytesHonored: result.capabilities?.["pageBytesHonored"] === true,
+                    queryTimeoutHonored: result.capabilities?.["queryTimeoutHonored"] === true,
                     protocolVersion: result.specVersion,
                 },
             };
@@ -668,17 +673,29 @@ export class Sts2Query {
 
     private async start(text: string): Promise<void> {
         try {
+            // Execute options ride `options` per SPEC §7.5 (QO-3): page limits are
+            // lower-only server-side; timeout 0/absent = provider default; capped
+            // cells arrive as truncated markers. NOTE: pageRows previously rode
+            // top-level where the service ignored it — options.* is the honored shape.
+            const options: Record<string, number> = {};
+            if (this.opts.pageRows) {
+                options.pageRows = this.opts.pageRows;
+            }
+            if (this.opts.pageBytes) {
+                options.pageBytes = this.opts.pageBytes;
+            }
+            if (this.opts.maxCellBytes) {
+                options.maxCellBytes = this.opts.maxCellBytes;
+            }
+            if (this.opts.timeoutMs) {
+                options.queryTimeoutMs = this.opts.timeoutMs;
+            }
             const result = await this.rpc.sendRequest<V2QueryExecuteResult>(
                 STS2_METHODS.queryExecute,
                 {
                     connectionId: this.session.connectionId,
                     sql: text,
-                    ...(this.opts.pageRows ? { pageRows: this.opts.pageRows } : {}),
-                    // Cell byte cap (absent/0 = service 1 MiB default,
-                    // lower-only) — capped cells arrive as truncated markers.
-                    ...(this.opts.maxCellBytes
-                        ? { options: { maxCellBytes: this.opts.maxCellBytes } }
-                        : {}),
+                    ...(Object.keys(options).length > 0 ? { options } : {}),
                 },
             );
             this.backendId = result.queryId;
