@@ -55,7 +55,6 @@ import {
     QsSyncResyncNotification,
     QsSyncResyncRequest,
     QsSyncSaveRequest,
-    QsSyncUndoRequest,
     QsTextEdit,
 } from "../../../sharedInterfaces/queryStudio";
 import {
@@ -85,10 +84,12 @@ import {
     QS_ACCEPT_SELECTED_SUGGESTION_ACTION,
     QS_INSERT_TAB_ACTION,
     QS_OUTDENT_ACTION,
+    QS_REDO_ACTION,
     QS_SHIFT_TAB_OUTDENT_CONTEXT,
     QS_TAB_ACCEPT_INLINE_CONTEXT,
     QS_TAB_ACCEPT_SUGGESTION_CONTEXT,
     QS_TAB_INSERT_CONTEXT,
+    QS_UNDO_ACTION,
 } from "./keybindings";
 import { executeParamsForSelection } from "./executionRequests";
 
@@ -682,15 +683,20 @@ export function QueryStudioApp() {
             editor.onDidChangeCursorPosition((e) => {
                 setCursor({ line: e.position.lineNumber, column: e.position.column });
             });
-            // Host-owned undo/redo (doc 04 §8.4).
+            // Monaco owns interactive undo/redo; the normal text-sync path
+            // then pushes the resulting model change back to the host.
             editor.addCommand(monacoKeyMod().CtrlCmd | monacoKeyCode().KeyZ, () => {
-                flushEdits();
-                void rpc.sendRequest(QsSyncUndoRequest.type, { redo: false });
+                editor.trigger("keyboard", QS_UNDO_ACTION, undefined);
             });
             editor.addCommand(monacoKeyMod().CtrlCmd | monacoKeyCode().KeyY, () => {
-                flushEdits();
-                void rpc.sendRequest(QsSyncUndoRequest.type, { redo: true });
+                editor.trigger("keyboard", QS_REDO_ACTION, undefined);
             });
+            editor.addCommand(
+                monacoKeyMod().CtrlCmd | monacoKeyMod().Shift | monacoKeyCode().KeyZ,
+                () => {
+                    editor.trigger("keyboard", QS_REDO_ACTION, undefined);
+                },
+            );
             // F1: VS Code's palette, not Monaco's quick-command (commands
             // route to this editor through VS Code).
             editor.addCommand(monacoKeyCode().F1, () => {

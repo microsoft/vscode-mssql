@@ -148,11 +148,20 @@ export class RowStore {
         };
     }
 
-    get stats(): { memoryBytes: number; spillBytes: number; resultSets: number } {
+    get stats(): {
+        memoryBytes: number;
+        spillBytes: number;
+        resultSets: number;
+        pages: number;
+    } {
         return {
             memoryBytes: this.memoryBytes,
             spillBytes: this.spillBytes,
             resultSets: this.resultSets.size,
+            pages: [...this.resultSets.values()].reduce(
+                (total, set) => total + set.pages.length,
+                0,
+            ),
         };
     }
 
@@ -161,6 +170,7 @@ export class RowStore {
      * from memory or spill, return the compact webview shape.
      */
     getRows(resultSetId: string, start: number, count: number): QsCellWindow {
+        const startedAt = Date.now();
         Perf.marker("mssql.queryStudio.rows.windowFetch.begin", "begin", {
             resultSetId,
             start,
@@ -181,6 +191,18 @@ export class RowStore {
                 count,
                 rows: 0,
                 fromSpill: false,
+                columnCount: set?.columns.length ?? 0,
+                pageCount: set?.pages.length ?? 0,
+                availableRows: set?.rowCount ?? 0,
+                pagesVisited: 0,
+                pagesMaterialized: 0,
+                pagesMissing: 0,
+                cellSlots: 0,
+                nullCells: 0,
+                nonNullCells: 0,
+                nonEmptyCells: 0,
+                shortWindow: false,
+                elapsedMs: Date.now() - startedAt,
             });
             return empty;
         }
@@ -188,25 +210,49 @@ export class RowStore {
         const values: unknown[][] = [];
         const nullBits: boolean[] = [];
         let fromSpill = false;
-        for (const page of set.pages) {
+        let pagesVisited = 0;
+        let pagesMaterialized = 0;
+        let pagesMissing = 0;
+        let nullCells = 0;
+        let nonNullCells = 0;
+        let nonEmptyCells = 0;
+        const firstPageIndex = firstOverlappingPageIndex(set.pages, start);
+        for (let pageIndex = firstPageIndex; pageIndex < set.pages.length; pageIndex++) {
+            const page = set.pages[pageIndex];
             const pageEnd = page.rowOffset + page.rowCount;
             if (pageEnd <= start || page.rowOffset >= end) {
-                continue;
+                break;
             }
+            pagesVisited++;
             if (!page.compact) {
                 fromSpill = true;
             }
             const compact = this.materialize(set, page);
             if (!compact) {
+                pagesMissing++;
                 continue; // spill read failure surfaces as short window
             }
+            pagesMaterialized++;
             const from = Math.max(0, start - page.rowOffset);
             const to = Math.min(page.rowCount, end - page.rowOffset);
             const columnCount = set.columns.length;
+            const nullBitmap = compact.nullBitmap
+                ? Buffer.from(compact.nullBitmap, "base64")
+                : undefined;
             for (let row = from; row < to; row++) {
-                values.push(compact.values[row] ?? []);
+                const sourceRow = compact.values[row] ?? [];
+                values.push(sourceRow);
                 for (let col = 0; col < columnCount; col++) {
-                    nullBits.push(hasNull(compact, row, col, columnCount));
+                    const nulled = hasNull(compact, row, col, columnCount, nullBitmap);
+                    nullBits.push(nulled);
+                    if (nulled) {
+                        nullCells++;
+                    } else {
+                        nonNullCells++;
+                        if (hasNonEmptyValue(sourceRow[col])) {
+                            nonEmptyCells++;
+                        }
+                    }
                 }
             }
         }
@@ -216,6 +262,19 @@ export class RowStore {
             count,
             rows: values.length,
             fromSpill,
+            columnCount: set.columns.length,
+            pageCount: set.pages.length,
+            firstPageIndex,
+            availableRows: set.rowCount,
+            pagesVisited,
+            pagesMaterialized,
+            pagesMissing,
+            cellSlots: values.length * set.columns.length,
+            nullCells,
+            nonNullCells,
+            nonEmptyCells,
+            shortWindow: values.length < end - start,
+            elapsedMs: Date.now() - startedAt,
         });
         return {
             resultSetId,
@@ -339,14 +398,45 @@ export class RowStore {
     }
 }
 
-function hasNull(page: CompactPage, row: number, col: number, columnCount: number): boolean {
-    if (!page.nullBitmap) {
+function firstOverlappingPageIndex(pages: readonly StoredPage[], start: number): number {
+    let low = 0;
+    let high = pages.length;
+    while (low < high) {
+        const mid = (low + high) >> 1;
+        const page = pages[mid];
+        const pageEnd = page.rowOffset + page.rowCount;
+        if (pageEnd <= start) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    return low;
+}
+
+function hasNull(
+    page: CompactPage,
+    row: number,
+    col: number,
+    columnCount: number,
+    nullBitmap?: Buffer,
+): boolean {
+    if (!nullBitmap) {
         return page.values[row]?.[col] === undefined || page.values[row]?.[col] === null;
     }
     const index = row * columnCount + col;
-    const bytes = Buffer.from(page.nullBitmap, "base64");
     const byteIndex = index >> 3;
-    return byteIndex < bytes.length && (bytes[byteIndex] & (1 << (index & 7))) !== 0;
+    return byteIndex < nullBitmap.length && (nullBitmap[byteIndex] & (1 << (index & 7))) !== 0;
+}
+
+function hasNonEmptyValue(value: unknown): boolean {
+    if (value === undefined || value === null) {
+        return false;
+    }
+    if (typeof value === "string") {
+        return value.length > 0;
+    }
+    return true;
 }
 
 function packBits(bits: boolean[]): string {

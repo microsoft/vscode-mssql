@@ -7,6 +7,8 @@ export const QS_ACCEPT_SELECTED_SUGGESTION_ACTION = "acceptSelectedSuggestion";
 export const QS_ACCEPT_INLINE_SUGGESTION_ACTION = "editor.action.inlineSuggest.commit";
 export const QS_INSERT_TAB_ACTION = "tab";
 export const QS_OUTDENT_ACTION = "outdent";
+export const QS_UNDO_ACTION = "undo";
+export const QS_REDO_ACTION = "redo";
 
 export const QS_TAB_ACCEPT_SUGGESTION_CONTEXT = "suggestWidgetVisible && textInputFocus";
 export const QS_TAB_ACCEPT_INLINE_CONTEXT =
