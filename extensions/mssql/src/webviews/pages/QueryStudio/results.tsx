@@ -22,11 +22,20 @@
 import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     QsMessageRow,
+    QsGetMessagesTextRequest,
     QsGridStyle,
     QsNavigateToLineRequest,
     QsOpenPlanRequest,
     QsResultSetSummary,
 } from "../../../sharedInterfaces/queryStudio";
+// Display formatting is shared with the host's Copy All builder (QO-7) so
+// clipboard output stays byte-identical to the (virtualized) pane.
+import {
+    MESSAGE_SEPARATOR,
+    MESSAGE_TIME_COLUMN_WIDTH,
+    formatMessageForDisplay,
+    messageLineCount,
+} from "../../../sharedInterfaces/queryStudioMessages";
 import type { QsGridSizing } from "../../../sharedInterfaces/queryStudioResultsLayout";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 import { QsResultGridSurface, Rpc } from "./resultsGrid";
@@ -243,27 +252,6 @@ export function ResultGridBlock(props: GridProps) {
     );
 }
 
-/** Classic-editor group header time, e.g. "9:21:55 PM". */
-function messageTimeLabel(epochMs: number): string {
-    return new Date(epochMs).toLocaleTimeString();
-}
-
-function messageGetsTimestamp(message: QsMessageRow): boolean {
-    return !/^\(\d+\s+rows?\s+affected\)$/i.test(message.text.trim());
-}
-
-const MESSAGE_TIME_COLUMN_WIDTH = 12;
-const MESSAGE_SEPARATOR = "  ";
-
-function formatMessageForDisplay(message: QsMessageRow): string {
-    const time = messageGetsTimestamp(message)
-        ? messageTimeLabel(message.epochMs).padEnd(MESSAGE_TIME_COLUMN_WIDTH, " ")
-        : " ".repeat(MESSAGE_TIME_COLUMN_WIDTH);
-    const prefix = `${time}${MESSAGE_SEPARATOR}`;
-    const continuationPrefix = " ".repeat(prefix.length);
-    return prefix + message.text.replace(/\r\n?/g, "\n").replace(/\n/g, `\n${continuationPrefix}`);
-}
-
 interface PreparedMessageRow {
     readonly message: QsMessageRow;
     readonly display: string;
@@ -335,20 +323,57 @@ const MessageRow = memo(function MessageRow(props: {
  * grid: fixed timestamp field, tight 18px rows, and rows-affected messages
  * aligned under the message column without repeating the timestamp.
  */
+/** Message row pixel height per display LINE (matches .qs-message-row). */
+const MESSAGE_LINE_HEIGHT_PX = 18;
+/** Rows rendered beyond the viewport on each side. */
+const MESSAGE_OVERSCAN_ROWS = 12;
+
 function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
     const { rpc, messages } = props;
-    const preparedMessages = useMemo(() => {
+    // Virtualized pane (QO-7): only visible rows are prepared and mounted —
+    // a 10k-PRINT flood keeps a bounded DOM and O(visible) format work.
+    // Heights are line-count exact (multi-line server errors included), via
+    // prefix sums rebuilt O(n) per append batch, never per scroll.
+    const offsets = useMemo(() => {
+        const arr = new Float64Array(messages.length + 1);
+        for (let i = 0; i < messages.length; i++) {
+            arr[i + 1] = arr[i] + messageLineCount(messages[i]) * MESSAGE_LINE_HEIGHT_PX;
+        }
+        return arr;
+    }, [messages]);
+    const scrollRef = useRef<HTMLDivElement | null>(null);
+    const [range, setRange] = useState({ start: 0, end: 80 });
+    const recompute = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) {
+            return;
+        }
+        const firstVisible = lowerBound(offsets, el.scrollTop) - 1;
+        const lastVisible = lowerBound(offsets, el.scrollTop + el.clientHeight);
+        const start = Math.max(0, firstVisible - MESSAGE_OVERSCAN_ROWS);
+        const end = Math.min(messages.length, lastVisible + MESSAGE_OVERSCAN_ROWS);
+        setRange((current) =>
+            current.start === start && current.end === end ? current : { start, end },
+        );
+    }, [offsets, messages.length]);
+    useEffect(recompute, [recompute]);
+
+    const visibleRows = useMemo(() => {
         const perfEnabled = perfMarksEnabled();
         const startedAt = perfEnabled ? performance.now() : 0;
-        const rows = messages.map(prepareMessageForDisplay);
+        const rows: Array<{ index: number; row: PreparedMessageRow }> = [];
+        for (let i = range.start; i < Math.min(range.end, messages.length); i++) {
+            rows.push({ index: i, row: prepareMessageForDisplay(messages[i]) });
+        }
         if (perfEnabled) {
             perfMark("mssql.queryStudio.messagesPrepared", {
                 messages: messages.length,
+                visibleRows: rows.length,
                 durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
             });
         }
         return rows;
-    }, [messages]);
+    }, [messages, range]);
     useEffect(() => {
         if (messages.length > 0 && perfMarksEnabled()) {
             perfMarkAfterNextPaint("mssql.queryStudio.messagesRendered", {
@@ -368,8 +393,13 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
         [rpc],
     );
     const copyAllMessages = useCallback(() => {
-        void navigator.clipboard.writeText(messages.map(formatMessageForDisplay).join("\n"));
-    }, [messages]);
+        // Host-built text (QO-7): identical formatting, no webview-side join.
+        void rpc
+            .sendRequest<Record<string, never>, { text: string }>(QsGetMessagesTextRequest.type, {})
+            .then((result) => navigator.clipboard.writeText(result.text));
+    }, [rpc]);
+    const totalHeight = offsets[messages.length] ?? 0;
+    const topPad = offsets[Math.min(range.start, messages.length)] ?? 0;
     return (
         <div className="qs-messages-shell">
             <div className="qs-messages-toolbar">
@@ -384,10 +414,14 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
                     <span>Copy All</span>
                 </button>
             </div>
-            <div className="qs-messages" role="log">
-                {preparedMessages.map((row, i) => (
-                    <MessageRow key={i} row={row} navigate={navigate} />
-                ))}
+            <div className="qs-messages" role="log" ref={scrollRef} onScroll={recompute}>
+                <div style={{ height: totalHeight, position: "relative" }}>
+                    <div style={{ position: "absolute", top: topPad, left: 0, right: 0 }}>
+                        {visibleRows.map(({ index, row }) => (
+                            <MessageRow key={index} row={row} navigate={navigate} />
+                        ))}
+                    </div>
+                </div>
                 {messages.length === 0 ? (
                     <div className="qs-muted qs-message-row">
                         {" ".repeat(MESSAGE_TIME_COLUMN_WIDTH + MESSAGE_SEPARATOR.length)}
@@ -397,6 +431,21 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
             </div>
         </div>
     );
+}
+
+/** First index in the prefix-sum array with offsets[i] > value. */
+function lowerBound(offsets: Float64Array, value: number): number {
+    let low = 0;
+    let high = offsets.length;
+    while (low < high) {
+        const mid = (low + high) >> 1;
+        if (offsets[mid] <= value) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    return low;
 }
 
 export const MessagesView = memo(MessagesViewImpl);

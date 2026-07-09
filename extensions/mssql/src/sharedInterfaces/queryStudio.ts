@@ -374,6 +374,12 @@ export namespace QsGetMessagesRequest {
         void
     >("qs/getMessages");
 }
+export namespace QsGetMessagesTextRequest {
+    /** Host-built Copy All payload (QO-7) - the webview never joins 10k rows. */
+    export const type = new RequestType<Record<string, never>, { text: string }, void>(
+        "qs/getMessagesText",
+    );
+}
 export namespace QsNavigateToLineRequest {
     export const type = new RequestType<{ line: number; column?: number }, void, void>(
         "qs/navigateToLine",
@@ -477,7 +483,14 @@ export namespace QsResultSetEndedNotification {
     }>("qs/resultSetEnded");
 }
 export namespace QsMessagesAppendedNotification {
-    export const type = new NotificationType<{ messages: QsMessageRow[] }>("qs/messagesAppended");
+    /**
+     * Position-addressed batch (QO-7): `startIndex` is the host's absolute
+     * index of `messages[0]`, so coalesced batches and the catch-up fetch
+     * can interleave without duplicating rows.
+     */
+    export const type = new NotificationType<{ startIndex: number; messages: QsMessageRow[] }>(
+        "qs/messagesAppended",
+    );
 }
 export namespace QsToastNotification {
     export const type = new NotificationType<{ kind: "info" | "warning" | "error"; text: string }>(

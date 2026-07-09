@@ -184,7 +184,10 @@ export const QUERY_TUNING_DEFAULTS: QueryTuningParams = {
     protectedCacheRatio: 0.5,
     windowCacheEntries: 8,
     rowsNotifyIntervalMs: 0,
-    messagesNotifyIntervalMs: 0,
+    // 50 ms message coalescing: measured on the 10k-PRINT shape (QO-7) —
+    // per-message pushes flood the webview; batches preserve final counts
+    // (completion always flushes).
+    messagesNotifyIntervalMs: 50,
     statePushMinIntervalMs: 100,
     gridWindowMode: "fixed",
     gridWindowRows: 50,

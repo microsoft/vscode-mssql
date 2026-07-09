@@ -50,7 +50,13 @@ export class ExecutionHost {
     private lastRunText: string | undefined;
     private activeRunRecordId: string | undefined;
     private msToFirstResult: number | undefined;
+    private lastTuning: QueryTuningSnapshot | undefined;
     executionState: QsExecutionState = { kind: "idle" };
+
+    /** The active/last run's resolved QueryTuning snapshot (QO-7 consumers). */
+    get currentTuning(): QueryTuningSnapshot | undefined {
+        return this.lastTuning;
+    }
 
     constructor(
         private readonly spillRoot: string,
@@ -109,6 +115,7 @@ export class ExecutionHost {
         const tuning = resolveQueryTuning(
             options.tuningOverrides ? { runOverrides: options.tuningOverrides } : {},
         );
+        this.lastTuning = tuning;
 
         // Fresh run: previous results (and spill) are released NOW.
         this.rowStore?.dispose();

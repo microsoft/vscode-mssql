@@ -529,8 +529,21 @@ export function QueryStudioApp() {
             }),
             rpc.onNotification(
                 QsMessagesAppendedNotification.type,
-                (p: { messages: QsMessageRow[] }) => {
-                    setMessages((m) => [...m, ...p.messages]);
+                (p: { startIndex: number; messages: QsMessageRow[] }) => {
+                    // Position-addressed (QO-7): coalesced batches can
+                    // interleave with the catch-up fetch — dedupe by the
+                    // host's absolute index, never double-append.
+                    setMessages((current) => {
+                        if (p.startIndex === current.length) {
+                            return [...current, ...p.messages];
+                        }
+                        if (p.startIndex > current.length) {
+                            // Gap: the messageCount catch-up effect fills it.
+                            return current;
+                        }
+                        const fresh = p.messages.slice(current.length - p.startIndex);
+                        return fresh.length > 0 ? [...current, ...fresh] : current;
+                    });
                 },
             ),
             rpc.onNotification(

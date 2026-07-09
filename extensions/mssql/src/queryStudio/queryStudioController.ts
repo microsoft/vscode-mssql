@@ -30,9 +30,11 @@ import {
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
+    QsGetMessagesTextRequest,
     QsGetPlanStateRequest,
     QsGetRowsRequest,
     QsGridStyle,
+    QsMessageRow,
     QsOpenCellDocumentRequest,
     QsOpenPlanRequest,
     QsInlineCompletionAcceptedRequest,
@@ -62,6 +64,7 @@ import {
     QsSyncUndoRequest,
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
+import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -108,6 +111,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private executionListener: { dispose(): void } | undefined;
     private statePushTimer: NodeJS.Timeout | undefined;
     private lastStatePush = 0;
+    // Notification coalescing (QO-7): buffers flushed per the run's tuning
+    // intervals (0 = immediate), and always on completion/terminal edges.
+    private pendingRows = new Map<string, { newRowCount: number; complete: boolean }>();
+    private rowsFlushTimer: NodeJS.Timeout | undefined;
+    private rowsNotifyIntervalMs = 0;
+    private pendingMessages: QsMessageRow[] = [];
+    private messagesFlushTimer: NodeJS.Timeout | undefined;
+    private messagesNotifyIntervalMs = 0;
+    /** Absolute index of the next message row to notify (reset per run). */
+    private messagesSentCount = 0;
     private viewMode: "grid" | "text" = "grid";
     private actualPlan = false;
     private inlineCompletionCts: vscode.CancellationTokenSource | undefined;
@@ -216,6 +229,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
 
         this.executionListener = this.model.executionHost.attach({
             onRunStarted: (startedEpochMs) => {
+                // Per-run notification pacing from the run's tuning snapshot (QO-7).
+                const tuning = this.model.executionHost.currentTuning;
+                this.rowsNotifyIntervalMs = tuning?.params.rowsNotifyIntervalMs ?? 0;
+                this.messagesNotifyIntervalMs = tuning?.params.messagesNotifyIntervalMs ?? 0;
+                this.messagesSentCount = 0;
+                this.pendingMessages = [];
+                this.pendingRows.clear();
                 void this.sendNotification(QsRunStartedNotification.type, { startedEpochMs });
                 this.queueStatePush();
             },
@@ -224,13 +244,26 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 this.queueStatePush();
             },
             onRowsAppended: (resultSetId, newRowCount, complete) => {
-                void this.sendNotification(QsRowsAppendedNotification.type, {
-                    resultSetId,
-                    newRowCount,
-                    complete,
-                });
+                // Coalesced per rowsNotifyIntervalMs (0 = immediate, today's
+                // behavior); completion always flushes so final counts land.
+                const pending = this.pendingRows.get(resultSetId);
+                if (pending) {
+                    pending.newRowCount += newRowCount;
+                    pending.complete = pending.complete || complete;
+                } else {
+                    this.pendingRows.set(resultSetId, { newRowCount, complete });
+                }
+                if (complete || this.rowsNotifyIntervalMs <= 0) {
+                    this.flushPendingRows();
+                } else if (this.rowsFlushTimer === undefined) {
+                    this.rowsFlushTimer = setTimeout(
+                        () => this.flushPendingRows(),
+                        this.rowsNotifyIntervalMs,
+                    );
+                }
             },
             onResultSetEnded: (resultSetId, rowCount, truncatedReason) => {
+                this.flushPendingRows();
                 void this.sendNotification(QsResultSetEndedNotification.type, {
                     resultSetId,
                     rowCount,
@@ -239,10 +272,22 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 this.queueStatePush();
             },
             onMessages: (messages) => {
-                void this.sendNotification(QsMessagesAppendedNotification.type, { messages });
+                this.pendingMessages.push(...messages);
+                if (this.messagesNotifyIntervalMs <= 0) {
+                    this.flushPendingMessages();
+                } else if (this.messagesFlushTimer === undefined) {
+                    this.messagesFlushTimer = setTimeout(
+                        () => this.flushPendingMessages(),
+                        this.messagesNotifyIntervalMs,
+                    );
+                }
+            },
+            onExecutionStateChanged: () => {
+                // Terminal transitions flush everything so no count is stale.
+                this.flushPendingRows();
+                this.flushPendingMessages();
                 this.queueStatePush();
             },
-            onExecutionStateChanged: () => this.queueStatePush(),
         });
 
         // Initial sync payload once the webview is live.
@@ -384,6 +429,41 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
               : state.connection.kind === "lost"
                 ? { kind: "warning", text: "Connection lost." }
                 : { kind: "ready", text: "Ready — not connected" };
+    }
+
+    private flushPendingRows(): void {
+        if (this.rowsFlushTimer !== undefined) {
+            clearTimeout(this.rowsFlushTimer);
+            this.rowsFlushTimer = undefined;
+        }
+        if (this.pendingRows.size === 0) {
+            return;
+        }
+        const batch = this.pendingRows;
+        this.pendingRows = new Map();
+        for (const [resultSetId, entry] of batch) {
+            void this.sendNotification(QsRowsAppendedNotification.type, {
+                resultSetId,
+                newRowCount: entry.newRowCount,
+                complete: entry.complete,
+            });
+        }
+    }
+
+    private flushPendingMessages(): void {
+        if (this.messagesFlushTimer !== undefined) {
+            clearTimeout(this.messagesFlushTimer);
+            this.messagesFlushTimer = undefined;
+        }
+        if (this.pendingMessages.length === 0) {
+            return;
+        }
+        const messages = this.pendingMessages;
+        this.pendingMessages = [];
+        const startIndex = this.messagesSentCount;
+        this.messagesSentCount += messages.length;
+        void this.sendNotification(QsMessagesAppendedNotification.type, { startIndex, messages });
+        this.queueStatePush();
     }
 
     private queueStatePush(): void {
@@ -641,6 +721,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsGetMessagesRequest.type, async (params) =>
             this.model.executionHost.getMessages(params?.afterIndex),
         );
+        this.onRequest(QsGetMessagesTextRequest.type, async () => ({
+            text: buildMessagesText(this.model.executionHost.getMessages().messages),
+        }));
         this.onRequest(QsNavigateToLineRequest.type, async ({ line, column }) => {
             // The editor lives in the webview: bounce a reveal notification.
             void this.sendNotification(QsRevealPositionNotification.type, {
@@ -825,6 +908,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     public override dispose(): void {
         if (this.statePushTimer) {
             clearTimeout(this.statePushTimer);
+        }
+        if (this.rowsFlushTimer) {
+            clearTimeout(this.rowsFlushTimer);
+        }
+        if (this.messagesFlushTimer) {
+            clearTimeout(this.messagesFlushTimer);
         }
         this.inlineCompletionCts?.cancel();
         this.inlineCompletionCts = undefined;

@@ -434,12 +434,14 @@
     line-height: 18px;
 }
 .qs-message-row {
+    /* QO-7 virtualization: heights are line-count exact (18px per display
+       line), so rows must not wrap — long lines scroll horizontally, the
+       SSMS messages-pane behavior. */
+    height: auto;
     min-height: 18px;
     padding: 0 4px;
-    white-space: pre-wrap;
+    white-space: pre;
     tab-size: 4;
-    content-visibility: auto;
-    contain-intrinsic-size: 18px;
 }
 .qs-message-line-link {
     color: var(--vscode-textLink-foreground);
