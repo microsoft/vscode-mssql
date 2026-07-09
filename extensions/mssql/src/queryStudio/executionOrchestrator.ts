@@ -302,6 +302,7 @@ export class ExecutionOrchestrator {
         }
 
         const durationMs = Date.now() - startMs;
+        const storeStats = this.rowStore.stats;
         Perf.marker("mssql.queryStudio.query.complete", "end", {
             batches: batches.length,
             resultSets,
@@ -309,7 +310,15 @@ export class ExecutionOrchestrator {
             errors,
             canceled: status === "canceled",
             partial: status === "canceled" || status === "connectionLost",
-            bytes: this.rowStore.stats.memoryBytes + this.rowStore.stats.spillBytes,
+            bytes: storeStats.memoryBytes + storeStats.spillBytes,
+            // Row-pipeline aggregates (QO-2): where store time went this run.
+            pages: storeStats.pages,
+            spillWrites: storeStats.spillWrites,
+            spillReads: storeStats.spillReads,
+            appendMsTotal: storeStats.appendMsTotal,
+            spillWriteMsTotal: storeStats.spillWriteMsTotal,
+            spillReadMsTotal: storeStats.spillReadMsTotal,
+            materializeMsTotal: storeStats.materializeMsTotal,
         });
         if (this.cancelRequestedAt !== undefined) {
             Perf.marker("mssql.queryStudio.cancel", "instant", {

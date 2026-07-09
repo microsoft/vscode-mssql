@@ -40,4 +40,120 @@ suite("Query Studio RowStore", () => {
             store.dispose();
         }
     });
+
+    test("spill round-trip: eviction under memory cap, windows served from spill, stats attribute it", () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        // Tiny memory cap forces early pages out to spill.
+        const store = new RowStore(spillDir, {
+            maxMemoryBytes: 4 * 1024,
+            spillEnabled: true,
+            maxSpillBytes: 64 * 1024 * 1024,
+            maxRowsPerResultSet: 1_000_000,
+        });
+        try {
+            store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+            for (let i = 0; i < 100; i++) {
+                store.appendPage("r0", {
+                    rowOffset: i * 10,
+                    rowCount: 10,
+                    approxBytes: 512,
+                    compact: {
+                        values: Array.from({ length: 10 }, (_, r) => [`row-${i * 10 + r}`]),
+                    },
+                });
+            }
+            expect(store.stats.spillWrites).to.be.greaterThan(0);
+            expect(store.stats.spillBytes).to.be.greaterThan(0);
+            expect(store.stats.memoryBytes).to.be.at.most(4 * 1024 + 512);
+
+            // A window over early (spilled) pages materializes correctly.
+            const window = store.getRows("r0", 0, 5);
+            expect(window.rowCount).to.equal(5);
+            expect(window.values).to.deep.equal([
+                ["row-0"],
+                ["row-1"],
+                ["row-2"],
+                ["row-3"],
+                ["row-4"],
+            ]);
+            expect(store.stats.spillReads).to.be.greaterThan(0);
+            expect(store.stats.spillWriteMsTotal).to.be.at.least(0);
+            expect(store.stats.materializeMsTotal).to.be.greaterThan(0);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("row cap rejects the overflowing page and records the truncation reason", () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(spillDir, {
+            maxMemoryBytes: 64 * 1024 * 1024,
+            spillEnabled: true,
+            maxSpillBytes: 64 * 1024 * 1024,
+            maxRowsPerResultSet: 15,
+        });
+        try {
+            store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+            expect(
+                store.appendPage("r0", {
+                    rowOffset: 0,
+                    rowCount: 10,
+                    approxBytes: 100,
+                    compact: { values: Array.from({ length: 10 }, (_, r) => [r]) },
+                }),
+            ).to.equal(true);
+            expect(
+                store.appendPage("r0", {
+                    rowOffset: 10,
+                    rowCount: 10,
+                    approxBytes: 100,
+                    compact: { values: Array.from({ length: 10 }, (_, r) => [10 + r]) },
+                }),
+            ).to.equal(false);
+            expect(store.summary("r0")?.truncatedReason).to.equal("maxRowsPerResultSet");
+            expect(store.summary("r0")?.rowCount).to.equal(10);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("diagnostics level does not change served windows (verbose only prices counting)", () => {
+        for (const level of ["minimal", "verbose"] as const) {
+            const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+            const store = new RowStore(
+                spillDir,
+                {
+                    maxMemoryBytes: 64 * 1024 * 1024,
+                    spillEnabled: true,
+                    maxSpillBytes: 64 * 1024 * 1024,
+                    maxRowsPerResultSet: 1000,
+                },
+                level,
+            );
+            try {
+                store.beginResultSet("r0", [
+                    { name: "a", displayName: "a" },
+                    { name: "b", displayName: "b" },
+                ]);
+                store.appendPage("r0", {
+                    rowOffset: 0,
+                    rowCount: 3,
+                    approxBytes: 64,
+                    compact: {
+                        values: [
+                            [1, "x"],
+                            [2, undefined],
+                            [3, ""],
+                        ],
+                    },
+                });
+                const window = store.getRows("r0", 0, 3);
+                expect(window.rowCount, level).to.equal(3);
+                expect(window.nullBitmap, level).to.be.a("string");
+                expect(window.values[1]?.[1], level).to.equal(undefined);
+            } finally {
+                store.dispose();
+            }
+        }
+    });
 });

@@ -71,6 +71,7 @@ import {
     cellDisplayText,
     clampDisplay,
 } from "../../../sharedInterfaces/queryStudioGridOps";
+import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 
 export interface Rpc {
     sendRequest<P, R>(type: { method: string }, params: P): Promise<R>;
@@ -513,11 +514,24 @@ export function QsResultGridSurface(props: {
         [summary.resultSetId, summary.batchOrdinal, rowCount, columnInfo],
     );
 
+    // First REAL rows painted for this grid (QO-2): the user-perceived
+    // "results are here" moment, tighter than the terminal resultsRendered.
+    const firstRowsPaintedRef = useRef(false);
+
     const dataSource = useMemo(
         () => ({
             kind: "windowed" as const,
             rowCount,
             getRows: async (offset: number, count: number) => {
+                const perfEnabled = perfMarksEnabled();
+                const requestedAt = perfEnabled ? performance.now() : 0;
+                if (perfEnabled) {
+                    perfMark("mssql.queryStudio.grid.window.request", {
+                        resultSetId: summary.resultSetId,
+                        start: offset,
+                        count,
+                    });
+                }
                 const window = await rpc.sendRequest<
                     { resultSetId: string; start: number; count: number },
                     QsCellWindow
@@ -526,6 +540,22 @@ export function QsResultGridSurface(props: {
                     start: offset,
                     count,
                 });
+                if (perfEnabled) {
+                    perfMark("mssql.queryStudio.grid.window.received", {
+                        resultSetId: summary.resultSetId,
+                        start: offset,
+                        count,
+                        ms: Math.round((performance.now() - requestedAt) * 100) / 100,
+                    });
+                    if (!firstRowsPaintedRef.current && window.rowCount > 0) {
+                        firstRowsPaintedRef.current = true;
+                        perfMarkAfterNextPaint("mssql.queryStudio.grid.firstVisibleRowsPainted", {
+                            resultSetId: summary.resultSetId,
+                            rows: window.rowCount,
+                            columns: columnCount,
+                        });
+                    }
+                }
                 return windowToGridRows(window, columnCount);
             },
         }),

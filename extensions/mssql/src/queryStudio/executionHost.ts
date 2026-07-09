@@ -116,6 +116,7 @@ export class ExecutionHost {
         this.rowStore = new RowStore(
             path.join(this.spillRoot, `run${this.runCounter}`),
             rowStoreLimitsFrom(tuning),
+            tuning.params.diagnosticsLevel,
         );
         this.messages = [];
         this.summaries.clear();

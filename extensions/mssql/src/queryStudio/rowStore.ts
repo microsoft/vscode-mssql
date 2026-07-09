@@ -20,6 +20,7 @@ import * as path from "path";
 import { Perf } from "../perf/perfTelemetry";
 import { CompactPage } from "../services/sqlDataPlane/api";
 import { QsCellWindow, QsResultColumn } from "../sharedInterfaces/queryStudio";
+import { QueryTuningDiagnosticsLevel } from "../sharedInterfaces/queryTuning";
 
 export interface RowStoreLimits {
     maxMemoryBytes: number;
@@ -71,11 +72,25 @@ export class RowStore {
     /** LRU of in-memory pages (resultSetId + index). */
     private lru: Array<{ set: ResultSetStore; page: StoredPage }> = [];
     private disposed = false;
+    // Row-pipeline attribution accumulators (QO-2): cheap adds on the hot
+    // path, emitted as aggregates on query.complete via `stats`.
+    private appendMsTotal = 0;
+    private spillWrites = 0;
+    private spillWriteMsTotal = 0;
+    private spillReads = 0;
+    private spillReadMsTotal = 0;
+    private materializeMsTotal = 0;
 
     constructor(
         private readonly spillDir: string,
         private readonly limits: RowStoreLimits = DEFAULT_LIMITS,
+        /** Verbose/full adds per-page markers + per-cell window scan counts. */
+        private readonly diagnostics: QueryTuningDiagnosticsLevel = "minimal",
     ) {}
+
+    private get verbose(): boolean {
+        return this.diagnostics === "verbose" || this.diagnostics === "full";
+    }
 
     beginResultSet(resultSetId: string, columns: ResultSetColumns[]): void {
         this.resultSets.set(resultSetId, new ResultSetStore(resultSetId, columns));
@@ -94,6 +109,7 @@ export class RowStore {
             set.truncatedReason = "maxRowsPerResultSet";
             return false;
         }
+        const startedAt = performance.now();
         set.typeHints ??= page.compact.typeHints;
         const stored: StoredPage = {
             rowOffset: page.rowOffset,
@@ -106,6 +122,16 @@ export class RowStore {
         this.memoryBytes += page.approxBytes;
         this.lru.push({ set, page: stored });
         this.evictIfNeeded();
+        const elapsed = performance.now() - startedAt;
+        this.appendMsTotal += elapsed;
+        if (this.verbose) {
+            Perf.marker("mssql.queryStudio.rows.append", "instant", {
+                resultSetId,
+                rows: page.rowCount,
+                bytes: page.approxBytes,
+                ms: roundMs(elapsed),
+            });
+        }
         return true;
     }
 
@@ -154,6 +180,12 @@ export class RowStore {
         resultSets: number;
         pages: number;
         maxRowsPerResultSet: number;
+        spillWrites: number;
+        spillReads: number;
+        appendMsTotal: number;
+        spillWriteMsTotal: number;
+        spillReadMsTotal: number;
+        materializeMsTotal: number;
     } {
         return {
             memoryBytes: this.memoryBytes,
@@ -164,6 +196,12 @@ export class RowStore {
                 0,
             ),
             maxRowsPerResultSet: this.limits.maxRowsPerResultSet,
+            spillWrites: this.spillWrites,
+            spillReads: this.spillReads,
+            appendMsTotal: roundMs(this.appendMsTotal),
+            spillWriteMsTotal: roundMs(this.spillWriteMsTotal),
+            spillReadMsTotal: roundMs(this.spillReadMsTotal),
+            materializeMsTotal: roundMs(this.materializeMsTotal),
         };
     }
 
@@ -193,18 +231,15 @@ export class RowStore {
                 count,
                 rows: 0,
                 fromSpill: false,
+                cacheHit: true,
                 columnCount: set?.columns.length ?? 0,
                 pageCount: set?.pages.length ?? 0,
                 availableRows: set?.rowCount ?? 0,
                 pagesVisited: 0,
-                pagesMaterialized: 0,
+                materializedPages: 0,
                 pagesMissing: 0,
-                cellSlots: 0,
-                nullCells: 0,
-                nonNullCells: 0,
-                nonEmptyCells: 0,
                 shortWindow: false,
-                elapsedMs: Date.now() - startedAt,
+                ms: Date.now() - startedAt,
             });
             return empty;
         }
@@ -218,6 +253,9 @@ export class RowStore {
         let nullCells = 0;
         let nonNullCells = 0;
         let nonEmptyCells = 0;
+        // Per-cell content inspection is diagnostics-only work — priced only
+        // at verbose/full (QO-2). The null bitmap is UI data and always built.
+        const countCells = this.verbose;
         const firstPageIndex = firstOverlappingPageIndex(set.pages, start);
         for (let pageIndex = firstPageIndex; pageIndex < set.pages.length; pageIndex++) {
             const page = set.pages[pageIndex];
@@ -247,6 +285,9 @@ export class RowStore {
                 for (let col = 0; col < columnCount; col++) {
                     const nulled = hasNull(compact, row, col, columnCount, nullBitmap);
                     nullBits.push(nulled);
+                    if (!countCells) {
+                        continue;
+                    }
                     if (nulled) {
                         nullCells++;
                     } else {
@@ -264,19 +305,24 @@ export class RowStore {
             count,
             rows: values.length,
             fromSpill,
+            cacheHit: !fromSpill && pagesMissing === 0,
             columnCount: set.columns.length,
             pageCount: set.pages.length,
             firstPageIndex,
             availableRows: set.rowCount,
             pagesVisited,
-            pagesMaterialized,
+            materializedPages: pagesMaterialized,
             pagesMissing,
-            cellSlots: values.length * set.columns.length,
-            nullCells,
-            nonNullCells,
-            nonEmptyCells,
             shortWindow: values.length < end - start,
-            elapsedMs: Date.now() - startedAt,
+            ms: Date.now() - startedAt,
+            ...(countCells
+                ? {
+                      cellSlots: values.length * set.columns.length,
+                      nullCells,
+                      nonNullCells,
+                      nonEmptyCells,
+                  }
+                : {}),
         });
         return {
             resultSetId,
@@ -303,7 +349,7 @@ export class RowStore {
                 this.lru.unshift(victim);
                 return;
             }
-            if (this.spillPage(victim.page)) {
+            if (this.spillPage(victim.set, victim.page)) {
                 this.memoryBytes -= victim.page.approxBytes;
             } else {
                 this.lru.unshift(victim);
@@ -327,11 +373,12 @@ export class RowStore {
     }
 
     /** Length-prefixed JSON frame (spill format v1, addendum §3.3.2). */
-    private spillPage(page: StoredPage): boolean {
+    private spillPage(set: ResultSetStore, page: StoredPage): boolean {
         const fd = this.ensureSpillFile();
         if (fd === undefined || !page.compact) {
             return false;
         }
+        const startedAt = performance.now();
         const frame = Buffer.from(JSON.stringify(page.compact), "utf8");
         if (this.spillBytes + frame.length + 4 > this.limits.maxSpillBytes) {
             return false;
@@ -346,6 +393,16 @@ export class RowStore {
             page.spillLength = frame.length;
             page.compact = undefined;
             this.spillBytes += frame.length + 4;
+            const elapsed = performance.now() - startedAt;
+            this.spillWrites++;
+            this.spillWriteMsTotal += elapsed;
+            if (this.verbose) {
+                Perf.marker("mssql.queryStudio.rows.spill.write", "instant", {
+                    resultSetId: set.resultSetId,
+                    bytes: frame.length,
+                    ms: roundMs(elapsed),
+                });
+            }
             return true;
         } catch {
             return false;
@@ -359,15 +416,28 @@ export class RowStore {
         if (this.spillFd === undefined || page.spillOffset === undefined) {
             return undefined;
         }
+        const startedAt = performance.now();
         try {
             const frame = Buffer.alloc(page.spillLength!);
             fs.readSync(this.spillFd, frame, 0, page.spillLength!, page.spillOffset + 4);
+            const readMs = performance.now() - startedAt;
             const compact = JSON.parse(frame.toString("utf8")) as CompactPage;
             // Re-admit to memory LRU (read pages are likely re-read).
             page.compact = compact;
             this.memoryBytes += page.approxBytes;
             this.lru.push({ set, page });
             this.evictIfNeeded();
+            const elapsed = performance.now() - startedAt;
+            this.spillReads++;
+            this.spillReadMsTotal += readMs;
+            this.materializeMsTotal += elapsed;
+            if (this.verbose) {
+                Perf.marker("mssql.queryStudio.rows.spill.read", "instant", {
+                    resultSetId: set.resultSetId,
+                    bytes: page.spillLength ?? 0,
+                    ms: roundMs(elapsed),
+                });
+            }
             return compact;
         } catch {
             set.corrupt = true;
@@ -439,6 +509,10 @@ function hasNonEmptyValue(value: unknown): boolean {
         return value.length > 0;
     }
     return true;
+}
+
+function roundMs(ms: number): number {
+    return Math.round(ms * 100) / 100;
 }
 
 function packBits(bits: boolean[]): string {

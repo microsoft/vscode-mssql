@@ -597,6 +597,12 @@ export class Sts2Query {
     private resultSets = 0;
     private errors = 0;
     private startMs = Date.now();
+    // Row-pipeline attribution accumulators (QO-2), reported on the
+    // sqlDataPlane.execute span at terminal.
+    private pagesSeen = 0;
+    private wireApproxBytes = 0;
+    private convertMsTotal = 0;
+    private sinkWaitMsTotal = 0;
 
     constructor(
         private readonly backend: Sts2Backend,
@@ -642,6 +648,18 @@ export class Sts2Query {
                     rows: { raw: this.totalRows, cls: "diagnostic.metadata" },
                     errors: { raw: this.errors, cls: "diagnostic.metadata" },
                     canceled: { raw: this.cancelRequested, cls: "diagnostic.metadata" },
+                    // Binding row-pipeline aggregates (QO-2): what the
+                    // extension-side page path cost for this query.
+                    pages: { raw: this.pagesSeen, cls: "diagnostic.metadata" },
+                    wireApproxBytes: { raw: this.wireApproxBytes, cls: "diagnostic.metadata" },
+                    convertMsTotal: {
+                        raw: Math.round(this.convertMsTotal * 100) / 100,
+                        cls: "diagnostic.metadata",
+                    },
+                    sinkWaitMsTotal: {
+                        raw: Math.round(this.sinkWaitMsTotal * 100) / 100,
+                        cls: "diagnostic.metadata",
+                    },
                 },
             );
         });
@@ -732,7 +750,9 @@ export class Sts2Query {
         ledger.nextPageSeq++;
         ledger.nextRowOffset += params.rows.length;
         this.totalRows += params.rows.length;
+        this.pagesSeen++;
 
+        const convertStartedAt = performance.now();
         const bits: boolean[] = [];
         const values: unknown[][] = params.rows.map((row) =>
             row.map((cell) => {
@@ -760,9 +780,13 @@ export class Sts2Query {
             rowCount: params.rows.length,
             approxBytes: JSON.stringify(params.rows).length,
         };
+        this.convertMsTotal += performance.now() - convertStartedAt;
+        this.wireApproxBytes += page.approxBytes;
         this.enqueue(async () => {
             // Durable acceptance first, THEN the high-water ack (§8.5).
+            const sinkStartedAt = performance.now();
             await this.sink.onRowsPage(page);
+            this.sinkWaitMsTotal += performance.now() - sinkStartedAt;
             if (!this.terminalSent && params.pageSeq > this.highestAckedPageSeq) {
                 this.highestAckedPageSeq = params.pageSeq;
                 this.rpc.sendNotification(STS2_METHODS.queryAck, {
