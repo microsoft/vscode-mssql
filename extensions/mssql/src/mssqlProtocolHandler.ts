@@ -13,7 +13,6 @@ import { AuthenticationType } from "./sharedInterfaces/connectionDialog";
 import { ILogger } from "./sharedInterfaces/logger";
 import { logger } from "./models/logger";
 import MainController from "./controllers/mainController";
-import { cmdAddObjectExplorer } from "./constants/constants";
 import { getConnectionDisplayName } from "./models/connectionInfo";
 import { MatchScore } from "./models/utils";
 import { sendActionEvent, sendErrorEvent } from "./telemetry/telemetry";
@@ -165,7 +164,9 @@ export class MssqlProtocolHandler {
     }
 
     private openConnectionDialog(connProfile: IConnectionProfile | undefined): void {
-        vscode.commands.executeCommand(cmdAddObjectExplorer, connProfile);
+        // Always open as a new connection draft (prepopulated, but not in "edit existing" mode),
+        // since the profile came from an external URI and hasn't been saved yet.
+        this.mainController.openConnectionDialogForNewProfile(connProfile);
     }
 
     /**
