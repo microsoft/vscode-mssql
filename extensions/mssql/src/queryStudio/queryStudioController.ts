@@ -65,6 +65,7 @@ import {
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
 import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
+import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -401,6 +402,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
         }
         state.completions = { enabled: isInlineCompletionFeatureEnabled() };
+        // Grid windowing knobs ride the style snapshot (QO-7): the run's
+        // tuning when one exists, else the current resolution.
+        const tuning = (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params;
+        state.gridStyle = {
+            ...state.gridStyle,
+            gridWindowMode: tuning.gridWindowMode,
+            gridWindowRows: tuning.gridWindowRows,
+            gridPrefetchFactor: tuning.gridPrefetchFactor,
+            gridMaxWindowRows: tuning.gridMaxWindowRows,
+        };
         state.statusMessage = QueryStudioController.statusFor(state);
         return state;
     }

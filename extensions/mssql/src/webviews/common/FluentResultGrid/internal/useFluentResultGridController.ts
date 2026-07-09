@@ -78,6 +78,7 @@ export function useFluentResultGridController({
     inMemoryDataProcessingThreshold = FLUENT_RESULT_GRID_DEFAULT_IN_MEMORY_DATA_PROCESSING_THRESHOLD,
     gridSettings,
     rowHeight: rowHeightOverride,
+    windowSize,
     toolbar,
     commands,
     enableColumnReorder = true,
@@ -135,6 +136,7 @@ export function useFluentResultGridController({
         inMemoryDataProcessingThreshold,
         onInMemoryDataProcessingThresholdExceeded,
         restoreHorizontalScrollPosition: restoreFluentResultGridHorizontalScrollPosition,
+        windowSize,
     });
 
     const layoutController = useFluentResultGridLayout({

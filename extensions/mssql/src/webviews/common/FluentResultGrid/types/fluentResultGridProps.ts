@@ -36,6 +36,8 @@ export interface FluentResultGridBehaviorProps {
     inMemoryDataProcessingThreshold?: number;
     gridSettings?: GridSettings;
     rowHeight?: number;
+    /** Windowed-source fetch size in rows (QO-7); default 50. */
+    windowSize?: number;
     toolbar?: FluentResultGridToolbarOptions;
     commands?: FluentResultGridCommandConfiguration;
     enableColumnReorder?: boolean;

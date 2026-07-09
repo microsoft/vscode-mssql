@@ -64,6 +64,7 @@ export function useFluentResultGridDataController({
     inMemoryDataProcessingThreshold,
     onInMemoryDataProcessingThresholdExceeded,
     restoreHorizontalScrollPosition,
+    windowSize,
 }: {
     dataSource: FluentResultGridDataSource;
     resultSetSummary: ResultSetSummary;
@@ -72,6 +73,8 @@ export function useFluentResultGridDataController({
     inMemoryDataProcessingThreshold: number;
     onInMemoryDataProcessingThresholdExceeded?: () => MaybePromise<void>;
     restoreHorizontalScrollPosition: (grid: SlickGrid, scrollLeft: number) => void;
+    /** Windowed-source fetch size (QO-7); default FLUENT_RESULT_GRID_WINDOW_SIZE. */
+    windowSize?: number;
 }): FluentResultGridDataController {
     const dataViewRef = useRef<FluentResultGridDataView<FluentResultGridDataRow> | undefined>(
         undefined,
@@ -129,9 +132,9 @@ export function useFluentResultGridDataController({
                     getRows: fetchRows,
                 } as const),
             columnCount: resultSetSummary.columnInfo.length,
-            windowSize: FLUENT_RESULT_GRID_WINDOW_SIZE,
+            windowSize: windowSize ?? FLUENT_RESULT_GRID_WINDOW_SIZE,
         });
-    }, [fetchRows, resultSetSummary.columnInfo.length, rowsDataSource]);
+    }, [fetchRows, resultSetSummary.columnInfo.length, rowsDataSource, windowSize]);
 
     const dataViewKeyRef = useRef(0);
     const previousDataViewRef = useRef(dataView);

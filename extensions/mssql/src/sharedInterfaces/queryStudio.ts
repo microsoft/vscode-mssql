@@ -162,6 +162,15 @@ export interface QsGridStyle {
      * (mssql.resultsGrid.inMemoryDataProcessingThreshold, classic parity).
      */
     inMemoryDataProcessingThreshold: number;
+    /**
+     * Grid windowing knobs from the run's QueryTuning snapshot (QO-7):
+     * fixed = gridWindowRows per fetch; adaptive = viewport-derived,
+     * clamped to [gridWindowRows, gridMaxWindowRows].
+     */
+    gridWindowMode?: "fixed" | "adaptive";
+    gridWindowRows?: number;
+    gridPrefetchFactor?: number;
+    gridMaxWindowRows?: number;
 }
 
 export interface QsState {

@@ -645,6 +645,28 @@ export function QsResultGridSurface(props: {
         [gridStyle],
     );
 
+    // Effective fetch window (QO-7): fixed = gridWindowRows; adaptive derives
+    // from the surface height (viewport rows × prefetch factor per direction),
+    // clamped to [gridWindowRows, gridMaxWindowRows]. Computed once per mount
+    // — result-set identity remounts the surface.
+    const windowSize = useMemo(() => {
+        const baseRows = gridStyle?.gridWindowRows ?? 50;
+        if (gridStyle?.gridWindowMode !== "adaptive") {
+            return baseRows;
+        }
+        const paneHeight = shellRef.current?.clientHeight || window.innerHeight;
+        const visibleRows = Math.max(1, Math.ceil(paneHeight / qsGridRowHeight(gridStyle)));
+        const prefetch = Math.max(1, gridStyle.gridPrefetchFactor ?? 2);
+        const maxRows = gridStyle.gridMaxWindowRows ?? 1000;
+        return Math.min(maxRows, Math.max(baseRows, visibleRows * (1 + prefetch)));
+        // shellRef height is deliberately sampled once per identity, not reactive.
+    }, [
+        gridStyle?.gridWindowMode,
+        gridStyle?.gridWindowRows,
+        gridStyle?.gridPrefetchFactor,
+        gridStyle?.gridMaxWindowRows,
+    ]);
+
     const stopSelectionDragClass = useCallback(() => {
         shellRef.current?.classList.remove("qs-grid-selecting");
     }, []);
@@ -677,6 +699,7 @@ export function QsResultGridSurface(props: {
                 inMemoryDataProcessingThreshold={inMemoryThreshold}
                 gridSettings={gridSettings}
                 rowHeight={qsGridRowHeight(gridStyle)}
+                windowSize={windowSize}
                 style={style}
                 toolbar={{ visible: true }}
                 viewMode="grid"
