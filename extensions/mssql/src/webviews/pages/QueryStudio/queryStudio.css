@@ -410,6 +410,7 @@
     flex-direction: column;
     height: 100%;
     min-height: 0;
+    contain: layout paint style;
 }
 .qs-messages-toolbar {
     flex: 0 0 28px;
@@ -437,6 +438,8 @@
     padding: 0 4px;
     white-space: pre-wrap;
     tab-size: 4;
+    content-visibility: auto;
+    contain-intrinsic-size: 18px;
 }
 .qs-message-line-link {
     color: var(--vscode-textLink-foreground);

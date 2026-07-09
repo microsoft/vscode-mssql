@@ -19,7 +19,7 @@
  * many-result-set runs on viewport proximity.
  */
 
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     QsMessageRow,
     QsGridStyle,
@@ -28,6 +28,7 @@ import {
     QsResultSetSummary,
 } from "../../../sharedInterfaces/queryStudio";
 import type { QsGridSizing } from "../../../sharedInterfaces/queryStudioResultsLayout";
+import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 import { QsResultGridSurface, Rpc } from "./resultsGrid";
 
 const NOTICE_DISMISS_MS = 6000;
@@ -263,40 +264,69 @@ function formatMessageForDisplay(message: QsMessageRow): string {
     return prefix + message.text.replace(/\r\n?/g, "\n").replace(/\n/g, `\n${continuationPrefix}`);
 }
 
-function renderMessageForDisplay(
-    message: QsMessageRow,
-    navigate: (message: QsMessageRow) => void,
-): ReactNode {
+interface PreparedMessageRow {
+    readonly message: QsMessageRow;
+    readonly display: string;
+    readonly lineNumber?: number;
+    readonly lineLinkStart?: number;
+    readonly lineLinkText?: string;
+}
+
+function prepareMessageForDisplay(message: QsMessageRow): PreparedMessageRow {
     const display = formatMessageForDisplay(message);
     if (!message.navigable) {
-        return display;
+        return { message, display };
     }
-
     const lineLinkText = `Line ${message.navigable.line}`;
     const lineLinkStart = display.indexOf(lineLinkText);
     if (lineLinkStart < 0) {
-        return display;
+        return { message, display };
+    }
+
+    return { message, display, lineNumber: message.navigable.line, lineLinkStart, lineLinkText };
+}
+
+function renderMessageForDisplay(
+    row: PreparedMessageRow,
+    navigate: (message: QsMessageRow) => void,
+): ReactNode {
+    if (row.lineLinkStart === undefined || row.lineLinkText === undefined) {
+        return row.display;
     }
 
     return (
         <>
-            {display.slice(0, lineLinkStart)}
+            {row.display.slice(0, row.lineLinkStart)}
             <a
                 className="qs-message-line-link"
-                href={`#line-${message.navigable.line}`}
-                title={`Go to line ${message.navigable.line}`}
-                aria-label={`Go to line ${message.navigable.line}`}
+                href={`#line-${row.lineNumber}`}
+                title={`Go to line ${row.lineNumber}`}
+                aria-label={`Go to line ${row.lineNumber}`}
                 onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    navigate(message);
+                    navigate(row.message);
                 }}>
-                {lineLinkText}
+                {row.lineLinkText}
             </a>
-            {display.slice(lineLinkStart + lineLinkText.length)}
+            {row.display.slice(row.lineLinkStart + row.lineLinkText.length)}
         </>
     );
 }
+
+const MessageRow = memo(function MessageRow(props: {
+    row: PreparedMessageRow;
+    navigate: (message: QsMessageRow) => void;
+}) {
+    const { row, navigate } = props;
+    return (
+        <div
+            className={`qs-message-row qs-message-${row.message.kind}`}
+            aria-label={row.message.text}>
+            {renderMessageForDisplay(row, navigate)}
+        </div>
+    );
+});
 
 /**
  * Messages tab: monospace log; error blocks navigate to the document line.
@@ -305,8 +335,27 @@ function renderMessageForDisplay(
  * grid: fixed timestamp field, tight 18px rows, and rows-affected messages
  * aligned under the message column without repeating the timestamp.
  */
-export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
+function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
     const { rpc, messages } = props;
+    const preparedMessages = useMemo(() => {
+        const perfEnabled = perfMarksEnabled();
+        const startedAt = perfEnabled ? performance.now() : 0;
+        const rows = messages.map(prepareMessageForDisplay);
+        if (perfEnabled) {
+            perfMark("mssql.queryStudio.messagesPrepared", {
+                messages: messages.length,
+                durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+            });
+        }
+        return rows;
+    }, [messages]);
+    useEffect(() => {
+        if (messages.length > 0 && perfMarksEnabled()) {
+            perfMarkAfterNextPaint("mssql.queryStudio.messagesRendered", {
+                messages: messages.length,
+            });
+        }
+    }, [messages.length]);
     const navigate = useCallback(
         (message: QsMessageRow) => {
             if (message.navigable) {
@@ -336,16 +385,9 @@ export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
                 </button>
             </div>
             <div className="qs-messages" role="log">
-                {messages.map((message, i) => {
-                    return (
-                        <div
-                            key={i}
-                            className={`qs-message-row qs-message-${message.kind}`}
-                            aria-label={message.text}>
-                            {renderMessageForDisplay(message, navigate)}
-                        </div>
-                    );
-                })}
+                {preparedMessages.map((row, i) => (
+                    <MessageRow key={i} row={row} navigate={navigate} />
+                ))}
                 {messages.length === 0 ? (
                     <div className="qs-muted qs-message-row">
                         {" ".repeat(MESSAGE_TIME_COLUMN_WIDTH + MESSAGE_SEPARATOR.length)}
@@ -356,3 +398,5 @@ export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
         </div>
     );
 }
+
+export const MessagesView = memo(MessagesViewImpl);
