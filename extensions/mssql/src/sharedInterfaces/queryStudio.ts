@@ -171,6 +171,9 @@ export interface QsGridStyle {
     gridWindowRows?: number;
     gridPrefetchFactor?: number;
     gridMaxWindowRows?: number;
+    /** Text view materialization cap + width-sample size (QO-8). */
+    textViewMaxRows?: number;
+    textViewSampleRows?: number;
 }
 
 export interface QsState {

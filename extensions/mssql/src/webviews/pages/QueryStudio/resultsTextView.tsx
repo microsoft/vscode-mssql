@@ -15,10 +15,13 @@ import {
     QsState,
 } from "../../../sharedInterfaces/queryStudio";
 import { cellDisplayText } from "../../../sharedInterfaces/queryStudioGridOps";
+import { perfMark, perfMarksEnabled } from "../../common/perfMarks";
 import type { Rpc } from "./resultsGrid";
 
 const TEXT_VIEW_CHUNK = 5000;
 const MIN_COLUMN_WIDTH = 10;
+const DEFAULT_TEXT_VIEW_MAX_ROWS = 100_000;
+const DEFAULT_TEXT_VIEW_SAMPLE_ROWS = 1000;
 
 export function QueryStudioResultsTextView(props: {
     rpc: Rpc;
@@ -34,7 +37,7 @@ export function QueryStudioResultsTextView(props: {
     useEffect(() => {
         let canceled = false;
         setLoading(true);
-        void buildTextViewContent(rpc, resultSets, liveRowCounts, EOL)
+        void buildTextViewContent(rpc, resultSets, liveRowCounts, EOL, gridStyle)
             .then((content) => {
                 if (!canceled) {
                     setTextContent(content);
@@ -50,7 +53,7 @@ export function QueryStudioResultsTextView(props: {
         return () => {
             canceled = true;
         };
-    }, [EOL, liveRowCounts, resultSets, rpc]);
+    }, [EOL, liveRowCounts, resultSets, rpc, gridStyle]);
 
     if (loading) {
         return (
@@ -95,16 +98,29 @@ async function buildTextViewContent(
     resultSets: readonly QsResultSetSummary[],
     liveRowCounts: Readonly<Record<string, number>>,
     eol: string,
+    gridStyle: QsGridStyle | undefined,
 ): Promise<string> {
     if (resultSets.length === 0) {
         return locConstants.queryResult.noResultsToDisplay;
     }
 
+    // QO-8: text view is a heavy materialization — cap it at the tuning
+    // limit with a VISIBLE truncation line (never silent), and compute
+    // column widths from a bounded sample instead of every row.
+    const maxRows = gridStyle?.textViewMaxRows ?? DEFAULT_TEXT_VIEW_MAX_ROWS;
+    const sampleRows = gridStyle?.textViewSampleRows ?? DEFAULT_TEXT_VIEW_SAMPLE_ROWS;
     const blocks: string[] = [];
     for (const summary of resultSets) {
         const rowCount = Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0);
-        const rows = await fetchTextRows(rpc, summary, rowCount);
-        const columnWidths = computeColumnWidths(summary.columnNames, rows);
+        const cappedCount = Math.min(rowCount, maxRows);
+        const rows = await fetchTextRows(rpc, summary, cappedCount);
+        if (cappedCount < rowCount && perfMarksEnabled()) {
+            perfMark("mssql.queryStudio.textView.capped", {
+                totalRows: rowCount,
+                renderedRows: cappedCount,
+            });
+        }
+        const columnWidths = computeColumnWidths(summary.columnNames, rows.slice(0, sampleRows));
         const lines: string[] = [];
         lines.push(
             locConstants.queryResult.resultSet(
@@ -118,6 +134,12 @@ async function buildTextViewContent(
         lines.push(columnWidths.map((width) => "-".repeat(width)).join("  "));
         for (const row of rows) {
             lines.push(formatTextRow(row, columnWidths));
+        }
+        if (cappedCount < rowCount) {
+            lines.push(
+                `… display truncated at ${cappedCount.toLocaleString()} of ${rowCount.toLocaleString()} rows ` +
+                    "(save the result set to a file for the full output).",
+            );
         }
         lines.push(locConstants.queryResult.rowsAffected(rowCount));
         blocks.push(lines.join(eol));

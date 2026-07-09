@@ -2955,6 +2955,9 @@
     <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
       <source xml:lang="en">Exporting BACPAC...</source>
     </trans-unit>
+    <trans-unit id="++CODE++c6f66b11bb77919ad8b1894fbdb2341d518f92d668331ca0844e78f252ce7321">
+      <source xml:lang="en">Exporting results…</source>
+    </trans-unit>
     <trans-unit id="++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095">
       <source xml:lang="en">Expose as MCP DML tools</source>
     </trans-unit>

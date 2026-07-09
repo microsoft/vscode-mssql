@@ -3,11 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
+import { Perf } from "../perf/perfTelemetry";
 import {
     QsCellWindow,
     QsResultSelectionRange,
@@ -15,9 +17,11 @@ import {
     QsSaveResultFormat,
 } from "../sharedInterfaces/queryStudio";
 import { cellDocumentText } from "./cellDocument";
+import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 
-const EXPORT_CHUNK_SIZE = 2048;
 const INSERT_BATCH_SIZE = 1000;
+/** Coalesce generator pieces into writes of roughly this many chars. */
+const WRITE_BUFFER_CHARS = 256 * 1024;
 
 interface ExportOptions {
     sourceUri?: vscode.Uri;
@@ -67,10 +71,23 @@ export async function saveQueryStudioResult(options: ExportOptions): Promise<{
         return { saved: false, canceled: true };
     }
 
+    Perf.marker("mssql.queryStudio.export.begin", "begin", {
+        format: options.format,
+        rows: options.summary.rowCount,
+    });
     try {
-        const content = await buildExportContent(options);
         const encoding = getExportEncoding(options.sourceUri, options.format);
-        await vscode.workspace.fs.writeFile(target, Buffer.from(content, encoding));
+        const outcome = await writeExport(target, options, encoding);
+        Perf.marker("mssql.queryStudio.export.end", "end", {
+            format: options.format,
+            rows: outcome.rows,
+            bytes: outcome.bytes,
+            canceled: outcome.canceled === true,
+            streamed: outcome.streamed,
+        });
+        if (outcome.canceled) {
+            return { saved: false, canceled: true };
+        }
         showSaveSucceededNotification(target);
         if (shouldOpenSavedFile(options.sourceUri)) {
             await openSavedFile(target);
@@ -78,24 +95,135 @@ export async function saveQueryStudioResult(options: ExportOptions): Promise<{
         return { saved: true };
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        Perf.marker("mssql.queryStudio.export.end", "end", {
+            format: options.format,
+            rows: 0,
+            bytes: 0,
+            canceled: false,
+            streamed: false,
+            error: true,
+        });
         void vscode.window.showErrorMessage(LocalizedConstants.msgSaveFailed(message));
         return { saved: false, error: message };
     }
 }
 
-async function buildExportContent(options: ExportOptions): Promise<string> {
+interface ExportOutcome {
+    rows: number;
+    bytes: number;
+    canceled?: boolean;
+    streamed: boolean;
+}
+
+/** One generator piece: text plus how many data rows it covers. */
+interface ExportPiece {
+    text: string;
+    rows: number;
+}
+
+/**
+ * Streaming export (QO-8): pieces flow from the format generator straight to
+ * an incremental file write with progress + cancellation — output is never
+ * accumulated as one giant string. Non-file targets (rare) fall back to
+ * bounded in-memory assembly through the same generators.
+ */
+async function writeExport(
+    target: vscode.Uri,
+    options: ExportOptions,
+    encoding: BufferEncoding,
+): Promise<ExportOutcome> {
     const range = normalizeExportRange(options.summary, options.selection);
+    const pieces = exportPieces(options, range);
+
+    if (target.scheme !== "file") {
+        let text = "";
+        let rows = 0;
+        for await (const piece of pieces) {
+            text += piece.text;
+            rows += piece.rows;
+        }
+        const payload = Buffer.from(text, encoding);
+        await vscode.workspace.fs.writeFile(target, payload);
+        return { rows, bytes: payload.byteLength, streamed: false };
+    }
+
+    return vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Notification,
+            title: LocalizedConstants.msgExportingResults,
+            cancellable: true,
+        },
+        async (progress, token) => {
+            const stream = fs.createWriteStream(target.fsPath, { encoding });
+            let rows = 0;
+            let bytes = 0;
+            let buffer = "";
+            const flush = async () => {
+                if (buffer.length === 0) {
+                    return;
+                }
+                const piece = buffer;
+                buffer = "";
+                bytes += Buffer.byteLength(piece, encoding);
+                await streamWrite(stream, piece);
+                progress.report({
+                    message: `${rows.toLocaleString()} rows`,
+                });
+            };
+            try {
+                for await (const piece of pieces) {
+                    if (token.isCancellationRequested) {
+                        stream.destroy();
+                        await fs.promises.rm(target.fsPath, { force: true });
+                        return { rows, bytes, canceled: true, streamed: true };
+                    }
+                    buffer += piece.text;
+                    rows += piece.rows;
+                    if (buffer.length >= WRITE_BUFFER_CHARS) {
+                        await flush();
+                    }
+                }
+                await flush();
+                await streamEnd(stream);
+                return { rows, bytes, streamed: true };
+            } catch (error) {
+                stream.destroy();
+                await fs.promises.rm(target.fsPath, { force: true }).catch(() => undefined);
+                throw error;
+            }
+        },
+    );
+}
+
+function streamWrite(stream: fs.WriteStream, text: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        stream.write(text, (error) => (error ? reject(error) : resolve()));
+    });
+}
+
+function streamEnd(stream: fs.WriteStream): Promise<void> {
+    return new Promise((resolve, reject) => {
+        stream.end((error: Error | null | undefined) => (error ? reject(error) : resolve()));
+    });
+}
+
+/** Exported for unit tests (the save entrypoint needs a real Save dialog). */
+export function exportPieces(
+    options: ExportOptions,
+    range: ExportRange,
+): AsyncGenerator<ExportPiece> {
     switch (options.format) {
         case "csv":
-            return buildCsvContent(options, range, getCsvOptions(options.sourceUri));
+            return csvPieces(options, range, getCsvOptions(options.sourceUri));
         case "json":
-            return buildJsonContent(options, range);
+            return jsonPieces(options, range);
         case "insert":
-            return buildInsertContent(options, range, getInsertOptions(options.sourceUri));
+            return insertPieces(options, range, getInsertOptions(options.sourceUri));
     }
 }
 
-function normalizeExportRange(
+/** Exported for unit tests. */
+export function normalizeExportRange(
     summary: QsResultSetSummary,
     selection: readonly QsResultSelectionRange[] | undefined,
 ): ExportRange {
@@ -124,40 +252,39 @@ function normalizeExportRange(
     return { rowStart, rowEnd, columnStart, columnEnd: selectedColumnEnd };
 }
 
-async function buildCsvContent(
+async function* csvPieces(
     options: ExportOptions,
     range: ExportRange,
     csv: CsvOptions,
-): Promise<string> {
-    const lines: string[] = [];
+): AsyncGenerator<ExportPiece> {
     if (csv.includeHeaders) {
-        lines.push(
-            options.summary.columnNames
-                .slice(range.columnStart, range.columnEnd + 1)
-                .map((name) => encodeCsvField(name, csv.delimiter, csv.textIdentifier))
-                .join(csv.delimiter),
-        );
+        const header = options.summary.columnNames
+            .slice(range.columnStart, range.columnEnd + 1)
+            .map((name) => encodeCsvField(name, csv.delimiter, csv.textIdentifier))
+            .join(csv.delimiter);
+        yield { text: `${header}${csv.lineSeparator}`, rows: 0 };
     }
 
     for await (const row of readExportRows(options, range)) {
-        lines.push(
-            row.cells
-                .slice(range.columnStart, range.columnEnd + 1)
-                .map((cell) =>
-                    encodeCsvField(
-                        cell.isNull ? undefined : cellDocumentText(cell.value),
-                        csv.delimiter,
-                        csv.textIdentifier,
-                    ),
-                )
-                .join(csv.delimiter),
-        );
+        const line = row.cells
+            .slice(range.columnStart, range.columnEnd + 1)
+            .map((cell) =>
+                encodeCsvField(
+                    cell.isNull ? undefined : cellDocumentText(cell.value),
+                    csv.delimiter,
+                    csv.textIdentifier,
+                ),
+            )
+            .join(csv.delimiter);
+        yield { text: `${line}${csv.lineSeparator}`, rows: 1 };
     }
-    return lines.length > 0 ? `${lines.join(csv.lineSeparator)}${csv.lineSeparator}` : "";
 }
 
-async function buildJsonContent(options: ExportOptions, range: ExportRange): Promise<string> {
-    const rows: string[] = [];
+async function* jsonPieces(
+    options: ExportOptions,
+    range: ExportRange,
+): AsyncGenerator<ExportPiece> {
+    let first = true;
     for await (const row of readExportRows(options, range)) {
         const properties: string[] = [];
         for (let column = range.columnStart; column <= range.columnEnd; column++) {
@@ -165,51 +292,50 @@ async function buildJsonContent(options: ExportOptions, range: ExportRange): Pro
                 `    ${JSON.stringify(options.summary.columnNames[column] ?? "")}: ${jsonValue(row.cells[column])}`,
             );
         }
-        rows.push(`  {\n${properties.join(",\n")}\n  }`);
+        const prefix = first ? "[\n" : ",\n";
+        first = false;
+        yield { text: `${prefix}  {\n${properties.join(",\n")}\n  }`, rows: 1 };
     }
-    return rows.length > 0 ? `[\n${rows.join(",\n")}\n]\n` : "[]\n";
+    yield { text: first ? "[]\n" : "\n]\n", rows: 0 };
 }
 
-async function buildInsertContent(
+async function* insertPieces(
     options: ExportOptions,
     range: ExportRange,
     insert: InsertOptions,
-): Promise<string> {
+): AsyncGenerator<ExportPiece> {
     if (options.summary.columnNames.length === 0 || range.rowEnd < range.rowStart) {
-        return "";
+        return;
     }
 
     const columnNames = options.summary.columnNames.slice(range.columnStart, range.columnEnd + 1);
     const header = insert.includeHeaders
         ? ` (${columnNames.map(escapeIdentifier).join(", ")})`
         : "";
-    const statements: string[] = [];
     let batch: string[] = [];
-    const flush = () => {
-        if (batch.length === 0) {
-            return;
-        }
+    const renderBatch = (): string => {
         const lines = [
             `INSERT INTO ${escapeIdentifier("TableName")}${header}`,
             "VALUES",
             ...batch.map((row, index) => `    ${row}${index < batch.length - 1 ? "," : ";"}`),
             "",
         ];
-        statements.push(lines.join(insert.lineSeparator));
+        const rendered = lines.join(insert.lineSeparator) + insert.lineSeparator;
         batch = [];
+        return rendered;
     };
 
     for await (const row of readExportRows(options, range)) {
         const values = row.cells.slice(range.columnStart, range.columnEnd + 1).map(formatSqlValue);
         batch.push(`(${values.join(", ")})`);
         if (batch.length >= INSERT_BATCH_SIZE) {
-            flush();
+            yield { text: renderBatch(), rows: INSERT_BATCH_SIZE };
         }
     }
-    flush();
-    return statements.length > 0
-        ? `${statements.join(insert.lineSeparator)}${insert.lineSeparator}`
-        : "";
+    if (batch.length > 0) {
+        const rows = batch.length;
+        yield { text: renderBatch(), rows };
+    }
 }
 
 async function* readExportRows(
@@ -220,8 +346,10 @@ async function* readExportRows(
         return;
     }
 
-    for (let start = range.rowStart; start <= range.rowEnd; start += EXPORT_CHUNK_SIZE) {
-        const count = Math.min(EXPORT_CHUNK_SIZE, range.rowEnd - start + 1);
+    // Fetch size from the tuning registry (QO-1) — sweepable like the rest.
+    const chunkRows = resolveQueryTuning().params.exportChunkRows;
+    for (let start = range.rowStart; start <= range.rowEnd; start += chunkRows) {
+        const count = Math.min(chunkRows, range.rowEnd - start + 1);
         const window = await options.getRows(options.summary.resultSetId, start, count);
         const isNull = windowNullFlags(window);
         for (let row = 0; row < window.values.length; row++) {

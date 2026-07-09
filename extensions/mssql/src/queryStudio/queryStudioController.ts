@@ -122,6 +122,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private messagesNotifyIntervalMs = 0;
     /** Absolute index of the next message row to notify (reset per run). */
     private messagesSentCount = 0;
+    /** Parsed plan graphs for the current run's plan XML (QO-8). */
+    private planStateCache:
+        | { key: string; state: ExecutionPlanWebviewState["executionPlanState"] }
+        | undefined;
     private viewMode: "grid" | "text" = "grid";
     private actualPlan = false;
     private inlineCompletionCts: vscode.CancellationTokenSource | undefined;
@@ -411,6 +415,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             gridWindowRows: tuning.gridWindowRows,
             gridPrefetchFactor: tuning.gridPrefetchFactor,
             gridMaxWindowRows: tuning.gridMaxWindowRows,
+            textViewMaxRows: tuning.textViewMaxRows,
+            textViewSampleRows: tuning.textViewSampleRows,
         };
         state.statusMessage = QueryStudioController.statusFor(state);
         return state;
@@ -634,7 +640,18 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                         return { opened: false };
                     }
                     const raw = cellDocumentText(value);
-                    const content = format === "text" ? raw : prettyPrintCellText(raw, format);
+                    // Raw-first over the format limit (QO-8): pretty-printing
+                    // a multi-megabyte XML/JSON cell synchronously can freeze
+                    // the host — above the tuning bound, open the raw text
+                    // (still language-highlighted; the user can format
+                    // on demand with the editor's Format Document).
+                    const formatLimit = (
+                        this.model.executionHost.currentTuning ?? resolveQueryTuning()
+                    ).params.cellDocumentFormatLimit;
+                    const content =
+                        format === "text" || raw.length > formatLimit
+                            ? raw
+                            : prettyPrintCellText(raw, format);
                     const doc = await vscode.workspace.openTextDocument({
                         language: format === "text" ? "plaintext" : format,
                         content,
@@ -680,6 +697,23 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 if (xmlPlans.length === 0) {
                     return { error: "No execution plan results are available yet." };
                 }
+                // Plan-graph parse cache (QO-8): keyed by plan XML content —
+                // tab switches and state pushes must not reparse. One entry
+                // suffices (plans belong to the current run; a new run's XML
+                // differs and replaces it).
+                const startedAt = performance.now();
+                const cacheKey = `${resultSetIds.join(",")}|${xmlPlans.reduce(
+                    (total, xml) => total + xml.length,
+                    0,
+                )}|${xmlPlans[0]?.slice(0, 256) ?? ""}`;
+                if (this.planStateCache?.key === cacheKey) {
+                    Perf.marker("mssql.queryStudio.plan.parse", "instant", {
+                        plans: xmlPlans.length,
+                        cacheHit: true,
+                        ms: 0,
+                    });
+                    return { executionPlanState: this.planStateCache.state };
+                }
                 const seam = await this.executionPlanSeam();
                 if (!seam) {
                     return { error: "Execution plan service is unavailable." };
@@ -697,6 +731,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     xmlPlans,
                     "QueryResults",
                 );
+                this.planStateCache = { key: cacheKey, state: result.executionPlanState };
+                Perf.marker("mssql.queryStudio.plan.parse", "instant", {
+                    plans: xmlPlans.length,
+                    cacheHit: false,
+                    ms: Math.round((performance.now() - startedAt) * 100) / 100,
+                });
                 return { executionPlanState: result.executionPlanState };
             } catch (error) {
                 return { error: error instanceof Error ? error.message : String(error) };

@@ -180,6 +180,7 @@
         "message": "Successfully saved results to {0}",
         "comment": ["{0} is the file path"]
     },
+    "Exporting results…": "Exporting results…",
     "Select profile to remove": "Select profile to remove",
     "Select profile to edit": "Select profile to edit",
     "Confirm to remove this profile.": "Confirm to remove this profile.",

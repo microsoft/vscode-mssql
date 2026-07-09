@@ -299,6 +299,7 @@ export function msgSaveSucceeded(filePath: string) {
         comment: ["{0} is the file path"],
     });
 }
+export let msgExportingResults = l10n.t("Exporting results…");
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
 export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
