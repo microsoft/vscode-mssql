@@ -18,6 +18,10 @@
 
 import * as monaco from "monaco-editor";
 import { loader } from "@monaco-editor/react";
+import {
+    conf as sqlLanguageConfiguration,
+    language as sqlMonarchLanguage,
+} from "monaco-editor/esm/vs/basic-languages/sql/sql.js";
 
 declare const self: {
     MonacoEnvironment?: {
@@ -28,6 +32,25 @@ declare const self: {
 self.MonacoEnvironment = {
     getWorker: () => new Worker(new URL("editorWorker.js", document.baseURI), { type: "module" }),
 };
+
+const SQL_JOIN_OPERATOR_WORDS = new Set([
+    "APPLY",
+    "CROSS",
+    "FULL",
+    "INNER",
+    "JOIN",
+    "LEFT",
+    "OUTER",
+    "RIGHT",
+]);
+
+monaco.languages.setLanguageConfiguration("sql", sqlLanguageConfiguration);
+monaco.languages.setMonarchTokensProvider("sql", {
+    ...sqlMonarchLanguage,
+    operators: sqlMonarchLanguage.operators?.filter(
+        (word) => !SQL_JOIN_OPERATOR_WORDS.has(word.toUpperCase()),
+    ),
+});
 
 loader.config({ monaco });
 

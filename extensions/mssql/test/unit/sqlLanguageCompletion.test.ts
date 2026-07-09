@@ -117,6 +117,21 @@ suite("sqlLanguage native completion: table sources", () => {
         expect(["Sales.Customers", "Sales.OrderLines"]).to.include(catalogLabels[0]);
     });
 
+    test("after a completed source alias offers join operators, not source objects", async () => {
+        const result = await complete("SELECT * FROM Sales.Orders o c/*caret*/");
+
+        expect(labels(result)).to.include("CROSS JOIN");
+        expect(labels(result)).to.not.include("Sales.Customers");
+        expect(labels(result)).to.not.include("Sales");
+    });
+
+    test("typing a table source alias stays silent", async () => {
+        const result = await complete("SELECT * FROM Sales.Orders c/*caret*/");
+
+        expect(result.items).to.have.length(0);
+        expect(result.isIncomplete).to.equal(false);
+    });
+
     test("CTE names appear as sources within their statement", async () => {
         const result = await complete(
             "WITH recent AS (SELECT OrderID FROM Sales.Orders) SELECT * FROM /*caret*/",

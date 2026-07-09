@@ -13,6 +13,7 @@
  */
 
 import * as path from "path";
+import * as vscode from "vscode";
 import {
     QsExecutionState,
     QsMessageRow,
@@ -24,7 +25,9 @@ import { FeatureReplayTags } from "../sharedInterfaces/featureReplay";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionOrchestrator, RunResult } from "./executionOrchestrator";
 import { beginRunRecord, completeRunRecord } from "./replay/qsRunCapture";
-import { RowStore } from "./rowStore";
+import { DEFAULT_LIMITS, RowStore, RowStoreLimits } from "./rowStore";
+
+const MAX_ROWS_PER_RESULT_SET_SETTING = "mssql.queryStudio.maxRowsPerResultSet";
 
 export interface ExecutionHostEvents {
     onRunStarted?(startedEpochMs: number): void;
@@ -102,7 +105,10 @@ export class ExecutionHost {
         // Fresh run: previous results (and spill) are released NOW.
         this.rowStore?.dispose();
         this.runCounter++;
-        this.rowStore = new RowStore(path.join(this.spillRoot, `run${this.runCounter}`));
+        this.rowStore = new RowStore(
+            path.join(this.spillRoot, `run${this.runCounter}`),
+            queryStudioRowStoreLimits(),
+        );
         this.messages = [];
         this.summaries.clear();
         this.summaryOrder = [];
@@ -375,4 +381,18 @@ export class ExecutionHost {
         this.rowStore = undefined;
         this.listeners.clear();
     }
+}
+
+function queryStudioRowStoreLimits(): RowStoreLimits {
+    const configured = vscode.workspace
+        .getConfiguration()
+        .get<number>(MAX_ROWS_PER_RESULT_SET_SETTING, DEFAULT_LIMITS.maxRowsPerResultSet);
+    const maxRowsPerResultSet =
+        configured !== undefined && Number.isFinite(configured)
+            ? Math.max(1, Math.floor(configured))
+            : DEFAULT_LIMITS.maxRowsPerResultSet;
+    return {
+        ...DEFAULT_LIMITS,
+        maxRowsPerResultSet,
+    };
 }

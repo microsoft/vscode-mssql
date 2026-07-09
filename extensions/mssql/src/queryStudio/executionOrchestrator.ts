@@ -337,6 +337,7 @@ export class ExecutionOrchestrator {
         const endedSets = new Set<string>();
         const planSets = new Set<string>();
         const rowCounts = new Map<string, number>();
+        let rowLimitCancelRequested = false;
         let errorMessagesSeen = 0;
         const synthesizeRowsAffected = (count: number) => {
             events.onMessages([
@@ -412,6 +413,39 @@ export class ExecutionOrchestrator {
                         (rowCounts.get(page.resultSetId) ?? 0) + page.rowCount,
                     );
                     events.onRowsAppended(storeId, page.rowCount, false);
+                    return;
+                }
+                const storeSummary = rowStore.summary(storeId);
+                if (
+                    storeSummary?.truncatedReason === "maxRowsPerResultSet" &&
+                    !rowLimitCancelRequested
+                ) {
+                    rowLimitCancelRequested = true;
+                    const rowLimit = rowStore.stats.maxRowsPerResultSet;
+                    endedSets.add(page.resultSetId);
+                    rowStore.endResultSet(storeId, "maxRowsPerResultSet");
+                    events.onResultSetEnded(storeId, storeSummary.rowCount, "maxRowsPerResultSet");
+                    Perf.marker("mssql.queryStudio.rows.maxRowsPerResultSet", "instant", {
+                        batchIndex,
+                        resultSetId: storeId,
+                        rowLimit,
+                        retainedRows: storeSummary.rowCount,
+                    });
+                    events.onMessages([
+                        {
+                            batchIndex,
+                            ...(batch.repeatTotal > 1
+                                ? { repeatOrdinal: batch.repeatOrdinal }
+                                : {}),
+                            kind: "warning",
+                            text:
+                                `Query Studio reached the result row limit of ${formatInteger(rowLimit)} rows. ` +
+                                "The result set was truncated and the query was canceled. " +
+                                "Increase mssql.queryStudio.maxRowsPerResultSet to allow more rows.",
+                            epochMs: Date.now(),
+                        },
+                    ]);
+                    void orchestrator.requestCancel();
                 }
             },
             onMessage(message) {
@@ -421,6 +455,9 @@ export class ExecutionOrchestrator {
                 events.onMessages([orchestrator.toMessageRow(message, batch, batchIndex, options)]);
             },
             onResultSetEnded(info) {
+                if (endedSets.has(info.resultSetId)) {
+                    return;
+                }
                 const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${info.resultSetId}`;
                 endedSets.add(info.resultSetId);
                 rowStore.endResultSet(storeId, info.truncatedReason);
@@ -562,6 +599,10 @@ export class ExecutionOrchestrator {
 /** SSMS/classic wording: "(1 row affected)" / "(N rows affected)". */
 function rowsAffectedText(count: number): string {
     return `(${count} row${count === 1 ? "" : "s"} affected)`;
+}
+
+function formatInteger(count: number): string {
+    return count.toLocaleString("en-US");
 }
 
 /**

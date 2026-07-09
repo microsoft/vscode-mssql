@@ -24,6 +24,7 @@ export type CompletionExpectationKind =
     | "memberAccess"
     | "tableSource"
     | "joinTableSource"
+    | "joinOperator"
     | "joinPredicate"
     | "columnExpression"
     | "predicateExpression"
@@ -157,6 +158,8 @@ function fromLegacy(context: CompletionContext): CompletionExpectation {
                 confidence: "high",
                 context,
             };
+        case "joinOperator":
+            return { kind: "joinOperator", confidence: "high", context };
         case "joinPredicate":
             return { kind: "joinPredicate", confidence: "high", context };
         case "expression":

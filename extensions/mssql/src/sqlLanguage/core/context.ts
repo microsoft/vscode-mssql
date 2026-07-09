@@ -32,6 +32,7 @@ export type CompletionContext =
           readonly afterJoin: boolean;
           readonly prefix: string;
       }
+    | { readonly kind: "joinOperator"; readonly scopeId: number; readonly prefix: string }
     | { readonly kind: "joinPredicate"; readonly scopeId: number }
     | {
           readonly kind: "expression";
@@ -77,6 +78,10 @@ function prevSignificant(tokens: readonly Token[], index: number): number {
         }
     }
     return -1;
+}
+
+function tokenAtOffset(tokens: readonly Token[], offset: number): Token | undefined {
+    return tokens[tokenIndexAt(tokens, Math.max(0, offset - 1))];
 }
 
 function nextSignificant(tokens: readonly Token[], index: number): number {
@@ -322,8 +327,14 @@ export function classifyContext(
     if (clause !== undefined) {
         switch (clause) {
             case "from": {
-                const afterJoin = isAfterJoinWord(text, tokens, anchorIndex);
-                return { kind: "tableSource", scopeId, afterJoin, prefix };
+                if (isCurrentSourceAlias(text, tokens, sketch, offset, scopeId)) {
+                    return { kind: "none", reason: "declarationSymbol" };
+                }
+                if (isTableSourceSlot(text, tokens, anchorIndex)) {
+                    const afterJoin = isAfterJoinWord(text, tokens, anchorIndex);
+                    return { kind: "tableSource", scopeId, afterJoin, prefix };
+                }
+                return { kind: "joinOperator", scopeId, prefix };
             }
             case "on":
                 return { kind: "joinPredicate", scopeId };
@@ -482,6 +493,58 @@ function isAfterJoinWord(text: string, tokens: readonly Token[], anchorIndex: nu
         }
     }
     return false;
+}
+
+function isTableSourceSlot(text: string, tokens: readonly Token[], anchorIndex: number): boolean {
+    const anchorText = significantAnchorText(text, tokens, anchorIndex);
+    return (
+        anchorText === "FROM" ||
+        anchorText === "JOIN" ||
+        anchorText === "APPLY" ||
+        anchorText === ","
+    );
+}
+
+function significantAnchorText(
+    text: string,
+    tokens: readonly Token[],
+    anchorIndex: number,
+): string | undefined {
+    let i = anchorIndex;
+    while (i >= 0 && isTrivia(tokens[i].kind)) {
+        i--;
+    }
+    if (i < 0) {
+        return undefined;
+    }
+    const raw = text.slice(tokens[i].start, tokens[i].end);
+    return tokens[i].kind === TokenKind.Identifier ? raw.toUpperCase() : raw;
+}
+
+function isCurrentSourceAlias(
+    text: string,
+    tokens: readonly Token[],
+    sketch: StatementSketch,
+    offset: number,
+    scopeId: number,
+): boolean {
+    const current = tokenAtOffset(tokens, offset);
+    if (
+        current === undefined ||
+        !isNameKind(current.kind) ||
+        offset <= current.start ||
+        offset > current.end
+    ) {
+        return false;
+    }
+    const raw = namePartText(text, current);
+    return sketch.sources.some(
+        (source) =>
+            source.scopeId === scopeId &&
+            source.alias !== undefined &&
+            source.alias.toLowerCase() === raw.toLowerCase() &&
+            source.span.end <= current.start,
+    );
 }
 
 function prevSignificantWordOrPunct(

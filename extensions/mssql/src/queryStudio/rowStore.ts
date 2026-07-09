@@ -153,6 +153,7 @@ export class RowStore {
         spillBytes: number;
         resultSets: number;
         pages: number;
+        maxRowsPerResultSet: number;
     } {
         return {
             memoryBytes: this.memoryBytes,
@@ -162,6 +163,7 @@ export class RowStore {
                 (total, set) => total + set.pages.length,
                 0,
             ),
+            maxRowsPerResultSet: this.limits.maxRowsPerResultSet,
         };
     }
 

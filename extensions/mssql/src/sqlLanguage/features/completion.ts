@@ -163,6 +163,11 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
             break;
         }
 
+        case "joinOperator": {
+            addJoinOperatorKeywords(input, ctx.prefix, add);
+            break;
+        }
+
         case "joinPredicate": {
             addJoinPredicates(input, add);
             addColumns(input, "", add, markIncomplete);
@@ -329,6 +334,26 @@ function addDefaultCompletionKeywords(
 ): void {
     for (const word of TSQL_DEFAULT_COMPLETION_TEXT) {
         add(defaultCompletionItem(input, word), prefix, 0);
+    }
+}
+
+const JOIN_OPERATOR_KEYWORDS = [
+    "JOIN",
+    "INNER JOIN",
+    "LEFT JOIN",
+    "RIGHT JOIN",
+    "FULL JOIN",
+    "CROSS JOIN",
+    "CROSS APPLY",
+    "OUTER APPLY",
+    "WHERE",
+    "GROUP BY",
+    "ORDER BY",
+];
+
+function addJoinOperatorKeywords(input: CompletionComputeInput, prefix: string, add: AddFn): void {
+    for (const word of JOIN_OPERATOR_KEYWORDS) {
+        add(defaultCompletionItem(input, word), prefix, word.includes("JOIN") ? 20 : 0);
     }
 }
 

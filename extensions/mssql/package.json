@@ -3388,6 +3388,13 @@
                     "description": "Enable the Query Studio custom editor for .sql files (preview). Reload required.",
                     "scope": "application"
                 },
+                "mssql.queryStudio.maxRowsPerResultSet": {
+                    "type": "number",
+                    "default": 5000000,
+                    "minimum": 1,
+                    "description": "Maximum rows Query Studio retains per result set before it marks the result set truncated and requests query cancellation.",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.replay.enabled": {
                     "type": "boolean",
                     "default": false,

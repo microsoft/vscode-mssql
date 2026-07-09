@@ -17,7 +17,7 @@ import * as os from "os";
 import * as path from "path";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
 import { ExecutionOrchestrator, RunEvents } from "../../src/queryStudio/executionOrchestrator";
-import { RowStore } from "../../src/queryStudio/rowStore";
+import { DEFAULT_LIMITS, RowStore } from "../../src/queryStudio/rowStore";
 import { QsMessageRow } from "../../src/sharedInterfaces/queryStudio";
 import {
     IQueryEventSink,
@@ -433,6 +433,51 @@ suite("Query Studio execution orchestrator", () => {
         expect(summary?.truncatedReason).to.equal("cancelled");
         expect(events.phases).to.include("cancelRequested");
         // A cancelled set's clipped count must NOT print as "rows affected".
+        expect(events.messages.some((m) => m.text.includes("rows affected"))).to.equal(false);
+        rowStore.dispose();
+    });
+
+    test("row cap truncates the result set and cancels the active query", async () => {
+        const backend = new FakeBackend({
+            scripts: [
+                {
+                    match: () => true,
+                    events: [
+                        {
+                            type: "resultSet",
+                            columns: ["n"],
+                            rows: Array.from({ length: 5 }, (_, i) => [i]),
+                            pageSize: 1,
+                        },
+                        { type: "complete", status: "succeeded" },
+                    ],
+                },
+            ],
+        });
+        const session = await sessionFor(backend);
+        const rowStore = new RowStore(fs.mkdtempSync(path.join(os.tmpdir(), "qs-orch-")), {
+            ...DEFAULT_LIMITS,
+            maxRowsPerResultSet: 2,
+        });
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run("select too_much", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+        });
+        const storeId = events.resultSets[0];
+        const summary = rowStore.summary(storeId);
+        const warning = events.messages.find((m) => m.kind === "warning");
+
+        expect(result.status).to.equal("canceled");
+        expect(result.totalRows).to.equal(2);
+        expect(events.phases).to.include("cancelRequested");
+        expect(summary?.rowCount).to.equal(2);
+        expect(summary?.complete).to.equal(true);
+        expect(summary?.truncatedReason).to.equal("maxRowsPerResultSet");
+        expect(warning?.text).to.contain("result row limit of 2 rows");
+        expect(warning?.text).to.contain("mssql.queryStudio.maxRowsPerResultSet");
         expect(events.messages.some((m) => m.text.includes("rows affected"))).to.equal(false);
         rowStore.dispose();
     });

@@ -54,6 +54,20 @@ suite("sqlLanguage completion expectation", () => {
         expect(e.kind).to.equal("columnExpression");
     });
 
+    test("FROM continuation after a source alias expects join operators", () => {
+        const e = expectation("SELECT * FROM Sales.Orders o c/*caret*/");
+
+        expect(e.kind).to.equal("joinOperator");
+        expect(e.context).to.deep.equal({ kind: "joinOperator", scopeId: 0, prefix: "c" });
+    });
+
+    test("table source alias declarations stay silent", () => {
+        const e = expectation("SELECT * FROM Sales.Orders c/*caret*/");
+
+        expect(e.kind).to.equal("declarationName");
+        expect(e.suppressReason).to.equal("declarationSymbol");
+    });
+
     test("DECLARE variable names are declaration symbols", () => {
         const e = expectation("DECLARE @x/*caret*/");
 
