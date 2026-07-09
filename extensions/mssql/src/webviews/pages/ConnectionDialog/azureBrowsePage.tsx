@@ -9,6 +9,7 @@ import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { Label, makeStyles } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import {
+    AuthenticationType,
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
@@ -40,6 +41,9 @@ export const AzureBrowsePage = () => {
     );
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
+
+    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
 
     if (context === undefined) {
         return undefined;
@@ -89,9 +93,17 @@ export const AzureBrowsePage = () => {
                         }}
                         onSelectDatabase={(db) => {
                             setConnectionProperty("server", db.server);
+
                             if (db.databases.length > 0) {
                                 setConnectionProperty("database", db.databases[0]);
                             }
+
+                            setConnectionProperty(
+                                "authenticationType",
+                                AuthenticationType.AzureMFA,
+                            );
+                            setConnectionProperty("accountId", selectedAccountId ?? "");
+                            setConnectionProperty("tenantId", selectedTenantId ?? "");
                         }}
                         strings={{
                             title: Loc.connectionDialog.azureDatabases,
