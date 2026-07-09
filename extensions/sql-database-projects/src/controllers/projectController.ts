@@ -789,7 +789,6 @@ export class ProjectsController {
         autoCreate: boolean,
     ): Promise<string> {
         // Normalize paths for comparison: convert backslashes to forward slashes for cross-platform comparison
-        // (handles .sqlproj entries that may have backslashes from SSDT/Windows)
         const normalizedTargetPath = utils.getPlatformSafeFileEntryPath(targetPath).toLowerCase();
         const existing = project.folders.find(
             (f) =>
@@ -909,7 +908,6 @@ export class ProjectsController {
 
         // Single scan for nestedPath — avoids a second scan inside findOrAddFolder.
         // Normalize paths for comparison: convert backslashes to forward slashes for cross-platform comparison
-        // (handles .sqlproj entries that may have backslashes from SSDT/Windows)
         const normalizedNestedPath = utils.getPlatformSafeFileEntryPath(nestedPath).toLowerCase();
         const existingNested = project.folders.find(
             (f) =>
