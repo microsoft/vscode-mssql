@@ -114,6 +114,7 @@ const STS2_CAPABILITIES: SqlBackendCapabilities = {
     pageRowsHonored: false,
     pageBytesHonored: false,
     queryTimeoutHonored: false,
+    compactRows: false,
     captureControl: true,
     replayDescriptors: true,
     resumeAfterDisconnect: false,
@@ -188,6 +189,14 @@ export class Sts2Backend implements ISqlConnectionService {
         readonly deadlines: Sts2Deadlines = DEFAULT_DEADLINES,
     ) {}
 
+    /** True when initialize negotiated compact row pages (QO-5). */
+    get compactRowsNegotiated(): boolean {
+        return (
+            this.availability.state === "available" &&
+            this.availability.capabilities.compactRows === true
+        );
+    }
+
     /** v2/initialize handshake; MethodNotFound ⇒ notEnabledOnService. */
     async start(): Promise<DataPlaneAvailability> {
         this.subscribe();
@@ -206,6 +215,7 @@ export class Sts2Backend implements ISqlConnectionService {
                     pageRowsHonored: result.capabilities?.["pageRowsHonored"] === true,
                     pageBytesHonored: result.capabilities?.["pageBytesHonored"] === true,
                     queryTimeoutHonored: result.capabilities?.["queryTimeoutHonored"] === true,
+                    compactRows: result.capabilities?.["compactRows"] === true,
                     protocolVersion: result.specVersion,
                 },
             };
@@ -680,7 +690,7 @@ export class Sts2Query {
             // lower-only server-side; timeout 0/absent = provider default; capped
             // cells arrive as truncated markers. NOTE: pageRows previously rode
             // top-level where the service ignored it — options.* is the honored shape.
-            const options: Record<string, number> = {};
+            const options: Record<string, number | boolean> = {};
             if (this.opts.pageRows) {
                 options.pageRows = this.opts.pageRows;
             }
@@ -692,6 +702,12 @@ export class Sts2Query {
             }
             if (this.opts.timeoutMs) {
                 options.queryTimeoutMs = this.opts.timeoutMs;
+            }
+            // Compact rows (QO-5): opt in whenever the service negotiated it —
+            // the service computes bitmap/type hints/bytes once and this
+            // binding stops rebuilding pages and re-measuring bytes.
+            if (this.backend.compactRowsNegotiated) {
+                options.compactRows = true;
             }
             const result = await this.rpc.sendRequest<V2QueryExecuteResult>(
                 STS2_METHODS.queryExecute,
@@ -767,38 +783,63 @@ export class Sts2Query {
             );
             return;
         }
+        const wireRows = params.compact?.values ?? params.rows ?? [];
         ledger.nextPageSeq++;
-        ledger.nextRowOffset += params.rows.length;
-        this.totalRows += params.rows.length;
+        ledger.nextRowOffset += wireRows.length;
+        this.totalRows += wireRows.length;
         this.pagesSeen++;
 
         const convertStartedAt = performance.now();
-        const bits: boolean[] = [];
-        const values: unknown[][] = params.rows.map((row) =>
-            row.map((cell) => {
-                bits.push(cell === null || cell === undefined);
-                if (isV2TruncatedCell(cell)) {
-                    // Byte-capped cell (maxCellBytes): normalize the wire
-                    // marker into the backend-neutral compact encoding HERE —
-                    // wire DTOs never leave sts2/, and downstream decode
-                    // fallbacks would String() the raw object.
-                    return toTruncatedCellEncoding(cell);
+        let compact: CompactPage;
+        let approxBytes: number;
+        if (params.compact) {
+            // Compact wire shape (QO-5): the service computed the bitmap,
+            // type hints, and byte sizes ONCE — no page rebuild, and no
+            // JSON.stringify byte re-measure. Nulls normalize in place to the
+            // binding's undefined convention (zero-allocation pass); truncated
+            // markers already arrive in the shared wrapper shape.
+            for (const row of params.compact.values) {
+                for (let col = 0; col < row.length; col++) {
+                    if (row[col] === null) {
+                        row[col] = undefined;
+                    }
                 }
-                return cell === null ? undefined : cell;
-            }),
-        );
-        const compact: CompactPage = {
-            values,
-            nullBitmap: packBitmap(bits),
-            typeHints: ledger.typeHints,
-        };
+            }
+            compact = {
+                values: params.compact.values,
+                ...(params.compact.nullBitmap ? { nullBitmap: params.compact.nullBitmap } : {}),
+                typeHints: params.compact.typeHints ?? ledger.typeHints,
+            };
+            approxBytes = params.encodedBytes ?? params.approxBytes ?? 0;
+        } else {
+            const bits: boolean[] = [];
+            const values: unknown[][] = (params.rows ?? []).map((row) =>
+                row.map((cell) => {
+                    bits.push(cell === null || cell === undefined);
+                    if (isV2TruncatedCell(cell)) {
+                        // Byte-capped cell (maxCellBytes): normalize the wire
+                        // marker into the backend-neutral compact encoding HERE —
+                        // wire DTOs never leave sts2/, and downstream decode
+                        // fallbacks would String() the raw object.
+                        return toTruncatedCellEncoding(cell);
+                    }
+                    return cell === null ? undefined : cell;
+                }),
+            );
+            compact = {
+                values,
+                nullBitmap: packBitmap(bits),
+                typeHints: ledger.typeHints,
+            };
+            approxBytes = JSON.stringify(params.rows).length;
+        }
         const page = {
             resultSetId: String(params.resultSetId),
             pageSeq: params.pageSeq,
             rowOffset: params.rowOffset,
             compact,
-            rowCount: params.rows.length,
-            approxBytes: JSON.stringify(params.rows).length,
+            rowCount: wireRows.length,
+            approxBytes,
         };
         this.convertMsTotal += performance.now() - convertStartedAt;
         this.wireApproxBytes += page.approxBytes;

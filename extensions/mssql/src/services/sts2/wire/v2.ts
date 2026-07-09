@@ -138,6 +138,8 @@ export interface V2QueryExecuteParams {
         pageBytes?: number;
         maxCellBytes?: number;
         queryTimeoutMs?: number;
+        /** QO-5: switch v2/query.rows to the compact shape for this query. */
+        compactRows?: boolean;
         [key: string]: unknown;
     };
     [key: string]: unknown;
@@ -178,8 +180,22 @@ export interface V2RowsNotification {
     resultSetId: number;
     pageSeq: number;
     rowOffset: number;
-    /** Cells: JSON scalars, null, or byte-capped V2TruncatedCell markers. */
-    rows: unknown[][];
+    /**
+     * Legacy shape: cells as JSON scalars, null, or byte-capped
+     * V2TruncatedCell markers. Absent when the query opted into compact
+     * rows (QO-5) — exactly one of rows/compact is present.
+     */
+    rows?: unknown[][];
+    /** Compact shape (options.compactRows=true, D-0016): computed service-side ONCE. */
+    compact?: {
+        values: unknown[][];
+        nullBitmap?: string;
+        typeHints?: string[];
+        [key: string]: unknown;
+    };
+    /** Service-measured page bytes (compact shape only). */
+    approxBytes?: number;
+    encodedBytes?: number;
     last?: boolean;
 }
 

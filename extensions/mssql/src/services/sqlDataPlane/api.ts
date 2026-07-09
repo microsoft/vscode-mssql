@@ -87,6 +87,8 @@ export interface SqlBackendCapabilities {
     pageRowsHonored: boolean;
     pageBytesHonored: boolean;
     queryTimeoutHonored: boolean;
+    /** Backend can emit compact row pages (QO-5): no client-side page rebuild. */
+    compactRows: boolean;
     captureControl: boolean;
     replayDescriptors: boolean;
     resumeAfterDisconnect: boolean;

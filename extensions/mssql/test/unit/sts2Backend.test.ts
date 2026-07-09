@@ -278,6 +278,65 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(summary.totalRows).to.equal(6);
     });
 
+    test("compact wire pages skip the client rebuild and use service-measured bytes (QO-5)", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [
+                { name: "n", engineType: "int" },
+                { name: "s", engineType: "nvarchar" },
+            ],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            compact: {
+                values: [
+                    [1, "a"],
+                    [2, null],
+                ],
+                nullBitmap: "CA==", // bit 3 set: row 1 col 1 null (LSB-first)
+                typeHints: ["number", "string"],
+            },
+            approxBytes: 24,
+            encodedBytes: 31,
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        const summary = await handle.completion;
+        expect(summary.status).to.equal("succeeded");
+        expect(summary.totalRows).to.equal(2);
+        const page = sink.pages[0];
+        // Service-computed facts pass through verbatim; nulls normalize to
+        // the binding's undefined convention in place.
+        expect(page.compact.nullBitmap).to.equal("CA==");
+        expect(page.compact.typeHints).to.deep.equal(["number", "string"]);
+        expect(page.compact.values[1][1]).to.equal(undefined);
+        expect(page.approxBytes).to.equal(31);
+    });
+
+    test("compactRows opt-in rides execute options only when negotiated (QO-5)", async () => {
+        const rpc = standardRpc();
+        rpc.responders.set(STS2_METHODS.initialize, () => ({
+            specVersion: "2.0.0-preview.1",
+            capabilities: { compactRows: true },
+        }));
+        const sink = new RecordingSink();
+        await openAndExecute(rpc, sink);
+        const execute = rpc.requests.find((r) => r.method === STS2_METHODS.queryExecute);
+        expect(
+            (execute?.params as { options?: { compactRows?: boolean } }).options,
+        ).to.deep.include({ compactRows: true });
+    });
+
     test("rows before metadata → ProtocolViolation failure, backend cancel attempted", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();
