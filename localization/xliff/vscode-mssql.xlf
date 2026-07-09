@@ -8919,9 +8919,6 @@
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
-    <trans-unit id="mssql.preview.shortcutsConfiguration.description">
-      <source xml:lang="en">Enables the keyboard shortcuts configuration editor and Quick Queries commands.</source>
-    </trans-unit>
     <trans-unit id="mssql.preview.betaResultsGrid.description">
       <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
     </trans-unit>
