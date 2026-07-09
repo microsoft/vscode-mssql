@@ -298,9 +298,10 @@ export class ExecutionHost {
         start: number,
         count: number,
         reason: RowReadReason = "grid",
+        columns?: { start: number; count: number },
     ): Promise<QsCellWindow> {
         return (
-            this.rowStore?.getRows(resultSetId, start, count, reason) ??
+            this.rowStore?.getRows(resultSetId, start, count, reason, columns) ??
             Promise.resolve({
                 resultSetId,
                 start,

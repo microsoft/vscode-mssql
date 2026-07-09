@@ -38,6 +38,8 @@ export interface FluentResultGridBehaviorProps {
     rowHeight?: number;
     /** Windowed-source fetch size in rows (QO-7); default 50. */
     windowSize?: number;
+    /** Autosize data-sample row bound (QO-7b); default 50. */
+    autosizeSampleRows?: number;
     toolbar?: FluentResultGridToolbarOptions;
     commands?: FluentResultGridCommandConfiguration;
     enableColumnReorder?: boolean;

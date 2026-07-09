@@ -193,16 +193,31 @@ async function fetchDecodedRows(
     resultSetId: string,
     fromRow: number,
     toRow: number,
-    columnCount: number,
+    columns: { start: number; count: number },
 ): Promise<DbCellValue[][]> {
     const rows: DbCellValue[][] = [];
     for (let start = fromRow; start <= toRow; start += COPY_CHUNK) {
         const count = Math.min(COPY_CHUNK, toRow - start + 1);
+        // Projected fetch (QO-7b): only the selection's columns cross the
+        // RPC — copying 3 columns of a 300-column grid no longer drags the
+        // other 297 through serialization.
         const window = await rpc.sendRequest<
-            { resultSetId: string; start: number; count: number },
+            {
+                resultSetId: string;
+                start: number;
+                count: number;
+                columnStart: number;
+                columnCount: number;
+            },
             QsCellWindow
-        >(QsGetRowsRequest.type, { resultSetId, start, count });
-        const decoded = windowToGridRows(window, columnCount, /* clamp */ false);
+        >(QsGetRowsRequest.type, {
+            resultSetId,
+            start,
+            count,
+            columnStart: columns.start,
+            columnCount: columns.count,
+        });
+        const decoded = windowToGridRows(window, columns.count, /* clamp */ false);
         rows.push(...decoded);
         if (decoded.length === 0) {
             break; // defensive: host returned short
@@ -229,27 +244,19 @@ export async function copySelectionAsTsv(
     if (totalRows > COPY_MAX_ROWS) {
         return "tooLarge";
     }
-    const columnCount = summary.columnNames.length;
     const blocks: string[] = [];
     for (const range of selection) {
         const lines: string[] = [];
         if (includeHeaders) {
             lines.push(summary.columnNames.slice(range.fromCell, range.toCell + 1).join("\t"));
         }
-        const rows = await fetchDecodedRows(
-            rpc,
-            summary.resultSetId,
-            range.fromRow,
-            range.toRow,
-            columnCount,
-        );
+        // The window arrives already projected to the selection's columns.
+        const rows = await fetchDecodedRows(rpc, summary.resultSetId, range.fromRow, range.toRow, {
+            start: range.fromCell,
+            count: range.toCell - range.fromCell + 1,
+        });
         for (const row of rows) {
-            lines.push(
-                row
-                    .slice(range.fromCell, range.toCell + 1)
-                    .map((cell) => (cell.isNull ? "NULL" : cell.displayValue))
-                    .join("\t"),
-            );
+            lines.push(row.map((cell) => (cell.isNull ? "NULL" : cell.displayValue)).join("\t"));
         }
         blocks.push(lines.join("\n"));
     }
@@ -700,6 +707,7 @@ export function QsResultGridSurface(props: {
                 gridSettings={gridSettings}
                 rowHeight={qsGridRowHeight(gridStyle)}
                 windowSize={windowSize}
+                autosizeSampleRows={gridStyle?.autosizeSampleRows}
                 style={style}
                 toolbar={{ visible: true }}
                 viewMode="grid"

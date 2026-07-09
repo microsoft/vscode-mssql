@@ -235,7 +235,7 @@ export class RowStore {
         }
         // Served windows for a corrupt set may be short — drop them.
         for (const key of [...this.windowCache.keys()]) {
-            if (key.startsWith(resultSetId + " ")) {
+            if (key.startsWith(resultSetId + ":")) {
                 this.windowCache.delete(key);
             }
         }
@@ -309,12 +309,15 @@ export class RowStore {
      * from memory or spill, return the compact webview shape. Grid-reason
      * reads promote pages to the protected cache segment; export/text reads
      * stream WITHOUT admission so scans never evict the viewport.
+     * `columns` projects the window horizontally (QO-7b): wide-grid copy and
+     * future viewport fetches transfer only the columns they need.
      */
     async getRows(
         resultSetId: string,
         start: number,
         count: number,
         reason: RowReadReason = "grid",
+        columns?: { start: number; count: number },
     ): Promise<QsCellWindow> {
         const startedAt = Date.now();
         Perf.marker("mssql.queryStudio.rows.windowFetch.begin", "begin", {
@@ -322,6 +325,7 @@ export class RowStore {
             start,
             count,
             reason,
+            ...(columns ? { columnStart: columns.start, columnSpan: columns.count } : {}),
         });
         const set = this.resultSets.get(resultSetId);
         const empty: QsCellWindow = {
@@ -351,7 +355,16 @@ export class RowStore {
             return empty;
         }
 
-        const cacheKey = `${resultSetId} ${start} ${count}`;
+        // Horizontal projection (QO-7b): clamp to the set's real columns;
+        // undefined = all columns (legacy shape).
+        const totalColumns = set.columns.length;
+        const columnStart = columns ? Math.max(0, Math.min(columns.start, totalColumns)) : 0;
+        const columnSpan = columns
+            ? Math.max(0, Math.min(columns.count, totalColumns - columnStart))
+            : totalColumns;
+        const projected = columnStart !== 0 || columnSpan !== totalColumns;
+
+        const cacheKey = `${resultSetId}:${start}:${count}:${columnStart}:${columnSpan}`;
         const cacheable = this.tuning.windowCacheEntries > 0 && reason === "grid";
         if (cacheable) {
             const cached = this.windowCache.get(cacheKey);
@@ -425,8 +438,10 @@ export class RowStore {
                 : undefined;
             for (let row = from; row < to; row++) {
                 const sourceRow = compact.values[row] ?? [];
-                values.push(sourceRow);
-                for (let col = 0; col < columnCount; col++) {
+                values.push(
+                    projected ? sourceRow.slice(columnStart, columnStart + columnSpan) : sourceRow,
+                );
+                for (let col = columnStart; col < columnStart + columnSpan; col++) {
                     const nulled = hasNull(compact, row, col, columnCount, nullBitmap);
                     nullBits.push(nulled);
                     if (!countCells) {
@@ -472,10 +487,18 @@ export class RowStore {
             resultSetId,
             start,
             rowCount: values.length,
-            columns: set.columns,
+            columns: projected
+                ? set.columns.slice(columnStart, columnStart + columnSpan)
+                : set.columns,
             values,
             nullBitmap: packBits(nullBits),
-            ...(set.typeHints ? { typeHints: set.typeHints } : {}),
+            ...(set.typeHints
+                ? {
+                      typeHints: projected
+                          ? set.typeHints.slice(columnStart, columnStart + columnSpan)
+                          : set.typeHints,
+                  }
+                : {}),
         };
         // Only complete, full-height windows cache (values are immutable, so
         // a fully-populated window stays valid as the set keeps streaming).

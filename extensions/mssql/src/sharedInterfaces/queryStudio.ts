@@ -174,6 +174,8 @@ export interface QsGridStyle {
     /** Text view materialization cap + width-sample size (QO-8). */
     textViewMaxRows?: number;
     textViewSampleRows?: number;
+    /** Autosize data-sample row bound (QO-7b). */
+    autosizeSampleRows?: number;
 }
 
 export interface QsState {
@@ -208,6 +210,12 @@ export interface QsGetRowsParams {
     resultSetId: string;
     start: number;
     count: number;
+    /**
+     * Horizontal projection (QO-7b): return only this column span. Absent =
+     * all columns. Wide-grid copy uses it today; viewport fetches later.
+     */
+    columnStart?: number;
+    columnCount?: number;
 }
 
 export type QsSaveResultFormat = "csv" | "json" | "insert";

@@ -46,6 +46,7 @@ export function restoreFluentResultGridHorizontalScrollPosition(
 
 export function useFluentResultGridLayout({
     autoSizeColumnsMode,
+    autosizeSampleRows,
     containerRef,
     dataView,
     dataViewRef,
@@ -53,6 +54,8 @@ export function useFluentResultGridLayout({
     reactGridRef,
 }: {
     autoSizeColumnsMode: ResultsGridAutoSizeStyle;
+    /** Autosize data sample bound (QO-7b); default FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS. */
+    autosizeSampleRows?: number;
     containerRef: RefObject<HTMLDivElement | null>;
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
     dataViewRef: MutableRefObject<FluentResultGridDataView<FluentResultGridDataRow> | undefined>;
@@ -184,7 +187,7 @@ export function useFluentResultGridLayout({
             let sampleRows: FluentResultGridDataRow[] = [];
             if (includeData && currentRowCount > 0) {
                 const sampleRowCount = Math.min(
-                    FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS,
+                    autosizeSampleRows ?? FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS,
                     currentRowCount,
                 );
                 sampleRows = options?.useLoadedRowsOnly

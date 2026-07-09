@@ -214,6 +214,55 @@ suite("Query Studio RowStore", () => {
         }
     });
 
+    test("column projection returns only the requested span with matching metadata (QO-7b)", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(spillDir);
+        try {
+            store.beginResultSet("r0", [
+                { name: "a", displayName: "a" },
+                { name: "b", displayName: "b" },
+                { name: "c", displayName: "c" },
+                { name: "d", displayName: "d" },
+            ]);
+            await store.appendPage("r0", {
+                rowOffset: 0,
+                rowCount: 2,
+                approxBytes: 64,
+                compact: {
+                    values: [
+                        [1, "b1", undefined, "d1"],
+                        [2, "b2", "c2", "d2"],
+                    ],
+                    typeHints: ["number", "string", "string", "string"],
+                },
+            });
+            const window = await store.getRows("r0", 0, 2, "grid", { start: 1, count: 2 });
+            expect(window.rowCount).to.equal(2);
+            expect(window.columns.map((c) => c.name)).to.deep.equal(["b", "c"]);
+            expect(window.typeHints).to.deep.equal(["string", "string"]);
+            expect(window.values).to.deep.equal([
+                ["b1", undefined],
+                ["b2", "c2"],
+            ]);
+            // Null bitmap covers ONLY the projected span: row 0 col 1 (c) null.
+            const bytes = Buffer.from(window.nullBitmap!, "base64");
+            expect((bytes[0] & 0b0010) !== 0).to.equal(true);
+            expect((bytes[0] & 0b0001) !== 0).to.equal(false);
+
+            // Out-of-range spans clamp honestly.
+            const clamped = await store.getRows("r0", 0, 2, "grid", { start: 3, count: 10 });
+            expect(clamped.columns.map((c) => c.name)).to.deep.equal(["d"]);
+            expect(clamped.values).to.deep.equal([["d1"], ["d2"]]);
+
+            // Full-width fetches are unchanged (distinct cache identity).
+            const full = await store.getRows("r0", 0, 2);
+            expect(full.columns).to.have.length(4);
+            expect(full.values[0]).to.have.length(4);
+        } finally {
+            store.dispose();
+        }
+    });
+
     test("spill cap rejects with spillLimit and the run truncates honestly (QO-6)", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir, {
