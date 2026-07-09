@@ -35,6 +35,7 @@ import {
     type FluentResultGridCommandEvent,
     type FluentResultGridKeyBindingMap,
     type FluentResultGridStrings,
+    type FluentResultGridState,
     type FluentResultGridTheme,
 } from "../../common/FluentResultGrid";
 import "../../common/FluentResultGrid/FluentResultGrid.vscode.css";
@@ -89,6 +90,9 @@ export const PROCESSING_DISABLED_NOTICE =
     "threshold (mssql.resultsGrid.inMemoryDataProcessingThreshold).";
 export const PROCESSING_STREAMING_NOTICE =
     "Sorting and filtering become available when the result set finishes streaming.";
+const QUERY_STUDIO_GRID_INITIAL_STATE = {
+    frozenColumnIndex: -1,
+} satisfies FluentResultGridState;
 
 /** Grid row height (classic getRowHeight parity: fontSize + 12 + 2·padding). */
 export function qsGridRowHeight(gridStyle: QsGridStyle | undefined): number {
@@ -638,6 +642,7 @@ export function QsResultGridSurface(props: {
                 dataSource={dataSource}
                 heightMode={{ kind: "fill" }}
                 showRowNumberColumn
+                initialState={QUERY_STUDIO_GRID_INITIAL_STATE}
                 enableColumnReorder={false}
                 inMemoryDataProcessingThreshold={inMemoryThreshold}
                 gridSettings={gridSettings}
