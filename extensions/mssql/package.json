@@ -579,7 +579,7 @@
                 },
                 {
                     "command": "mssql.shortcutsConfiguration.open",
-                    "when": "view == objectExplorer && (config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures)",
+                    "when": "view == objectExplorer",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
                 }
@@ -943,48 +943,37 @@
                     "when": "false"
                 },
                 {
-                    "command": "mssql.shortcutsConfiguration.open",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.shortcutsConfiguration.open"
                 },
                 {
-                    "command": "mssql.quickQueries.run1",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run1"
                 },
                 {
-                    "command": "mssql.quickQueries.run2",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run2"
                 },
                 {
-                    "command": "mssql.quickQueries.run3",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run3"
                 },
                 {
-                    "command": "mssql.quickQueries.run4",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run4"
                 },
                 {
-                    "command": "mssql.quickQueries.run5",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run5"
                 },
                 {
-                    "command": "mssql.quickQueries.run6",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run6"
                 },
                 {
-                    "command": "mssql.quickQueries.run7",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run7"
                 },
                 {
-                    "command": "mssql.quickQueries.run8",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run8"
                 },
                 {
-                    "command": "mssql.quickQueries.run9",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run9"
                 },
                 {
-                    "command": "mssql.quickQueries.run10",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run10"
                 },
                 {
                     "command": "mssql.notebooks.copyCellMessages",
@@ -1823,12 +1812,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.preview.betaResultsGrid.description%",
-                    "scope": "application"
-                },
-                "mssql.preview.shortcutsConfiguration": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.shortcutsConfiguration.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
