@@ -788,8 +788,12 @@ export class ProjectsController {
         fallback: string,
         autoCreate: boolean,
     ): Promise<string> {
+        // Normalize paths for comparison: convert backslashes to forward slashes for cross-platform comparison
+        const normalizedTargetPath = utils.getPlatformSafeFileEntryPath(targetPath).toLowerCase();
         const existing = project.folders.find(
-            (f) => f.relativePath.toLowerCase() === targetPath.toLowerCase(),
+            (f) =>
+                utils.getPlatformSafeFileEntryPath(f.relativePath).toLowerCase() ===
+                normalizedTargetPath,
         );
         if (existing) {
             return existing.relativePath;
@@ -877,7 +881,7 @@ export class ProjectsController {
 
             // basePath is a single-segment schema folder (e.g. "dbo").
             // Check for / create the ObjectType subfolder under it.
-            const subfolderPath = utils.convertSlashesForSqlProj(path.join(basePath, folderName));
+            const subfolderPath = path.join(basePath, folderName);
             return this.findOrAddFolder(project, subfolderPath, basePath, autoCreate);
         }
 
@@ -900,11 +904,15 @@ export class ProjectsController {
 
         // Schema-dependent items (e.g. dbo/Tables/, sales/StoredProcedures/)
         const resolvedSchema = schemaName ?? constants.defaultSchemaName;
-        const nestedPath = utils.convertSlashesForSqlProj(path.join(resolvedSchema, folderName));
+        const nestedPath = path.join(resolvedSchema, folderName);
 
         // Single scan for nestedPath — avoids a second scan inside findOrAddFolder.
+        // Normalize paths for comparison: convert backslashes to forward slashes for cross-platform comparison
+        const normalizedNestedPath = utils.getPlatformSafeFileEntryPath(nestedPath).toLowerCase();
         const existingNested = project.folders.find(
-            (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
+            (f) =>
+                utils.getPlatformSafeFileEntryPath(f.relativePath).toLowerCase() ===
+                normalizedNestedPath,
         );
         if (existingNested) {
             return existingNested.relativePath;
