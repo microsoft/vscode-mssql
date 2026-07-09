@@ -9,7 +9,6 @@ import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { Label, makeStyles } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import {
-    AuthenticationType,
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
@@ -68,7 +67,6 @@ export const FabricBrowsePage = () => {
                 const serverUrl = await context!.getSqlAnalyticsEndpointUriFromFabric(database);
                 setConnectionProperty("server", serverUrl);
                 setConnectionProperty("profileName", generateProfileName(database));
-                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
                 return;
             }
@@ -76,14 +74,12 @@ export const FabricBrowsePage = () => {
                 setConnectionProperty("server", database.server);
                 setConnectionProperty("database", database.databases[0]);
                 setConnectionProperty("profileName", generateProfileName(database));
-                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
                 return;
             case SqlArtifactTypes.Warehouse:
                 setConnectionProperty("server", database.server);
                 setConnectionProperty("database", database.displayName);
                 setConnectionProperty("profileName", generateProfileName(database));
-                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
                 return;
             default:
