@@ -18,6 +18,10 @@ import { registerDefinitionContentProvider } from "./definitionContentProvider";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
+import {
+    queryStudioHotExitBackupRoot,
+    restoreQueryStudioHotExitBackup,
+} from "./queryStudioHotExitBackup";
 import { LanguageServiceStatus } from "./queryStudioLanguageService";
 import { QueryStudioReplayController } from "./replay/queryStudioReplayController";
 
@@ -66,18 +70,22 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
         _token: vscode.CancellationToken,
     ): Promise<void> {
         Perf.marker("mssql.queryStudio.open.begin", "begin");
-        const uriKey = document.uri.toString();
+        const backupRoot = queryStudioHotExitBackupRoot(this.context.globalStorageUri);
+        const restored = await restoreQueryStudioHotExitBackup(backupRoot, document);
+        const backingDocument = restored.document;
+        const uriKey = backingDocument.uri.toString();
         diag.emit({
             feature: "queryStudio",
             kind: "event",
             type: "queryStudio.open.resolve",
             status: "ok",
             fields: {
-                uriScheme: { raw: document.uri.scheme, cls: "diagnostic.metadata" },
-                languageId: { raw: document.languageId, cls: "diagnostic.metadata" },
-                isUntitled: { raw: document.isUntitled, cls: "diagnostic.metadata" },
-                isDirty: { raw: document.isDirty, cls: "diagnostic.metadata" },
-                chars: { raw: document.getText().length, cls: "diagnostic.metadata" },
+                uriScheme: { raw: backingDocument.uri.scheme, cls: "diagnostic.metadata" },
+                languageId: { raw: backingDocument.languageId, cls: "diagnostic.metadata" },
+                isUntitled: { raw: backingDocument.isUntitled, cls: "diagnostic.metadata" },
+                isDirty: { raw: backingDocument.isDirty, cls: "diagnostic.metadata" },
+                chars: { raw: backingDocument.getText().length, cls: "diagnostic.metadata" },
+                backupRestore: { raw: restored.outcome, cls: "diagnostic.metadata" },
             },
         });
 
@@ -88,15 +96,15 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
                 "querystudio-spill",
                 Buffer.from(uriKey).toString("base64url").slice(0, 32),
             );
-            model = new QueryStudioDocumentModel(document, spillRoot, (m) => {
+            model = new QueryStudioDocumentModel(backingDocument, spillRoot, backupRoot, (m) => {
                 this.models.delete(m.uriKey);
                 liveModels.delete(m.uriKey);
             });
             this.models.set(uriKey, model);
             liveModels.set(uriKey, model);
-        } else if (model.backingDocument !== document) {
+        } else if (model.backingDocument !== backingDocument) {
             // Re-resolve (Save As / revert): rebind-safe per doc 04 §7.2.
-            model.rebind(document);
+            model.rebind(backingDocument);
         }
         model.panelCount++;
 

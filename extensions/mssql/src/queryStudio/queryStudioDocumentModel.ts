@@ -25,6 +25,7 @@ import {
 import { TextSyncEngine } from "./textSync";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionHost } from "./executionHost";
+import { persistQueryStudioHotExitBackup } from "./queryStudioHotExitBackup";
 
 export interface ModelTextEvents {
     onRemote(remote: QsSyncRemote): void;
@@ -44,6 +45,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     private listeners = new Set<ModelTextEvents>();
     private docSubscription: vscode.Disposable;
     private disposed = false;
+    private hotExitBackupWrite: Promise<void> = Promise.resolve();
     /** Guards re-entrant application of our own workspace edits. */
     private applyingWebviewEdit = false;
 
@@ -77,11 +79,13 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     constructor(
         private document: vscode.TextDocument,
         spillRoot: string,
+        private readonly hotExitBackupRoot?: vscode.Uri,
         private readonly onLastDispose?: (model: QueryStudioDocumentModel) => void,
     ) {
         this.uriKey = document.uri.toString();
         this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this.uriKey);
         this.sync = new TextSyncEngine(document.getText());
+        this.persistHotExitBackup();
         this.docSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
             if (e.document.uri.toString() !== this.document.uri.toString()) {
                 return;
@@ -141,6 +145,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         this.document = document;
         // Text may differ after external save transforms — resync everyone.
         this.sync = new TextSyncEngine(document.getText());
+        this.persistHotExitBackup();
         this.broadcastResync("document rebind (Save As / re-resolve)");
     }
 
@@ -330,6 +335,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             : (this.pendingUndoReason ?? "external");
         this.pendingUndoReason = undefined;
         const outcome = this.sync.onHostTextChanged(e.document.getText(), edits, reason);
+        this.persistHotExitBackup();
         if (outcome.remote) {
             for (const listener of this.listeners) {
                 listener.onRemote(outcome.remote);
@@ -346,6 +352,13 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
 
     private documentEol(): "\n" | "\r\n" {
         return this.document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+    }
+
+    private persistHotExitBackup(): void {
+        this.hotExitBackupWrite = this.hotExitBackupWrite.then(
+            () => persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document),
+            () => persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document),
+        );
     }
 
     dispose(): void {
