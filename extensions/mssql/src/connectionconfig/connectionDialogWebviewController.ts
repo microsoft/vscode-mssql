@@ -332,7 +332,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.connectionProfile.server = undefined;
                 state.connectionProfile.database = undefined;
                 state.connectionProfile.user = undefined;
-                state.browseAuthChangedByUser = false;
             }
 
             this.updateState();
@@ -993,37 +992,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<void> {
         if (propertyName !== "profileName" && propertyName !== "groupId") {
             this.state.testConnectionSucceeded = false;
-        }
-
-        const browseAuthProperties: (keyof IConnectionDialogProfile)[] = [
-            "authenticationType",
-            "accountId",
-            "tenantId",
-        ];
-        const inBrowseMode =
-            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse ||
-            this.state.selectedInputMode === ConnectionInputMode.FabricBrowse;
-
-        // Track when the user manually changes auth fields while in a browse mode,
-        // so we don't overwrite their choices when they later select a different server.
-        if (inBrowseMode && browseAuthProperties.includes(propertyName)) {
-            this.state.browseAuthChangedByUser = true;
-        }
-
-        // When a server is selected in browse mode and the user hasn't manually changed auth,
-        // pre-set auth to Entra MFA with the current browse account and tenant.
-        if (
-            propertyName === "server" &&
-            this.state.connectionProfile.server &&
-            inBrowseMode &&
-            !this.state.browseAuthChangedByUser &&
-            this.state.selectedAccountId &&
-            this.state.selectedTenantId
-        ) {
-            this.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
-            this.state.connectionProfile.accountId = this.state.selectedAccountId;
-            this.state.connectionProfile.tenantId = this.state.selectedTenantId;
-            await this.handleAzureMFAEdits("authenticationType");
         }
 
         await this.handleAzureMFAEdits(propertyName);

@@ -71,8 +71,6 @@ export class ConnectionDialogWebviewState
     public favoritedAzureSubscriptionIds: string[] = [];
     public favoritedFabricWorkspaceIds: string[] = [];
     public notSignedInTenant: { id: string; name: string } | undefined;
-    /** Whether the user has manually changed auth fields since entering a browse mode. Used to avoid overwriting intentional auth changes when a server/database is selected from browse results. */
-    public browseAuthChangedByUser: boolean = false;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
