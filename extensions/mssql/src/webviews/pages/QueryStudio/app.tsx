@@ -593,10 +593,15 @@ export function QueryStudioApp() {
                 rows: state?.results.totalRows ?? 0,
                 resultSets: state?.results.resultSets.length ?? 0,
             });
-            // Error-only runs: land the user on Messages (SSMS behavior).
+            // Error terminal states: land the user on Messages even when the
+            // run also produced result sets, so the failure text is visible.
+            const terminalHasErrors =
+                executionKind === "completedWithErrors" || executionKind === "failed";
+            const hasMessagesOrErrors =
+                (state?.results.messageCount ?? 0) > 0 || (state?.results.errorCount ?? 0) > 0;
             if (
-                (state?.results.resultSets.length ?? 0) === 0 &&
-                (state?.results.messageCount ?? 0) > 0
+                hasMessagesOrErrors &&
+                (terminalHasErrors || (state?.results.resultSets.length ?? 0) === 0)
             ) {
                 setActiveTab("messages");
             }
@@ -605,7 +610,7 @@ export function QueryStudioApp() {
         // plan-flagged result sets exist. The tabbar exposes Open in New Tab
         // for the previous external viewer behavior.
         if (
-            (executionKind === "succeeded" || executionKind === "completedWithErrors") &&
+            executionKind === "succeeded" &&
             runId !== undefined &&
             planTabFocusRef.current.runId === runId &&
             !planTabFocusRef.current.focused &&

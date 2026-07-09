@@ -12,9 +12,8 @@
  * - One grid → fill the whole results area; the grid's virtualized
  *   scrollbar is THE scrollbar (no dead space, no pane scroll).
  * - Multiple grids, all of whose rows fit in the visible area → each grid
- *   gets at least QS_MIN_VISIBLE_GRID_ROWS rows of visual height, then exact
- *   content height above that floor (no one-row slivers, no pane scroll
- *   unless the visual floors themselves overflow).
+ *   gets exact content height with a one-row floor (no pane scroll unless
+ *   those visual floors themselves overflow).
  * - Otherwise: grids whose full content fits within their fair share keep
  *   every row; the remaining space splits evenly among the rest with a
  *   per-grid minimum of QS_MIN_GRID_ROWS data rows. When even the minimums
@@ -24,8 +23,8 @@
 
 export const QS_MIN_GRID_ROWS = 12;
 
-/** Minimum visible rows for stacked grids even when a set has 0–1 rows. */
-export const QS_MIN_VISIBLE_GRID_ROWS = 4;
+/** Minimum visible rows for stacked grids even when a set has zero rows. */
+export const QS_MIN_VISIBLE_GRID_ROWS = 1;
 
 /** Fallback rows per grid while the pane height is still unmeasured. */
 export const QS_FALLBACK_GRID_ROWS = 14;

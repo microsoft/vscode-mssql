@@ -260,6 +260,18 @@
     height: 100%;
     min-height: 0;
 }
+.qs-grid-surface [data-fluent-result-grid-toolbar="true"] [role="toolbar"] {
+    height: 100%;
+    min-height: 0;
+}
+.qs-grid-surface [data-fluent-result-grid-toolbar="true"] [data-overflow-menu] {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px;
+    flex-shrink: 0;
+}
 .qs-grid-surface .fluent-result-grid .slick-cell,
 .qs-grid-surface .fluent-result-grid .slick-cell .grid-cell-value-container,
 .qs-grid-surface .fluent-result-grid .slick-cell .fluent-result-grid-row-number {

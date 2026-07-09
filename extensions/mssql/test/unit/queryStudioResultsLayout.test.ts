@@ -5,7 +5,7 @@
 
 /**
  * Results-pane sizing v2 (issue A): single-grid fill, exact-fit stacked
- * splits with a small visual floor, fair-share growth with the 12-row
+ * splits with a one-row visual floor, fair-share growth with the 12-row
  * minimum, and pane scrolling once even the minimums overflow.
  */
 
@@ -45,20 +45,20 @@ suite("Query Studio results layout (sizing v2)", () => {
         expect(layout.paneScrolls).to.equal(false);
     });
 
-    test("all grids fit → each gets at least the stacked visual floor", () => {
+    test("all grids fit → each gets exact content height above the one-row floor", () => {
         const layout = computeResultsLayout([5, 3], 800, metrics);
         expect(layout.paneScrolls).to.equal(false);
         expect(layout.sizing).to.deep.equal([
             { kind: "height", bodyPx: qsGridContentHeight(5, metrics) },
-            { kind: "height", bodyPx: qsGridContentHeight(QS_MIN_VISIBLE_GRID_ROWS, metrics) },
+            { kind: "height", bodyPx: qsGridContentHeight(3, metrics) },
         ]);
     });
 
-    test("stacked one-row grids do not collapse into one-row slivers", () => {
+    test("stacked one-row grids stay compact", () => {
         const layout = computeResultsLayout([1, 1], 800, metrics);
         expect(layout.sizing).to.deep.equal([
-            { kind: "height", bodyPx: qsGridContentHeight(QS_MIN_VISIBLE_GRID_ROWS, metrics) },
-            { kind: "height", bodyPx: qsGridContentHeight(QS_MIN_VISIBLE_GRID_ROWS, metrics) },
+            { kind: "height", bodyPx: qsGridContentHeight(1, metrics) },
+            { kind: "height", bodyPx: qsGridContentHeight(1, metrics) },
         ]);
         expect(layout.paneScrolls).to.equal(false);
     });
@@ -91,18 +91,18 @@ suite("Query Studio results layout (sizing v2)", () => {
         expect(layout.paneScrolls).to.equal(true);
     });
 
-    test("small grids use the visual floor rather than the large-grid floor", () => {
+    test("small grids keep exact height rather than the large-grid floor", () => {
         const layout = computeResultsLayout([2, 100000, 100000], 400, metrics);
         expect(layout.sizing[0]).to.deep.equal({
             kind: "height",
-            bodyPx: qsGridContentHeight(QS_MIN_VISIBLE_GRID_ROWS, metrics),
+            bodyPx: qsGridContentHeight(2, metrics),
         });
     });
 
     test("unmeasured pane falls back to the visible-row cap", () => {
         const heights = bodyHeights([100000, 3], undefined);
         expect(heights[0]).to.equal(qsGridContentHeight(QS_FALLBACK_GRID_ROWS, metrics));
-        expect(heights[1]).to.equal(qsGridContentHeight(QS_MIN_VISIBLE_GRID_ROWS, metrics));
+        expect(heights[1]).to.equal(qsGridContentHeight(3, metrics));
     });
 
     test("zero-row grids reserve one visual row", () => {
