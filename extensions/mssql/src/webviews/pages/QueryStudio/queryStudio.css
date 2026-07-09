@@ -438,6 +438,16 @@
     white-space: pre-wrap;
     tab-size: 4;
 }
+.qs-message-line-link {
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+    font: inherit;
+    text-decoration: underline;
+}
+.qs-message-line-link:hover,
+.qs-message-line-link:active {
+    color: var(--vscode-textLink-activeForeground);
+}
 .qs-message-error {
     color: var(--vscode-errorForeground);
 }

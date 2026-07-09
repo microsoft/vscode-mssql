@@ -263,6 +263,41 @@ function formatMessageForDisplay(message: QsMessageRow): string {
     return prefix + message.text.replace(/\r\n?/g, "\n").replace(/\n/g, `\n${continuationPrefix}`);
 }
 
+function renderMessageForDisplay(
+    message: QsMessageRow,
+    navigate: (message: QsMessageRow) => void,
+): ReactNode {
+    const display = formatMessageForDisplay(message);
+    if (!message.navigable) {
+        return display;
+    }
+
+    const lineLinkText = `Line ${message.navigable.line}`;
+    const lineLinkStart = display.indexOf(lineLinkText);
+    if (lineLinkStart < 0) {
+        return display;
+    }
+
+    return (
+        <>
+            {display.slice(0, lineLinkStart)}
+            <a
+                className="qs-message-line-link"
+                href={`#line-${message.navigable.line}`}
+                title={`Go to line ${message.navigable.line}`}
+                aria-label={`Go to line ${message.navigable.line}`}
+                onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    navigate(message);
+                }}>
+                {lineLinkText}
+            </a>
+            {display.slice(lineLinkStart + lineLinkText.length)}
+        </>
+    );
+}
+
 /**
  * Messages tab: monospace log; error blocks navigate to the document line.
  * Server-error rows carry the SSMS "Msg N, Level L, State S, Line D" header
@@ -305,11 +340,9 @@ export function MessagesView(props: { rpc: Rpc; messages: QsMessageRow[] }) {
                     return (
                         <div
                             key={i}
-                            className={`qs-message-row qs-message-${message.kind}${message.navigable ? " qs-message-nav" : ""}`}
-                            onClick={() => navigate(message)}
-                            title={message.navigable ? "Go to line" : undefined}
+                            className={`qs-message-row qs-message-${message.kind}`}
                             aria-label={message.text}>
-                            {formatMessageForDisplay(message)}
+                            {renderMessageForDisplay(message, navigate)}
                         </div>
                     );
                 })}
