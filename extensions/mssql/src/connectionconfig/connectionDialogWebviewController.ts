@@ -993,6 +993,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (propertyName !== "profileName" && propertyName !== "groupId") {
             this.state.testConnectionSucceeded = false;
         }
+
         await this.handleAzureMFAEdits(propertyName);
 
         if (
