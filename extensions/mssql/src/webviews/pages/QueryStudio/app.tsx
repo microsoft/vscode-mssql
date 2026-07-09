@@ -1226,13 +1226,23 @@ export function QueryStudioApp() {
     const allResultSetSummaries = results?.resultSets ?? [];
     const effectiveRowCount = (summary: (typeof allResultSetSummaries)[number]) =>
         Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0);
-    const gridResultSetSummaries = allResultSetSummaries;
     const resultSetSummaries = allResultSetSummaries.filter(
         (summary) => summary.isPlanResult !== true,
     );
     const planResultSetSummaries = allResultSetSummaries.filter(
         (summary) => summary.isPlanResult === true,
     );
+    const gridResultSetSummaries = resultSetSummaries;
+    const hasDataResults = resultSetSummaries.length > 0;
+    const hasPlanResults = planResultSetSummaries.length > 0;
+    const visibleActiveTab: QueryStudioTab =
+        activeTab === "results" && !hasDataResults
+            ? "messages"
+            : activeTab === "queryPlan" && !hasPlanResults
+              ? hasDataResults
+                  ? "results"
+                  : "messages"
+              : activeTab;
     const dataTotalRows = resultSetSummaries.reduce(
         (total, summary) => total + effectiveRowCount(summary),
         0,
@@ -1251,10 +1261,10 @@ export function QueryStudioApp() {
         : undefined;
     const singleGrid = gridResultSetSummaries.length === 1;
     const resultsFillActive =
-        (activeTab === "results" &&
+        (visibleActiveTab === "results" &&
             gridResultSetSummaries.length > 0 &&
             (singleGrid || maximizedGrid !== undefined)) ||
-        activeTab === "queryPlan";
+        visibleActiveTab === "queryPlan";
     const resultsLayout = computeResultsLayout(
         gridResultSetSummaries.map(effectiveRowCount),
         // clientHeight includes the body's 4px vertical paddings.
@@ -1501,27 +1511,31 @@ export function QueryStudioApp() {
                             flexBasis: resultsPaneMaximized ? "100%" : `${resultsHeightPct}%`,
                         }}>
                         <div className="qs-results-tabs" role="tablist">
+                            {hasDataResults ? (
+                                <button
+                                    role="tab"
+                                    aria-selected={visibleActiveTab === "results"}
+                                    className={`qs-tab ${visibleActiveTab === "results" ? "active" : ""}`}
+                                    onClick={() => setActiveTab("results")}>
+                                    Results
+                                    {dataTotalRows > 0
+                                        ? ` (${dataTotalRows.toLocaleString()})`
+                                        : ""}
+                                </button>
+                            ) : null}
                             <button
                                 role="tab"
-                                aria-selected={activeTab === "results"}
-                                className={`qs-tab ${activeTab === "results" ? "active" : ""}`}
-                                onClick={() => setActiveTab("results")}>
-                                Results
-                                {dataTotalRows > 0 ? ` (${dataTotalRows.toLocaleString()})` : ""}
-                            </button>
-                            <button
-                                role="tab"
-                                aria-selected={activeTab === "messages"}
-                                className={`qs-tab ${activeTab === "messages" ? "active" : ""} ${errorCount > 0 ? "has-errors" : ""}`}
+                                aria-selected={visibleActiveTab === "messages"}
+                                className={`qs-tab ${visibleActiveTab === "messages" ? "active" : ""} ${errorCount > 0 ? "has-errors" : ""}`}
                                 onClick={() => setActiveTab("messages")}>
                                 Messages
                                 {errorCount > 0 ? ` (${errorCount} ⚠)` : ""}
                             </button>
-                            {planResultSetSummaries.length > 0 ? (
+                            {hasPlanResults ? (
                                 <button
                                     role="tab"
-                                    aria-selected={activeTab === "queryPlan"}
-                                    className={`qs-tab ${activeTab === "queryPlan" ? "active" : ""}`}
+                                    aria-selected={visibleActiveTab === "queryPlan"}
+                                    className={`qs-tab ${visibleActiveTab === "queryPlan" ? "active" : ""}`}
                                     onClick={() => setActiveTab("queryPlan")}>
                                     Query Plan
                                     {planResultSetSummaries.length > 1
@@ -1530,7 +1544,7 @@ export function QueryStudioApp() {
                                 </button>
                             ) : null}
                             <span className="qs-spacer" />
-                            {activeTab === "results" && gridResultSetSummaries.length > 0 ? (
+                            {visibleActiveTab === "results" && hasDataResults ? (
                                 <button
                                     className="qs-tabbar-btn"
                                     title={
@@ -1549,7 +1563,7 @@ export function QueryStudioApp() {
                                     />
                                 </button>
                             ) : null}
-                            {activeTab === "queryPlan" && planResultSetSummaries.length > 0 ? (
+                            {visibleActiveTab === "queryPlan" && hasPlanResults ? (
                                 <button
                                     className="qs-tabbar-btn"
                                     title="Open in New Tab"
@@ -1589,64 +1603,57 @@ export function QueryStudioApp() {
                         <div
                             className={`qs-results-body${resultsFillActive ? " qs-results-body-fill" : ""}`}
                             ref={resultsBodyRef}>
-                            {activeTab === "results" ? (
-                                results.resultSets.length > 0 ? (
-                                    resultViewMode === "text" ? (
-                                        <QueryStudioResultsTextView
-                                            rpc={rpc}
-                                            resultSets={gridResultSetSummaries}
-                                            liveRowCounts={liveRowCounts}
-                                            gridStyle={state?.gridStyle}
-                                        />
-                                    ) : (
-                                        // Lazy mounting: captions always render; grid
-                                        // bodies mount near the viewport (never unmount).
-                                        <QsResultsGridProvider>
-                                            {gridResultSetSummaries.map((summary, index) => {
-                                                const isMaximized =
-                                                    maximizedGrid === summary.resultSetId;
-                                                return (
-                                                    <ResultGridBlock
-                                                        key={summary.resultSetId}
-                                                        rpc={rpc}
-                                                        summary={summary}
-                                                        displayOrdinal={index + 1}
-                                                        rowCount={effectiveRowCount(summary)}
-                                                        gridStyle={state?.gridStyle}
-                                                        sizing={
-                                                            singleGrid || isMaximized
-                                                                ? { kind: "fill" }
-                                                                : (resultsLayout.sizing[index] ?? {
-                                                                      kind: "fill",
-                                                                  })
-                                                        }
-                                                        runActive={executing}
-                                                        hidden={
-                                                            maximizedGrid !== undefined &&
-                                                            !isMaximized
-                                                        }
-                                                        maximized={isMaximized}
-                                                        onToggleMaximize={
-                                                            singleGrid
-                                                                ? undefined
-                                                                : () =>
-                                                                      setMaximizedGridId(
-                                                                          isMaximized
-                                                                              ? undefined
-                                                                              : summary.resultSetId,
-                                                                      )
-                                                        }
-                                                    />
-                                                );
-                                            })}
-                                        </QsResultsGridProvider>
-                                    )
+                            {visibleActiveTab === "results" ? (
+                                resultViewMode === "text" ? (
+                                    <QueryStudioResultsTextView
+                                        rpc={rpc}
+                                        resultSets={gridResultSetSummaries}
+                                        liveRowCounts={liveRowCounts}
+                                        gridStyle={state?.gridStyle}
+                                    />
                                 ) : (
-                                    <div className="qs-muted qs-message">
-                                        No result sets returned.
-                                    </div>
+                                    // Lazy mounting: captions always render; grid
+                                    // bodies mount near the viewport (never unmount).
+                                    <QsResultsGridProvider>
+                                        {gridResultSetSummaries.map((summary, index) => {
+                                            const isMaximized =
+                                                maximizedGrid === summary.resultSetId;
+                                            return (
+                                                <ResultGridBlock
+                                                    key={summary.resultSetId}
+                                                    rpc={rpc}
+                                                    summary={summary}
+                                                    displayOrdinal={index + 1}
+                                                    rowCount={effectiveRowCount(summary)}
+                                                    gridStyle={state?.gridStyle}
+                                                    sizing={
+                                                        singleGrid || isMaximized
+                                                            ? { kind: "fill" }
+                                                            : (resultsLayout.sizing[index] ?? {
+                                                                  kind: "fill",
+                                                              })
+                                                    }
+                                                    runActive={executing}
+                                                    hidden={
+                                                        maximizedGrid !== undefined && !isMaximized
+                                                    }
+                                                    maximized={isMaximized}
+                                                    onToggleMaximize={
+                                                        singleGrid
+                                                            ? undefined
+                                                            : () =>
+                                                                  setMaximizedGridId(
+                                                                      isMaximized
+                                                                          ? undefined
+                                                                          : summary.resultSetId,
+                                                                  )
+                                                    }
+                                                />
+                                            );
+                                        })}
+                                    </QsResultsGridProvider>
                                 )
-                            ) : activeTab === "queryPlan" ? (
+                            ) : visibleActiveTab === "queryPlan" ? (
                                 <QueryStudioExecutionPlanView
                                     rpc={rpc}
                                     executionPlanState={queryPlanTabState?.executionPlanState}
