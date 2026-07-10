@@ -364,6 +364,118 @@ suite("sqlLanguage diagnostics T1: SELECT syntax recovery", () => {
 });
 
 // ---------------------------------------------------------------------------
+// T1 — structural unit runs (residue tier)
+// ---------------------------------------------------------------------------
+
+suite("sqlLanguage diagnostics T1: structural unit runs", () => {
+    test("mistyped WHERE split across tokens after an aliased source", async () => {
+        const result = await diagnose(
+            "select *\nfrom Sales.Orders c\nWHE er c.OrderID != 0;",
+            nullProvider,
+        );
+        const d = only(result);
+        expect(d.severity).to.equal("error");
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("'WHE'");
+        expect(d.message).to.contain("did you mean WHERE?");
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+
+    test("mistyped WHERE swallowed as an alias still flags via the run", async () => {
+        const d = only(
+            await diagnose("select * from Sales.Orders wher OrderID = 1;", nullProvider),
+        );
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean WHERE?");
+    });
+
+    test("mistyped JOIN between sources", async () => {
+        const d = only(
+            await diagnose(
+                "select * from Sales.Orders o joim Sales.Customers c on o.CustomerID = c.CustomerID;",
+                nullProvider,
+            ),
+        );
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean JOIN?");
+    });
+
+    test("mistyped SET in UPDATE", async () => {
+        const d = only(await diagnose("update Sales.Orders st OrderID = 1;", nullProvider));
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean SET?");
+    });
+
+    test("three names in a row in the select list", async () => {
+        const d = only(await diagnose("select a b c from Sales.Orders;", nullProvider));
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("'c'");
+    });
+
+    test("two adjacent value units in WHERE", async () => {
+        const d = only(
+            await diagnose("select * from Sales.Orders where OrderID = 1 2;", nullProvider),
+        );
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("'2'");
+    });
+
+    test("item-head * cannot take a name: mistyped FROM", async () => {
+        const d = only(await diagnose("select * form Sales.Orders;", nullProvider));
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("did you mean FROM?");
+    });
+
+    test("dangling comma straight into FROM", async () => {
+        const d = only(await diagnose("select OrderID, from Sales.Orders;", nullProvider));
+        expect(d.code).to.equal("mssql(102)");
+        expect(d.message).to.contain("'from'");
+    });
+
+    test("runs that touch the document tail stay silent (mid-edit)", async () => {
+        expectClean(
+            await diagnose("select * from Sales.Orders where OrderID = 1 an", nullProvider),
+        );
+        expectClean(await diagnose("select * from Sales.Orders o whe", nullProvider));
+    });
+
+    test("legal alias shapes and structures stay clean", async () => {
+        expectClean(
+            await diagnose(
+                "select OrderID id, [a] [b], 'x' 'y' from Sales.Orders o;",
+                nullProvider,
+            ),
+        );
+        expectClean(
+            await diagnose(
+                "select * from Sales.Orders group by CustomerID with rollup having count(*) > 1;",
+                nullProvider,
+            ),
+        );
+        expectClean(
+            await diagnose("select * from t group by grouping sets ((a), (b), ());", nullProvider),
+        );
+        expectClean(
+            await diagnose(
+                "select * from t tablesample system (10 percent) where a like N'%x%';",
+                nullProvider,
+            ),
+        );
+    });
+
+    test("multiplication is never mistaken for an item-head star", async () => {
+        expectClean(await diagnose("select price * qty total from Sales.Orders;", nullProvider));
+    });
+
+    test("a run report suppresses binder claims for the statement", async () => {
+        const result = await diagnose("select * from Sales.Orders wher MissingColumn = 1;");
+        expect(result.diagnostics).to.have.length(1);
+        expect(result.diagnostics[0].code).to.equal("mssql(102)");
+        expect(result.suppressed.syntaxUntrusted).to.equal(1);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // T2 — 208-style invalid object
 // ---------------------------------------------------------------------------
 

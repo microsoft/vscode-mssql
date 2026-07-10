@@ -238,6 +238,160 @@ const SELECT_CLAUSE_SPLIT_REPAIRS: ReadonlySet<string> = new Set([
 const EXEC_LESS_SYSTEM_PROCEDURE_PREFIXES = ["sp_", "xp_"];
 
 // ---------------------------------------------------------------------------
+// Structural unit-run scan support (T1 residue tier)
+// ---------------------------------------------------------------------------
+
+/** Reserved clause starters a dangling comma can never precede. */
+const DANGLING_COMMA_CLAUSE_STARTERS = new Set([
+    "FROM",
+    "WHERE",
+    "GROUP",
+    "ORDER",
+    "HAVING",
+    "UNION",
+    "EXCEPT",
+    "INTERSECT",
+    "OPTION",
+    "VALUES",
+]);
+
+/** What a name straight after an item-head `*` was probably meant to be. */
+const STAR_TAIL_CANDIDATES: readonly string[] = ["FROM", "INTO"];
+
+/** GROUP BY structure words that lex as identifiers, never units. */
+const GROUP_BY_STRUCTURE_WORDS = new Set(["GROUPING", "SETS", "ROLLUP", "CUBE"]);
+
+const FROM_CLAUSE_CANDIDATES: readonly string[] = [
+    "WHERE",
+    "JOIN",
+    "INNER",
+    "LEFT",
+    "RIGHT",
+    "FULL",
+    "CROSS",
+    "OUTER",
+    "APPLY",
+    "PIVOT",
+    "UNPIVOT",
+    "ON",
+    "GROUP",
+    "ORDER",
+    "HAVING",
+    "UNION",
+    "OPTION",
+];
+const SELECT_LIST_CANDIDATES: readonly string[] = ["FROM", "AS"];
+const EXPRESSION_CANDIDATES: readonly string[] = [
+    "AND",
+    "OR",
+    "LIKE",
+    "BETWEEN",
+    "IN",
+    "IS",
+    "NOT",
+    "EXISTS",
+];
+const BY_LIST_CANDIDATES: readonly string[] = [
+    "BY",
+    "ASC",
+    "DESC",
+    "HAVING",
+    "ORDER",
+    "UNION",
+    "OPTION",
+];
+const RESIDUE_CANDIDATES: readonly string[] = [
+    "SET",
+    "WHERE",
+    "FROM",
+    "SELECT",
+    "VALUES",
+    "INTO",
+    "OUTPUT",
+    "JOIN",
+];
+
+function suggestionCandidatesFor(clause: string | undefined): readonly string[] {
+    switch (clause) {
+        case "from":
+            return FROM_CLAUSE_CANDIDATES;
+        case "selectList":
+            return SELECT_LIST_CANDIDATES;
+        case "where":
+        case "on":
+        case "having":
+            return EXPRESSION_CANDIDATES;
+        case "groupBy":
+        case "orderBy":
+            return BY_LIST_CANDIDATES;
+        case "setAssignments":
+            return ["WHERE", "FROM", "OUTPUT", "AND"];
+        default:
+            return RESIDUE_CANDIDATES;
+    }
+}
+
+/**
+ * Mistyped-keyword candidate: the word is a strict prefix (>= 3 chars) of the
+ * candidate, or one Damerau edit away (substitution / insertion / deletion /
+ * adjacent transposition — "form" -> FROM, "joim" -> JOIN, "wher" -> WHERE).
+ * Single-character words never match.
+ */
+function nearMissKeyword(word: string, candidates: readonly string[]): string | undefined {
+    const upper = word.toUpperCase();
+    if (upper.length < 2) {
+        return undefined;
+    }
+    for (const candidate of candidates) {
+        if (upper === candidate) {
+            continue; // an exact keyword would have lexed as one
+        }
+        if (upper.length >= 3 && candidate.startsWith(upper)) {
+            return candidate;
+        }
+        // Two-letter words only match by pure insertion ("st" -> SET), never
+        // by substitution ("id" must not suggest IS).
+        if (upper.length === 2 && candidate.length !== 3) {
+            continue;
+        }
+        if (isDamerauOneAway(upper, candidate)) {
+            return candidate;
+        }
+    }
+    return undefined;
+}
+
+/** Damerau-Levenshtein distance exactly 1 (edit or adjacent transposition). */
+function isDamerauOneAway(a: string, b: string): boolean {
+    if (isOneEditAway(a, b)) {
+        return true;
+    }
+    if (a.length !== b.length) {
+        return false;
+    }
+    // Exactly one adjacent transposition.
+    let first = -1;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            first = i;
+            break;
+        }
+    }
+    if (first < 0 || first + 1 >= a.length) {
+        return false;
+    }
+    if (a[first] !== b[first + 1] || a[first + 1] !== b[first]) {
+        return false;
+    }
+    for (let i = first + 2; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// ---------------------------------------------------------------------------
 // Pass implementation
 // ---------------------------------------------------------------------------
 
@@ -648,6 +802,346 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
             }
         }
         return recovered;
+    };
+
+    /**
+     * T1 structural residue scan (the "WHE er" class): the sketcher swallows
+     * unparseable tokens into the enclosing clause span, so a misspelled
+     * clause keyword used to vanish. SQL Server's grammar never allows runs
+     * of adjacent VALUE UNITS (name chains, literals, parenthesized groups)
+     * without a separator: where trailing aliases are legal (select list,
+     * FROM) the limit is two units (`expr alias`); in expression clauses
+     * (WHERE/ON/HAVING/GROUP BY/ORDER BY/SET) even two in a row is an error.
+     * A run that crosses the limit is reported once, at the run word that
+     * looks like a mistyped clause keyword when one exists (did-you-mean),
+     * else at the unit that crossed the limit.
+     *
+     * Mid-edit tolerance: a run that reaches the document's last significant
+     * token stays silent — the user is still typing that expression.
+     */
+    const checkStructuralUnitRuns = (s: AnalyzedStatementInput): boolean => {
+        const kind = s.sketch.kind;
+        if (kind !== "select" && kind !== "insert" && kind !== "update" && kind !== "delete") {
+            return false;
+        }
+        let reportedAny = false;
+
+        // Document-end tolerance boundary (whole document, not statement).
+        let docLastSignificantStart = -1;
+        for (let i = tokens.length - 1; i >= 0; i--) {
+            const t = tokens[i];
+            if (!isTrivia(t.kind) && t.kind !== TokenKind.EndOfFile) {
+                docLastSignificantStart = t.start;
+                break;
+            }
+        }
+
+        type RunWord = { readonly text: string; readonly start: number; readonly end: number };
+        let runClause: ClauseKind | "residue" | undefined;
+        let runCount = 0;
+        let runReported = false;
+        let runWords: RunWord[] = [];
+        const resetRun = (): void => {
+            runClause = undefined;
+            runCount = 0;
+            runReported = false;
+            runWords = [];
+        };
+        resetRun();
+
+        const clauseOf = (offset: number): ClauseKind | "residue" => {
+            return innermostClause(s.sketch, offset) ?? "residue";
+        };
+
+        const thresholdOf = (clause: ClauseKind | "residue"): number => {
+            switch (clause) {
+                // Trailing aliases are legal: `expr alias` is two units.
+                case "selectList":
+                case "from":
+                case "output":
+                case "into":
+                case "top":
+                case "window":
+                case "with":
+                case "residue":
+                    return 3;
+                // Expression clauses: no aliases, two adjacent units is an error.
+                case "where":
+                case "on":
+                case "having":
+                case "groupBy":
+                case "orderBy":
+                case "setAssignments":
+                    return 2;
+                // Regions with their own validation or free-form grammar.
+                default:
+                    return Number.MAX_SAFE_INTEGER;
+            }
+        };
+
+        const flagRun = (unitStart: number, unitEnd: number): void => {
+            if (runReported) {
+                return;
+            }
+            runReported = true;
+            if (docLastSignificantStart >= 0 && unitEnd > docLastSignificantStart) {
+                return; // run touches the document tail — still being typed
+            }
+            const candidates = suggestionCandidatesFor(runClause);
+            let at: RunWord = {
+                text: text.slice(unitStart, unitEnd),
+                start: unitStart,
+                end: unitEnd,
+            };
+            let suggestion: string | undefined;
+            for (const word of runWords) {
+                const match = nearMissKeyword(word.text, candidates);
+                if (match !== undefined) {
+                    at = word;
+                    suggestion = match;
+                    break;
+                }
+            }
+            report(
+                "error",
+                at.start,
+                at.end,
+                `Incorrect syntax near '${at.text}'` +
+                    (suggestion !== undefined ? ` (did you mean ${suggestion}?).` : "."),
+                "mssql(102)",
+            );
+            reportedAny = true;
+        };
+
+        /** Consume a balanced paren group; returns exclusive end or -1 (unbalanced). */
+        const consumeGroup = (openIndex: number): number => {
+            let depth = 0;
+            for (let i = openIndex; i <= s.segment.lastToken; i++) {
+                const t = tokens[i];
+                if (t.kind !== TokenKind.Punctuation) {
+                    continue;
+                }
+                const ch = text.charCodeAt(t.start);
+                if (ch === 40 /* ( */) {
+                    depth++;
+                } else if (ch === 41 /* ) */ && --depth === 0) {
+                    return i + 1;
+                }
+            }
+            return -1;
+        };
+
+        const isChainHead = (t: Token): boolean =>
+            (t.kind === TokenKind.Identifier && t.keyword === undefined) ||
+            t.kind === TokenKind.BracketedIdentifier ||
+            t.kind === TokenKind.QuotedIdentifier ||
+            t.kind === TokenKind.TempName ||
+            t.kind === TokenKind.GlobalTempName;
+
+        const isChainMember = (t: Token): boolean =>
+            isChainHead(t) || t.kind === TokenKind.Identifier; // keywords legal after '.'
+
+        let i = s.segment.firstToken;
+        while (i <= s.segment.lastToken) {
+            const t = tokens[i];
+            if (isTrivia(t.kind)) {
+                i++;
+                continue;
+            }
+
+            // Item-head `*` followed by a name is always incorrect syntax
+            // ("select * form x" — `*` cannot take an alias).
+            if (
+                t.kind === TokenKind.Operator &&
+                t.end - t.start === 1 &&
+                text.charCodeAt(t.start) === 42 /* * */ &&
+                clauseOf(t.start) === "selectList"
+            ) {
+                const prev = prevSignificant(i, s.segment.firstToken);
+                const headPosition =
+                    prev === undefined ||
+                    (prev.kind === TokenKind.Identifier &&
+                        (prev.keyword?.id === "SELECT" ||
+                            prev.keyword?.id === "DISTINCT" ||
+                            prev.keyword?.id === "ALL")) ||
+                    (prev.kind === TokenKind.Punctuation &&
+                        (text.charCodeAt(prev.start) === 44 /* , */ ||
+                            text.charCodeAt(prev.start) === 40)); /* ( */
+                const nextIdx = nextSignificantInStatement(tokens, i + 1, s.segment.lastToken);
+                const next = nextIdx >= 0 ? tokens[nextIdx] : undefined;
+                if (
+                    headPosition &&
+                    next !== undefined &&
+                    isChainHead(next) &&
+                    !(docLastSignificantStart >= 0 && next.end > docLastSignificantStart)
+                ) {
+                    const word = text.slice(next.start, next.end);
+                    const suggestion = nearMissKeyword(word.toUpperCase(), STAR_TAIL_CANDIDATES);
+                    report(
+                        "error",
+                        next.start,
+                        next.end,
+                        `Incorrect syntax near '${word}'` +
+                            (suggestion !== undefined ? ` (did you mean ${suggestion}?).` : "."),
+                        "mssql(102)",
+                    );
+                    reportedAny = true;
+                    i = nextIdx + 1;
+                    resetRun();
+                    continue;
+                }
+                resetRun();
+                i++;
+                continue;
+            }
+
+            // Dangling comma straight into a clause keyword ("select id, from t").
+            if (t.kind === TokenKind.Punctuation && text.charCodeAt(t.start) === 44 /* , */) {
+                const nextIdx = nextSignificantInStatement(tokens, i + 1, s.segment.lastToken);
+                const next = nextIdx >= 0 ? tokens[nextIdx] : undefined;
+                if (next !== undefined) {
+                    const isClauseStarter =
+                        next.kind === TokenKind.Identifier &&
+                        next.keyword !== undefined &&
+                        DANGLING_COMMA_CLAUSE_STARTERS.has(next.keyword.id);
+                    const isComma =
+                        next.kind === TokenKind.Punctuation && text.charCodeAt(next.start) === 44;
+                    if (isClauseStarter || isComma) {
+                        const word = text.slice(next.start, next.end);
+                        report(
+                            "error",
+                            next.start,
+                            next.end,
+                            `Incorrect syntax near '${word}'.`,
+                            "mssql(102)",
+                        );
+                        reportedAny = true;
+                    }
+                }
+                resetRun();
+                i++;
+                continue;
+            }
+
+            // Build the next unit, or treat the token as a run breaker.
+            let unitEndExclusive = -1;
+            let unitWord: RunWord | undefined;
+            if (t.kind === TokenKind.Punctuation && text.charCodeAt(t.start) === 40 /* ( */) {
+                unitEndExclusive = consumeGroup(i);
+                if (unitEndExclusive < 0) {
+                    return reportedAny; // unbalanced — paren check owns this
+                }
+            } else if (isChainHead(t)) {
+                // GROUP BY structural words lex as plain identifiers
+                // (GROUPING SETS (...), ROLLUP, CUBE) — structure, not units.
+                if (
+                    t.kind === TokenKind.Identifier &&
+                    GROUP_BY_STRUCTURE_WORDS.has(text.slice(t.start, t.end).toUpperCase()) &&
+                    clauseOf(t.start) === "groupBy"
+                ) {
+                    resetRun();
+                    i++;
+                    continue;
+                }
+                // Dotted chain, optionally a call: a.b.c / fn(...) / a.b.fn(...)
+                let j = i;
+                let end = t.end;
+                let trailingDot = false;
+                for (;;) {
+                    const dotIdx = nextSignificantInStatement(tokens, j + 1, s.segment.lastToken);
+                    const dot = dotIdx >= 0 ? tokens[dotIdx] : undefined;
+                    if (
+                        dot === undefined ||
+                        dot.kind !== TokenKind.Punctuation ||
+                        text.charCodeAt(dot.start) !== 46 /* . */
+                    ) {
+                        break;
+                    }
+                    const nameIdx = nextSignificantInStatement(
+                        tokens,
+                        dotIdx + 1,
+                        s.segment.lastToken,
+                    );
+                    const name = nameIdx >= 0 ? tokens[nameIdx] : undefined;
+                    if (name === undefined || !isChainMember(name)) {
+                        // Trailing dot (mid-edit): not a unit, breaks the run.
+                        trailingDot = true;
+                        j = nameIdx >= 0 ? nameIdx : dotIdx;
+                        break;
+                    }
+                    end = name.end;
+                    j = nameIdx;
+                }
+                if (trailingDot) {
+                    resetRun();
+                    i = j + 1;
+                    continue;
+                }
+                unitEndExclusive = j + 1;
+                const afterIdx = nextSignificantInStatement(
+                    tokens,
+                    unitEndExclusive,
+                    s.segment.lastToken,
+                );
+                const after = afterIdx >= 0 ? tokens[afterIdx] : undefined;
+                if (
+                    after !== undefined &&
+                    after.kind === TokenKind.Punctuation &&
+                    text.charCodeAt(after.start) === 40 /* ( */
+                ) {
+                    const groupEnd = consumeGroup(afterIdx);
+                    if (groupEnd < 0) {
+                        return reportedAny;
+                    }
+                    unitEndExclusive = groupEnd;
+                } else if (
+                    t.kind === TokenKind.Identifier &&
+                    t.end === end // single bare word — did-you-mean material
+                ) {
+                    unitWord = { text: text.slice(t.start, t.end), start: t.start, end: t.end };
+                }
+            } else if (
+                t.kind === TokenKind.NumberLiteral ||
+                t.kind === TokenKind.StringLiteral ||
+                t.kind === TokenKind.Variable ||
+                t.kind === TokenKind.SystemVariable
+            ) {
+                unitEndExclusive = i + 1;
+            } else {
+                // Keywords, operators, other punctuation, unknown: run breaker.
+                resetRun();
+                i++;
+                continue;
+            }
+
+            const unitStart = t.start;
+            const unitEnd = tokens[unitEndExclusive - 1]?.end ?? t.end;
+            const clause = clauseOf(unitStart);
+            if (clause !== runClause) {
+                // Trailing junk right after an expression clause ("WHERE x = 1 2")
+                // falls outside the sketched span; every LEGAL exit from an
+                // expression clause goes through a keyword breaker, so residue
+                // continues the clause's run instead of resetting it.
+                const inherits =
+                    clause === "residue" &&
+                    runClause !== undefined &&
+                    runClause !== "residue" &&
+                    thresholdOf(runClause) === 2;
+                if (!inherits) {
+                    resetRun();
+                    runClause = clause;
+                }
+            }
+            runCount++;
+            if (unitWord !== undefined) {
+                runWords.push(unitWord);
+            }
+            if (runCount >= thresholdOf(clause)) {
+                flagRun(unitStart, unitEnd);
+            }
+            i = unitEndExclusive;
+        }
+        return reportedAny;
     };
 
     const resolveExecLessProcedureHead = (
@@ -1298,6 +1792,13 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
         checkDuplicateSourceNames(s);
         checkUnrecognizedStatement(s);
         if (checkSelectSyntaxRecovery(s)) {
+            count("syntaxUntrusted");
+            return;
+        }
+        // Structural residue (unit runs, item-head `*` tails, dangling
+        // commas): when the statement's surface syntax is broken, binder
+        // claims over it would be guesses — report the syntax error alone.
+        if (checkStructuralUnitRuns(s)) {
             count("syntaxUntrusted");
             return;
         }
