@@ -1167,10 +1167,11 @@ export const OBS_CONTRACT: Registry = {
             attrs: {
                 extension: "safeEnum",
                 reopened: "structuralMetadata",
-                withConnection: "structuralMetadata",
+                orphansClosed: "structuralMetadata",
+                transplantPending: "structuralMetadata",
             },
             attrsComplete: false,
-            notes: "An untitled Query Studio document was saved to disk and the saved file was adopted back into Query Studio (reopened=true when VS Code had demoted it to the plain text editor), optionally with the session's connection handed off.",
+            notes: "A Query Studio document was saved under a new name and the saved file was adopted back into Query Studio via model transplant (connection + results continue under the new URI). reopened=true when the watcher had to openWith the target itself; orphansClosed counts stranded source tabs closed; transplantPending=true when the target had not yet resolved at emit time.",
         },
         {
             name: "queryStudio.runRecord.captured",
