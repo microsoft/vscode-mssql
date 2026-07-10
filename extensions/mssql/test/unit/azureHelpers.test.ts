@@ -492,7 +492,7 @@ suite("Azure Helpers", () => {
             accountId: "account-1",
         } as unknown as import("vscode-mssql").IConnectionInfo;
 
-        test("returns undefined without querying Azure when accountId is missing", async () => {
+        test("returns UnableToCheck without querying Azure when accountId is missing", async () => {
             const getSubs = sandbox.stub(
                 azureHelpers.VsCodeAzureHelper,
                 "getSubscriptionsForAccount",
@@ -503,11 +503,11 @@ suite("Azure Helpers", () => {
                 accountId: undefined,
             } as any);
 
-            expect(result).to.be.undefined;
+            expect(result).to.equal("UnableToCheck");
             expect(getSubs.called, "should not query subscriptions").to.be.false;
         });
 
-        test("returns undefined for a server name that isn't an Azure SQL server", async () => {
+        test("returns UnableToCheck for a server name that isn't an Azure SQL server", async () => {
             const getSubs = sandbox.stub(
                 azureHelpers.VsCodeAzureHelper,
                 "getSubscriptionsForAccount",
@@ -518,11 +518,11 @@ suite("Azure Helpers", () => {
                 server: "localhost",
             } as any);
 
-            expect(result).to.be.undefined;
+            expect(result).to.equal("UnableToCheck");
             expect(getSubs.called, "should not query subscriptions").to.be.false;
         });
 
-        test("returns undefined without a database name to look up", async () => {
+        test("returns UnableToCheck without a database name to look up", async () => {
             const getSubs = sandbox.stub(
                 azureHelpers.VsCodeAzureHelper,
                 "getSubscriptionsForAccount",
@@ -533,11 +533,11 @@ suite("Azure Helpers", () => {
                 database: undefined,
             } as any);
 
-            expect(result).to.be.undefined;
+            expect(result).to.equal("UnableToCheck");
             expect(getSubs.called, "should not query subscriptions").to.be.false;
         });
 
-        test("returns undefined when the account has no subscriptions to search", async () => {
+        test("returns UnableToCheck when the account has no subscriptions to search", async () => {
             const getSubs = sandbox
                 .stub(azureHelpers.VsCodeAzureHelper, "getSubscriptionsForAccount")
                 .resolves([]);
@@ -545,7 +545,7 @@ suite("Azure Helpers", () => {
             const result =
                 await azureHelpers.VsCodeAzureHelper.getAzureSqlDatabaseStatus(azureConnection);
 
-            expect(result).to.be.undefined;
+            expect(result).to.equal("UnableToCheck");
             expect(getSubs).to.have.been.calledOnceWithExactly("account-1");
         });
     });

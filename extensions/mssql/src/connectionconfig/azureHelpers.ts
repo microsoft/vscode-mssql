@@ -32,7 +32,7 @@ import {
     user,
 } from "../constants/constants";
 import { ILogger } from "../sharedInterfaces/logger";
-import { getLogger } from "../models/logger";
+import logger from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     AlwaysEncryptedEnclaveType,
@@ -71,14 +71,17 @@ import { IConnectionInfo } from "vscode-mssql";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
-const azureHelperLogger = getLogger("AzureHelpers");
+const azureHelperLogger = logger.withPrefix("Azure Helpers");
 const azureSqlServerSuffix = ".database.";
 
 //#region VS Code integration
 
 let _azureProvider: VSCodeAzureSubscriptionProvider | undefined;
 
-export const azureStatusesToRetry = ["Paused", "Pausing", "Resuming"];
+/** Key statuses for Azure SQL databases.  Any status not included here is considered non-retryable. */
+export type AzureSqlDatabaseStatus = "Paused" | "Pausing" | "Resuming" | "Online" | "UnableToCheck";
+
+export const azureStatusesToRetry: AzureSqlDatabaseStatus[] = ["Paused", "Pausing", "Resuming"];
 
 export class VsCodeAzureHelper {
     /**
@@ -417,10 +420,10 @@ export class VsCodeAzureHelper {
 
     /**
      * Uses the Azure ARM API to check the wake status of a database. All failures are logged and
-     * swallowed, returning undefined so the caller surfaces the original connection error.
+     * swallowed, returning "UnableToCheck".
      *
-     * @param credentials the connection being attempted.
-     * @param databaseName optional database name override, used when the database being accessed differs
+     * @param connection the connection being attempted.
+     * @param database optional database name override, used when the database being accessed differs
      *   from the connection's database (e.g. expanding a  database node on a server connection).
      * @param source short label identifying the caller who initiated the check
      */
@@ -428,7 +431,7 @@ export class VsCodeAzureHelper {
         connection: IConnectionInfo,
         database?: string,
         source?: string,
-    ): Promise<string | undefined> {
+    ): Promise<AzureSqlDatabaseStatus> {
         const databaseName = database ?? connection.database;
         const serverName = this.getAzureSqlServerName(connection.server);
         const accountId = connection.accountId;
@@ -440,63 +443,75 @@ export class VsCodeAzureHelper {
             azureHelperLogger.trace(
                 `Pause status check ${sourceSuffix}: could not determine status for ${target}`,
             );
-            return undefined;
+            return "UnableToCheck";
         }
+
+        azureHelperLogger.trace(
+            `Pause status check ${sourceSuffix}: determining if ${accountId} can check status for ${target}`,
+        );
 
         try {
             const subscriptions = await this.getSubscriptionsForAccount(accountId);
 
             for (const subscription of subscriptions) {
-                const sql = new SqlManagementClient(
-                    subscription.credential,
-                    subscription.subscriptionId,
-                    {
-                        endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-                    },
-                );
+                try {
+                    const sql = new SqlManagementClient(
+                        subscription.credential,
+                        subscription.subscriptionId,
+                        {
+                            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                        },
+                    );
 
-                const servers = await listAllIterator(sql.servers.list());
-                const matchingServer = servers.find(
-                    (server) => server.name?.toLowerCase() === serverName.toLowerCase(),
-                );
+                    const servers = await listAllIterator(sql.servers.list());
+                    const matchingServer = servers.find(
+                        (server) => server.name?.toLowerCase() === serverName.toLowerCase(),
+                    );
 
-                if (!matchingServer?.id) {
+                    if (!matchingServer?.id) {
+                        continue;
+                    }
+
+                    const resourceGroupName = extractFromResourceId(
+                        matchingServer.id,
+                        "resourceGroups",
+                    );
+                    if (!resourceGroupName) {
+                        continue;
+                    }
+
+                    const database = await sql.databases.get(
+                        resourceGroupName,
+                        serverName,
+                        databaseName,
+                    );
+
+                    azureHelperLogger.trace(
+                        `Pause check ${sourceSuffix}: database ${target} is ${database.status}`,
+                    );
+
+                    return (database?.status as AzureSqlDatabaseStatus) ?? "UnableToCheck";
+                } catch (err) {
+                    azureHelperLogger.trace(
+                        `Pause check ${sourceSuffix}: error occurred while checking database ${target} on subscription ${subscription.subscriptionId}; continuing... ${getErrorMessage(err)}`,
+                    );
+
                     continue;
                 }
-
-                const resourceGroupName = extractFromResourceId(
-                    matchingServer.id,
-                    "resourceGroups",
-                );
-                if (!resourceGroupName) {
-                    continue;
-                }
-
-                const database = await sql.databases.get(
-                    resourceGroupName,
-                    serverName,
-                    databaseName,
-                );
-
-                azureHelperLogger.trace(
-                    `Pause check ${sourceSuffix}: database ${target} is ${database.status}`,
-                );
-
-                return database?.status ?? undefined;
             }
         } catch (err) {
             azureHelperLogger.trace(
-                `Pause check ${sourceSuffix}: error occurred while checking database ${target}: ${getErrorMessage(err)}`,
+                `Pause check ${sourceSuffix}: error occurred while checking database ${target}; exiting. ${getErrorMessage(err)}`,
             );
 
-            return undefined;
+            return "UnableToCheck";
         }
 
         azureHelperLogger.trace(
             `Pause check ${sourceSuffix}: database ${target} could not be found for user ${accountId}`,
         );
 
-        return undefined;
+        return "UnableToCheck";
     }
 
     private static getAzureSqlServerName(server: string | undefined): string | undefined {
