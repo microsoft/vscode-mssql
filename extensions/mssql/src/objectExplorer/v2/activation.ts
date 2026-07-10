@@ -21,7 +21,7 @@ import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneSer
 import { ObjectExplorerV2Provider } from "./objectExplorerV2Provider";
 import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
 import { oeV2Settings, oeViewMode } from "./settings";
-import { ConnectionProfileSource } from "./sessions/oeV2ProfileAdapter";
+import { ConnectionProfileSource, readProfileTree } from "./sessions/oeV2ProfileAdapter";
 import { OeV2SessionRegistry } from "./sessions/oeV2SessionRegistry";
 import { registerOeV2NativeCommands } from "./commands/oeV2NativeCommands";
 import { policiesForNode } from "./commands/oeV2LegacyCommandPolicy";
@@ -30,7 +30,9 @@ import {
     OeV2ClassicHandoffService,
 } from "./legacy/oeV2ClassicHandoffService";
 import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
+import { OeV2DragAndDropController, registerOeV2GroupCommands } from "./commands/oeV2GroupCommands";
 import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
+import { ConnectionConfig } from "../../connectionconfig/connectionconfig";
 import { OeV2Node } from "./tree/oeV2Node";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
 
@@ -38,6 +40,8 @@ export interface OeV2ActivationDeps {
     readonly profiles: ConnectionProfileSource & ProfileSecretSource;
     /** Classic connection seam for the EXPLICIT legacy handoff door (B20). */
     readonly legacyConnections?: HandoffConnectionSeam;
+    /** Shared group storage (B26): the classic ConnectionConfig instance. */
+    readonly groupConfig?: () => ConnectionConfig | undefined;
 }
 
 export function activateObjectExplorerV2(
@@ -76,6 +80,15 @@ export function activateObjectExplorerV2(
         const view = vscode.window.createTreeView("mssql.objectExplorerV2", {
             treeDataProvider: provider,
             showCollapseAll: true,
+            // B26 (K5): connections into groups, groups re-parent — same
+            // shared storage as classic, v2-only MIME.
+            ...(deps.groupConfig
+                ? {
+                      dragAndDropController: new OeV2DragAndDropController(
+                          deps.groupConfig ?? (() => undefined),
+                      ),
+                  }
+                : {}),
         });
         handoff = deps.legacyConnections
             ? new OeV2ClassicHandoffService(deps.legacyConnections, {
@@ -164,7 +177,39 @@ export function activateObjectExplorerV2(
         node?.connectionId ??
         (node?.path.kind === "connection" ? node.path.connectionId : undefined);
 
+    // B26 (K-cross UX): when exactly ONE new saved profile appears — the New
+    // Connection dialog finished, whichever view's button launched it — v2
+    // auto-connects it too ("connect them both"). Bulk settings edits (2+
+    // new profiles at once) deliberately stay disconnected.
+    let knownProfileIds: Set<string> | undefined;
+    const snapshotProfiles = async (): Promise<Set<string>> => {
+        const tree = await readProfileTree(deps.profiles);
+        return new Set(tree.profiles.map((profile) => profile.profileId));
+    };
+    void snapshotProfiles().then((ids) => (knownProfileIds = ids));
+    const autoConnectNewProfile = async () => {
+        const current = await snapshotProfiles();
+        const previous = knownProfileIds;
+        knownProfileIds = current;
+        if (!previous || !controller) {
+            return;
+        }
+        const added = [...current].filter((id) => !previous.has(id));
+        if (added.length === 1) {
+            void controller.connectProfile(added[0]).catch(() => undefined);
+        }
+    };
+
     context.subscriptions.push(
+        registerOeV2GroupCommands({
+            context,
+            groupConfig: deps.groupConfig ?? (() => undefined),
+        }),
+        // B26: view-title New Connection — the SHARED classic dialog; the
+        // config watcher's single-new-profile rule connects it in v2.
+        vscode.commands.registerCommand("mssql.objectExplorerV2.addConnection", () =>
+            vscode.commands.executeCommand("mssql.addObjectExplorer"),
+        ),
         vscode.workspace.onDidChangeConfiguration((event) => {
             if (event.affectsConfiguration("mssql.objectExplorer.viewMode")) {
                 if (oeViewMode() === "v2Preview") {
@@ -178,6 +223,9 @@ export function activateObjectExplorerV2(
                 event.affectsConfiguration("mssql.connectionGroups") ||
                 event.affectsConfiguration("mssql.objectExplorer.v2")
             ) {
+                if (event.affectsConfiguration("mssql.connections")) {
+                    void autoConnectNewProfile();
+                }
                 controller?.refresh();
             }
         }),

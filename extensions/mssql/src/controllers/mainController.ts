@@ -1398,6 +1398,8 @@ export default class MainController implements vscode.Disposable {
             // Classic connections are reachable ONLY through the explicit
             // legacy-handoff door (oe_view_design §12) — never for browse.
             legacyConnections: this._connectionMgr,
+            // B26 (K5): group CRUD/move/DnD share the classic storage.
+            groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
         });
 
         // H-3 poll governance host facts (CACHE-5): window focus gates the

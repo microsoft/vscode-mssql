@@ -629,6 +629,16 @@
             ],
             "view/title": [
                 {
+                    "command": "mssql.objectExplorerV2.addConnection",
+                    "when": "view == mssql.objectExplorerV2",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.create",
+                    "when": "view == mssql.objectExplorerV2",
+                    "group": "navigation@2"
+                },
+                {
                     "command": "mssql.objectExplorerV2.refresh",
                     "when": "view == mssql.objectExplorerV2",
                     "group": "navigation"
@@ -749,6 +759,26 @@
                     "command": "mssql.objectExplorerV2.copyQualifiedName",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyQualifiedName\\b/",
                     "group": "4_oe2_copy@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.create",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=connectionGroup\\b/",
+                    "group": "0_oe2_groups@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.edit",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=connectionGroup\\b/",
+                    "group": "0_oe2_groups@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.delete",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=connectionGroup\\b/",
+                    "group": "0_oe2_groups@9"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.moveToGroup",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|connectingConnection|lostConnection)\\b/",
+                    "group": "0_oe2_groups@5"
                 },
                 {
                     "command": "mssql.objectExplorerV2.backupDatabase",
@@ -1239,6 +1269,18 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.edit",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.delete",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.moveToGroup",
                     "when": "false"
                 },
                 {
@@ -2283,6 +2325,33 @@
             {
                 "command": "mssql.objectExplorerV2.restoreDatabase",
                 "title": "Restore…",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.addConnection",
+                "title": "Add Connection",
+                "category": "MS SQL",
+                "icon": "$(add)"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connectionGroups.create",
+                "title": "New Connection Group",
+                "category": "MS SQL",
+                "icon": "$(new-folder)"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connectionGroups.edit",
+                "title": "Edit Connection Group",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connectionGroups.delete",
+                "title": "Delete Connection Group",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.moveToGroup",
+                "title": "Move to Group…",
                 "category": "MS SQL"
             },
             {
