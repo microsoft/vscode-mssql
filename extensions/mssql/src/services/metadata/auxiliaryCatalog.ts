@@ -21,9 +21,16 @@ import { MetadataSessionSource, runMetadataQuery } from "./metadataService";
 
 export interface AuxCatalogItem {
     readonly name: string;
+    /** Schema-qualified items (sequences, user-defined types, system objects). */
+    readonly schema?: string;
+    /** Object kind for kind-filtered folders ("table", "view", "procedure", …). */
+    readonly kind?: string;
     /** Icon/status modifier ("disabled", "fixedRole", …). */
     readonly subType?: string;
     readonly isSystem: boolean;
+    readonly objectId?: number;
+    /** Section-specific numeric facts (tableFacets: temporalType, historyTableId, …). */
+    readonly facts?: Readonly<Record<string, number>>;
 }
 
 export interface AuxSectionSpec {

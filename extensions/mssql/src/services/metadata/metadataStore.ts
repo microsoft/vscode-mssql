@@ -26,6 +26,7 @@
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { ISqlConnectionService } from "../sqlDataPlane/api";
 import { AuxiliaryCatalog } from "./auxiliaryCatalog";
+import { DATABASE_AUX_SECTIONS } from "./auxiliaryCatalogDatabaseSections";
 import { CatalogSnapshot, SchemaContextRequest, SchemaContextResult } from "./catalogModel";
 import {
     DataPlaneMetadataSessionSource,
@@ -93,6 +94,9 @@ export interface ServerCatalogLease {
 export interface DatabaseCatalogLease {
     readonly key: DatabaseKey;
     status(): MetadataStatus;
+    /** Lazy database-scoped sections (B24): security/broker/storage/
+     * programmability leaves, system objects, table/view facets. */
+    readonly auxiliary: AuxiliaryCatalog;
     current(): CatalogSnapshot | undefined;
     buildSchemaContext(req: SchemaContextRequest): SchemaContextResult;
     notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void;
@@ -157,6 +161,9 @@ interface ServerEntry {
     key: ServerKey;
     prepared: PreparedConnection;
     source: DataPlaneMetadataSessionSource;
+    /** Dedicated aux-section session — lazy queries never collide with the
+     * one-active-query hydration lane (B24 concurrency rule). */
+    auxSource: DataPlaneMetadataSessionSource;
     service: ServerMetadataService;
     refCount: number;
     idleTimer: ReturnType<typeof setTimeout> | undefined;
@@ -169,6 +176,10 @@ interface DatabaseEntry {
     key: DatabaseKey;
     prepared: PreparedConnection;
     source: DataPlaneMetadataSessionSource;
+    /** Dedicated aux-section session (same key-correct database context). */
+    auxSource: DataPlaneMetadataSessionSource;
+    aux: AuxiliaryCatalog;
+    auxSubscription: { dispose(): void };
     engine: MetadataService;
     handle: ReturnType<MetadataService["acquire"]>;
     listeners: Set<(status: MetadataStatus) => void>;
@@ -216,11 +227,17 @@ export class MetadataStore {
                 applicationName: "vscode-mssql-metadata",
                 auth: prepared.auth,
             });
+            const auxSource = new DataPlaneMetadataSessionSource(connection, {
+                profile: prepared.profileRef,
+                applicationName: "vscode-mssql-metadata",
+                auth: prepared.auth,
+            });
             entry = {
                 key,
                 prepared,
                 source,
-                service: new ServerMetadataService(source),
+                auxSource,
+                service: new ServerMetadataService(source, auxSource),
                 refCount: 0,
                 idleTimer: undefined,
                 accessStates: undefined,
@@ -278,6 +295,7 @@ export class MetadataStore {
                 entry.accessSubscription?.dispose();
                 entry.service.dispose();
                 entry.source.dispose();
+                entry.auxSource.dispose();
             });
         }
     }
@@ -456,10 +474,41 @@ export class MetadataStore {
                 // C-4.1: cached data must never become silent forever-truth.
                 void handle.refresh();
             }
+            // B24: database aux sections on a DEDICATED key-correct session
+            // (never the engine's one-active-query lane); change ticks ride
+            // the entry's status listeners so OE re-renders.
+            const auxSource = new DataPlaneMetadataSessionSource(connection, {
+                profile: prepared.profileRef,
+                ...(key.database ? { database: key.database } : {}),
+                applicationName: "vscode-mssql-metadata",
+                auth: prepared.auth,
+            });
+            const aux = new AuxiliaryCatalog(
+                auxSource,
+                DATABASE_AUX_SECTIONS,
+                "metadataStore:dbAux",
+            );
+            const auxSubscription = aux.onDidChange(() => {
+                const owner = pendingEntry.current;
+                if (!owner) {
+                    return;
+                }
+                const status = owner.handle.status();
+                for (const listener of [...listeners]) {
+                    try {
+                        listener(status);
+                    } catch {
+                        /* listener isolation */
+                    }
+                }
+            });
             entry = {
                 key,
                 prepared,
                 source: inner,
+                auxSource,
+                aux,
+                auxSubscription,
                 engine,
                 handle,
                 listeners,
@@ -494,6 +543,7 @@ export class MetadataStore {
             getModuleDefinition: (objectId) => resolved.handle.getModuleDefinition(objectId),
             refresh: () => resolved.handle.refresh(),
             ensureFresh: (policy) => resolved.handle.ensureFresh(policy),
+            auxiliary: resolved.aux,
             onDidChange(listener): { dispose(): void } {
                 resolved.listeners.add(listener);
                 return { dispose: () => resolved.listeners.delete(listener) };
@@ -531,6 +581,9 @@ export class MetadataStore {
 
     private disposeDatabaseEntry(entry: DatabaseEntry): void {
         this.databases.delete(databaseKeyOf(entry.key));
+        entry.auxSubscription.dispose();
+        entry.aux.dispose();
+        entry.auxSource.dispose();
         entry.handle.dispose();
         entry.engine.dispose();
         entry.source.dispose();

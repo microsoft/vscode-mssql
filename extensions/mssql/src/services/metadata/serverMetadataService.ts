@@ -86,8 +86,18 @@ export class ServerMetadataService {
     readonly auxiliary: AuxiliaryCatalog;
     private auxSubscription: { dispose(): void };
 
-    constructor(private readonly sessions: MetadataSessionSource) {
-        this.auxiliary = new AuxiliaryCatalog(sessions, SERVER_AUX_SECTIONS, "metadataStore:aux");
+    constructor(
+        private readonly sessions: MetadataSessionSource,
+        auxSessions: MetadataSessionSource = sessions,
+    ) {
+        // Dedicated aux source in production (store passes one): the
+        // metadata lane is one-active-query, and a lazy section fetch must
+        // never collide with an in-flight sys.databases hydration.
+        this.auxiliary = new AuxiliaryCatalog(
+            auxSessions,
+            SERVER_AUX_SECTIONS,
+            "metadataStore:aux",
+        );
         this.auxSubscription = this.auxiliary.onDidChange(() => this.notify());
     }
 
