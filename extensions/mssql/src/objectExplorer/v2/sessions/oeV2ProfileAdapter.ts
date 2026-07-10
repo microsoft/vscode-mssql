@@ -13,18 +13,27 @@
  */
 
 import { stableProfileId } from "../../../services/metadata/profileAuthAdapter";
+import { connectionDisplayLabel } from "../tree/oeV2ConnectionLabel";
 
 export interface OeV2StoredProfile {
     id?: string;
     server?: string;
     database?: string;
     user?: string;
+    email?: string;
     authenticationType?: string;
     profileName?: string;
     groupId?: string;
     encrypt?: string | boolean;
     trustServerCertificate?: boolean;
     containerName?: string;
+    port?: number | string;
+    version?: string;
+    applicationIntent?: string;
+    connectTimeout?: number;
+    commandTimeout?: number;
+    alwaysEncrypted?: boolean | string;
+    replication?: boolean;
 }
 
 export interface OeV2StoredGroup {
@@ -86,7 +95,9 @@ export async function readProfileTree(source: ConnectionProfileSource): Promise<
         .filter((profile) => profile.server)
         .map((profile) => ({
             profileId: stableProfileId(profile),
-            displayName: profile.profileName || profile.server!,
+            // K6 parity: the classic getConnectionDisplayName recipe —
+            // profileName, else `server, database (auth)`.
+            displayName: connectionDisplayLabel(profile),
             server: profile.server!,
             ...(profile.database ? { database: profile.database } : {}),
             ...(profile.user ? { user: profile.user } : {}),

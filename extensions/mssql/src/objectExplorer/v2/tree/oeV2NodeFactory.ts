@@ -16,6 +16,11 @@ import {
     OeV2ProfileTree,
 } from "../sessions/oeV2ProfileAdapter";
 import { capabilitiesFor, contextValueFor } from "./oeV2Capabilities";
+import {
+    connectionTooltipLines,
+    disambiguationLines,
+    OeV2ConnectionLabelFacts,
+} from "./oeV2ConnectionLabel";
 import { NOT_APPLICABLE, OeV2Node } from "./oeV2Node";
 import { encodePath } from "./oeV2Path";
 
@@ -51,6 +56,7 @@ export interface ConnectionNodeFacts {
 export function connectionNode(
     profile: OeV2ProfileRecord,
     facts: ConnectionNodeFacts = { state: "disconnected" },
+    tiedWith: readonly OeV2ConnectionLabelFacts[] = [],
 ): OeV2Node {
     const path = { kind: "connection" as const, connectionId: profile.profileId };
     const kind =
@@ -61,27 +67,34 @@ export function connectionNode(
               : facts.state === "lost"
                 ? ("lostConnection" as const)
                 : ("disconnectedConnection" as const);
+    // K6: database/auth already live in the v1-recipe label — description
+    // carries connection STATE only.
     const description =
-        facts.state === "connected"
-            ? profile.database
-            : facts.state === "connecting"
-              ? "connecting…"
-              : facts.state === "disconnecting"
-                ? "disconnecting…"
-                : facts.state === "lost"
-                  ? "connection lost"
-                  : facts.state === "failed"
-                    ? `failed: ${facts.failureReason ?? "connect error"}`
-                    : profile.database;
+        facts.state === "connecting"
+            ? "connecting…"
+            : facts.state === "disconnecting"
+              ? "disconnecting…"
+              : facts.state === "lost"
+                ? "connection lost"
+                : facts.state === "failed"
+                  ? `failed: ${facts.failureReason ?? "connect error"}`
+                  : undefined;
+    const lines = connectionTooltipLines(profile.stored);
+    if (facts.serverVersion) {
+        // Additive over v1 (journaled): live server version when connected.
+        lines.push(`Server Version: ${facts.serverVersion}`);
+    }
+    const differs = disambiguationLines(profile.stored, tiedWith);
+    if (differs.length > 0) {
+        lines.push("Differs from same-named connections:", ...differs);
+    }
     return {
         id: encodePath(path),
         path,
         kind,
         label: profile.displayName,
         ...(description ? { description } : {}),
-        tooltip: `${profile.server}${profile.database ? ` · ${profile.database}` : ""} · ${
-            profile.user ?? "integrated"
-        }${facts.serverVersion ? ` · ${facts.serverVersion}` : ""}`,
+        tooltip: lines.join("\n"),
         collapsible: true,
         connectionId: profile.profileId,
         readiness: NOT_APPLICABLE,
@@ -116,7 +129,7 @@ export function childrenOfGroup(
         .sort((a, z) => a.name.localeCompare(z.name))
         .map(connectionGroupNode);
     const isRootLevel = groupId === tree.rootGroupId;
-    const profiles = tree.profiles
+    const members = tree.profiles
         .filter(
             (profile) =>
                 profile.groupId === groupId ||
@@ -124,8 +137,26 @@ export function childrenOfGroup(
                 // harness/settings-written profiles often omit groupId).
                 (isRootLevel && profile.groupId === undefined),
         )
-        .sort((a, z) => a.displayName.localeCompare(z.displayName))
-        .map((profile) => connectionNode(profile, stateFor?.(profile.profileId)));
+        .sort((a, z) => a.displayName.localeCompare(z.displayName));
+    // K6 disambiguation: siblings that tie on the full v1 label get the
+    // differing properties appended to their tooltips.
+    const byLabel = new Map<string, OeV2ProfileRecord[]>();
+    for (const profile of members) {
+        const tied = byLabel.get(profile.displayName);
+        if (tied) {
+            tied.push(profile);
+        } else {
+            byLabel.set(profile.displayName, [profile]);
+        }
+    }
+    const profiles = members.map((profile) => {
+        const tied = (byLabel.get(profile.displayName) ?? []).filter((other) => other !== profile);
+        return connectionNode(
+            profile,
+            stateFor?.(profile.profileId),
+            tied.map((other) => other.stored),
+        );
+    });
     return [...subgroups, ...profiles];
 }
 

@@ -10,15 +10,15 @@
  * round-trip. Full path strings are never logged — log path KIND only.
  */
 
-export type OeV2ServerFolder = "databases" | "security" | "serverObjects";
+/**
+ * Folder segments are hierarchy-registry ids (oeV2Hierarchy.ts), open-ended
+ * by design: layout growth (B23+ "security", "serverObjects", nested ids
+ * like "security/logins") must never require a codec change. Unknown ids
+ * decode fine and surface as stale-path errors at browse time.
+ */
+export type OeV2ServerFolder = string;
 
-export type OeV2DatabaseFolder =
-    | "tables"
-    | "views"
-    | "storedProcedures"
-    | "functions"
-    | "synonyms"
-    | "schemas";
+export type OeV2DatabaseFolder = string;
 
 export type OeV2ObjectFolder = "columns" | "keys" | "foreignKeys" | "parameters";
 
@@ -105,19 +105,24 @@ export function encodePath(path: OeV2Path): string {
             parts.push(enc(path.connectionId));
             break;
         case "serverFolder":
-            parts.push(enc(path.connectionId), path.folder);
+            parts.push(enc(path.connectionId), enc(path.folder));
             break;
         case "database":
             parts.push(enc(path.connectionId), enc(path.database));
             break;
         case "databaseFolder":
-            parts.push(enc(path.connectionId), enc(path.database), path.folder);
+            parts.push(enc(path.connectionId), enc(path.database), enc(path.folder));
             break;
         case "schema":
             parts.push(enc(path.connectionId), enc(path.database), enc(path.schema));
             break;
         case "schemaFolder":
-            parts.push(enc(path.connectionId), enc(path.database), enc(path.schema), path.folder);
+            parts.push(
+                enc(path.connectionId),
+                enc(path.database),
+                enc(path.schema),
+                enc(path.folder),
+            );
             break;
         case "object":
             parts.push(
@@ -186,7 +191,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                 return {
                     kind,
                     connectionId: dec(parts[1]),
-                    folder: parts[2] as OeV2ServerFolder,
+                    folder: dec(parts[2]),
                 };
             case "database":
                 return { kind, connectionId: dec(parts[1]), database: dec(parts[2]) };
@@ -195,7 +200,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                     kind,
                     connectionId: dec(parts[1]),
                     database: dec(parts[2]),
-                    folder: parts[3] as OeV2DatabaseFolder,
+                    folder: dec(parts[3]),
                 };
             case "schema":
                 return {
@@ -210,7 +215,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                     connectionId: dec(parts[1]),
                     database: dec(parts[2]),
                     schema: dec(parts[3]),
-                    folder: parts[4] as OeV2DatabaseFolder,
+                    folder: dec(parts[4]),
                 };
             case "object":
                 return {

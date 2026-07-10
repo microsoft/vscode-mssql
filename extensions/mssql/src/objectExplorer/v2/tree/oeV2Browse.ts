@@ -25,6 +25,7 @@ import type {
     ServerCatalogStatus,
     ServerDatabaseInfo,
 } from "../../../services/metadata/serverMetadataService";
+import { folderDef, OeV2FolderDef, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
 import { NOT_APPLICABLE, OeV2Node } from "./oeV2Node";
 import {
     encodePath,
@@ -76,23 +77,6 @@ function withStaleNotice(
     ];
 }
 
-const FOLDER_LABELS: Record<OeV2DatabaseFolder, string> = {
-    tables: "Tables",
-    views: "Views",
-    storedProcedures: "Stored Procedures",
-    functions: "Functions",
-    synonyms: "Synonyms",
-    schemas: "Schemas",
-};
-
-const FOLDER_KINDS: Record<Exclude<OeV2DatabaseFolder, "schemas">, ObjectKind[]> = {
-    tables: ["table"],
-    views: ["view"],
-    storedProcedures: ["procedure"],
-    functions: ["scalarFunction", "tableFunction"],
-    synonyms: ["synonym"],
-};
-
 const OBJECT_ICONS: Record<OeV2ObjectKind, string> = {
     table: "Table",
     view: "View",
@@ -102,33 +86,35 @@ const OBJECT_ICONS: Record<OeV2ObjectKind, string> = {
     synonym: "Synonym",
 };
 
-/** Section key in snapshot.readiness backing each folder's honesty. */
-const FOLDER_SECTION: Record<OeV2DatabaseFolder, string> = {
-    tables: "objects",
-    views: "objects",
-    storedProcedures: "objects",
-    functions: "objects",
-    synonyms: "synonyms",
-    schemas: "schemas",
-};
+/** Stale-path honesty for folder ids the hierarchy registry doesn't know. */
+function unknownFolderError(scope: string, connectionId: string, folder: string): OeV2Node[] {
+    return [
+        errorNode(
+            scope,
+            `Folder '${folder}' is not part of the current layout. Refresh the parent node.`,
+            connectionId,
+            "staleFolder",
+        ),
+    ];
+}
 
 // -- server level ------------------------------------------------------------
 
-export function serverChildren(connectionId: string): OeV2Node[] {
-    const path: OeV2Path = { kind: "serverFolder", connectionId, folder: "databases" };
-    return [
-        {
+export function serverChildren(connectionId: string, facts: OeV2ScopeFacts = {}): OeV2Node[] {
+    return resolveFolders("server", facts).map((def) => {
+        const path: OeV2Path = { kind: "serverFolder", connectionId, folder: def.id };
+        return {
             id: encodePath(path),
             path,
             kind: "serverFolder",
-            label: "Databases",
+            label: def.label,
             collapsible: true,
             connectionId,
             readiness: NOT_APPLICABLE,
-            capabilities: { canRefresh: true },
-            icon: "Folder",
-        },
-    ];
+            capabilities: { canRefresh: true, ...(def.canFilter ? { canFilter: true } : {}) },
+            icon: def.icon ?? "Folder",
+        } satisfies OeV2Node;
+    });
 }
 
 export function databasesFolderChildren(
@@ -203,21 +189,25 @@ export function databaseNode(connectionId: string, info: ServerDatabaseInfo): Oe
 
 // -- database level ----------------------------------------------------------
 
-export function databaseChildren(connectionId: string, database: string): OeV2Node[] {
-    return (Object.keys(FOLDER_LABELS) as OeV2DatabaseFolder[]).map((folder) => {
-        const path: OeV2Path = { kind: "databaseFolder", connectionId, database, folder };
+export function databaseChildren(
+    connectionId: string,
+    database: string,
+    facts: OeV2ScopeFacts = {},
+): OeV2Node[] {
+    return resolveFolders("database", facts).map((def) => {
+        const path: OeV2Path = { kind: "databaseFolder", connectionId, database, folder: def.id };
         return {
             id: encodePath(path),
             path,
             kind: "databaseFolder",
-            label: FOLDER_LABELS[folder],
+            label: def.label,
             collapsible: true,
             connectionId,
             database,
             readiness: NOT_APPLICABLE,
-            capabilities: { canRefresh: true, canFilter: folder !== "schemas" },
-            icon: "Folder",
-        };
+            capabilities: { canRefresh: true, canFilter: def.canFilter === true },
+            icon: def.icon ?? "Folder",
+        } satisfies OeV2Node;
     });
 }
 
@@ -258,22 +248,18 @@ export function databaseFolderChildren(
     freshness?: OeV2FreshnessFacts,
 ): OeV2Node[] {
     const scope = `db/${connectionId}/${database}/${folder}${schema ? `/${schema}` : ""}`;
-    const gate = catalogGate(scope, connectionId, status, snapshot, FOLDER_SECTION[folder]);
+    const def = folderDef("database", folder);
+    if (!def) {
+        return unknownFolderError(scope, connectionId, folder);
+    }
+    const gate = catalogGate(scope, connectionId, status, snapshot, def.section);
     if (gate) {
         return gate;
     }
     return withStaleNotice(
         scope,
         connectionId,
-        databaseFolderContent(
-            scope,
-            connectionId,
-            database,
-            folder,
-            snapshot!,
-            groupBySchema,
-            schema,
-        ),
+        databaseFolderContent(scope, connectionId, database, def, snapshot!, groupBySchema, schema),
         freshness,
     );
 }
@@ -282,20 +268,21 @@ function databaseFolderContent(
     scope: string,
     connectionId: string,
     database: string,
-    folder: OeV2DatabaseFolder,
+    def: OeV2FolderDef,
     snapshot: CatalogSnapshot,
     groupBySchema: boolean,
     schema?: string,
 ): OeV2Node[] {
-    if (folder === "schemas") {
+    if (def.special === "schemas") {
         const schemas = snapshot.listSchemas();
         return schemas.length === 0
             ? [noItemsNode(scope, connectionId)]
             : schemas.map((info) => schemaNode(connectionId, database, info.name));
     }
+    const objectKinds = [...(def.objectKinds ?? [])];
     if (groupBySchema && schema === undefined) {
         const withObjects = new Set(
-            snapshot.listObjects(undefined, FOLDER_KINDS[folder]).map((o) => o.schema),
+            snapshot.listObjects(undefined, objectKinds).map((o) => o.schema),
         );
         if (withObjects.size === 0) {
             return [noItemsNode(scope, connectionId)];
@@ -306,7 +293,7 @@ function databaseFolderContent(
                 connectionId,
                 database,
                 schema: name,
-                folder,
+                folder: def.id,
             };
             return {
                 id: encodePath(path),
@@ -323,7 +310,7 @@ function databaseFolderContent(
             } satisfies OeV2Node;
         });
     }
-    const objects = snapshot.listObjects(schema, FOLDER_KINDS[folder]);
+    const objects = snapshot.listObjects(schema, objectKinds);
     if (objects.length === 0) {
         return [noItemsNode(scope, connectionId)];
     }

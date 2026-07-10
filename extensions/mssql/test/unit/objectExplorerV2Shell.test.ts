@@ -199,7 +199,8 @@ suite("Object Explorer v2 shell (B17)", () => {
             expect(roots.map((n) => n.label)).to.deep.equal(["Alpha", "Team", "Aleph", "Beta"]);
             const team = roots[1];
             const teamChildren = await controller.children(team);
-            expect(teamChildren.map((n) => n.label)).to.deep.equal(["srv-c"]);
+            // K6 (B22): v1 label recipe — `server, database (auth)`.
+            expect(teamChildren.map((n) => n.label)).to.deep.equal(["srv-c, AppDb (Integrated)"]);
             const hint = await controller.children(roots[2]);
             expect(hint[0].kind).to.equal("status");
             expect(hint[0].label).to.contain("Connect");
