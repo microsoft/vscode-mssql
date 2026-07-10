@@ -43,6 +43,9 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
         }
         if (node.kind === "loading") {
             item.iconPath = new vscode.ThemeIcon("loading~spin");
+        } else if (node.kind === "connectingConnection") {
+            // B27: connecting connections spin like loading children do.
+            item.iconPath = new vscode.ThemeIcon("loading~spin");
         } else if (node.kind === "status") {
             item.iconPath = new vscode.ThemeIcon("info");
         } else if (node.kind === "error") {

@@ -33,6 +33,8 @@ export interface OeV2ConnectionSession {
     readonly serverVersion?: string;
     readonly databaseAtOpen?: string;
     readonly failureReason?: string;
+    /** Milliseconds spent connecting so far (B27 slow-connect surfacing). */
+    readonly connectingForMs?: number;
 }
 
 interface Entry {
@@ -42,6 +44,7 @@ interface Entry {
     session: ISqlSession | undefined;
     failureReason: string | undefined;
     stateSubscription: { dispose(): void } | undefined;
+    connectingSince: number | undefined;
 }
 
 export class OeV2SessionRegistry {
@@ -74,6 +77,16 @@ export class OeV2SessionRegistry {
         return this.entries.get(connectionId)?.state ?? "disconnected";
     }
 
+    /** B27: drives the slow-connect re-render tick. */
+    anyConnecting(): boolean {
+        for (const entry of this.entries.values()) {
+            if (entry.state === "connecting" || entry.state === "disconnecting") {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Open or reuse the OE v2 data-plane session for a saved profile. */
     async connect(
         connectionId: string,
@@ -90,6 +103,7 @@ export class OeV2SessionRegistry {
             session: undefined,
             failureReason: undefined,
             stateSubscription: undefined,
+            connectingSince: Date.now(),
         };
         this.entries.set(connectionId, entry);
         this.notify(connectionId);
@@ -182,5 +196,8 @@ function snapshotOf(entry: Entry): OeV2ConnectionSession {
         ...(info?.serverVersion ? { serverVersion: info.serverVersion } : {}),
         ...(info?.database ? { databaseAtOpen: info.database } : {}),
         ...(entry.failureReason ? { failureReason: entry.failureReason } : {}),
+        ...(entry.state === "connecting" && entry.connectingSince !== undefined
+            ? { connectingForMs: Date.now() - entry.connectingSince }
+            : {}),
     };
 }

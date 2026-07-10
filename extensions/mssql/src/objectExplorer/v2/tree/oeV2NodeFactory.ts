@@ -52,6 +52,8 @@ export interface ConnectionNodeFacts {
     readonly state: ConnectionNodeState;
     readonly serverVersion?: string;
     readonly failureReason?: string;
+    /** B27: elapsed connect time — slow connects surface honestly. */
+    readonly connectingForMs?: number;
 }
 
 export function connectionNode(
@@ -72,7 +74,9 @@ export function connectionNode(
     // carries connection STATE only.
     const description =
         facts.state === "connecting"
-            ? "connecting…"
+            ? facts.connectingForMs !== undefined && facts.connectingForMs >= 5000
+                ? `connecting… (${Math.round(facts.connectingForMs / 1000)}s)`
+                : "connecting…"
             : facts.state === "disconnecting"
               ? "disconnecting…"
               : facts.state === "lost"

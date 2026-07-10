@@ -138,6 +138,16 @@ export function activateObjectExplorerV2(
 
     registerOeV2NativeCommands(context, () => controller);
 
+    // B27: while any connection is opening/closing, tick the tree so the
+    // slow-connect elapsed description ("connecting… (12s)") stays live.
+    const connectingTicker = setInterval(() => {
+        if (registry?.anyConnecting()) {
+            controller?.refresh();
+        }
+    }, 2000);
+    (connectingTicker as { unref?: () => void }).unref?.();
+    context.subscriptions.push({ dispose: () => clearInterval(connectingTicker) });
+
     // PERF_MODE-only browse probe (design 04 §17.4 pattern): connect the
     // single provisioned profile and expand to a rendered Databases list.
     // Throws on any honesty failure so the harness records a real error.
@@ -170,6 +180,62 @@ export function activateObjectExplorerV2(
                 }
                 return { databases: databases.length };
             }),
+            // B27: server-level aux browse probe — connect, expand Security →
+            // Logins, and wait for REAL items from the lazy section (throws
+            // on every honesty failure; loading resolves via re-poll).
+            vscode.commands.registerCommand(
+                "mssql.perf.objectExplorerV2SecurityExpand",
+                async () => {
+                    if (!controller) {
+                        throw new Error("OE v2 is not registered (check viewMode setting)");
+                    }
+                    const roots = await controller.children();
+                    const connection = roots.find((node) => node.path.kind === "connection");
+                    if (!connection?.connectionId) {
+                        throw new Error("no saved profile visible in OE v2");
+                    }
+                    if (!(await controller.connectProfile(connection.connectionId))) {
+                        throw new Error("OE v2 data-plane connect failed");
+                    }
+                    const server = (await controller.children()).find(
+                        (node) => node.kind === "connectedServer",
+                    );
+                    if (!server) {
+                        throw new Error("no connected server node after connect");
+                    }
+                    const security = (await controller.children(server)).find(
+                        (node) => node.label === "Security",
+                    );
+                    if (!security) {
+                        throw new Error("no Security folder on a server-scoped connection");
+                    }
+                    const logins = (await controller.children(security)).find(
+                        (node) => node.label === "Logins",
+                    );
+                    if (!logins) {
+                        throw new Error("no Logins folder under Security");
+                    }
+                    const deadline = Date.now() + 15_000;
+                    for (;;) {
+                        const children = await controller.children(logins);
+                        const error = children.find((node) => node.kind === "error");
+                        if (error) {
+                            throw new Error(`Logins section failed: ${error.label}`);
+                        }
+                        const items = children.filter((node) => node.kind === "serverObject");
+                        if (items.length > 0) {
+                            return { logins: items.length };
+                        }
+                        if (children.some((node) => node.kind === "noItems")) {
+                            throw new Error("Logins rendered empty — a real server has logins");
+                        }
+                        if (Date.now() > deadline) {
+                            throw new Error("Logins section did not hydrate within 15s");
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                },
+            ),
         );
     }
 

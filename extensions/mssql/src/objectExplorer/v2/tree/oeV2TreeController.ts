@@ -494,6 +494,9 @@ export class OeV2TreeController {
             state: session.state,
             ...(session.serverVersion ? { serverVersion: session.serverVersion } : {}),
             ...(session.failureReason ? { failureReason: session.failureReason } : {}),
+            ...(session.connectingForMs !== undefined
+                ? { connectingForMs: session.connectingForMs }
+                : {}),
         };
     }
 
