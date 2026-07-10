@@ -16,6 +16,7 @@ import { UserSurvey } from "../../nps/userSurvey";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../../sharedInterfaces/telemetry";
 import { getDisplayNameForTool } from "./toolsUtils";
+import { resolveQueryResultsParams } from "../../queryResults/queryResultsParams";
 
 export interface RunQueryToolParams {
     connectionId: string;
@@ -86,6 +87,34 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
             );
 
             UserSurvey.getInstance().promptUserForNPSFeedback("copilot_agentMode");
+
+            // C2D-5 P0 (addendum §4.1): with the query-results feature area
+            // active, cap the rows serialized into the tool result and point
+            // the model at mssql_query_results for bounded continued access.
+            // With the feature off, behavior is byte-identical to before
+            // (zero-impact posture, journal C2D-D-11).
+            const queryResultsActive = vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.queryStudio.enabled", false);
+            if (queryResultsActive) {
+                const cap = resolveQueryResultsParams().params.aiMaxRowsPerResponse;
+                const totalRowCount = result.rows?.length ?? 0;
+                if (resolveQueryResultsParams().params.aiEnabled && totalRowCount > cap) {
+                    return JSON.stringify({
+                        success: true,
+                        rowCount: result.rowCount,
+                        columnInfo: result.columnInfo,
+                        rows: result.rows.slice(0, cap),
+                        truncated: true,
+                        totalRowCount,
+                        returnedRowCount: cap,
+                        guidance:
+                            "The result was truncated to the first rows. For bounded analysis over " +
+                            "full results (aggregates, group-by, sampling, filtering), run the query " +
+                            "in Query Studio and use the mssql_query_results tool on a snapshot.",
+                    });
+                }
+            }
 
             return JSON.stringify({
                 success: true,

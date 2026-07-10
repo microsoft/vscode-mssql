@@ -47,6 +47,11 @@ export interface QueryResultsParams {
     maxDistinctExact: number;
     /** Derived snapshot row-id cap (§3.6). */
     derivedMaxRows: number;
+    /** AI response bounds (C2D-5): never stream unbounded data to a model. */
+    aiMaxRowsPerResponse: number;
+    aiMaxBytesPerResponse: number;
+    aiMaxCellBytes: number;
+    aiMaxSnapshotsPerConversation: number;
 }
 
 export const QUERY_RESULTS_DEFAULTS: QueryResultsParams = {
@@ -67,6 +72,10 @@ export const QUERY_RESULTS_DEFAULTS: QueryResultsParams = {
     transformMaxOutputBytes: 1024 * 1024,
     maxDistinctExact: 100_000,
     derivedMaxRows: 100_000,
+    aiMaxRowsPerResponse: 100,
+    aiMaxBytesPerResponse: 1024 * 1024,
+    aiMaxCellBytes: 16 * 1024,
+    aiMaxSnapshotsPerConversation: 5,
 };
 
 /** Append new keys at the tail of their group; order is the digest contract. */
@@ -88,6 +97,10 @@ export const QUERY_RESULTS_KEYS: ReadonlyArray<keyof QueryResultsParams> = [
     "transformMaxOutputBytes",
     "maxDistinctExact",
     "derivedMaxRows",
+    "aiMaxRowsPerResponse",
+    "aiMaxBytesPerResponse",
+    "aiMaxCellBytes",
+    "aiMaxSnapshotsPerConversation",
 ];
 
 const NUMERIC_RANGES: Partial<Record<keyof QueryResultsParams, { min: number; max: number }>> = {
@@ -106,6 +119,10 @@ const NUMERIC_RANGES: Partial<Record<keyof QueryResultsParams, { min: number; ma
     transformMaxOutputBytes: { min: 4096, max: 256 * 1024 * 1024 },
     maxDistinctExact: { min: 1000, max: 10_000_000 },
     derivedMaxRows: { min: 1000, max: 10_000_000 },
+    aiMaxRowsPerResponse: { min: 1, max: 10_000 },
+    aiMaxBytesPerResponse: { min: 4096, max: 16 * 1024 * 1024 },
+    aiMaxCellBytes: { min: 256, max: 1024 * 1024 },
+    aiMaxSnapshotsPerConversation: { min: 1, max: 50 },
 };
 
 const SETTING_SECTIONS: Record<keyof QueryResultsParams, string> = {
@@ -128,6 +145,10 @@ const SETTING_SECTIONS: Record<keyof QueryResultsParams, string> = {
     transformMaxOutputBytes: "mssql.queryResults.transform.maxOutputBytes",
     maxDistinctExact: "mssql.queryResults.transform.maxDistinctExact",
     derivedMaxRows: "mssql.queryResults.derived.maxRows",
+    aiMaxRowsPerResponse: "mssql.queryResults.ai.maxRowsPerResponse",
+    aiMaxBytesPerResponse: "mssql.queryResults.ai.maxBytesPerResponse",
+    aiMaxCellBytes: "mssql.queryResults.ai.maxCellBytes",
+    aiMaxSnapshotsPerConversation: "mssql.queryResults.ai.maxSnapshotsPerConversation",
 };
 
 export const QUERY_RESULTS_OVERRIDES_SETTING = "mssql.queryResults.overrides";

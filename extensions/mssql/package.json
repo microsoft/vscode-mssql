@@ -4035,6 +4035,88 @@
         ],
         "languageModelTools": [
             {
+                "name": "mssql_query_results",
+                "modelDescription": "Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — numeric aggregates need no confirmation, any output containing cell values asks the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' materializes a filtered view as a new snapshotId (no values returned); 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
+                "displayName": "MSSQL Query Result Snapshots",
+                "userDescription": "Analyze SQL query results from Query Studio with bounded, confirmed access.",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "query_results",
+                "icon": "$(pinned)",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "query",
+                    "results",
+                    "analyze"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "operation": {
+                            "description": "Operation: list_live | list_snapshots | create_snapshot | describe_snapshot | get_rows | sample_rows | evaluate_transform | derive_snapshot | release_snapshot.",
+                            "title": "Operation",
+                            "type": "string",
+                            "enum": [
+                                "list_live",
+                                "list_snapshots",
+                                "create_snapshot",
+                                "describe_snapshot",
+                                "get_rows",
+                                "sample_rows",
+                                "evaluate_transform",
+                                "derive_snapshot",
+                                "release_snapshot"
+                            ]
+                        },
+                        "sourceId": {
+                            "description": "Live source id from list_live (create_snapshot).",
+                            "type": "string"
+                        },
+                        "snapshotId": {
+                            "description": "Snapshot id from create_snapshot/list_snapshots.",
+                            "type": "string"
+                        },
+                        "resultSetId": {
+                            "description": "Result set id from describe_snapshot.",
+                            "type": "string"
+                        },
+                        "rowStart": {
+                            "description": "get_rows: first row (0-based).",
+                            "type": "number"
+                        },
+                        "rowCount": {
+                            "description": "get_rows: rows to fetch (capped by policy).",
+                            "type": "number"
+                        },
+                        "sampleStrategy": {
+                            "description": "sample_rows: head | head_tail | uniform_windows | reservoir.",
+                            "type": "string",
+                            "enum": [
+                                "head",
+                                "head_tail",
+                                "uniform_windows",
+                                "reservoir"
+                            ]
+                        },
+                        "sampleSize": {
+                            "description": "sample_rows: sample size (capped by policy).",
+                            "type": "number"
+                        },
+                        "spec": {
+                            "description": "Transform spec v1 (evaluate_transform / derive_snapshot).",
+                            "type": "object"
+                        },
+                        "reason": {
+                            "description": "Short purpose shown to the user in confirmations.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "operation"
+                    ]
+                }
+            },
+            {
                 "name": "mssql_schema_designer",
                 "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer with exactly one of connectionId or connectionName when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
                 "tags": [

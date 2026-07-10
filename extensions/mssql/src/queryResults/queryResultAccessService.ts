@@ -396,6 +396,16 @@ export class QueryResultAccessService {
         }
     }
 
+    /** Explicit release of an UNLEASED snapshot (AI release_snapshot path). */
+    disposeUnleasedSnapshot(snapshotId: string, reason: string): boolean {
+        const record = this.snapshots.get(snapshotId);
+        if (!record || record.disposed || record.leases.size > 0) {
+            return false;
+        }
+        this.disposeSnapshot(record, reason);
+        return true;
+    }
+
     private disposeSnapshot(record: SnapshotRecord, reason: string): void {
         if (record.disposed) {
             return;

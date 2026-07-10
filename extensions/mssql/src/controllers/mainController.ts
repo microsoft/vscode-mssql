@@ -130,6 +130,7 @@ import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
 import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
+import { QUERY_RESULTS_TOOL_NAME, QueryResultsTool } from "../queryResults/queryResultsTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
@@ -1023,6 +1024,13 @@ export default class MainController implements vscode.Disposable {
                 Constants.copilotRunQueryToolName,
                 new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
+        );
+
+        // Register mssql_query_results tool (C2D-5): bounded, grant-gated
+        // access to Query Studio result snapshots. Declines cleanly when the
+        // Query Studio feature area is off (zero-impact posture).
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(QUERY_RESULTS_TOOL_NAME, new QueryResultsTool()),
         );
 
         // Register mssql_schema_designer tool
