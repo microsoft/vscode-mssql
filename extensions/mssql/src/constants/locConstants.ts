@@ -3410,6 +3410,10 @@ export class Changelog {
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
     );
+    public static shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+    public static shortcutsConfigurationDescription = l10n.t(
+        "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.",
+    );
     public static azureSqlProvisioningTitle = l10n.t("Azure SQL databases provisioning");
     public static azureSqlProvisioningDescription = l10n.t(
         "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
