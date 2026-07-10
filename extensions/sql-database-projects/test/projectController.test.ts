@@ -322,11 +322,18 @@ suite("ProjectsController", function (): void {
                 expect(
                     await projController.resolveItemFolder(ItemType.schema, project, undefined),
                     "schema: should return Security/ when it exists",
-                ).to.equal(utils.convertSlashesForSqlProj(constants.securityFolderName));
+                ).to.equal(constants.securityFolderName);
+                // Normalize paths for cross-platform comparison
+                const result = await projController.resolveItemFolder(
+                    ItemType.table,
+                    project,
+                    "dbo",
+                );
+                const expectedPath = path.join("dbo", "Tables");
                 expect(
-                    await projController.resolveItemFolder(ItemType.table, project, "dbo"),
+                    utils.getPlatformSafeFileEntryPath(result).toLowerCase(),
                     "table: should return dbo/Tables when it exists",
-                ).to.equal(utils.convertSlashesForSqlProj(path.join("dbo", "Tables")));
+                ).to.equal(utils.getPlatformSafeFileEntryPath(expectedPath).toLowerCase());
             });
 
             test("resolveItemFolder: Stays at basePath without creating folders when subfolder is missing (auto-create OFF)", async function (): Promise<void> {
@@ -394,12 +401,18 @@ suite("ProjectsController", function (): void {
 
                 // One representative schema-dependent type is sufficient to verify the hierarchy
                 const foldersBefore = project.folders.length;
-                const expectedPath = utils.convertSlashesForSqlProj(path.join("dbo", "Tables"));
+                const expectedPath = path.join("dbo", "Tables");
 
+                // Normalize paths for cross-platform comparison
+                const result = await projController.resolveItemFolder(
+                    ItemType.table,
+                    project,
+                    "dbo",
+                );
                 expect(
-                    await projController.resolveItemFolder(ItemType.table, project, "dbo"),
+                    utils.getPlatformSafeFileEntryPath(result).toLowerCase(),
                     "table: returns dbo/Tables",
-                ).to.equal(expectedPath);
+                ).to.equal(utils.getPlatformSafeFileEntryPath(expectedPath).toLowerCase());
 
                 const reloaded = await Project.openProject(project.projectFilePath);
                 expect(reloaded.folders.length, "dbo/ and dbo/Tables should be created").to.equal(
@@ -411,7 +424,9 @@ suite("ProjectsController", function (): void {
                 ).to.be.true;
                 expect(
                     reloaded.folders.some(
-                        (f) => f.relativePath.toLowerCase() === expectedPath.toLowerCase(),
+                        (f) =>
+                            utils.getPlatformSafeFileEntryPath(f.relativePath).toLowerCase() ===
+                            utils.getPlatformSafeFileEntryPath(expectedPath).toLowerCase(),
                     ),
                     "dbo/Tables folder should exist",
                 ).to.be.true;
@@ -441,9 +456,9 @@ suite("ProjectsController", function (): void {
                 expect(
                     reloaded.folders.some(
                         (f) =>
-                            f.relativePath.toLowerCase() ===
+                            utils.getPlatformSafeFileEntryPath(f.relativePath).toLowerCase() ===
                             utils
-                                .convertSlashesForSqlProj(path.join("dbo", "Sequences"))
+                                .getPlatformSafeFileEntryPath(path.join("dbo", "Sequences"))
                                 .toLowerCase(),
                     ),
                     "dbo/Sequences should NOT have been created",
@@ -460,19 +475,19 @@ suite("ProjectsController", function (): void {
 
                 await project.addFolder("dbo");
                 const foldersBefore = project.folders.length;
-                const expectedPath = utils.convertSlashesForSqlProj(
-                    path.join("dbo", "StoredProcedures"),
-                );
+                const expectedPath = path.join("dbo", "StoredProcedures");
 
+                // Normalize paths for cross-platform comparison
+                const result = await projController.resolveItemFolder(
+                    ItemType.storedProcedure,
+                    project,
+                    "dbo",
+                    "dbo",
+                );
                 expect(
-                    await projController.resolveItemFolder(
-                        ItemType.storedProcedure,
-                        project,
-                        "dbo",
-                        "dbo",
-                    ),
+                    utils.getPlatformSafeFileEntryPath(result).toLowerCase(),
                     "Should create and return dbo/StoredProcedures",
-                ).to.equal(expectedPath);
+                ).to.equal(utils.getPlatformSafeFileEntryPath(expectedPath).toLowerCase());
 
                 const reloaded = await Project.openProject(project.projectFilePath);
                 expect(
@@ -481,7 +496,9 @@ suite("ProjectsController", function (): void {
                 ).to.equal(foldersBefore + 1);
                 expect(
                     reloaded.folders.some(
-                        (f) => f.relativePath.toLowerCase() === expectedPath.toLowerCase(),
+                        (f) =>
+                            utils.getPlatformSafeFileEntryPath(f.relativePath).toLowerCase() ===
+                            utils.getPlatformSafeFileEntryPath(expectedPath).toLowerCase(),
                     ),
                     "dbo/StoredProcedures folder should exist",
                 ).to.be.true;
@@ -501,7 +518,7 @@ suite("ProjectsController", function (): void {
                 await project.addFolder("Tables"); // root-level ObjectType folder (e.g. old project layout)
                 await project.addFolder(path.join("dbo", "Tables")); // already in Schema/ObjectType
                 const foldersBefore = project.folders.length;
-                const dboTablesPath = utils.convertSlashesForSqlProj(path.join("dbo", "Tables"));
+                const dboTablesPath = path.join("dbo", "Tables");
 
                 // 1. Non-schema-dependent type from a schema folder: must NOT create dbo/DatabaseTriggers
                 expect(

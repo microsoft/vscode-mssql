@@ -11,11 +11,7 @@ import * as sqldbproj from "sqldbproj";
 import * as extractZip from "extract-zip";
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
-import {
-    getMicrosoftBuildSqlVersion,
-    resolveNugetVersion,
-    OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION,
-} from "./netcoreTool";
+import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
 import { ProjectType } from "../common/typeHelper";
 import * as vscodeMssql from "vscode-mssql";
 
@@ -66,9 +62,8 @@ export class BuildHelper {
         }
 
         const dacFxDllsExist = await this.ensureDacFxDllsPresence(outputChannel);
-        const scriptDomExists = await this.ensureScriptDomDllPresence(outputChannel);
 
-        if (!dacFxDllsExist || !scriptDomExists) {
+        if (!dacFxDllsExist) {
             return false;
         }
 
@@ -91,6 +86,8 @@ export class BuildHelper {
             "System.IO.Packaging.dll",
             "Microsoft.Data.Tools.Schema.SqlTasks.targets",
             "Microsoft.SqlServer.Server.dll",
+            "Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+            "Microsoft.Data.Tools.Sql.DesignServices.dll",
         ];
 
         const sdkVersion = getMicrosoftBuildSqlVersion();
@@ -100,21 +97,6 @@ export class BuildHelper {
             sdkVersion,
             dacFxBuildFiles,
             microsoftBuildSqlDllLocation,
-            outputChannel,
-        );
-    }
-
-    public async ensureScriptDomDllPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
-        const scriptdomNugetPkgName = "Microsoft.SqlServer.TransactSql.ScriptDom";
-        const scriptDomDll = "Microsoft.SqlServer.TransactSql.ScriptDom.dll";
-        const scriptDomNugetVersion = "170.128.0"; // TODO: make this a configurable setting, like the Microsoft.Build.Sql version
-        const scriptDomDllLocation = path.join("lib", "netstandard2.1");
-
-        return this.ensureNugetAndFilesPresence(
-            scriptdomNugetPkgName,
-            scriptDomNugetVersion,
-            [scriptDomDll],
-            scriptDomDllLocation,
             outputChannel,
         );
     }
@@ -135,20 +117,6 @@ export class BuildHelper {
         nugetFolderWithExpectedfiles: string,
         outputChannel: vscode.OutputChannel,
     ): Promise<boolean> {
-        if (utils.isValidMicrosoftBuildSqlVersion(nugetVersion)) {
-            try {
-                nugetVersion = await resolveNugetVersion(nugetName, nugetVersion);
-            } catch (e) {
-                nugetVersion = OFFLINE_FALLBACK_MICROSOFT_BUILD_SQL_VERSION;
-                const fallbackMessage = constants.couldNotResolveNugetVersion(
-                    utils.getErrorMessage(e),
-                    nugetVersion,
-                );
-                outputChannel.appendLine(fallbackMessage);
-                void vscode.window.showWarningMessage(fallbackMessage);
-            }
-        }
-
         const fullNugetName = `${nugetName}.${nugetVersion}`;
         const fullNugetPath = path.join(this.extensionBuildDir, `${fullNugetName}.nupkg`);
 

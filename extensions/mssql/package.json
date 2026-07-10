@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.44.0",
+    "version": "1.45.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/mssql/README.md",
     "engines": {
-        "vscode": "^1.101.0"
+        "vscode": "^1.105.0"
     },
     "categories": [
         "Programming Languages",
@@ -156,6 +156,7 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
+        "@microsoft/vscode-azureresources-api": "^3.1.1",
         "@xmldom/xmldom": "^0.9.10",
         "axios": "^1.16.0",
         "dockerode": "^4.0.9",
@@ -578,12 +579,17 @@
                 },
                 {
                     "command": "mssql.shortcutsConfiguration.open",
-                    "when": "view == objectExplorer && (config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures)",
+                    "when": "view == objectExplorer",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.openInMssqlExtensionFromAzureResources",
+                    "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
+                    "group": "1_MSSQL_primary@0"
+                },
                 {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
@@ -929,52 +935,45 @@
             ],
             "commandPalette": [
                 {
+                    "command": "mssql.openInMssqlExtensionFromAzureResources",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.viewBackgroundTaskLogs",
                     "when": "false"
                 },
                 {
-                    "command": "mssql.shortcutsConfiguration.open",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.shortcutsConfiguration.open"
                 },
                 {
-                    "command": "mssql.quickQueries.run1",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run1"
                 },
                 {
-                    "command": "mssql.quickQueries.run2",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run2"
                 },
                 {
-                    "command": "mssql.quickQueries.run3",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run3"
                 },
                 {
-                    "command": "mssql.quickQueries.run4",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run4"
                 },
                 {
-                    "command": "mssql.quickQueries.run5",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run5"
                 },
                 {
-                    "command": "mssql.quickQueries.run6",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run6"
                 },
                 {
-                    "command": "mssql.quickQueries.run7",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run7"
                 },
                 {
-                    "command": "mssql.quickQueries.run8",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run8"
                 },
                 {
-                    "command": "mssql.quickQueries.run9",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run9"
                 },
                 {
-                    "command": "mssql.quickQueries.run10",
-                    "when": "config.mssql.preview.shortcutsConfiguration || config.mssql.enableExperimentalFeatures"
+                    "command": "mssql.quickQueries.run10"
                 },
                 {
                     "command": "mssql.notebooks.copyCellMessages",
@@ -987,6 +986,14 @@
                 {
                     "command": "mssql.connectWithUriOwnership",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.addAadAccount",
+                    "when": "!config.mssql.preview.useVscodeAccountsForEntraMFA"
+                },
+                {
+                    "command": "mssql.removeAadAccount",
+                    "when": "!config.mssql.preview.useVscodeAccountsForEntraMFA"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
@@ -1101,6 +1108,10 @@
                 },
                 {
                     "command": "mssql.toggleActualPlan",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "false"
                 }
             ],
@@ -1743,6 +1754,11 @@
                 "command": "mssql.notebooks.copyCellMessages",
                 "title": "%mssql.notebooks.copyCellMessages%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openInMssqlExtensionFromAzureResources",
+                "title": "%mssql.openInMssqlExtensionFromAzureResources%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1796,12 +1812,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.preview.betaResultsGrid.description%",
-                    "scope": "application"
-                },
-                "mssql.preview.shortcutsConfiguration": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.shortcutsConfiguration.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
@@ -1949,6 +1959,11 @@
                                     null
                                 ],
                                 "description": "%mssql.connectionGroup.parentId%"
+                            },
+                            "order": {
+                                "type": "number",
+                                "minimum": 0,
+                                "description": "%mssql.connectionGroup.order%"
                             }
                         }
                     }
@@ -2150,6 +2165,11 @@
                                 "type": "string",
                                 "default": "",
                                 "description": "%mssql.connection.containerName%"
+                            },
+                            "order": {
+                                "type": "number",
+                                "minimum": 0,
+                                "description": "%mssql.connection.order%"
                             }
                         }
                     },

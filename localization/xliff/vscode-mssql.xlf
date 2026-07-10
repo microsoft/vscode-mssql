@@ -862,6 +862,9 @@
       <source xml:lang="en">Canceling the query failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d09d0b9c54e5b4f0d495d4ecb562baa57fced06448e89522241c5b6e1b8641a4">
+      <source xml:lang="en">Cannot access the Docker socket. Your user may not be in the &apos;docker&apos; group, or VS Code was started before group membership took effect. Run &apos;sudo usermod -aG docker $USER&apos; and then log out and back in (or reboot) before relaunching VS Code.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
       <source xml:lang="en">Cannot cancel query as no query is running.</source>
     </trans-unit>
@@ -8916,9 +8919,6 @@
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
-    <trans-unit id="mssql.preview.shortcutsConfiguration.description">
-      <source xml:lang="en">Enables the keyboard shortcuts configuration editor and Quick Queries commands.</source>
-    </trans-unit>
     <trans-unit id="mssql.preview.betaResultsGrid.description">
       <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
     </trans-unit>
@@ -9071,6 +9071,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
+    </trans-unit>
+    <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
+      <source xml:lang="en">Open in MSSQL extension</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
       <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
@@ -9425,6 +9428,12 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.description">
       <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.order">
+      <source xml:lang="en">[Optional] A non-negative number used to sort this connection group in the Object Explorer sidebar. Groups with an &apos;order&apos; value are displayed first, lowest to highest; remaining groups follow in alphabetical order.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.order">
+      <source xml:lang="en">[Optional] A non-negative number used to sort this connection in the Object Explorer sidebar. Connections with an &apos;order&apos; value are displayed first, lowest to highest; remaining connections follow in alphabetical order.</source>
     </trans-unit>
     <trans-unit id="mssql.saveAsCsv.textIdentifier">
       <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>

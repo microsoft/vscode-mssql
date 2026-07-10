@@ -139,8 +139,8 @@ suite("BuildHelper: Build Helper tests", function (): void {
 
         const buildDirPath = buildHelper.extensionBuildDirPath;
 
-        // List of required DLLs from Microsoft.Build.Sql package
-        const requiredDacFxFiles: string[] = [
+        // List of required DLLs — all sourced from the Microsoft.Build.Sql package (tools/net8.0/)
+        const allRequiredFiles: string[] = [
             "Microsoft.Build.Sql.dll",
             "Microsoft.Data.SqlClient.dll",
             "Microsoft.Data.Tools.Schema.Sql.dll",
@@ -153,13 +153,9 @@ suite("BuildHelper: Build Helper tests", function (): void {
             "System.IO.Packaging.dll",
             "Microsoft.Data.Tools.Schema.SqlTasks.targets",
             "Microsoft.SqlServer.Server.dll",
+            "Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+            "Microsoft.Data.Tools.Sql.DesignServices.dll",
         ];
-
-        // List of required DLLs from ScriptDom package
-        const requiredScriptDomFiles: string[] = ["Microsoft.SqlServer.TransactSql.ScriptDom.dll"];
-
-        // Combine all required files
-        const allRequiredFiles = [...requiredDacFxFiles, ...requiredScriptDomFiles];
 
         // Verify each required file exists in the build directory
         for (const fileName of allRequiredFiles) {

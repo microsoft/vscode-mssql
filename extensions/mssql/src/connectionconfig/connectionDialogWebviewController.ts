@@ -101,6 +101,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     public static mainOptions: readonly (keyof IConnectionDialogProfile)[] = [
         "server",
+        "port",
         "trustServerCertificate",
         "authenticationType",
         "user",
@@ -158,6 +159,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         private _objectExplorerProvider: ObjectExplorerProvider,
         connectionToEdit?: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
+        private _openAsNewDraft?: boolean,
     ) {
         super(
             context,
@@ -198,7 +200,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this._fabricBrowseProvider = new FabricBrowseProvider(host);
 
         this.registerRpcHandlers();
-        void this.initializeDialog(connectionToEdit, initialConnectionGroup)
+        void this.initializeDialog(connectionToEdit, initialConnectionGroup, this._openAsNewDraft)
             .then(() => {
                 this.updateState();
                 this.initialized.resolve();
@@ -223,6 +225,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async initializeDialog(
         connectionToEdit: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
+        openAsNewDraft?: boolean,
     ): Promise<void> {
         const useVscodeAccounts = previewService.isFeatureEnabled(
             PreviewFeature.UseVscodeAccountsForEntraMFA,
@@ -288,7 +291,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // Load connection (if specified); happens after form is loaded so that the form can be updated
         if (connectionToEdit) {
             try {
-                await this.loadConnectionToEdit(connectionToEdit);
+                await this.loadConnectionToEdit(connectionToEdit, openAsNewDraft);
             } catch (err) {
                 this.loadEmptyConnection();
                 void vscode.window.showErrorMessage(getErrorMessage(err));
@@ -992,6 +995,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (propertyName !== "profileName" && propertyName !== "groupId") {
             this.state.testConnectionSucceeded = false;
         }
+
         await this.handleAzureMFAEdits(propertyName);
 
         if (
@@ -1441,7 +1445,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return undefined;
         }
 
+        this.combineServerAndPort(cleanedConnection);
+
         return cleanedConnection;
+    }
+
+    private combineServerAndPort(connection: IConnectionDialogProfile): void {
+        if (connection.port !== undefined) {
+            if (connection.server && !connection.server.includes(",")) {
+                connection.server = `${connection.server},${connection.port}`;
+            }
+            connection.port = undefined;
+        }
     }
 
     private async testConnectionStep(
@@ -1833,9 +1848,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
+    private async loadConnectionToEdit(
+        connectionToEdit: IConnectionInfo,
+        openAsNewDraft: boolean = false,
+    ): Promise<void> {
         if (connectionToEdit) {
-            await this.setConnectionForEdit(connectionToEdit);
+            await this.setConnectionForEdit(connectionToEdit, openAsNewDraft);
             this.updateState();
 
             if (this.isConnectionReadyForDatabaseFetch(this.state.connectionProfile)) {
@@ -1851,17 +1869,32 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.state.editingConnectionDisplayName = undefined;
     }
 
-    private async setConnectionForEdit(connectionToLoad: IConnectionInfo): Promise<void> {
+    private async setConnectionForEdit(
+        connectionToLoad: IConnectionInfo,
+        openAsNewDraft: boolean = false,
+    ): Promise<void> {
         this.clearFormError();
         const initializedConnection = await this.initializeConnectionForDialog(
             structuredClone(connectionToLoad),
         );
 
-        this._connectionBeingEdited = structuredClone(initializedConnection);
         this.state.connectionProfile = initializedConnection;
         this.state.selectedInputMode = ConnectionInputMode.Parameters;
-        this.state.isEditingConnection = true;
-        this.state.editingConnectionDisplayName = getConnectionDisplayName(initializedConnection);
+
+        if (openAsNewDraft) {
+            // pre-filling the form, but not editing an existing connection
+            this.state.connectionProfile.id = undefined;
+            this.state.connectionProfile.groupId = undefined;
+            this._connectionBeingEdited = undefined;
+            this.state.isEditingConnection = false;
+            this.state.editingConnectionDisplayName = undefined;
+        } else {
+            // editing an existing connection
+            this._connectionBeingEdited = structuredClone(initializedConnection);
+            this.state.isEditingConnection = true;
+            this.state.editingConnectionDisplayName =
+                getConnectionDisplayName(initializedConnection);
+        }
 
         await this.updateItemVisibility();
         await this.handleAzureMFAEdits("authenticationType");
@@ -1876,8 +1909,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         const connectionDraft = structuredClone(initializedConnection) as IConnectionDialogProfile;
+        // clear properties that will be unique for a cloned connection
         connectionDraft.id = undefined;
         connectionDraft.profileName = undefined;
+        delete (connectionDraft as IConnectionProfile).order;
+
+        // clear management properties that aren't serialized
         delete (connectionDraft as IConnectionProfileWithSource).configSource;
 
         this._connectionBeingEdited = undefined;
@@ -1910,6 +1947,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.logger.debug(
                 "Connection string connection found in Connection Dialog initialization; should have been converted.",
             );
+        }
+
+        // The server is serialized to config in "server,port" form; split the port into its own
+        // field so it can be shown in the dedicated port input next to the server input.
+        if (connection.server?.includes(",")) {
+            const commaIndex = connection.server.indexOf(",");
+            const portString = connection.server.substring(commaIndex + 1).trim();
+            const parsedPort = Number(portString);
+
+            if (portString !== "" && !isNaN(parsedPort)) {
+                connection.server = connection.server.substring(0, commaIndex).trim();
+                connection.port = parsedPort;
+            }
         }
 
         return connection;

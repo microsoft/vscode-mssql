@@ -152,6 +152,8 @@ export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
+export const cmdOpenInMssqlExtensionFromAzureResources =
+    "mssql.openInMssqlExtensionFromAzureResources";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
@@ -400,6 +402,13 @@ export const flatFileImportFileTypes = ["csv", "txt"];
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
+
+/**
+ * Error substrings from Docker daemon stderr that indicate a socket permission
+ * problem (not a stopped daemon). These are system-level strings from Linux/Docker
+ * and are not locale-dependent.
+ */
+export const dockerPermissionErrorPatterns = ["permission denied", "eacces"];
 
 // SQL Database Projects Constants
 export const DSP_PREFIX = "Microsoft.Data.Tools.Schema.Sql.Sql";
