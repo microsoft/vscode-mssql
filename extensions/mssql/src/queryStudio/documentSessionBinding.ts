@@ -81,6 +81,14 @@ export class DocumentSessionBinding implements vscode.Disposable {
         return { dispose: () => this.onChangeHandlers.delete(handler) };
     }
 
+    /**
+     * Stable id of the profile this document last connected with (save-as
+     * continuity: the adopted document reconnects to the same profile).
+     */
+    get currentProfileId(): string | undefined {
+        return this.lastProfileRef ? stableProfileId(this.lastProfileRef) : undefined;
+    }
+
     private fireChange(): void {
         for (const handler of [...this.onChangeHandlers]) {
             handler();

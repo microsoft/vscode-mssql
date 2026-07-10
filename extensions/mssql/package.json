@@ -379,6 +379,9 @@
                 "selector": [
                     {
                         "filenamePattern": "*.sql"
+                    },
+                    {
+                        "filenamePattern": "*.mssql"
                     }
                 ],
                 "priority": "option"
@@ -399,7 +402,8 @@
             {
                 "id": "sql",
                 "extensions": [
-                    ".sql"
+                    ".sql",
+                    ".mssql"
                 ],
                 "aliases": [
                     "SQL"

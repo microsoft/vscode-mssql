@@ -1157,6 +1157,22 @@ export const OBS_CONTRACT: Registry = {
             notes: "Delta re-snapshot when a watched feature's configuration changes while capture is active. Same classification rules as settings.snapshot.",
         },
         {
+            name: "queryStudio.saveAs.adopted",
+            kind: "event",
+            phase: "instant",
+            feature: "queryStudio",
+            processRoles: ["extensionHost"],
+            timingClass: "sameProcessMonotonic",
+            measurementEligible: false,
+            attrs: {
+                extension: "safeEnum",
+                reopened: "structuralMetadata",
+                withConnection: "structuralMetadata",
+            },
+            attrsComplete: false,
+            notes: "An untitled Query Studio document was saved to disk and the saved file was adopted back into Query Studio (reopened=true when VS Code had demoted it to the plain text editor), optionally with the session's connection handed off.",
+        },
+        {
             name: "queryStudio.runRecord.captured",
             kind: "event",
             phase: "instant",

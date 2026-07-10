@@ -233,6 +233,8 @@ export function registerQueryStudio(context: vscode.ExtensionContext): void {
 function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     registerQueryStudioPerfProbe(context);
     registerQueryStudioActiveTextEditorRedirect(context);
+    registerQueryStudioSaveAsContinuity(context);
+    void ensureMssqlFileAssociation();
     // mssql-def: virtual documents for scripted go-to-definition (LS-4);
     // registered once with the QS surface, shared by every controller.
     registerDefinitionContentProvider(context);
@@ -352,6 +354,142 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
             });
         }),
         { dispose: () => replayController?.dispose() },
+    );
+}
+
+/**
+ * `.mssql` is the Query-Studio-first extension (contributed to the sql
+ * language + the QS custom-editor selector). The customEditors contribution
+ * stays priority "option" so ordinary .sql files are not hijacked — this
+ * makes QS the DEFAULT editor for `*.mssql` the same way VS Code's own
+ * "Configure default editor" does: a workbench.editorAssociations entry.
+ * Written once, globally, only when the user has no association yet.
+ */
+async function ensureMssqlFileAssociation(): Promise<void> {
+    try {
+        const config = vscode.workspace.getConfiguration();
+        const associations =
+            config.get<Record<string, string>>("workbench.editorAssociations") ?? {};
+        if (associations["*.mssql"] !== undefined) {
+            return; // user already decided — never overwrite
+        }
+        await config.update(
+            "workbench.editorAssociations",
+            { ...associations, "*.mssql": QUERY_STUDIO_VIEW_TYPE },
+            vscode.ConfigurationTarget.Global,
+        );
+    } catch {
+        // Best-effort: without the association, "Reopen With" still works.
+    }
+}
+
+/**
+ * Untitled Save As continuity (doc 04 §7.2 gap): when an untitled Query
+ * Studio document is saved to disk, VS Code closes the custom editor and
+ * opens the new file in the DEFAULT editor — for `.sql` (where QS is
+ * priority "option") that silently demotes the user to the plain text
+ * editor mid-session. Watch the tab replacement (untitled QS custom tab
+ * closes, a file text tab opens moments later), reopen the saved file in
+ * Query Studio, and hand the connection context to the adopted document so
+ * the session continues on the same profile/database.
+ */
+function registerQueryStudioSaveAsContinuity(context: vscode.ExtensionContext): void {
+    let pendingSaveAs:
+        | { at: number; group: vscode.TabGroup; profileId?: string; database?: string }
+        | undefined;
+    // A real Save As replaces the tab within one or two tab events; a longer
+    // gap means the user closed the untitled editor and moved on — never
+    // adopt an unrelated file they open later.
+    const SAVE_AS_ADOPT_WINDOW_MS = 1500;
+    context.subscriptions.push(
+        vscode.window.tabGroups.onDidChangeTabs((event) => {
+            for (const tab of event.closed) {
+                if (
+                    tab.input instanceof vscode.TabInputCustom &&
+                    tab.input.viewType === QUERY_STUDIO_VIEW_TYPE &&
+                    tab.input.uri.scheme === "untitled"
+                ) {
+                    // The model may still be alive (panel dispose races tab
+                    // events) — capture the connection for the handoff.
+                    const model = liveModels.get(tab.input.uri.toString());
+                    const profileId = model?.sessionBinding.currentProfileId;
+                    const database = model?.sessionBinding.connectionState.database;
+                    pendingSaveAs = {
+                        at: Date.now(),
+                        group: tab.group,
+                        ...(profileId ? { profileId } : {}),
+                        ...(database ? { database } : {}),
+                    };
+                }
+            }
+            if (!pendingSaveAs || Date.now() - pendingSaveAs.at > SAVE_AS_ADOPT_WINDOW_MS) {
+                return;
+            }
+            for (const tab of event.opened) {
+                if (tab.group !== pendingSaveAs.group) {
+                    continue;
+                }
+                // .mssql saves reopen natively as a Query Studio custom tab
+                // (workbench.editorAssociations default) — only the
+                // connection handoff is needed. .sql saves land in the plain
+                // text editor and are re-adopted with openWith.
+                const customAdopt =
+                    tab.input instanceof vscode.TabInputCustom &&
+                    tab.input.viewType === QUERY_STUDIO_VIEW_TYPE &&
+                    tab.input.uri.scheme === "file";
+                const textAdopt =
+                    tab.input instanceof vscode.TabInputText &&
+                    tab.input.uri.scheme === "file" &&
+                    /\.(sql|mssql)$/i.test(tab.input.uri.fsPath);
+                if (!customAdopt && !textAdopt) {
+                    continue;
+                }
+                const target = (tab.input as vscode.TabInputCustom | vscode.TabInputText).uri;
+                const handoff = pendingSaveAs;
+                pendingSaveAs = undefined;
+                diag.emit({
+                    feature: "queryStudio",
+                    kind: "event",
+                    type: "queryStudio.saveAs.adopted",
+                    status: "ok",
+                    fields: {
+                        extension: {
+                            raw: path.extname(target.fsPath).toLowerCase(),
+                            cls: "diagnostic.metadata",
+                        },
+                        reopened: { raw: textAdopt, cls: "diagnostic.metadata" },
+                        withConnection: {
+                            raw: handoff.profileId !== undefined,
+                            cls: "diagnostic.metadata",
+                        },
+                    },
+                });
+                if (handoff.profileId) {
+                    const uriKey = target.toString();
+                    const adoptedModel = liveModels.get(uriKey);
+                    if (adoptedModel) {
+                        // Already resolved (native .mssql reopen won the race).
+                        void adoptedModel.applyOpenContext({
+                            profileId: handoff.profileId,
+                            ...(handoff.database ? { database: handoff.database } : {}),
+                        });
+                    } else {
+                        pendingOpenContexts.set(uriKey, {
+                            profileId: handoff.profileId,
+                            ...(handoff.database ? { database: handoff.database } : {}),
+                        });
+                    }
+                }
+                if (textAdopt) {
+                    void vscode.commands.executeCommand(
+                        "vscode.openWith",
+                        target,
+                        QUERY_STUDIO_VIEW_TYPE,
+                    );
+                }
+                return;
+            }
+        }),
     );
 }
 
