@@ -38,7 +38,6 @@
     "activationEvents": [
         "onUri",
         "onCustomEditor:mssql.queryStudio",
-        "onCustomEditor:mssql.queryResultsSnapshot",
         "onCommand:mssql.loadCompletionExtension",
         "onNotebook:jupyter-notebook"
     ],
@@ -414,16 +413,6 @@
                     }
                 ],
                 "priority": "option"
-            },
-            {
-                "viewType": "mssql.queryResultsSnapshot",
-                "displayName": "Pinned SQL Results",
-                "selector": [
-                    {
-                        "filenamePattern": "*.mssqlresults"
-                    }
-                ],
-                "priority": "default"
             }
         ],
         "notebookRenderer": [

@@ -54,29 +54,27 @@ suite("queryResults pinned document contract", () => {
         expect(isPinnedResultsState(undefined)).to.equal(false);
     });
 
-    test("package.json contributes the custom editor and activation event", () => {
+    test("pinned results are a WebviewPanel, NOT a custom editor (breadcrumb regression)", () => {
+        // Dogfood 2026-07-10: file-like custom-editor resources get a
+        // breadcrumbs row that just repeats the tab title for our virtual
+        // single-segment path. The surface is a plain WebviewPanel now —
+        // this pins the contribution's ABSENCE so it cannot quietly return.
         const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
             activationEvents?: string[];
             contributes?: {
-                customEditors?: Array<{
-                    viewType: string;
-                    selector: Array<{ filenamePattern?: string }>;
-                    priority?: string;
-                }>;
+                customEditors?: Array<{ viewType: string }>;
             };
         };
-        expect(packageJson.activationEvents).to.include(
+        expect(packageJson.activationEvents).to.not.include(
             `onCustomEditor:${PINNED_RESULTS_VIEW_TYPE}`,
         );
         const editor = packageJson.contributes?.customEditors?.find(
             (entry) => entry.viewType === PINNED_RESULTS_VIEW_TYPE,
         );
-        expect(editor, "customEditors entry").to.not.equal(undefined);
-        expect(editor!.selector.map((s) => s.filenamePattern)).to.include("*.mssqlresults");
-        expect(editor!.priority).to.equal("default");
-        // The scheme constant is what openPinnedResultsDocument mints — a
-        // rename that forgets one side should fail here.
+        expect(editor, "customEditors entry must stay absent").to.equal(undefined);
+        // The scheme constant survives as the lease-owner/context identity —
+        // a rename that forgets one side should fail here.
         expect(PINNED_RESULTS_SCHEME).to.equal("mssql-query-results-snapshot");
     });
 });
