@@ -33,6 +33,7 @@ import { registerPerfApi } from "./perf/perfApi";
 import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
 import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
 import { registerQueryStudio } from "./queryStudio/queryStudioEditorProvider";
+import { registerQueryParticipant } from "./queryResults/queryParticipant";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { registerSdkLanguageModelProviders } from "./copilot/sdkLanguageModels";
 import { startStsDiagListener } from "./diagnostics/stsDiagListener";
@@ -112,6 +113,11 @@ async function activateInternal(context: vscode.ExtensionContext): Promise<IExte
 
     initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
     registerSqlToolsMcpServer(context, controller.connectionManager, SqlToolsServerClient.instance);
+
+    // @query (C2D-6): thin participant over the query-results platform.
+    // Always registered (its contribution is static); the handler itself
+    // explains when the Query Studio feature area is off.
+    registerQueryParticipant(context);
 
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",

@@ -282,6 +282,30 @@
         },
         "chatParticipants": [
             {
+                "id": "mssql.query",
+                "name": "query",
+                "description": "Analyze Query Studio results and pinned snapshots (bounded, confirmed access)",
+                "isSticky": false,
+                "commands": [
+                    {
+                        "name": "list",
+                        "description": "List live Query Studio results and snapshots"
+                    },
+                    {
+                        "name": "summarize",
+                        "description": "Schema, row counts, and null ratios for the active results (no raw values)"
+                    },
+                    {
+                        "name": "profile",
+                        "description": "Column profile including min/max values (asks before sharing values)"
+                    },
+                    {
+                        "name": "pin",
+                        "description": "Pin the active results to a read-only tab that survives reruns"
+                    }
+                ]
+            },
+            {
                 "id": "mssql.agent",
                 "name": "mssql",
                 "description": "MSSQL extension GitHub Copilot agent",
