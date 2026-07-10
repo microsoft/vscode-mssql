@@ -55,6 +55,10 @@ export class ExecutionHost {
     private lastResult: RunResult | undefined;
     private lastRunText: string | undefined;
     private activeRunRecordId: string | undefined;
+    /** Latest execute that arrived mid-run; starts when the run settles. */
+    private pendingRerun:
+        | { text: string; options: Parameters<ExecutionHost["execute"]>[1] }
+        | undefined;
     private msToFirstResult: number | undefined;
     private lastTuning: QueryTuningSnapshot | undefined;
     executionState: QsExecutionState = { kind: "idle" };
@@ -89,7 +93,14 @@ export class ExecutionHost {
         }
     }
 
-    /** Start a run. Returns immediately; progress flows via events. */
+    /**
+     * Start a run. Returns immediately; progress flows via events.
+     *
+     * SSMS-parity restart (dogfood 2026-07-10): executing while a run is
+     * active CANCELS it and QUEUES this request — when the canceled run
+     * reaches its terminal state the queued run starts (latest request
+     * wins under key repeat). Never a "busy" error at the user's F5.
+     */
     execute(
         text: string,
         options: {
@@ -112,8 +123,12 @@ export class ExecutionHost {
             this.executionState.kind === "executing" ||
             this.executionState.kind === "cancelRequested"
         ) {
+            this.pendingRerun = { text, options };
             void this.cancel();
-            return { started: false, reason: "Canceling the running query." };
+            return {
+                started: false,
+                reason: "Restarting — canceling the running query first.",
+            };
         }
         if (text.trim().length === 0) {
             return { started: false, reason: "Nothing to execute." };
@@ -309,6 +324,17 @@ export class ExecutionHost {
         };
         this.binding.setExecuting(false);
         this.fan((l) => l.onExecutionStateChanged());
+        // Queued restart (dogfood 2026-07-10): an execute that arrived while
+        // this run was active starts NOW — before the post-run probe, so the
+        // probe never steals the session's single query slot from the user.
+        const rerun = this.pendingRerun;
+        if (rerun) {
+            this.pendingRerun = undefined;
+            const outcome = this.execute(rerun.text, rerun.options);
+            if (outcome.started) {
+                return; // the rerun's own finishRun probes when it settles
+            }
+        }
         // Open-transaction indicator (SSMS parity): probe @@TRANCOUNT on the
         // SAME session after the run settles — a BEGIN TRAN without COMMIT
         // stays active across executions and must be visible + guarded.

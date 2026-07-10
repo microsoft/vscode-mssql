@@ -195,7 +195,7 @@ export class ExecutionOrchestrator {
             },
             onComplete: () => undefined,
         };
-        const handle = this.session.execute(
+        const handle = await this.executeWhenFree(
             sql,
             {
                 priority: "interactive",
@@ -342,7 +342,37 @@ export class ExecutionOrchestrator {
         return this.session.state !== "open";
     }
 
-    private runBatch(
+    /**
+     * Bounded busy retry (dogfood 2026-07-10): the session allows ONE active
+     * query, and short background probes (@@TRANCOUNT/@@SPID after a run,
+     * session options after connect) briefly hold the slot — a rapid F5
+     * landing in that window must WAIT for the slot, not fail the run with
+     * "one active query per STS2 session". Non-busy errors rethrow as-is.
+     */
+    private async executeWhenFree(
+        text: string,
+        opts: Parameters<ISqlSession["execute"]>[1],
+        sink: IQueryEventSink,
+        deadlineMs = 5_000,
+    ): Promise<QueryHandle> {
+        const startedAt = Date.now();
+        for (;;) {
+            try {
+                return this.session.execute(text, opts, sink);
+            } catch (error) {
+                const busy =
+                    (error as { code?: string }).code === "SqlDataPlane.Busy" &&
+                    Date.now() - startedAt < deadlineMs &&
+                    !this.cancelRequested;
+                if (!busy) {
+                    throw error;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 40));
+            }
+        }
+    }
+
+    private async runBatch(
         batch: SqlBatch,
         batchIndex: number,
         options: RunOptions,
@@ -498,7 +528,7 @@ export class ExecutionOrchestrator {
                 // Aggregation happens on the returned summary.
             },
         };
-        const handle = this.session.execute(
+        const handle = await this.executeWhenFree(
             batch.text,
             {
                 priority: "interactive",
