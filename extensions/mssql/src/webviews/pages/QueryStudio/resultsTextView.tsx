@@ -16,7 +16,7 @@ import {
 } from "../../../sharedInterfaces/queryStudio";
 import { cellDisplayText } from "../../../sharedInterfaces/queryStudioGridOps";
 import { perfMark, perfMarksEnabled } from "../../common/perfMarks";
-import type { Rpc } from "./resultsGrid";
+import type { Rpc } from "./resultsGridShared";
 
 const TEXT_VIEW_CHUNK = 5000;
 const MIN_COLUMN_WIDTH = 10;

@@ -29,6 +29,8 @@ import {
 } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
+import * as fs from "fs";
+import * as path from "path";
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
 import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -243,6 +245,12 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             vscode.Uri.joinPath(this._context.extensionUri, "dist", "views"),
         );
         const baseUrlString = baseUrl.toString() + "/";
+        // BOOT-2: modulepreload the entry's static-closure chunks (manifest
+        // emitted at bundle time) — the browser otherwise discovers ESM
+        // static imports only AFTER parsing each module (a fetch waterfall).
+        const preloads = preloadChunksFor(this._context.extensionPath, this._sourceFile)
+            .map((chunk) => `<link rel="modulepreload" nonce="${nonce}" href="${chunk}">`)
+            .join("\n\t\t\t\t\t");
 
         return `
 		<!DOCTYPE html>
@@ -252,6 +260,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<title>mssqlwebview</title>
 					<base href="${baseUrlString}"> <!-- Required for loading relative resources in the webview -->
+					${preloads}
 				<style>
 					html, body {
 						margin: 0;
@@ -734,3 +743,26 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 }
 
 export type ReducerResponse<T> = T | Promise<T>;
+
+/**
+ * BOOT-2: static-closure chunk names per webview entry, from the manifest
+ * the bundler emits beside the views. Read once, cached for the process —
+ * missing manifest (older build) degrades to no preloads, never a throw.
+ */
+let preloadManifest: Record<string, string[]> | undefined | null;
+
+function preloadChunksFor(extensionPath: string, sourceFile: string): string[] {
+    if (preloadManifest === undefined) {
+        try {
+            preloadManifest = JSON.parse(
+                fs.readFileSync(
+                    path.join(extensionPath, "dist", "views", "preload-manifest.json"),
+                    "utf8",
+                ),
+            ) as Record<string, string[]>;
+        } catch {
+            preloadManifest = null;
+        }
+    }
+    return preloadManifest?.[sourceFile] ?? [];
+}

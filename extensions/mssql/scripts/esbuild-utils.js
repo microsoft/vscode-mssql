@@ -7,7 +7,6 @@ const esbuild = require("esbuild");
 const fs = require("fs").promises;
 const logger = require("../../../scripts/terminal-logger");
 
-
 function esbuildProblemMatcherPlugin(processName) {
     return {
         name: "esbuild-problem-matcher",
@@ -71,10 +70,39 @@ async function build(config, isProd = false) {
             logger.warning(`${result.warnings.length} warnings`);
         }
 
-        // Save metafile
+        // Save metafile (named per bundle so the extension build never
+        // clobbers the webviews graph the budget test reads)
         if (result.metafile) {
-            await fs.writeFile("./webviews-metafile.json", JSON.stringify(result.metafile));
-            logger.success("Metafile saved: webviews-metafile.json");
+            const path = require("path");
+            const isWebviews = String(config.outdir ?? "").includes("views");
+            const metafileName = isWebviews
+                ? "./webviews-metafile.json"
+                : "./extension-metafile.json";
+            await fs.writeFile(metafileName, JSON.stringify(result.metafile));
+            logger.success("Metafile saved: " + metafileName);
+            if (isWebviews) {
+                // BOOT-2: per-entry static-closure manifest — the provider
+                // injects <link rel="modulepreload"> for these so the ESM
+                // import waterfall becomes one parallel fetch wave.
+                const outputs = result.metafile.outputs;
+                const manifest = {};
+                for (const [file, out] of Object.entries(outputs)) {
+                    if (!out.entryPoint || !file.endsWith(".js")) continue;
+                    const seen = new Set();
+                    const walk = (f) => {
+                        if (seen.has(f) || !outputs[f]) return;
+                        seen.add(f);
+                        for (const imp of outputs[f].imports ?? []) {
+                            if (imp.kind === "import-statement") walk(imp.path);
+                        }
+                    };
+                    walk(file);
+                    seen.delete(file);
+                    manifest[path.basename(file, ".js")] = [...seen].map((f) => path.basename(f));
+                }
+                await fs.writeFile("./dist/views/preload-manifest.json", JSON.stringify(manifest));
+                logger.success("Preload manifest saved: dist/views/preload-manifest.json");
+            }
         }
 
         await ctx.dispose();

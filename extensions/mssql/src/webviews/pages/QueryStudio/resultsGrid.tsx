@@ -74,18 +74,17 @@ import {
 } from "../../../sharedInterfaces/queryStudioGridOps";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 
-export interface Rpc {
-    sendRequest<P, R>(type: { method: string }, params: P): Promise<R>;
-}
+// BOOT-2: light shell-facing pieces live in resultsGridShared (the entry
+// chunk must never pull this module's slickgrid stack); re-exported here so
+// heavy-side consumers keep one import site.
+export { qsGridRowHeight, type Rpc } from "./resultsGridShared";
+import { qsGridRowHeight, Rpc } from "./resultsGridShared";
 
 /** Chunk size for copy fetches (same bounded window scale as materialize). */
 const COPY_CHUNK = 512;
 /** Copy guard: refuse silently-unbounded clipboard payloads. */
 const COPY_MAX_ROWS = 100_000;
 const DEFAULT_FONT_SIZE = 12;
-// Compact vertical chrome around the text (SSMS-like density). Users who
-// want airier rows raise mssql.resultsGrid.rowPadding.
-const BASE_ROW_PADDING = 6;
 
 export const COPY_TOO_LARGE_NOTICE =
     "Selection is too large to copy to the clipboard — use a smaller selection.";
@@ -97,12 +96,6 @@ export const PROCESSING_STREAMING_NOTICE =
 const QUERY_STUDIO_GRID_INITIAL_STATE = {
     frozenColumnIndex: -1,
 } satisfies FluentResultGridState;
-
-/** Grid row height: fontSize + compact base chrome + 2·padding. */
-export function qsGridRowHeight(gridStyle: QsGridStyle | undefined): number {
-    const padding = Math.max(0, gridStyle?.rowPadding ?? 0);
-    return (gridStyle?.fontSize ?? DEFAULT_FONT_SIZE) + BASE_ROW_PADDING + padding * 2;
-}
 
 /** Decode one window's null bitmap into per-cell null flags. */
 function windowNullFlags(window: QsCellWindow): (row: number, col: number) => boolean {

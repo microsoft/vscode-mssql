@@ -16,7 +16,7 @@ import {
     ExecutionPlanContext,
     ExecutionPlanContextProps,
 } from "../ExecutionPlan/executionPlanStateProvider";
-import { Rpc } from "./resultsGrid";
+import type { Rpc } from "./resultsGridShared";
 
 const LOADING_PLAN_STATE: ExecutionPlanState = {
     loadState: ApiStatus.Loading,

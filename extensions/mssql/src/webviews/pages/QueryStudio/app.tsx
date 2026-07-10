@@ -14,11 +14,12 @@
  * paint (double-rAF — the user-perceived end of a run).
  */
 
+import * as React from "react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type * as monacoNs from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { perfMarkAfterNextPaint } from "../../common/perfMarks";
+import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import {
@@ -77,10 +78,23 @@ import {
 } from "../../../sharedInterfaces/queryStudioLanguage";
 import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResultsLayout";
 import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
-import { MessagesView, ResultGridBlock } from "./results";
-import { QsResultsGridProvider, qsGridRowHeight } from "./resultsGrid";
+// BOOT-2 staged loading: the grid stack (slickgrid) and the plan surface
+// (azdataGraph) are DYNAMIC chunks — the entry carries Monaco + shell only.
+// Their CSS is hoisted here statically so lazy chunks never strand styles
+// (esbuild moves dynamic-chunk CSS out of the entry stylesheet).
+import "../../common/FluentResultGrid/FluentResultGrid.css";
+import "../../common/FluentResultGrid/FluentResultGrid.vscode.css";
+import "../../media/table.css";
+import {
+    LazyExecutionPlanView,
+    LazyMessagesView,
+    LazyQsResultsGridProvider,
+    LazyResultGridBlock,
+    prefetchGridStack,
+    ResultsSurfaceLoading,
+} from "./lazyResults";
+import { qsGridRowHeight } from "./resultsGridShared";
 import { QueryStudioResultsTextView } from "./resultsTextView";
-import { QueryStudioExecutionPlanView } from "./queryPlanTab";
 import { monacoApi } from "./monacoSetup";
 import {
     QS_ACCEPT_INLINE_SUGGESTION_ACTION,
@@ -668,6 +682,12 @@ export function QueryStudioApp() {
     const onEditorMount = useCallback(
         (editor: Editor) => {
             editorRef.current = editor;
+            // BOOT-1: the editor exists (Monaco booted); editorInteractive is
+            // the first PAINT after that — the above-the-fold moment. P1
+            // prefetch (grid chunk) kicks on the first idle slice after it.
+            perfMark("mssql.queryStudio.boot.monacoReady", {});
+            perfMarkAfterNextPaint("mssql.queryStudio.boot.editorInteractive", {});
+            prefetchGridStack();
             // Trim built-in context-menu entries that don't fit Query Studio:
             // "Go to Symbol" opens Monaco's quick-outline overlay, which
             // duplicates nothing useful here. Monaco has no public API for
@@ -1751,65 +1771,78 @@ export function QueryStudioApp() {
                                 ) : (
                                     // Lazy mounting: captions always render; grid
                                     // bodies mount near the viewport (never unmount).
-                                    <QsResultsGridProvider>
-                                        {gridResultSetSummaries.map((summary, index) => {
-                                            const isMaximized =
-                                                maximizedGrid === summary.resultSetId;
-                                            return (
-                                                <ResultGridBlock
-                                                    key={summary.resultSetId}
-                                                    rpc={rpc}
-                                                    summary={summary}
-                                                    displayOrdinal={index + 1}
-                                                    rowCount={effectiveRowCount(summary)}
-                                                    gridStyle={state?.gridStyle}
-                                                    sizing={
-                                                        singleGrid || isMaximized
-                                                            ? { kind: "fill" }
-                                                            : (resultsLayout.sizing[index] ?? {
-                                                                  kind: "fill",
-                                                              })
-                                                    }
-                                                    runActive={executing}
-                                                    hidden={
-                                                        maximizedGrid !== undefined && !isMaximized
-                                                    }
-                                                    maximized={isMaximized}
-                                                    onToggleMaximize={
-                                                        singleGrid
-                                                            ? undefined
-                                                            : () =>
-                                                                  setMaximizedGridId(
-                                                                      isMaximized
-                                                                          ? undefined
-                                                                          : summary.resultSetId,
-                                                                  )
-                                                    }
-                                                    captionExtras={
-                                                        summary.complete ? (
-                                                            <button
-                                                                className="qs-btn qs-grid-pin"
-                                                                title="Pin this result set to a read-only tab that survives reruns"
-                                                                aria-label="Pin result set"
-                                                                onClick={() =>
-                                                                    pinResults(summary.resultSetId)
-                                                                }>
-                                                                <span className="codicon codicon-pin" />
-                                                            </button>
-                                                        ) : undefined
-                                                    }
-                                                />
-                                            );
-                                        })}
-                                    </QsResultsGridProvider>
+                                    // BOOT-2: the grid stack is a dynamic chunk —
+                                    // Suspense covers the rare results-beat-chunk ms.
+                                    <React.Suspense fallback={<ResultsSurfaceLoading />}>
+                                        <LazyQsResultsGridProvider>
+                                            {gridResultSetSummaries.map((summary, index) => {
+                                                const isMaximized =
+                                                    maximizedGrid === summary.resultSetId;
+                                                return (
+                                                    <LazyResultGridBlock
+                                                        key={summary.resultSetId}
+                                                        rpc={rpc}
+                                                        summary={summary}
+                                                        displayOrdinal={index + 1}
+                                                        rowCount={effectiveRowCount(summary)}
+                                                        gridStyle={state?.gridStyle}
+                                                        sizing={
+                                                            singleGrid || isMaximized
+                                                                ? { kind: "fill" }
+                                                                : (resultsLayout.sizing[index] ?? {
+                                                                      kind: "fill",
+                                                                  })
+                                                        }
+                                                        runActive={executing}
+                                                        hidden={
+                                                            maximizedGrid !== undefined &&
+                                                            !isMaximized
+                                                        }
+                                                        maximized={isMaximized}
+                                                        onToggleMaximize={
+                                                            singleGrid
+                                                                ? undefined
+                                                                : () =>
+                                                                      setMaximizedGridId(
+                                                                          isMaximized
+                                                                              ? undefined
+                                                                              : summary.resultSetId,
+                                                                      )
+                                                        }
+                                                        captionExtras={
+                                                            summary.complete ? (
+                                                                <button
+                                                                    className="qs-btn qs-grid-pin"
+                                                                    title="Pin this result set to a read-only tab that survives reruns"
+                                                                    aria-label="Pin result set"
+                                                                    onClick={() =>
+                                                                        pinResults(
+                                                                            summary.resultSetId,
+                                                                        )
+                                                                    }>
+                                                                    <span className="codicon codicon-pin" />
+                                                                </button>
+                                                            ) : undefined
+                                                        }
+                                                    />
+                                                );
+                                            })}
+                                        </LazyQsResultsGridProvider>
+                                    </React.Suspense>
                                 )
                             ) : visibleActiveTab === "queryPlan" ? (
-                                <QueryStudioExecutionPlanView
-                                    rpc={rpc}
-                                    executionPlanState={queryPlanTabState?.executionPlanState}
-                                />
+                                // BOOT-2/P2: azdataGraph loads on FIRST plan-tab
+                                // activation only — never at init.
+                                <React.Suspense fallback={<ResultsSurfaceLoading />}>
+                                    <LazyExecutionPlanView
+                                        rpc={rpc}
+                                        executionPlanState={queryPlanTabState?.executionPlanState}
+                                    />
+                                </React.Suspense>
                             ) : (
-                                <MessagesView rpc={rpc} messages={messages} />
+                                <React.Suspense fallback={<ResultsSurfaceLoading />}>
+                                    <LazyMessagesView rpc={rpc} messages={messages} />
+                                </React.Suspense>
                             )}
                         </div>
                     </div>

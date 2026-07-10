@@ -65,8 +65,10 @@ const config = {
     },
     tsconfig: "./tsconfig.webviews.json",
     plugins: [esbuildProblemMatcherPlugin("webviews")],
-    sourcemap: isProd ? false : "inline",
-    metafile: !isProd,
+    // BOOT-2: linked (external) maps in dev — inline maps made the webview fetch ~6x the code bytes on every open (maps load only in devtools).
+    sourcemap: isProd ? false : "linked",
+    // Always emit: the bundle-budget test reads the metafile to FAIL the suite when a heavy dependency re-enters the entry static closure.
+    metafile: true,
     minify: isProd,
     format: "esm",
     splitting: true,
