@@ -25,6 +25,7 @@
 
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { ISqlConnectionService } from "../sqlDataPlane/api";
+import { AuxiliaryCatalog } from "./auxiliaryCatalog";
 import { CatalogSnapshot, SchemaContextRequest, SchemaContextResult } from "./catalogModel";
 import {
     DataPlaneMetadataSessionSource,
@@ -79,6 +80,12 @@ export interface ServerCatalogLease {
     refresh(): Promise<void>;
     /** §4.4: no server-scope digest — validation IS re-hydration. */
     ensureFresh(policy: ServerMetadataFreshnessPolicy): Promise<FreshServerCatalogResult>;
+    /**
+     * Lazy server-scoped sections (OE_V1_PARITY_PLAN §2.2): logins, server
+     * roles, credentials, endpoints, … — fetched on first folder expand,
+     * never at connect. Change notifications ride onDidChange.
+     */
+    readonly auxiliary: AuxiliaryCatalog;
     onDidChange(listener: () => void): { dispose(): void };
     dispose(): void;
 }
@@ -242,6 +249,7 @@ export class MetadataStore {
             pin: () => resolved.service.pin(),
             refresh: () => resolved.service.refresh(),
             ensureFresh: (policy) => resolved.service.ensureFresh(policy),
+            auxiliary: resolved.service.auxiliary,
             onDidChange: (listener) => resolved.service.onDidChange(listener),
             dispose(): void {
                 if (disposed) {

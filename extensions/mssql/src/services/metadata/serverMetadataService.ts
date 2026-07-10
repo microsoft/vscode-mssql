@@ -17,6 +17,7 @@
 
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { ISqlSession } from "../sqlDataPlane/api";
+import { AuxiliaryCatalog, SERVER_AUX_SECTIONS } from "./auxiliaryCatalog";
 import { FreshServerCatalogResult, ServerMetadataFreshnessPolicy } from "./cache/metadataFreshness";
 import { MetadataSessionSource, runMetadataQuery } from "./metadataService";
 
@@ -81,8 +82,14 @@ export class ServerMetadataService {
     private hydrating: Promise<void> | undefined;
     private lastHydratedAtMs: number | undefined;
     private listeners = new Set<() => void>();
+    /** Lazy server-scoped sections (B23) — same session source, one change stream. */
+    readonly auxiliary: AuxiliaryCatalog;
+    private auxSubscription: { dispose(): void };
 
-    constructor(private readonly sessions: MetadataSessionSource) {}
+    constructor(private readonly sessions: MetadataSessionSource) {
+        this.auxiliary = new AuxiliaryCatalog(sessions, SERVER_AUX_SECTIONS, "metadataStore:aux");
+        this.auxSubscription = this.auxiliary.onDidChange(() => this.notify());
+    }
 
     onDidChange(listener: () => void): { dispose(): void } {
         this.listeners.add(listener);
@@ -279,6 +286,8 @@ export class ServerMetadataService {
     }
 
     dispose(): void {
+        this.auxSubscription.dispose();
+        this.auxiliary.dispose();
         this.listeners.clear();
     }
 }
