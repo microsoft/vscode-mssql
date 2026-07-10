@@ -15,6 +15,7 @@ import {
     OeV2ProfileRecord,
     OeV2ProfileTree,
 } from "../sessions/oeV2ProfileAdapter";
+import { commandFlagsFor } from "../commands/oeV2CommandRegistry";
 import { capabilitiesFor, contextValueFor } from "./oeV2Capabilities";
 import {
     connectionTooltipLines,
@@ -97,6 +98,8 @@ export function connectionNode(
         tooltip: lines.join("\n"),
         collapsible: true,
         connectionId: profile.profileId,
+        // DB-scoped connections carry their database (K4 backup targeting).
+        ...(profile.database ? { database: profile.database } : {}),
         readiness: NOT_APPLICABLE,
         capabilities: capabilitiesFor(kind),
         icon: facts.state === "connected" ? "Server_green" : "Server_red",
@@ -162,5 +165,5 @@ export function childrenOfGroup(
 
 /** Context value used by the vscode edge (kept here so tests stay pure). */
 export function nodeContextValue(node: OeV2Node): string {
-    return contextValueFor(node.kind, node.capabilities);
+    return contextValueFor(node.kind, node.capabilities, commandFlagsFor(node));
 }

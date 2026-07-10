@@ -751,6 +751,16 @@
                     "group": "4_oe2_copy@1"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.backupDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=backup\\b/",
+                    "group": "2_MSSQL_admin@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restore\\b/",
+                    "group": "2_MSSQL_admin@2"
+                },
+                {
                     "command": "mssql.objectExplorerV2.legacyActions",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(connectedServer|database|object)\\b/",
                     "group": "5_oe2_legacy@0"
@@ -1221,6 +1231,14 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.legacyActions",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.backupDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
                     "when": "false"
                 },
                 {
@@ -2255,6 +2273,16 @@
             {
                 "command": "mssql.objectExplorerV2.legacyActions",
                 "title": "Legacy Actions…",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.backupDatabase",
+                "title": "Backup…",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.restoreDatabase",
+                "title": "Restore…",
                 "category": "MS SQL"
             },
             {

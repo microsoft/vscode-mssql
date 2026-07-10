@@ -29,8 +29,8 @@ import {
     HandoffConnectionSeam,
     OeV2ClassicHandoffService,
 } from "./legacy/oeV2ClassicHandoffService";
-import { toLegacyTreeNode } from "./legacy/oeV2LegacyNodeAdapter";
-import { IConnectionProfile } from "../../models/interfaces";
+import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
+import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
 import { OeV2Node } from "./tree/oeV2Node";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
 
@@ -223,7 +223,7 @@ export function activateObjectExplorerV2(
                 if (!node?.connectionId || !controller) {
                     return;
                 }
-                const policies = policiesForNode(node.kind);
+                const policies = policiesForNode(node.kind, node.database);
                 if (policies.length === 0 || !handoff) {
                     void vscode.window.showInformationMessage(
                         "No legacy actions are available for this node in the OE v2 preview.",
@@ -237,45 +237,32 @@ export function activateObjectExplorerV2(
                 if (!picked) {
                     return;
                 }
-                const facts = await controller.handoffFacts(node.connectionId);
-                if (!facts) {
-                    void vscode.window.showErrorMessage(
-                        "Connect this profile in Object Explorer v2 first.",
-                    );
-                    return;
-                }
-                const profile = facts.stored as unknown as IConnectionProfile;
-                const ownerUri = await handoff.ensureOwnerUri(
-                    node.connectionId,
-                    facts.fingerprint,
-                    profile,
-                    picked.policy.feature,
-                );
-                if (!ownerUri) {
-                    return; // declined or connect failed (already surfaced)
-                }
-                try {
-                    if (picked.policy.level === "h1") {
-                        await vscode.commands.executeCommand(
-                            picked.policy.classicCommand,
-                            ownerUri,
-                        );
-                    } else {
-                        const adapted = toLegacyTreeNode(node, ownerUri, profile);
-                        if (!adapted) {
-                            throw new Error("node kind not adaptable");
-                        }
-                        await vscode.commands.executeCommand(picked.policy.classicCommand, adapted);
-                    }
-                } catch (error) {
-                    // Guarded route: synthetic nodes are best-effort (§12.3).
-                    void vscode.window.showErrorMessage(
-                        `The legacy feature could not run with an Object Explorer v2 node (${
-                            error instanceof Error ? error.message : String(error)
-                        }). Use Classic Object Explorer for this command.`,
-                    );
+                // B25: same redirect library as the direct commands.
+                const outcome = await redirectToClassic(picked.policy.feature, node, {
+                    facts: controller,
+                    handoff,
+                });
+                if (!outcome.ok && outcome.error) {
+                    void vscode.window.showErrorMessage(outcome.error);
                 }
             },
+        ),
+        // B25 (K4): first-class admin commands through the redirect library —
+        // classic registrations/handlers untouched, targeting via oe2:cmd
+        // context flags from the command registry.
+        ...OE_V2_COMMANDS.filter((def) => def.route === "legacyRedirect").map((def) =>
+            vscode.commands.registerCommand(def.id, async (node?: OeV2Node) => {
+                if (!node?.connectionId || !controller || !handoff) {
+                    return;
+                }
+                const outcome = await redirectToClassic(def.feature, node, {
+                    facts: controller,
+                    handoff,
+                });
+                if (!outcome.ok && outcome.error) {
+                    void vscode.window.showErrorMessage(outcome.error);
+                }
+            }),
         ),
         vscode.commands.registerCommand("mssql.objectExplorerV2.showStatus", () => {
             const channel = vscode.window.createOutputChannel("MSSQL Object Explorer v2");

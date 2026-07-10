@@ -28,7 +28,11 @@ const FLAG_ORDER: readonly (keyof OeV2NodeCapabilities & string)[] = [
 ];
 
 /** Serialize capabilities (+node kind) into the tree-item context value. */
-export function contextValueFor(kind: OeV2NodeKind, caps: OeV2NodeCapabilities): string {
+export function contextValueFor(
+    kind: OeV2NodeKind,
+    caps: OeV2NodeCapabilities,
+    extraFlags: readonly string[] = [],
+): string {
     const parts: string[] = [`oe2:kind=${kind}`];
     for (const flag of FLAG_ORDER) {
         if (caps[flag] === true) {
@@ -38,6 +42,7 @@ export function contextValueFor(kind: OeV2NodeKind, caps: OeV2NodeCapabilities):
     for (const feature of caps.legacyHandoff ?? []) {
         parts.push(`oe2:handoff=${feature}`);
     }
+    parts.push(...extraFlags);
     return parts.join(",");
 }
 

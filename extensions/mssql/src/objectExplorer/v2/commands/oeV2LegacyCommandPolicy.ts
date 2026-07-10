@@ -37,7 +37,9 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
         label: "Backup Database… (legacy)",
         classicCommand: "mssql.backupDatabase",
         level: "h2",
-        nodeKinds: ["database"],
+        // connectedServer ONLY when the connection is DB-scoped (the node
+        // carries a database) — policiesForNode filters on that fact.
+        nodeKinds: ["database", "connectedServer"],
         databaseScoped: true,
     },
     {
@@ -71,6 +73,16 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
     },
 ];
 
-export function policiesForNode(kind: OeV2NodeKind): LegacyCommandPolicy[] {
-    return LEGACY_COMMAND_POLICIES.filter((policy) => policy.nodeKinds.includes(kind));
+export function policiesForNode(kind: OeV2NodeKind, nodeDatabase?: string): LegacyCommandPolicy[] {
+    return LEGACY_COMMAND_POLICIES.filter((policy) => {
+        if (!policy.nodeKinds.includes(kind)) {
+            return false;
+        }
+        // Database-scoped features on a top-level connection need the
+        // connection itself to be DB-scoped (K4 backup rule).
+        if (policy.databaseScoped && kind === "connectedServer" && nodeDatabase === undefined) {
+            return false;
+        }
+        return true;
+    });
 }
