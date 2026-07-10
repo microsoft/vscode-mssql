@@ -80,8 +80,12 @@ import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResul
 import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
 // BOOT-2 staged loading: the grid stack (slickgrid) and the plan surface
 // (azdataGraph) are DYNAMIC chunks — the entry carries Monaco + shell only.
-// Their CSS is hoisted here statically so lazy chunks never strand styles
-// (esbuild moves dynamic-chunk CSS out of the entry stylesheet).
+// Their CSS is hoisted here statically so lazy chunks never strand styles.
+// ORDER IS THE CASCADE (dogfood 2026-07-10 grid-row-size regression): the
+// slickgrid THEME must load BEFORE our FluentResultGrid overrides — when
+// the theme entered via dynamic-import dedup it landed LAST and stomped
+// the row metrics (clipped rows). Keep lib css first, ours after.
+import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-fluent.css";
 import "../../common/FluentResultGrid/FluentResultGrid.css";
 import "../../common/FluentResultGrid/FluentResultGrid.vscode.css";
 import "../../media/table.css";

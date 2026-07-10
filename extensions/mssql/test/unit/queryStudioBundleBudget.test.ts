@@ -102,6 +102,13 @@ suite("Query Studio bundle budget (BOOT-3)", () => {
         const offenders = new Map<string, string>();
         for (const chunk of closure) {
             for (const input of Object.keys(outputs[chunk].inputs)) {
+                if (input.endsWith(".css")) {
+                    // CSS-only inputs (e.g. the statically-hoisted slickgrid
+                    // THEME stylesheet — cascade order demands it precede our
+                    // overrides) carry no JS parse/exec weight; the denylist
+                    // guards CODE on the init path.
+                    continue;
+                }
                 const pkg = packageOf(input);
                 for (const banned of DENYLIST) {
                     if (pkg === banned || pkg.startsWith(`${banned}/`)) {
