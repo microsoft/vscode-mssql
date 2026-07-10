@@ -26,31 +26,58 @@ import {
 } from "../../src/objectExplorer/v2/tree/oeV2Hierarchy";
 import { childrenOfGroup } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
 import {
+    databaseFolderChildren,
+    objectChildren,
+    OeV2AuxAccess,
+    OeV2AuxItemFacts,
     serverAuxFolderChildren,
     serverChildren,
 } from "../../src/objectExplorer/v2/tree/oeV2Browse";
 import { decodePath, encodePath } from "../../src/objectExplorer/v2/tree/oeV2Path";
 import { OeV2ProfileTree } from "../../src/objectExplorer/v2/sessions/oeV2ProfileAdapter";
+import type { CatalogSnapshot } from "../../src/services/metadata/catalogModel";
 
 suite("Object Explorer v2 hierarchy registry (B22)", () => {
-    test("database scope resolves the six folders in SSMS order", () => {
+    test("database scope resolves the SSMS top-level layout (B24)", () => {
         const folders = resolveFolders("database", {});
-        expect(folders.map((def) => def.id)).to.deep.equal([
-            "tables",
-            "views",
-            "storedProcedures",
-            "functions",
-            "synonyms",
-            "schemas",
-        ]);
         expect(folders.map((def) => def.label)).to.deep.equal([
             "Tables",
             "Views",
+            "Synonyms",
+            "Programmability",
+            "Service Broker",
+            "Storage",
+            "Security",
+        ]);
+        // Programmability nests the object folders + aux leaves in SSMS order.
+        expect(
+            resolveFolders("database", {}, { parentId: "programmability" }).map((def) => def.label),
+        ).to.deep.equal([
             "Stored Procedures",
             "Functions",
-            "Synonyms",
-            "Schemas",
+            "Database Triggers",
+            "Assemblies",
+            "Types",
+            "Sequences",
         ]);
+        expect(
+            resolveFolders("database", {}, { parentId: "dbSecurity" }).map((def) => def.label),
+        ).to.deep.equal([
+            "Users",
+            "Roles",
+            "Schemas",
+            "Asymmetric Keys",
+            "Certificates",
+            "Symmetric Keys",
+            "Database Scoped Credentials",
+            "Database Audit Specifications",
+            "Security Policies",
+            "Always Encrypted Keys",
+        ]);
+        // Azure hides Service Broker (STS ValidFor).
+        expect(
+            resolveFolders("database", { isAzure: true }).map((def) => def.label),
+        ).to.not.include("Service Broker");
     });
 
     test("server scope resolves Databases, Security, Server Objects (B23)", () => {
@@ -364,6 +391,301 @@ suite("Object Explorer v2 server-level folders (B23)", () => {
             connectionId: "c1",
             folder: "security/logins",
             name: "CONTOSO\svc account",
+        };
+        expect(decodePath(encodePath(path))).to.deep.equal(path);
+    });
+});
+
+suite("Object Explorer v2 database parity (B24)", () => {
+    // Minimal structural snapshot: only the members databaseFolderChildren touches.
+    function fakeSnapshot(
+        objects: { objectId: number; schema: string; name: string; kind: string }[],
+    ): CatalogSnapshot {
+        return {
+            readiness: { objects: "ready", synonyms: "ready", schemas: "ready" },
+            listObjects: (schema?: string, kinds?: string[]) =>
+                objects.filter(
+                    (o) =>
+                        (schema === undefined || o.schema === schema) &&
+                        (kinds === undefined || kinds.includes(o.kind)),
+                ),
+            listSchemas: () => [{ name: "dbo" }],
+        } as unknown as CatalogSnapshot;
+    }
+    const READY = { readiness: "ready" } as unknown as Parameters<typeof databaseFolderChildren>[3];
+
+    function auxOf(
+        sections: Record<string, { items?: OeV2AuxItemFacts[]; failed?: boolean }>,
+    ): OeV2AuxAccess {
+        return {
+            status: (key: string) => {
+                const section = sections[key];
+                if (!section) {
+                    return undefined;
+                }
+                return section.failed
+                    ? { readiness: "failed", errorMessage: "denied" }
+                    : { readiness: "ready" };
+            },
+            items: (key: string) => sections[key]?.items,
+        };
+    }
+
+    const TABLES = [
+        { objectId: 1, schema: "dbo", name: "Orders", kind: "table" },
+        { objectId: 2, schema: "dbo", name: "OrdersHistory", kind: "table" },
+        { objectId: 3, schema: "dbo", name: "Ledger", kind: "table" },
+        { objectId: 4, schema: "dbo", name: "DroppedThing", kind: "table" },
+    ];
+    const FACETS: Record<string, { items?: OeV2AuxItemFacts[] }> = {
+        tableFacets: {
+            items: [
+                {
+                    name: "Orders",
+                    schema: "dbo",
+                    kind: "table",
+                    isSystem: false,
+                    objectId: 1,
+                    facts: { temporalType: 2, historyTableId: 2 },
+                },
+                {
+                    name: "OrdersHistory",
+                    schema: "dbo",
+                    kind: "table",
+                    isSystem: false,
+                    objectId: 2,
+                    facts: { temporalType: 1 },
+                },
+                {
+                    name: "Ledger",
+                    schema: "dbo",
+                    kind: "table",
+                    isSystem: false,
+                    objectId: 3,
+                    facts: { ledgerType: 3 },
+                },
+                {
+                    name: "DroppedThing",
+                    schema: "dbo",
+                    kind: "table",
+                    isSystem: false,
+                    objectId: 4,
+                    facts: { isDroppedLedger: 1 },
+                },
+            ],
+        },
+    };
+
+    test("K3: history/dropped excluded, suffixes + subtype icons, Dropped Ledger folder last", () => {
+        const nodes = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "tables",
+            READY,
+            fakeSnapshot(TABLES),
+            false,
+            undefined,
+            undefined,
+            {},
+            auxOf(FACETS),
+        );
+        expect(nodes.map((n) => n.label)).to.deep.equal([
+            "dbo.Orders (System-Versioned)",
+            "dbo.Ledger (Append-Only Ledger)",
+            "Dropped Ledger Tables",
+        ]);
+        expect(nodes[0].icon).to.equal("Table_Temporal");
+        expect(nodes[1].icon).to.equal("Table_Ledger");
+        expect(nodes[2].kind).to.equal("databaseFolder");
+        // Dropped Ledger folder contents render the dropped rows only.
+        const dropped = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "tables/droppedLedgerTables",
+            READY,
+            fakeSnapshot(TABLES),
+            false,
+            undefined,
+            undefined,
+            {},
+            auxOf(FACETS),
+        );
+        expect(dropped.map((n) => `${n.label}:${n.icon}`)).to.deep.equal([
+            "dbo.DroppedThing:Table_LedgerHistory",
+        ]);
+    });
+
+    test("K3: no facets yet renders flat with NO dropped-ledger folder (no empty folders)", () => {
+        const nodes = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "tables",
+            READY,
+            fakeSnapshot(TABLES),
+            false,
+            undefined,
+            undefined,
+            {},
+            auxOf({}),
+        );
+        expect(nodes.map((n) => n.label)).to.deep.equal([
+            "dbo.Orders",
+            "dbo.OrdersHistory",
+            "dbo.Ledger",
+            "dbo.DroppedThing",
+        ]);
+    });
+
+    test("K2: System Tables folder + system objects only in system-database context", () => {
+        const aux = auxOf({
+            systemObjects: {
+                items: [
+                    { name: "systhing", schema: "sys", kind: "table", isSystem: true },
+                    { name: "sysproc", schema: "sys", kind: "procedure", isSystem: true },
+                ],
+            },
+            tableFacets: { items: [] },
+        });
+        const inMaster = databaseFolderChildren(
+            "c1",
+            "master",
+            "tables",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            { isSystemDatabase: true },
+            aux,
+        );
+        expect(inMaster[0].label).to.equal("System Tables");
+        const systemTables = databaseFolderChildren(
+            "c1",
+            "master",
+            "tables/systemTables",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            { isSystemDatabase: true },
+            aux,
+        );
+        expect(systemTables.map((n) => n.label)).to.deep.equal(["sys.systhing"]);
+        const inUserDb = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "tables",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            { isSystemDatabase: false },
+            aux,
+        );
+        expect(inUserDb.every((n) => n.label !== "System Tables")).to.equal(true);
+    });
+
+    test("aux leaves: disabled badge, hideSystemItems by database context, failure honesty", () => {
+        const aux = auxOf({
+            "programmability/databaseTriggers": {
+                items: [{ name: "trgAudit", isSystem: false, subType: "disabled" }],
+            },
+            "serviceBroker/messageTypes": {
+                items: [
+                    { name: "MyMessage", isSystem: false },
+                    { name: "DEFAULT", isSystem: true },
+                ],
+            },
+            "security/users": { failed: true },
+        });
+        const triggers = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "programmability/databaseTriggers",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            {},
+            aux,
+        );
+        expect(triggers[0].label).to.equal("trgAudit");
+        expect(triggers[0].description).to.equal("disabled");
+        expect(triggers[0].icon).to.equal("Trigger_Disabled");
+        const userDbTypes = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "serviceBroker/messageTypes",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            { isSystemDatabase: false },
+            aux,
+        );
+        expect(userDbTypes.map((n) => n.label)).to.deep.equal(["MyMessage"]);
+        const masterTypes = databaseFolderChildren(
+            "c1",
+            "master",
+            "serviceBroker/messageTypes",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            { isSystemDatabase: true },
+            aux,
+        );
+        expect(masterTypes.map((n) => n.label)).to.deep.equal(["MyMessage", "DEFAULT"]);
+        const users = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "security/users",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            {},
+            aux,
+        );
+        expect(users[0].kind).to.equal("error");
+        expect(users[0].label).to.include("denied");
+    });
+
+    test("K3: history table nests under its parent, before the child folders", () => {
+        const children = objectChildren(
+            {
+                kind: "object",
+                connectionId: "c1",
+                database: "AppDb",
+                schema: "dbo",
+                name: "Orders",
+                objectKind: "table",
+            },
+            { schema: "dbo", name: "OrdersHistory" },
+        );
+        expect(children.map((n) => n.label)).to.deep.equal([
+            "dbo.OrdersHistory (History)",
+            "Columns",
+            "Keys",
+            "Foreign Keys",
+        ]);
+        expect(children[0].icon).to.equal("HistoryTable");
+        expect(children[0].collapsible).to.equal(true);
+    });
+
+    test("path codec: databaseObjectItem round-trips", () => {
+        const path = {
+            kind: "databaseObjectItem" as const,
+            connectionId: "c1",
+            database: "App/Db",
+            folder: "security/users",
+            name: "dbo.some user",
         };
         expect(decodePath(encodePath(path))).to.deep.equal(path);
     });

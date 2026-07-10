@@ -453,13 +453,15 @@ suite("Object Explorer v2 browse (B18)", () => {
         const { dbFolder } = await browseToDatabases(h);
         const appDb = (await h.controller.children(dbFolder)).find((n) => n.label === "AppDb")!;
         const folders = await h.controller.children(appDb);
+        // B24: SSMS database layout.
         expect(folders.map((n) => n.label)).to.deep.equal([
             "Tables",
             "Views",
-            "Stored Procedures",
-            "Functions",
             "Synonyms",
-            "Schemas",
+            "Programmability",
+            "Service Broker",
+            "Storage",
+            "Security",
         ]);
         await h.controller.refreshNode(appDb); // awaits catalog hydration
 
@@ -471,11 +473,22 @@ suite("Object Explorer v2 browse (B18)", () => {
         const views = await h.controller.children(folders[1]);
         expect(views.map((n) => n.label)).to.deep.equal(["dbo.OrdersView"]);
 
-        const functions = await h.controller.children(folders[3]);
+        const programmability = await h.controller.children(folders[3]);
+        expect(programmability.map((n) => n.label)).to.deep.equal([
+            "Stored Procedures",
+            "Functions",
+            "Database Triggers",
+            "Assemblies",
+            "Types",
+            "Sequences",
+        ]);
+        const functions = await h.controller.children(programmability[1]);
         expect(functions.map((n) => n.label)).to.deep.equal(["sales.Totals"]);
         expect(functions[0].icon).to.equal("TableValuedFunction");
 
-        const schemas = await h.controller.children(folders[5]);
+        const security = await h.controller.children(folders[6]);
+        const schemasFolder = security.find((n) => n.label === "Schemas")!;
+        const schemas = await h.controller.children(schemasFolder);
         expect(schemas.map((n) => n.label)).to.deep.equal(["dbo", "sales"]);
 
         // group-by-schema mode inserts schema level
@@ -526,7 +539,8 @@ suite("Object Explorer v2 browse (B18)", () => {
             "UQ_Customers_Name:Key_UniqueKey",
         ]);
 
-        const procs = await h.controller.children(folders[2]);
+        const programmability = await h.controller.children(folders[3]);
+        const procs = await h.controller.children(programmability[0]);
         const getOrders = procs.find((n) => n.label === "dbo.GetOrders")!;
         const [paramsFolder] = await h.controller.children(getOrders);
         const params = await h.controller.children(paramsFolder);

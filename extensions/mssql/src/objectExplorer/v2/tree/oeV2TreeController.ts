@@ -40,7 +40,7 @@ import {
     serverAuxFolderChildren,
     serverChildren,
 } from "./oeV2Browse";
-import { folderDef, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
+import { folderDef, isSystemDatabaseName, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
 import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { CatalogLanguageMetadataProvider } from "../../../sqlLanguage/provider/catalogProvider";
 import { createStrictScriptingService } from "../../../sqlLanguage/host/scriptingHost";
@@ -258,8 +258,29 @@ export class OeV2TreeController {
             case "connection":
                 await runtime.coordinator.refreshServer().catch(() => undefined);
                 break;
+            case "databaseFolder": {
+                if (!node.database) {
+                    break;
+                }
+                // Aux-backed leaves refresh their own section; folders with
+                // facet-driven content refresh facets ALONGSIDE the catalog.
+                const def = folderDef("database", node.path.folder);
+                const aux = runtime.coordinator.databaseAuxiliary(node.database);
+                const sections = auxSectionsFor(node.path.folder);
+                if (def && aux && sections.length > 0) {
+                    await Promise.all(
+                        sections.map((section) =>
+                            aux.refreshSection(section).catch(() => undefined),
+                        ),
+                    );
+                    if (def.section !== "objects" && def.section !== "synonyms") {
+                        break; // pure aux leaf — no catalog refresh needed
+                    }
+                }
+                await runtime.coordinator.refreshDatabase(node.database).catch(() => undefined);
+                break;
+            }
             case "database":
-            case "databaseFolder":
             case "schemaFolder":
             case "object":
             case "objectFolder":
@@ -340,7 +361,11 @@ export class OeV2TreeController {
                 // the folder list itself is static, so validation runs in
                 // the background — folder expands below block on it.
                 void runtime.coordinator.ensureDatabaseFresh(path.database).catch(() => undefined);
-                return databaseChildren(path.connectionId, path.database);
+                return databaseChildren(
+                    path.connectionId,
+                    path.database,
+                    await this.databaseScopeFacts(path.connectionId, path.database),
+                );
             }
             case "databaseFolder":
             case "schemaFolder": {
@@ -356,6 +381,13 @@ export class OeV2TreeController {
                 const fresh = await runtime.coordinator
                     .ensureDatabaseFresh(path.database)
                     .catch(() => undefined);
+                // B24: kick the LAZY aux sections this folder needs — the
+                // change stream re-renders when rows land.
+                for (const section of auxSectionsFor(path.folder)) {
+                    void runtime.coordinator
+                        .ensureDatabaseAuxSection(path.database, section)
+                        .catch(() => undefined);
+                }
                 const children = databaseFolderChildren(
                     path.connectionId,
                     path.database,
@@ -365,11 +397,34 @@ export class OeV2TreeController {
                     settings.groupBySchema,
                     path.kind === "schemaFolder" ? path.schema : undefined,
                     toFreshnessFacts(fresh),
+                    await this.databaseScopeFacts(path.connectionId, path.database),
+                    runtime.coordinator.databaseAuxiliary(path.database),
                 );
                 return this.applyFolderFilter(node, children);
             }
-            case "object":
+            case "object": {
+                const runtime = this.runtimes.get(path.connectionId);
+                if (runtime && path.objectKind === "table") {
+                    // K3: nest the history table when facets know about one.
+                    const items = runtime.coordinator
+                        .databaseAuxiliary(path.database)
+                        ?.items("tableFacets");
+                    const mine = items?.find(
+                        (item) => item.schema === path.schema && item.name === path.name,
+                    );
+                    const historyId = mine?.facts?.historyTableId ?? 0;
+                    if (historyId > 0) {
+                        const history = items?.find((item) => item.objectId === historyId);
+                        if (history?.schema) {
+                            return objectChildren(path, {
+                                schema: history.schema,
+                                name: history.name,
+                            });
+                        }
+                    }
+                }
                 return objectChildren(path);
+            }
             case "objectFolder": {
                 const runtime = this.runtimes.get(path.connectionId);
                 if (!runtime) {
@@ -401,6 +456,18 @@ export class OeV2TreeController {
     }
 
     // -- internals ---------------------------------------------------------------
+
+    /** K2 gating facts at database scope (system db → system folders/objects). */
+    private async databaseScopeFacts(
+        connectionId: string,
+        database: string,
+    ): Promise<OeV2ScopeFacts> {
+        const base = await this.serverScopeFacts(connectionId);
+        return {
+            ...base,
+            ...(isSystemDatabaseName(database) ? { isSystemDatabase: true } : {}),
+        };
+    }
 
     /**
      * K1 gating facts: an explicit profile database = database-scoped
@@ -554,6 +621,29 @@ export class OeV2TreeController {
         }
         return this.tree;
     }
+}
+
+/** Aux sections a database folder's expand must lazily hydrate (B24). */
+function auxSectionsFor(folderId: string): string[] {
+    const def = folderDef("database", folderId);
+    if (!def) {
+        return [];
+    }
+    if (def.id === "tables") {
+        return ["tableFacets"];
+    }
+    if (def.id === "views") {
+        return ["viewFacets"];
+    }
+    if (
+        def.special !== undefined ||
+        def.section === "objects" ||
+        def.section === "synonyms" ||
+        def.section === "aux"
+    ) {
+        return [];
+    }
+    return [def.section];
 }
 
 function disconnectedHint(connectionId: string) {

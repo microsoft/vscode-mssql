@@ -174,6 +174,17 @@ export class OeV2MetadataCoordinator {
         return this.databaseLeases.get(database)?.current();
     }
 
+    /** Lazy database-scoped aux sections (B24) — undefined until leased. */
+    databaseAuxiliary(database: string): AuxiliaryCatalog | undefined {
+        return this.databaseLeases.get(database)?.auxiliary;
+    }
+
+    /** Ensure the database lease exists, then lazily hydrate one aux section. */
+    async ensureDatabaseAuxSection(database: string, sectionKey: string): Promise<void> {
+        const lease = await this.ensureDatabase(database);
+        await lease.auxiliary.ensureSection(sectionKey);
+    }
+
     async refreshDatabase(database: string): Promise<void> {
         await (await this.ensureDatabase(database)).refresh();
     }

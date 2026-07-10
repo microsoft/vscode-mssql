@@ -120,13 +120,23 @@ const AUX_ITEM_ICONS: Record<string, { icon: string; disabledIcon?: string }> = 
 /** Aux item facts as the pure layer needs them (service type stays out of tree/). */
 export interface OeV2AuxItemFacts {
     readonly name: string;
+    readonly schema?: string;
+    readonly kind?: string;
     readonly subType?: string;
     readonly isSystem: boolean;
+    readonly objectId?: number;
+    readonly facts?: Readonly<Record<string, number>>;
 }
 
 export interface OeV2AuxSectionFacts {
     readonly readiness: "absent" | "loading" | "ready" | "failed";
     readonly errorMessage?: string;
+}
+
+/** Structural window onto an AuxiliaryCatalog (controller injects the real one). */
+export interface OeV2AuxAccess {
+    status(section: string): OeV2AuxSectionFacts | undefined;
+    items(section: string): readonly OeV2AuxItemFacts[] | undefined;
 }
 
 function serverFolderNode(connectionId: string, def: OeV2FolderDef): OeV2Node {
@@ -293,26 +303,30 @@ export function databaseNode(connectionId: string, info: ServerDatabaseInfo): Oe
 
 // -- database level ----------------------------------------------------------
 
+function databaseFolderNode(connectionId: string, database: string, def: OeV2FolderDef): OeV2Node {
+    const path: OeV2Path = { kind: "databaseFolder", connectionId, database, folder: def.id };
+    return {
+        id: encodePath(path),
+        path,
+        kind: "databaseFolder",
+        label: def.label,
+        collapsible: true,
+        connectionId,
+        database,
+        readiness: NOT_APPLICABLE,
+        capabilities: { canRefresh: true, canFilter: def.canFilter === true },
+        icon: def.icon ?? "Folder",
+    };
+}
+
 export function databaseChildren(
     connectionId: string,
     database: string,
     facts: OeV2ScopeFacts = {},
 ): OeV2Node[] {
-    return resolveFolders("database", facts).map((def) => {
-        const path: OeV2Path = { kind: "databaseFolder", connectionId, database, folder: def.id };
-        return {
-            id: encodePath(path),
-            path,
-            kind: "databaseFolder",
-            label: def.label,
-            collapsible: true,
-            connectionId,
-            database,
-            readiness: NOT_APPLICABLE,
-            capabilities: { canRefresh: true, canFilter: def.canFilter === true },
-            icon: def.icon ?? "Folder",
-        } satisfies OeV2Node;
-    });
+    return resolveFolders("database", facts).map((def) =>
+        databaseFolderNode(connectionId, database, def),
+    );
 }
 
 function catalogGate(
@@ -341,6 +355,15 @@ function catalogGate(
     return undefined; // ready (possibly stale) — render real children
 }
 
+/** Sections served by the main catalog snapshot (vs lazy aux sections). */
+const SNAPSHOT_SECTIONS = new Set(["objects", "synonyms", "schemas"]);
+
+/** presence:"nonEmpty" check for dropped-ledger folders over facet items. */
+function droppedLedgerItemsExist(aux: OeV2AuxAccess | undefined, def: OeV2FolderDef): boolean {
+    const items = aux?.items(def.section);
+    return items !== undefined && items.some((item) => (item.facts?.isDroppedLedger ?? 0) === 1);
+}
+
 export function databaseFolderChildren(
     connectionId: string,
     database: string,
@@ -350,22 +373,135 @@ export function databaseFolderChildren(
     groupBySchema: boolean,
     schema?: string,
     freshness?: OeV2FreshnessFacts,
+    facts: OeV2ScopeFacts = {},
+    aux?: OeV2AuxAccess,
 ): OeV2Node[] {
     const scope = `db/${connectionId}/${database}/${folder}${schema ? `/${schema}` : ""}`;
     const def = folderDef("database", folder);
     if (!def) {
         return unknownFolderError(scope, connectionId, folder);
     }
-    const gate = catalogGate(scope, connectionId, status, snapshot, def.section);
-    if (gate) {
-        return gate;
+    // Subfolders (System Tables, Dropped Ledger Tables, Programmability's
+    // children, …) — never inside a group-by-schema schema node. STS
+    // ordering: normal folders BEFORE items, sortLast folders AFTER.
+    const subDefs =
+        schema === undefined
+            ? resolveFolders("database", facts, {
+                  parentId: def.id,
+                  hasItems: (child) =>
+                      child.presence === "nonEmpty" ? droppedLedgerItemsExist(aux, child) : true,
+              })
+            : [];
+    const before = subDefs
+        .filter((child) => !child.sortLast)
+        .map((child) => databaseFolderNode(connectionId, database, child));
+    const after = subDefs
+        .filter((child) => child.sortLast)
+        .map((child) => databaseFolderNode(connectionId, database, child));
+
+    let content: OeV2Node[];
+    if (def.special === "schemas" || SNAPSHOT_SECTIONS.has(def.section)) {
+        const gate = catalogGate(scope, connectionId, status, snapshot, def.section);
+        if (gate) {
+            return [...before, ...gate, ...after];
+        }
+        content = withStaleNotice(
+            scope,
+            connectionId,
+            databaseFolderContent(
+                scope,
+                connectionId,
+                database,
+                def,
+                snapshot!,
+                groupBySchema,
+                schema,
+                aux,
+            ),
+            freshness,
+        );
+    } else if (def.section === "aux") {
+        // Pure parent folder: registry children ARE the content.
+        content = before.length + after.length === 0 ? [noItemsNode(scope, connectionId)] : [];
+    } else {
+        content = databaseAuxLeafContent(scope, connectionId, database, def, facts, aux);
     }
-    return withStaleNotice(
-        scope,
-        connectionId,
-        databaseFolderContent(scope, connectionId, database, def, snapshot!, groupBySchema, schema),
-        freshness,
+    return [...before, ...content, ...after];
+}
+
+/** K3 exclusion: history/dropped rows never render in the main list. */
+function visibleWithFacets(facetValues: Readonly<Record<string, number>> | undefined): boolean {
+    if (!facetValues) {
+        return true;
+    }
+    return (
+        facetValues.temporalType !== 1 &&
+        facetValues.ledgerType !== 1 &&
+        facetValues.isDroppedLedger !== 1
     );
+}
+
+interface FacetPresentation {
+    readonly suffix?: string;
+    readonly icon?: string;
+    readonly historyTableId?: number;
+}
+
+/** SSMS name suffixes + subtype icons (SmoTableCustomNode parity). */
+function facetPresentation(
+    facetValues: Readonly<Record<string, number>> | undefined,
+): FacetPresentation {
+    if (!facetValues) {
+        return {};
+    }
+    const history =
+        facetValues.historyTableId && facetValues.historyTableId > 0
+            ? { historyTableId: facetValues.historyTableId }
+            : {};
+    if (facetValues.ledgerType === 2) {
+        return { suffix: "(Updatable Ledger)", icon: "Table_Ledger", ...history };
+    }
+    if (facetValues.ledgerType === 3) {
+        return { suffix: "(Append-Only Ledger)", icon: "Table_Ledger" };
+    }
+    if (facetValues.temporalType === 2) {
+        return { suffix: "(System-Versioned)", icon: "Table_Temporal", ...history };
+    }
+    if (facetValues.isExternal === 1) {
+        return { suffix: "(External)", icon: "ExternalTable" };
+    }
+    if (facetValues.isFileTable === 1) {
+        return { suffix: "(FileTable)" };
+    }
+    if (facetValues.isNode === 1) {
+        return { icon: "Table_GraphNode" };
+    }
+    if (facetValues.isEdge === 1) {
+        return { icon: "Table_GraphEdge" };
+    }
+    return {};
+}
+
+const FACETS_SECTION_BY_FOLDER: Record<string, string> = {
+    tables: "tableFacets",
+    views: "viewFacets",
+};
+
+function facetMap(
+    aux: OeV2AuxAccess | undefined,
+    folderId: string,
+): Map<number, Readonly<Record<string, number>>> {
+    const map = new Map<number, Readonly<Record<string, number>>>();
+    const section = FACETS_SECTION_BY_FOLDER[folderId];
+    if (!section || !aux) {
+        return map;
+    }
+    for (const item of aux.items(section) ?? []) {
+        if (item.objectId !== undefined && item.facts) {
+            map.set(item.objectId, item.facts);
+        }
+    }
+    return map;
 }
 
 function databaseFolderContent(
@@ -376,6 +512,7 @@ function databaseFolderContent(
     snapshot: CatalogSnapshot,
     groupBySchema: boolean,
     schema?: string,
+    aux?: OeV2AuxAccess,
 ): OeV2Node[] {
     if (def.special === "schemas") {
         const schemas = snapshot.listSchemas();
@@ -384,9 +521,13 @@ function databaseFolderContent(
             : schemas.map((info) => schemaNode(connectionId, database, info.name));
     }
     const objectKinds = [...(def.objectKinds ?? [])];
+    const facets = facetMap(aux, def.id);
     if (groupBySchema && schema === undefined) {
         const withObjects = new Set(
-            snapshot.listObjects(undefined, objectKinds).map((o) => o.schema),
+            snapshot
+                .listObjects(undefined, objectKinds)
+                .filter((o) => visibleWithFacets(facets.get(o.objectId)))
+                .map((o) => o.schema),
         );
         if (withObjects.size === 0) {
             return [noItemsNode(scope, connectionId)];
@@ -414,13 +555,140 @@ function databaseFolderContent(
             } satisfies OeV2Node;
         });
     }
-    const objects = snapshot.listObjects(schema, objectKinds);
+    const objects = snapshot
+        .listObjects(schema, objectKinds)
+        .filter((info) => visibleWithFacets(facets.get(info.objectId)));
     if (objects.length === 0) {
         return [noItemsNode(scope, connectionId)];
     }
     return objects.map((info) =>
-        objectNode(connectionId, database, info.schema, info.name, info.kind as OeV2ObjectKind),
+        objectNode(
+            connectionId,
+            database,
+            info.schema,
+            info.name,
+            info.kind as OeV2ObjectKind,
+            facetPresentation(facets.get(info.objectId)),
+        ),
     );
+}
+
+/** Item icons per database aux folder (classic media/objectTypes assets). */
+const DB_AUX_ITEM_ICONS: Record<string, { icon: string; disabledIcon?: string }> = {
+    "security/users": { icon: "User", disabledIcon: "User_Disabled" },
+    "security/roles/databaseRoles": { icon: "DatabaseRole" },
+    "security/roles/applicationRoles": { icon: "ApplicationRole" },
+    "security/asymmetricKeys": { icon: "AsymmetricKey" },
+    "security/certificates": { icon: "Certificate" },
+    "security/symmetricKeys": { icon: "SymmetricKey" },
+    "security/databaseScopedCredentials": { icon: "DatabaseScopedCredential" },
+    "security/databaseAuditSpecifications": { icon: "DatabaseAuditSpecification" },
+    "security/securityPolicies": { icon: "SecurityPolicy" },
+    "security/alwaysEncryptedKeys/columnMasterKeys": { icon: "ColumnMasterKey" },
+    "security/alwaysEncryptedKeys/columnEncryptionKeys": { icon: "ColumnEncryptionKey" },
+    "serviceBroker/messageTypes": { icon: "MessageType" },
+    "serviceBroker/contracts": { icon: "Contract" },
+    "serviceBroker/queues": { icon: "Queue" },
+    "serviceBroker/services": { icon: "Service" },
+    "serviceBroker/remoteServiceBindings": { icon: "RemoteServiceBinding" },
+    "serviceBroker/brokerPriorities": { icon: "BrokerPriority" },
+    "storage/fileGroups": { icon: "FileGroup" },
+    "storage/fullTextCatalogs": { icon: "FullTextCatalog" },
+    "storage/fullTextStopLists": { icon: "FullTextStopList" },
+    "storage/logFiles": { icon: "FileGroupFile" },
+    "storage/partitionFunctions": { icon: "PartitionFunction" },
+    "storage/partitionSchemes": { icon: "PartitionScheme" },
+    "storage/searchPropertyLists": { icon: "SearchPropertyList" },
+    "programmability/databaseTriggers": {
+        icon: "DatabaseTrigger",
+        disabledIcon: "Trigger_Disabled",
+    },
+    "programmability/assemblies": { icon: "Assembly" },
+    "programmability/sequences": { icon: "Sequence" },
+    "programmability/types/userDefinedDataTypes": { icon: "UserDefinedDataType" },
+    "programmability/types/userDefinedTableTypes": { icon: "UserDefinedTableType" },
+    "programmability/types/xmlSchemaCollections": { icon: "XmlSchemaCollection" },
+};
+
+/**
+ * Aux-backed database leaves (B24): security/broker/storage/programmability
+ * items, K2 system-object folders, and dropped-ledger folders. Same honesty
+ * gates as the server scope; K2 hides system items outside system databases
+ * for sections that carry them.
+ */
+function databaseAuxLeafContent(
+    scope: string,
+    connectionId: string,
+    database: string,
+    def: OeV2FolderDef,
+    facts: OeV2ScopeFacts,
+    aux: OeV2AuxAccess | undefined,
+): OeV2Node[] {
+    const section = aux?.status(def.section);
+    if (!section || section.readiness === "absent" || section.readiness === "loading") {
+        return [loadingNode(scope, connectionId)];
+    }
+    const items = aux?.items(def.section);
+    if (section.readiness === "failed" || !items) {
+        return [
+            errorNode(
+                scope,
+                `${def.label} unavailable: ${section.errorMessage ?? "section failed"}. Refresh to retry.`,
+                connectionId,
+            ),
+        ];
+    }
+    let visible = [...items];
+    if (def.section === "systemObjects") {
+        visible = visible.filter(
+            (item) => item.kind !== undefined && def.objectKinds?.includes(item.kind as never),
+        );
+    } else if (def.section === "tableFacets" || def.section === "viewFacets") {
+        visible = visible.filter((item) => (item.facts?.isDroppedLedger ?? 0) === 1);
+    }
+    if (def.hideSystemItems && facts.isSystemDatabase !== true) {
+        visible = visible.filter((item) => !item.isSystem);
+    }
+    if (visible.length === 0) {
+        return [noItemsNode(scope, connectionId)];
+    }
+    const droppedLedger = def.section === "tableFacets" || def.section === "viewFacets";
+    const icons = DB_AUX_ITEM_ICONS[def.id];
+    return visible.map((item) => {
+        const path: OeV2Path = {
+            kind: "databaseObjectItem",
+            connectionId,
+            database,
+            folder: def.id,
+            name: item.schema ? `${item.schema}.${item.name}` : item.name,
+        };
+        const disabled = item.subType === "disabled";
+        const icon =
+            def.section === "systemObjects"
+                ? OBJECT_ICONS[item.kind as OeV2ObjectKind]
+                : droppedLedger
+                  ? "Table_LedgerHistory"
+                  : disabled && icons?.disabledIcon
+                    ? icons.disabledIcon
+                    : (icons?.icon ?? "Folder");
+        return {
+            id: encodePath(path),
+            path,
+            kind: "databaseObject",
+            label: item.schema ? `${item.schema}.${item.name}` : item.name,
+            ...(disabled ? { description: "disabled" } : {}),
+            collapsible: false,
+            connectionId,
+            database,
+            ...(item.schema ? { schema: item.schema, objectName: item.name } : {}),
+            readiness: NOT_APPLICABLE,
+            capabilities: {
+                canCopyName: true,
+                ...(item.schema ? { canCopyQualifiedName: true } : {}),
+            },
+            icon,
+        } satisfies OeV2Node;
+    });
 }
 
 function schemaNode(connectionId: string, database: string, schema: string): OeV2Node {
@@ -446,6 +714,7 @@ export function objectNode(
     schema: string,
     name: string,
     objectKind: OeV2ObjectKind,
+    presentation: { suffix?: string; icon?: string } = {},
 ): OeV2Node {
     const path: OeV2Path = { kind: "object", connectionId, database, schema, name, objectKind };
     const isTable = objectKind === "table";
@@ -453,7 +722,9 @@ export function objectNode(
         id: encodePath(path),
         path,
         kind: "object",
-        label: `${schema}.${name}`,
+        label: presentation.suffix
+            ? `${schema}.${name} ${presentation.suffix}`
+            : `${schema}.${name}`,
         collapsible: objectKind !== "synonym",
         connectionId,
         database,
@@ -467,7 +738,7 @@ export function objectNode(
             ...(isTable || objectKind === "view" ? { canSelectTop: true } : {}),
             ...(objectKind === "procedure" ? { canScriptExecute: true } : {}),
         },
-        icon: OBJECT_ICONS[objectKind],
+        icon: presentation.icon ?? OBJECT_ICONS[objectKind],
     };
 }
 
@@ -490,7 +761,28 @@ const OBJECT_CHILD_FOLDERS: Record<OeV2ObjectKind, { folder: OeV2ObjectFolder; l
         synonym: [],
     };
 
-export function objectChildren(path: Extract<OeV2Path, { kind: "object" }>): OeV2Node[] {
+export function objectChildren(
+    path: Extract<OeV2Path, { kind: "object" }>,
+    historyTable?: { schema: string; name: string },
+): OeV2Node[] {
+    // K3: a system-versioned/updatable-ledger table nests its history table
+    // FIRST (SSMS SqlHistoryTableQuerier parity), then the child folders.
+    const history = historyTable
+        ? [
+              objectNode(
+                  path.connectionId,
+                  path.database,
+                  historyTable.schema,
+                  historyTable.name,
+                  "table",
+                  { suffix: "(History)", icon: "HistoryTable" },
+              ),
+          ]
+        : [];
+    return history.concat(objectChildFolders(path));
+}
+
+function objectChildFolders(path: Extract<OeV2Path, { kind: "object" }>): OeV2Node[] {
     return OBJECT_CHILD_FOLDERS[path.objectKind].map(({ folder, label }) => {
         const folderPath: OeV2Path = { ...path, kind: "objectFolder", folder };
         return {

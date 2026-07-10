@@ -20,6 +20,7 @@ export type OeV2NodeKind =
     | "lostConnection"
     | "serverFolder"
     | "serverObject"
+    | "databaseObject"
     | "database"
     | "databaseFolder"
     | "schema"
