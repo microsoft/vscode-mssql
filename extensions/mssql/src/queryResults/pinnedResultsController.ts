@@ -37,6 +37,7 @@ import { openExecutionPlanWebview } from "../controllers/sharedExecutionPlanUtil
 import { ExecutionPlanService } from "../services/executionPlanService";
 import SqlDocumentService from "../controllers/sqlDocumentService";
 import { getQueryResultAccessService } from "./queryResultAccessService";
+import { getQueryResultContextService } from "./queryResultContextService";
 import { PinnedQueryResultsDocument } from "./pinnedResultsDocumentProvider";
 import { QueryResultSnapshotDescription } from "./queryResultTypes";
 
@@ -246,10 +247,15 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             );
             return { text: buildMessagesText(window.messages) };
         });
+        this.onRequest(QsUpdateGridSelectionRequest.type, async (update) => {
+            getQueryResultContextService().updateFromPinnedDocument(this.snapshotId, {
+                ...update,
+                snapshotView: { snapshotId: this.snapshotId },
+            });
+        });
         // Result-pane requests with no pinned-document meaning: honest no-ops.
         this.onRequest(QsNavigateToLineRequest.type, async () => undefined);
         this.onRequest(QsSetViewModeRequest.type, async () => undefined);
-        this.onRequest(QsUpdateGridSelectionRequest.type, async () => undefined);
     }
 
     protected _getWebview(): vscode.Webview {

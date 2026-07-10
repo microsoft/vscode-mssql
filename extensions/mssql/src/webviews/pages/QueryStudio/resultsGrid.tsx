@@ -25,7 +25,7 @@
  *   streaming keeps the fetch windowed).
  */
 
-import { useCallback, useMemo, useRef, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, type PointerEvent } from "react";
 import {
     FluentResultGrid,
     FluentResultGridCommand,
@@ -64,6 +64,7 @@ import {
     QsSetViewModeRequest,
     QsResultSetSummary,
     QsState,
+    QsUpdateGridSelectionRequest,
 } from "../../../sharedInterfaces/queryStudio";
 import {
     QS_CELL_DISPLAY_CLAMP,
@@ -666,6 +667,52 @@ export function QsResultGridSurface(props: {
         notify(summary.complete ? PROCESSING_DISABLED_NOTICE : PROCESSING_STREAMING_NOTICE);
     }, [notify, summary.complete]);
 
+    // Active-result context (C2D-4): selection SHAPE rides to the host,
+    // throttled (trailing edge) so drag-selects do not flood the RPC channel.
+    // Values never leave the grid on this path.
+    const selectionUpdateTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const handleSelectionSummaryChange = useCallback(
+        (selection: readonly ISlickRange[]) => {
+            if (selectionUpdateTimer.current) {
+                clearTimeout(selectionUpdateTimer.current);
+            }
+            selectionUpdateTimer.current = setTimeout(() => {
+                const capped = selection.slice(0, 64);
+                let cells = 0;
+                const rows = new Set<number>();
+                for (const range of selection) {
+                    cells +=
+                        (range.toRow - range.fromRow + 1) * (range.toCell - range.fromCell + 1);
+                    for (let row = range.fromRow; row <= range.toRow; row++) {
+                        rows.add(row);
+                    }
+                }
+                void rpc.sendRequest(QsUpdateGridSelectionRequest.type, {
+                    resultSetId: summary.resultSetId,
+                    ranges: capped.map((range) => ({
+                        fromRow: range.fromRow,
+                        toRow: range.toRow,
+                        fromCell: range.fromCell,
+                        toCell: range.toCell,
+                    })),
+                    selectedCellCount: cells,
+                    selectedRowCount: rows.size,
+                    displayedRowCount: rowCount,
+                    reason: "selection",
+                });
+            }, 200);
+        },
+        [rpc, summary.resultSetId, rowCount],
+    );
+    useEffect(
+        () => () => {
+            if (selectionUpdateTimer.current) {
+                clearTimeout(selectionUpdateTimer.current);
+            }
+        },
+        [],
+    );
+
     const handleCommand = useCallback(
         async (event: FluentResultGridCommandEvent) => {
             const selection = event.selection ?? [];
@@ -796,6 +843,7 @@ export function QsResultGridSurface(props: {
                 viewMode="grid"
                 canToggleViewMode
                 onCommand={handleCommand}
+                onSelectionSummaryChange={handleSelectionSummaryChange}
                 onInMemoryDataProcessingThresholdExceeded={handleThresholdExceeded}
             />
         </div>

@@ -27,6 +27,7 @@ import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionHost } from "./executionHost";
 import { persistQueryStudioHotExitBackup } from "./queryStudioHotExitBackup";
 import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { QueryStudioLiveResultSource } from "./queryStudioLiveResultSource";
 
 export interface ModelTextEvents {
@@ -393,6 +394,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         // Doc 04 §7.3 grows here in B2/B3: cancel active query, close session,
         // release metadata handles, tear down shadow LSP, dispose RowStore.
         this.liveResultSourceRegistration?.dispose();
+        getQueryResultContextService().clearForSource(this.liveResultSource.sourceId);
         this.executionHost.dispose();
         this.sessionBinding.dispose();
         this.docSubscription.dispose();

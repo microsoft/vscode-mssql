@@ -462,12 +462,34 @@ export namespace QsPinAllResultsRequest {
         void
     >("qs/pinAllResults");
 }
+/** One selected rectangle, DISPLAY row space (source-id mapping is C2D-T). */
+export interface QsGridSelectionRange {
+    fromRow: number;
+    toRow: number;
+    fromCell: number;
+    toCell: number;
+}
+
+/**
+ * Active-result context update (C2D-4): selection SHAPE only — never cell
+ * values. Ranges are capped by the sender; larger selections send counts.
+ */
+export interface QsGridSelectionUpdate {
+    resultSetId: string;
+    active?: { row: number; column: number };
+    ranges?: QsGridSelectionRange[];
+    selectedCellCount?: number;
+    selectedRowCount?: number;
+    displayedRowCount?: number;
+    reason: "selection" | "focus";
+    /** Stamped host-side for pinned documents; webviews leave it unset. */
+    snapshotView?: { snapshotId: string };
+}
+
 export namespace QsUpdateGridSelectionRequest {
-    export const type = new RequestType<
-        { row?: number; column?: number; rangeRows?: number; rangeCols?: number },
-        void,
-        void
-    >("qs/updateGridSelection");
+    export const type = new RequestType<QsGridSelectionUpdate, void, void>(
+        "qs/updateGridSelection",
+    );
 }
 export namespace QsGetDiagnosticsSummaryRequest {
     export const type = new RequestType<

@@ -18,6 +18,11 @@ import { registerDefinitionContentProvider } from "./definitionContentProvider";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import { disposeQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import {
+    bindQueryResultContextKeys,
+    disposeQueryResultContextService,
+} from "../queryResults/queryResultContextService";
+import { buildQueryResultsStatusDocument } from "../queryResults/queryResultsStatus";
 import { registerPinnedResultsEditor } from "../queryResults/pinnedResultsDocumentProvider";
 import { stopSpillSessionLock, sweepOrphanSpillDirs } from "../queryResults/spillHygiene";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
@@ -251,16 +256,30 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
  */
 function registerQueryResultsLifecycle(context: vscode.ExtensionContext): void {
     registerPinnedResultsEditor(context);
+    // Menu enablement rides context keys (booleans/enums only, C2D-4).
+    bindQueryResultContextKeys((key, value) => {
+        void vscode.commands.executeCommand("setContext", key, value);
+    });
     const spillParent = path.join(context.globalStorageUri.fsPath, "querystudio-spill");
     const sweepTimer = setTimeout(() => sweepOrphanSpillDirs(spillParent), 15_000);
     sweepTimer.unref?.();
-    context.subscriptions.push({
-        dispose: () => {
-            clearTimeout(sweepTimer);
-            disposeQueryResultAccessService();
-            stopSpillSessionLock();
+    context.subscriptions.push(
+        vscode.commands.registerCommand("mssql.queryResults.showStatus", async () => {
+            const doc = await vscode.workspace.openTextDocument({
+                language: "json",
+                content: buildQueryResultsStatusDocument(),
+            });
+            await vscode.window.showTextDocument(doc, { preview: true });
+        }),
+        {
+            dispose: () => {
+                clearTimeout(sweepTimer);
+                disposeQueryResultAccessService();
+                disposeQueryResultContextService();
+                stopSpillSessionLock();
+            },
         },
-    });
+    );
 }
 
 export function registerQueryStudio(context: vscode.ExtensionContext): void {

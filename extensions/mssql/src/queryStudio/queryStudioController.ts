@@ -67,6 +67,7 @@ import {
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
 import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { resolveQueryResultsParams } from "../queryResults/queryResultsParams";
 import { openPinnedResultsDocument } from "../queryResults/pinnedResultsDocumentProvider";
 import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
@@ -928,7 +929,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 );
             }
         });
-        this.onRequest(QsUpdateGridSelectionRequest.type, async () => undefined);
+        this.onRequest(QsUpdateGridSelectionRequest.type, async (update) => {
+            // Active-result context (C2D-4): selection shape only, values
+            // never ride this channel.
+            getQueryResultContextService().updateFromQueryStudio(
+                this.model.liveResultSource.sourceId,
+                update,
+            );
+        });
         this.onRequest(QsPinResultSetRequest.type, async ({ resultSetId }) =>
             this.pinResults({ kind: "resultSet", resultSetId }),
         );

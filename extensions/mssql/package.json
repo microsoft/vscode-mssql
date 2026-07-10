@@ -1076,6 +1076,10 @@
                     "when": "config.mssql.queryStudio.enabled"
                 },
                 {
+                    "command": "mssql.queryResults.showStatus",
+                    "when": "config.mssql.queryStudio.enabled"
+                },
+                {
                     "command": "mssql.queryStudio.openActive",
                     "when": "config.mssql.queryStudio.enabled"
                 },
@@ -2064,6 +2068,11 @@
             {
                 "command": "mssql.queryStudio.new",
                 "title": "Query Studio: New Query",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.showStatus",
+                "title": "Query Results: Show Snapshot Status",
                 "category": "MS SQL"
             },
             {

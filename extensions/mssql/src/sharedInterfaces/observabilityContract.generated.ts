@@ -1463,6 +1463,23 @@ export const OBS_CONTRACT: Registry = {
             notes: "C2D-1 addendum §5.1: live owner released while snapshot leases remain — memory cap shrinks lazily (async spill drains the overage).",
         },
         {
+            name: "mssql.queryResults.context.update",
+            kind: "marker",
+            phase: "instant",
+            feature: "queryResults",
+            processRoles: ["extensionHost"],
+            timingClass: "sameProcessMonotonic",
+            measurementEligible: false,
+            attrs: {
+                sourceKind: "safeEnum",
+                reason: "safeEnum",
+                hasSelection: "safeEnum",
+                selectedCells: "structuralMetadata",
+            },
+            attrsComplete: true,
+            notes: "C2D-4: active-result context updated from a grid selection (throttled webview-side; shape only, never values).",
+        },
+        {
             name: "mssql.queryResults.pin.open.begin",
             kind: "marker",
             phase: "begin",

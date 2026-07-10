@@ -23,6 +23,7 @@ import {
     pinnedResultsUriParts,
 } from "../sharedInterfaces/queryResultsSnapshot";
 import { getQueryResultAccessService } from "./queryResultAccessService";
+import { getQueryResultContextService } from "./queryResultContextService";
 import { QueryResultSnapshotLease } from "./queryResultTypes";
 import { PinnedResultsController } from "./pinnedResultsController";
 
@@ -75,6 +76,9 @@ export class PinnedQueryResultsDocument implements vscode.CustomDocument {
     }
 
     dispose(): void {
+        if (this.snapshotId) {
+            getQueryResultContextService().clearForSnapshot(this.snapshotId);
+        }
         this.lease?.dispose();
     }
 }
