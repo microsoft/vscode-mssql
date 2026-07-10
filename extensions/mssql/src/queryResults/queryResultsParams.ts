@@ -34,6 +34,19 @@ export interface QueryResultsParams {
     /** Policy switches (not swept). */
     pinnedDocumentsEnabled: boolean;
     aiEnabled: boolean;
+    /** Transform engine (C2D-T): scan chunking + cooperative yield cadence. */
+    transformChunkRows: number;
+    transformYieldEveryRows: number;
+    /** Transform budgets — every evaluation is bounded and reports honesty. */
+    transformMaxRowsScanned: number;
+    transformMaxEvalMs: number;
+    transformMaxGroups: number;
+    transformMaxOutputCells: number;
+    transformMaxOutputBytes: number;
+    /** Exact distinct/frequency tracking cap; beyond it results flag approximate. */
+    maxDistinctExact: number;
+    /** Derived snapshot row-id cap (§3.6). */
+    derivedMaxRows: number;
 }
 
 export const QUERY_RESULTS_DEFAULTS: QueryResultsParams = {
@@ -45,6 +58,15 @@ export const QUERY_RESULTS_DEFAULTS: QueryResultsParams = {
     sweepIntervalSeconds: 60,
     pinnedDocumentsEnabled: true,
     aiEnabled: true,
+    transformChunkRows: 2048,
+    transformYieldEveryRows: 8192,
+    transformMaxRowsScanned: 1_000_000,
+    transformMaxEvalMs: 10_000,
+    transformMaxGroups: 10_000,
+    transformMaxOutputCells: 10_000,
+    transformMaxOutputBytes: 1024 * 1024,
+    maxDistinctExact: 100_000,
+    derivedMaxRows: 100_000,
 };
 
 /** Append new keys at the tail of their group; order is the digest contract. */
@@ -57,6 +79,15 @@ export const QUERY_RESULTS_KEYS: ReadonlyArray<keyof QueryResultsParams> = [
     "sweepIntervalSeconds",
     "pinnedDocumentsEnabled",
     "aiEnabled",
+    "transformChunkRows",
+    "transformYieldEveryRows",
+    "transformMaxRowsScanned",
+    "transformMaxEvalMs",
+    "transformMaxGroups",
+    "transformMaxOutputCells",
+    "transformMaxOutputBytes",
+    "maxDistinctExact",
+    "derivedMaxRows",
 ];
 
 const NUMERIC_RANGES: Partial<Record<keyof QueryResultsParams, { min: number; max: number }>> = {
@@ -66,6 +97,15 @@ const NUMERIC_RANGES: Partial<Record<keyof QueryResultsParams, { min: number; ma
     retainedStoreMemoryBytes: { min: 1024 * 1024, max: 1024 * 1024 * 1024 },
     maxLocalMessages: { min: 0, max: 1_000_000 },
     sweepIntervalSeconds: { min: 5, max: 3600 },
+    transformChunkRows: { min: 64, max: 65_536 },
+    transformYieldEveryRows: { min: 256, max: 1_000_000 },
+    transformMaxRowsScanned: { min: 1000, max: 100_000_000 },
+    transformMaxEvalMs: { min: 100, max: 600_000 },
+    transformMaxGroups: { min: 10, max: 1_000_000 },
+    transformMaxOutputCells: { min: 100, max: 10_000_000 },
+    transformMaxOutputBytes: { min: 4096, max: 256 * 1024 * 1024 },
+    maxDistinctExact: { min: 1000, max: 10_000_000 },
+    derivedMaxRows: { min: 1000, max: 10_000_000 },
 };
 
 const SETTING_SECTIONS: Record<keyof QueryResultsParams, string> = {
@@ -77,6 +117,17 @@ const SETTING_SECTIONS: Record<keyof QueryResultsParams, string> = {
     sweepIntervalSeconds: "mssql.queryResults.snapshot.sweepIntervalSeconds",
     pinnedDocumentsEnabled: "mssql.queryResults.pinnedDocuments.enabled",
     aiEnabled: "mssql.queryResults.ai.enabled",
+    // Transform knobs resolve through settings sections too, but the
+    // documented carrier for sweeps/experiments is mssql.queryResults.overrides.
+    transformChunkRows: "mssql.queryResults.transform.chunkRows",
+    transformYieldEveryRows: "mssql.queryResults.transform.yieldEveryRows",
+    transformMaxRowsScanned: "mssql.queryResults.transform.maxRowsScanned",
+    transformMaxEvalMs: "mssql.queryResults.transform.maxEvalMs",
+    transformMaxGroups: "mssql.queryResults.transform.maxGroups",
+    transformMaxOutputCells: "mssql.queryResults.transform.maxOutputCells",
+    transformMaxOutputBytes: "mssql.queryResults.transform.maxOutputBytes",
+    maxDistinctExact: "mssql.queryResults.transform.maxDistinctExact",
+    derivedMaxRows: "mssql.queryResults.derived.maxRows",
 };
 
 export const QUERY_RESULTS_OVERRIDES_SETTING = "mssql.queryResults.overrides";

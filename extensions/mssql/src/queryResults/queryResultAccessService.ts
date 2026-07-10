@@ -22,6 +22,15 @@ import * as crypto from "crypto";
 import { Perf } from "../perf/perfTelemetry";
 import { QsCellWindow, QsMessageRow } from "../sharedInterfaces/queryStudio";
 import { RowReadReason } from "../queryStudio/rowStore";
+import { packBitmap } from "../services/sqlDataPlane/api";
+import { windowCellReader } from "./cellReader";
+import {
+    EvaluateOptions,
+    TransformResult,
+    TransformSourceReader,
+    evaluateTransform,
+} from "./transformEngine";
+import { TransformSpec, transformSpecDigest } from "./transformSpec";
 import {
     CreateQueryResultSnapshotRequest,
     IQueryResultStore,
@@ -69,6 +78,13 @@ interface SnapshotRecord {
     };
     readonly storeLease: QueryResultStoreLease;
     readonly leases: Map<string, QueryResultLeaseOwner>;
+    /** Derived snapshot (C2D-T §3.6): a row-id view over the parent's store. */
+    readonly derived?: {
+        readonly parentSnapshotId: string;
+        readonly specDigest: string;
+        readonly sourceResultSetId: string;
+        readonly rowIds: readonly number[];
+    };
     lastAccessEpochMs: number;
     lastUnleasedEpochMs: number | undefined;
     disposed: boolean;
@@ -420,15 +436,298 @@ export class QueryResultAccessService {
             return { ...empty, columns: frozen?.columns ?? [] };
         }
         record.lastAccessEpochMs = this.now();
+        const rowCount = Math.min(params.rowCount, frozen.rowCount - params.rowStart);
+        if (record.derived) {
+            return this.derivedWindow(record, params, rowCount);
+        }
         return record.storeLease.store.getWindow({
             resultSetId: params.resultSetId,
             rowStart: params.rowStart,
-            rowCount: Math.min(params.rowCount, frozen.rowCount - params.rowStart),
+            rowCount,
             ...(params.columnStart !== undefined && params.columnCount !== undefined
                 ? { columnStart: params.columnStart, columnCount: params.columnCount }
                 : {}),
             reason: params.reason,
         });
+    }
+
+    /**
+     * Derived-snapshot window (§3.6): derived offsets → parent SOURCE row
+     * ids → batched contiguous fetches, stitched back into one window.
+     * Still bounded: at most `rowCount` rows cross this path.
+     */
+    private async derivedWindow(
+        record: SnapshotRecord,
+        params: QueryResultGetWindowParams,
+        rowCount: number,
+    ): Promise<QsCellWindow> {
+        const derived = record.derived!;
+        const ids = derived.rowIds.slice(params.rowStart, params.rowStart + rowCount);
+        const values: unknown[][] = [];
+        const nullBits: boolean[] = [];
+        let columns = record.resultSets[0]?.columns ?? [];
+        let typeHints: string[] | undefined;
+        let index = 0;
+        while (index < ids.length) {
+            // Contiguous run: one store window per run keeps fetches bounded
+            // and page-friendly.
+            let runEnd = index + 1;
+            while (runEnd < ids.length && ids[runEnd] === ids[runEnd - 1] + 1) {
+                runEnd++;
+            }
+            const window = await record.storeLease.store.getWindow({
+                resultSetId: derived.sourceResultSetId,
+                rowStart: ids[index],
+                rowCount: runEnd - index,
+                reason: params.reason,
+            });
+            const cells = windowCellReader(window);
+            columns = window.columns.length > 0 ? window.columns : columns;
+            typeHints ??= window.typeHints;
+            for (let r = 0; r < window.rowCount; r++) {
+                const row: unknown[] = [];
+                for (let c = 0; c < window.columns.length; c++) {
+                    const cell = cells.cellAt(r, c);
+                    nullBits.push(cell.isNull);
+                    row.push(cell.isNull ? undefined : window.values[r]?.[c]);
+                }
+                values.push(row);
+            }
+            index = runEnd;
+        }
+        return {
+            resultSetId: params.resultSetId,
+            start: params.rowStart,
+            rowCount: values.length,
+            columns,
+            values,
+            nullBitmap: packBitmap(nullBits),
+            ...(typeHints ? { typeHints } : {}),
+        };
+    }
+
+    // --- transforms (C2D-T) ---------------------------------------------------------
+
+    /** Engine-facing reader over a snapshot: frozen clamp + reason tagging. */
+    snapshotReader(
+        snapshotId: string,
+        resultSetId: string,
+        reason: RowReadReason,
+        chunkRowsDefault = 2048,
+    ): TransformSourceReader | undefined {
+        const record = this.snapshots.get(snapshotId);
+        const frozen = record?.resultSets.find((s) => s.resultSetId === resultSetId);
+        if (!record || record.disposed || !frozen) {
+            return undefined;
+        }
+        const service = this;
+        return {
+            columnNames: () => frozen.columnNames,
+            rowCount: () => frozen.rowCount,
+            window: (start, count) =>
+                service.getWindow({
+                    snapshotId,
+                    resultSetId,
+                    rowStart: start,
+                    rowCount: count,
+                    reason,
+                }),
+            async *stream(start, count, chunkRows) {
+                const chunk = Math.max(1, chunkRows || chunkRowsDefault);
+                let offset = Math.max(0, start);
+                const end = Math.min(start + count, frozen.rowCount);
+                while (offset < end) {
+                    const window = await service.getWindow({
+                        snapshotId,
+                        resultSetId,
+                        rowStart: offset,
+                        rowCount: Math.min(chunk, end - offset),
+                        reason,
+                    });
+                    if (window.rowCount === 0) {
+                        return;
+                    }
+                    yield window;
+                    offset += window.rowCount;
+                }
+            },
+        };
+    }
+
+    /**
+     * Evaluate a validated transform spec against a snapshot. Budgets come
+     * from the params registry unless overridden; results carry EvalStats
+     * honesty verbatim. Diagnostics log the spec DIGEST and stats — never
+     * filter literals or output values (§3.7).
+     */
+    async evaluateSnapshotTransform(
+        spec: TransformSpec,
+        options?: {
+            isCancelled?: () => boolean;
+            reason?: RowReadReason;
+            overrides?: Partial<EvaluateOptions>;
+        },
+    ): Promise<TransformResult> {
+        const record = this.snapshots.get(spec.source.snapshotId);
+        if (!record || record.disposed) {
+            throw new QueryResultAccessError(
+                "snapshotNotFound",
+                "The snapshot for this transform no longer exists.",
+            );
+        }
+        const reader = this.snapshotReader(
+            spec.source.snapshotId,
+            spec.source.resultSetId,
+            options?.reason ?? "transform",
+        );
+        if (!reader) {
+            throw new QueryResultAccessError(
+                "resultSetNotFound",
+                "The result set for this transform was not found in the snapshot.",
+            );
+        }
+        const { params } = this.resolveParams();
+        const evalOptions: EvaluateOptions = {
+            budget: {
+                maxRowsScanned: params.transformMaxRowsScanned,
+                maxEvalMs: params.transformMaxEvalMs,
+                maxGroups: params.transformMaxGroups,
+                maxOutputCells: params.transformMaxOutputCells,
+                maxOutputBytes: params.transformMaxOutputBytes,
+            },
+            chunkRows: params.transformChunkRows,
+            yieldEveryRows: params.transformYieldEveryRows,
+            maxDistinctExact: params.maxDistinctExact,
+            ...(options?.isCancelled ? { isCancelled: options.isCancelled } : {}),
+            ...options?.overrides,
+        };
+        Perf.marker("mssql.queryResults.transform.evaluate.begin", "begin", {
+            terminalKind: spec.terminal.kind,
+            opCount: spec.ops?.length ?? 0,
+            specDigest: transformSpecDigest(spec),
+        });
+        const result = await evaluateTransform(spec, reader, evalOptions);
+        Perf.marker("mssql.queryResults.transform.evaluate.end", "end", {
+            terminalKind: spec.terminal.kind,
+            opCount: spec.ops?.length ?? 0,
+            specDigest: result.specDigest,
+            rowsScanned: result.stats.rowsScanned,
+            rowsMatched: result.stats.rowsMatched,
+            partial: result.stats.partial,
+            ...(result.stats.partialReason ? { partialReason: result.stats.partialReason } : {}),
+            outputRows: result.rows.length,
+            outputClass: result.outputClass,
+            ms: result.stats.elapsedMs,
+        });
+        return result;
+    }
+
+    /**
+     * Derived snapshot (§3.6): evaluate a row-producing spec ONCE, keep only
+     * the matching source row ids (never page copies), and register a new
+     * immutable snapshot over the SAME store. Over `derivedMaxRows` → typed
+     * error offering export instead.
+     */
+    async deriveSnapshot(
+        spec: TransformSpec,
+        owner: QueryResultLeaseOwner,
+    ): Promise<QueryResultSnapshotLease> {
+        const parent = this.snapshots.get(spec.source.snapshotId);
+        if (!parent || parent.disposed) {
+            throw new QueryResultAccessError(
+                "snapshotNotFound",
+                "The parent snapshot no longer exists.",
+            );
+        }
+        const parentFrozen = parent.resultSets.find(
+            (s) => s.resultSetId === spec.source.resultSetId,
+        );
+        if (!parentFrozen) {
+            throw new QueryResultAccessError(
+                "resultSetNotFound",
+                "The result set was not found in the parent snapshot.",
+            );
+        }
+        const { params } = this.resolveParams();
+        Perf.marker("mssql.queryResults.derive.begin", "begin");
+        // Row-id collection rides the scan itself; a count terminal keeps
+        // the evaluation from materializing any output rows.
+        const idSpec: TransformSpec = {
+            ...spec,
+            terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
+        };
+        const result = await this.evaluateSnapshotTransform(idSpec, {
+            reason: "transform",
+            overrides: { collectMatchedRowIds: { max: params.derivedMaxRows } },
+        });
+        if (result.matchedRowIdsOverflow) {
+            throw new QueryResultAccessError(
+                "retentionBudgetExceeded",
+                `The filtered view exceeds ${params.derivedMaxRows.toLocaleString()} rows — export the data instead of deriving a snapshot.`,
+            );
+        }
+        if (result.stats.partial) {
+            throw new QueryResultAccessError(
+                "storeUnavailable",
+                `Deriving stopped early (${result.stats.partialReason}); narrow the source or raise the transform budget.`,
+            );
+        }
+        // Compose through a derived parent so ids always index the PHYSICAL set.
+        const matched = result.matchedSourceRowIds ?? [];
+        const rowIds = parent.derived
+            ? matched.map((id) => parent.derived!.rowIds[id]).filter((id) => id !== undefined)
+            : matched;
+        const sourceResultSetId = parent.derived
+            ? parent.derived.sourceResultSetId
+            : spec.source.resultSetId;
+        const storeLease = parent.storeLease.store.retain(owner);
+        if (!storeLease) {
+            throw new QueryResultAccessError(
+                "storeUnavailable",
+                "The parent snapshot's store is no longer available.",
+            );
+        }
+        const specDigest = transformSpecDigest(spec);
+        const snapshotId = `qsnap_${crypto.randomBytes(12).toString("base64url")}`;
+        const record: SnapshotRecord = {
+            snapshotId,
+            createdEpochMs: this.now(),
+            source: parent.source,
+            purpose: owner.kind,
+            resultSets: [
+                {
+                    ...parentFrozen,
+                    resultSetId: spec.source.resultSetId,
+                    rowCount: rowIds.length,
+                    complete: true,
+                },
+            ],
+            messages: { summary: { count: 0, errorCount: 0 } },
+            query: parent.query,
+            provenance: parent.provenance,
+            storeLease,
+            leases: new Map(),
+            derived: {
+                parentSnapshotId: parent.snapshotId,
+                specDigest,
+                sourceResultSetId,
+                rowIds,
+            },
+            lastAccessEpochMs: this.now(),
+            lastUnleasedEpochMs: undefined,
+            disposed: false,
+        };
+        this.snapshots.set(snapshotId, record);
+        const lease = this.mintLease(record, owner);
+        this.ensureSweepTimer();
+        Perf.marker("mssql.queryResults.derive.end", "end", {
+            specDigest,
+            derivedRows: rowIds.length,
+            rowsScanned: result.stats.rowsScanned,
+            fromDerived: parent.derived !== undefined,
+        });
+        this.notifyChanged();
+        return lease;
     }
 
     listSnapshots(): readonly QueryResultSnapshotSummary[] {
@@ -452,6 +751,14 @@ export class QueryResultAccessService {
             store: record.storeLease.store.stats(),
             hasLocalMessages: record.messages.getWindow !== undefined,
             hasLocalQueryText: record.query.textLocal !== undefined,
+            ...(record.derived
+                ? {
+                      derived: {
+                          parentSnapshotId: record.derived.parentSnapshotId,
+                          specDigest: record.derived.specDigest,
+                      },
+                  }
+                : {}),
         };
     }
 

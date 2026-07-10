@@ -202,6 +202,8 @@ export interface QueryResultSnapshotDescription extends QueryResultSnapshotSumma
     readonly store: QueryResultStoreStats;
     readonly hasLocalMessages: boolean;
     readonly hasLocalQueryText: boolean;
+    /** Derived-snapshot lineage (C2D-T): parent + reproducing spec digest. */
+    readonly derived?: { readonly parentSnapshotId: string; readonly specDigest: string };
 }
 
 // --- live sources ----------------------------------------------------------------
