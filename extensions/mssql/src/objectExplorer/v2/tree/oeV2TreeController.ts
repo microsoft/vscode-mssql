@@ -47,7 +47,7 @@ import { createStrictScriptingService } from "../../../sqlLanguage/host/scriptin
 import type { ScriptOperation } from "../../../sqlScripting/api";
 import { OeV2Node } from "./oeV2Node";
 import { childrenOfGroup, ConnectionNodeFacts, rootChildren } from "./oeV2NodeFactory";
-import { errorNode, loadingNode, statusNode } from "./oeV2Readiness";
+import { errorNode, loadingNode, noItemsNode, statusNode } from "./oeV2Readiness";
 
 export interface DataPlaneProbe {
     enabled(): boolean;
@@ -67,6 +67,8 @@ export interface OeV2TreeControllerDeps {
     readonly sessions?: OeV2SessionRegistry;
     readonly coordinatorFactory?: (prepared: PreparedConnection) => OeV2MetadataCoordinator;
     readonly settings?: () => OeV2BrowseSettings;
+    /** Test seam: expansion wait ceilings (defaults EXPAND/CONNECT_KICK). */
+    readonly waits?: { expandMs?: number; connectKickMs?: number };
 }
 
 interface ConnectionRuntime {
@@ -297,7 +299,39 @@ export class OeV2TreeController {
 
     // -- expansion --------------------------------------------------------------
 
+    /**
+     * The tree edge (dogfood 2026-07-10, "async node expansion"): expansion
+     * must NEVER hang getChildren (VS Code renders a hung promise as an
+     * expanded-empty node — no spinner, no error) and must NEVER resolve to
+     * a silent empty list. Every awaited dependency inside childrenCore is
+     * bounded; anything slower renders the honest loading child and the
+     * change stream re-renders when the work lands. A thrown expansion is
+     * an explicit error child. One slow/sleeping connection can therefore
+     * only ever affect its OWN subtree.
+     */
     async children(node?: OeV2Node): Promise<OeV2Node[]> {
+        let result: OeV2Node[];
+        try {
+            result = await this.childrenCore(node);
+        } catch (error) {
+            const scope = node ? `expand/${node.path.kind}` : "expand/root";
+            return [
+                errorNode(
+                    scope,
+                    `Expansion failed: ${error instanceof Error ? error.message : String(error)}. Refresh to retry.`,
+                    node?.connectionId,
+                ),
+            ];
+        }
+        // Silent-empty tripwire: an expandable node with zero children must
+        // say so ("No items"), never render as expanded nothing.
+        if (node && node.collapsible && result.length === 0) {
+            return [noItemsNode(`expand/${node.path.kind}`, node.connectionId)];
+        }
+        return result;
+    }
+
+    private async childrenCore(node?: OeV2Node): Promise<OeV2Node[]> {
         if (!node) {
             return this.rootLevel();
         }
@@ -319,10 +353,13 @@ export class OeV2TreeController {
                     // §7.2 block-with-loading at server scope: expands beyond
                     // the TTL re-hydrate (validation ≡ re-hydration, §4.4)
                     // while the tree shows its busy state; within the TTL this
-                    // answers instantly. Pin once per expand (below).
-                    const serverFresh = await runtime.coordinator
-                        .ensureServerFresh()
-                        .catch(() => undefined);
+                    // answers instantly. Pin once per expand (below). BOUNDED:
+                    // a stalled catalog renders loading and re-renders on the
+                    // change stream — never a hung getChildren.
+                    const serverFresh = await boundedWait(
+                        runtime.coordinator.ensureServerFresh(),
+                        this.deps.waits?.expandMs ?? EXPAND_WAIT_MS,
+                    );
                     return databasesFolderChildren(
                         path.connectionId,
                         runtime.coordinator.serverStatus(),
@@ -378,9 +415,14 @@ export class OeV2TreeController {
                 // tree's loading child covers the wait); within the TTL the
                 // validated generation answers with zero SQL. The verdict
                 // rides to the pure layer as facts — never silent-stale.
-                const fresh = await runtime.coordinator
-                    .ensureDatabaseFresh(path.database)
-                    .catch(() => undefined);
+                // BOUNDED (dogfood 2026-07-10): lease acquisition can stall
+                // behind a sleeping/serverless connection's backend work —
+                // past the bound we render loading and the change stream
+                // re-renders, keeping OTHER connections' expands independent.
+                const fresh = await boundedWait(
+                    runtime.coordinator.ensureDatabaseFresh(path.database),
+                    this.deps.waits?.expandMs ?? EXPAND_WAIT_MS,
+                );
                 // B24: kick the LAZY aux sections this folder needs — the
                 // change stream re-renders when rows land.
                 for (const section of auxSectionsFor(path.folder)) {
@@ -430,9 +472,10 @@ export class OeV2TreeController {
                 if (!runtime) {
                     return [disconnectedHint(path.connectionId)];
                 }
-                const fresh = await runtime.coordinator
-                    .ensureDatabaseFresh(path.database)
-                    .catch(() => undefined);
+                const fresh = await boundedWait(
+                    runtime.coordinator.ensureDatabaseFresh(path.database),
+                    this.deps.waits?.expandMs ?? EXPAND_WAIT_MS,
+                );
                 return objectFolderChildren(
                     path,
                     runtime.coordinator.databaseStatus(path.database),
@@ -503,7 +546,15 @@ export class OeV2TreeController {
     private async connectionChildren(connectionId: string): Promise<OeV2Node[]> {
         let state = this.deps.sessions?.stateOf(connectionId) ?? "disconnected";
         if (state === "disconnected" && !this.explicitlyDisconnected.has(connectionId)) {
-            await this.connectProfile(connectionId);
+            // Kick the connect with a SHORT bound (dogfood 2026-07-10): fast
+            // servers still render their children in one pass; a sleeping
+            // serverless keeps connecting in the background while THIS node
+            // shows the spinner — the registry change stream re-renders on
+            // completion, and other connections' expands never wait on it.
+            await boundedWait(
+                this.connectProfile(connectionId),
+                this.deps.waits?.connectKickMs ?? CONNECT_KICK_WAIT_MS,
+            );
             state = this.deps.sessions?.stateOf(connectionId) ?? "disconnected";
         }
         switch (state) {
@@ -623,6 +674,36 @@ export class OeV2TreeController {
             this.tree = await readProfileTree(this.deps.profiles);
         }
         return this.tree;
+    }
+}
+
+/**
+ * Expansion wait ceilings (dogfood 2026-07-10): freshness/lease work gets a
+ * bound just above the oeBrowse 5s race budget (defense in depth against
+ * stalls BELOW the policy race — e.g. lease acquisition queued behind a
+ * sleeping serverless resume); the first-expand connect kick stays short so
+ * fast servers render in one pass while slow ones show the spinner.
+ */
+const EXPAND_WAIT_MS = 6_000;
+const CONNECT_KICK_WAIT_MS = 400;
+
+/**
+ * Race a promise against a ceiling: undefined past the deadline, and the
+ * underlying work always continues (its completion drives change events).
+ * Rejections resolve undefined too — expansion renders current state.
+ */
+async function boundedWait<T>(work: Promise<T>, ms: number): Promise<T | undefined> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<undefined>((resolve) => {
+        timer = setTimeout(() => resolve(undefined), ms);
+        (timer as { unref?: () => void }).unref?.();
+    });
+    try {
+        return await Promise.race([work.catch(() => undefined), deadline]);
+    } finally {
+        if (timer !== undefined) {
+            clearTimeout(timer);
+        }
     }
 }
 
