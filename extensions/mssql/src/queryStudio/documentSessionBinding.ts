@@ -368,9 +368,13 @@ export class DocumentSessionBinding implements vscode.Disposable {
     }
 
     /**
-     * Open-transaction probe (SSMS parity): after each run, ask the SAME
-     * session for @@TRANCOUNT so a BEGIN TRAN left open across executions is
-     * visible in the status bar and guarded at disconnect. Best-effort.
+     * Post-run session probe (SSMS parity): after each run, ask the SAME
+     * session for @@TRANCOUNT (a BEGIN TRAN left open across executions is
+     * visible in the status bar and guarded at disconnect) AND @@SPID — if
+     * the connection was killed and transparently re-established, the next
+     * run carries a NEW spid, and the status bar must show the session the
+     * DBA can actually reference (dogfood 2026-07-10; SSMS updates the same
+     * way on the next execution). Best-effort, one round trip.
      */
     async probeTransactionState(): Promise<void> {
         const session = this.activeSession;
@@ -378,18 +382,22 @@ export class DocumentSessionBinding implements vscode.Disposable {
             return;
         }
         try {
-            let value: number | undefined;
+            let tranCount: number | undefined;
+            let spid: number | undefined;
             const sink: IQueryEventSink = {
                 onResultSetStarted: () => undefined,
                 onRowsPage: (page) => {
-                    const cell = page.compact.values[0]?.[0];
-                    value = typeof cell === "number" ? cell : Number(cell);
+                    const row = page.compact.values[0];
+                    const tranCell = row?.[0];
+                    const spidCell = row?.[1];
+                    tranCount = typeof tranCell === "number" ? tranCell : Number(tranCell);
+                    spid = typeof spidCell === "number" ? spidCell : Number(spidCell);
                 },
                 onMessage: () => undefined,
                 onComplete: () => undefined,
             };
             const handle = session.execute(
-                "SELECT @@TRANCOUNT;",
+                "SELECT @@TRANCOUNT, @@SPID;",
                 {
                     priority: "background",
                     commandKind: "metadata",
@@ -398,13 +406,22 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 sink,
             );
             await handle.completion;
-            const count = Number.isFinite(value) ? Number(value) : undefined;
+            let changed = false;
+            const count = Number.isFinite(tranCount) ? Number(tranCount) : undefined;
             if (count !== undefined && count !== this.openTransactions) {
                 this.openTransactions = count;
+                changed = true;
+            }
+            const liveSpid = Number.isFinite(spid) ? Number(spid) : undefined;
+            if (liveSpid !== undefined && this.session === session && liveSpid !== this.spid) {
+                this.spid = liveSpid;
+                changed = true;
+            }
+            if (changed) {
                 this.fireChange();
             }
         } catch {
-            // Best-effort; the indicator simply stays at its last value.
+            // Best-effort; the indicators simply stay at their last values.
         }
     }
 

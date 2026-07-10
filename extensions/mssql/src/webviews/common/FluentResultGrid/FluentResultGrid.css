@@ -186,6 +186,8 @@
     padding: 0 4px;
     text-overflow: ellipsis;
     white-space: nowrap;
+    /* Header titles are UI labels, not data — never text-selectable. */
+    user-select: none;
 }
 
 .fluent-result-grid .slick-header-column:hover,
