@@ -24,6 +24,9 @@ const DEFAULT_IN_MEMORY_THRESHOLD = 5000;
 /** Default grid font size (px) — compact, SSMS-like density. */
 const DEFAULT_GRID_FONT_SIZE = 12;
 
+/** Default results-pane share of the editor/results split (SSMS ≈ 50/50). */
+const DEFAULT_RESULTS_PANE_HEIGHT_PCT = 50;
+
 /** Read + validate the grid styling settings; invalid values fall back. */
 export function readGridStyle(get: ConfigReader): QsGridStyle {
     const fontFamilyRaw = get<unknown>("mssql.resultsFontFamily");
@@ -42,6 +45,13 @@ export function readGridStyle(get: ConfigReader): QsGridStyle {
     const inMemoryThreshold = positiveNumber(
         get<unknown>("mssql.resultsGrid.inMemoryDataProcessingThreshold"),
     );
+    // Default editor/results split (SSMS ≈ 50/50). Clamped to the same
+    // bounds as the splitter drag; the webview splitter adjusts per-session.
+    const paneRaw = positiveNumber(get<unknown>("mssql.queryStudio.resultsPaneHeightPercent"));
+    const resultsPaneHeightPct = Math.min(
+        80,
+        Math.max(15, paneRaw ?? DEFAULT_RESULTS_PANE_HEIGHT_PCT),
+    );
     return {
         ...(fontFamily !== undefined ? { fontFamily } : {}),
         ...(fontSize !== undefined ? { fontSize } : {}),
@@ -49,6 +59,7 @@ export function readGridStyle(get: ConfigReader): QsGridStyle {
         showGridLines,
         ...(rowPadding !== undefined ? { rowPadding } : {}),
         inMemoryDataProcessingThreshold: inMemoryThreshold ?? DEFAULT_IN_MEMORY_THRESHOLD,
+        resultsPaneHeightPct,
     };
 }
 

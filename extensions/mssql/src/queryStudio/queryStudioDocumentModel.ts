@@ -33,7 +33,7 @@ export interface ModelTextEvents {
 }
 
 export class QueryStudioDocumentModel implements vscode.Disposable {
-    readonly uriKey: string;
+    private _uriKey: string;
     /** Managed by the registry. */
     panelCount = 0;
     /** Shared data-plane session for every panel of this document (M1). */
@@ -82,8 +82,8 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         private readonly hotExitBackupRoot?: vscode.Uri,
         private readonly onLastDispose?: (model: QueryStudioDocumentModel) => void,
     ) {
-        this.uriKey = document.uri.toString();
-        this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this.uriKey);
+        this._uriKey = document.uri.toString();
+        this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this._uriKey);
         this.sync = new TextSyncEngine(document.getText());
         this.persistHotExitBackup();
         this.docSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
@@ -96,6 +96,10 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
 
     get backingDocument(): vscode.TextDocument {
         return this.document;
+    }
+
+    get uriKey(): string {
+        return this._uriKey;
     }
 
     get hostVersion(): number {
@@ -147,6 +151,15 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         this.sync = new TextSyncEngine(document.getText());
         this.persistHotExitBackup();
         this.broadcastResync("document rebind (Save As / re-resolve)");
+    }
+
+    /**
+     * Save As transplant: this model (connection, results, spill) continues
+     * under the saved document's URI. The caller re-keys the registries.
+     */
+    adoptSavedDocument(document: vscode.TextDocument): void {
+        this._uriKey = document.uri.toString();
+        this.rebind(document);
     }
 
     attachListener(listener: ModelTextEvents): vscode.Disposable {

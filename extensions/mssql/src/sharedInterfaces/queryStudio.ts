@@ -178,6 +178,8 @@ export interface QsGridStyle {
     autosizeSampleRows?: number;
     /** Autosize column-width ceiling in px (UX density pass). */
     gridMaxColumnWidthPx?: number;
+    /** Default editor/results split — results pane height as % (SSMS ~50). */
+    resultsPaneHeightPct?: number;
 }
 
 export interface QsState {

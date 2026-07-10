@@ -40,6 +40,12 @@ const pendingOpenContexts = new Map<
 >();
 const explicitClassicOpenUntil = new Map<string, number>();
 const PROBLEM_REDIRECT_SELECTION_SETTLE_MS = 25;
+/**
+ * Save As transplants keyed by the SAVED file's uri: when the target resolves
+ * in Query Studio, the source model (connection + results + spill) is adopted
+ * instead of creating a fresh one. Entries expire — see the continuity watcher.
+ */
+const pendingModelTransplants = new Map<string, QueryStudioDocumentModel>();
 
 export function findQueryStudioModel(uri: vscode.Uri): QueryStudioDocumentModel | undefined {
     return liveModels.get(uri.toString());
@@ -90,6 +96,22 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
         });
 
         let model = this.models.get(uriKey);
+        let transplanted = false;
+        if (!model) {
+            // Save As transplant: continue the source model (connection,
+            // results, spill) under the saved file's URI.
+            const transplant = pendingModelTransplants.get(uriKey);
+            if (transplant && this.models.get(transplant.uriKey) === transplant) {
+                pendingModelTransplants.delete(uriKey);
+                this.models.delete(transplant.uriKey);
+                liveModels.delete(transplant.uriKey);
+                transplant.adoptSavedDocument(backingDocument);
+                this.models.set(uriKey, transplant);
+                liveModels.set(uriKey, transplant);
+                model = transplant;
+                transplanted = true;
+            }
+        }
         if (!model) {
             const spillRoot = path.join(
                 this.context.globalStorageUri.fsPath,
@@ -102,7 +124,7 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
             });
             this.models.set(uriKey, model);
             liveModels.set(uriKey, model);
-        } else if (model.backingDocument !== backingDocument) {
+        } else if (!transplanted && model.backingDocument !== backingDocument) {
             // Re-resolve (Save As / revert): rebind-safe per doc 04 §7.2.
             model.rebind(backingDocument);
         }
@@ -112,21 +134,28 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
         liveControllers.add(controller);
         // Open-from-context (OE v2): a queued context connects the fresh
         // model to its profile (and optionally runs) once the panel exists.
+        // A transplanted model already carries its live session — never
+        // reconnect over it.
         const pendingContext = pendingOpenContexts.get(uriKey);
         if (pendingContext) {
             pendingOpenContexts.delete(uriKey);
-            void model.applyOpenContext(pendingContext);
+            if (!transplanted) {
+                void model.applyOpenContext(pendingContext);
+            }
         }
+        const boundModel = model;
         panel.onDidDispose(() => {
             liveControllers.delete(controller);
             controller.dispose();
-            const current = this.models.get(uriKey);
-            if (current) {
-                current.panelCount = Math.max(0, current.panelCount - 1);
-                if (current.panelCount === 0) {
-                    this.models.delete(uriKey);
-                    liveModels.delete(uriKey);
-                    current.dispose();
+            // Identity check via the model's CURRENT key: a Save As
+            // transplant re-keys the model, and the orphaned source panel
+            // must still decrement the right instance.
+            if (this.models.get(boundModel.uriKey) === boundModel) {
+                boundModel.panelCount = Math.max(0, boundModel.panelCount - 1);
+                if (boundModel.panelCount === 0) {
+                    this.models.delete(boundModel.uriKey);
+                    liveModels.delete(boundModel.uriKey);
+                    boundModel.dispose();
                 }
             }
         });
@@ -383,114 +412,137 @@ async function ensureMssqlFileAssociation(): Promise<void> {
     }
 }
 
+/** EOL/final-newline save transforms must not break Save As source matching. */
+function normalizeForSaveAsMatch(text: string): string {
+    return text.replace(/\r\n/g, "\n").trimEnd();
+}
+
 /**
- * Untitled Save As continuity (doc 04 §7.2 gap): when an untitled Query
- * Studio document is saved to disk, VS Code closes the custom editor and
- * opens the new file in the DEFAULT editor — for `.sql` (where QS is
- * priority "option") that silently demotes the user to the plain text
- * editor mid-session. Watch the tab replacement (untitled QS custom tab
- * closes, a file text tab opens moments later), reopen the saved file in
- * Query Studio, and hand the connection context to the adopted document so
- * the session continues on the same profile/database.
+ * Save As continuity (doc 04 §7.2 gap): VS Code does not reliably replace a
+ * custom-editor tab on Save As — an untitled Query Studio tab is left
+ * ORPHANED (backing document gone, results webview still showing) while the
+ * content lands in the target file, and a titled Save As reopens the target
+ * as a fresh document that would lose the session. Tab events never fire for
+ * the orphan, so the watcher keys off the DOCUMENT save instead: a saved
+ * .sql/.mssql file that is not an open Query Studio document but textually
+ * matches a live model is that model's Save As target. The model itself
+ * (connection, results, spill) is transplanted to the new URI, the target is
+ * ensured open in Query Studio, and the orphaned source tab is closed.
  */
 function registerQueryStudioSaveAsContinuity(context: vscode.ExtensionContext): void {
-    let pendingSaveAs:
-        | { at: number; group: vscode.TabGroup; profileId?: string; database?: string }
-        | undefined;
-    // A real Save As replaces the tab within one or two tab events; a longer
-    // gap means the user closed the untitled editor and moved on — never
-    // adopt an unrelated file they open later.
-    const SAVE_AS_ADOPT_WINDOW_MS = 1500;
+    // A resolve normally lands well under a second after the save; expired
+    // entries mean the user saved a copy without reopening it — never adopt
+    // an unrelated later open.
+    const TRANSPLANT_WINDOW_MS = 5000;
+    // Small grace so VS Code's own editor replacement (when it works) runs
+    // first and the ensure step only fills the gaps.
+    const ENSURE_DELAY_MS = 200;
     context.subscriptions.push(
-        vscode.window.tabGroups.onDidChangeTabs((event) => {
-            for (const tab of event.closed) {
-                if (
-                    tab.input instanceof vscode.TabInputCustom &&
-                    tab.input.viewType === QUERY_STUDIO_VIEW_TYPE &&
-                    tab.input.uri.scheme === "untitled"
-                ) {
-                    // The model may still be alive (panel dispose races tab
-                    // events) — capture the connection for the handoff.
-                    const model = liveModels.get(tab.input.uri.toString());
-                    const profileId = model?.sessionBinding.currentProfileId;
-                    const database = model?.sessionBinding.connectionState.database;
-                    pendingSaveAs = {
-                        at: Date.now(),
-                        group: tab.group,
-                        ...(profileId ? { profileId } : {}),
-                        ...(database ? { database } : {}),
-                    };
-                }
-            }
-            if (!pendingSaveAs || Date.now() - pendingSaveAs.at > SAVE_AS_ADOPT_WINDOW_MS) {
+        vscode.workspace.onDidSaveTextDocument((saved) => {
+            if (saved.uri.scheme !== "file" || !/\.(sql|mssql)$/i.test(saved.uri.fsPath)) {
                 return;
             }
-            for (const tab of event.opened) {
-                if (tab.group !== pendingSaveAs.group) {
-                    continue;
-                }
-                // .mssql saves reopen natively as a Query Studio custom tab
-                // (workbench.editorAssociations default) — only the
-                // connection handoff is needed. .sql saves land in the plain
-                // text editor and are re-adopted with openWith.
-                const customAdopt =
-                    tab.input instanceof vscode.TabInputCustom &&
-                    tab.input.viewType === QUERY_STUDIO_VIEW_TYPE &&
-                    tab.input.uri.scheme === "file";
-                const textAdopt =
-                    tab.input instanceof vscode.TabInputText &&
-                    tab.input.uri.scheme === "file" &&
-                    /\.(sql|mssql)$/i.test(tab.input.uri.fsPath);
-                if (!customAdopt && !textAdopt) {
-                    continue;
-                }
-                const target = (tab.input as vscode.TabInputCustom | vscode.TabInputText).uri;
-                const handoff = pendingSaveAs;
-                pendingSaveAs = undefined;
-                diag.emit({
-                    feature: "queryStudio",
-                    kind: "event",
-                    type: "queryStudio.saveAs.adopted",
-                    status: "ok",
-                    fields: {
-                        extension: {
-                            raw: path.extname(target.fsPath).toLowerCase(),
-                            cls: "diagnostic.metadata",
-                        },
-                        reopened: { raw: textAdopt, cls: "diagnostic.metadata" },
-                        withConnection: {
-                            raw: handoff.profileId !== undefined,
-                            cls: "diagnostic.metadata",
-                        },
-                    },
-                });
-                if (handoff.profileId) {
-                    const uriKey = target.toString();
-                    const adoptedModel = liveModels.get(uriKey);
-                    if (adoptedModel) {
-                        // Already resolved (native .mssql reopen won the race).
-                        void adoptedModel.applyOpenContext({
-                            profileId: handoff.profileId,
-                            ...(handoff.database ? { database: handoff.database } : {}),
-                        });
-                    } else {
-                        pendingOpenContexts.set(uriKey, {
-                            profileId: handoff.profileId,
-                            ...(handoff.database ? { database: handoff.database } : {}),
-                        });
+            const savedKey = saved.uri.toString();
+            if (liveModels.has(savedKey)) {
+                return; // ordinary Save of an already-open Query Studio doc
+            }
+            const savedText = normalizeForSaveAsMatch(saved.getText());
+            let source: QueryStudioDocumentModel | undefined;
+            for (const model of liveModels.values()) {
+                try {
+                    if (
+                        model.panelCount > 0 &&
+                        model.backingDocument.uri.toString() !== savedKey &&
+                        normalizeForSaveAsMatch(model.backingDocument.getText()) === savedText
+                    ) {
+                        source = model;
+                        break;
                     }
+                } catch {
+                    // A closed backing document that cannot be read cannot match.
                 }
-                if (textAdopt) {
-                    void vscode.commands.executeCommand(
-                        "vscode.openWith",
-                        target,
-                        QUERY_STUDIO_VIEW_TYPE,
-                    );
-                }
+            }
+            if (!source) {
                 return;
             }
+            const sourceModel = source;
+            const sourceUriKey = sourceModel.uriKey;
+            pendingModelTransplants.set(savedKey, sourceModel);
+            setTimeout(() => {
+                if (pendingModelTransplants.get(savedKey) === sourceModel) {
+                    pendingModelTransplants.delete(savedKey);
+                }
+            }, TRANSPLANT_WINDOW_MS);
+            // Fallback if the transplant window is missed: at least the
+            // connection context survives into the fresh model.
+            const profileId = sourceModel.sessionBinding.currentProfileId;
+            const database = sourceModel.sessionBinding.connectionState.database;
+            if (profileId) {
+                pendingOpenContexts.set(savedKey, {
+                    profileId,
+                    ...(database ? { database } : {}),
+                });
+            }
+            setTimeout(() => {
+                void adoptSaveAsTarget(saved.uri, savedKey, sourceUriKey);
+            }, ENSURE_DELAY_MS);
         }),
     );
+}
+
+/** Ensure the Save As target is open in Query Studio and the orphaned source tab is gone. */
+async function adoptSaveAsTarget(
+    target: vscode.Uri,
+    targetKey: string,
+    sourceUriKey: string,
+): Promise<void> {
+    try {
+        const tabs = vscode.window.tabGroups.all.flatMap((group) => group.tabs);
+        const targetQsTab = tabs.find(
+            (tab) =>
+                tab.input instanceof vscode.TabInputCustom &&
+                tab.input.viewType === QUERY_STUDIO_VIEW_TYPE &&
+                tab.input.uri.toString() === targetKey,
+        );
+        // Orphaned source tab: still keyed by the PRE-save uri (the model has
+        // been re-keyed by the transplant, or will be — either way this tab's
+        // editor no longer owns a document).
+        const orphanTabs = tabs.filter(
+            (tab) =>
+                tab.input instanceof vscode.TabInputCustom &&
+                tab.input.viewType === QUERY_STUDIO_VIEW_TYPE &&
+                tab.input.uri.toString() === sourceUriKey,
+        );
+        if (!targetQsTab) {
+            // Covers both the orphan case (no editor opened for the target at
+            // all) and the demote case (target opened in the plain text
+            // editor — openWith replaces it).
+            await vscode.commands.executeCommand("vscode.openWith", target, QUERY_STUDIO_VIEW_TYPE);
+        }
+        if (orphanTabs.length > 0) {
+            await vscode.window.tabGroups.close(orphanTabs, true);
+        }
+        diag.emit({
+            feature: "queryStudio",
+            kind: "event",
+            type: "queryStudio.saveAs.adopted",
+            status: "ok",
+            fields: {
+                extension: {
+                    raw: path.extname(target.fsPath).toLowerCase(),
+                    cls: "diagnostic.metadata",
+                },
+                reopened: { raw: !targetQsTab, cls: "diagnostic.metadata" },
+                orphansClosed: { raw: orphanTabs.length, cls: "diagnostic.metadata" },
+                transplantPending: {
+                    raw: pendingModelTransplants.has(targetKey),
+                    cls: "diagnostic.metadata",
+                },
+            },
+        });
+    } catch {
+        // Best-effort: worst case the user reopens via "Reopen With".
+    }
 }
 
 function registerQueryStudioActiveTextEditorRedirect(context: vscode.ExtensionContext): void {

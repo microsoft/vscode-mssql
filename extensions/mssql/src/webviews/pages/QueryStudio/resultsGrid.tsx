@@ -648,7 +648,10 @@ export function QsResultGridSurface(props: {
 
     const style = useMemo(
         () => ({
-            fontFamily: gridStyle?.fontFamily || "var(--vscode-editor-font-family)",
+            // SSMS-density default: the grid uses the proportional UI font —
+            // monospace (editor font) renders the same text nearly 2× wider.
+            // mssql.resultsFontFamily overrides for users who want monospace.
+            fontFamily: gridStyle?.fontFamily || "var(--vscode-font-family)",
             fontSize: `${gridStyle?.fontSize ?? DEFAULT_FONT_SIZE}px`,
         }),
         [gridStyle],

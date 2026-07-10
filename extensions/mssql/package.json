@@ -3399,6 +3399,14 @@
                     "description": "Maximum rows Query Studio retains per result set before it marks the result set truncated and requests query cancellation.",
                     "scope": "application"
                 },
+                "mssql.queryStudio.resultsPaneHeightPercent": {
+                    "type": "number",
+                    "default": 50,
+                    "minimum": 15,
+                    "maximum": 80,
+                    "description": "Default height of the Query Studio results pane as a percentage of the editor area (SSMS-like 50/50 split). Dragging the splitter overrides this for the session.",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.replay.enabled": {
                     "type": "boolean",
                     "default": false,

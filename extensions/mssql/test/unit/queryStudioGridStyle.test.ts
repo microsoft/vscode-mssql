@@ -30,9 +30,29 @@ suite("Query Studio grid style", () => {
             alternatingRowColors: false,
             showGridLines: "both",
             inMemoryDataProcessingThreshold: 5000,
+            resultsPaneHeightPct: 50,
         });
         expect(style).to.not.have.property("fontFamily");
         expect(style).to.not.have.property("rowPadding");
+    });
+
+    test("resultsPaneHeightPercent reads and clamps to the splitter bounds", () => {
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": 65 }))
+                .resultsPaneHeightPct,
+        ).to.equal(65);
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": 5 }))
+                .resultsPaneHeightPct,
+        ).to.equal(15);
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": 95 }))
+                .resultsPaneHeightPct,
+        ).to.equal(80);
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": "half" }))
+                .resultsPaneHeightPct,
+        ).to.equal(50);
     });
 
     test("unset resultsFontSize takes the compact 12px default, not editor.fontSize", () => {

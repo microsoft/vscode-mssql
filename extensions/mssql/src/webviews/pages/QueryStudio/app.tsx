@@ -171,7 +171,12 @@ export function QueryStudioApp() {
     );
     const [resultsCollapsed, setResultsCollapsed] = useState(false);
     const [resultsPaneMaximized, setResultsPaneMaximized] = useState(false);
-    const [resultsHeightPct, setResultsHeightPct] = useState(45);
+    // Editor/results split (SSMS ≈ 50/50). The configured default
+    // (mssql.queryStudio.resultsPaneHeightPercent) arrives with the first
+    // state push; a manual splitter drag wins for the rest of the session.
+    const [resultsHeightPct, setResultsHeightPct] = useState(50);
+    const splitAdjustedRef = useRef(false);
+    const configuredSplitRef = useRef(50);
     // Grid maximize/restore (issue A): one grid can fill the whole results
     // pane; the others stay mounted but hidden. Reset per run.
     const [maximizedGridId, setMaximizedGridId] = useState<string | undefined>(undefined);
@@ -1208,6 +1213,16 @@ export function QueryStudioApp() {
     }, [rpc, flushEdits]);
 
     // --- splitter --------------------------------------------------------------
+    // Configured default split; applied until the user drags the splitter.
+    const configuredSplit = state?.gridStyle?.resultsPaneHeightPct;
+    useEffect(() => {
+        if (configuredSplit !== undefined) {
+            configuredSplitRef.current = configuredSplit;
+            if (!splitAdjustedRef.current) {
+                setResultsHeightPct(configuredSplit);
+            }
+        }
+    }, [configuredSplit]);
     const onSplitterDown = useCallback((down: React.PointerEvent) => {
         down.preventDefault();
         const root = rootRef.current;
@@ -1218,6 +1233,7 @@ export function QueryStudioApp() {
             const rect = root.getBoundingClientRect();
             const fromBottom = rect.bottom - 24 - e.clientY; // status bar
             const pct = Math.min(80, Math.max(15, (fromBottom / (rect.height - 59)) * 100));
+            splitAdjustedRef.current = true;
             setResultsHeightPct(pct);
         };
         const up = () => {
@@ -1227,7 +1243,10 @@ export function QueryStudioApp() {
         window.addEventListener("pointermove", move);
         window.addEventListener("pointerup", up);
     }, []);
-    const resetSplit = useCallback(() => setResultsHeightPct(45), []);
+    const resetSplit = useCallback(() => {
+        splitAdjustedRef.current = false;
+        setResultsHeightPct(configuredSplitRef.current);
+    }, []);
 
     const connection = state?.connection ?? { kind: "disconnected" as const };
     const connected = connection.kind === "connected" || connection.kind === "executing";
