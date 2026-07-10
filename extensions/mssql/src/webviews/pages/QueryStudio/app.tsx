@@ -86,12 +86,14 @@ import "../../common/FluentResultGrid/FluentResultGrid.css";
 import "../../common/FluentResultGrid/FluentResultGrid.vscode.css";
 import "../../media/table.css";
 import {
+    gridStackLoaded,
     LazyExecutionPlanView,
     LazyMessagesView,
     LazyQsResultsGridProvider,
     LazyResultGridBlock,
     prefetchGridStack,
     ResultsSurfaceLoading,
+    whenGridStackLoaded,
 } from "./lazyResults";
 import { qsGridRowHeight } from "./resultsGridShared";
 import { QueryStudioResultsTextView } from "./resultsTextView";
@@ -624,11 +626,21 @@ export function QueryStudioApp() {
         }
         if (TERMINAL_KINDS.has(executionKind) && runId && renderedRunRef.current !== runId) {
             renderedRunRef.current = runId;
-            perfMarkAfterNextPaint("mssql.queryStudio.resultsRendered", {
+            // BOOT-2 honesty: with the lazy grid, "rendered" means the REAL
+            // grid painted — never the Suspense placeholder (the first live
+            // run proved the mark drifted 120ms early without this gate).
+            const attrs = {
                 status: executionKind,
                 rows: state?.results.totalRows ?? 0,
                 resultSets: state?.results.resultSets.length ?? 0,
-            });
+            };
+            if ((state?.results.resultSets.length ?? 0) > 0 && !gridStackLoaded()) {
+                void whenGridStackLoaded().then(() =>
+                    perfMarkAfterNextPaint("mssql.queryStudio.resultsRendered", attrs),
+                );
+            } else {
+                perfMarkAfterNextPaint("mssql.queryStudio.resultsRendered", attrs);
+            }
             // Error terminal states: land the user on Messages even when the
             // run also produced result sets, so the failure text is visible.
             const terminalHasErrors =

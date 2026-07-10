@@ -95,7 +95,21 @@ export function perfMarkAfterNextPaint(
     name: string,
     attrs?: { [key: string]: string | number | boolean | null },
 ): void {
+    // Hidden/backgrounded webviews get their rAF throttled to a standstill
+    // (VS Code suspends hidden views) — the 500ms fallback keeps the mark
+    // honest-ish (attr says so) instead of silently absent (BOOT-4: warmup
+    // reps lost editorInteractive entirely to this).
+    let done = false;
+    const emit = (throttled: boolean) => {
+        if (done) {
+            return;
+        }
+        done = true;
+        clearTimeout(fallback);
+        perfMark(name, throttled ? { ...(attrs ?? {}), rafThrottled: true } : attrs);
+    };
+    const fallback = setTimeout(() => emit(true), 500);
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => perfMark(name, attrs));
+        requestAnimationFrame(() => emit(false));
     });
 }

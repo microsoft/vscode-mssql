@@ -65,6 +65,19 @@ export function gridStackLoaded(): boolean {
     return gridLoaded;
 }
 
+/**
+ * Resolves when the grid stack is resident (starts the load if nothing
+ * has). resultsRendered honesty rides this: with a lazy grid the mark must
+ * wait for the REAL grid paint, never the Suspense placeholder's.
+ */
+export async function whenGridStackLoaded(): Promise<void> {
+    if (gridLoaded) {
+        return;
+    }
+    prefetchGridStack();
+    await Promise.all([resultsModule(), gridModule()]);
+}
+
 export const LazyResultGridBlock = React.lazy(async () => ({
     default: (await resultsModule()).ResultGridBlock,
 }));
