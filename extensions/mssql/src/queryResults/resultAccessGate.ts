@@ -44,6 +44,27 @@ export interface ResultAccessGrant {
 /** Single-use, short-lived: consent covers one read, not a session. */
 const GRANT_TTL_MS = 2 * 60_000;
 
+export interface GateOutcomeRecord {
+    readonly atEpochMs: number;
+    readonly operationClass: ResultAccessOperationClass;
+    readonly outcome: "minted" | string;
+}
+
+const GATE_HISTORY_LIMIT = 32;
+/** Recent mint/denial outcomes across every gate — the showStatus surface. */
+const gateHistory: GateOutcomeRecord[] = [];
+
+function recordGateOutcome(record: GateOutcomeRecord): void {
+    gateHistory.push(record);
+    if (gateHistory.length > GATE_HISTORY_LIMIT) {
+        gateHistory.shift();
+    }
+}
+
+export function recentGateOutcomes(): readonly GateOutcomeRecord[] {
+    return gateHistory;
+}
+
 export class ResultAccessGate {
     private readonly grants = new Map<string, ResultAccessGrant>();
 
@@ -67,6 +88,11 @@ export class ResultAccessGate {
         Perf.marker("mssql.queryResults.grant.minted", "instant", {
             operationClass: grant.operationClass,
         });
+        recordGateOutcome({
+            atEpochMs: this.now(),
+            operationClass: grant.operationClass,
+            outcome: "minted",
+        });
         return grant;
     }
 
@@ -83,6 +109,11 @@ export class ResultAccessGate {
             Perf.marker("mssql.queryResults.grant.denied", "instant", {
                 operationClass: expected.operationClass,
                 reason,
+            });
+            recordGateOutcome({
+                atEpochMs: this.now(),
+                operationClass: expected.operationClass,
+                outcome: reason,
             });
             return { ok: false, reason };
         };

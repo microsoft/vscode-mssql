@@ -1641,6 +1641,21 @@ export const OBS_CONTRACT: Registry = {
             notes: "C2D-3: pinned document controller constructed (host side; first webview paint is a webview mark).",
         },
         {
+            name: "mssql.queryResults.pin.rendered",
+            kind: "webviewMark",
+            phase: "instant",
+            feature: "queryResults",
+            processRoles: ["webview"],
+            timingClass: "epochAligned",
+            measurementEligible: true,
+            attrs: {
+                resultSets: "structuralMetadata",
+                rows: "structuralMetadata",
+            },
+            attrsComplete: true,
+            notes: "C2D-8: first paint of a pinned results document (double-rAF, same rule as queryStudio.resultsRendered) — the user-perceived end of a pin action.",
+        },
+        {
             name: "mssql.queryResults.pin.close",
             kind: "marker",
             phase: "instant",
@@ -1747,6 +1762,11 @@ export const OBS_CONTRACT: Registry = {
                 "mssql.queryResults.transform.evaluate.begin",
                 "mssql.queryResults.transform.evaluate.end",
             ],
+        },
+        {
+            name: "mssql.queryResults.pin.toRender",
+            feature: "queryResults",
+            derivedFrom: ["mssql.queryResults.pin.open.begin", "mssql.queryResults.pin.rendered"],
         },
     ],
     classifications: {

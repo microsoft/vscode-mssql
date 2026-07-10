@@ -66,10 +66,8 @@ import {
     QsSyncUndoRequest,
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
-import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
-import { resolveQueryResultsParams } from "../queryResults/queryResultsParams";
-import { openPinnedResultsDocument } from "../queryResults/pinnedResultsDocumentProvider";
+import { pinSourceResults } from "../queryResults/pinCommands";
 import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import {
@@ -312,38 +310,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
      * document has acquired its own — a failed open therefore disposes the
      * snapshot instead of leaking it.
      */
-    private async pinResults(
+    private pinResults(
         scope: { kind: "resultSet"; resultSetId: string } | { kind: "allCompleteResultSets" },
     ): Promise<{ opened: boolean; snapshotId?: string; error?: string }> {
-        if (!resolveQueryResultsParams().params.pinnedDocumentsEnabled) {
-            return {
-                opened: false,
-                error: "Pinned result documents are disabled (mssql.queryResults.pinnedDocuments.enabled).",
-            };
-        }
-        try {
-            const lease = await getQueryResultAccessService().createSnapshot({
-                owner: { kind: "pinnedDocument", label: "Pinned results" },
-                reason: "Pinned from Query Studio",
-                sourceId: this.model.liveResultSource.sourceId,
-                scope,
-                includeMessages: "allLocal",
-                includeQueryText: "digest",
-            });
-            try {
-                const opened = await openPinnedResultsDocument(lease.snapshotId);
-                return opened
-                    ? { opened, snapshotId: lease.snapshotId }
-                    : { opened, error: "The pinned results tab could not be opened." };
-            } finally {
-                lease.dispose();
-            }
-        } catch (error) {
-            return {
-                opened: false,
-                error: error instanceof Error ? error.message : String(error),
-            };
-        }
+        return pinSourceResults(this.model.liveResultSource.sourceId, scope);
     }
 
     private async executionPlanSeam(): Promise<

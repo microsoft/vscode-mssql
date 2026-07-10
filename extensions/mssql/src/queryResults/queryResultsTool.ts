@@ -26,6 +26,7 @@ import { Perf } from "../perf/perfTelemetry";
 import { ToolBase } from "../copilot/tools/toolBase";
 import { windowCellReader } from "./cellReader";
 import { getQueryResultAccessService } from "./queryResultAccessService";
+import { pinExistingSnapshot } from "./pinCommands";
 import { QueryResultsParams, resolveQueryResultsParams } from "./queryResultsParams";
 import { GatedQueryResultAccess, ResultAccessDenied, ResultAccessGate } from "./resultAccessGate";
 import { QueryResultAccessError } from "./queryResultTypes";
@@ -43,6 +44,7 @@ export type QueryResultsToolOperation =
     | "sample_rows"
     | "evaluate_transform"
     | "derive_snapshot"
+    | "pin_snapshot"
     | "release_snapshot";
 
 export interface QueryResultsToolParams {
@@ -239,6 +241,20 @@ export class QueryResultsTool extends ToolBase<QueryResultsToolParams> {
                 const spec = this.requireSpec(input);
                 const snapshotId = await access.deriveSnapshot(spec, WINDOW_OWNER_KEY);
                 return JSON.stringify({ success: true, snapshotId });
+            }
+            case "pin_snapshot": {
+                // "AI filters, the user pins the view": opens the snapshot
+                // (typically a derived one) as a read-only tab. The tab is a
+                // user-visible action, not model output — no values cross.
+                const outcome = await pinExistingSnapshot(this.requireId(input));
+                return JSON.stringify(
+                    outcome.opened
+                        ? {
+                              success: true,
+                              note: "The snapshot is now open as a pinned tab and stays alive until the user closes it.",
+                          }
+                        : { success: false, message: outcome.error },
+                );
             }
             case "release_snapshot":
                 access.releaseSnapshot(this.requireId(input), WINDOW_OWNER_KEY);

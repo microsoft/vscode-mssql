@@ -102,6 +102,7 @@ class PinnedQueryResultsDocumentProvider
 
     resolveCustomEditor(document: PinnedQueryResultsDocument, panel: vscode.WebviewPanel): void {
         Perf.marker("mssql.queryResults.pin.open.begin", "begin");
+        warnOnPinnedTabPressure();
         const controller = new PinnedResultsController(this.context, panel, document);
         panel.onDidDispose(() => {
             controller.dispose();
@@ -113,6 +114,28 @@ class PinnedQueryResultsDocumentProvider
             expired: document.expired,
             resultSetCount: controller.resultSetCount,
         });
+    }
+}
+
+/**
+ * Pinned-tab soft cap (C2D-D-09): retainContextWhenHidden multiplies
+ * renderer memory per pinned tab. Warn once per session past the cap;
+ * getState/rehydrate lands only if dogfood memory data demands it.
+ */
+const PINNED_TAB_SOFT_CAP = 8;
+let warnedPinnedTabPressure = false;
+
+function warnOnPinnedTabPressure(): void {
+    if (warnedPinnedTabPressure) {
+        return;
+    }
+    const pinnedLeases =
+        getQueryResultAccessService().status().leasesByOwnerKind["pinnedDocument"] ?? 0;
+    if (pinnedLeases >= PINNED_TAB_SOFT_CAP) {
+        warnedPinnedTabPressure = true;
+        void vscode.window.showWarningMessage(
+            `${pinnedLeases + 1} pinned result tabs are open. Each keeps its data and view in memory — close ones you no longer need.`,
+        );
     }
 }
 

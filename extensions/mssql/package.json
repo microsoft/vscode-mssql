@@ -300,6 +300,10 @@
                         "description": "Column profile including min/max values (asks before sharing values)"
                     },
                     {
+                        "name": "report",
+                        "description": "Markdown report written from local statistics and an approved sample"
+                    },
+                    {
                         "name": "pin",
                         "description": "Pin the active results to a read-only tab that survives reruns"
                     }
@@ -1102,6 +1106,14 @@
                 {
                     "command": "mssql.queryResults.showStatus",
                     "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.queryStudio.pinAllResults",
+                    "when": "config.mssql.queryStudio.enabled && mssql.queryResults.hasActiveSource"
+                },
+                {
+                    "command": "mssql.queryResults.benchmarkTransform",
+                    "when": "false"
                 },
                 {
                     "command": "mssql.queryStudio.openActive",
@@ -2097,6 +2109,16 @@
             {
                 "command": "mssql.queryResults.showStatus",
                 "title": "Query Results: Show Snapshot Status",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryStudio.pinAllResults",
+                "title": "Query Studio: Pin Results to New Tab",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.benchmarkTransform",
+                "title": "Query Results: Benchmark Transform (internal)",
                 "category": "MS SQL"
             },
             {
@@ -4060,7 +4082,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_query_results",
-                "modelDescription": "Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — numeric aggregates need no confirmation, any output containing cell values asks the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' materializes a filtered view as a new snapshotId (no values returned); 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
+                "modelDescription": "Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — numeric aggregates need no confirmation, any output containing cell values asks the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' materializes a filtered view as a new snapshotId (no values returned); 'pin_snapshot' opens a snapshot (e.g. a derived filtered view) as a read-only tab for the user; 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
                 "displayName": "MSSQL Query Result Snapshots",
                 "userDescription": "Analyze SQL query results from Query Studio with bounded, confirmed access.",
                 "canBeReferencedInPrompt": true,
@@ -4089,6 +4111,7 @@
                                 "sample_rows",
                                 "evaluate_transform",
                                 "derive_snapshot",
+                                "pin_snapshot",
                                 "release_snapshot"
                             ]
                         },

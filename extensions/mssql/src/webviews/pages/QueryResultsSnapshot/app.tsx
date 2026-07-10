@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     PinnedResultsState,
@@ -42,6 +43,19 @@ export function PinnedResultsApp() {
     const [maximizedGridId, setMaximizedGridId] = useState<string | undefined>(undefined);
     const bodyRef = useRef<HTMLDivElement | null>(null);
     const [paneHeight, setPaneHeight] = useState<number | undefined>(undefined);
+
+    // First-paint mark (C2D-8): the user-perceived end of a pin action;
+    // pairs with pin.open.begin for the pin.toRender boundary metric.
+    const renderedRef = useRef(false);
+    useEffect(() => {
+        if (!renderedRef.current && state && !state.expired) {
+            renderedRef.current = true;
+            perfMarkAfterNextPaint("mssql.queryResults.pin.rendered", {
+                resultSets: state.resultSets.length,
+                rows: state.totalRows,
+            });
+        }
+    }, [state]);
 
     // Messages are frozen — fetch once when the tab first shows them.
     const wantMessages =
