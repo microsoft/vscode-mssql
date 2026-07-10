@@ -82,7 +82,9 @@ const COPY_CHUNK = 512;
 /** Copy guard: refuse silently-unbounded clipboard payloads. */
 const COPY_MAX_ROWS = 100_000;
 const DEFAULT_FONT_SIZE = 12;
-const BASE_ROW_PADDING = 12;
+// Compact vertical chrome around the text (SSMS-like density). Users who
+// want airier rows raise mssql.resultsGrid.rowPadding.
+const BASE_ROW_PADDING = 6;
 
 export const COPY_TOO_LARGE_NOTICE =
     "Selection is too large to copy to the clipboard — use a smaller selection.";
@@ -95,7 +97,7 @@ const QUERY_STUDIO_GRID_INITIAL_STATE = {
     frozenColumnIndex: -1,
 } satisfies FluentResultGridState;
 
-/** Grid row height (classic getRowHeight parity: fontSize + 12 + 2·padding). */
+/** Grid row height: fontSize + compact base chrome + 2·padding. */
 export function qsGridRowHeight(gridStyle: QsGridStyle | undefined): number {
     const padding = Math.max(0, gridStyle?.rowPadding ?? 0);
     return (gridStyle?.fontSize ?? DEFAULT_FONT_SIZE) + BASE_ROW_PADDING + padding * 2;
@@ -708,6 +710,7 @@ export function QsResultGridSurface(props: {
                 rowHeight={qsGridRowHeight(gridStyle)}
                 windowSize={windowSize}
                 autosizeSampleRows={gridStyle?.autosizeSampleRows}
+                autosizeMaxColumnWidth={gridStyle?.gridMaxColumnWidthPx}
                 style={style}
                 toolbar={{ visible: true }}
                 viewMode="grid"

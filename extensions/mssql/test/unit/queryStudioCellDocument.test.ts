@@ -33,6 +33,17 @@ suite("Query Studio cell document", () => {
             expect(cellDocumentText(null)).to.equal("");
             expect(cellDocumentText(undefined)).to.equal("");
         });
+
+        test("typed wire wrappers decode to their value (grid parity, no wire JSON)", () => {
+            expect(
+                cellDocumentText({ $t: "datetime2", v: "2003-04-08T09:13:36.3900000" }),
+            ).to.equal("2003-04-08 09:13:36.390");
+            expect(cellDocumentText({ $t: "binary", v: "AAEC" })).to.equal("0x000102");
+            expect(cellDocumentText({ $t: "decimal", v: "1.50" })).to.equal("1.50");
+            expect(cellDocumentText({ $t: "truncated", of: "string", v: "prefix" })).to.equal(
+                "prefix",
+            );
+        });
     });
 
     suite("prettyPrintCellText", () => {

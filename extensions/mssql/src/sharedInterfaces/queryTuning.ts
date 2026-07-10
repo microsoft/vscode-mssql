@@ -74,6 +74,8 @@ export interface QueryTuningParams {
     displayCellClamp: number;
     /** Sort/filter enabled at or below this row count (mssql.resultsGrid.inMemoryDataProcessingThreshold). */
     inMemorySortFilterThreshold: number;
+    /** Autosize ("size to fit") column-width ceiling in px — wider content ellipsizes. */
+    gridMaxColumnWidthPx: number;
 
     // --- messages: messages pane ---
     messagesVirtualization: boolean;
@@ -153,6 +155,7 @@ export const QUERY_TUNING_SPEC: Record<keyof QueryTuningParams, QueryTuningValue
     autosizeSampleRows: int(1, 1000),
     displayCellClamp: int(64, 1 * MiB),
     inMemorySortFilterThreshold: int(0, 1_000_000),
+    gridMaxColumnWidthPx: int(80, 4000),
     messagesVirtualization: bool,
     messagesWindowRows: int(50, 5000),
     exportChunkRows: int(64, 100_000),
@@ -198,6 +201,9 @@ export const QUERY_TUNING_DEFAULTS: QueryTuningParams = {
     autosizeSampleRows: 50,
     displayCellClamp: 2048,
     inMemorySortFilterThreshold: 5000,
+    // SSMS-density autosize ceiling (UX pass): long text ellipsizes at 260px
+    // instead of one column eating the viewport.
+    gridMaxColumnWidthPx: 260,
     messagesVirtualization: true,
     messagesWindowRows: 200,
     exportChunkRows: 2048,

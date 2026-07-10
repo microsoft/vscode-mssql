@@ -80,6 +80,7 @@ export function useFluentResultGridController({
     rowHeight: rowHeightOverride,
     windowSize,
     autosizeSampleRows,
+    autosizeMaxColumnWidth,
     toolbar,
     commands,
     enableColumnReorder = true,
@@ -143,6 +144,7 @@ export function useFluentResultGridController({
     const layoutController = useFluentResultGridLayout({
         autoSizeColumnsMode,
         autosizeSampleRows,
+        autosizeMaxColumnWidth,
         containerRef,
         dataView: dataController.dataView,
         dataViewRef: dataController.dataViewRef,

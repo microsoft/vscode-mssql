@@ -47,6 +47,7 @@ export function restoreFluentResultGridHorizontalScrollPosition(
 export function useFluentResultGridLayout({
     autoSizeColumnsMode,
     autosizeSampleRows,
+    autosizeMaxColumnWidth,
     containerRef,
     dataView,
     dataViewRef,
@@ -56,6 +57,8 @@ export function useFluentResultGridLayout({
     autoSizeColumnsMode: ResultsGridAutoSizeStyle;
     /** Autosize data sample bound (QO-7b); default FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS. */
     autosizeSampleRows?: number;
+    /** Autosize width ceiling in px; default FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH. */
+    autosizeMaxColumnWidth?: number;
     containerRef: RefObject<HTMLDivElement | null>;
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
     dataViewRef: MutableRefObject<FluentResultGridDataView<FluentResultGridDataRow> | undefined>;
@@ -245,7 +248,7 @@ export function useFluentResultGridLayout({
                     width: Math.max(
                         FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
                         Math.min(
-                            FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
+                            autosizeMaxColumnWidth ?? FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
                             Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
                         ),
                     ),
@@ -260,7 +263,15 @@ export function useFluentResultGridLayout({
             grid.invalidate();
             return true;
         },
-        [autoSizeColumnsMode, containerRef, dataView, latestRowCountRef, reactGridRef],
+        [
+            autoSizeColumnsMode,
+            autosizeSampleRows,
+            autosizeMaxColumnWidth,
+            containerRef,
+            dataView,
+            latestRowCountRef,
+            reactGridRef,
+        ],
     );
 
     const scheduleAutoSizeColumns = useCallback(

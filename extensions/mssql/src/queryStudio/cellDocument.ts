@@ -15,7 +15,7 @@
  * it resolves to undefined and formatXml silently returns raw text.
  */
 
-import { isTruncatedCellMarker } from "../sharedInterfaces/queryStudioGridOps";
+import { cellDisplayText } from "../sharedInterfaces/queryStudioGridOps";
 
 const XML_INDENT = "    ";
 const XML_EOL = "\r\n";
@@ -25,14 +25,10 @@ export function cellDocumentText(value: unknown): string {
     if (value === undefined || value === null) {
         return "";
     }
-    if (isTruncatedCellMarker(value)) {
-        // Byte-capped cell (maxCellBytes): the prefix is all the client has.
-        return value.v;
-    }
-    if (typeof value === "object") {
-        return JSON.stringify(value);
-    }
-    return String(value);
+    // Shared decode: typed wire wrappers (datetime2/binary/decimal/…) and
+    // byte-capped markers render their VALUE, matching the grid exactly —
+    // exports and cell documents must never leak the wire encoding.
+    return cellDisplayText(value);
 }
 
 /** Pretty-print cell text for the opened document; raw text on parse failure. */

@@ -176,6 +176,8 @@ export interface QsGridStyle {
     textViewSampleRows?: number;
     /** Autosize data-sample row bound (QO-7b). */
     autosizeSampleRows?: number;
+    /** Autosize column-width ceiling in px (UX density pass). */
+    gridMaxColumnWidthPx?: number;
 }
 
 export interface QsState {

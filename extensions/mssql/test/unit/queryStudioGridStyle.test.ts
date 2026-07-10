@@ -5,7 +5,7 @@
 
 /**
  * readGridStyle validation (classic mssql.resultsGrid.* parity): defaults,
- * the resultsFontSize → editor.fontSize fallback chain, showGridLines
+ * the resultsFontSize override → compact 12px default, showGridLines
  * whitelisting, and rejection of malformed values.
  */
 
@@ -26,36 +26,34 @@ suite("Query Studio grid style", () => {
             }),
         );
         expect(style).to.deep.equal({
+            fontSize: 12,
             alternatingRowColors: false,
             showGridLines: "both",
             inMemoryDataProcessingThreshold: 5000,
         });
         expect(style).to.not.have.property("fontFamily");
-        expect(style).to.not.have.property("fontSize");
         expect(style).to.not.have.property("rowPadding");
     });
 
-    test("resultsFontSize falls back to editor.fontSize when unset", () => {
-        expect(readGridStyle(reader({ "editor.fontSize": 14 })).fontSize).to.equal(14);
+    test("unset resultsFontSize takes the compact 12px default, not editor.fontSize", () => {
+        expect(readGridStyle(reader({ "editor.fontSize": 14 })).fontSize).to.equal(12);
         expect(
             readGridStyle(reader({ "mssql.resultsFontSize": null, "editor.fontSize": 14 }))
                 .fontSize,
-        ).to.equal(14);
+        ).to.equal(12);
     });
 
-    test("resultsFontSize wins over editor.fontSize when set", () => {
+    test("resultsFontSize wins over the default when set", () => {
         const style = readGridStyle(reader({ "mssql.resultsFontSize": 18, "editor.fontSize": 14 }));
         expect(style.fontSize).to.equal(18);
     });
 
-    test("invalid font sizes are ignored", () => {
+    test("invalid font sizes fall back to the default", () => {
         expect(
             readGridStyle(reader({ "mssql.resultsFontSize": -3, "editor.fontSize": "big" }))
                 .fontSize,
-        ).to.equal(undefined);
-        expect(readGridStyle(reader({ "mssql.resultsFontSize": NaN })).fontSize).to.equal(
-            undefined,
-        );
+        ).to.equal(12);
+        expect(readGridStyle(reader({ "mssql.resultsFontSize": NaN })).fontSize).to.equal(12);
     });
 
     test("fontFamily kept when a non-empty string; blank/typed-wrong dropped", () => {

@@ -5,7 +5,7 @@
 
 /**
  * Results-grid styling settings (classic parity). Reads mssql.resultsFontFamily,
- * mssql.resultsFontSize (editor.fontSize fallback) and the mssql.resultsGrid.*
+ * mssql.resultsFontSize (compact 12px default) and the mssql.resultsGrid.*
  * settings into the validated QsGridStyle snapshot that rides QsState. Pure
  * reader (the sessionOptions.readQuerySessionOptions pattern) so the
  * validation logic is unit-testable without a live configuration.
@@ -21,6 +21,9 @@ const GRID_LINE_MODES: readonly QsGridLinesMode[] = ["both", "horizontal", "vert
 /** Classic default for mssql.resultsGrid.inMemoryDataProcessingThreshold. */
 const DEFAULT_IN_MEMORY_THRESHOLD = 5000;
 
+/** Default grid font size (px) — compact, SSMS-like density. */
+const DEFAULT_GRID_FONT_SIZE = 12;
+
 /** Read + validate the grid styling settings; invalid values fall back. */
 export function readGridStyle(get: ConfigReader): QsGridStyle {
     const fontFamilyRaw = get<unknown>("mssql.resultsFontFamily");
@@ -28,9 +31,11 @@ export function readGridStyle(get: ConfigReader): QsGridStyle {
         typeof fontFamilyRaw === "string" && fontFamilyRaw.trim().length > 0
             ? fontFamilyRaw
             : undefined;
+    // Dense by default: the grid does NOT inherit editor.fontSize (14) —
+    // SSMS-style density wants a smaller grid face. mssql.resultsFontSize
+    // still overrides for users who want it bigger.
     const fontSize =
-        positiveNumber(get<unknown>("mssql.resultsFontSize")) ??
-        positiveNumber(get<unknown>("editor.fontSize"));
+        positiveNumber(get<unknown>("mssql.resultsFontSize")) ?? DEFAULT_GRID_FONT_SIZE;
     const gridLinesRaw = get<unknown>("mssql.resultsGrid.showGridLines");
     const showGridLines = GRID_LINE_MODES.find((mode) => mode === gridLinesRaw) ?? "both";
     const rowPadding = nonNegativeNumber(get<unknown>("mssql.resultsGrid.rowPadding"));

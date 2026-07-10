@@ -52,6 +52,103 @@ export function isTruncatedCellMarker(
     );
 }
 
+/**
+ * Typed wire wrapper (WireValueEncoder `{"$t": type, "v": string}`): the
+ * service wraps lossy/ambiguous scalars — datetime2, datetimeoffset, time,
+ * decimal, guid, binary, double, provider — so precision survives the wire.
+ * Shape duplicated structurally for webview safety.
+ */
+export function isTypedCellWrapper(value: unknown): value is { $t: string; v: string } {
+    return (
+        value !== null &&
+        typeof value === "object" &&
+        typeof (value as { $t?: unknown }).$t === "string" &&
+        (value as { $t?: unknown }).$t !== "truncated" &&
+        typeof (value as { v?: unknown }).v === "string"
+    );
+}
+
+/** Binary display cap: hex beyond this many raw bytes elides (SSMS-style). */
+const BINARY_DISPLAY_MAX_BYTES = 256;
+
+/**
+ * SSMS-style display for a typed wrapper — the user sees the VALUE, never
+ * the wire encoding: dates as "2003-04-08 09:13:36.390", binary as
+ * "0x0105…", decimals/guids as their invariant text.
+ */
+function typedWrapperDisplayText(wrapper: { $t: string; v: string }): string {
+    switch (wrapper.$t) {
+        case "datetime2":
+            return formatIsoDateTime(wrapper.v, /* keepOffset */ false);
+        case "datetimeoffset":
+            return formatIsoDateTime(wrapper.v, /* keepOffset */ true);
+        case "binary":
+            return base64ToHexDisplay(wrapper.v);
+        // time / decimal / guid / double / provider: invariant text is the value.
+        default:
+            return wrapper.v;
+    }
+}
+
+/**
+ * ISO round-trip ("O") → grid form: "T" becomes a space and the fractional
+ * seconds trim trailing zeros down to SSMS's 3-digit floor.
+ */
+function formatIsoDateTime(iso: string, keepOffset: boolean): string {
+    const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.(\d+))?(.*)$/.exec(iso);
+    if (!match) {
+        return iso.replace("T", " ");
+    }
+    const [, date, time, fraction, offset] = match;
+    let fractionText = "";
+    if (fraction !== undefined && fraction.length > 0) {
+        let lastNonZero = -1;
+        for (let i = 0; i < fraction.length; i++) {
+            if (fraction.charCodeAt(i) !== 48) {
+                lastNonZero = i;
+            }
+        }
+        fractionText = "." + fraction.slice(0, Math.max(3, lastNonZero + 1));
+    }
+    return `${date} ${time}${fractionText}${keepOffset ? ` ${offset.trim()}` : ""}`.trimEnd();
+}
+
+const HEX_DIGITS = "0123456789ABCDEF";
+const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const BASE64_LOOKUP: number[] = (() => {
+    const table = new Array<number>(128).fill(-1);
+    for (let i = 0; i < BASE64_ALPHABET.length; i++) {
+        table[BASE64_ALPHABET.charCodeAt(i)] = i;
+    }
+    return table;
+})();
+
+/** base64 → "0x…" uppercase hex, elided past the display cap. No Buffer/atob (webview + host + tests). */
+function base64ToHexDisplay(base64: string): string {
+    let hex = "0x";
+    let bits = 0;
+    let bitCount = 0;
+    let bytes = 0;
+    for (let i = 0; i < base64.length && bytes < BINARY_DISPLAY_MAX_BYTES; i++) {
+        const code = base64.charCodeAt(i);
+        const sextet = code < 128 ? BASE64_LOOKUP[code] : -1;
+        if (sextet < 0) {
+            continue; // '=' padding / whitespace
+        }
+        bits = (bits << 6) | sextet;
+        bitCount += 6;
+        if (bitCount >= 8) {
+            bitCount -= 8;
+            const byte = (bits >> bitCount) & 0xff;
+            hex += HEX_DIGITS[byte >> 4] + HEX_DIGITS[byte & 0xf];
+            bytes++;
+        }
+    }
+    // Rough over-cap check: 4 base64 chars ≈ 3 bytes.
+    const totalBytes = Math.floor((base64.replace(/=+$/, "").length * 3) / 4);
+    return totalBytes > BINARY_DISPLAY_MAX_BYTES ? `${hex}…` : hex;
+}
+
 /** Display text for one wire cell value (grid cellText parity). */
 export function cellDisplayText(value: unknown): string {
     if (value === undefined || value === null) {
@@ -62,6 +159,9 @@ export function cellDisplayText(value: unknown): string {
         // the grid's clamp/link-out treatment keeps the whole prefix
         // reachable. Sort/filter/copy operate on the same prefix.
         return value.v;
+    }
+    if (isTypedCellWrapper(value)) {
+        return typedWrapperDisplayText(value);
     }
     if (typeof value === "object") {
         return JSON.stringify(value);
@@ -161,8 +261,10 @@ export function compareCells(a: unknown, b: unknown, numeric: boolean): number {
         return aNull && bNull ? 0 : aNull ? -1 : 1;
     }
     if (numeric) {
-        const na = typeof a === "number" ? a : Number(String(a));
-        const nb = typeof b === "number" ? b : Number(String(b));
+        // Display text unwraps typed wire wrappers (decimal/double arrive as
+        // {$t, v} objects whose String() would be "[object Object]").
+        const na = typeof a === "number" ? a : Number(cellDisplayText(a));
+        const nb = typeof b === "number" ? b : Number(cellDisplayText(b));
         if (!Number.isNaN(na) && !Number.isNaN(nb)) {
             return na < nb ? -1 : na > nb ? 1 : 0;
         }
@@ -211,7 +313,9 @@ export function applyFilterSort(
         }
     }
     if (sort) {
-        const numeric = typeHints?.[sort.column] === "number";
+        // Wire hints are "number" (int/float) or "number:approx" (bigint/
+        // decimal/money) — both want numeric ordering.
+        const numeric = typeHints?.[sort.column]?.startsWith("number") === true;
         const direction = sort.direction === "desc" ? -1 : 1;
         indices.sort((x, y) => {
             const order = compareCells(rows[x][sort.column], rows[y][sort.column], numeric);

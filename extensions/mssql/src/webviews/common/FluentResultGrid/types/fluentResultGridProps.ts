@@ -40,6 +40,8 @@ export interface FluentResultGridBehaviorProps {
     windowSize?: number;
     /** Autosize data-sample row bound (QO-7b); default 50. */
     autosizeSampleRows?: number;
+    /** Autosize column-width ceiling in px; default FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH. */
+    autosizeMaxColumnWidth?: number;
     toolbar?: FluentResultGridToolbarOptions;
     commands?: FluentResultGridCommandConfiguration;
     enableColumnReorder?: boolean;

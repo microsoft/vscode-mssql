@@ -418,6 +418,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             textViewMaxRows: tuning.textViewMaxRows,
             textViewSampleRows: tuning.textViewSampleRows,
             autosizeSampleRows: tuning.autosizeSampleRows,
+            gridMaxColumnWidthPx: tuning.gridMaxColumnWidthPx,
         };
         state.statusMessage = QueryStudioController.statusFor(state);
         return state;

@@ -180,6 +180,83 @@ suite("Query Studio grid client ops", () => {
             expect(cellDisplayText({ a: 1 })).to.equal('{"a":1}');
             expect(cellDisplayText(42)).to.equal("42");
         });
+
+        test("datetime2 wrapper renders SSMS-style, trimming fraction to a 3-digit floor", () => {
+            expect(cellDisplayText({ $t: "datetime2", v: "2003-04-08T09:13:36.3900000" })).to.equal(
+                "2003-04-08 09:13:36.390",
+            );
+            expect(cellDisplayText({ $t: "datetime2", v: "2003-04-08T09:13:36.1234567" })).to.equal(
+                "2003-04-08 09:13:36.1234567",
+            );
+            expect(cellDisplayText({ $t: "datetime2", v: "2003-04-08T09:13:36.0000000" })).to.equal(
+                "2003-04-08 09:13:36.000",
+            );
+            expect(cellDisplayText({ $t: "datetime2", v: "2003-04-08T09:13:36" })).to.equal(
+                "2003-04-08 09:13:36",
+            );
+        });
+
+        test("datetimeoffset wrapper keeps its offset", () => {
+            expect(
+                cellDisplayText({ $t: "datetimeoffset", v: "2003-04-08T09:13:36.3900000+02:00" }),
+            ).to.equal("2003-04-08 09:13:36.390 +02:00");
+        });
+
+        test("binary wrapper renders 0x-hex from base64", () => {
+            expect(cellDisplayText({ $t: "binary", v: "AQ==" })).to.equal("0x01");
+            expect(cellDisplayText({ $t: "binary", v: "AAEC" })).to.equal("0x000102");
+            expect(cellDisplayText({ $t: "binary", v: "" })).to.equal("0x");
+        });
+
+        test("oversized binary elides past the display cap", () => {
+            // 300 bytes of zeros → 400 base64 chars; cap is 256 bytes.
+            const big = "A".repeat(400);
+            const text = cellDisplayText({ $t: "binary", v: big });
+            expect(text.startsWith("0x")).to.equal(true);
+            expect(text.endsWith("…")).to.equal(true);
+            expect(text).to.have.length(2 + 256 * 2 + 1);
+        });
+
+        test("decimal/guid/time/double/provider wrappers render their invariant text", () => {
+            expect(cellDisplayText({ $t: "decimal", v: "123.4500" })).to.equal("123.4500");
+            expect(
+                cellDisplayText({ $t: "guid", v: "0e984725-c51c-4bf4-9960-e1c80e27aba0" }),
+            ).to.equal("0e984725-c51c-4bf4-9960-e1c80e27aba0");
+            expect(cellDisplayText({ $t: "time", v: "09:13:36.1234567" })).to.equal(
+                "09:13:36.1234567",
+            );
+            expect(cellDisplayText({ $t: "double", v: "1.7976931348623157E+308" })).to.equal(
+                "1.7976931348623157E+308",
+            );
+        });
+    });
+
+    suite("compareCells with typed wrappers", () => {
+        test("decimal wrappers compare numerically under the numeric hint", () => {
+            const nine = { $t: "decimal", v: "9" };
+            const ten = { $t: "decimal", v: "10" };
+            expect(compareCells(nine, ten, true)).to.be.lessThan(0);
+            expect(compareCells(ten, nine, true)).to.be.greaterThan(0);
+        });
+
+        test("datetime wrappers order chronologically as display text", () => {
+            const early = { $t: "datetime2", v: "2003-04-08T09:13:36.0000000" };
+            const late = { $t: "datetime2", v: "2003-04-09T00:00:00.0000000" };
+            expect(compareCells(early, late, false)).to.be.lessThan(0);
+        });
+    });
+
+    suite("applyFilterSort numeric hint", () => {
+        test("number:approx hints numeric ordering (bigint/decimal/money)", () => {
+            const rows = [[{ $t: "decimal", v: "10" }], [{ $t: "decimal", v: "9" }]];
+            const order = applyFilterSort(
+                rows,
+                { column: 0, direction: "asc" },
+                [],
+                ["number:approx"],
+            );
+            expect(order).to.deep.equal([1, 0]);
+        });
     });
 
     suite("cellDocumentLanguage", () => {
@@ -198,6 +275,14 @@ suite("Query Studio grid client ops", () => {
         test("large JSON-shaped text is linkable without a full parse", () => {
             const text = `{"payload":"${"x".repeat(QS_CELL_DOCUMENT_PARSE_LIMIT + 1)}"}`;
             expect(cellDocumentLanguage(text)).to.equal("json");
+        });
+
+        test("typed wrappers are never sniffed as JSON (dates are dates, not links)", () => {
+            expect(
+                cellDocumentLanguage({ $t: "datetime2", v: "2003-04-08T09:13:36.3900000" }),
+            ).to.equal(undefined);
+            expect(cellDocumentLanguage({ $t: "binary", v: "AQ==" })).to.equal(undefined);
+            expect(cellDocumentLanguage({ $t: "decimal", v: "1.5" })).to.equal(undefined);
         });
 
         test("truncated string cells do not claim JSON/XML without metadata", () => {
