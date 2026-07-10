@@ -25,6 +25,10 @@ import {
     resolveFolders,
 } from "../../src/objectExplorer/v2/tree/oeV2Hierarchy";
 import { childrenOfGroup } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
+import {
+    serverAuxFolderChildren,
+    serverChildren,
+} from "../../src/objectExplorer/v2/tree/oeV2Browse";
 import { decodePath, encodePath } from "../../src/objectExplorer/v2/tree/oeV2Path";
 import { OeV2ProfileTree } from "../../src/objectExplorer/v2/sessions/oeV2ProfileAdapter";
 
@@ -49,8 +53,12 @@ suite("Object Explorer v2 hierarchy registry (B22)", () => {
         ]);
     });
 
-    test("server scope resolves Databases only (pre-B23 content)", () => {
-        expect(resolveFolders("server", {}).map((def) => def.id)).to.deep.equal(["databases"]);
+    test("server scope resolves Databases, Security, Server Objects (B23)", () => {
+        expect(resolveFolders("server", {}).map((def) => def.id)).to.deep.equal([
+            "databases",
+            "security",
+            "serverObjects",
+        ]);
     });
 
     test("gates: validFor, system-folder stripping, nonEmpty presence, sortLast", () => {
@@ -265,5 +273,98 @@ suite("Object Explorer v2 connection labels (B22 / K6)", () => {
         expect(tiedTooltips[1]).to.include("Port: 1533");
         const untied = nodes.find((node) => node.label === "other, <default> (Integrated)");
         expect(untied?.tooltip ?? "").to.not.include("Differs");
+    });
+});
+
+suite("Object Explorer v2 server-level folders (B23)", () => {
+    test("server-scoped connection renders Databases, Security, Server Objects in order", () => {
+        expect(serverChildren("c1", {}).map((n) => n.label)).to.deep.equal([
+            "Databases",
+            "Security",
+            "Server Objects",
+        ]);
+    });
+
+    test("K1: database-scoped connection renders Databases only", () => {
+        expect(
+            serverChildren("c1", { databaseScopedConnection: true }).map((n) => n.label),
+        ).to.deep.equal(["Databases"]);
+    });
+
+    test("Azure hides Server Objects (STS AllOnPrem) and on-prem-only security leaves", () => {
+        expect(serverChildren("c1", { isAzure: true }).map((n) => n.label)).to.deep.equal([
+            "Databases",
+            "Security",
+        ]);
+        const security = serverAuxFolderChildren(
+            "c1",
+            "security",
+            { isAzure: true },
+            undefined,
+            undefined,
+        );
+        expect(security.map((n) => n.label)).to.deep.equal(["Logins", "Server Roles"]);
+    });
+
+    test("parent folder renders registry children without any section state", () => {
+        const security = serverAuxFolderChildren("c1", "security", {}, undefined, undefined);
+        expect(security.map((n) => n.label)).to.deep.equal([
+            "Logins",
+            "Server Roles",
+            "Credentials",
+            "Cryptographic Providers",
+            "Server Audits",
+            "Server Audit Specifications",
+        ]);
+        expect(security.every((n) => n.kind === "serverFolder")).to.equal(true);
+    });
+
+    test("aux leaf honesty: loading, failed, empty, ready with disabled badges", () => {
+        const loading = serverAuxFolderChildren("c1", "security/logins", {}, undefined, undefined);
+        expect(loading[0].kind).to.equal("loading");
+        const failed = serverAuxFolderChildren(
+            "c1",
+            "security/logins",
+            {},
+            { readiness: "failed", errorMessage: "boom" },
+            undefined,
+        );
+        expect(failed[0].kind).to.equal("error");
+        expect(failed[0].label).to.include("boom");
+        const empty = serverAuxFolderChildren(
+            "c1",
+            "security/credentials",
+            {},
+            { readiness: "ready" },
+            [],
+        );
+        expect(empty[0].kind).to.equal("noItems");
+        const ready = serverAuxFolderChildren("c1", "security/logins", {}, { readiness: "ready" }, [
+            { name: "appLogin", isSystem: false },
+            { name: "oldLogin", isSystem: false, subType: "disabled" },
+        ]);
+        expect(ready.map((n) => `${n.label}:${n.icon}`)).to.deep.equal([
+            "appLogin:ServerLevelLogin",
+            "oldLogin:ServerLevelLogin_Disabled",
+        ]);
+        expect(ready[1].description).to.equal("disabled");
+        expect(ready.every((n) => n.kind === "serverObject" && n.collapsible === false)).to.equal(
+            true,
+        );
+    });
+
+    test("unknown server folder id is an explicit stale-folder error", () => {
+        const nodes = serverAuxFolderChildren("c1", "security/nonsense", {}, undefined, undefined);
+        expect(nodes[0].kind).to.equal("error");
+    });
+
+    test("path codec: serverObjectItem round-trips", () => {
+        const path = {
+            kind: "serverObjectItem" as const,
+            connectionId: "c1",
+            folder: "security/logins",
+            name: "CONTOSO\svc account",
+        };
+        expect(decodePath(encodePath(path))).to.deep.equal(path);
     });
 });

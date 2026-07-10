@@ -19,6 +19,7 @@
  * facts — lease access stays HERE, never in tree/ modules.
  */
 
+import { AuxiliaryCatalog } from "../../../services/metadata/auxiliaryCatalog";
 import { MetadataStatus } from "../../../services/metadata/metadataService";
 import { CatalogSnapshot } from "../../../services/metadata/catalogModel";
 import {
@@ -104,6 +105,17 @@ export class OeV2MetadataCoordinator {
 
     async refreshServer(): Promise<void> {
         await (await this.ensureServer()).refresh();
+    }
+
+    /** Lazy server-scoped aux sections (B23) — undefined until connected. */
+    serverAuxiliary(): AuxiliaryCatalog | undefined {
+        return this.serverLease?.auxiliary;
+    }
+
+    /** Ensure the server lease exists, then lazily hydrate one aux section. */
+    async ensureAuxSection(sectionKey: string): Promise<void> {
+        const lease = await this.ensureServer();
+        await lease.auxiliary.ensureSection(sectionKey);
     }
 
     /**

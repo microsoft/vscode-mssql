@@ -37,8 +37,10 @@ import {
     objectChildren,
     objectFolderChildren,
     OeV2FreshnessFacts,
+    serverAuxFolderChildren,
     serverChildren,
 } from "./oeV2Browse";
+import { folderDef, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
 import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { CatalogLanguageMetadataProvider } from "../../../sqlLanguage/provider/catalogProvider";
 import { createStrictScriptingService } from "../../../sqlLanguage/host/scriptingHost";
@@ -241,7 +243,18 @@ export class OeV2TreeController {
             return;
         }
         switch (node.path.kind) {
-            case "serverFolder":
+            case "serverFolder": {
+                // Aux leaves refresh their own section; everything else at
+                // server scope refreshes the server catalog.
+                const def = folderDef("server", node.path.folder);
+                const aux = runtime.coordinator.serverAuxiliary();
+                if (def && aux && aux.sectionKeys().includes(def.section)) {
+                    await aux.refreshSection(def.section).catch(() => undefined);
+                    break;
+                }
+                await runtime.coordinator.refreshServer().catch(() => undefined);
+                break;
+            }
             case "connection":
                 await runtime.coordinator.refreshServer().catch(() => undefined);
                 break;
@@ -281,19 +294,41 @@ export class OeV2TreeController {
                 if (!runtime) {
                     return [disconnectedHint(path.connectionId)];
                 }
-                // §7.2 block-with-loading at server scope: expands beyond
-                // the TTL re-hydrate (validation ≡ re-hydration, §4.4)
-                // while the tree shows its busy state; within the TTL this
-                // answers instantly. Pin once per expand (below).
-                const serverFresh = await runtime.coordinator
-                    .ensureServerFresh()
-                    .catch(() => undefined);
-                return databasesFolderChildren(
+                if (path.folder === "databases") {
+                    // §7.2 block-with-loading at server scope: expands beyond
+                    // the TTL re-hydrate (validation ≡ re-hydration, §4.4)
+                    // while the tree shows its busy state; within the TTL this
+                    // answers instantly. Pin once per expand (below).
+                    const serverFresh = await runtime.coordinator
+                        .ensureServerFresh()
+                        .catch(() => undefined);
+                    return databasesFolderChildren(
+                        path.connectionId,
+                        runtime.coordinator.serverStatus(),
+                        runtime.coordinator.serverView(),
+                        settings.showSystemDatabases,
+                        serverFresh ? { freshness: serverFresh.freshness } : undefined,
+                    );
+                }
+                // B23: Security/Server Objects — parent folders render
+                // registry children instantly; aux leaves kick a LAZY
+                // section hydrate and render current state (loading child
+                // first; the change stream re-renders when rows land).
+                const facts = await this.serverScopeFacts(path.connectionId);
+                const def = folderDef("server", path.folder);
+                const isLeaf =
+                    def !== undefined &&
+                    resolveFolders("server", facts, { parentId: def.id }).length === 0;
+                const aux = runtime.coordinator.serverAuxiliary();
+                if (isLeaf && def) {
+                    void runtime.coordinator.ensureAuxSection(def.section).catch(() => undefined);
+                }
+                return serverAuxFolderChildren(
                     path.connectionId,
-                    runtime.coordinator.serverStatus(),
-                    runtime.coordinator.serverView(),
-                    settings.showSystemDatabases,
-                    serverFresh ? { freshness: serverFresh.freshness } : undefined,
+                    path.folder,
+                    facts,
+                    isLeaf && def && aux ? aux.status(def.section) : undefined,
+                    isLeaf && def ? aux?.items(def.section) : undefined,
                 );
             }
             case "database": {
@@ -367,6 +402,22 @@ export class OeV2TreeController {
 
     // -- internals ---------------------------------------------------------------
 
+    /**
+     * K1 gating facts: an explicit profile database = database-scoped
+     * connection (no server-level folders); Azure detection from the live
+     * server facts once connected.
+     */
+    private async serverScopeFacts(connectionId: string): Promise<OeV2ScopeFacts> {
+        const profile = await this.findProfile(connectionId);
+        const edition = this.runtimes.get(connectionId)?.coordinator.serverView()
+            ?.serverInfo?.engineEdition;
+        const isAzure = edition !== undefined && (edition === "5" || /azure/i.test(edition));
+        return {
+            ...(profile?.stored.database ? { databaseScopedConnection: true } : {}),
+            ...(isAzure ? { isAzure: true } : {}),
+        };
+    }
+
     private connectionFacts(profileId: string): ConnectionNodeFacts | undefined {
         const session = this.deps.sessions?.get(profileId);
         if (!session) {
@@ -387,7 +438,7 @@ export class OeV2TreeController {
         }
         switch (state) {
             case "connected":
-                return serverChildren(connectionId);
+                return serverChildren(connectionId, await this.serverScopeFacts(connectionId));
             case "connecting":
             case "disconnecting":
                 return [loadingNode(`connection/${connectionId}`, connectionId)];

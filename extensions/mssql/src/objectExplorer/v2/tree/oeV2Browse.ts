@@ -100,6 +100,110 @@ function unknownFolderError(scope: string, connectionId: string, folder: string)
 
 // -- server level ------------------------------------------------------------
 
+/** Item icons per aux folder (classic media/objectTypes assets). */
+const AUX_ITEM_ICONS: Record<string, { icon: string; disabledIcon?: string }> = {
+    "security/logins": { icon: "ServerLevelLogin", disabledIcon: "ServerLevelLogin_Disabled" },
+    "security/serverRoles": { icon: "ServerLevelServerRole" },
+    "security/credentials": { icon: "ServerLevelCredential" },
+    "security/cryptographicProviders": { icon: "ServerLevelCryptographicProvider" },
+    "security/serverAudits": { icon: "ServerLevelServerAudit" },
+    "security/serverAuditSpecifications": { icon: "ServerLevelServerAuditSpecification" },
+    "serverObjects/endpoints": { icon: "ServerLevelEndpoint" },
+    "serverObjects/linkedServers": { icon: "ServerLevelLinkedServer" },
+    "serverObjects/serverTriggers": {
+        icon: "ServerLevelServerTrigger",
+        disabledIcon: "ServerLevelServerTrigger_Disabled",
+    },
+    "serverObjects/errorMessages": { icon: "MessageType" },
+};
+
+/** Aux item facts as the pure layer needs them (service type stays out of tree/). */
+export interface OeV2AuxItemFacts {
+    readonly name: string;
+    readonly subType?: string;
+    readonly isSystem: boolean;
+}
+
+export interface OeV2AuxSectionFacts {
+    readonly readiness: "absent" | "loading" | "ready" | "failed";
+    readonly errorMessage?: string;
+}
+
+function serverFolderNode(connectionId: string, def: OeV2FolderDef): OeV2Node {
+    const path: OeV2Path = { kind: "serverFolder", connectionId, folder: def.id };
+    return {
+        id: encodePath(path),
+        path,
+        kind: "serverFolder",
+        label: def.label,
+        collapsible: true,
+        connectionId,
+        readiness: NOT_APPLICABLE,
+        capabilities: { canRefresh: true, ...(def.canFilter ? { canFilter: true } : {}) },
+        icon: def.icon ?? "Folder",
+    };
+}
+
+/**
+ * Children of a non-databases server folder (B23): parent folders render
+ * their registry children (no IO); aux-backed leaves gate on section state
+ * and render item leaf nodes. Failure/loading are explicit — never empty.
+ */
+export function serverAuxFolderChildren(
+    connectionId: string,
+    folder: string,
+    facts: OeV2ScopeFacts,
+    section: OeV2AuxSectionFacts | undefined,
+    items: readonly OeV2AuxItemFacts[] | undefined,
+): OeV2Node[] {
+    const scope = `server/${connectionId}/aux/${folder}`;
+    const def = folderDef("server", folder);
+    if (!def) {
+        return unknownFolderError(scope, connectionId, folder);
+    }
+    const subfolders = resolveFolders("server", facts, { parentId: def.id });
+    if (subfolders.length > 0) {
+        return subfolders.map((child) => serverFolderNode(connectionId, child));
+    }
+    if (!section || section.readiness === "absent" || section.readiness === "loading") {
+        return [loadingNode(scope, connectionId)];
+    }
+    if (section.readiness === "failed" || !items) {
+        return [
+            errorNode(
+                scope,
+                `${def.label} unavailable: ${section.errorMessage ?? "section failed"}. Refresh to retry.`,
+                connectionId,
+            ),
+        ];
+    }
+    if (items.length === 0) {
+        return [noItemsNode(scope, connectionId)];
+    }
+    const icons = AUX_ITEM_ICONS[def.id];
+    return items.map((item) => {
+        const path: OeV2Path = {
+            kind: "serverObjectItem",
+            connectionId,
+            folder: def.id,
+            name: item.name,
+        };
+        const disabled = item.subType === "disabled";
+        return {
+            id: encodePath(path),
+            path,
+            kind: "serverObject",
+            label: item.name,
+            ...(disabled ? { description: "disabled" } : {}),
+            collapsible: false,
+            connectionId,
+            readiness: NOT_APPLICABLE,
+            capabilities: { canCopyName: true },
+            icon: disabled && icons?.disabledIcon ? icons.disabledIcon : (icons?.icon ?? "Folder"),
+        } satisfies OeV2Node;
+    });
+}
+
 export function serverChildren(connectionId: string, facts: OeV2ScopeFacts = {}): OeV2Node[] {
     return resolveFolders("server", facts).map((def) => {
         const path: OeV2Path = { kind: "serverFolder", connectionId, folder: def.id };

@@ -35,6 +35,7 @@ export type OeV2Path =
     | { kind: "connectionGroup"; groupId: string }
     | { kind: "connection"; connectionId: string }
     | { kind: "serverFolder"; connectionId: string; folder: OeV2ServerFolder }
+    | { kind: "serverObjectItem"; connectionId: string; folder: OeV2ServerFolder; name: string }
     | { kind: "database"; connectionId: string; database: string }
     | {
           kind: "databaseFolder";
@@ -106,6 +107,9 @@ export function encodePath(path: OeV2Path): string {
             break;
         case "serverFolder":
             parts.push(enc(path.connectionId), enc(path.folder));
+            break;
+        case "serverObjectItem":
+            parts.push(enc(path.connectionId), enc(path.folder), enc(path.name));
             break;
         case "database":
             parts.push(enc(path.connectionId), enc(path.database));
@@ -192,6 +196,13 @@ export function decodePath(id: string): OeV2Path | undefined {
                     kind,
                     connectionId: dec(parts[1]),
                     folder: dec(parts[2]),
+                };
+            case "serverObjectItem":
+                return {
+                    kind,
+                    connectionId: dec(parts[1]),
+                    folder: dec(parts[2]),
+                    name: dec(parts[3]),
                 };
             case "database":
                 return { kind, connectionId: dec(parts[1]), database: dec(parts[2]) };

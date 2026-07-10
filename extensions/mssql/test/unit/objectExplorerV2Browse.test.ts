@@ -374,7 +374,12 @@ suite("Object Explorer v2 browse (B18)", () => {
 
         const children = await h.controller.children(server);
         expect(h.registry.stateOf("p1")).to.equal("connected");
-        expect(children.map((n) => n.label)).to.deep.equal(["Databases"]);
+        // B23: server-scoped connections carry Security + Server Objects.
+        expect(children.map((n) => n.label)).to.deep.equal([
+            "Databases",
+            "Security",
+            "Server Objects",
+        ]);
         h.controller.dispose();
     });
 
