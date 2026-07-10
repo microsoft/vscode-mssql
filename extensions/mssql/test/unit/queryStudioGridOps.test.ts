@@ -181,6 +181,11 @@ suite("Query Studio grid client ops", () => {
             expect(cellDisplayText(42)).to.equal("42");
         });
 
+        test("bit columns render 0/1 (SSMS parity), not true/false", () => {
+            expect(cellDisplayText(true)).to.equal("1");
+            expect(cellDisplayText(false)).to.equal("0");
+        });
+
         test("datetime2 wrapper renders SSMS-style, trimming fraction to a 3-digit floor", () => {
             expect(cellDisplayText({ $t: "datetime2", v: "2003-04-08T09:13:36.3900000" })).to.equal(
                 "2003-04-08 09:13:36.390",

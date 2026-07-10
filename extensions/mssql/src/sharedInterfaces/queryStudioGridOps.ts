@@ -154,6 +154,10 @@ export function cellDisplayText(value: unknown): string {
     if (value === undefined || value === null) {
         return "NULL";
     }
+    if (typeof value === "boolean") {
+        // bit columns render 0/1 (SSMS parity), not true/false.
+        return value ? "1" : "0";
+    }
     if (isTruncatedCellMarker(value)) {
         // Byte-capped cell (maxCellBytes): show the prefix the service kept —
         // the grid's clamp/link-out treatment keeps the whole prefix

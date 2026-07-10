@@ -756,6 +756,14 @@ export function useFluentResultGridCommandController({
                 return;
             }
 
+            // Modifier clicks belong to the selection model (shift = box from
+            // anchor, ctrl = irregular multi-select) — activating/selecting
+            // here would destroy the anchor before the model sees the click.
+            const mouseEvent = event.detail?.eventData as MouseEvent | undefined;
+            if (mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey || mouseEvent.shiftKey)) {
+                return;
+            }
+
             const grid = args.grid as SlickGrid;
             if (args.cell === 0 && showRowNumberColumn) {
                 selectRange(

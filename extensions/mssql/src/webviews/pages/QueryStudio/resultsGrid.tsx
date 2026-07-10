@@ -232,6 +232,11 @@ async function fetchDecodedRows(
  * Build the clipboard TSV for the selection. Ranges arrive in SOURCE row
  * space and DATA column space (the grid strips the row-number column and
  * un-sorts display rows before emitting copy commands).
+ *
+ * Multi-range (ctrl-click / ctrl+shift-click) selections copy with SSMS
+ * union semantics: the output covers every row and column touched by ANY
+ * range — one coherent table — and cells inside that union that are not
+ * actually selected emit as empty fields. Headers are the union columns'.
  */
 export async function copySelectionAsTsv(
     rpc: Rpc,
@@ -242,12 +247,11 @@ export async function copySelectionAsTsv(
     if (selection.length === 0) {
         return "empty";
     }
-    const totalRows = selection.reduce((sum, r) => sum + (r.toRow - r.fromRow + 1), 0);
-    if (totalRows > COPY_MAX_ROWS) {
-        return "tooLarge";
-    }
-    const blocks: string[] = [];
-    for (const range of selection) {
+    if (selection.length === 1) {
+        const range = selection[0];
+        if (range.toRow - range.fromRow + 1 > COPY_MAX_ROWS) {
+            return "tooLarge";
+        }
         const lines: string[] = [];
         if (includeHeaders) {
             lines.push(summary.columnNames.slice(range.fromCell, range.toCell + 1).join("\t"));
@@ -260,9 +264,74 @@ export async function copySelectionAsTsv(
         for (const row of rows) {
             lines.push(row.map((cell) => (cell.isNull ? "NULL" : cell.displayValue)).join("\t"));
         }
-        blocks.push(lines.join("\n"));
+        await navigator.clipboard.writeText(lines.join("\n"));
+        return "copied";
     }
-    await navigator.clipboard.writeText(blocks.join("\n"));
+
+    const rowSet = new Set<number>();
+    const colSet = new Set<number>();
+    for (const range of selection) {
+        for (let row = range.fromRow; row <= range.toRow; row++) {
+            rowSet.add(row);
+        }
+        for (let col = range.fromCell; col <= range.toCell; col++) {
+            colSet.add(col);
+        }
+    }
+    if (rowSet.size > COPY_MAX_ROWS) {
+        return "tooLarge";
+    }
+    const unionRows = [...rowSet].sort((a, b) => a - b);
+    const unionCols = [...colSet].sort((a, b) => a - b);
+    const isSelected = (row: number, col: number) =>
+        selection.some(
+            (range) =>
+                row >= range.fromRow &&
+                row <= range.toRow &&
+                col >= range.fromCell &&
+                col <= range.toCell,
+        );
+
+    // One projected fetch per contiguous row run over the union column span.
+    const colStart = unionCols[0];
+    const colCount = unionCols[unionCols.length - 1] - colStart + 1;
+    const valuesByRow = new Map<number, DbCellValue[]>();
+    let runStart = 0;
+    while (runStart < unionRows.length) {
+        let runEnd = runStart;
+        while (runEnd + 1 < unionRows.length && unionRows[runEnd + 1] === unionRows[runEnd] + 1) {
+            runEnd++;
+        }
+        const fetched = await fetchDecodedRows(
+            rpc,
+            summary.resultSetId,
+            unionRows[runStart],
+            unionRows[runEnd],
+            { start: colStart, count: colCount },
+        );
+        fetched.forEach((rowValues, i) => valuesByRow.set(unionRows[runStart] + i, rowValues));
+        runStart = runEnd + 1;
+    }
+
+    const lines: string[] = [];
+    if (includeHeaders) {
+        lines.push(unionCols.map((col) => summary.columnNames[col] ?? "").join("\t"));
+    }
+    for (const row of unionRows) {
+        const rowValues = valuesByRow.get(row);
+        lines.push(
+            unionCols
+                .map((col) => {
+                    if (!isSelected(row, col)) {
+                        return "";
+                    }
+                    const cell = rowValues?.[col - colStart];
+                    return cell ? (cell.isNull ? "NULL" : cell.displayValue) : "";
+                })
+                .join("\t"),
+        );
+    }
+    await navigator.clipboard.writeText(lines.join("\n"));
     return "copied";
 }
 
@@ -271,9 +340,17 @@ function copyHeaders(summary: QsResultSetSummary, selection: readonly ISlickRang
         selection.length > 0
             ? selection
             : [{ fromCell: 0, toCell: summary.columnNames.length - 1, fromRow: 0, toRow: 0 }];
-    const text = ranges
-        .map((range) => summary.columnNames.slice(range.fromCell, range.toCell + 1).join("\t"))
-        .join("\n");
+    // Union of selected columns, one header line (multi-range parity with copy).
+    const cols = new Set<number>();
+    for (const range of ranges) {
+        for (let col = range.fromCell; col <= range.toCell; col++) {
+            cols.add(col);
+        }
+    }
+    const text = [...cols]
+        .sort((a, b) => a - b)
+        .map((col) => summary.columnNames[col] ?? "")
+        .join("\t");
     void navigator.clipboard.writeText(text);
 }
 

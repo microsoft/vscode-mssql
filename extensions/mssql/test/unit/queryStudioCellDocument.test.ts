@@ -21,7 +21,8 @@ suite("Query Studio cell document", () => {
         test("strings and scalars pass through as text", () => {
             expect(cellDocumentText("<a/>")).to.equal("<a/>");
             expect(cellDocumentText(42)).to.equal("42");
-            expect(cellDocumentText(true)).to.equal("true");
+            // bit renders 0/1 (SSMS parity via the shared decode)
+            expect(cellDocumentText(true)).to.equal("1");
         });
 
         test("object cell values stringify like the webview's cellText", () => {

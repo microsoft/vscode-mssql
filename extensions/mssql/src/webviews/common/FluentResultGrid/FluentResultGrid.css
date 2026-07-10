@@ -223,9 +223,14 @@
 }
 
 .fluent-result-grid .slick-header-column.slick-header-with-filter .slick-column-name {
-    align-items: center;
-    display: flex;
+    /* Block, not flex: text-overflow only ellipsizes text in a block/inline
+       box — inside a flex container the header title hard-clips instead of
+       showing "…". The flex parent still centers this box vertically. */
+    display: block;
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .fluent-result-grid .slick-header-column .slick-header-sortbutton,
