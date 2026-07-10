@@ -107,25 +107,42 @@ const RuntimeValidatorSettingsSchema = z
     .object({ runtimeHost: RuntimeHostSchema.optional() })
     .passthrough();
 
+const SqlProjSourceSchema = z
+    .object({
+        kind: z.literal(SourceOfTruthKind.SqlProj),
+        path: z.string().min(1),
+    })
+    .passthrough();
+
+const DacpacSourceSchema = z
+    .object({
+        kind: z.literal(SourceOfTruthKind.Dacpac),
+        path: z.string().min(1),
+    })
+    .passthrough();
+
+const ConnectionSourceSchema = z
+    .object({
+        kind: z.literal(SourceOfTruthKind.Connection),
+        connectionProfileId: z.string().min(1),
+    })
+    .passthrough();
+
+// A shadow source decomposes an inner connection/dacpac into a synthetic
+// project before validation; the inner source reuses the leaf schemas above.
+const ShadowSourceSchema = z
+    .object({
+        kind: z.literal(SourceOfTruthKind.Shadow),
+        source: z.discriminatedUnion("kind", [ConnectionSourceSchema, DacpacSourceSchema]),
+        projectPath: z.string().min(1).optional(),
+    })
+    .passthrough();
+
 const SourceOfTruthSchema = z.discriminatedUnion("kind", [
-    z
-        .object({
-            kind: z.literal(SourceOfTruthKind.SqlProj),
-            path: z.string().min(1),
-        })
-        .passthrough(),
-    z
-        .object({
-            kind: z.literal(SourceOfTruthKind.Dacpac),
-            path: z.string().min(1),
-        })
-        .passthrough(),
-    z
-        .object({
-            kind: z.literal(SourceOfTruthKind.Connection),
-            connectionProfileId: z.string().min(1),
-        })
-        .passthrough(),
+    SqlProjSourceSchema,
+    DacpacSourceSchema,
+    ConnectionSourceSchema,
+    ShadowSourceSchema,
 ]);
 
 const ValidationConfigSchema = z.discriminatedUnion("type", [

@@ -1,0 +1,20 @@
+{
+    "//": "Scope 2 in-process workload spec. Each step names a SQL query the WorkloadPlaybackValidator times against the per-run ephemeral database (median of `iterations` runs). The runner compares the measured latencies against the previous run's measurements (run-based baseline) — no baseline.json. First run records a baseline and Passes; a later run that regresses beyond latencyRegressionThreshold surfaces a Warning.",
+    "steps": [
+        {
+            "id": "count-messages",
+            "query": "SELECT COUNT(*) FROM dbo.Messages;",
+            "iterations": 5
+        },
+        {
+            "id": "get-channel-messages",
+            "query": "EXEC dbo.GetChannelMessages @ChannelId = 1, @Top = 100;",
+            "iterations": 5
+        },
+        {
+            "id": "scan-messages-by-postedat",
+            "query": "SELECT MessageId, ChannelId, UserId, PostedAt FROM dbo.Messages ORDER BY PostedAt DESC;",
+            "iterations": 5
+        }
+    ]
+}

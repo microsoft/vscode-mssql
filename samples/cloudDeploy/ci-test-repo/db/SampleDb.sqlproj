@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.Build.Sql/0.1.19-preview">
+  <PropertyGroup>
+    <Name>SampleDb</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <ProjectGuid>{B2B2B2B2-0000-0000-0000-000000000002}</ProjectGuid>
+  </PropertyGroup>
+</Project>

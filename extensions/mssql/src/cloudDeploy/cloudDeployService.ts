@@ -30,7 +30,7 @@ import * as path from "path";
 import * as Constants from "../constants/constants";
 import { DiagnosticEventBus } from "./diagnostics";
 import { EnvironmentStore } from "./environments/environmentStore";
-import { ValidationType } from "./environments/types";
+import { SourceOfTruthKind, ValidationType } from "./environments/types";
 import { LocalFileProvider, LocalSchemaSourceReader } from "./providers";
 import {
     LocalRunsDirectoryReader,
@@ -60,6 +60,13 @@ import {
     createDefaultRegistry,
 } from "./validation";
 import { LiveRunSummary } from "../sharedInterfaces/cloudDeployHub";
+import {
+    DacpacDecomposer,
+    SchemaSyncOptions,
+    SchemaSyncResult,
+    findEnclosingSqlProject,
+    syncSchemaProject,
+} from "./validation/providers/schemaSync";
 
 /**
  * Run-artifact I/O surface attached to the service. The `writer` and
@@ -188,12 +195,41 @@ export class CloudDeployService implements vscode.Disposable {
     private readonly _activeRuns = new Map<string, LiveRunSummary>();
     private readonly _activeRunsSubscriptions: vscode.Disposable[] = [];
 
+    /** Workspace root used to resolve relative sync paths; `undefined` with no folder open. */
+    private readonly _workspaceRoot: string | undefined;
+    /** Resolves a saved connection profile to a connection string, for syncing a live-DB source. */
+    private readonly _sourceConnectionStringResolver:
+        | ((id: string, signal: AbortSignal) => Promise<string>)
+        | undefined;
+    /** Publishes a dacpac to a throwaway database so it can be decomposed; wired when able. */
+    private _dacpacDecomposer: DacpacDecomposer | undefined = undefined;
+
     public constructor(
         workspaceFolder: vscode.WorkspaceFolder | undefined,
         workspaceState: vscode.Memento,
         options: CloudDeployServiceOptions = {},
     ) {
         this.diagnostics = new DiagnosticEventBus();
+        this._workspaceRoot = workspaceFolder?.uri.fsPath;
+        const connectionGateway = options.connectionHostGateway;
+        this._sourceConnectionStringResolver =
+            connectionGateway !== undefined
+                ? (id: string, signal: AbortSignal) =>
+                      connectionGateway.buildConnectionString(id, undefined, signal)
+                : undefined;
+        // Decompose a dacpac source by publishing it to a throwaway container and
+        // extracting that; needs the tool-managed Docker provider, so it is only
+        // available when an ephemeral connector is wired.
+        const decomposeConnector = options.ephemeralConnector;
+        if (decomposeConnector !== undefined) {
+            const decomposeProvider = new DockerEphemeralDatabaseProvider(
+                new LiveProcessProvider(this._workspaceRoot),
+                decomposeConnector,
+                { workspaceRoot: this._workspaceRoot },
+            );
+            this._dacpacDecomposer = (dacpacPath, signal) =>
+                decomposeProvider.provisionForDecompose(dacpacPath, signal);
+        }
         if (workspaceFolder !== undefined) {
             this.environments = new EnvironmentStore(
                 workspaceFolder,
@@ -260,13 +296,34 @@ export class CloudDeployService implements vscode.Disposable {
                 : {}),
         };
 
-        this.validation = new ValidationService(
+        const validationService = new ValidationService(
             registry,
             this.diagnostics,
             this.environments,
             writer,
             runtime,
         );
+        // Auto-sync a shadow (DB/dacpac-authored) env's committed sqlproj from its
+        // source BEFORE validating, so EVERY validate path — command, tree, and
+        // the agent tool (all funnel through here) — reflects the current source.
+        // Best-effort and local-only (the CLI never uses this service): a sync
+        // failure logs and falls back to validating the committed project.
+        this.validation = {
+            run: async (envId, opts) => {
+                try {
+                    await this.syncSchema(envId, {
+                        signal: opts?.signal ?? new AbortController().signal,
+                    });
+                } catch (err) {
+                    this.outputChannel.appendLine(
+                        `[cloud-deploy] auto-sync before validation failed; validating the committed project. ${
+                            err instanceof Error ? err.message : String(err)
+                        }`,
+                    );
+                }
+                return validationService.run(envId, opts);
+            },
+        };
 
         this.outputChannel = vscode.window.createOutputChannel(OUTPUT_CHANNEL_NAME);
         this._outputSubscriber = new OutputChannelSubscriber(this.outputChannel, this.diagnostics);
@@ -297,6 +354,57 @@ export class CloudDeployService implements vscode.Disposable {
      */
     public getActiveRuns(): readonly LiveRunSummary[] {
         return [...this._activeRuns.values()].sort((a, b) => b.startedAtMs - a.startedAtMs);
+    }
+
+    /**
+     * Syncs a shadow (DB/dacpac-authored) environment's source into its committed
+     * `.sqlproj` at `projectPath`, regenerating the tree deterministically.
+     * Returns `undefined` when the environment is not a shadow source with a
+     * `projectPath` (nothing to sync); throws when the source cannot be reached
+     * or decomposed. Local/dev-side only — CI validates the committed sqlproj.
+     */
+    public async syncSchema(
+        envId: string,
+        opts: { readonly signal: AbortSignal },
+    ): Promise<SchemaSyncResult | undefined> {
+        const env = this.environments?.get(envId);
+        if (env === undefined) {
+            throw new Error(`Environment "${envId}" was not found.`);
+        }
+        const sot = env.sourceOfTruth;
+        if (sot.kind !== SourceOfTruthKind.Shadow || sot.projectPath === undefined) {
+            return undefined;
+        }
+        const syncOptions: SchemaSyncOptions = {
+            workspaceRoot: this._workspaceRoot,
+            ...(this._sourceConnectionStringResolver !== undefined
+                ? { sourceConnectionStringResolver: this._sourceConnectionStringResolver }
+                : {}),
+            ...(this._dacpacDecomposer !== undefined
+                ? { dacpacDecomposer: this._dacpacDecomposer }
+                : {}),
+        };
+        const result = await syncSchemaProject(
+            { source: sot.source, projectPath: sot.projectPath },
+            new LiveProcessProvider(this._workspaceRoot),
+            syncOptions,
+            opts.signal,
+        );
+        // Guardrail: an SDK-style .sqlproj recursively globs every .sql beneath
+        // its own folder. If this shadow project was written inside another
+        // project's folder, that project absorbs the generated tree and fails to
+        // build with duplicate-object errors. Warn with the actionable fix; the
+        // sync itself still succeeded, so this never blocks the caller.
+        const enclosingProject = await findEnclosingSqlProject(
+            result.projectDir,
+            this._workspaceRoot,
+        );
+        if (enclosingProject !== undefined) {
+            this.outputChannel.appendLine(
+                `[cloud-deploy] Warning: the synced shadow project at "${result.projectDir}" sits inside the folder of another SQL project ("${enclosingProject}"). SDK-style projects include every .sql file beneath their folder, so that project will absorb the generated shadow files and fail to build with duplicate-object errors. Move this environment's projectPath outside that project's folder, or exclude the shadow folder there (for example <Build Remove="<shadow-folder>\\**" />).`,
+            );
+        }
+        return result;
     }
 
     /** Loads on-disk state. Safe to call when no folder is open (resolves immediately). */

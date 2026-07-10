@@ -48,6 +48,7 @@ export enum SourceOfTruthKind {
     SqlProj = "sqlproj",
     Dacpac = "dacpac",
     Connection = "connection",
+    Shadow = "shadow",
 }
 
 /**
@@ -61,11 +62,26 @@ export enum SourceOfTruthKind {
  *   * `Connection` — the schema lives in a running database, read READ-ONLY
  *     (a `sqlpackage` extract). The live database is never the validation
  *     target; only its shape is copied into the throwaway database.
+ *   * `Shadow` — decompose an inner source into a deterministic, git-diffable
+ *     `.sqlproj`. With `projectPath` set, the project is *synced* into the
+ *     workspace at that path (committed, so it validates everywhere including
+ *     CI); without it, the decomposition is ephemeral (a local validate-only
+ *     check). Lets framework-generated schema be reviewed under the team's rules.
  */
 export type SourceOfTruth =
     | { kind: SourceOfTruthKind.SqlProj; path: string }
     | { kind: SourceOfTruthKind.Dacpac; path: string }
-    | { kind: SourceOfTruthKind.Connection; connectionProfileId: string };
+    | { kind: SourceOfTruthKind.Connection; connectionProfileId: string }
+    | { kind: SourceOfTruthKind.Shadow; source: ShadowInnerSource; projectPath?: string };
+
+/**
+ * Inner source a `Shadow` source of truth decomposes into a `.sqlproj`. Phase 1
+ * supports only a live `Connection`; a `Dacpac` inner source is accepted by the
+ * config shape but rejected at resolution until the dacpac-decomposition phase.
+ */
+export type ShadowInnerSource =
+    | { kind: SourceOfTruthKind.Connection; connectionProfileId: string }
+    | { kind: SourceOfTruthKind.Dacpac; path: string };
 
 // =============================================================================
 // Runtime host

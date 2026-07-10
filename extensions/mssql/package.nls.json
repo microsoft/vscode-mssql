@@ -253,6 +253,7 @@
     "mssql.newDeployment": "New Deployment",
     "mssql.cloudDeploy.validateEnvironment": "Cloud Deploy: Validate environment",
     "mssql.cloudDeploy.validateDefaultEnvironment": "Cloud Deploy: Validate default environment",
+    "mssql.cloudDeploy.syncSchemaProject": "Cloud Deploy: Sync sqlproj from source",
     "mssql.cloudDeploy.refreshDashboard": "Cloud Deploy: Refresh dashboard",
     "mssql.cloudDeploy.revealRunArtifact": "Cloud Deploy: Reveal run artifact in OS",
     "mssql.cloudDeploy.openHub": "Cloud Deploy: Open hub",

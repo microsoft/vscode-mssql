@@ -42,6 +42,8 @@ export function sourceKindLabel(kind: string | undefined): string {
             return strings.sourceKindContainer;
         case "connection":
             return strings.sourceKindConnection;
+        case "shadow":
+            return strings.sourceKindShadow;
         default:
             return kind ?? "";
     }

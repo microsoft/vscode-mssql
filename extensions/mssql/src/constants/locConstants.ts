@@ -2797,6 +2797,22 @@ export class MssqlChatAgent {
             comment: ["{0} is the environment id"],
         });
     };
+    public static CloudDeploySyncConfirmationTitle = l10n.t("Sync Cloud Deploy Schema Project");
+    public static CloudDeploySyncConfirmationMessage = (environmentId: string) => {
+        return l10n.t({
+            message:
+                "Sync Cloud Deploy environment '{0}'? This regenerates its committed .sqlproj from the live DB/dacpac source and writes the files into your workspace.",
+            args: [environmentId],
+            comment: ["{0} is the environment id"],
+        });
+    };
+    public static CloudDeploySyncInvocation = (environmentId: string) => {
+        return l10n.t({
+            message: "Syncing Cloud Deploy environment '{0}' schema into its project",
+            args: [environmentId],
+            comment: ["{0} is the environment id"],
+        });
+    };
     public static CloudDeployRunNotFound = (runId: string) => {
         return l10n.t({
             message: "No Cloud Deploy run with id '{0}' was found in this workspace.",
@@ -3984,6 +4000,45 @@ export class CloudDeployRuns {
     }
 }
 
+export class CloudDeploySync {
+    public static commandTitle = l10n.t("Cloud Deploy: Sync sqlproj from source");
+
+    public static progressTitle = (envName: string): string =>
+        l10n.t({
+            message: "Syncing '{0}' schema into its project",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static synced = (fileCount: number, projectPath: string): string =>
+        l10n.t({
+            message: "Synced {0} object(s) into '{1}'.",
+            args: [String(fileCount), projectPath],
+            comment: ["{0} is the number of .sql files", "{1} is the project path"],
+        });
+
+    public static nothingToSync = (envName: string): string =>
+        l10n.t({
+            message: "'{0}' is not a DB/dacpac-authored environment; nothing to sync.",
+            args: [envName],
+            comment: ["{0} is the user-facing environment name"],
+        });
+
+    public static failed = (message: string): string =>
+        l10n.t({
+            message: "Schema sync failed: {0}",
+            args: [message],
+            comment: ["{0} is the underlying error message"],
+        });
+
+    public static autoSyncFailed = (message: string): string =>
+        l10n.t({
+            message: "Auto-sync before validation failed; validating the committed project. {0}",
+            args: [message],
+            comment: ["{0} is the underlying error message"],
+        });
+}
+
 export class CloudDeployValidation {
     public static commandTitle = l10n.t("Cloud Deploy: Validate environment");
 
@@ -4202,6 +4257,8 @@ export class CloudDeployDashboard {
     public static sourceKindContainer = l10n.t("Live database");
 
     public static sourceKindConnection = l10n.t("Live database connection");
+
+    public static sourceKindShadow = l10n.t("Shadow project (decomposed)");
 
     /** Public friendly status name, reused by the tree's environment rows. */
     public static statusName = (status: RunStatus): string => statusLabel(status);

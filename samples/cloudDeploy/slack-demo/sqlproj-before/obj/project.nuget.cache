@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "1q1f/OE/LqA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\t-achhatkuli\\vscode-mssql\\samples\\cloudDeploy\\slack-demo\\sqlproj-before\\SlackBeforeProject.sqlproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\t-achhatkuli\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.0\\microsoft.netframework.referenceassemblies.1.0.0.nupkg.sha512",
+    "C:\\Users\\t-achhatkuli\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net46\\1.0.0\\microsoft.netframework.referenceassemblies.net46.1.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

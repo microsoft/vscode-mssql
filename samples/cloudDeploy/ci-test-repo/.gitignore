@@ -1,0 +1,10 @@
+# Run outputs (produced by the workflow / CLI)
+*.cdrun.zip
+pr-comment.md
+
+# Base-branch checkout created by the workflow
+/base/
+
+# SQL build output
+**/obj/
+**/bin/

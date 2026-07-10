@@ -606,6 +606,11 @@
                     "group": "1_cloudDeploy@1"
                 },
                 {
+                    "command": "mssql.cloudDeploy.syncSchemaProject",
+                    "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.environment",
+                    "group": "1_cloudDeploy@2"
+                },
+                {
                     "command": "mssql.cloudDeploy.revealRunArtifact",
                     "when": "view == mssqlCloudDeploy && viewItem == cloudDeploy.run",
                     "group": "1_cloudDeploy@1"
@@ -1612,6 +1617,11 @@
             {
                 "command": "mssql.cloudDeploy.validateDefaultEnvironment",
                 "title": "%mssql.cloudDeploy.validateDefaultEnvironment%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.cloudDeploy.syncSchemaProject",
+                "title": "%mssql.cloudDeploy.syncSchemaProject%",
                 "category": "MS SQL"
             },
             {
@@ -4906,6 +4916,35 @@
                 "toolReferenceName": "mssql_cd_validate_environment",
                 "userDescription": "Run the Cloud Deploy validation gates for an environment.",
                 "icon": "$(check-all)"
+            },
+            {
+                "name": "mssql_cd_sync_schema",
+                "modelDescription": "Sync a Cloud Deploy environment's DB/dacpac-authored schema into its committed .sqlproj (the source's projectPath). Deterministically decomposes the live database (or dacpac) into one .sql file per object so the schema becomes diffable, reviewable, and validated under the team's rules in CI. Use this when the environment's source of truth is a live database or dacpac and its schema may have drifted, before validating or committing. No-op for sqlproj sources. Requires a reachable source (a saved connection, or Docker for a dacpac). After syncing, review the git diff and commit the regenerated project, then validate with mssql_cd_validate_environment.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "cloud-deploy",
+                    "schema",
+                    "sync"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "environmentId": {
+                            "description": "Id of the environment to sync (from mssql_cd_list_environments).",
+                            "title": "Environment Id",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "environmentId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Sync Cloud Deploy Schema Project",
+                "toolReferenceName": "mssql_cd_sync_schema",
+                "userDescription": "Regenerate an environment's committed sqlproj from its DB/dacpac source.",
+                "icon": "$(sync)"
             },
             {
                 "name": "mssql_cd_get_run_result",

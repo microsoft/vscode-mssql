@@ -308,6 +308,78 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
         }
     }
 
+    /**
+     * Provisions a throwaway container, publishes `dacpacPath` into a fresh
+     * database, and returns a connection string for it plus a `dispose` that
+     * removes the container. Used to decompose a dacpac into a project tree: a
+     * dacpac cannot be extracted directly, so publish it here, then run
+     * `sqlpackage /Action:Extract` against the returned connection string. Reuses
+     * the same container / readiness / publish machinery as `provision`.
+     */
+    public async provisionForDecompose(
+        dacpacPath: string,
+        signal: AbortSignal,
+    ): Promise<{ readonly connectionString: string; dispose(): Promise<void> }> {
+        throwIfAborted(signal);
+        const dockerCommand = this._opts.dockerCommand ?? DEFAULT_DOCKER_COMMAND;
+        const image = this._opts.image ?? DEFAULT_IMAGE;
+        const hostPort = this._opts.hostPort ?? DEFAULT_HOST_PORT;
+        const containerName = `cloud-deploy-decompose-${randomUUID()}`;
+        const password = generatePassword();
+        const databaseName = "CloudDeployDecompose";
+
+        let containerStarted = false;
+        try {
+            await this._run(
+                dockerCommand,
+                [
+                    "run",
+                    "-d",
+                    "--name",
+                    containerName,
+                    "-e",
+                    "ACCEPT_EULA=Y",
+                    "-e",
+                    `MSSQL_SA_PASSWORD=${password}`,
+                    "-p",
+                    `${hostPort}:${CONTAINER_SQL_PORT}`,
+                    image,
+                ],
+                signal,
+                "start the SQL Server container",
+            );
+            containerStarted = true;
+            await this._waitForReady(dockerCommand, containerName, password, signal);
+            await this._execInContainer(
+                dockerCommand,
+                containerName,
+                password,
+                `CREATE DATABASE [${databaseName}]`,
+                signal,
+                "create the decomposition database",
+            );
+            await this._publishDacpac(dacpacPath, hostPort, password, databaseName, signal);
+            const connectionString =
+                `Server=${HOST_LOOPBACK_ADDRESS},${hostPort};Database=${databaseName};` +
+                `User ID=${SA_USER};Password=${password};TrustServerCertificate=true;`;
+            return {
+                connectionString,
+                dispose: () => this._removeContainer(dockerCommand, containerName),
+            };
+        } catch (err) {
+            if (containerStarted) {
+                await this._removeContainer(dockerCommand, containerName).catch(() => undefined);
+            }
+            if (err instanceof EphemeralProvisionError) {
+                throw err;
+            }
+            throw new EphemeralProvisionError(
+                `Failed to provision the decomposition database: ${errorMessage(err)}`,
+                err,
+            );
+        }
+    }
+
     /** Polls the container until it accepts a trivial query or the deadline passes. */
     private async _waitForReady(
         dockerCommand: string,

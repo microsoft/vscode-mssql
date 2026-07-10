@@ -1936,6 +1936,7 @@
     "Dacpac (pre-built)": "Dacpac (pre-built)",
     "Live database": "Live database",
     "Live database connection": "Live database connection",
+    "Shadow project (decomposed)": "Shadow project (decomposed)",
     "Run started": "Run started",
     "{0} started/{0} is a validation name like Static Analysis": {
         "message": "{0} started",
@@ -3518,6 +3519,15 @@
         "message": "Validating Cloud Deploy environment '{0}'",
         "comment": ["{0} is the environment id"]
     },
+    "Sync Cloud Deploy Schema Project": "Sync Cloud Deploy Schema Project",
+    "Sync Cloud Deploy environment '{0}'? This regenerates its committed .sqlproj from the live DB/dacpac source and writes the files into your workspace./{0} is the environment id": {
+        "message": "Sync Cloud Deploy environment '{0}'? This regenerates its committed .sqlproj from the live DB/dacpac source and writes the files into your workspace.",
+        "comment": ["{0} is the environment id"]
+    },
+    "Syncing Cloud Deploy environment '{0}' schema into its project/{0} is the environment id": {
+        "message": "Syncing Cloud Deploy environment '{0}' schema into its project",
+        "comment": ["{0} is the environment id"]
+    },
     "No Cloud Deploy run with id '{0}' was found in this workspace./{0} is the run id": {
         "message": "No Cloud Deploy run with id '{0}' was found in this workspace.",
         "comment": ["{0} is the run id"]
@@ -4119,6 +4129,27 @@
             "{0} is the absolute file path of the run artifact",
             "{1} is the underlying I/O error message"
         ]
+    },
+    "Cloud Deploy: Sync sqlproj from source": "Cloud Deploy: Sync sqlproj from source",
+    "Syncing '{0}' schema into its project/{0} is the user-facing environment name": {
+        "message": "Syncing '{0}' schema into its project",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "Synced {0} object(s) into '{1}'./{0} is the number of .sql files{1} is the project path": {
+        "message": "Synced {0} object(s) into '{1}'.",
+        "comment": ["{0} is the number of .sql files", "{1} is the project path"]
+    },
+    "'{0}' is not a DB/dacpac-authored environment; nothing to sync./{0} is the user-facing environment name": {
+        "message": "'{0}' is not a DB/dacpac-authored environment; nothing to sync.",
+        "comment": ["{0} is the user-facing environment name"]
+    },
+    "Schema sync failed: {0}/{0} is the underlying error message": {
+        "message": "Schema sync failed: {0}",
+        "comment": ["{0} is the underlying error message"]
+    },
+    "Auto-sync before validation failed; validating the committed project. {0}/{0} is the underlying error message": {
+        "message": "Auto-sync before validation failed; validating the committed project. {0}",
+        "comment": ["{0} is the underlying error message"]
     },
     "Cloud Deploy: Validate environment": "Cloud Deploy: Validate environment",
     "No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.": "No Cloud Deploy environments are declared in this workspace. Add one to .mssql/environments.json before running validation.",

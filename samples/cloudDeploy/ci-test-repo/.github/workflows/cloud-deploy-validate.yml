@@ -1,0 +1,110 @@
+# Cloud Deploy — Validate schema on pull requests.
+#
+# Runs the SAME headless validation engine used locally in VS Code, but here on
+# a GitHub-hosted runner. On every pull request it:
+#   1. checks out the merge candidate (the PR as it would land on the base),
+#   2. validates it with the bundled CLI,
+#   3. diffs it against the base branch (when a base run is available),
+#   4. uploads the run artifacts, and
+#   5. posts a sticky summary comment on the pull request.
+#
+# Packaging: the CLI ships as one self-contained file at tools/mssql-validate.cjs
+# (bundled with esbuild). Refresh it with `npm run build:cloud-deploy-cli` in the
+# vscode-mssql repo and copy dist/cloud-deploy-cli/mssql-validate.cjs here.
+#
+# SQL host: when an environment enables the database-backed validators, the
+# engine starts its own throwaway SQL Server with `docker run` on the runner —
+# GitHub-hosted runners ship Docker — so the local and CI code paths stay
+# identical. The sample "ci" environment below is static-analysis-only, so it
+# needs no database.
+
+name: Cloud Deploy - Validate schema
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the merge candidate
+        uses: actions/checkout@v4
+
+      - name: Check out the base branch (diff baseline)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Set up .NET (SQL project build)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Best-effort baseline: if the base branch fails to validate, we still
+      # validate the candidate — the diff is simply skipped.
+      - name: Validate the base branch (baseline run)
+        continue-on-error: true
+        run: >
+          node tools/mssql-validate.cjs run-gates
+          --env ci
+          --config base/.mssql/environments.json
+          --workspace base
+          --out main.cdrun.zip
+
+      - name: Validate the merge candidate
+        run: |
+          BASELINE=()
+          if [ -f main.cdrun.zip ]; then BASELINE=(--baseline main.cdrun.zip); fi
+          node tools/mssql-validate.cjs run-gates \
+            --env ci \
+            --config .mssql/environments.json \
+            --out candidate.cdrun.zip \
+            "${BASELINE[@]}" \
+            --report-out pr-comment.md \
+            --source-commit ${{ github.event.pull_request.head.sha }} \
+            --source-ref ${{ github.event.pull_request.number }}
+
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloud-deploy-runs
+          path: "*.cdrun.zip"
+
+      - name: Post the result comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const marker = "<!-- cloud-deploy-validate -->";
+            let body;
+            try {
+              body = fs.readFileSync("pr-comment.md", "utf8");
+            } catch {
+              return; // No report was produced (the candidate run crashed before writing it).
+            }
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+            });
+            const existing = comments.find((c) => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

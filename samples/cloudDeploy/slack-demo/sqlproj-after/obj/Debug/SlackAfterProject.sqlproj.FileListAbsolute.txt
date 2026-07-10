@@ -1,0 +1,12 @@
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\bin\Debug\SlackAfterProject.dacpac
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\bin\Debug\SlackAfterProject.dll
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\bin\Debug\SlackAfterProject.pdb
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\SlackAfterProject.sqlproj.AssemblyReference.cache
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\SlackAfterProject.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\SlackAfterProject.sourcelink.json
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\Model.xml
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\refactor.xml
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\postdeploy.sql
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\predeploy.sql
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\SlackAfterProject.dll
+C:\Users\t-achhatkuli\vscode-mssql\samples\cloudDeploy\slack-demo\sqlproj-after\obj\Debug\SlackAfterProject.pdb

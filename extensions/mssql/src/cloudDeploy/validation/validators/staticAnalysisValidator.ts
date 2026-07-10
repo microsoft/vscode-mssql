@@ -51,7 +51,12 @@
  * rule id + cleaned message.
  */
 
-import { type Environment, SourceOfTruthKind, ValidationType } from "../../environments/types";
+import {
+    type Environment,
+    type SourceOfTruth,
+    SourceOfTruthKind,
+    ValidationType,
+} from "../../environments/types";
 import {
     type StaticAnalysisFinding,
     type StaticAnalysisPayload,
@@ -66,6 +71,7 @@ import {
     type ValidatorRunOptions,
 } from "../types";
 import { type ProcessProvider, type ProcessResult } from "../providers/processProvider";
+import { shadowProjectFilePath } from "../providers/schemaResolver";
 
 // =============================================================================
 // Defaults & constants
@@ -155,14 +161,19 @@ export class StaticAnalysisValidator implements Validator<ValidationType.StaticA
                 SKIPPED_DACPAC_PREBUILT_MESSAGE,
             );
         }
-        if (sot.kind !== SourceOfTruthKind.SqlProj) {
+        // A sqlproj is analyzed directly; a shadow source with a projectPath is
+        // analyzed through its synced (committed) sqlproj — the whole point of
+        // sync is that the decomposed schema runs under the same rules. Anything
+        // else (a live connection, or a shadow with no synced project) has no
+        // buildable project to analyze.
+        const projectPath = staticAnalysisProjectPath(sot);
+        if (projectPath === undefined) {
             return buildSkippedResult(
                 startedAtMs,
                 RULE_ID_SOURCE_UNSUPPORTED,
                 SKIPPED_NEEDS_PROJECT_MESSAGE,
             );
         }
-        const projectPath = sot.path;
 
         const command = this._opts.dotnetCommand ?? DEFAULT_DOTNET_COMMAND;
         const args = buildDotnetArgs(projectPath, this._opts.systemDacpacsLocation);
@@ -209,6 +220,22 @@ export class StaticAnalysisValidator implements Validator<ValidationType.StaticA
 // =============================================================================
 // Helpers
 // =============================================================================
+
+/**
+ * The `.sqlproj` static analysis should build for `sot`, or `undefined` when the
+ * source has no analyzable project. A `SqlProj` analyzes its own project; a
+ * `Shadow` source with a `projectPath` analyzes its synced (committed) project
+ * — so the decomposed DB/dacpac schema runs under the same DacFx rules.
+ */
+function staticAnalysisProjectPath(sot: SourceOfTruth): string | undefined {
+    if (sot.kind === SourceOfTruthKind.SqlProj) {
+        return sot.path;
+    }
+    if (sot.kind === SourceOfTruthKind.Shadow && sot.projectPath !== undefined) {
+        return shadowProjectFilePath(sot.projectPath);
+    }
+    return undefined;
+}
 
 /**
  * Builds the `dotnet build` args for a static-analysis run of `projectPath`.

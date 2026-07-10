@@ -94,15 +94,23 @@ function formatDuration(startedAtMs: number, endedAtMs: number): string {
 
 /**
  * Detail text for a source of truth: the file path for sqlproj / dacpac
- * sources, or the connection profile id for a live-database source. Reads both
- * fields defensively so a future additive source kind without either renders
- * cleanly (just the kind label, no detail).
+ * sources, the connection profile id for a live-database source, or the inner
+ * source's detail for a shadow (decomposed) source. Reads fields defensively so
+ * a future additive source kind without any of them renders cleanly (just the
+ * kind label, no detail).
  */
 function sourceOfTruthDetail(sourceOfTruth: {
     readonly path?: string;
     readonly connectionProfileId?: string;
+    readonly source?: { readonly path?: string; readonly connectionProfileId?: string };
 }): string {
-    return sourceOfTruth.path ?? sourceOfTruth.connectionProfileId ?? "";
+    return (
+        sourceOfTruth.path ??
+        sourceOfTruth.connectionProfileId ??
+        sourceOfTruth.source?.path ??
+        sourceOfTruth.source?.connectionProfileId ??
+        ""
+    );
 }
 
 export const RunView: React.FC = () => {

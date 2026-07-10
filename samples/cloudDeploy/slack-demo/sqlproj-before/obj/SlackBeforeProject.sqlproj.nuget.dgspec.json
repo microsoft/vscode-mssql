@@ -1,0 +1,53 @@
+{
+    "format": 1,
+    "restore": {
+        "C:\\Users\\t-achhatkuli\\vscode-mssql\\samples\\cloudDeploy\\slack-demo\\sqlproj-before\\SlackBeforeProject.sqlproj": {}
+    },
+    "projects": {
+        "C:\\Users\\t-achhatkuli\\vscode-mssql\\samples\\cloudDeploy\\slack-demo\\sqlproj-before\\SlackBeforeProject.sqlproj": {
+            "version": "1.0.0",
+            "restore": {
+                "projectUniqueName": "C:\\Users\\t-achhatkuli\\vscode-mssql\\samples\\cloudDeploy\\slack-demo\\sqlproj-before\\SlackBeforeProject.sqlproj",
+                "projectName": "SlackBeforeProject",
+                "projectPath": "C:\\Users\\t-achhatkuli\\vscode-mssql\\samples\\cloudDeploy\\slack-demo\\sqlproj-before\\SlackBeforeProject.sqlproj",
+                "packagesPath": "C:\\Users\\t-achhatkuli\\.nuget\\packages\\",
+                "outputPath": "C:\\Users\\t-achhatkuli\\vscode-mssql\\samples\\cloudDeploy\\slack-demo\\sqlproj-before\\obj\\",
+                "projectStyle": "PackageReference",
+                "configFilePaths": [
+                    "C:\\Users\\t-achhatkuli\\AppData\\Roaming\\NuGet\\NuGet.Config"
+                ],
+                "originalTargetFrameworks": ["netstandard2.1"],
+                "sources": {
+                    "https://api.nuget.org/v3/index.json": {}
+                },
+                "frameworks": {
+                    "net46": {
+                        "targetAlias": "netstandard2.1",
+                        "projectReferences": {}
+                    }
+                },
+                "warningProperties": {
+                    "noWarn": ["NU5128"]
+                },
+                "restoreAuditProperties": {
+                    "enableAudit": "true",
+                    "auditLevel": "low",
+                    "auditMode": "direct"
+                }
+            },
+            "frameworks": {
+                "net46": {
+                    "targetAlias": "netstandard2.1",
+                    "dependencies": {
+                        "Microsoft.NETFramework.ReferenceAssemblies": {
+                            "suppressParent": "All",
+                            "target": "Package",
+                            "version": "[1.0.0, )",
+                            "autoReferenced": true
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

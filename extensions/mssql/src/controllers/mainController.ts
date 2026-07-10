@@ -117,6 +117,7 @@ import {
     CloudDeployGetRunResultTool,
     CloudDeployImportRunTool,
     CloudDeployListEnvironmentsTool,
+    CloudDeploySyncSchemaTool,
     CloudDeployValidateEnvironmentTool,
 } from "../copilot/tools/cloudDeployTools";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
@@ -334,6 +335,10 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdCloudDeployValidateDefault);
             this._event.on(Constants.cmdCloudDeployValidateDefault, () => {
                 void this.onCloudDeployValidateDefault();
+            });
+            this.registerCommandWithArgs(Constants.cmdCloudDeploySync);
+            this._event.on(Constants.cmdCloudDeploySync, (args?: unknown) => {
+                void this.onCloudDeploySync(args);
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -958,6 +963,12 @@ export default class MainController implements vscode.Disposable {
             vscode.lm.registerTool(
                 Constants.copilotCloudDeployValidateEnvironmentToolName,
                 new CloudDeployValidateEnvironmentTool(getCloudDeployService),
+            ),
+        );
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotCloudDeploySyncSchemaToolName,
+                new CloudDeploySyncSchemaTool(getCloudDeployService),
             ),
         );
         this._context.subscriptions.push(
@@ -2943,65 +2954,77 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Picks a Cloud Deploy environment for a command: the clicked tree node, an
+     * `{ envId }` payload (hub button), or a Command Palette quick-pick. Returns
+     * `undefined` (after an info toast where appropriate) when there is no
+     * workspace, no environments, or the user cancels.
+     */
+    private async _pickCloudDeployEnvironment(
+        node: unknown,
+    ): Promise<{ envId: string; envName: string } | undefined> {
+        const environments = this.cloudDeployService.environments;
+        if (environments === undefined) {
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.CloudDeployValidation.noWorkspaceFolder,
+            );
+            return undefined;
+        }
+        const envs = environments.list();
+        if (envs.length === 0) {
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.CloudDeployValidation.noEnvironmentsDeclared,
+            );
+            return undefined;
+        }
+        if (isEnvironmentNode(node)) {
+            return { envId: node.env.id, envName: node.env.name };
+        }
+        if (isEnvIdPayload(node)) {
+            const env = envs.find((e) => e.id === node.envId);
+            if (env === undefined) {
+                this._vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.CloudDeployValidation.noEnvironmentsDeclared,
+                );
+                return undefined;
+            }
+            return { envId: env.id, envName: env.name };
+        }
+        const items = envs.map((env) => ({
+            label: env.name,
+            description: env.id,
+            detail: env.description,
+            envId: env.id,
+        }));
+        const picked = await vscode.window.showQuickPick(items, {
+            placeHolder: LocalizedConstants.CloudDeployValidation.pickEnvironmentPlaceholder,
+            ignoreFocusOut: true,
+        });
+        return picked === undefined ? undefined : { envId: picked.envId, envName: picked.label };
+    }
+
+    /**
      * Cloud Deploy: prompt the user to pick a declared environment, dispatch
      * the validation pipeline against it, and surface a result toast. The
      * detailed event log lands in the "Cloud Deploy" output channel via the
      * service's bus subscription.
      */
     public async onCloudDeployValidate(node?: unknown): Promise<void> {
-        const environments = this.cloudDeployService.environments;
-        if (environments === undefined) {
-            this._vscodeWrapper.showInformationMessage(
-                LocalizedConstants.CloudDeployValidation.noWorkspaceFolder,
-            );
-            return;
+        const picked = await this._pickCloudDeployEnvironment(node);
+        if (picked !== undefined) {
+            await this.runCloudDeployValidation(picked.envId, picked.envName);
         }
+    }
 
-        const envs = environments.list();
-        if (envs.length === 0) {
-            this._vscodeWrapper.showInformationMessage(
-                LocalizedConstants.CloudDeployValidation.noEnvironmentsDeclared,
-            );
-            return;
+    /**
+     * Cloud Deploy: sync a DB/dacpac-authored environment's schema into its
+     * committed `.sqlproj`. Picks the environment the same way validation does,
+     * then regenerates the project so the working tree reflects the source.
+     */
+    public async onCloudDeploySync(node?: unknown): Promise<void> {
+        const picked = await this._pickCloudDeployEnvironment(node);
+        if (picked !== undefined) {
+            await this.runCloudDeploySync(picked.envId, picked.envName);
         }
-
-        // Invoked from the tree view "Validate environment" context menu: validate
-        // the clicked environment directly. Invoked from the hub's per-row Validate
-        // button: an `{ envId }` payload. Otherwise (Command Palette) prompt for it.
-        let envId: string;
-        let envName: string;
-        if (isEnvironmentNode(node)) {
-            envId = node.env.id;
-            envName = node.env.name;
-        } else if (isEnvIdPayload(node)) {
-            const env = envs.find((e) => e.id === node.envId);
-            if (env === undefined) {
-                this._vscodeWrapper.showInformationMessage(
-                    LocalizedConstants.CloudDeployValidation.noEnvironmentsDeclared,
-                );
-                return;
-            }
-            envId = env.id;
-            envName = env.name;
-        } else {
-            const items = envs.map((env) => ({
-                label: env.name,
-                description: env.id,
-                detail: env.description,
-                envId: env.id,
-            }));
-            const picked = await vscode.window.showQuickPick(items, {
-                placeHolder: LocalizedConstants.CloudDeployValidation.pickEnvironmentPlaceholder,
-                ignoreFocusOut: true,
-            });
-            if (picked === undefined) {
-                return;
-            }
-            envId = picked.envId;
-            envName = picked.label;
-        }
-
-        await this.runCloudDeployValidation(envId, envName);
     }
 
     /**
@@ -3055,6 +3078,9 @@ export default class MainController implements vscode.Disposable {
                 const controller = new AbortController();
                 const tokenSubscription = token.onCancellationRequested(() => controller.abort());
                 try {
+                    // The service auto-syncs a shadow env's committed project from
+                    // its source before validating (see CloudDeployService), so
+                    // every validate path — command, tree, and agent — is covered.
                     return await this.cloudDeployService.validation.run(envId, {
                         signal: controller.signal,
                         // Persist a .cdrun.zip under .mssql/runs/ so the Cloud
@@ -3069,6 +3095,50 @@ export default class MainController implements vscode.Disposable {
         );
 
         await this.showCloudDeployValidateResult(envName, result);
+    }
+
+    /**
+     * Regenerates a shadow environment's committed `.sqlproj` from its DB/dacpac
+     * source, with a cancellable progress notification and a result toast.
+     */
+    private async runCloudDeploySync(envId: string, envName: string): Promise<void> {
+        try {
+            const result = await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: LocalizedConstants.CloudDeploySync.progressTitle(envName),
+                    cancellable: true,
+                },
+                async (_progress, token) => {
+                    const controller = new AbortController();
+                    const tokenSubscription = token.onCancellationRequested(() =>
+                        controller.abort(),
+                    );
+                    try {
+                        return await this.cloudDeployService.syncSchema(envId, {
+                            signal: controller.signal,
+                        });
+                    } finally {
+                        tokenSubscription.dispose();
+                    }
+                },
+            );
+            if (result === undefined) {
+                this._vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.CloudDeploySync.nothingToSync(envName),
+                );
+            } else {
+                this._vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.CloudDeploySync.synced(result.fileCount, result.projectDir),
+                );
+            }
+        } catch (err) {
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.CloudDeploySync.failed(
+                    err instanceof Error ? err.message : String(err),
+                ),
+            );
+        }
     }
 
     private async showCloudDeployValidateResult(

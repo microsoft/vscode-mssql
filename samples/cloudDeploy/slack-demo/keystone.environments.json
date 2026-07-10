@@ -1,0 +1,23 @@
+{
+    "schemaVersion": 1,
+    "environments": [
+        {
+            "id": "static-only",
+            "name": "Static analysis only (before schema)",
+            "sourceOfTruth": {
+                "kind": "sqlproj",
+                "path": "sqlproj-before/SlackBeforeProject.sqlproj"
+            },
+            "validations": [{ "type": "static-analysis", "enabled": true, "settings": {} }]
+        },
+        {
+            "id": "static-only-after",
+            "name": "Static analysis only (after schema — has the unresolved-reference bug)",
+            "sourceOfTruth": {
+                "kind": "sqlproj",
+                "path": "sqlproj-after/SlackAfterProject.sqlproj"
+            },
+            "validations": [{ "type": "static-analysis", "enabled": true, "settings": {} }]
+        }
+    ]
+}

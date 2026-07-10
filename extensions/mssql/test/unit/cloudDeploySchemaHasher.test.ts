@@ -159,6 +159,34 @@ suite("CloudDeploy SchemaHasher", () => {
             expect(result.hash).to.equal(hashDacpacBytes(Buffer.from([0x09, 0x08, 0x07])).hash);
         });
 
+        test("hashes a shadow source's synced project files (with a projectPath)", async () => {
+            const reader = new FakeReader([file("dbo/Tables/A.sql", "CREATE TABLE A (Id INT);")]);
+            const hasher = new SchemaHasher(reader);
+
+            const result = await hasher.hash({
+                kind: SourceOfTruthKind.Shadow,
+                source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "db" },
+                projectPath: "db/slackshadow",
+            });
+
+            expect(reader.listedDirectory).to.equal("db/slackshadow");
+            expect(result.hash).to.match(/^sha256:[0-9a-f]{64}$/);
+        });
+
+        test("rejects a shadow source without a projectPath (ephemeral, nothing committed)", async () => {
+            const hasher = new SchemaHasher(new FakeReader());
+            let caught: unknown;
+            try {
+                await hasher.hash({
+                    kind: SourceOfTruthKind.Shadow,
+                    source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "db" },
+                });
+            } catch (err) {
+                caught = err;
+            }
+            expect(caught).to.be.instanceOf(SchemaHashUnsupportedError);
+        });
+
         test("rejects an unsupported source-of-truth kind", async () => {
             const hasher = new SchemaHasher(new FakeReader());
             let caught: unknown;

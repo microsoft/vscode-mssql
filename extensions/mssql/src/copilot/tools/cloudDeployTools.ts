@@ -398,6 +398,10 @@ export interface CdValidateEnvironmentParams {
     environmentId: string;
 }
 
+export interface CdSyncSchemaParams {
+    environmentId: string;
+}
+
 export interface CdGetRunResultParams {
     runId?: string;
     environmentId?: string;
@@ -597,6 +601,80 @@ export class CloudDeployValidateEnvironmentTool extends ToolBase<CdValidateEnvir
                 title: `${Constants.extensionName}: ${loc.CloudDeployValidateEnvironmentConfirmationTitle}`,
                 message: new vscode.MarkdownString(
                     loc.CloudDeployValidateEnvironmentConfirmationMessage(environmentId),
+                ),
+            },
+        };
+    }
+}
+
+/**
+ * Syncs a DB/dacpac-authored environment's schema into its committed `.sqlproj`,
+ * regenerating the diffable project tree so the schema can be reviewed and
+ * validated under the team's rules (including in CI). A thin wrapper over
+ * `service.syncSchema` — the same seam the command uses — returning a
+ * machine-readable result the agent can report and act on.
+ */
+export class CloudDeploySyncSchemaTool extends ToolBase<CdSyncSchemaParams> {
+    public readonly toolName = Constants.copilotCloudDeploySyncSchemaToolName;
+
+    constructor(private readonly _getService: CloudDeployServiceAccessor) {
+        super();
+    }
+
+    async call(
+        options: vscode.LanguageModelToolInvocationOptions<CdSyncSchemaParams>,
+        token: vscode.CancellationToken,
+    ): Promise<string> {
+        const service = this._getService();
+        const store = service.environments;
+        if (store === undefined) {
+            return JSON.stringify({ success: false, message: loc.CloudDeployNoWorkspaceMessage });
+        }
+        const { environmentId } = options.input;
+        if (store.get(environmentId) === undefined) {
+            return JSON.stringify({
+                success: false,
+                message: loc.CloudDeployEnvironmentNotFound(environmentId),
+            });
+        }
+        const controller = new AbortController();
+        const cancellation = token.onCancellationRequested(() => controller.abort());
+        try {
+            const result = await service.syncSchema(environmentId, {
+                signal: controller.signal,
+            });
+            if (result === undefined) {
+                return JSON.stringify({
+                    success: true,
+                    synced: false,
+                    message:
+                        "Environment is not a DB/dacpac-authored source (no projectPath); nothing to sync.",
+                });
+            }
+            return JSON.stringify({
+                success: true,
+                synced: true,
+                projectDir: result.projectDir,
+                projectFile: result.projectFile,
+                fileCount: result.fileCount,
+            });
+        } catch (error) {
+            return JSON.stringify({ success: false, message: getErrorMessage(error) });
+        } finally {
+            cancellation.dispose();
+        }
+    }
+
+    async prepareInvocation(
+        options: vscode.LanguageModelToolInvocationPrepareOptions<CdSyncSchemaParams>,
+    ) {
+        const { environmentId } = options.input;
+        return {
+            invocationMessage: loc.CloudDeploySyncInvocation(environmentId),
+            confirmationMessages: {
+                title: `${Constants.extensionName}: ${loc.CloudDeploySyncConfirmationTitle}`,
+                message: new vscode.MarkdownString(
+                    loc.CloudDeploySyncConfirmationMessage(environmentId),
                 ),
             },
         };

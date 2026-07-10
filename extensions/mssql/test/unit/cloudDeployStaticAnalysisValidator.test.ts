@@ -112,6 +112,41 @@ suite("CloudDeploy StaticAnalysisValidator", () => {
         expect(invocation.args).to.include("/p:RunSqlCodeAnalysis=true");
     });
 
+    test("analyzes a shadow source's synced project (its projectPath)", async () => {
+        const env = makeEnvironmentWithValidations([], {
+            sourceOfTruth: {
+                kind: SourceOfTruthKind.Shadow,
+                source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "db" },
+                projectPath: "db/shadow",
+            },
+        });
+        processes.respond("dotnet", "build", { mode: "exit", exitCode: 0 });
+
+        const result = await validator.run(env, {}, { ...RUN_OPTS_BASE, signal: freshSignal() });
+
+        expect(result.status).to.equal(ValidationStatus.Passed);
+        const invocation = processes.invocations[0];
+        expect(invocation.command).to.equal("dotnet");
+        expect(invocation.args.some((a) => a.endsWith("shadow.sqlproj"))).to.equal(true);
+        expect(invocation.args).to.include("/p:RunSqlCodeAnalysis=true");
+    });
+
+    test("returns Skipped for a shadow source without a synced projectPath", async () => {
+        const env = makeEnvironmentWithValidations([], {
+            sourceOfTruth: {
+                kind: SourceOfTruthKind.Shadow,
+                source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "db" },
+            },
+        });
+
+        const result = await validator.run(env, {}, { ...RUN_OPTS_BASE, signal: freshSignal() });
+
+        expect(result.status).to.equal(ValidationStatus.Skipped);
+        const payload = result.payload as StaticAnalysisPayload;
+        expect(payload.findings[0].ruleId).to.equal("SOURCE_OF_TRUTH_UNSUPPORTED");
+        expect(processes.invocations).to.have.length(0);
+    });
+
     test("returns Failed for a build warning diagnostic, with the source location parsed", async () => {
         const env = makeSqlProjEnv();
         processes.respond("dotnet", "build", {

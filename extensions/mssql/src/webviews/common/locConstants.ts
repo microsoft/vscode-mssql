@@ -3057,6 +3057,7 @@ export class LocConstants {
             sourceKindDacpac: l10n.t("Dacpac (pre-built)"),
             sourceKindContainer: l10n.t("Live database"),
             sourceKindConnection: l10n.t("Live database connection"),
+            sourceKindShadow: l10n.t("Shadow project (decomposed)"),
             eventRunStarted: l10n.t("Run started"),
             eventValidationStarted: (name: string) =>
                 l10n.t({

@@ -13,6 +13,10 @@
     <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
       <source xml:lang="en">&apos;mssql.newEditorConnectionBehavior&apos; is set to &apos;defaultConnection&apos;, but &apos;mssql.defaultConnectionId&apos; is not configured. New editors will fall back to transferring the active connection.</source>
     </trans-unit>
+    <trans-unit id="++CODE++8d99c54cdf5c9a2c651232357535db142a3569b56d0b477ae11d0c19b1b9ba4d">
+      <source xml:lang="en">&apos;{0}&apos; is not a DB/dacpac-authored environment; nothing to sync.</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
       <source xml:lang="en">&apos;{0}&apos; started.</source>
       <note>{0} is the service name</note>
@@ -549,6 +553,10 @@
     </trans-unit>
     <trans-unit id="++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471">
       <source xml:lang="en">Auto-scroll enabled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc2d5097d748f42a57b02ba1df62fd88b5f5fcfb475a5287651f04bbde8edc60">
+      <source xml:lang="en">Auto-sync before validation failed; validating the committed project. {0}</source>
+      <note>{0} is the underlying error message</note>
     </trans-unit>
     <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
       <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
@@ -1186,6 +1194,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d382470c6b4261e4ea031cac9be9a74628d898bffabc0927354e0819dddfa9d9">
       <source xml:lang="en">Cloud Deploy validation requires an open workspace folder.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b59e832a027a867cb8c97f4b44bb6fae8295cfc5fbf20d3894d00ad06e11b65">
+      <source xml:lang="en">Cloud Deploy: Sync sqlproj from source</source>
     </trans-unit>
     <trans-unit id="++CODE++f37f6991dc9211725f0ea880623ec796f773ddfe12bd9674aeee2732c1b84803">
       <source xml:lang="en">Cloud Deploy: Validate environment</source>
@@ -6341,6 +6352,10 @@
     <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
       <source xml:lang="en">Schema is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++57ceb1f74645e27821fe35297cdb067a2962ed22f5a34a2d1167abd122ace950">
+      <source xml:lang="en">Schema sync failed: {0}</source>
+      <note>{0} is the underlying error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++9bbecc54dfc2a8c23ec0b2f2b6f4c327ad702c6b41d014105af1bf77fb49491b">
       <source xml:lang="en">Schema version</source>
     </trans-unit>
@@ -6755,6 +6770,9 @@
       <source xml:lang="en">Severity for {0}</source>
       <note>{0} is the rule identifier, e.g. SR0001</note>
     </trans-unit>
+    <trans-unit id="++CODE++1e43a07647bc8e502c4764becadbab62267ded2eef02848c653d86ed1a964201">
+      <source xml:lang="en">Shadow project (decomposed)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
     </trans-unit>
@@ -7148,8 +7166,28 @@
     <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
       <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
     </trans-unit>
+    <trans-unit id="++CODE++84cb71d5b6eef1e0bdcf84c6092608348358b2fd493348385f3e1561a5e42ea8">
+      <source xml:lang="en">Sync Cloud Deploy Schema Project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e5a55bc24edd5788b300a853080acf932fad944c7a3cca52c7505daac6c98fd">
+      <source xml:lang="en">Sync Cloud Deploy environment &apos;{0}&apos;? This regenerates its committed .sqlproj from the live DB/dacpac source and writes the files into your workspace.</source>
+      <note>{0} is the environment id</note>
+    </trans-unit>
+    <trans-unit id="++CODE++507f8e617a2823f41848006163f7dcf34eca1e3a16bdd62809ca646ef0b6e6a8">
+      <source xml:lang="en">Synced {0} object(s) into &apos;{1}&apos;.</source>
+      <note>{0} is the number of .sql files
+{1} is the project path</note>
+    </trans-unit>
     <trans-unit id="++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a">
       <source xml:lang="en">Synchronous resize</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a8b710cf6412e8c94fde38ccb6532ed168c0f61d3108547d5d94873af65c2a8a">
+      <source xml:lang="en">Syncing &apos;{0}&apos; schema into its project</source>
+      <note>{0} is the user-facing environment name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++824e73865bd395ef1f15c4f2a106b61adbfe531699ff0a97fe29eed1725b332f">
+      <source xml:lang="en">Syncing Cloud Deploy environment &apos;{0}&apos; schema into its project</source>
+      <note>{0} is the environment id</note>
     </trans-unit>
     <trans-unit id="++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36">
       <source xml:lang="en">System databases</source>
@@ -8651,6 +8689,9 @@
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.seedSampleRun">
       <source xml:lang="en">Cloud Deploy: Seed sample run (dev)</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.syncSchemaProject">
+      <source xml:lang="en">Cloud Deploy: Sync sqlproj from source</source>
     </trans-unit>
     <trans-unit id="mssql.cloudDeploy.validateDefaultEnvironment">
       <source xml:lang="en">Cloud Deploy: Validate default environment</source>

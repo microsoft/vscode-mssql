@@ -415,12 +415,23 @@ function sourceKindText(kind: SourceOfTruthKind): string {
             return CloudDeployDashboard.sourceKindDacpac;
         case SourceOfTruthKind.Connection:
             return CloudDeployDashboard.sourceKindConnection;
+        case SourceOfTruthKind.Shadow:
+            return CloudDeployDashboard.sourceKindShadow;
     }
 }
 
 /** The location behind a source of truth (a path, or a profile id), shown as detail text. */
 function sourceDetailText(sot: SourceOfTruth): string {
-    return sot.kind === SourceOfTruthKind.Connection ? sot.connectionProfileId : sot.path;
+    switch (sot.kind) {
+        case SourceOfTruthKind.Connection:
+            return sot.connectionProfileId;
+        case SourceOfTruthKind.Shadow:
+            return sot.source.kind === SourceOfTruthKind.Connection
+                ? sot.source.connectionProfileId
+                : sot.source.path;
+        default:
+            return sot.path;
+    }
 }
 
 /** Theme icon id for a source-of-truth kind. */
@@ -432,5 +443,7 @@ function sourceKindIcon(kind: SourceOfTruthKind): string {
             return "package";
         case SourceOfTruthKind.Connection:
             return "database";
+        case SourceOfTruthKind.Shadow:
+            return "files";
     }
 }

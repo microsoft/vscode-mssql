@@ -15,13 +15,17 @@
  */
 
 import { expect } from "chai";
+import * as fs from "fs";
 
 import { SourceOfTruthKind } from "../../src/cloudDeploy/environments/types";
 import {
     SchemaResolutionError,
     resolveSchemaToDacpac,
 } from "../../src/cloudDeploy/validation/providers/schemaResolver";
-import { FakeProcessProvider } from "../../src/cloudDeploy/validation/providers/processProvider";
+import {
+    FakeProcessProvider,
+    ProcessProvider,
+} from "../../src/cloudDeploy/validation/providers/processProvider";
 
 function newSignal(): AbortSignal {
     return new AbortController().signal;
@@ -206,6 +210,180 @@ suite("CloudDeploy SchemaResolver", () => {
                 caught = err;
             }
             expect(caught).to.be.instanceOf(SchemaResolutionError);
+        });
+    });
+
+    suite("Shadow (decomposed) source", () => {
+        test("decomposes the live database into a project tree with sqlpackage", async () => {
+            const processes = new FakeProcessProvider();
+            let resolvedProfileId: string | undefined;
+            const resolved = await resolveSchemaToDacpac(
+                {
+                    kind: SourceOfTruthKind.Shadow,
+                    source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "prod-db" },
+                },
+                processes,
+                {
+                    sourceConnectionStringResolver: async (id) => {
+                        resolvedProfileId = id;
+                        return "Server=prod;Database=app;User ID=sa;Password=pw;";
+                    },
+                },
+                newSignal(),
+            );
+
+            expect(resolvedProfileId).to.equal("prod-db");
+            expect(processes.invocations[0].command).to.equal("sqlpackage");
+            expect(processes.invocations[0].args[0]).to.equal("/Action:Extract");
+            expect(processes.invocations[0].args).to.include("/p:ExtractTarget=SchemaObjectType");
+            await resolved.dispose();
+        });
+
+        test("builds the synthesized shadow project into a dacpac with dotnet", async () => {
+            const processes = new FakeProcessProvider();
+            const resolved = await resolveSchemaToDacpac(
+                {
+                    kind: SourceOfTruthKind.Shadow,
+                    source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "prod-db" },
+                },
+                processes,
+                { sourceConnectionStringResolver: async () => "Server=prod;" },
+                newSignal(),
+            );
+
+            expect(processes.invocations).to.have.lengthOf(2);
+            expect(processes.invocations[1].command).to.equal("dotnet");
+            expect(processes.invocations[1].args[0]).to.equal("build");
+            expect(resolved.dacpacPath.endsWith("ShadowDb.dacpac")).to.equal(true);
+            await resolved.dispose();
+        });
+
+        test("with a projectPath, builds the committed sqlproj instead of decomposing", async () => {
+            const processes = new FakeProcessProvider();
+            const resolved = await resolveSchemaToDacpac(
+                {
+                    kind: SourceOfTruthKind.Shadow,
+                    source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "prod-db" },
+                    projectPath: "db/shadow",
+                },
+                processes,
+                { workspaceRoot: "/ws" },
+                newSignal(),
+            );
+
+            // Builds the committed project (dotnet) — no sqlpackage decompose.
+            expect(processes.invocations).to.have.lengthOf(1);
+            expect(processes.invocations[0].command).to.equal("dotnet");
+            expect(processes.invocations[0].args[0]).to.equal("build");
+            expect(
+                processes.invocations[0].args.some((a) => a.endsWith("shadow.sqlproj")),
+            ).to.equal(true);
+            await resolved.dispose();
+        });
+
+        test("does not pre-create the extract target directory (sqlpackage requires it absent)", async () => {
+            let targetExistedAtExtract: boolean | undefined;
+            const processes: ProcessProvider = {
+                async spawn(command, args) {
+                    const target = args.find((a) => a.startsWith("/TargetFile:"));
+                    if (command === "sqlpackage" && target !== undefined) {
+                        const dir = target.slice("/TargetFile:".length);
+                        targetExistedAtExtract = fs.existsSync(dir);
+                        // Simulate sqlpackage creating its target tree.
+                        await fs.promises.mkdir(dir, { recursive: true });
+                    }
+                    return {
+                        exitCode: 0,
+                        stdout: "",
+                        stderr: "",
+                        aborted: false,
+                        truncated: false,
+                    };
+                },
+            };
+
+            const resolved = await resolveSchemaToDacpac(
+                {
+                    kind: SourceOfTruthKind.Shadow,
+                    source: { kind: SourceOfTruthKind.Connection, connectionProfileId: "prod-db" },
+                },
+                processes,
+                { sourceConnectionStringResolver: async () => "Server=prod;" },
+                newSignal(),
+            );
+
+            expect(targetExistedAtExtract).to.equal(false);
+            await resolved.dispose();
+        });
+
+        test("throws when no source-connection resolver is wired", async () => {
+            const processes = new FakeProcessProvider();
+            let caught: unknown;
+            try {
+                await resolveSchemaToDacpac(
+                    {
+                        kind: SourceOfTruthKind.Shadow,
+                        source: {
+                            kind: SourceOfTruthKind.Connection,
+                            connectionProfileId: "prod-db",
+                        },
+                    },
+                    processes,
+                    {},
+                    newSignal(),
+                );
+            } catch (err) {
+                caught = err;
+            }
+            expect(caught).to.be.instanceOf(SchemaResolutionError);
+        });
+
+        test("throws SchemaResolutionError when the decomposition fails", async () => {
+            const processes = new FakeProcessProvider();
+            processes.respond("sqlpackage", "/Action:Extract", {
+                mode: "exit",
+                exitCode: 1,
+                stderr: "login failed",
+            });
+
+            let caught: unknown;
+            try {
+                await resolveSchemaToDacpac(
+                    {
+                        kind: SourceOfTruthKind.Shadow,
+                        source: {
+                            kind: SourceOfTruthKind.Connection,
+                            connectionProfileId: "prod-db",
+                        },
+                    },
+                    processes,
+                    { sourceConnectionStringResolver: async () => "Server=prod;" },
+                    newSignal(),
+                );
+            } catch (err) {
+                caught = err;
+            }
+            expect(caught).to.be.instanceOf(SchemaResolutionError);
+        });
+
+        test("rejects a dacpac inner source until the dacpac-decomposition phase", async () => {
+            const processes = new FakeProcessProvider();
+            let caught: unknown;
+            try {
+                await resolveSchemaToDacpac(
+                    {
+                        kind: SourceOfTruthKind.Shadow,
+                        source: { kind: SourceOfTruthKind.Dacpac, path: "/abs/MyDb.dacpac" },
+                    },
+                    processes,
+                    { sourceConnectionStringResolver: async () => "Server=prod;" },
+                    newSignal(),
+                );
+            } catch (err) {
+                caught = err;
+            }
+            expect(caught).to.be.instanceOf(SchemaResolutionError);
+            expect(processes.invocations).to.have.lengthOf(0);
         });
     });
 });

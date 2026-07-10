@@ -131,6 +131,7 @@ export class SchemaHasher {
      * Computes the `SourceVersion` for `sourceOfTruth`:
      *   * `SqlProj` → list + hash the project's source files.
      *   * `Dacpac` → hash the artifact's bytes.
+     *   * `Shadow` (with a projectPath) → list + hash the synced project's files.
      */
     public async hash(sourceOfTruth: SourceOfTruth): Promise<SourceVersion> {
         switch (sourceOfTruth.kind) {
@@ -150,6 +151,20 @@ export class SchemaHasher {
                 // the run is left unstamped. The runner treats a throw here as
                 // "unstamped" rather than a run failure — the hash is metadata.
                 throw new SchemaHashUnsupportedError(sourceOfTruth.kind);
+            }
+            case SourceOfTruthKind.Shadow: {
+                // A shadow source with a projectPath has a real, deterministic
+                // `.sql` tree on disk (the synced project), so fingerprint it
+                // like a sqlproj — this lets workload baseline across re-syncs,
+                // with a diff surfacing only when the decomposed schema actually
+                // changed. A shadow without a projectPath (ephemeral, validate-
+                // only) has nothing committed to fingerprint, so it stays
+                // unstamped (the runner treats the throw as "unstamped").
+                if (sourceOfTruth.projectPath === undefined) {
+                    throw new SchemaHashUnsupportedError(sourceOfTruth.kind);
+                }
+                const files = await this._reader.listSqlProjFiles(sourceOfTruth.projectPath);
+                return hashSchemaFiles(files);
             }
             default: {
                 // `SourceOfTruth` is exhausted above (sqlproj + dacpac). This
