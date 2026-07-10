@@ -147,7 +147,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.statusBar.enableConnectionColor": true,            // Color-code status bar by connection group
   "mssql.schemaDesigner.enableExpandCollapseButtons": true, // Show expand/collapse buttons in Schema Designer UI for entity relationships
   "mssql.showChangelogOnUpdate": true,                      // Show changelog when extension updates
-  "mssql.preview.shortcutsConfiguration": false             // (Preview) Enable the keyboard shortcuts configuration editor and Quick Queries commands
 }
 
 // Connectivity

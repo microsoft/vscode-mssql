@@ -32,6 +32,7 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.azureSqlProvisioningTitle,
                 description: locConstants.Changelog.azureSqlProvisioningDescription,
+                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
