@@ -39,6 +39,8 @@ import {
     QsRowsAppendedNotification,
     QsSetActualPlanRequest,
     QsSetDatabaseRequest,
+    QsPinAllResultsRequest,
+    QsPinResultSetRequest,
     QsSetViewModeRequest,
     QsState,
     QsStateChangedNotification,
@@ -903,6 +905,24 @@ export function QueryStudioApp() {
         });
     }, [rpc, state?.toggles.viewMode]);
 
+    // Pin results (C2D-2): one set or all complete sets into a read-only
+    // snapshot tab. Refusals (streaming set, disabled, budget) surface via
+    // the status line like refused runs do.
+    const pinResults = useCallback(
+        (resultSetId: string | undefined) => {
+            const request = resultSetId
+                ? rpc.sendRequest(QsPinResultSetRequest.type, { resultSetId })
+                : rpc.sendRequest(QsPinAllResultsRequest.type, {});
+            void request.then((result) => {
+                const r = result as { opened: boolean; error?: string };
+                if (!r.opened && r.error) {
+                    setActionHint(r.error);
+                }
+            });
+        },
+        [rpc],
+    );
+
     // Keybindings (addendum §4): F5/Ctrl+E execute; Ctrl+R toggles results;
     // Alt+B cancels. CAPTURE phase + stopPropagation: VS Code's webview
     // bootstrap forwards bubbled keydowns to the workbench keybinding
@@ -1650,6 +1670,17 @@ export function QueryStudioApp() {
                                 </button>
                             ) : null}
                             <span className="qs-spacer" />
+                            {visibleActiveTab === "results" &&
+                            hasDataResults &&
+                            !results.streaming ? (
+                                <button
+                                    className="qs-tabbar-btn"
+                                    title="Pin all results to a read-only tab that survives reruns"
+                                    aria-label="Pin all results"
+                                    onClick={() => pinResults(undefined)}>
+                                    <span className="codicon codicon-pin" />
+                                </button>
+                            ) : null}
                             {visibleActiveTab === "results" && hasDataResults ? (
                                 <button
                                     className="qs-tabbar-btn"
@@ -1753,6 +1784,19 @@ export function QueryStudioApp() {
                                                                           ? undefined
                                                                           : summary.resultSetId,
                                                                   )
+                                                    }
+                                                    captionExtras={
+                                                        summary.complete ? (
+                                                            <button
+                                                                className="qs-btn qs-grid-pin"
+                                                                title="Pin this result set to a read-only tab that survives reruns"
+                                                                aria-label="Pin result set"
+                                                                onClick={() =>
+                                                                    pinResults(summary.resultSetId)
+                                                                }>
+                                                                <span className="codicon codicon-pin" />
+                                                            </button>
+                                                        ) : undefined
                                                     }
                                                 />
                                             );

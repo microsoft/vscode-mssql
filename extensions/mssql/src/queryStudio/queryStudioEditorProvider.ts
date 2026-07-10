@@ -18,6 +18,7 @@ import { registerDefinitionContentProvider } from "./definitionContentProvider";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import { disposeQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import { registerPinnedResultsEditor } from "../queryResults/pinnedResultsDocumentProvider";
 import { stopSpillSessionLock, sweepOrphanSpillDirs } from "../queryResults/spillHygiene";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
 import {
@@ -249,6 +250,7 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
  * orphaned by crashed sessions — off the activation path.
  */
 function registerQueryResultsLifecycle(context: vscode.ExtensionContext): void {
+    registerPinnedResultsEditor(context);
     const spillParent = path.join(context.globalStorageUri.fsPath, "querystudio-spill");
     const sweepTimer = setTimeout(() => sweepOrphanSpillDirs(spillParent), 15_000);
     sweepTimer.unref?.();

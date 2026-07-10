@@ -60,10 +60,15 @@ import {
     QsSyncRemoteNotification,
     QsSyncResyncNotification,
     QsSyncResyncRequest,
+    QsPinAllResultsRequest,
+    QsPinResultSetRequest,
     QsSyncSaveRequest,
     QsSyncUndoRequest,
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
+import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import { resolveQueryResultsParams } from "../queryResults/queryResultsParams";
+import { openPinnedResultsDocument } from "../queryResults/pinnedResultsDocumentProvider";
 import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import {
@@ -298,6 +303,46 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         // Initial sync payload once the webview is live.
         void this.sendNotification(QsSyncInitNotification.type, this.model.syncInit());
         this.queueStatePush();
+    }
+
+    /**
+     * Pin (C2D-2/3): freeze complete results into a snapshot and open the
+     * readonly pinned document. The creator lease releases after the
+     * document has acquired its own — a failed open therefore disposes the
+     * snapshot instead of leaking it.
+     */
+    private async pinResults(
+        scope: { kind: "resultSet"; resultSetId: string } | { kind: "allCompleteResultSets" },
+    ): Promise<{ opened: boolean; snapshotId?: string; error?: string }> {
+        if (!resolveQueryResultsParams().params.pinnedDocumentsEnabled) {
+            return {
+                opened: false,
+                error: "Pinned result documents are disabled (mssql.queryResults.pinnedDocuments.enabled).",
+            };
+        }
+        try {
+            const lease = await getQueryResultAccessService().createSnapshot({
+                owner: { kind: "pinnedDocument", label: "Pinned results" },
+                reason: "Pinned from Query Studio",
+                sourceId: this.model.liveResultSource.sourceId,
+                scope,
+                includeMessages: "allLocal",
+                includeQueryText: "digest",
+            });
+            try {
+                const opened = await openPinnedResultsDocument(lease.snapshotId);
+                return opened
+                    ? { opened, snapshotId: lease.snapshotId }
+                    : { opened, error: "The pinned results tab could not be opened." };
+            } finally {
+                lease.dispose();
+            }
+        } catch (error) {
+            return {
+                opened: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
     }
 
     private async executionPlanSeam(): Promise<
@@ -884,6 +929,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }
         });
         this.onRequest(QsUpdateGridSelectionRequest.type, async () => undefined);
+        this.onRequest(QsPinResultSetRequest.type, async ({ resultSetId }) =>
+            this.pinResults({ kind: "resultSet", resultSetId }),
+        );
+        this.onRequest(QsPinAllResultsRequest.type, async () =>
+            this.pinResults({ kind: "allCompleteResultSets" }),
+        );
 
         // --- language features (LS-0): 1:1 onto the per-document facade ------
         this.onRequest(QsLangCompletionRequest.type, async (params) => {

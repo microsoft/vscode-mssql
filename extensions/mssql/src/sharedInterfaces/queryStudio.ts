@@ -446,6 +446,22 @@ export namespace QsInlineCompletionAcceptedRequest {
         "qs/inlineCompletionAccepted",
     );
 }
+export namespace QsPinResultSetRequest {
+    /** C2D-2: freeze one complete result set into a pinned snapshot document. */
+    export const type = new RequestType<
+        { resultSetId: string },
+        { opened: boolean; snapshotId?: string; error?: string },
+        void
+    >("qs/pinResultSet");
+}
+export namespace QsPinAllResultsRequest {
+    /** C2D-2: freeze every complete result set into one pinned document. */
+    export const type = new RequestType<
+        Record<string, never>,
+        { opened: boolean; snapshotId?: string; error?: string },
+        void
+    >("qs/pinAllResults");
+}
 export namespace QsUpdateGridSelectionRequest {
     export const type = new RequestType<
         { row?: number; column?: number; rangeRows?: number; rangeCols?: number },

@@ -42,6 +42,8 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     readonly sessionBinding = new DocumentSessionBinding();
     /** Shared execution state/results for every panel (M2). */
     readonly executionHost: ExecutionHost;
+    /** This model's face in the result access service (C2D). */
+    readonly liveResultSource: QueryStudioLiveResultSource;
 
     private sync: TextSyncEngine;
     private listeners = new Set<ModelTextEvents>();
@@ -89,8 +91,9 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this._uriKey);
         // Live result source registration (C2D-1): snapshots/pins/chat reach
         // this model's results only through the access service.
+        this.liveResultSource = new QueryStudioLiveResultSource(this);
         this.liveResultSourceRegistration = getQueryResultAccessService().registerLiveSource(
-            new QueryStudioLiveResultSource(this),
+            this.liveResultSource,
         );
         this.sync = new TextSyncEngine(document.getText());
         this.persistHotExitBackup();

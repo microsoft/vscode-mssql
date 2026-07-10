@@ -129,6 +129,8 @@ interface GridProps extends GridSizingProps {
     rowCount: number;
     /** Grid styling from QsState (classic mssql.resultsGrid.* parity). */
     gridStyle?: QsGridStyle;
+    /** Extra caption actions (e.g. the pin button, C2D-2). */
+    captionExtras?: ReactNode;
 }
 
 /** One FluentResultGrid over a single result set (caption + sized body). */
@@ -167,8 +169,9 @@ export function ResultGrid(props: GridProps) {
                 rowCount={rowCount}
                 runActive={props.runActive}
                 onToggleMaximize={onToggleMaximize}
-                maximized={maximized}
-            />
+                maximized={maximized}>
+                {props.captionExtras}
+            </GridCaption>
             {notice ? (
                 <div className="qs-grid-notice" role="alert">
                     {notice}
@@ -243,8 +246,9 @@ export function ResultGridBlock(props: GridProps) {
                 rowCount={rowCount}
                 runActive={props.runActive}
                 onToggleMaximize={onToggleMaximize}
-                maximized={maximized}
-            />
+                maximized={maximized}>
+                {props.captionExtras}
+            </GridCaption>
             <div className="qs-grid-placeholder" style={{ height }}>
                 {rowCount.toLocaleString()} row{rowCount === 1 ? "" : "s"} — scroll to load
             </div>

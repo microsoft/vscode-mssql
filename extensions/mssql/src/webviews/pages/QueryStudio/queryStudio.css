@@ -512,3 +512,54 @@
     color: var(--vscode-inputOption-activeForeground);
     border-color: var(--vscode-inputOption-activeBorder);
 }
+
+/* --- Pinned results (C2D) ------------------------------------------------ */
+
+/* Per-grid pin button: quiet until the caption row is hovered. */
+.qs-grid-pin {
+    opacity: 0.55;
+    padding: 0 3px;
+}
+.qs-grid-caption:hover .qs-grid-pin,
+.qs-grid-pin:focus-visible {
+    opacity: 1;
+}
+
+.qs-pinned-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+.qs-pinned-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    flex: none;
+}
+.qs-pinned-title {
+    font-weight: 600;
+}
+.qs-pinned-root .qs-results-body {
+    flex: 1;
+    overflow: auto;
+    padding: 4px;
+}
+.qs-pinned-root .qs-results-body-fill {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.qs-pinned-loading {
+    padding: 12px;
+}
+.qs-pinned-expired {
+    max-width: 460px;
+    margin: 48px auto;
+    text-align: center;
+}
+.qs-pinned-expired .codicon-pinned {
+    font-size: 28px;
+    opacity: 0.6;
+}
