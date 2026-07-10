@@ -24,6 +24,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import {
     QsCancelRequest,
     QsConnectRequest,
+    QsDisconnectRequest,
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
@@ -665,6 +666,22 @@ export function QueryStudioApp() {
     const onEditorMount = useCallback(
         (editor: Editor) => {
             editorRef.current = editor;
+            // Trim built-in context-menu entries that don't fit Query Studio:
+            // "Go to Symbol" opens Monaco's quick-outline overlay, which
+            // duplicates nothing useful here. Monaco has no public API for
+            // removing built-in menu items, so filter the contextmenu
+            // contribution's action list (the widely-used seam for this).
+            const contextMenu = editor.getContribution("editor.contrib.contextmenu") as unknown as {
+                _getMenuActions?: (...args: unknown[]) => { id?: string }[];
+            } | null;
+            const originalGetMenuActions = contextMenu?._getMenuActions;
+            if (contextMenu && typeof originalGetMenuActions === "function") {
+                contextMenu._getMenuActions = function (...args: unknown[]) {
+                    return originalGetMenuActions
+                        .apply(contextMenu, args)
+                        .filter((action) => action?.id !== "editor.action.quickOutline");
+                };
+            }
             // Pull the sync baseline instead of trusting the pushed init
             // alone — the push races webview startup, and a missed init used
             // to deadlock every edit group as stale-base. Gentle: never
@@ -782,6 +799,32 @@ export function QueryStudioApp() {
     const connect = useCallback(() => {
         void rpc.sendRequest(QsConnectRequest.type, {});
     }, [rpc]);
+    // Connection dropdown (chevron next to Change): compact home for the
+    // less-common connection commands, mirroring the database selector.
+    const [connMenuOpen, setConnMenuOpen] = useState(false);
+    const connWrapRef = useRef<HTMLSpanElement | null>(null);
+    const disconnect = useCallback(() => {
+        setConnMenuOpen(false);
+        void rpc.sendRequest(QsDisconnectRequest.type, undefined);
+    }, [rpc]);
+    useEffect(() => {
+        if (!connMenuOpen) {
+            return;
+        }
+        const closeIfOutside = (event: MouseEvent | FocusEvent) => {
+            const target = event.target;
+            if (target instanceof Node && connWrapRef.current?.contains(target)) {
+                return;
+            }
+            setConnMenuOpen(false);
+        };
+        window.addEventListener("pointerdown", closeIfOutside, true);
+        window.addEventListener("focusin", closeIfOutside, true);
+        return () => {
+            window.removeEventListener("pointerdown", closeIfOutside, true);
+            window.removeEventListener("focusin", closeIfOutside, true);
+        };
+    }, [connMenuOpen]);
     const [dbList, setDbList] = useState<string[] | undefined>(undefined);
     const toggleDbList = useCallback(() => {
         if (dbList !== undefined) {
@@ -1416,12 +1459,37 @@ export function QueryStudioApp() {
     return (
         <div className="qs-root" ref={rootRef}>
             <div className="qs-toolbar" role="toolbar" aria-label="Query Studio toolbar">
-                <button
-                    className={`qs-btn ${connection.kind === "disconnected" ? "primary" : ""}`}
-                    title={connected ? "Change connection" : "Connect to a SQL Server"}
-                    onClick={connect}>
-                    <span className="codicon codicon-plug" /> {connected ? "Change" : "Connect"}
-                </button>
+                <span className="qs-db-wrap" ref={connWrapRef}>
+                    <button
+                        className={`qs-btn ${connection.kind === "disconnected" ? "primary" : ""}`}
+                        title={connected ? "Change connection" : "Connect to a SQL Server"}
+                        onClick={connect}>
+                        <span className="codicon codicon-plug" /> {connected ? "Change" : "Connect"}
+                    </button>
+                    {connected ? (
+                        <>
+                            <button
+                                className="qs-btn qs-btn-chevron"
+                                title="More connection commands"
+                                aria-haspopup="menu"
+                                aria-expanded={connMenuOpen}
+                                onClick={() => setConnMenuOpen((open) => !open)}>
+                                <span className="codicon codicon-chevron-down" />
+                            </button>
+                            {connMenuOpen ? (
+                                <div className="qs-db-menu" role="menu">
+                                    <div
+                                        role="menuitem"
+                                        className="qs-db-item"
+                                        onClick={disconnect}>
+                                        <span className="codicon codicon-debug-disconnect" />{" "}
+                                        Disconnect
+                                    </div>
+                                </div>
+                            ) : null}
+                        </>
+                    ) : null}
+                </span>
                 <div className="qs-sep" />
                 <span className="qs-db-wrap" ref={dbWrapRef}>
                     <button

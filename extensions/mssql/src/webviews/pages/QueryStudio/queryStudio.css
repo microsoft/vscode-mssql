@@ -52,6 +52,11 @@
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: -1px;
 }
+/* Narrow chevron half of a split button (Change ▾) */
+.qs-btn.qs-btn-chevron {
+    padding: 0 2px;
+    margin-left: -4px;
+}
 .qs-database {
     min-width: 120px;
     max-width: 180px;
