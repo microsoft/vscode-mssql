@@ -198,12 +198,23 @@ export class MetadataStore {
     private diskLoads = 0;
     private disposed = false;
     /**
-     * H-3.4: ONE cross-entry validation semaphore for the whole store —
-     * each database entry composes its own engine, so the cap only
-     * constrains anything when the SAME limiter instance rides into every
-     * engine's options (a resume storm must not fan out 30 digests).
+     * H-3.4, scoped PER SERVER (dogfood 2026-07-10): each server
+     * fingerprint gets its own validation semaphore — a resume storm still
+     * cannot fan out 30 digests against one server, but a sleeping
+     * serverless server's hung digest queries can no longer starve every
+     * OTHER server's validations (OE expands must stay independent across
+     * connections).
      */
-    private readonly validationLimiter = new MetadataValidationLimiter(2);
+    private readonly validationLimiters = new Map<string, MetadataValidationLimiter>();
+
+    private limiterFor(serverFingerprint: string): MetadataValidationLimiter {
+        let limiter = this.validationLimiters.get(serverFingerprint);
+        if (!limiter) {
+            limiter = new MetadataValidationLimiter(2);
+            this.validationLimiters.set(serverFingerprint, limiter);
+        }
+        return limiter;
+    }
 
     constructor(
         private readonly service: () => Promise<ISqlConnectionService>,
@@ -402,7 +413,7 @@ export class MetadataStore {
                     : {}),
                 // H-3: focus fact + the SHARED cross-entry digest limiter.
                 ...(this.options.isActive ? { isActive: this.options.isActive } : {}),
-                validationLimiter: this.validationLimiter,
+                validationLimiter: this.limiterFor(key.serverFingerprint),
                 // H-5: the engine detects the rename; the STORE owns the
                 // sanctioned event (cls database.name, same classes as the
                 // key-correctness tripwire) and the violations counter.
