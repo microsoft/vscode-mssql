@@ -26,6 +26,8 @@ import { TextSyncEngine } from "./textSync";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionHost } from "./executionHost";
 import { persistQueryStudioHotExitBackup } from "./queryStudioHotExitBackup";
+import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import { QueryStudioLiveResultSource } from "./queryStudioLiveResultSource";
 
 export interface ModelTextEvents {
     onRemote(remote: QsSyncRemote): void;
@@ -45,6 +47,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     private listeners = new Set<ModelTextEvents>();
     private docSubscription: vscode.Disposable;
     private disposed = false;
+    private liveResultSourceRegistration: { dispose(): void } | undefined;
     private hotExitBackupWrite: Promise<void> = Promise.resolve();
     /** Guards re-entrant application of our own workspace edits. */
     private applyingWebviewEdit = false;
@@ -84,6 +87,11 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     ) {
         this._uriKey = document.uri.toString();
         this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this._uriKey);
+        // Live result source registration (C2D-1): snapshots/pins/chat reach
+        // this model's results only through the access service.
+        this.liveResultSourceRegistration = getQueryResultAccessService().registerLiveSource(
+            new QueryStudioLiveResultSource(this),
+        );
         this.sync = new TextSyncEngine(document.getText());
         this.persistHotExitBackup();
         this.docSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
@@ -381,6 +389,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         this.disposed = true;
         // Doc 04 §7.3 grows here in B2/B3: cancel active query, close session,
         // release metadata handles, tear down shadow LSP, dispose RowStore.
+        this.liveResultSourceRegistration?.dispose();
         this.executionHost.dispose();
         this.sessionBinding.dispose();
         this.docSubscription.dispose();

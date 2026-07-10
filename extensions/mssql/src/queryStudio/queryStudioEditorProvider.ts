@@ -17,6 +17,8 @@ import { Perf } from "../perf/perfTelemetry";
 import { registerDefinitionContentProvider } from "./definitionContentProvider";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
+import { disposeQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import { stopSpillSessionLock, sweepOrphanSpillDirs } from "../queryResults/spillHygiene";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
 import {
     queryStudioHotExitBackupRoot,
@@ -240,6 +242,25 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
     );
 }
 
+/**
+ * QueryResults service + spill-hygiene lifecycle (C2D-1): deactivation
+ * disposes every snapshot (final lease releases delete spill), the session
+ * lock heartbeat stops, and a delayed startup sweep reclaims run dirs
+ * orphaned by crashed sessions — off the activation path.
+ */
+function registerQueryResultsLifecycle(context: vscode.ExtensionContext): void {
+    const spillParent = path.join(context.globalStorageUri.fsPath, "querystudio-spill");
+    const sweepTimer = setTimeout(() => sweepOrphanSpillDirs(spillParent), 15_000);
+    sweepTimer.unref?.();
+    context.subscriptions.push({
+        dispose: () => {
+            clearTimeout(sweepTimer);
+            disposeQueryResultAccessService();
+            stopSpillSessionLock();
+        },
+    });
+}
+
 export function registerQueryStudio(context: vscode.ExtensionContext): void {
     const enabled = () =>
         vscode.workspace.getConfiguration().get<boolean>("mssql.queryStudio.enabled", false);
@@ -263,6 +284,7 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     registerQueryStudioPerfProbe(context);
     registerQueryStudioActiveTextEditorRedirect(context);
     registerQueryStudioSaveAsContinuity(context);
+    registerQueryResultsLifecycle(context);
     void ensureMssqlFileAssociation();
     // mssql-def: virtual documents for scripted go-to-definition (LS-4);
     // registered once with the QS surface, shared by every controller.

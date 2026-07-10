@@ -3445,6 +3445,42 @@
                     "markdownDescription": "Advanced (preview): per-knob Query Studio performance parameter overrides applied above the tuning profile — e.g. `{ \"pageRows\": 512, \"pageBytes\": 131072 }`. Keys follow the QueryTuning parameter registry; unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.",
                     "scope": "application"
                 },
+                "mssql.queryResults.pinnedDocuments.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Preview: allow pinning Query Studio results into read-only result documents that survive query reruns.",
+                    "scope": "application"
+                },
+                "mssql.queryResults.ai.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Preview: allow bounded, confirmation-gated AI access to pinned/snapshot query results.",
+                    "scope": "application"
+                },
+                "mssql.queryResults.snapshot.ttlMinutes": {
+                    "type": "number",
+                    "default": 30,
+                    "description": "Minutes an unpinned result snapshot (for example one created for an AI chat) is retained before cleanup.",
+                    "scope": "application"
+                },
+                "mssql.queryResults.snapshot.maxUnpinnedStores": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Maximum retained result stores that no open pinned document references before least-recently-used cleanup.",
+                    "scope": "application"
+                },
+                "mssql.queryResults.snapshot.maxRetainedBytesMb": {
+                    "type": "number",
+                    "default": 2048,
+                    "description": "Total budget (MB, memory plus spill) for query result data retained by snapshots and pinned documents.",
+                    "scope": "application"
+                },
+                "mssql.queryResults.overrides": {
+                    "type": "object",
+                    "default": {},
+                    "markdownDescription": "Advanced (preview): per-knob overrides for the query results retention/AI parameter registry — e.g. `{ \"retainedStoreMemoryBytes\": 4194304 }`. Unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.languageService.engine": {
                     "type": "string",
                     "enum": [

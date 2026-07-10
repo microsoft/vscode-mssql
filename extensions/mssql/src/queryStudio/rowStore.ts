@@ -64,8 +64,22 @@ export const DEFAULT_ROW_STORE_TUNING: RowStoreTuning = {
     windowCacheEntries: QUERY_TUNING_DEFAULTS.windowCacheEntries,
 };
 
-/** Why a window is being read — drives cache admission policy. */
-export type RowReadReason = "grid" | "copy" | "export" | "text" | "cellDocument" | "diagnostic";
+/**
+ * Why a window is being read — drives cache admission policy. Scan reasons
+ * (sample/profile/transform/aiTool, C2D) stream without re-admission like
+ * export/text so background analysis never evicts the viewport.
+ */
+export type RowReadReason =
+    | "grid"
+    | "copy"
+    | "export"
+    | "text"
+    | "cellDocument"
+    | "diagnostic"
+    | "sample"
+    | "profile"
+    | "transform"
+    | "aiTool";
 
 interface StoredPage {
     rowOffset: number;
@@ -120,6 +134,8 @@ export class RowStore {
     private spillWaiters: Array<() => void> = [];
     /** Sticky spill failure: storage limit reached or I/O failed. */
     private spillFailed = false;
+    /** Retained-store demotion (C2D): shrunken memory ceiling when set. */
+    private memoryCapOverride: number | undefined;
     /** Served-window cache (immutable values ⇒ complete windows cache safely). */
     private windowCache = new Map<string, QsCellWindow>();
     // Row-pipeline attribution accumulators (QO-2): cheap adds on the hot
@@ -216,6 +232,24 @@ export class RowStore {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Lazily shrink the memory cap (C2D retained-store demotion, addendum
+     * §5.1): lowers the ceiling and queues async spill for the overage —
+     * nothing blocks on this call; memory releases as writes confirm.
+     * An override, not a limits mutation: `limits` may be a shared default.
+     */
+    shrinkMemoryCap(maxMemoryBytes: number): void {
+        if (this.disposed || maxMemoryBytes >= this.effectiveMemoryCap) {
+            return;
+        }
+        this.memoryCapOverride = maxMemoryBytes;
+        this.evictIfNeeded();
+    }
+
+    private get effectiveMemoryCap(): number {
+        return this.memoryCapOverride ?? this.limits.maxMemoryBytes;
     }
 
     endResultSet(resultSetId: string, truncatedReason?: string): void {
@@ -408,8 +442,13 @@ export class RowStore {
         // Per-cell content inspection is diagnostics-only work — priced only
         // at verbose/full (QO-2). The null bitmap is UI data and always built.
         const countCells = this.verbose;
-        // Streaming reads (export/text) must not evict the viewport (QO-6).
-        const admit = reason !== "export" && reason !== "text";
+        // Streaming/scan reads must not evict the viewport (QO-6, C2D):
+        // only interactive read reasons re-admit pages to memory.
+        const admit =
+            reason === "grid" ||
+            reason === "copy" ||
+            reason === "cellDocument" ||
+            reason === "diagnostic";
         const firstPageIndex = firstOverlappingPageIndex(set.pages, start);
         for (let pageIndex = firstPageIndex; pageIndex < set.pages.length; pageIndex++) {
             const page = set.pages[pageIndex];
@@ -532,7 +571,7 @@ export class RowStore {
         // until ordinary eviction reaches it).
         const protectedCap = Math.max(
             0,
-            Math.floor(this.limits.maxMemoryBytes * this.tuning.protectedCacheRatio),
+            Math.floor(this.effectiveMemoryCap * this.tuning.protectedCacheRatio),
         );
         let protectedBytes = this.protectedPages.reduce(
             (total, entry) => total + entry.page.approxBytes,
@@ -553,7 +592,7 @@ export class RowStore {
         // when nothing else remains. Pages stay resident (spillPending) until
         // the async write confirms — memory releases on completion.
         while (
-            this.memoryBytes - this.pendingSpillBytes > this.limits.maxMemoryBytes &&
+            this.memoryBytes - this.pendingSpillBytes > this.effectiveMemoryCap &&
             this.limits.spillEnabled &&
             !this.spillFailed
         ) {

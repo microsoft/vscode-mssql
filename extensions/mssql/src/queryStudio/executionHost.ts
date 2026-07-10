@@ -12,6 +12,7 @@
  * executing → Busy.
  */
 
+import * as crypto from "crypto";
 import * as path from "path";
 import {
     QsExecutionState,
@@ -20,6 +21,9 @@ import {
     QsResultsState,
     QsCellWindow,
 } from "../sharedInterfaces/queryStudio";
+import { RetainedRowStore } from "../queryResults/resultStoreLease";
+import { resolveQueryResultsParams } from "../queryResults/queryResultsParams";
+import { ensureSpillSessionLock, runSpillDirName } from "../queryResults/spillHygiene";
 import { FeatureReplayTags } from "../sharedInterfaces/featureReplay";
 import { QueryTuningOverrides, QueryTuningSnapshot } from "../sharedInterfaces/queryTuning";
 import { DocumentSessionBinding } from "./documentSessionBinding";
@@ -39,6 +43,8 @@ export interface ExecutionHostEvents {
 
 export class ExecutionHost {
     private rowStore: RowStore | undefined;
+    /** Lease-owning wrapper (C2D-1): snapshots outlive the live run. */
+    private retained: RetainedRowStore | undefined;
     private orchestrator: ExecutionOrchestrator | undefined;
     private messages: QsMessageRow[] = [];
     private summaries = new Map<string, QsResultSetSummary>();
@@ -62,7 +68,11 @@ export class ExecutionHost {
         private readonly spillRoot: string,
         private readonly binding: DocumentSessionBinding,
         private readonly uriKey: string = "",
-    ) {}
+    ) {
+        // Crash-safe spill hygiene (C2D-1): heartbeat this session's lock so
+        // a startup sweep in a later session can reclaim orphaned run dirs.
+        ensureSpillSessionLock(path.dirname(spillRoot));
+    }
 
     attach(listener: ExecutionHostEvents): { dispose(): void } {
         this.listeners.add(listener);
@@ -117,15 +127,29 @@ export class ExecutionHost {
         );
         this.lastTuning = tuning;
 
-        // Fresh run: previous results (and spill) are released NOW.
-        this.rowStore?.dispose();
+        // Fresh run: the live owner releases its lease NOW. With no
+        // snapshots holding leases that still disposes the previous store
+        // (and spill) immediately, exactly as before; with leases, the store
+        // survives demoted until the last snapshot releases (C2D-1).
+        if (this.retained) {
+            this.retained.releaseLiveOwner("rerun");
+        } else {
+            this.rowStore?.dispose();
+        }
         this.runCounter++;
         this.rowStore = new RowStore(
-            path.join(this.spillRoot, `run${this.runCounter}`),
+            path.join(this.spillRoot, runSpillDirName(this.runCounter)),
             rowStoreLimitsFrom(tuning),
             tuning.params.diagnosticsLevel,
             rowStoreTuningFrom(tuning),
         );
+        this.retained = new RetainedRowStore(this.rowStore, {
+            runId: `qsrun_${crypto.randomBytes(6).toString("base64url")}`,
+            createdEpochMs: Date.now(),
+            ...(tuning.digest ? { tuningDigest: tuning.digest } : {}),
+            ...(tuning.profileId ? { tuningProfileId: tuning.profileId } : {}),
+            retainedMemoryBytes: resolveQueryResultsParams().params.retainedStoreMemoryBytes,
+        });
         this.messages = [];
         this.summaries.clear();
         this.summaryOrder = [];
@@ -154,6 +178,8 @@ export class ExecutionHost {
             tuning,
             ...(options.replayTags ? { replayTags: options.replayTags } : {}),
         });
+        // Snapshot provenance (C2D): join the retained store to the run record.
+        this.retained.setRunRecordId(this.activeRunRecordId);
         this.msToFirstResult = undefined;
 
         const host = this;
@@ -408,8 +434,23 @@ export class ExecutionHost {
         return !failed;
     }
 
+    /** Live source surface for snapshot creation (C2D-1). */
+    get retainedStore(): RetainedRowStore | undefined {
+        return this.retained;
+    }
+
+    /** SQL text of the active/last run — local capture policy only. */
+    get lastRunSql(): string | undefined {
+        return this.lastRunText;
+    }
+
     dispose(): void {
-        this.rowStore?.dispose();
+        if (this.retained) {
+            this.retained.releaseLiveOwner("documentClosed");
+            this.retained = undefined;
+        } else {
+            this.rowStore?.dispose();
+        }
         this.rowStore = undefined;
         this.listeners.clear();
     }
