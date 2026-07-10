@@ -1911,6 +1911,9 @@
     <trans-unit id="++CODE++ba9ae98bcb402b5a736ffd9e5da622d3bf7e67b5a7da246d9238029b9d1449ed">
       <source xml:lang="en">Create an Azure SQL Database (Preview)</source>
     </trans-unit>
+    <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
+      <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
+    </trans-unit>
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
     </trans-unit>
@@ -6879,6 +6882,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5753ea3780f34ad1295fb9957f1575e7e7578aa0e891d89524c26ad6f504cb1d">
       <source xml:lang="en">Shortcut</source>
+    </trans-unit>
+    <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
+      <source xml:lang="en">Shortcuts Configuration</source>
     </trans-unit>
     <trans-unit id="++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba">
       <source xml:lang="en">Shortcuts Configuration (Preview)</source>
