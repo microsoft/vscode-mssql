@@ -12,7 +12,8 @@
  *               typed placeholder comments.
  *   update    — settable columns with a PK-based WHERE when PK is known.
  *   delete    — PK-based WHERE when known.
- *   execute   — EXEC with named parameters, DECLARE block + OUTPUT markers.
+ *   execute   — classic SSMS shape: DECLARE @RC + parameters, TODO marker,
+ *               EXECUTE @RC = proc with named arguments + OUTPUT markers.
  *
  * Missing PK/parameters degrade with explicit placeholder comments and
  * fidelity notes — never a silently unfiltered UPDATE/DELETE.
@@ -126,25 +127,29 @@ export function emitExecute(
     if (parameters === undefined) {
         notes.push("parameters not hydrated — EXEC emitted without arguments");
     }
-    const outputs = shown.filter((p) => p.isOutput);
-    for (const output of outputs) {
-        writer.append(`DECLARE ${output.name} ${output.typeDisplay};\r\n`);
-    }
-    if (outputs.length > 0) {
-        writer.append("\r\n");
-    }
-    writer.anchored({ kind: "header" }, "EXEC");
-    writer.append(` ${quoteIdentifier(info.schema)}.`);
-    writer.anchored({ kind: "objectName" }, quoteIdentifier(info.name));
     if (shown.length === 0) {
+        writer.anchored({ kind: "header" }, "EXEC");
+        writer.append(` ${quoteIdentifier(info.schema)}.`);
+        writer.anchored({ kind: "objectName" }, quoteIdentifier(info.name));
         writer.append(";\r\n");
         return composeWithNotes(writer, notes);
     }
+    // Classic "Script as Execute" shape (SSMS parity): a DECLARE block for
+    // the return code and every parameter, a TODO marker, then a
+    // named-argument EXECUTE (names stay correct if parameter order changes).
+    writer.anchored({ kind: "header" }, "DECLARE");
+    writer.append(" @RC int;\r\n");
+    for (const param of shown) {
+        writer.append(`DECLARE ${param.name} ${param.typeDisplay};\r\n`);
+    }
+    writer.append("\r\n-- TODO: Set parameter values here.\r\n\r\n");
+    writer.append(`EXECUTE @RC = ${quoteIdentifier(info.schema)}.`);
+    writer.anchored({ kind: "objectName" }, quoteIdentifier(info.name));
     writer.append("\r\n");
     shown.forEach((param, index) => {
         writer.append("    ");
         writer.anchored({ kind: "parameter", name: param.name }, param.name);
-        writer.append(param.isOutput ? ` = ${param.name} OUTPUT` : ` = /* ${param.typeDisplay} */`);
+        writer.append(` = ${param.name}${param.isOutput ? " OUTPUT" : ""}`);
         writer.append(index < shown.length - 1 ? ",\r\n" : ";\r\n");
     });
     return composeWithNotes(writer, notes);

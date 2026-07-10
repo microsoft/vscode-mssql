@@ -57,7 +57,7 @@ async function openQueryStudioFromContext(args: {
 async function scriptObjectFromContext(
     getController: () => OeV2TreeController | undefined,
     node: OeV2Node | undefined,
-    operation: "create" | "drop",
+    operation: "create" | "drop" | "execute",
 ): Promise<void> {
     const controller = getController();
     if (!controller || !node?.connectionId || !node.database) {
@@ -149,6 +149,9 @@ export function registerOeV2NativeCommands(
         ),
         vscode.commands.registerCommand("mssql.objectExplorerV2.scriptDrop", (node?: OeV2Node) =>
             scriptObjectFromContext(getController, node, "drop"),
+        ),
+        vscode.commands.registerCommand("mssql.objectExplorerV2.scriptExecute", (node?: OeV2Node) =>
+            scriptObjectFromContext(getController, node, "execute"),
         ),
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.filter",

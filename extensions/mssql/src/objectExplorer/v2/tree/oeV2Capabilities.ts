@@ -24,6 +24,7 @@ const FLAG_ORDER: readonly (keyof OeV2NodeCapabilities & string)[] = [
     "canOpenQuery",
     "canSelectTop",
     "canGenerateScript",
+    "canScriptExecute",
 ];
 
 /** Serialize capabilities (+node kind) into the tree-item context value. */

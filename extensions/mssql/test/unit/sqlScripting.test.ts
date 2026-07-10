@@ -546,14 +546,19 @@ suite("sqlScripting DML templates", () => {
         expect(result.text).to.contain("  AND LineNumber = /* int */;");
     });
 
-    test("execute golden: DECLARE block, named args, OUTPUT marker", async () => {
+    test("execute golden: classic DECLARE @RC block, named args, OUTPUT marker", async () => {
         const result = await scriptOf("Sales", "GetOrders", "execute");
         expect(lines(result)).to.deep.equal([
+            "DECLARE @RC int;",
+            "DECLARE @CustomerID int;",
+            "DECLARE @Since datetime2(7);",
             "DECLARE @Total money;",
             "",
-            "EXEC Sales.GetOrders",
-            "    @CustomerID = /* int */,",
-            "    @Since = /* datetime2(7) */,",
+            "-- TODO: Set parameter values here.",
+            "",
+            "EXECUTE @RC = Sales.GetOrders",
+            "    @CustomerID = @CustomerID,",
+            "    @Since = @Since,",
             "    @Total = @Total OUTPUT;",
             "",
         ]);

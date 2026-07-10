@@ -581,6 +581,11 @@
                 {
                     "command": "mssql.objectExplorerV2.scriptDrop",
                     "group": "1_scripts@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.scriptExecute",
+                    "when": "viewItem =~ /\\boe2:canScriptExecute\\b/",
+                    "group": "1_scripts@3"
                 }
             ],
             "view/title": [
@@ -1145,6 +1150,10 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.scriptDrop",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.scriptExecute",
                     "when": "false"
                 },
                 {
@@ -2155,6 +2164,11 @@
             {
                 "command": "mssql.objectExplorerV2.scriptDrop",
                 "title": "Script as Drop",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.scriptExecute",
+                "title": "Script as Execute",
                 "category": "MS SQL"
             },
             {

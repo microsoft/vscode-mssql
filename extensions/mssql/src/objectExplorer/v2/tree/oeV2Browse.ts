@@ -374,6 +374,7 @@ export function objectNode(
             canCopyQualifiedName: true,
             canGenerateScript: true,
             ...(isTable || objectKind === "view" ? { canSelectTop: true } : {}),
+            ...(objectKind === "procedure" ? { canScriptExecute: true } : {}),
         },
         icon: OBJECT_ICONS[objectKind],
     };

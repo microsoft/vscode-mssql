@@ -157,7 +157,7 @@ export class OeV2TreeController {
 
     async scriptObject(
         node: OeV2Node,
-        operation: Extract<ScriptOperation, "create" | "drop">,
+        operation: Extract<ScriptOperation, "create" | "drop" | "execute">,
         offlineMode: boolean,
     ): Promise<{ script?: string; error?: string }> {
         if (!node.connectionId || !node.database || !node.schema || !node.objectName) {
