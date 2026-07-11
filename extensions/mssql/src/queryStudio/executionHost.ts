@@ -70,6 +70,13 @@ export class ExecutionHost {
      */
     sqlcmdEnabled = false;
     /**
+     * Vector Workbench gate seam (D-0019; this module stays vscode-free):
+     * evaluated per run so a config change applies to the NEXT run. When true,
+     * user batches request typed vector cells; the backend still falls back
+     * honestly when the service did not negotiate `vectorBinaryV1`.
+     */
+    vectorWorkbenchGate: () => boolean = () => false;
+    /**
      * SQLCMD seams the document model wires (this module stays vscode-free):
      * :r include resolution against the document's directory, and the
      * :connect session opener.
@@ -318,6 +325,7 @@ export class ExecutionHost {
                     pageBytes: tuning.params.pageBytes,
                     maxCellBytes: tuning.params.maxCellBytes,
                 },
+                ...(this.vectorWorkbenchGate() ? { vectorEncoding: "binary-v1" as const } : {}),
                 tuningDigest: tuning.digest,
                 tuningProfileId: tuning.profileId,
                 ...(this.sqlcmdEnabled

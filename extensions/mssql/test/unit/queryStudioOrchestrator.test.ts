@@ -18,7 +18,7 @@ import * as path from "path";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
 import { ExecutionOrchestrator, RunEvents } from "../../src/queryStudio/executionOrchestrator";
 import { DEFAULT_LIMITS, RowStore } from "../../src/queryStudio/rowStore";
-import { QsMessageRow } from "../../src/sharedInterfaces/queryStudio";
+import { QsMessageRow, QsResultColumn } from "../../src/sharedInterfaces/queryStudio";
 import {
     IQueryEventSink,
     ISqlSession,
@@ -30,9 +30,11 @@ class RecordingEvents implements RunEvents {
     readonly phases: string[] = [];
     readonly messages: QsMessageRow[] = [];
     readonly resultSets: string[] = [];
+    readonly resultSetColumns: Array<QsResultColumn[] | undefined> = [];
     readonly rowEvents: Array<{ id: string; n: number }> = [];
-    onResultSetStarted(s: { resultSetId: string }): void {
+    onResultSetStarted(s: { resultSetId: string; columns?: QsResultColumn[] }): void {
         this.resultSets.push(s.resultSetId);
+        this.resultSetColumns.push(s.columns);
     }
     onRowsAppended(id: string, n: number): void {
         this.rowEvents.push({ id, n });
@@ -681,6 +683,43 @@ suite("Query Studio execution orchestrator", () => {
             expect(opts.maxCellBytes).to.equal(65536);
             expect(opts.priority).to.equal("interactive");
         }
+        rowStore.dispose();
+    });
+
+    test("vector column facts mirror into result-set events (D-0018/D-0019 passthrough)", async () => {
+        const session = scriptedSession(async (_text, sink) => {
+            await sink.onResultSetStarted({
+                resultSetId: "rs1",
+                batchOrdinal: 0,
+                columns: [
+                    { ordinal: 0, name: "id", displayName: "id", sqlType: "int" },
+                    {
+                        ordinal: 1,
+                        name: "embedding",
+                        displayName: "embedding",
+                        sqlType: "vector",
+                        maxLength: 6152,
+                        vector: { transport: "binary-v1", dimensions: 1536 },
+                    },
+                ],
+            });
+            return { status: "succeeded", resultSetCount: 1, totalRows: 0, errorCount: 0 };
+        });
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        await orchestrator.run("select id, embedding from t", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+        });
+        const columns = events.resultSetColumns[0];
+        expect(columns).to.have.length(2);
+        expect(columns![0].sqlType).to.equal("int");
+        expect(columns![0].vector).to.equal(undefined);
+        expect(columns![1].sqlType).to.equal("vector");
+        // Safe metadata mirror — feeds the Vector tab's appliesTo sniff.
+        expect(columns![1].vector).to.deep.equal({ transport: "binary-v1", dimensions: 1536 });
         rowStore.dispose();
     });
 });

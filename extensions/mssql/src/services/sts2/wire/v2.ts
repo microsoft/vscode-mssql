@@ -170,10 +170,21 @@ export interface V2QueryAckParams {
 export interface V2WireColumn {
     name?: string;
     Name?: string;
+    /** The service serializes the engine type name as `type` (D-0018). */
+    type?: string;
+    Type?: string;
     engineType?: string;
     EngineType?: string;
     nullable?: boolean | null;
     Nullable?: boolean | null;
+    precision?: number | null;
+    Precision?: number | null;
+    scale?: number | null;
+    Scale?: number | null;
+    length?: number | null;
+    Length?: number | null;
+    collation?: string | null;
+    Collation?: string | null;
 }
 
 export interface V2ResultSetNotification {
@@ -266,12 +277,30 @@ export function wireColumnName(column: V2WireColumn): string {
 }
 
 export function wireColumnType(column: V2WireColumn): string | undefined {
-    return column.engineType ?? column.EngineType;
+    // The service field is `type` (DriverEffectRunner.SerializeColumns);
+    // engineType variants kept for tolerant-reader compatibility. Before the
+    // `type` fallback landed, sqlType was silently undefined on the STS2 path.
+    return column.engineType ?? column.EngineType ?? column.type ?? column.Type;
 }
 
 export function wireColumnNullable(column: V2WireColumn): boolean | undefined {
     const value = column.nullable ?? column.Nullable;
     return value === null ? undefined : value;
+}
+
+export function wireColumnPrecision(column: V2WireColumn): number | undefined {
+    const value = column.precision ?? column.Precision;
+    return value === null || value === undefined ? undefined : value;
+}
+
+export function wireColumnScale(column: V2WireColumn): number | undefined {
+    const value = column.scale ?? column.Scale;
+    return value === null || value === undefined ? undefined : value;
+}
+
+export function wireColumnLength(column: V2WireColumn): number | undefined {
+    const value = column.length ?? column.Length;
+    return value === null || value === undefined ? undefined : value;
 }
 
 /** Total rows affected from the structured complete payload. */

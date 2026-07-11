@@ -70,6 +70,7 @@ import {
     QS_CELL_DISPLAY_CLAMP,
     cellDocumentLanguage,
     cellDisplayText,
+    cellTextForPurpose,
     clampDisplay,
 } from "../../../sharedInterfaces/queryStudioGridOps";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
@@ -118,7 +119,9 @@ function windowNullFlags(window: QsCellWindow): (row: number, col: number) => bo
 /**
  * QsCellWindow → grid rows (DbCellValue with the SOURCE row id). Rendered
  * windows clamp display text (huge cells would bog the DOM); the copy path
- * passes clamp=false so the clipboard carries the full received value.
+ * passes clamp=false so the clipboard carries the full received value —
+ * full-fidelity text, never the bounded grid preview (typed vector cells
+ * copy as their complete JSON array, engine-text parity).
  */
 function windowToGridRows(
     window: QsCellWindow,
@@ -130,7 +133,11 @@ function windowToGridRows(
         const cells: DbCellValue[] = [];
         for (let c = 0; c < columnCount; c++) {
             const nulled = isNull(r, c);
-            const text = nulled ? "" : cellDisplayText(row[c]);
+            const text = nulled
+                ? ""
+                : clamp
+                  ? cellDisplayText(row[c])
+                  : cellTextForPurpose(row[c], "copy");
             const languageId = nulled
                 ? undefined
                 : cellDocumentLanguage(row[c], {

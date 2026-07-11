@@ -69,6 +69,12 @@ export interface RunOptions {
      * every user batch so the backend pages by the run's parameters.
      */
     wire?: { pageRows: number; pageBytes: number; maxCellBytes: number };
+    /**
+     * Request typed vector cells for this run (D-0019). Set from the
+     * `mssql.queryStudio.vectorWorkbench.enabled` gate; the backend honors it
+     * only when it negotiated `vectorBinaryV1` (else honest text fallback).
+     */
+    vectorEncoding?: "binary-v1";
     /** Tuning attribution stamped on the submit marker (QO-1). */
     tuningDigest?: string;
     tuningProfileId?: string;
@@ -128,6 +134,9 @@ function toQsResultColumn(column: ColumnMetadata): QsResultColumn {
         ...(column.sqlType ? { sqlType: column.sqlType } : {}),
         ...(column.isXml ? { isXml: true } : {}),
         ...(column.isJson ? { isJson: true } : {}),
+        // Safe vector facts mirror (D-0018/D-0019) — feeds the Vector tab's
+        // cheap appliesTo sniff without any extra webview round trip.
+        ...(column.vector ? { vector: column.vector } : {}),
     };
 }
 
@@ -719,6 +728,8 @@ export class ExecutionOrchestrator {
                           maxCellBytes: options.wire.maxCellBytes,
                       }
                     : {}),
+                // Typed vector cells (D-0019): gate-driven per-run opt-in.
+                ...(options.vectorEncoding ? { vectorEncoding: options.vectorEncoding } : {}),
             },
             sink,
         );

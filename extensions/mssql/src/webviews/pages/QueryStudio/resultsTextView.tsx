@@ -14,7 +14,7 @@ import {
     QsResultSetSummary,
     QsState,
 } from "../../../sharedInterfaces/queryStudio";
-import { cellDisplayText } from "../../../sharedInterfaces/queryStudioGridOps";
+import { cellTextForPurpose } from "../../../sharedInterfaces/queryStudioGridOps";
 import { perfMark, perfMarksEnabled } from "../../common/perfMarks";
 import type { Rpc } from "./resultsGridShared";
 
@@ -167,8 +167,12 @@ async function fetchTextRows(
         for (let row = 0; row < window.values.length; row++) {
             const cells: string[] = [];
             for (let column = 0; column < summary.columnNames.length; column++) {
+                // Results-to-text is a data-fidelity surface: typed vector
+                // cells render their full JSON array, not the grid preview.
                 cells.push(
-                    isNull(row, column) ? "NULL" : cellDisplayText(window.values[row]?.[column]),
+                    isNull(row, column)
+                        ? "NULL"
+                        : cellTextForPurpose(window.values[row]?.[column], "textView"),
                 );
             }
             rows.push(cells);

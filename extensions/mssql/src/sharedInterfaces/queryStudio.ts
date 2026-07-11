@@ -241,6 +241,16 @@ export interface QsResultColumn {
     sqlType?: string;
     isXml?: boolean;
     isJson?: boolean;
+    /**
+     * Vector column facts (D-0018/D-0019): safe metadata mirror only —
+     * transport truth for the run plus dimensions derived from wire length.
+     * Drives the Vector tab's cheap `appliesTo` sniff in the webview shell.
+     */
+    vector?: {
+        transport: "binary-v1" | "textFallback";
+        dimensions?: number;
+        baseType?: "float32" | "float16";
+    };
 }
 
 /** Compact window (Appendix A): values + null bitmap, never tagged unions. */

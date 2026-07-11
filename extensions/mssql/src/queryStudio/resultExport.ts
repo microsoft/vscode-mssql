@@ -16,6 +16,8 @@ import {
     QsResultSetSummary,
     QsSaveResultFormat,
 } from "../sharedInterfaces/queryStudio";
+import { typedCellTextForPurpose } from "../sharedInterfaces/queryResultCellCodec";
+import { cellTextForPurpose } from "../sharedInterfaces/queryStudioGridOps";
 import { cellDocumentText } from "./cellDocument";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 
@@ -270,7 +272,7 @@ async function* csvPieces(
             .slice(range.columnStart, range.columnEnd + 1)
             .map((cell) =>
                 encodeCsvField(
-                    cell.isNull ? undefined : cellDocumentText(cell.value),
+                    cell.isNull ? undefined : cellTextForPurpose(cell.value, "csvExport"),
                     csv.delimiter,
                     csv.textIdentifier,
                 ),
@@ -410,12 +412,21 @@ function jsonValue(cell: ExportCell | undefined): string {
     if (!cell || cell.isNull) {
         return "null";
     }
-    return JSON.stringify(cellDocumentText(cell.value));
+    // Every value exports as its full-fidelity TEXT inside a JSON string —
+    // decimals as "1.5", typed vector cells as their full "[…]" array text
+    // (consistent with the typed-wrapper pattern; never raw wire JSON).
+    return JSON.stringify(cellTextForPurpose(cell.value, "jsonExport"));
 }
 
 function formatSqlValue(cell: ExportCell | undefined): string {
     if (!cell || cell.isNull) {
         return "NULL";
+    }
+    // Typed vector cells emit a complete SQL expression —
+    // CAST('[…]' AS VECTOR(n)) — which must never be re-quoted.
+    const typedText = typedCellTextForPurpose(cell.value, "insertExport");
+    if (typedText !== null) {
+        return typedText;
     }
     const value = cellDocumentText(cell.value);
     if (!needsSqlStringQuotes(value)) {

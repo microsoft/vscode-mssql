@@ -27,6 +27,7 @@ import { ToolBase } from "../copilot/tools/toolBase";
 import { windowCellReader } from "./cellReader";
 import { getQueryResultAccessService } from "./queryResultAccessService";
 import { pinExistingSnapshot } from "./pinCommands";
+import { typedCellTextForPurpose } from "../sharedInterfaces/queryResultCellCodec";
 import { QueryResultsParams, resolveQueryResultsParams } from "./queryResultsParams";
 import { GatedQueryResultAccess, ResultAccessDenied, ResultAccessGate } from "./resultAccessGate";
 import { QueryResultAccessError } from "./queryResultTypes";
@@ -84,6 +85,12 @@ function stripControl(text: string): string {
 }
 
 function boundCell(value: unknown, maxCellBytes: number): unknown {
+    // Typed vector cells summarize compactly ("VECTOR(1536) float32") — the
+    // model never gets 1536 floats (or raw base64 wire JSON) by default.
+    const typedText = typedCellTextForPurpose(value, "toolSummary");
+    if (typedText !== null) {
+        return typedText;
+    }
     if (typeof value !== "string") {
         return value;
     }

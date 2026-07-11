@@ -30,6 +30,7 @@ import { getQueryResultContextService } from "./queryResultContextService";
 import { resolveQueryResultsParams } from "./queryResultsParams";
 import { GatedQueryResultAccess, ResultAccessGate } from "./resultAccessGate";
 import { openPinnedResultsDocument } from "./pinnedResultsDocumentProvider";
+import { typedCellTextForPurpose } from "../sharedInterfaces/queryResultCellCodec";
 import { QueryResultSnapshotDescription } from "./queryResultTypes";
 import { TransformAggregate, TransformSpec } from "./transformSpec";
 
@@ -48,6 +49,11 @@ function access(): GatedQueryResultAccess {
         () => resolveQueryResultsParams().params,
     );
     return gated;
+}
+
+/** Model/chat-bound text for one cell value (vectors summarize compactly). */
+function summaryCellText(value: unknown, fallback: string): string {
+    return typedCellTextForPurpose(value, "toolSummary") ?? String(value ?? fallback);
 }
 
 function featureBlocked(stream: vscode.ChatResponseStream): boolean {
@@ -181,7 +187,7 @@ async function summarize(
             }
             const min = result.rows[0]?.[base + 1];
             const max = result.rows[0]?.[base + 2];
-            return `| \`${name}\` | ${set.columns?.[index]?.sqlType ?? ""} | ${nullPct}% | ${String(min ?? "—")} | ${String(max ?? "—")}${truncated} |`;
+            return `| \`${name}\` | ${set.columns?.[index]?.sqlType ?? ""} | ${nullPct}% | ${summaryCellText(min, "—")} | ${summaryCellText(max, "—")}${truncated} |`;
         });
         const header = withValues
             ? "| column | type | nulls | min | max |\n|---|---|---|---|---|"
@@ -278,7 +284,7 @@ async function report(
             [
                 sample.columns.join(" | "),
                 ...sample.rows.map((row) =>
-                    row.map((value) => String(value ?? "NULL").slice(0, 120)).join(" | "),
+                    row.map((value) => summaryCellText(value, "NULL").slice(0, 120)).join(" | "),
                 ),
             ].join("\n");
     }

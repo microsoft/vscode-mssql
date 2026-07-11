@@ -17,6 +17,8 @@
  * descriptors carry digests/metadata only.
  */
 
+import type { VectorColumnMetadata } from "../../sharedInterfaces/queryResultCellCodec";
+
 // ---------------------------------------------------------------------------
 // Events (minimal local event shape — no vscode dependency so the domain core
 // stays isomorphic for future web hosts).
@@ -89,6 +91,8 @@ export interface SqlBackendCapabilities {
     queryTimeoutHonored: boolean;
     /** Backend can emit compact row pages (QO-5): no client-side page rebuild. */
     compactRows: boolean;
+    /** Backend can emit typed vector cells for opted-in queries (D-0019). */
+    vectorBinaryV1: boolean;
     captureControl: boolean;
     replayDescriptors: boolean;
     resumeAfterDisconnect: boolean;
@@ -190,6 +194,12 @@ export interface ExecuteOptions {
     pageRows?: number;
     pageBytes?: number;
     maxCellBytes?: number;
+    /**
+     * Request typed vector cells for this query (D-0019). Honored only when
+     * the backend negotiated `vectorBinaryV1`; otherwise vector cells arrive
+     * as JSON text (D-0018) and column metadata says `textFallback`.
+     */
+    vectorEncoding?: "binary-v1";
     priority?: "interactive" | "background";
     /** Diag/replay label — metadata only, never SQL-derived text. */
     tag?: string;
@@ -275,6 +285,12 @@ export interface ColumnMetadata {
     isKey?: boolean;
     isXml?: boolean;
     isJson?: boolean;
+    /**
+     * Vector column facts (D-0018/D-0019): transport mode for THIS query plus
+     * dimensions derived from wire length (8 + 4*dims). Metadata is a hint —
+     * per-cell facts are authoritative for typed cells.
+     */
+    vector?: VectorColumnMetadata;
 }
 
 export interface ResultSetMetadata {

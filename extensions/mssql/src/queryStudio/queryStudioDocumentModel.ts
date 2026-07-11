@@ -166,6 +166,12 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             },
             openConnectSession: (target) => binding.openSqlcmdConnectSession(target),
         };
+        // Vector Workbench gate (D-0019): evaluated per run — flipping the
+        // setting applies to the next execution without a reload.
+        this.executionHost.vectorWorkbenchGate = () =>
+            vscode.workspace
+                .getConfiguration("mssql")
+                .get<boolean>("queryStudio.vectorWorkbench.enabled") === true;
         // Live result source registration (C2D-1): snapshots/pins/chat reach
         // this model's results only through the access service.
         this.liveResultSource = new QueryStudioLiveResultSource(this);

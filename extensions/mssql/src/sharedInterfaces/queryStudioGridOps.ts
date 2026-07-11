@@ -6,10 +6,17 @@
 /**
  * Pure client-side grid operations for the Query Studio results grid
  * (classic in-memory sort/filter parity — headerFilter/hybridDataProvider
- * intent). Webview-safe by convention: no vscode/DOM imports, shared by the
- * results webview and the unit tests (test/unit cannot compile src/webviews
- * — the tsconfig split excludes it from the extension build).
+ * intent). Webview-safe by convention: no vscode/DOM imports (the sibling
+ * queryResultCellCodec is equally pure), shared by the results webview and
+ * the unit tests (test/unit cannot compile src/webviews — the tsconfig split
+ * excludes it from the extension build).
  */
+
+import {
+    isVectorCellOkV1,
+    typedCellTextForPurpose,
+    VECTOR_TYPE_HINT_V1,
+} from "./queryResultCellCodec";
 
 export type QsSortDirection = "asc" | "desc";
 
@@ -168,9 +175,32 @@ export function cellDisplayText(value: unknown): string {
         return typedWrapperDisplayText(value);
     }
     if (typeof value === "object") {
+        // Typed non-scalar encodings (vector; spatial next): bounded honest
+        // preview — never a full component decode on the render path, and
+        // never raw tag JSON in a grid cell.
+        const typedText = typedCellTextForPurpose(value, "gridPreview");
+        if (typedText !== null) {
+            return typedText;
+        }
         return JSON.stringify(value);
     }
     return String(value);
+}
+
+/**
+ * Full-fidelity text for one cell for copy/export-style consumers: typed
+ * non-scalar encodings expand completely (a vector copies as its full JSON
+ * array, engine-text parity); everything else matches the grid display.
+ */
+export function cellTextForPurpose(
+    value: unknown,
+    purpose: "copy" | "textView" | "cellDocument" | "csvExport" | "jsonExport" | "insertExport",
+): string {
+    const typedText = typedCellTextForPurpose(value, purpose);
+    if (typedText !== null) {
+        return typedText;
+    }
+    return cellDisplayText(value);
 }
 
 export interface QsCellDocumentMetadata {
@@ -243,6 +273,12 @@ export function cellDocumentLanguage(
     }
     if (value === undefined || value === null || isTruncatedCellMarker(value)) {
         return undefined;
+    }
+    // Typed OK vector cells open as JSON documents (the full component array
+    // — the grid shows only a bounded preview). Unavailable sentinels have no
+    // document to open.
+    if (isVectorCellOkV1(value)) {
+        return "json";
     }
     const text = cellDisplayText(value);
     if (isJsonDocumentText(text)) {
@@ -317,6 +353,11 @@ export function applyFilterSort(
         }
     }
     if (sort) {
+        // SQL vectors have no scalar ordering: sorting a vector column is a
+        // no-op (grid headers disable the affordance via the same hint).
+        if (typeHints?.[sort.column] === VECTOR_TYPE_HINT_V1) {
+            return indices;
+        }
         // Wire hints are "number" (int/float) or "number:approx" (bigint/
         // decimal/money) — both want numeric ordering.
         const numeric = typeHints?.[sort.column]?.startsWith("number") === true;

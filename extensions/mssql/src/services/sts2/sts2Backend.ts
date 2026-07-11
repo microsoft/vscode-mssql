@@ -67,9 +67,16 @@ import {
     V2TruncatedCell,
     isV2TruncatedCell,
     wireColumnName,
+    wireColumnLength,
     wireColumnNullable,
+    wireColumnPrecision,
+    wireColumnScale,
     wireColumnType,
 } from "./wire/v2";
+import {
+    VECTOR_TYPE_HINT_V1,
+    vectorDimensionsFromColumnLength,
+} from "../../sharedInterfaces/queryResultCellCodec";
 
 // ---------------------------------------------------------------------------
 // Transport port (the real one wraps SqlToolsServiceClient; tests script it)
@@ -115,6 +122,7 @@ const STS2_CAPABILITIES: SqlBackendCapabilities = {
     pageBytesHonored: false,
     queryTimeoutHonored: false,
     compactRows: false,
+    vectorBinaryV1: false,
     captureControl: true,
     replayDescriptors: true,
     resumeAfterDisconnect: false,
@@ -151,16 +159,22 @@ function toTruncatedCellEncoding(cell: V2TruncatedCell): TruncatedCellEncoding {
     };
 }
 
-/** engineType → compact typeHint (lazy CellValue decoding key). */
-function typeHintFor(engineType: string | undefined): string {
+/**
+ * engineType → compact typeHint (lazy CellValue decoding key). Taxonomy must
+ * stay identical to the service's SerializeTypeHints (QO-5 lockstep) —
+ * including D-0019: vector columns hint `vector:f32le:v1` ONLY for queries
+ * that executed with the typed encoding; text-fallback queries stay "string".
+ */
+function typeHintFor(engineType: string | undefined, vectorBinary: boolean): string {
     const t = (engineType ?? "").toLowerCase();
     if (!t) return "string";
     if (t === "bit") return "boolean";
     if (["int", "smallint", "tinyint", "float", "real"].includes(t)) return "number";
     if (["bigint", "decimal", "numeric", "money", "smallmoney"].includes(t)) return "number:approx";
-    if (t.startsWith("date") || t.startsWith("time") || t === "smalldatetime") return "datetime";
     if (["varbinary", "binary", "image", "timestamp", "rowversion"].includes(t)) return "binary";
     if (t === "xml") return "xml";
+    if (t === "vector" && vectorBinary) return VECTOR_TYPE_HINT_V1;
+    if (t.startsWith("date") || t.startsWith("time") || t === "smalldatetime") return "datetime";
     return "string";
 }
 
@@ -197,6 +211,14 @@ export class Sts2Backend implements ISqlConnectionService {
         );
     }
 
+    /** True when initialize negotiated typed vector cells (D-0019). */
+    get vectorBinaryNegotiated(): boolean {
+        return (
+            this.availability.state === "available" &&
+            this.availability.capabilities.vectorBinaryV1 === true
+        );
+    }
+
     /** v2/initialize handshake; MethodNotFound ⇒ notEnabledOnService. */
     async start(): Promise<DataPlaneAvailability> {
         this.subscribe();
@@ -216,6 +238,7 @@ export class Sts2Backend implements ISqlConnectionService {
                     pageBytesHonored: result.capabilities?.["pageBytesHonored"] === true,
                     queryTimeoutHonored: result.capabilities?.["queryTimeoutHonored"] === true,
                     compactRows: result.capabilities?.["compactRows"] === true,
+                    vectorBinaryV1: result.capabilities?.["vectorBinaryV1"] === true,
                     protocolVersion: result.specVersion,
                 },
             };
@@ -608,6 +631,8 @@ export class Sts2Query {
     private backendIdResolve!: (s: string) => void;
     private terminalSent = false;
     private cancelRequested = false;
+    /** True when THIS query executes with the typed vector encoding (D-0019). */
+    private vectorBinaryActive = false;
     private cancelDeadlineTimer: ReturnType<typeof setTimeout> | undefined;
     private lane: Promise<void> = Promise.resolve();
     private ledgers = new Map<number, ResultSetLedger>();
@@ -694,7 +719,7 @@ export class Sts2Query {
             // lower-only server-side; timeout 0/absent = provider default; capped
             // cells arrive as truncated markers. NOTE: pageRows previously rode
             // top-level where the service ignored it — options.* is the honored shape.
-            const options: Record<string, number | boolean> = {};
+            const options: Record<string, number | boolean | string> = {};
             if (this.opts.pageRows) {
                 options.pageRows = this.opts.pageRows;
             }
@@ -712,6 +737,13 @@ export class Sts2Query {
             // binding stops rebuilding pages and re-measuring bytes.
             if (this.backend.compactRowsNegotiated) {
                 options.compactRows = true;
+            }
+            // Typed vector cells (D-0019): per-query CALLER opt-in (the feature
+            // gate decides), honored only when the service negotiated it. The
+            // effective mode is recorded so column metadata says the truth.
+            if (this.opts.vectorEncoding === "binary-v1" && this.backend.vectorBinaryNegotiated) {
+                options.vectorEncoding = "binary-v1";
+                this.vectorBinaryActive = true;
             }
             const result = await this.rpc.sendRequest<V2QueryExecuteResult>(
                 STS2_METHODS.queryExecute,
@@ -750,20 +782,50 @@ export class Sts2Query {
             nextPageSeq: 0,
             nextRowOffset: 0,
             columnCount: params.columns.length,
-            typeHints: params.columns.map((c) => typeHintFor(wireColumnType(c))),
+            typeHints: params.columns.map((c) =>
+                typeHintFor(wireColumnType(c), this.vectorBinaryActive),
+            ),
         };
         this.ledgers.set(params.resultSetId, ledger);
         this.resultSets++;
         const meta: ResultSetMetadata = {
             resultSetId: String(params.resultSetId),
             batchOrdinal: 0,
-            columns: params.columns.map((column, ordinal) => ({
-                ordinal,
-                name: wireColumnName(column),
-                displayName: wireColumnName(column),
-                sqlType: wireColumnType(column),
-                allowNull: wireColumnNullable(column),
-            })),
+            columns: params.columns.map((column, ordinal) => {
+                const sqlType = wireColumnType(column);
+                const precision = wireColumnPrecision(column);
+                const scale = wireColumnScale(column);
+                const maxLength = wireColumnLength(column);
+                const isVector = sqlType?.toLowerCase() === "vector";
+                return {
+                    ordinal,
+                    name: wireColumnName(column),
+                    displayName: wireColumnName(column),
+                    sqlType,
+                    allowNull: wireColumnNullable(column),
+                    ...(precision !== undefined ? { precision } : {}),
+                    ...(scale !== undefined ? { scale } : {}),
+                    ...(maxLength !== undefined ? { maxLength } : {}),
+                    // Vector column facts (D-0018/D-0019): transport truth for
+                    // THIS query + dimensions from wire length (8 + 4*dims).
+                    // Base type stays unknown here — per-cell facts and catalog
+                    // evidence are the authorities, never a metadata guess.
+                    ...(isVector
+                        ? {
+                              vector: {
+                                  transport: this.vectorBinaryActive
+                                      ? ("binary-v1" as const)
+                                      : ("textFallback" as const),
+                                  ...(vectorDimensionsFromColumnLength(maxLength) !== undefined
+                                      ? {
+                                            dimensions: vectorDimensionsFromColumnLength(maxLength),
+                                        }
+                                      : {}),
+                              },
+                          }
+                        : {}),
+                };
+            }),
         };
         this.enqueue(() => this.sink.onResultSetStarted(meta));
     }

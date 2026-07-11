@@ -15,7 +15,7 @@
  * it resolves to undefined and formatXml silently returns raw text.
  */
 
-import { cellDisplayText } from "../sharedInterfaces/queryStudioGridOps";
+import { cellTextForPurpose } from "../sharedInterfaces/queryStudioGridOps";
 
 const XML_INDENT = "    ";
 const XML_EOL = "\r\n";
@@ -27,8 +27,10 @@ export function cellDocumentText(value: unknown): string {
     }
     // Shared decode: typed wire wrappers (datetime2/binary/decimal/…) and
     // byte-capped markers render their VALUE, matching the grid exactly —
-    // exports and cell documents must never leak the wire encoding.
-    return cellDisplayText(value);
+    // exports and cell documents must never leak the wire encoding. Typed
+    // vector cells expand to their full JSON-array text (the grid shows only
+    // a bounded preview; the opened document is the data-fidelity surface).
+    return cellTextForPurpose(value, "cellDocument");
 }
 
 /** Pretty-print cell text for the opened document; raw text on parse failure. */

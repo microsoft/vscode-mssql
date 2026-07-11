@@ -14,6 +14,7 @@
 import { expect } from "chai";
 import {
     DataPlaneAvailability,
+    ExecuteOptions,
     IQueryEventSink,
     QueryCompleteSummary,
     ResultSetMetadata,
@@ -65,11 +66,13 @@ class ScriptedRpc implements Sts2Rpc {
 
 class RecordingSink implements IQueryEventSink {
     readonly sequence: string[] = [];
+    readonly metas: ResultSetMetadata[] = [];
     readonly pages: RowsPage[] = [];
     readonly messages: ServerMessage[] = [];
     summary: QueryCompleteSummary | undefined;
     pageDelayMs = 0;
     onResultSetStarted(meta: ResultSetMetadata): void {
+        this.metas.push(meta);
         this.sequence.push(`start:${meta.columns.map((c) => c.name).join(",")}`);
     }
     async onRowsPage(page: RowsPage): Promise<void> {
@@ -108,6 +111,7 @@ async function openAndExecute(
     rpc: ScriptedRpc,
     sink: RecordingSink,
     deadlines = DEFAULT_DEADLINES,
+    opts: ExecuteOptions = {},
 ) {
     const backend = new Sts2Backend(rpc, deadlines);
     await backend.start();
@@ -116,7 +120,7 @@ async function openAndExecute(
         applicationName: "test",
         auth: { passwordProvider: async () => "pw-canary-x" },
     });
-    const handle = session.execute("select 1", {}, sink);
+    const handle = session.execute("select 1", opts, sink);
     // Let the execute request settle and the lane register.
     await new Promise((r) => setTimeout(r, 5));
     return { backend, session, handle };
@@ -706,5 +710,252 @@ suite("STS2 binding conformance (scripted wire)", () => {
         const summary = await handle.completion;
         expect(summary.status).to.equal("connectionLost");
         expect(session.state).to.equal("closed");
+    });
+});
+
+/** Typed vector cells (D-0019) + column typing over the scripted wire. */
+suite("STS2 binding: vector encoding negotiation and column typing", () => {
+    /** standardRpc whose initialize also negotiates vectorBinaryV1. */
+    function vectorRpc(): ScriptedRpc {
+        const rpc = standardRpc();
+        rpc.responders.set(STS2_METHODS.initialize, () => ({
+            specVersion: "2.0.0-preview.1",
+            capabilities: { vectorBinaryV1: true },
+        }));
+        return rpc;
+    }
+
+    const EMBEDDING_COLUMN = { name: "embedding", type: "vector", length: 6152 };
+
+    test("capability vectorBinaryV1 derives from the initialize result (both ways)", async () => {
+        const yes = new Sts2Backend(vectorRpc());
+        const availability = await yes.start();
+        expect(availability.state).to.equal("available");
+        if (availability.state === "available") {
+            expect(availability.capabilities.vectorBinaryV1).to.equal(true);
+        }
+        expect(yes.vectorBinaryNegotiated).to.equal(true);
+
+        // Absent capability object → honestly false.
+        const no = new Sts2Backend(standardRpc());
+        const absent = await no.start();
+        if (absent.state === "available") {
+            expect(absent.capabilities.vectorBinaryV1).to.equal(false);
+        }
+        expect(no.vectorBinaryNegotiated).to.equal(false);
+
+        // Truthy-but-not-true stays false (only `=== true` counts).
+        const stringy = standardRpc();
+        stringy.responders.set(STS2_METHODS.initialize, () => ({
+            specVersion: "2.0.0-preview.1",
+            capabilities: { vectorBinaryV1: "true" },
+        }));
+        const notReally = new Sts2Backend(stringy);
+        await notReally.start();
+        expect(notReally.vectorBinaryNegotiated).to.equal(false);
+    });
+
+    test("vectorEncoding rides execute options when requested AND negotiated", async () => {
+        const rpc = vectorRpc();
+        await openAndExecute(rpc, new RecordingSink(), DEFAULT_DEADLINES, {
+            vectorEncoding: "binary-v1",
+        });
+        const execute = rpc.requests.find((r) => r.method === STS2_METHODS.queryExecute);
+        expect((execute?.params as { options?: unknown }).options).to.deep.equal({
+            vectorEncoding: "binary-v1",
+        });
+    });
+
+    test("vectorEncoding is absent when the service did not negotiate it", async () => {
+        const rpc = standardRpc(); // no vectorBinaryV1 capability
+        await openAndExecute(rpc, new RecordingSink(), DEFAULT_DEADLINES, {
+            vectorEncoding: "binary-v1",
+        });
+        const execute = rpc.requests.find((r) => r.method === STS2_METHODS.queryExecute);
+        expect(execute?.params).to.not.have.property("options");
+    });
+
+    test("vectorEncoding is absent when the caller did not opt in, even when negotiated", async () => {
+        const rpc = vectorRpc();
+        await openAndExecute(rpc, new RecordingSink()); // opts = {}
+        const execute = rpc.requests.find((r) => r.method === STS2_METHODS.queryExecute);
+        expect(execute?.params).to.not.have.property("options");
+    });
+
+    test("vector column on a binary-v1 query: sqlType/maxLength/vector facts + typed hint", async () => {
+        const rpc = vectorRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink, DEFAULT_DEADLINES, {
+            vectorEncoding: "binary-v1",
+        });
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [EMBEDDING_COLUMN],
+        });
+        // The typed cell payload must pass through the page untouched.
+        const wireCell = {
+            $t: "vector",
+            version: 1,
+            status: "ok",
+            dimensions: 1,
+            baseType: "float32",
+            encoding: "f32le",
+            byteLength: 4,
+            data: "AACAPw==", // 1.0f LE
+        };
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [[wireCell]],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        const column = sink.metas[0].columns[0];
+        expect(column.name).to.equal("embedding");
+        expect(column.sqlType).to.equal("vector");
+        expect(column.maxLength).to.equal(6152);
+        // dims from wire length: (6152 - 8) / 4 = 1536.
+        expect(column.vector).to.deep.equal({ transport: "binary-v1", dimensions: 1536 });
+        expect(sink.pages[0].compact.typeHints).to.deep.equal(["vector:f32le:v1"]);
+        expect(sink.pages[0].compact.values[0][0]).to.deep.equal(wireCell);
+    });
+
+    test("vector column on a NON-opted query says textFallback and hints string", async () => {
+        // Negotiated but not requested — the harder truth-telling case.
+        const rpc = vectorRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink); // opts = {}
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [EMBEDDING_COLUMN],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [["[1.0, 2.0]"]], // D-0018 JSON-array text fallback
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        const column = sink.metas[0].columns[0];
+        expect(column.vector).to.deep.equal({ transport: "textFallback", dimensions: 1536 });
+        expect(sink.pages[0].compact.typeHints).to.deep.equal(["string"]);
+    });
+
+    test("vector column with a misaligned wire length omits dimensions", async () => {
+        const rpc = vectorRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink, DEFAULT_DEADLINES, {
+            vectorEncoding: "binary-v1",
+        });
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [{ name: "embedding", type: "vector", length: 6153 }],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        expect(sink.metas[0].columns[0].vector).to.deep.equal({ transport: "binary-v1" });
+    });
+
+    test("wireColumnType falls back to the service's `type` field (sqlType no longer silently undefined)", async () => {
+        // The service serializes the engine type as `type` (D-0018); before
+        // the fallback landed, sqlType was silently undefined on the STS2
+        // path because only engineType/EngineType were read.
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [
+                { name: "n", type: "int" },
+                { name: "s", Type: "nvarchar", Length: 200 },
+                { name: "d", type: "decimal", precision: 18, scale: 4 },
+            ],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [[1, "a", "1.0000"]],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        const columns = sink.metas[0].columns;
+        expect(columns[0].sqlType).to.equal("int");
+        expect(columns[1].sqlType).to.equal("nvarchar");
+        expect(columns[1].maxLength).to.equal(200);
+        expect(columns[2].sqlType).to.equal("decimal");
+        expect(columns[2].precision).to.equal(18);
+        expect(columns[2].scale).to.equal(4);
+        expect(sink.pages[0].compact.typeHints).to.deep.equal([
+            "number",
+            "string",
+            "number:approx",
+        ]);
+    });
+
+    test("timestamp/rowversion hint binary, not datetime (QO-5 server lockstep)", async () => {
+        // The service's SerializeTypeHints always said "binary" for
+        // timestamp/rowversion; the client's startsWith("time") branch used
+        // to run first and wrongly hinted "datetime". Taxonomy order is now
+        // fixed to match the service — this pins the lockstep.
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [
+                { name: "ts", engineType: "timestamp" },
+                { name: "rv", engineType: "rowversion" },
+                { name: "dt", engineType: "datetime2" },
+                { name: "t", engineType: "time" },
+                { name: "sdt", engineType: "smalldatetime" },
+            ],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [[null, null, null, null, null]],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        expect(sink.pages[0].compact.typeHints).to.deep.equal([
+            "binary",
+            "binary",
+            "datetime",
+            "datetime",
+            "datetime",
+        ]);
     });
 });

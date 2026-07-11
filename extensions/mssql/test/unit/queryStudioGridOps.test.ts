@@ -17,10 +17,32 @@ import {
     applyFilterSort,
     cellDocumentLanguage,
     cellDisplayText,
+    cellTextForPurpose,
     clampDisplay,
     compareCells,
     distinctValues,
 } from "../../src/sharedInterfaces/queryStudioGridOps";
+import {
+    VECTOR_TYPE_HINT_V1,
+    VectorCellOkV1,
+} from "../../src/sharedInterfaces/queryResultCellCodec";
+
+/** Wire-shaped typed vector ok-cell (D-0019) encoded test-locally. */
+function vectorCell(values: number[]): VectorCellOkV1 {
+    const bytes = new Uint8Array(values.length * 4);
+    const view = new DataView(bytes.buffer);
+    values.forEach((value, i) => view.setFloat32(i * 4, value, /* littleEndian */ true));
+    return {
+        $t: "vector",
+        version: 1,
+        status: "ok",
+        dimensions: values.length,
+        baseType: "float32",
+        encoding: "f32le",
+        byteLength: values.length * 4,
+        data: Buffer.from(bytes).toString("base64"),
+    };
+}
 
 suite("Query Studio grid client ops", () => {
     suite("compareCells", () => {
@@ -300,6 +322,83 @@ suite("Query Studio grid client ops", () => {
                     { sqlType: "xml" },
                 ),
             ).to.equal("xml");
+        });
+    });
+
+    suite("typed vector cells (D-0019)", () => {
+        test("cellDisplayText renders the bounded preview, never raw tag JSON", () => {
+            const cell = vectorCell([1, 2, 3, 4, 5, 6]);
+            const text = cellDisplayText(cell);
+            expect(text).to.equal("[1, 2, 3, 4, …] · 6D float32");
+            expect(text).to.not.include("$t");
+            expect(text).to.not.equal(JSON.stringify(cell));
+        });
+
+        test("cellDisplayText shows the unavailable sentinel text", () => {
+            expect(
+                cellDisplayText({
+                    $t: "vector",
+                    version: 1,
+                    status: "unavailable",
+                    reason: "cellLimit",
+                    dimensions: 4,
+                }),
+            ).to.equal("<vector unavailable: 4D, cellLimit>");
+        });
+
+        test("applyFilterSort: sorting a vector-hinted column is a no-op", () => {
+            const rows = [
+                [vectorCell([9]), "a"],
+                [vectorCell([1]), "b"],
+                [vectorCell([5]), "ab"],
+            ];
+            const hints = [VECTOR_TYPE_HINT_V1, undefined];
+            // Without the hint the desc pass WOULD reorder by preview text —
+            // proving the hint (not a tie) is what freezes the order.
+            expect(applyFilterSort(rows, { column: 0, direction: "desc" }, [])).to.deep.equal([
+                0, 2, 1,
+            ]);
+            expect(
+                applyFilterSort(rows, { column: 0, direction: "desc" }, [], hints),
+            ).to.deep.equal([0, 1, 2]);
+            expect(applyFilterSort(rows, { column: 0, direction: "asc" }, [], hints)).to.deep.equal(
+                [0, 1, 2],
+            );
+        });
+
+        test("applyFilterSort: filters still apply while the vector sort no-ops", () => {
+            const rows = [
+                [vectorCell([9]), "a"],
+                [vectorCell([1]), "b"],
+                [vectorCell([5]), "ab"],
+            ];
+            expect(
+                applyFilterSort(
+                    rows,
+                    { column: 0, direction: "desc" },
+                    [{ column: 1, contains: "a" }],
+                    [VECTOR_TYPE_HINT_V1, undefined],
+                ),
+            ).to.deep.equal([0, 2]); // filtered, original order kept
+        });
+
+        test("cellDocumentLanguage classifies vector cells as JSON documents", () => {
+            expect(cellDocumentLanguage(vectorCell([1, 2, 3]))).to.equal("json");
+            // sqlType "vector" alone says nothing; the typed cell decides.
+            expect(cellDocumentLanguage(vectorCell([1]), { sqlType: "vector" })).to.equal("json");
+        });
+
+        test("cellTextForPurpose expands vectors fully and falls back for scalars", () => {
+            const cell = vectorCell([1.5, -2.5, 3]);
+            expect(cellTextForPurpose(cell, "copy")).to.equal("[1.5,-2.5,3]");
+            expect(cellTextForPurpose(cell, "insertExport")).to.equal(
+                "CAST('[1.5,-2.5,3]' AS VECTOR(3))",
+            );
+            expect(cellTextForPurpose("abc", "copy")).to.equal("abc");
+            expect(cellTextForPurpose(null, "csvExport")).to.equal("NULL");
+            expect(
+                cellTextForPurpose({ $t: "truncated", of: "string", v: "prefix" }, "copy"),
+            ).to.equal("prefix");
         });
     });
 });
