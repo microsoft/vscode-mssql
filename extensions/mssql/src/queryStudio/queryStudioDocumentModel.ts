@@ -188,6 +188,26 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         });
     }
 
+    // --- host-driven results-tab activation (VEC-12 perf seam) --------------
+    private readonly activateTabListeners = new Set<(tab: string) => void>();
+
+    /** Controllers subscribe; each forwards to its webview. */
+    onActivateTabRequest(listener: (tab: string) => void): vscode.Disposable {
+        this.activateTabListeners.add(listener);
+        return { dispose: () => this.activateTabListeners.delete(listener) };
+    }
+
+    /** Ask every attached panel to activate a results tab (no-op when unknown). */
+    requestActivateTab(tab: string): void {
+        for (const listener of [...this.activateTabListeners]) {
+            try {
+                listener(tab);
+            } catch {
+                /* listener isolation */
+            }
+        }
+    }
+
     get backingDocument(): vscode.TextDocument {
         return this.document;
     }

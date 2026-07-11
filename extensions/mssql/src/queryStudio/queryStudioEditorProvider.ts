@@ -221,6 +221,24 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
                 });
             },
         ),
+        vscode.commands.registerCommand(
+            "mssql.perf.queryStudioActivateTab",
+            (args?: { uri?: string; tab?: string }) => {
+                // VEC-12 seam: drives the lazy result panes (vector today) so
+                // perftest scenarios can measure activation → firstPaint.
+                const model = args?.uri
+                    ? liveModels.get(args.uri)
+                    : liveModels.values().next().value;
+                if (!model) {
+                    return {
+                        error: `no live Query Studio model${args?.uri ? ` for ${args.uri}` : ""}`,
+                    };
+                }
+                const tab = args?.tab ?? "vector";
+                model.requestActivateTab(tab);
+                return { requested: tab };
+            },
+        ),
         vscode.commands.registerCommand("mssql.perf.queryStudioState", (uri?: string) => {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {

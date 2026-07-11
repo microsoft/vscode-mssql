@@ -288,6 +288,11 @@ export interface QsMessageRow {
 export namespace QsSyncEditsRequest {
     export const type = new RequestType<QsSyncEdits, QsSyncEditsResult, void>("qs/syncEdits");
 }
+export namespace QsActivateTabNotification {
+    // Host-driven results-tab activation (VEC-12 perf seam; also usable by
+    // commands). The webview treats unknown tab ids as a no-op.
+    export const type = new NotificationType<{ tab: string }>("qs/activateTab");
+}
 export namespace QsShowCommandPaletteRequest {
     // F1 inside the embedded Monaco must open the VS CODE palette (commands
     // route to the editor through VS Code), not Monaco's own quick-command.

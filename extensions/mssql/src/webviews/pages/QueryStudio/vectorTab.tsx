@@ -359,6 +359,7 @@ function ProfileView(props: {
     onFinding: (finding: VectorFindingSummary) => void;
 }): React.JSX.Element {
     const { profile, onFinding } = props;
+    const [norm, setNorm] = React.useState<"l2" | "l1" | "linf">("l2");
     const facts: Array<[string, string]> = [
         [
             "Rows",
@@ -392,7 +393,22 @@ function ProfileView(props: {
                     <SectionLabel right={`local · ${formatCount(profile.sample.sampleRows)} rows`}>
                         Norms
                     </SectionLabel>
-                    <Histogram data={profile.norms.l2} />
+                    <div className="qs-vec-norm-toggle" role="radiogroup" aria-label="Norm">
+                        {(["l2", "l1", "linf"] as const).map((kind) => (
+                            <button
+                                key={kind}
+                                role="radio"
+                                aria-checked={norm === kind}
+                                className={norm === kind ? "active" : ""}
+                                onClick={() => setNorm(kind)}>
+                                {kind === "l2" ? "L2" : kind === "l1" ? "L1" : "L∞"}
+                            </button>
+                        ))}
+                        <span className="qs-vec-muted qs-vec-norm-note">
+                            near-0 ≤ {profile.norms.nearZeroEpsilon}
+                        </span>
+                    </div>
+                    <Histogram data={profile.norms[norm]} />
                     <SectionLabel right="per-dimension · sampled">Component variance</SectionLabel>
                     <div className="qs-vec-variance">
                         <div>

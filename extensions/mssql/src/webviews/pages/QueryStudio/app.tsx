@@ -46,6 +46,7 @@ import {
     QsSetViewModeRequest,
     QsState,
     QsStateChangedNotification,
+    QsActivateTabNotification,
     QsRestoreEditorFocusNotification,
     QsRunStartedNotification,
     QsSyncEdits,
@@ -556,6 +557,18 @@ export function QueryStudioApp() {
             ),
             rpc.onNotification(QsRunStartedNotification.type, (p: { startedEpochMs: number }) => {
                 resetRunViewForStart(p.startedEpochMs, false);
+            }),
+            rpc.onNotification(QsActivateTabNotification.type, (p: { tab: string }) => {
+                // Host-driven activation (VEC-12 perf seam). Unknown ids no-op;
+                // visibleActiveTab still falls back when the tab doesn't apply.
+                if (
+                    p.tab === "results" ||
+                    p.tab === "messages" ||
+                    p.tab === "queryPlan" ||
+                    p.tab === "vector"
+                ) {
+                    setActiveTab(p.tab);
+                }
             }),
             rpc.onNotification(
                 QsMessagesAppendedNotification.type,

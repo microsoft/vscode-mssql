@@ -876,3 +876,31 @@
     font-size: 12px;
     font-family: var(--vscode-editor-font-family);
 }
+
+/* VEC-5 fidelity: norm toggle row (mock: L2 | L1 | L∞ + near-0 note). */
+.qs-vec-norm-toggle {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 6px;
+}
+.qs-vec-norm-toggle button {
+    background: none;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    color: var(--vscode-foreground);
+    font-size: 11px;
+    line-height: 18px;
+    padding: 0 8px;
+    cursor: pointer;
+}
+.qs-vec-norm-toggle button.active {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-background);
+}
+.qs-vec-norm-note {
+    margin-left: auto;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+}

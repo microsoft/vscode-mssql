@@ -58,6 +58,7 @@ import {
     QsShowPlanQueryRequest,
     QsShowPlanXmlRequest,
     QsSyncAdoptRequest,
+    QsActivateTabNotification,
     QsSyncEditsRequest,
     QsSyncInitNotification,
     QsSyncRemoteNotification,
@@ -248,6 +249,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 void this.sendNotification(QsSyncResyncNotification.type, resync);
             },
         });
+        // Host-driven tab activation (VEC-12 perf seam / commands).
+        this.registerDisposable(
+            this.model.onActivateTabRequest((tab) => {
+                void this.sendNotification(QsActivateTabNotification.type, { tab });
+            }),
+        );
 
         this.bindingListener = this.model.sessionBinding.onDidChange(() => this.queueStatePush());
 
