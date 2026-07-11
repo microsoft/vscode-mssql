@@ -94,6 +94,31 @@ export interface QueryTuningParams {
 
     // --- diag: row-pipeline diagnostics granularity (QO-2) ---
     diagnosticsLevel: QueryTuningDiagnosticsLevel;
+
+    // --- vector: Vector Workbench analysis budgets (VEC-4; host-authoritative,
+    // the webview can never raise them — budgets ride resolved snapshots only) ---
+    /** Rows scanned per analysis before honest partial (scan cap). */
+    vectorScanRowLimit: number;
+    /** Deterministic sample size for local analysis. */
+    vectorSampleRows: number;
+    /** Component budget (dims × rows) per analysis. */
+    vectorComponentBudget: number;
+    /** Packed Float32Array input ceiling per analysis. */
+    vectorPackedInputBytes: number;
+    /** Disclosed scan-byte budget on the sample descriptor (DA A6). */
+    vectorScanByteBudget: number;
+    /** Soft per-response RPC payload target. */
+    vectorRpcSoftBytes: number;
+    /** Hard per-response RPC payload cap. */
+    vectorRpcHardBytes: number;
+    /** Total per-analysis-session RPC payload cap. */
+    vectorRpcSessionBytes: number;
+    /** Hard wall-clock budget per full profile analysis. */
+    vectorAnalysisTimeMsBudget: number;
+    /** Concurrent analysis workers (global). */
+    vectorMaxWorkers: number;
+    /** Progress notification pacing ceiling. */
+    vectorProgressMaxPerSecond: number;
 }
 
 /**
@@ -164,6 +189,17 @@ export const QUERY_TUNING_SPEC: Record<keyof QueryTuningParams, QueryTuningValue
     textViewSampleRows: int(10, 100_000),
     cellDocumentFormatLimit: int(1024, 64 * MiB),
     diagnosticsLevel: oneOf("minimal", "diagnostic", "verbose", "full"),
+    vectorScanRowLimit: int(100, 1_000_000),
+    vectorSampleRows: int(100, 100_000),
+    vectorComponentBudget: int(1_000_000, 256_000_000),
+    vectorPackedInputBytes: int(1 * MiB, 512 * MiB),
+    vectorScanByteBudget: int(1 * MiB, 1024 * MiB),
+    vectorRpcSoftBytes: int(64 * 1024, 8 * MiB),
+    vectorRpcHardBytes: int(128 * 1024, 16 * MiB),
+    vectorRpcSessionBytes: int(1 * MiB, 256 * MiB),
+    vectorAnalysisTimeMsBudget: int(1000, 300_000),
+    vectorMaxWorkers: int(0, 4),
+    vectorProgressMaxPerSecond: int(1, 30),
 };
 
 export const QUERY_TUNING_KEYS = Object.keys(QUERY_TUNING_SPEC) as Array<keyof QueryTuningParams>;
@@ -212,6 +248,19 @@ export const QUERY_TUNING_DEFAULTS: QueryTuningParams = {
     textViewSampleRows: 1000,
     cellDocumentFormatLimit: 256 * 1024,
     diagnosticsLevel: "minimal",
+    // Vector Workbench budgets (VEC-4; impl-plan §19 registry values). The
+    // lowMemory profile lowers the packed/scan ceilings below.
+    vectorScanRowLimit: 25_000,
+    vectorSampleRows: 5_000,
+    vectorComponentBudget: 8_000_000,
+    vectorPackedInputBytes: 64 * MiB,
+    vectorScanByteBudget: 128 * MiB,
+    vectorRpcSoftBytes: 1 * MiB,
+    vectorRpcHardBytes: 2 * MiB,
+    vectorRpcSessionBytes: 32 * MiB,
+    vectorAnalysisTimeMsBudget: 30_000,
+    vectorMaxWorkers: 2,
+    vectorProgressMaxPerSecond: 4,
 };
 
 /** Named presets. `interactive` IS the defaults; `custom` is a sentinel (no preset values). */
@@ -234,6 +283,10 @@ export const QUERY_TUNING_PROFILES: Record<
         storeMemoryBytes: 16 * MiB,
         storeSpillBytes: 512 * MiB,
         displayCellClamp: 1024,
+        vectorSampleRows: 2000,
+        vectorComponentBudget: 2_000_000,
+        vectorPackedInputBytes: 16 * MiB,
+        vectorMaxWorkers: 1,
     },
 };
 
