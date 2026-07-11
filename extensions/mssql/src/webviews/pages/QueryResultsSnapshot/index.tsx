@@ -7,6 +7,7 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 // The pinned pane reuses the Query Studio result components and their styles.
 import "../QueryStudio/queryStudio.css";
+import "../QueryStudio/vectorIndexView.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { PinnedResultsApp } from "./app";
 

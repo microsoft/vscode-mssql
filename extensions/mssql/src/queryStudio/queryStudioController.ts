@@ -85,6 +85,7 @@ import {
     QsVectorProjectionRequest,
 } from "../sharedInterfaces/vectorWorkbench";
 import { QsVectorCapabilitiesRequest } from "../sharedInterfaces/vectorCatalog";
+import { QsVectorIndexStateRequest } from "../sharedInterfaces/vectorIndex";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -993,6 +994,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
         this.onRequest(QsVectorCompareRequest.type, async ({ handle, ordinals }) =>
             this.vectorWorkbench().compare(handle, ordinals),
+        );
+        this.onRequest(QsVectorIndexStateRequest.type, async (params) =>
+            this.model.vectorIndexWorkspace.indexState(
+                (params as { refresh?: boolean } | undefined)?.refresh === true,
+            ),
         );
         this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
             const seam = await this.executionPlanSeam();

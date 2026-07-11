@@ -29,6 +29,7 @@ import { DocumentSessionBinding } from "./documentSessionBinding";
 import { isModifyingSql } from "../sql/sqlSafetyClassifier";
 import { ExecutionHost } from "./executionHost";
 import { VectorCapabilityService } from "../queryResults/vector/vectorCapabilityService";
+import { VectorIndexService } from "../queryResults/vector/vectorIndexService";
 import { persistQueryStudioHotExitBackup } from "./queryStudioHotExitBackup";
 import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
@@ -206,6 +207,11 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         },
         acquire: () => this.sessionBinding.acquireAuxiliarySession("vectorDiagnostics"),
     });
+
+    /** Index workspace derivations (VEC-9): pure over the capability probe. */
+    readonly vectorIndexWorkspace = new VectorIndexService((refresh) =>
+        this.vectorCapabilities.capabilities(refresh ?? false),
+    );
 
     // --- host-driven results-tab activation (VEC-12 perf seam) --------------
     private readonly activateTabListeners = new Set<(tab: string) => void>();

@@ -23,6 +23,7 @@
 import * as React from "react";
 import { Rpc } from "./resultsGridShared";
 import { VectorCompareView } from "./vectorCompareView";
+import { VectorIndexView } from "./vectorIndexView";
 import { VectorProjectionView } from "./vectorProjectionView";
 import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -61,7 +62,7 @@ const WORKSPACES: Array<{ id: Workspace; label: string; enabled: boolean }> = [
     { id: "search", label: "Search", enabled: false },
     { id: "compare", label: "Compare", enabled: true },
     { id: "projection", label: "Projection", enabled: true },
-    { id: "index", label: "Index", enabled: false },
+    { id: "index", label: "Index", enabled: true },
     { id: "pipeline", label: "Pipeline", enabled: false },
 ];
 
@@ -305,6 +306,8 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                             handle={opened.handle}
                             generation={opened.generation}
                         />
+                    ) : workspace === "index" ? (
+                        <VectorIndexView rpc={rpc} generation={opened.generation} />
                     ) : loading || !profile ? (
                         <div className="qs-vec-empty qs-muted">Analyzing vector column…</div>
                     ) : (

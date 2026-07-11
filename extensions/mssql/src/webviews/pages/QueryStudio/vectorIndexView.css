@@ -1,0 +1,252 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* qs-vec9: Index workspace (VEC-9). Must ride the ENTRY stylesheet — the
+   webview HTML links only `<sourceFile>.css`, so lazy-chunk CSS would never
+   load (same rule as the qs-vec6 block in queryStudio.css). Wiring: import
+   this file from pages/QueryStudio/index.tsx next to queryStudio.css.
+   House rules (r01/r06): VS Code tokens only, ≤2px radii, 11px uppercase
+   section labels (shared .qs-vec-section-label), mono numerics, flat regions
+   — no cards, no chips, no tinted headers. Inner regions scroll; the page
+   never does. */
+
+.qs-vec9-root {
+    display: grid;
+    grid-template-columns: minmax(320px, 5fr) minmax(300px, 4fr);
+    gap: 0 24px;
+    height: 100%;
+    min-height: 0;
+    padding: 0 10px 6px;
+    box-sizing: border-box;
+}
+@media (max-width: 960px) {
+    .qs-vec9-root {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+    }
+}
+
+.qs-vec9-left,
+.qs-vec9-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+}
+
+/* --- state header row ---------------------------------------------------- */
+.qs-vec9-state-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
+}
+.qs-vec9-state {
+    font-size: 13px;
+    font-weight: 600;
+}
+.qs-vec9-state.degraded {
+    color: var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+}
+.qs-vec9-degraded-note,
+.qs-vec9-empty-note {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    border-left: 3px solid var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+    padding: 3px 8px;
+    margin-top: 6px;
+    line-height: 17px;
+}
+.qs-vec9-empty-note {
+    border-left-color: var(--vscode-editorInfo-foreground, var(--vscode-charts-blue));
+}
+.qs-vec9-empty-detail {
+    font-size: 12px;
+    margin-top: 6px;
+    max-width: 520px;
+}
+
+/* --- properties grid (label/value mono rows, source tint on the value) --- */
+.qs-vec9-props {
+    display: flex;
+    flex-direction: column;
+}
+.qs-vec9-prop-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    line-height: 22px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
+.qs-vec9-prop-label {
+    color: var(--vscode-descriptionForeground);
+    flex: none;
+    max-width: 46%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.qs-vec9-prop-value {
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+/* Source tints: health-DMV facts read blue, config purple-ish, derived muted
+   — evidence class is visible without a chip (title carries the words). */
+.qs-vec9-prop-row[data-source="healthDmv"] .qs-vec9-prop-value {
+    color: var(--vscode-charts-blue);
+}
+.qs-vec9-prop-row[data-source="config"] .qs-vec9-prop-value {
+    color: var(--vscode-charts-purple, var(--vscode-foreground));
+}
+.qs-vec9-prop-row[data-source="derived"] .qs-vec9-prop-value {
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec9-prop-row[data-source="engine"] .qs-vec9-prop-value {
+    color: var(--vscode-foreground);
+}
+
+/* --- findings (severity glyph + title + method line) ---------------------- */
+.qs-vec9-findings {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.qs-vec9-finding {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 5px 2px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 13px;
+}
+.qs-vec9-glyph {
+    flex: none;
+    width: 16px;
+    text-align: center;
+    font-size: 11px;
+    line-height: 18px;
+    font-family: var(--vscode-editor-font-family);
+}
+.qs-vec9-finding[data-severity="success"] .qs-vec9-glyph {
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+}
+.qs-vec9-finding[data-severity="warning"] .qs-vec9-glyph,
+.qs-vec9-finding[data-severity="warning"] .qs-vec9-finding-title {
+    color: var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+}
+.qs-vec9-finding[data-severity="error"] .qs-vec9-glyph,
+.qs-vec9-finding[data-severity="error"] .qs-vec9-finding-title {
+    color: var(--vscode-errorForeground);
+}
+.qs-vec9-finding[data-severity="info"] .qs-vec9-glyph {
+    color: var(--vscode-editorInfo-foreground, var(--vscode-charts-blue));
+}
+.qs-vec9-finding-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.qs-vec9-finding-detail {
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    line-height: 15px;
+}
+
+/* --- scripts column -------------------------------------------------------- */
+.qs-vec9-script-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: none;
+}
+.qs-vec9-script-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 2px;
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    line-height: 24px;
+    padding: 0 8px;
+    cursor: pointer;
+}
+.qs-vec9-script-item:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+.qs-vec9-script-item.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+.qs-vec9-script-item.highlight:not(.active) {
+    color: var(--vscode-textLink-foreground);
+}
+
+.qs-vec9-preview {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: 8px;
+    flex: 1;
+}
+.qs-vec9-preview-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    padding-bottom: 4px;
+}
+/* P0-3: the service-impact warning renders ABOVE the migration script. */
+.qs-vec9-impact {
+    font-size: 12px;
+    line-height: 17px;
+    color: var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+    border: 1px solid var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+    border-radius: 2px;
+    padding: 4px 8px;
+    margin-bottom: 6px;
+}
+.qs-vec9-pre {
+    flex: 1;
+    min-height: 120px;
+    margin: 0;
+    padding: 8px;
+    overflow: auto;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+    line-height: 16px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    white-space: pre;
+    user-select: text;
+}
+
+/* --- small buttons (26px register, radius 2, token colors) ---------------- */
+.qs-vec9-btn {
+    background: none;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    color: var(--vscode-foreground);
+    font-size: 11px;
+    line-height: 20px;
+    padding: 0 8px;
+    cursor: pointer;
+    flex: none;
+}
+.qs-vec9-btn:hover:not(:disabled) {
+    background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+}
+.qs-vec9-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
