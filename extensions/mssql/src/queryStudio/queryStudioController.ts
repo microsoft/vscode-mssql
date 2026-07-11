@@ -78,9 +78,11 @@ import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchSe
 import {
     QsVectorCancelRequest,
     QsVectorCloseRequest,
+    QsVectorCompareRequest,
     QsVectorFindingDetailRequest,
     QsVectorOpenRequest,
     QsVectorProfileRequest,
+    QsVectorProjectionRequest,
 } from "../sharedInterfaces/vectorWorkbench";
 import { QsVectorCapabilitiesRequest } from "../sharedInterfaces/vectorCatalog";
 import {
@@ -985,6 +987,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.model.vectorCapabilities.capabilities(
                 (params as { refresh?: boolean } | undefined)?.refresh === true,
             ),
+        );
+        this.onRequest(QsVectorProjectionRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().projection(handle),
+        );
+        this.onRequest(QsVectorCompareRequest.type, async ({ handle, ordinals }) =>
+            this.vectorWorkbench().compare(handle, ordinals),
         );
         this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
             const seam = await this.executionPlanSeam();

@@ -8,6 +8,11 @@
  * anomaly classes, deterministic under a fixed seed), sampling plan and
  * budget honesty in the ingest source, and the workbench service lifecycle
  * (lease held while open, released on close; cancel bumps the generation).
+ *
+ * VEC-6: deterministic PCA 2D (determinism, planted-plane recovery,
+ * profile-only runs skip PCA), analyzed-vs-rendered render-cap honesty,
+ * Compare math (hand-checked metrics, top-|Δ| ordering), and service-level
+ * projection/compare including ordinal validation.
  */
 
 import { expect } from "chai";
@@ -16,8 +21,13 @@ import * as os from "os";
 import * as path from "path";
 import {
     analyzePackedVectors,
+    computePca2d,
     VectorWorkerInput,
 } from "../../src/queryResults/vector/vectorAnalysisWorker";
+import {
+    computeVectorCompare,
+    selectRenderIndices,
+} from "../../src/queryResults/vector/vectorCompareMath";
 import {
     ingestVectorColumn,
     planWindows,
@@ -123,6 +133,195 @@ suite("vector analysis worker (pure core)", () => {
         );
         const none = analyzePackedVectors(workerInput(rows, { pairTarget: 0 }));
         expect(none.pairDistances).to.equal(undefined);
+    });
+});
+
+suite("deterministic PCA 2D (VEC-6)", () => {
+    test("profile-only runs skip PCA; opts.projection computes it", () => {
+        const rows = Array.from({ length: 20 }, (_, i) => unit(i));
+        const profileOnly = analyzePackedVectors(workerInput(rows));
+        expect(profileOnly.projection).to.equal(undefined);
+
+        const withProjection = analyzePackedVectors(
+            workerInput(rows, { opts: { projection: true } }),
+        );
+        expect(withProjection.projection).to.not.equal(undefined);
+        expect(withProjection.projection!.analyzedRows).to.equal(20);
+        expect(withProjection.projection!.coords.length).to.equal(40);
+        // Projection-only run (cached profile) skips the heavy profile stages.
+        const projectionOnly = analyzePackedVectors(
+            workerInput(rows, { opts: { profile: false, projection: true } }),
+        );
+        expect(projectionOnly.projection).to.not.equal(undefined);
+        expect(projectionOnly.pairDistances).to.equal(undefined);
+    });
+
+    test("same input ⇒ bit-identical coordinates and variances", () => {
+        const rows = Array.from({ length: 30 }, (_, i) => unit(i * 2));
+        const a = analyzePackedVectors(workerInput(rows, { opts: { projection: true } }));
+        const b = analyzePackedVectors(workerInput(rows, { opts: { projection: true } }));
+        expect(a.projection).to.not.equal(undefined);
+        expect([...a.projection!.coords]).to.deep.equal([...b.projection!.coords]);
+        expect(a.projection!.pc1VariancePct).to.equal(b.projection!.pc1VariancePct);
+        expect(a.projection!.pc2VariancePct).to.equal(b.projection!.pc2VariancePct);
+        expect(a.projection!.nextVariancePct).to.equal(b.projection!.nextVariancePct);
+        expect(a.projection!.iterations).to.equal(b.projection!.iterations);
+    });
+
+    test("2D-planted data recovers the plane: variance concentrates in 2 PCs", () => {
+        // Orthonormal, non-axis-aligned plane basis in 8-D.
+        const u = [0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0];
+        const w = [0.5, -0.5, 0.5, -0.5, 0, 0, 0, 0];
+        const rows: number[][] = [];
+        for (let i = 0; i < 60; i++) {
+            const a = Math.sin(i) * 3;
+            const b = Math.cos(1.3 * i);
+            rows.push(u.map((uv, d) => a * uv + b * w[d]));
+        }
+        const result = analyzePackedVectors(workerInput(rows, { opts: { projection: true } }));
+        const projection = result.projection!;
+        expect(projection.pc1VariancePct).to.be.at.least(projection.pc2VariancePct);
+        expect(projection.pc2VariancePct).to.be.at.least(projection.nextVariancePct);
+        expect(projection.pc1VariancePct + projection.pc2VariancePct).to.be.greaterThan(99.9);
+        expect(projection.nextVariancePct).to.be.lessThan(0.05);
+        // The data lives IN the plane, so projected pairwise distances match
+        // original-space distances (orthogonal projection loses nothing).
+        const coords = projection.coords;
+        const original = (i: number, j: number) =>
+            Math.sqrt(rows[i].reduce((s, v, d) => s + (v - rows[j][d]) ** 2, 0));
+        const projected = (i: number, j: number) =>
+            Math.hypot(coords[i * 2] - coords[j * 2], coords[i * 2 + 1] - coords[j * 2 + 1]);
+        for (const [i, j] of [
+            [0, 1],
+            [5, 40],
+            [17, 59],
+        ]) {
+            expect(projected(i, j)).to.be.closeTo(original(i, j), 1e-4);
+        }
+    });
+
+    test("non-finite rows are excluded from the PCA, not from honesty", () => {
+        const rows = Array.from({ length: 25 }, (_, i) => unit(i));
+        rows[9] = [...unit(9)];
+        rows[9][3] = Number.POSITIVE_INFINITY;
+        const result = analyzePackedVectors(workerInput(rows, { opts: { projection: true } }));
+        const projection = result.projection!;
+        expect(projection.analyzedRows).to.equal(24);
+        expect([...projection.rowIndices]).to.not.include(9);
+        expect(projection.coords.length).to.equal(48);
+        for (const value of projection.coords) {
+            expect(Number.isFinite(value)).to.equal(true);
+        }
+    });
+
+    test("deadline abort yields NO projection (never a half-projection)", () => {
+        const rows = Array.from({ length: 40 }, (_, i) => unit(i));
+        const packed = packRows(rows);
+        const expired = computePca2d(
+            packed,
+            DIMS,
+            Int32Array.from({ length: 40 }, (_, r) => r),
+            0,
+        );
+        expect(expired).to.equal(null);
+    });
+
+    test("render-cap selection: analyzed vs rendered stay separate (P0-8)", () => {
+        const identity = selectRenderIndices(8, 1200);
+        expect(identity).to.deep.equal([0, 1, 2, 3, 4, 5, 6, 7]);
+        const thinned = selectRenderIndices(30, 10);
+        expect(thinned).to.have.length(10);
+        expect(thinned[0]).to.equal(0);
+        for (let i = 1; i < thinned.length; i++) {
+            expect(thinned[i]).to.be.greaterThan(thinned[i - 1]);
+            expect(thinned[i]).to.be.lessThan(30);
+        }
+        expect(selectRenderIndices(0, 10)).to.deep.equal([]);
+    });
+});
+
+suite("compare math (VEC-6)", () => {
+    const f32 = (values: number[]) => Float32Array.from(values);
+
+    test("hand-checked metrics on orthogonal unit vectors", () => {
+        const result = computeVectorCompare([
+            { ordinal: 0, values: f32([1, 0, 0]) },
+            { ordinal: 4, values: f32([0, 1, 0]) },
+        ]);
+        expect(result.items.map((i) => i.ordinal)).to.deep.equal([0, 4]);
+        expect(result.items[0].l2).to.equal(1);
+        expect(result.items[0].l1).to.equal(1);
+        expect(result.items[0].linf).to.equal(1);
+        expect(result.pairwise.cosine[0][1]).to.equal(1);
+        expect(result.pairwise.cosine[0][0]).to.equal(0); // diagonal identity
+        expect(result.pairwise.euclidean[0][1]).to.be.closeTo(Math.SQRT2, 1e-12);
+        expect(result.pairwise.negativeDot[0][1]).to.equal(0);
+        expect(result.pairwise.negativeDot[0][0]).to.equal(-1); // −‖a‖²
+        expect(result.summary.compatibleCount).to.equal(2);
+    });
+
+    test("hand-checked metrics on [1,2,3] vs [4,5,6]", () => {
+        const result = computeVectorCompare([
+            { ordinal: 1, values: f32([1, 2, 3]) },
+            { ordinal: 2, values: f32([4, 5, 6]) },
+        ]);
+        // dot = 32, ‖a‖ = √14, ‖b‖ = √77 → cosine = 1 − 32/√1078.
+        expect(result.pairwise.cosine[0][1]).to.be.closeTo(1 - 32 / Math.sqrt(14 * 77), 1e-12);
+        expect(result.pairwise.euclidean[0][1]).to.be.closeTo(Math.sqrt(27), 1e-12);
+        expect(result.pairwise.negativeDot[0][1]).to.equal(-32);
+        // Matrix symmetry.
+        expect(result.pairwise.cosine[1][0]).to.equal(result.pairwise.cosine[0][1]);
+        // Contributions aᵢ·bᵢ = [4, 10, 18], ranked by |value| desc.
+        expect(result.topContributions.map((e) => e.dimension)).to.deep.equal([2, 1, 0]);
+        expect(result.topContributions.map((e) => e.value)).to.deep.equal([18, 10, 4]);
+    });
+
+    test("top-|Δ| ordering is by absolute delta, signed values, dim asc ties", () => {
+        const result = computeVectorCompare([
+            { ordinal: 0, values: f32([1, 2, 3, 4]) },
+            { ordinal: 1, values: f32([1, 0, 6, 3.5]) },
+        ]);
+        // Δ = a − b = [0, 2, −3, 0.5].
+        expect(result.topDeltaDimensions.map((e) => e.dimension)).to.deep.equal([2, 1, 3, 0]);
+        expect(result.topDeltaDimensions[0].value).to.equal(-3);
+        expect(result.topDeltaDimensions[1].value).to.equal(2);
+        expect(result.topDeltaDimensions[2].value).to.equal(0.5);
+    });
+
+    test("zero-norm cosine is undefined (null), never coerced", () => {
+        const result = computeVectorCompare([
+            { ordinal: 0, values: f32([0, 0]) },
+            { ordinal: 1, values: f32([1, 0]) },
+        ]);
+        expect(result.pairwise.cosine[0][1]).to.equal(null);
+        expect(result.pairwise.cosine[0][0]).to.equal(null); // zero-norm diagonal
+        expect(result.pairwise.euclidean[0][1]).to.equal(1);
+        expect(result.summary.avgPairDistance).to.equal(null);
+        expect(result.summary.closestPair).to.equal(null);
+        expect(result.summary.medoidIndex).to.equal(null);
+    });
+
+    test("selection summary: medoid, most isolated, closest pair", () => {
+        const angle = (deg: number) => {
+            const rad = (deg * Math.PI) / 180;
+            return f32([Math.cos(rad), Math.sin(rad)]);
+        };
+        const result = computeVectorCompare([
+            { ordinal: 10, values: angle(0) },
+            { ordinal: 11, values: angle(10) },
+            { ordinal: 12, values: angle(90) },
+        ]);
+        // d01 ≈ 0.0152, d02 = 1, d12 ≈ 0.8264 → medoid is index 1 (min avg),
+        // most isolated index 2 (max avg), closest pair (0, 1).
+        expect(result.summary.medoidIndex).to.equal(1);
+        expect(result.summary.mostIsolatedIndex).to.equal(2);
+        expect(result.summary.closestPair?.a).to.equal(0);
+        expect(result.summary.closestPair?.b).to.equal(1);
+        const d01 = result.pairwise.cosine[0][1] as number;
+        const d02 = result.pairwise.cosine[0][2] as number;
+        const d12 = result.pairwise.cosine[1][2] as number;
+        expect(result.summary.avgPairDistance).to.be.closeTo((d01 + d02 + d12) / 3, 1e-12);
+        expect(result.summary.mostIsolatedAvgDistance).to.be.closeTo((d02 + d12) / 2, 1e-12);
     });
 });
 
@@ -342,6 +541,116 @@ suite("vector ingest source", () => {
             svc.close(opened.handle);
             wrapper.releaseLiveOwner("documentClosed");
             expect(wrapper.state).to.equal("disposed");
+            svc.dispose();
+        });
+
+        test("projection end-to-end: coords for analyzed rows, ordinal map, cached", async function () {
+            this.timeout(20_000);
+            const rows: Array<object | null> = [];
+            for (let i = 0; i < 12; i++) {
+                rows.push(vectorCell([Math.sin(i), Math.cos(i), (i % 5) / 5]));
+            }
+            rows[6] = null; // null shifts packing; ordinal map must absorb it
+            const wrapper = await seededVectorStore(rows);
+            const svc = service();
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+            expect(opened.error).to.equal(undefined);
+
+            const result = await svc.projection(opened.handle);
+            expect(result.error).to.equal(undefined);
+            const projection = result.projection!;
+            // Analyzed vs rendered are separate facts; under the cap they match.
+            expect(projection.analyzedCount).to.equal(11);
+            expect(projection.renderedCount).to.equal(11);
+            expect(projection.renderedCount).to.equal(projection.points.length);
+            expect(projection.renderCap).to.be.at.least(projection.renderedCount);
+            expect(projection.dimensions).to.equal(3);
+            // Result-row ordinals, ascending, skipping the null row (6).
+            const ordinals = projection.points.map((p) => p.ordinal);
+            expect(ordinals).to.deep.equal([0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11]);
+            for (const point of projection.points) {
+                expect(Number.isFinite(point.x)).to.equal(true);
+                expect(Number.isFinite(point.y)).to.equal(true);
+            }
+            expect(projection.pc1VariancePct).to.be.at.least(projection.pc2VariancePct);
+            expect(projection.pc2VariancePct).to.be.at.least(projection.nextVariancePct);
+            expect(
+                projection.pc1VariancePct + projection.pc2VariancePct + projection.nextVariancePct,
+            ).to.be.at.most(100 + 1e-6);
+            expect(projection.evidence.source).to.equal("localComputation");
+            expect(projection.sample.method).to.equal("full");
+
+            // Cached per session: second call returns the same object.
+            const again = await svc.projection(opened.handle);
+            expect(again.projection).to.equal(projection);
+
+            // The single worker run also warmed the profile cache.
+            const profiled = await svc.profile(opened.handle);
+            expect(profiled.error).to.equal(undefined);
+            expect(profiled.summary).to.not.equal(undefined);
+
+            svc.close(opened.handle);
+            wrapper.releaseLiveOwner("documentClosed");
+            svc.dispose();
+        });
+
+        test("compare validates ordinals honestly", async () => {
+            const wrapper = await seededVectorStore([
+                vectorCell([1, 0, 0]),
+                vectorCell([0, 1, 0]),
+                null,
+                vectorCell([0, 0, 1]),
+            ]);
+            const svc = service();
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+
+            expect((await svc.compare(opened.handle, [0])).error).to.contain("between 2 and 8");
+            expect(
+                (await svc.compare(opened.handle, [0, 1, 2, 3, 4, 5, 6, 7, 8])).error,
+            ).to.contain("between 2 and 8");
+            expect((await svc.compare(opened.handle, [0, 99])).error).to.contain("out of range");
+            expect((await svc.compare(opened.handle, [0, 1.5])).error).to.contain("out of range");
+            expect((await svc.compare(opened.handle, [0, 0])).error).to.contain("more than once");
+            expect((await svc.compare(opened.handle, [0, 2])).error).to.contain(
+                "no analyzable vector value",
+            );
+            expect((await svc.compare("vec_bogus", [0, 1])).error).to.contain("expired");
+
+            svc.close(opened.handle);
+            wrapper.releaseLiveOwner("documentClosed");
+            svc.dispose();
+        });
+
+        test("compare end-to-end: hand-checkable metrics over selected rows", async () => {
+            const wrapper = await seededVectorStore([
+                vectorCell([1, 0, 0]),
+                vectorCell([0, 1, 0]),
+                null,
+                vectorCell([0, 0, 1]),
+            ]);
+            const svc = service();
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+
+            const result = await svc.compare(opened.handle, [0, 1, 3]);
+            expect(result.error).to.equal(undefined);
+            const compare = result.compare!;
+            expect(compare.items.map((i) => i.ordinal)).to.deep.equal([0, 1, 3]);
+            expect(compare.items.every((i) => i.dimensions === 3 && i.l2 === 1)).to.equal(true);
+            // Orthogonal unit vectors: cosine 1, euclidean √2, −dot 0 off-diag.
+            expect(compare.pairwise.cosine[0][1]).to.equal(1);
+            expect(compare.pairwise.cosine[1][2]).to.equal(1);
+            expect(compare.pairwise.euclidean[0][2]).to.be.closeTo(Math.SQRT2, 1e-6);
+            expect(compare.pairwise.negativeDot[0][1]).to.equal(0);
+            // First pair Δ = [1, −1, 0]: |Δ| ties break by ascending dimension.
+            expect(compare.topDeltaDimensions.map((e) => e.dimension)).to.deep.equal([0, 1, 2]);
+            expect(compare.topDeltaDimensions[0].value).to.equal(1);
+            expect(compare.topDeltaDimensions[1].value).to.equal(-1);
+            expect(compare.summary.compatibleCount).to.equal(3);
+            expect(compare.summary.avgPairDistance).to.be.closeTo(1, 1e-12);
+            expect(compare.evidence.source).to.equal("localComputation");
+
+            svc.close(opened.handle);
+            wrapper.releaseLiveOwner("documentClosed");
             svc.dispose();
         });
 

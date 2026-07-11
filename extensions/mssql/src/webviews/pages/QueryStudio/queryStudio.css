@@ -904,3 +904,298 @@
     font-family: var(--vscode-editor-font-family);
     font-size: 11px;
 }
+
+/* --- qs-vec6: Compare + Projection workspaces (VEC-6; statically hoisted —
+   lazy-chunk CSS must ride the entry stylesheet, cascade discipline per
+   BOOT Entry 17). House rules: VS Code tokens only, ≤2px radii, 11px
+   uppercase section labels, mono numerics, flat regions. ------------------ */
+
+/* Shared property rows (label/value, hairline-separated — no cards). */
+.qs-vec6-prop-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 22px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
+.qs-vec6-prop-label {
+    color: var(--vscode-foreground);
+}
+.qs-vec6-signed {
+    min-width: 64px;
+    text-align: right;
+}
+
+/* Compare: ordinal entry + primary button. */
+.qs-vec6-compare {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+.qs-vec6-input-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+}
+.qs-vec6-ordinal-input {
+    flex: 1;
+    max-width: 420px;
+    height: 24px;
+    box-sizing: border-box;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 0 6px;
+}
+.qs-vec6-primary-btn {
+    height: 24px;
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+.qs-vec6-primary-btn:hover:not(:disabled) {
+    background: var(--vscode-button-hoverBackground, var(--vscode-button-background));
+}
+.qs-vec6-primary-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+.qs-vec6-secondary-btn {
+    height: 22px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    font-size: 11.5px;
+    padding: 0 8px;
+    cursor: pointer;
+}
+.qs-vec6-secondary-btn:hover {
+    background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+}
+.qs-vec6-inline-error {
+    font-size: 12px;
+    padding: 2px 0 6px;
+}
+
+/* Compare: basket rows (24px, mono key, badge-free letter prefix). */
+.qs-vec6-basket-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 24px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
+.qs-vec6-letter {
+    width: 18px;
+    flex: none;
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec6-basket-key {
+    width: 88px;
+    flex: none;
+}
+.qs-vec6-basket-dims {
+    flex: 1;
+    font-size: 11px;
+}
+.qs-vec6-basket-norm {
+    text-align: right;
+}
+
+/* Compare: metric toggle inside the section label (small text-toggles). */
+.qs-vec6-metric-toggle {
+    display: inline-flex;
+    gap: 2px;
+    margin-right: 4px;
+}
+.qs-vec6-metric-toggle button {
+    background: none;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 10px;
+    line-height: 14px;
+    padding: 0 5px;
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: normal;
+}
+.qs-vec6-metric-toggle button.active {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-background);
+}
+
+/* Compare: pairwise heat matrix (flat cells, 1px gaps, accessible table). */
+.qs-vec6-matrix {
+    border-collapse: separate;
+    border-spacing: 1px;
+    font-size: 11.5px;
+    margin: 2px 0 6px;
+}
+.qs-vec6-matrix th {
+    font-weight: normal;
+    color: var(--vscode-descriptionForeground);
+    text-align: center;
+    padding: 2px 6px;
+}
+.qs-vec6-matrix td {
+    min-width: 64px;
+    height: 24px;
+    text-align: center;
+    padding: 0 8px;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--vscode-charts-blue) 4%, transparent);
+}
+
+/* Projection: fixed layout — the pane fills, inner regions scroll. */
+.qs-vec6-projection {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 280px;
+}
+.qs-vec6-proj-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 28px;
+    font-size: 12px;
+}
+.qs-vec6-truth-banner {
+    box-sizing: border-box;
+    max-height: 24px;
+    line-height: 18px;
+    padding: 2px 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 11.5px;
+    background: var(--vscode-inputValidation-warningBackground);
+    border-left: 3px solid var(--vscode-inputValidation-warningBorder);
+    border-radius: 0;
+}
+.qs-vec6-proj-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    margin-top: 6px;
+}
+.qs-vec6-canvas-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 240px;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.qs-vec6-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}
+.qs-vec6-canvas:active {
+    cursor: grabbing;
+}
+.qs-vec6-zoom-cluster {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.qs-vec6-zoom-cluster button {
+    width: 24px;
+    height: 22px;
+    background: var(--vscode-editorWidget-background);
+    color: var(--vscode-foreground);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+.qs-vec6-zoom-cluster button:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+/* Projection: synchronized virtualized point list (rowH 24). */
+.qs-vec6-point-panel {
+    width: 260px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin-left: 8px;
+}
+.qs-vec6-point-header {
+    margin: 0 0 4px;
+}
+.qs-vec6-point-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+}
+.qs-vec6-point-spacer {
+    position: relative;
+}
+.qs-vec6-point-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 6px;
+    font-size: 12px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.qs-vec6-point-row:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+.qs-vec6-point-row.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+.qs-vec6-point-row.active .qs-vec-muted {
+    color: inherit;
+}
+.qs-vec6-swatch {
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--vscode-charts-blue);
+    border-radius: 1px;
+}
+.qs-vec6-point-coords {
+    margin-left: auto;
+    font-size: 10px;
+}
+.qs-vec6-sr-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

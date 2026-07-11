@@ -22,6 +22,8 @@
 
 import * as React from "react";
 import { Rpc } from "./resultsGridShared";
+import { VectorCompareView } from "./vectorCompareView";
+import { VectorProjectionView } from "./vectorProjectionView";
 import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
     QsVectorFindingDetailRequest,
@@ -57,8 +59,8 @@ type Workspace = "profile" | "search" | "compare" | "projection" | "index" | "pi
 const WORKSPACES: Array<{ id: Workspace; label: string; enabled: boolean }> = [
     { id: "profile", label: "Profile", enabled: true },
     { id: "search", label: "Search", enabled: false },
-    { id: "compare", label: "Compare", enabled: false },
-    { id: "projection", label: "Projection", enabled: false },
+    { id: "compare", label: "Compare", enabled: true },
+    { id: "projection", label: "Projection", enabled: true },
     { id: "index", label: "Index", enabled: false },
     { id: "pipeline", label: "Pipeline", enabled: false },
 ];
@@ -286,6 +288,23 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                         <div className="qs-vec-empty">
                             <div className="qs-vec-error">{error}</div>
                         </div>
+                    ) : !opened || opened.error ? (
+                        <div className="qs-vec-empty qs-muted">Analyzing vector column…</div>
+                    ) : workspace === "compare" ? (
+                        // Compare/Projection ride the session handle only —
+                        // they never wait on the Profile summary.
+                        <VectorCompareView
+                            rpc={rpc}
+                            handle={opened.handle}
+                            generation={opened.generation}
+                            totalRows={opened.totalRows}
+                        />
+                    ) : workspace === "projection" ? (
+                        <VectorProjectionView
+                            rpc={rpc}
+                            handle={opened.handle}
+                            generation={opened.generation}
+                        />
                     ) : loading || !profile ? (
                         <div className="qs-vec-empty qs-muted">Analyzing vector column…</div>
                     ) : (

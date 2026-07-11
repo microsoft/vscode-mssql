@@ -28,18 +28,35 @@ import * as path from "path";
 import { Worker } from "worker_threads";
 import { Perf } from "../../perf/perfTelemetry";
 import {
+    QsVectorCompareResult,
     QsVectorFindingDetailResult,
     QsVectorOpenParams,
     QsVectorOpenResult,
     QsVectorProfileResult,
+    QsVectorProjectionResult,
+    VECTOR_COMPARE_MAX_ROWS,
+    VECTOR_COMPARE_MIN_ROWS,
+    VECTOR_PROJECTION_RENDER_CAP,
     VectorFindingKind,
     VectorFindingSummary,
     VectorProfileSummary,
+    VectorProjectionPoint,
+    VectorProjectionSummary,
     VectorSampleDescriptor,
 } from "../../sharedInterfaces/vectorWorkbench";
 import { QueryTuningParams } from "../../sharedInterfaces/queryTuning";
+import { decodeVectorFloat32 } from "../../sharedInterfaces/queryResultCellCodec";
 import { IQueryResultStore, QueryResultStoreLease } from "../queryResultTypes";
-import { VectorWorkerFinding, VectorWorkerResult } from "./vectorAnalysisWorker";
+import {
+    VectorWorkerFinding,
+    VectorWorkerOptions,
+    VectorWorkerResult,
+} from "./vectorAnalysisWorker";
+import {
+    computeVectorCompare,
+    selectRenderIndices,
+    VectorCompareInputVector,
+} from "./vectorCompareMath";
 import { ingestBudgetFrom, ingestVectorColumn, VectorIngestResult } from "./vectorResultSource";
 
 const MAX_SESSIONS = 2;
@@ -66,6 +83,8 @@ interface VectorSession {
     readonly transport: "binary-v1" | "textFallback";
     worker?: Worker;
     profile?: VectorProfileSummary;
+    /** Cached per-session PCA result (VEC-6) — one worker run per session. */
+    projection?: VectorProjectionSummary;
     details: Map<VectorFindingKind, FindingDetailCache>;
     idleTimer?: ReturnType<typeof setTimeout>;
     disposed: boolean;
@@ -271,6 +290,262 @@ export class VectorWorkbenchService {
         }
     }
 
+    /**
+     * Deterministic PCA 2D projection (VEC-6). Cached per session; the worker
+     * run computes profile + PCA together when the profile is not yet cached
+     * (single ingest, single worker invocation, same gate discipline).
+     * Exported RPC entry point — the controller binds
+     * QsVectorProjectionRequest to this method.
+     */
+    async projection(handle: string): Promise<QsVectorProjectionResult> {
+        const session = this.sessions.get(handle);
+        if (!session || session.disposed) {
+            return { generation: 0, error: "The analysis session has expired; reopen the tab." };
+        }
+        this.touch(session);
+        if (session.projection) {
+            return { generation: session.generation, projection: session.projection };
+        }
+        if (session.transport !== "binary-v1") {
+            return {
+                generation: session.generation,
+                error: "This query ran without the typed vector transport; rerun with the Vector Workbench enabled to analyze.",
+            };
+        }
+        const generation = session.generation;
+        const budget = ingestBudgetFrom(this.tuning());
+        Perf.marker("mssql.queryResults.vector.analysis.begin", "begin", {
+            totalBudgetMs: budget.maxTimeMs,
+        });
+        const startedAt = performance.now();
+        const ingest = await ingestVectorColumn({
+            store: session.store,
+            resultSetId: session.resultSetId,
+            columnOrdinal: session.columnOrdinal,
+            budget,
+            seed: session.seed,
+        });
+        if (session.disposed || session.generation !== generation) {
+            return { generation: session.generation, error: "The analysis was cancelled." };
+        }
+        if ("error" in ingest) {
+            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                outcome: "refused",
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return { generation: session.generation, error: ingest.error };
+        }
+        const release = await this.gate.acquire();
+        try {
+            if (session.disposed || session.generation !== generation) {
+                return { generation: session.generation, error: "The analysis was cancelled." };
+            }
+            const remainingMs = Math.max(
+                1000,
+                budget.maxTimeMs - Math.round(performance.now() - startedAt),
+            );
+            const wantProfile = session.profile === undefined;
+            const result = await this.runWorker(session, ingest, remainingMs, {
+                profile: wantProfile,
+                projection: true,
+            });
+            if (session.disposed || session.generation !== generation) {
+                return { generation: session.generation, error: "The analysis was cancelled." };
+            }
+            if (wantProfile) {
+                session.profile = this.toProfileSummary(session, ingest, result);
+            }
+            const projection = result.projection;
+            if (!projection) {
+                Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                    outcome: "error",
+                    partialTime: result.partialTime,
+                    ms: Math.round(performance.now() - startedAt),
+                });
+                return {
+                    generation: session.generation,
+                    error: result.partialTime
+                        ? "The projection did not complete within the analysis time budget; no partial projection is shown."
+                        : "No analyzable vectors for the projection (all rows non-finite or unavailable).",
+                };
+            }
+            // Render cap (P0-8): every analyzed row went through the PCA;
+            // only the point payload is evenly thinned — never "sampled".
+            const renderIndices = selectRenderIndices(
+                projection.analyzedRows,
+                VECTOR_PROJECTION_RENDER_CAP,
+            );
+            const points: VectorProjectionPoint[] = renderIndices.map((i) => ({
+                ordinal: ingest.sourceOrdinals[projection.rowIndices[i]],
+                x: projection.coords[i * 2],
+                y: projection.coords[i * 2 + 1],
+            }));
+            const descriptor: VectorSampleDescriptor = result.partialTime
+                ? { ...ingest.descriptor, partialReason: "timeBudget" }
+                : ingest.descriptor;
+            const summary: VectorProjectionSummary = {
+                points,
+                analyzedCount: projection.analyzedRows,
+                renderedCount: points.length,
+                renderCap: VECTOR_PROJECTION_RENDER_CAP,
+                pc1VariancePct: projection.pc1VariancePct,
+                pc2VariancePct: projection.pc2VariancePct,
+                nextVariancePct: projection.nextVariancePct,
+                dimensions: result.dimensions,
+                evidence: this.evidence(descriptor),
+                sample: descriptor,
+            };
+            session.projection = summary;
+            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                outcome: "ok",
+                rows: result.rows,
+                dimensions: result.dimensions,
+                partialTime: result.partialTime,
+                workerMs: Math.round(result.elapsedMs),
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return { generation: session.generation, projection: summary };
+        } catch (error) {
+            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                outcome: "error",
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return {
+                generation: session.generation,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        } finally {
+            release();
+        }
+    }
+
+    /**
+     * Compare 2..8 selected result rows (VEC-6). Vectors are pulled host-side
+     * through the session lease (sparse projection, reason "vectorAnalysis"),
+     * decoded via the shared cell codec, and reduced in-process — only
+     * derived numbers travel to the webview, and none of them enter logs.
+     * Exported RPC entry point — the controller binds QsVectorCompareRequest
+     * to this method.
+     */
+    async compare(handle: string, ordinals: readonly number[]): Promise<QsVectorCompareResult> {
+        const session = this.sessions.get(handle);
+        if (!session || session.disposed) {
+            return { generation: 0, error: "The analysis session has expired; reopen the tab." };
+        }
+        this.touch(session);
+        if (session.transport !== "binary-v1") {
+            return {
+                generation: session.generation,
+                error: "This query ran without the typed vector transport; rerun with the Vector Workbench enabled to analyze.",
+            };
+        }
+        const summary = session.store.summary(session.resultSetId);
+        if (!summary) {
+            return {
+                generation: session.generation,
+                error: "The result set is no longer available.",
+            };
+        }
+        // Ordinal validation: the webview's authority ends at the selection.
+        if (
+            !Array.isArray(ordinals) ||
+            ordinals.length < VECTOR_COMPARE_MIN_ROWS ||
+            ordinals.length > VECTOR_COMPARE_MAX_ROWS
+        ) {
+            return {
+                generation: session.generation,
+                error: `Select between ${VECTOR_COMPARE_MIN_ROWS} and ${VECTOR_COMPARE_MAX_ROWS} result rows to compare.`,
+            };
+        }
+        const seen = new Set<number>();
+        for (const ordinal of ordinals) {
+            if (!Number.isInteger(ordinal) || ordinal < 0 || ordinal >= summary.rowCount) {
+                return {
+                    generation: session.generation,
+                    error: `Result-row ordinal ${ordinal} is out of range (0–${summary.rowCount - 1}).`,
+                };
+            }
+            if (seen.has(ordinal)) {
+                return {
+                    generation: session.generation,
+                    error: `Result-row ordinal ${ordinal} appears more than once.`,
+                };
+            }
+            seen.add(ordinal);
+        }
+        const generation = session.generation;
+        const startedAt = performance.now();
+        Perf.marker("mssql.queryResults.vector.analysis.begin", "begin", {});
+        try {
+            const vectors: VectorCompareInputVector[] = [];
+            let dimensions = 0;
+            for (const ordinal of ordinals) {
+                const window = await session.store.getWindow({
+                    resultSetId: session.resultSetId,
+                    rowStart: ordinal,
+                    rowCount: 1,
+                    columnOrdinals: [session.columnOrdinal],
+                    reason: "vectorAnalysis",
+                });
+                if (session.disposed || session.generation !== generation) {
+                    return {
+                        generation: session.generation,
+                        error: "The comparison was cancelled.",
+                    };
+                }
+                const cell: unknown = window.values[0]?.[0];
+                const decoded =
+                    cell === undefined || cell === null ? null : decodeVectorFloat32(cell);
+                if (decoded === null) {
+                    Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                        outcome: "refused",
+                        ms: Math.round(performance.now() - startedAt),
+                    });
+                    return {
+                        generation: session.generation,
+                        error: `Row ${ordinal} has no analyzable vector value in the selected column.`,
+                    };
+                }
+                if (dimensions === 0) {
+                    dimensions = decoded.dimensions;
+                } else if (decoded.dimensions !== dimensions) {
+                    Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                        outcome: "refused",
+                        ms: Math.round(performance.now() - startedAt),
+                    });
+                    return {
+                        generation: session.generation,
+                        error: `Row ${ordinal} has ${decoded.dimensions} dimensions; the selection expects ${dimensions}. Incompatible dimensions cannot be compared jointly.`,
+                    };
+                }
+                vectors.push({ ordinal, values: decoded.values });
+            }
+            const computed = computeVectorCompare(vectors);
+            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                outcome: "ok",
+                rows: vectors.length,
+                dimensions,
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return {
+                generation: session.generation,
+                compare: {
+                    ...computed,
+                    evidence: { source: "localComputation", capturedEpochMs: Date.now() },
+                },
+            };
+        } catch (error) {
+            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
+                outcome: "error",
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return {
+                generation: session.generation,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
     findingDetail(handle: string, kind: VectorFindingKind): QsVectorFindingDetailResult {
         const session = this.sessions.get(handle);
         if (!session || session.disposed) {
@@ -344,6 +619,7 @@ export class VectorWorkbenchService {
         session: VectorSession,
         ingest: VectorIngestResult,
         timeBudgetMs: number,
+        opts?: VectorWorkerOptions,
     ): Promise<VectorWorkerResult> {
         return new Promise<VectorWorkerResult>((resolve, reject) => {
             const buffer = ingest.packed.buffer as ArrayBuffer;
@@ -354,6 +630,7 @@ export class VectorWorkbenchService {
                     seed: session.seed,
                     timeBudgetMs,
                     pairTarget: PAIR_TARGET,
+                    ...(opts ? { opts } : {}),
                     packedBuffer: buffer,
                 },
                 transferList: [buffer],

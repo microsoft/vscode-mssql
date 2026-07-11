@@ -189,6 +189,112 @@ export interface VectorProfileSummary {
 }
 
 // ---------------------------------------------------------------------------
+// Projection (VEC-6): deterministic PCA 2D — derived coordinates only
+// ---------------------------------------------------------------------------
+
+/**
+ * Render cap for projection point payloads (P0-8). Analyzed and rendered
+ * counts are SEPARATE fields — the render cap is a payload bound, never a
+ * sample: every analyzed row went through the PCA, only the point list sent
+ * to the webview is thinned. Copy must never call the rendered subset
+ * "sampled".
+ */
+export const VECTOR_PROJECTION_RENDER_CAP = 1200;
+
+export interface VectorProjectionPoint {
+    /** Zero-based result-row ordinal (detached identity). */
+    readonly ordinal: number;
+    /** PC1 score (projection coordinate — allowed to the webview, banned from logs). */
+    readonly x: number;
+    /** PC2 score. */
+    readonly y: number;
+}
+
+export interface VectorProjectionSummary {
+    /** Rendered points (≤ renderCap; evenly thinned from the analyzed rows). */
+    readonly points: readonly VectorProjectionPoint[];
+    /** Rows the PCA actually analyzed (finite vectors in the sample). */
+    readonly analyzedCount: number;
+    /** Points in this payload — separate from analyzedCount (P0-8). */
+    readonly renderedCount: number;
+    readonly renderCap: number;
+    /** Explained variance of PC1/PC2 as a % of total sampled variance. */
+    readonly pc1VariancePct: number;
+    readonly pc2VariancePct: number;
+    /** Estimated next component ("next z% not shown" in the truth banner). */
+    readonly nextVariancePct: number;
+    /** Original space dimensionality (truth banner: distances live there). */
+    readonly dimensions: number;
+    readonly evidence: VectorEvidenceRecord;
+    readonly sample: VectorSampleDescriptor;
+}
+
+// ---------------------------------------------------------------------------
+// Compare (VEC-6): 2..8 selected result rows — derived numbers only
+// ---------------------------------------------------------------------------
+
+export const VECTOR_COMPARE_MIN_ROWS = 2;
+export const VECTOR_COMPARE_MAX_ROWS = 8;
+/** Bounded top-|Δ| / top-contribution list length. */
+export const VECTOR_COMPARE_TOP_DIMENSIONS = 5;
+
+export interface VectorCompareItem {
+    /** Zero-based result-row ordinal (basket identity). */
+    readonly ordinal: number;
+    readonly dimensions: number;
+    readonly l2: number;
+    readonly l1: number;
+    readonly linf: number;
+}
+
+/**
+ * Pairwise value matrices, indexed by basket position. Diagonal is the metric
+ * identity (0 for distances). `null` marks an undefined value — zero-norm
+ * cosine is undefined, never coerced to 0 or 1.
+ */
+export interface VectorPairwiseMatrices {
+    readonly cosine: ReadonlyArray<ReadonlyArray<number | null>>;
+    readonly euclidean: ReadonlyArray<ReadonlyArray<number>>;
+    readonly negativeDot: ReadonlyArray<ReadonlyArray<number>>;
+}
+
+export interface VectorCompareDimensionEntry {
+    /** Zero-based dimension ordinal (display is 1-based). */
+    readonly dimension: number;
+    /** Signed value: componentwise Δ (a−b) or contribution (aᵢ·bᵢ). */
+    readonly value: number;
+}
+
+export interface VectorCompareSummary {
+    /** Metric the summary aggregates use (named — never a "% similar"). */
+    readonly metric: "cosine";
+    /** Basket index minimizing mean distance to the others; null if undefined. */
+    readonly medoidIndex: number | null;
+    /** Basket index maximizing mean distance to the others. */
+    readonly mostIsolatedIndex: number | null;
+    readonly mostIsolatedAvgDistance: number | null;
+    readonly closestPair: {
+        readonly a: number;
+        readonly b: number;
+        readonly distance: number;
+    } | null;
+    readonly avgPairDistance: number | null;
+    /** Items sharing the selection's dimensionality (all, by construction). */
+    readonly compatibleCount: number;
+}
+
+export interface VectorCompareBody {
+    readonly items: readonly VectorCompareItem[];
+    readonly pairwise: VectorPairwiseMatrices;
+    /** Top |Δ| dimensions for the FIRST pair (A ↔ B) — bounded, signed a−b. */
+    readonly topDeltaDimensions: readonly VectorCompareDimensionEntry[];
+    /** Top |aᵢ·bᵢ| contribution dimensions for the FIRST pair — bounded. */
+    readonly topContributions: readonly VectorCompareDimensionEntry[];
+    readonly summary: VectorCompareSummary;
+    readonly evidence: VectorEvidenceRecord;
+}
+
+// ---------------------------------------------------------------------------
 // Pull RPC (opaque handles; host mints everything)
 // ---------------------------------------------------------------------------
 
@@ -199,6 +305,8 @@ export interface VectorProfileSummary {
 export const VECTOR_RPC = {
     open: "qs/vector.open",
     profile: "qs/vector.profile",
+    projection: "qs/vector.projection",
+    compare: "qs/vector.compare",
     findingDetail: "qs/vector.findingDetail",
     cancel: "qs/vector.cancel",
     close: "qs/vector.close",
@@ -236,6 +344,29 @@ export interface QsVectorProfileResult {
     readonly error?: string;
 }
 
+export interface QsVectorProjectionParams {
+    readonly handle: string;
+}
+
+export interface QsVectorProjectionResult {
+    readonly generation: number;
+    readonly projection?: VectorProjectionSummary;
+    /** Honest failure text (time budget, store disposed, cancelled, …). */
+    readonly error?: string;
+}
+
+export interface QsVectorCompareParams {
+    readonly handle: string;
+    /** 2..8 zero-based result-row ordinals (validated host-side). */
+    readonly ordinals: readonly number[];
+}
+
+export interface QsVectorCompareResult {
+    readonly generation: number;
+    readonly compare?: VectorCompareBody;
+    readonly error?: string;
+}
+
 export interface QsVectorFindingDetailParams {
     readonly handle: string;
     readonly kind: VectorFindingKind;
@@ -264,6 +395,16 @@ export namespace QsVectorOpenRequest {
 export namespace QsVectorProfileRequest {
     export const type = new RequestType<QsVectorProfileParams, QsVectorProfileResult, void>(
         VECTOR_RPC.profile,
+    );
+}
+export namespace QsVectorProjectionRequest {
+    export const type = new RequestType<QsVectorProjectionParams, QsVectorProjectionResult, void>(
+        VECTOR_RPC.projection,
+    );
+}
+export namespace QsVectorCompareRequest {
+    export const type = new RequestType<QsVectorCompareParams, QsVectorCompareResult, void>(
+        VECTOR_RPC.compare,
     );
 }
 export namespace QsVectorFindingDetailRequest {
