@@ -47,6 +47,7 @@ import {
     QsSaveExecutionPlanRequest,
     QsSaveResultRequest,
     QsSetActualPlanRequest,
+    QsSetSqlcmdModeRequest,
     QsSetDatabaseRequest,
     QsSetViewModeRequest,
     QsState,
@@ -390,7 +391,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             editor: { hostVersion: model.hostVersion, language: "sql", issues: 0 },
             metadata: { readiness: "absent" },
             completions: { enabled: false },
-            toggles: { actualPlan: false, viewMode: "grid" },
+            toggles: { actualPlan: false, viewMode: "grid", sqlcmd: false },
             gridStyle: QueryStudioController.currentGridStyle(),
             statusMessage: { kind: "ready", text: "Ready — not connected" },
             capabilities: {},
@@ -403,10 +404,30 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         return readGridStyle((key) => config.get(key));
     }
 
+    /**
+     * SQLCMD mode flip (SQLCMD_MODE_PLAN.md §3.3) — one entry point for the
+     * toolbar toggle and the scan-and-detect actions so the marker always
+     * says who flipped it.
+     */
+    setSqlcmdMode(enabled: boolean, source: "user" | "scanPrompt" | "scanAuto"): void {
+        if (this.model.executionHost.sqlcmdEnabled === enabled) {
+            return;
+        }
+        this.model.executionHost.sqlcmdEnabled = enabled;
+        Perf.marker("mssql.queryStudio.sqlcmd.toggle", "instant", { enabled, source });
+        this.queueStatePush();
+    }
+
     private currentState(): QsState {
         const state = QueryStudioController.initialState(this.model);
         state.editor.hostVersion = this.model.hostVersion;
-        state.toggles = { actualPlan: this.actualPlan, viewMode: this.viewMode };
+        state.toggles = {
+            actualPlan: this.actualPlan,
+            viewMode: this.viewMode,
+            // SQLCMD mode is per-DOCUMENT (v1 per-ownerUri parity): the host
+            // owns it so every panel of the document reads the same value.
+            sqlcmd: this.model.executionHost.sqlcmdEnabled,
+        };
         state.connection = this.model.sessionBinding.connectionState;
         state.execution = { ...this.model.executionHost.executionState };
         if (state.execution.kind === "executing" && state.execution.startedEpochMs) {
@@ -821,6 +842,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsSetActualPlanRequest.type, async ({ enabled }) => {
             this.actualPlan = enabled;
             this.queueStatePush();
+        });
+        this.onRequest(QsSetSqlcmdModeRequest.type, async ({ enabled }) => {
+            this.setSqlcmdMode(enabled, "user");
         });
         this.onRequest(QsInlineCompletionRequest.type, async (params) => {
             // Same provider pipeline as the classic editor — the custom text

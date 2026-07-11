@@ -298,6 +298,37 @@ export class DocumentSessionBinding implements vscode.Disposable {
         return this.open({ ...stored, database }, store);
     }
 
+    /**
+     * SQLCMD :connect session (SQLCMD_MODE_PLAN.md §3.3): open a session to
+     * an arbitrary server named in the script — SQL auth when -U/-P were
+     * given (the password lives ONLY in this closure, STS's
+     * ConnectSqlCmdCommand shape), integrated otherwise. Encrypt/trust ride
+     * the document's connected profile so the script stays in the same
+     * transport-trust context. Run-scoped: the orchestrator closes it.
+     */
+    async openSqlcmdConnectSession(target: {
+        server: string;
+        user?: string;
+        password?: string;
+    }): Promise<ISqlSession> {
+        const service = await SqlDataPlaneService.get().service();
+        const base = this.lastStoredProfile;
+        const stored: StoredProfile = {
+            server: target.server,
+            authenticationType: target.user ? "SqlLogin" : "Integrated",
+            ...(target.user ? { user: target.user } : {}),
+            ...(base?.encrypt !== undefined ? { encrypt: base.encrypt } : {}),
+            ...(base?.trustServerCertificate !== undefined
+                ? { trustServerCertificate: base.trustServerCertificate }
+                : {}),
+        };
+        return service.openSession({
+            profile: buildProfileRef(stored),
+            applicationName: "vscode-mssql-querystudio-sqlcmd",
+            auth: { passwordProvider: async () => target.password },
+        });
+    }
+
     private masterDbListCache: { at: number; names: string[] } | undefined;
 
     /**

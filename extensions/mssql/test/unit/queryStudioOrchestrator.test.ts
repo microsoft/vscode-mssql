@@ -684,3 +684,212 @@ suite("Query Studio execution orchestrator", () => {
         rowStore.dispose();
     });
 });
+
+/**
+ * SQLCMD mode through the orchestrator (SQLCMD_MODE_PLAN.md §3.2): the
+ * preprocessed plan drives the loop — substituted text on the wire, GO n
+ * preserved, :on error overriding the stop policy, :connect swapping the
+ * session run-scoped, and parse errors running NOTHING.
+ */
+suite("Query Studio execution orchestrator: SQLCMD mode", () => {
+    function textRecordingSession(
+        executed: string[],
+        outcome: (text: string) => { status: QueryCompleteSummary["status"] } = () => ({
+            status: "succeeded",
+        }),
+    ): ISqlSession & { closed: boolean } {
+        const session = {
+            state: "open",
+            closed: false,
+            close: async () => {
+                session.closed = true;
+            },
+            execute(text: string, _opts: unknown, sink: IQueryEventSink): QueryHandle {
+                executed.push(text);
+                const completion = (async (): Promise<QueryCompleteSummary> => {
+                    const base = outcome(text);
+                    const summary = {
+                        clientQueryId: "q",
+                        resultSetCount: 0,
+                        totalRows: 0,
+                        errorCount: base.status === "failed" ? 1 : 0,
+                        ...base,
+                    } as QueryCompleteSummary;
+                    if (summary.status === "failed") {
+                        await sink.onMessage({ kind: "error", text: "boom", line: 1 });
+                    }
+                    await sink.onComplete(summary);
+                    return summary;
+                })();
+                return {
+                    clientQueryId: "q",
+                    completion,
+                    cancel: async () => ({ acknowledged: false }),
+                    dispose: async () => undefined,
+                } as QueryHandle;
+            },
+        };
+        return session as unknown as ISqlSession & { closed: boolean };
+    }
+
+    test("setvar substitution reaches the wire; GO n repeats under sqlcmd", async () => {
+        const executed: string[] = [];
+        const session = textRecordingSession(executed);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run(":setvar t 42\nSELECT $(t)\nGO 2", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+            sqlcmd: { seams: {} },
+        });
+        expect(result.status).to.equal("succeeded");
+        expect(result.batches).to.equal(2); // GO 2 repeats
+        expect(executed).to.deep.equal(["SELECT 42", "SELECT 42"]);
+        // Line mapping stays in DOCUMENT coordinates: SELECT sits on line 2.
+        const started = events.messages.filter((m) => m.text.startsWith("Started executing"));
+        expect(started[0].text).to.equal("Started executing query at Line 2");
+        rowStore.dispose();
+    });
+
+    test("sqlcmd OFF: directives are plain text on the wire (byte-identical path)", async () => {
+        const executed: string[] = [];
+        const session = textRecordingSession(executed);
+        const rowStore = store();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, new RecordingEvents());
+        await orchestrator.run(":setvar t 42\nSELECT '$(t)'", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+        });
+        expect(executed).to.deep.equal([":setvar t 42\nSELECT '$(t)'"]);
+        rowStore.dispose();
+    });
+
+    test(":on error exit halts at the failing batch; ignore overrides stopOnError", async () => {
+        const failOnBad = (text: string) =>
+            text.includes("bad")
+                ? ({ status: "failed" } as const)
+                : ({ status: "succeeded" } as const);
+        {
+            const executed: string[] = [];
+            const session = textRecordingSession(executed, failOnBad);
+            const rowStore = store();
+            const orchestrator = new ExecutionOrchestrator(
+                session,
+                rowStore,
+                new RecordingEvents(),
+            );
+            const result = await orchestrator.run(":on error exit\nSELECT bad\nGO\nSELECT good", {
+                selectionStartLine: 1,
+                stopOnError: false,
+                scope: "document",
+                sqlcmd: { seams: {} },
+            });
+            expect(result.status).to.equal("completedWithErrors");
+            expect(executed).to.deep.equal(["SELECT bad"]); // good never ran
+            rowStore.dispose();
+        }
+        {
+            const executed: string[] = [];
+            const session = textRecordingSession(executed, failOnBad);
+            const rowStore = store();
+            const orchestrator = new ExecutionOrchestrator(
+                session,
+                rowStore,
+                new RecordingEvents(),
+            );
+            const result = await orchestrator.run(":on error ignore\nSELECT bad\nGO\nSELECT good", {
+                selectionStartLine: 1,
+                stopOnError: true, // :on error ignore overrides
+                scope: "document",
+                sqlcmd: { seams: {} },
+            });
+            expect(result.status).to.equal("completedWithErrors");
+            expect(executed).to.deep.equal(["SELECT bad", "SELECT good"]);
+            rowStore.dispose();
+        }
+    });
+
+    test(":connect swaps the session run-scoped and closes the transient", async () => {
+        const primary: string[] = [];
+        const secondary: string[] = [];
+        const session = textRecordingSession(primary);
+        const connectTargets: string[] = [];
+        const transient = textRecordingSession(secondary);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run(
+            "SELECT 1\nGO\n:connect srv2 -U sa -P sekrit\nSELECT 2",
+            {
+                selectionStartLine: 1,
+                stopOnError: false,
+                scope: "document",
+                sqlcmd: {
+                    seams: {},
+                    openConnectSession: async (target) => {
+                        connectTargets.push(`${target.server}|${target.user}`);
+                        return transient;
+                    },
+                },
+            },
+        );
+        expect(result.status).to.equal("succeeded");
+        expect(primary).to.deep.equal(["SELECT 1"]);
+        expect(secondary).to.deep.equal(["SELECT 2"]);
+        expect(connectTargets).to.deep.equal(["srv2|sa"]);
+        expect(transient.closed).to.equal(true); // run-scoped, closed at end
+        expect(
+            events.messages.some((m) => m.kind === "info" && m.text === "Connected to srv2."),
+        ).to.equal(true);
+        rowStore.dispose();
+    });
+
+    test(":connect failure fails the run; nothing after it executes", async () => {
+        const executed: string[] = [];
+        const session = textRecordingSession(executed);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run(":connect nowhere\nSELECT 1", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+            sqlcmd: {
+                seams: {},
+                openConnectSession: async () => {
+                    throw new Error("login failed");
+                },
+            },
+        });
+        expect(result.status).to.equal("failed");
+        expect(executed).to.deep.equal([]);
+        expect(
+            events.messages.some((m) => m.kind === "error" && m.text.includes(":connect")),
+        ).to.equal(true);
+        rowStore.dispose();
+    });
+
+    test("a parse error runs NOTHING and fails honestly with a document line", async () => {
+        const executed: string[] = [];
+        const session = textRecordingSession(executed);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run("SELECT 1\nGO\n:listvar", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+            sqlcmd: { seams: {} },
+        });
+        expect(result.status).to.equal("failed");
+        expect(result.batches).to.equal(0);
+        expect(executed).to.deep.equal([]);
+        const err = events.messages.find((m) => m.kind === "error");
+        expect(err?.text).to.contain("SQLCMD error (Line 3)");
+        expect(err?.text).to.contain("not supported");
+        rowStore.dispose();
+    });
+});

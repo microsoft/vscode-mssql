@@ -26,6 +26,7 @@ import {
 } from "../services/sqlDataPlane/api";
 import { QsMessageRow, QsResultColumn } from "../sharedInterfaces/queryStudio";
 import { mapServerLineToDocument, splitBatches, SqlBatch } from "../sql/batchSplitter";
+import { parseSqlcmdScript, SqlcmdConnectStep, SqlcmdSeams } from "../sql/sqlcmdPreprocessor";
 import { RowStore } from "./rowStore";
 
 export type RunStatus =
@@ -77,6 +78,24 @@ export interface RunOptions {
      * Defaults to Date.now() at run() entry.
      */
     startedEpochMs?: number;
+    /**
+     * SQLCMD mode (SQLCMD_MODE_PLAN.md §3.2): text is preprocessed into a
+     * step plan (setvar/$(var)/:r resolved; :on error and :connect become
+     * in-loop actions). Absent = the classic path, byte-identical.
+     */
+    sqlcmd?: {
+        seams: SqlcmdSeams;
+        /**
+         * Opens the :connect target session; subsequent batches run on it
+         * (run-scoped, STS Query.cs parity — closed at run end). Absent =
+         * :connect fails honestly.
+         */
+        openConnectSession?(target: {
+            server: string;
+            user?: string;
+            password?: string;
+        }): Promise<ISqlSession>;
+    };
 }
 
 export interface RunResult {
@@ -88,6 +107,12 @@ export interface RunResult {
     rowsAffected?: number;
     durationMs: number;
 }
+
+/** One entry of the compiled run plan (SQLCMD steps interleave with batches). */
+type SqlcmdWorkItem =
+    | { kind: "batch"; batch: SqlBatch }
+    | { kind: "connect"; step: SqlcmdConnectStep }
+    | { kind: "onError"; action: "exit" | "ignore" };
 
 /** Canonical showplan XML column name (SSMS-compatible detection). */
 const SHOWPLAN_COLUMN = /^Microsoft SQL Server .*XML Showplan$/i;
@@ -120,11 +145,20 @@ export class ExecutionOrchestrator {
     private cancelRequestedAt: number | undefined;
     private cancelAckMs: number | undefined;
 
+    /**
+     * The session user batches execute on. Normally the binding session; a
+     * SQLCMD :connect swaps it for the rest of the run (restored + transient
+     * sessions closed in runCore's finally).
+     */
+    private currentSession: ISqlSession;
+
     constructor(
         private readonly session: ISqlSession,
         private readonly rowStore: RowStore,
         private readonly events: RunEvents,
-    ) {}
+    ) {
+        this.currentSession = session;
+    }
 
     requestCancel(): Promise<{ acknowledged: boolean }> {
         this.cancelRequested = true;
@@ -214,11 +248,14 @@ export class ExecutionOrchestrator {
 
     private async runCore(text: string, options: RunOptions): Promise<RunResult> {
         const startMs = Date.now();
-        const batches = splitBatches(text);
+        const selectionBase = Math.max(1, options.selectionStartLine);
+        const plan = this.buildWorkPlan(text, options, selectionBase);
+        const batches = plan.batches;
         Perf.marker("mssql.queryStudio.query.submit", "begin", {
             scope: options.scope,
             batchCount: batches.length,
             selection: options.scope === "selection",
+            ...(options.sqlcmd ? { sqlcmd: true } : {}),
             ...(options.tuningDigest ? { tuningDigest: options.tuningDigest } : {}),
             ...(options.tuningProfileId ? { tuningProfile: options.tuningProfileId } : {}),
         });
@@ -226,75 +263,102 @@ export class ExecutionOrchestrator {
 
         let resultSets = 0;
         let totalRows = 0;
-        let errors = 0;
+        let errors = plan.parseFailed ? 1 : 0;
         let rowsAffectedTotal: number | undefined;
-        let status: RunStatus = "succeeded";
+        let status: RunStatus = plan.parseFailed ? "failed" : "succeeded";
         let firstResultSeen = false;
-        const selectionBase = Math.max(1, options.selectionStartLine);
+        // :on error exit|ignore overrides the run's stop policy from the
+        // point it appears (STS Query.cs onErrorAction parity).
+        let stopOnError = options.stopOnError;
+        const transientSessions: ISqlSession[] = [];
 
-        for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-            const batch = batches[batchIndex];
-            if (this.cancelRequested) {
-                status = "canceled";
-                break;
-            }
-            if (batch.repeatOrdinal === 0) {
-                // SSMS parity: one "Started executing query at Line N" per GO
-                // batch, N in DOCUMENT coordinates — selection offset plus the
-                // batch TEXT's raw start (leading blank lines included, the
-                // same anchor the server's error Line 1 points at).
-                this.events.onMessages([
-                    {
-                        batchIndex,
-                        kind: "info",
-                        text: `Started executing query at Line ${
-                            selectionBase + batchTextStartLine(batch)
-                        }`,
-                        epochMs: Date.now(),
-                    },
-                ]);
-            }
-            const summary = await this.runBatch(
-                batch,
-                batchIndex,
-                options,
-                (n) => {
-                    if (!firstResultSeen) {
-                        firstResultSeen = true;
-                        Perf.marker("mssql.queryStudio.query.firstResult", "instant", {
-                            msFromSubmit: Date.now() - startMs,
-                        });
-                        this.events.onFirstResult?.(Date.now() - startMs);
-                    }
-                    totalRows += n;
-                },
-                () => resultSets++,
-            );
-            errors += summary.errorCount;
-            if (summary.rowsAffected !== undefined) {
-                rowsAffectedTotal = (rowsAffectedTotal ?? 0) + summary.rowsAffected;
-            }
-            if (summary.status === "connectionLost") {
-                status = "connectionLost";
-                break;
-            }
-            if (summary.status === "canceled" || summary.status === "disposed") {
-                status = "canceled";
-                break;
-            }
-            if (summary.status === "failed" || summary.status === "completedWithErrors") {
-                // SSMS default: continue on error; run summary reflects it.
-                status = "completedWithErrors";
-                if (options.stopOnError || (summary.status === "failed" && this.sessionDead())) {
-                    if (
-                        summary.status === "failed" &&
-                        !options.stopOnError &&
-                        !this.sessionDead()
-                    ) {
-                        continue;
-                    }
+        try {
+            let batchIndex = -1;
+            for (const item of plan.work) {
+                if (this.cancelRequested) {
+                    status = "canceled";
                     break;
                 }
+                if (item.kind === "onError") {
+                    stopOnError = item.action === "exit";
+                    continue;
+                }
+                if (item.kind === "connect") {
+                    const opened = await this.performSqlcmdConnect(item.step, options);
+                    if (!opened) {
+                        // STS parity: a failed :connect aborts the run.
+                        errors++;
+                        status = "failed";
+                        break;
+                    }
+                    transientSessions.push(opened);
+                    this.currentSession = opened;
+                    continue;
+                }
+                const batch = item.batch;
+                batchIndex++;
+                if (batch.repeatOrdinal === 0) {
+                    // SSMS parity: one "Started executing query at Line N" per GO
+                    // batch, N in DOCUMENT coordinates — selection offset plus the
+                    // batch TEXT's raw start (leading blank lines included, the
+                    // same anchor the server's error Line 1 points at).
+                    this.events.onMessages([
+                        {
+                            batchIndex,
+                            kind: "info",
+                            text: `Started executing query at Line ${
+                                selectionBase + batchTextStartLine(batch)
+                            }`,
+                            epochMs: Date.now(),
+                        },
+                    ]);
+                }
+                const summary = await this.runBatch(
+                    batch,
+                    batchIndex,
+                    options,
+                    (n) => {
+                        if (!firstResultSeen) {
+                            firstResultSeen = true;
+                            Perf.marker("mssql.queryStudio.query.firstResult", "instant", {
+                                msFromSubmit: Date.now() - startMs,
+                            });
+                            this.events.onFirstResult?.(Date.now() - startMs);
+                        }
+                        totalRows += n;
+                    },
+                    () => resultSets++,
+                );
+                errors += summary.errorCount;
+                if (summary.rowsAffected !== undefined) {
+                    rowsAffectedTotal = (rowsAffectedTotal ?? 0) + summary.rowsAffected;
+                }
+                if (summary.status === "connectionLost") {
+                    status = "connectionLost";
+                    break;
+                }
+                if (summary.status === "canceled" || summary.status === "disposed") {
+                    status = "canceled";
+                    break;
+                }
+                if (summary.status === "failed" || summary.status === "completedWithErrors") {
+                    // SSMS default: continue on error; run summary reflects it.
+                    status = "completedWithErrors";
+                    if (stopOnError || (summary.status === "failed" && this.sessionDead())) {
+                        if (summary.status === "failed" && !stopOnError && !this.sessionDead()) {
+                            continue;
+                        }
+                        break;
+                    }
+                }
+            }
+        } finally {
+            // :connect scope ends with the run — restore the binding session
+            // (mode-wrapper OFF batches must not land on a closed transient)
+            // and close every :connect session, even on throw/cancel.
+            this.currentSession = this.session;
+            for (const transient of transientSessions) {
+                void transient.close().catch(() => undefined);
             }
         }
         if (status === "succeeded" && errors > 0) {
@@ -338,8 +402,120 @@ export class ExecutionOrchestrator {
         };
     }
 
+    /**
+     * Compile the run's work plan. Classic path: GO batches only. SQLCMD
+     * path: preprocess into steps; batch steps GO-split with startLine
+     * shifted into ORIGINAL-text coordinates so every existing line-mapping
+     * path (Started-at messages, server error Msg lines) stays correct. A
+     * parse error emits one honest error message and runs NOTHING (STS
+     * parity: the whole parse fails).
+     */
+    private buildWorkPlan(
+        text: string,
+        options: RunOptions,
+        selectionBase: number,
+    ): { work: SqlcmdWorkItem[]; batches: SqlBatch[]; parseFailed: boolean } {
+        if (!options.sqlcmd) {
+            const batches = splitBatches(text);
+            return {
+                work: batches.map((batch) => ({ kind: "batch", batch })),
+                batches,
+                parseFailed: false,
+            };
+        }
+        const preprocessStart = Date.now();
+        const parsed = parseSqlcmdScript(text, options.sqlcmd.seams);
+        if (parsed.kind === "parseError") {
+            Perf.marker("mssql.queryStudio.sqlcmd.run", "instant", {
+                steps: 0,
+                batches: 0,
+                setvars: 0,
+                includes: 0,
+                connects: 0,
+                errorCode: parsed.code,
+                preprocessMs: Date.now() - preprocessStart,
+            });
+            this.events.onMessages([
+                {
+                    batchIndex: -1,
+                    kind: "error",
+                    text: `SQLCMD error (Line ${selectionBase + parsed.line}): ${parsed.message}`,
+                    epochMs: Date.now(),
+                },
+            ]);
+            return { work: [], batches: [], parseFailed: true };
+        }
+        const work: SqlcmdWorkItem[] = [];
+        const batches: SqlBatch[] = [];
+        for (const step of parsed.steps) {
+            if (step.kind === "batch") {
+                for (const batch of splitBatches(step.text)) {
+                    const shifted = { ...batch, startLine: batch.startLine + step.startLine };
+                    work.push({ kind: "batch", batch: shifted });
+                    batches.push(shifted);
+                }
+            } else if (step.kind === "connect") {
+                work.push({ kind: "connect", step });
+            } else {
+                work.push({ kind: "onError", action: step.action });
+            }
+        }
+        Perf.marker("mssql.queryStudio.sqlcmd.run", "instant", {
+            steps: parsed.steps.length,
+            batches: batches.length,
+            setvars: parsed.stats.setvars,
+            includes: parsed.stats.includes,
+            connects: parsed.stats.connects,
+            onError: parsed.stats.onErrors > 0,
+            preprocessMs: Date.now() - preprocessStart,
+        });
+        return { work, batches, parseFailed: false };
+    }
+
+    /** :connect execution: open the target session or fail the run honestly. */
+    private async performSqlcmdConnect(
+        step: SqlcmdConnectStep,
+        options: RunOptions,
+    ): Promise<ISqlSession | undefined> {
+        const open = options.sqlcmd?.openConnectSession;
+        const fail = (detail: string): undefined => {
+            // Server name is user-typed script content — fine in the
+            // MESSAGES tab. Passwords never appear anywhere.
+            this.events.onMessages([
+                {
+                    batchIndex: -1,
+                    kind: "error",
+                    text: `SQLCMD :connect to "${step.server}" failed: ${detail}`,
+                    epochMs: Date.now(),
+                },
+            ]);
+            return undefined;
+        };
+        if (!open) {
+            return fail(":connect is not available in this context.");
+        }
+        try {
+            const session = await open({
+                server: step.server,
+                ...(step.user !== undefined ? { user: step.user } : {}),
+                ...(step.password !== undefined ? { password: step.password } : {}),
+            });
+            this.events.onMessages([
+                {
+                    batchIndex: -1,
+                    kind: "info",
+                    text: `Connected to ${step.server}.`,
+                    epochMs: Date.now(),
+                },
+            ]);
+            return session;
+        } catch (error) {
+            return fail(error instanceof Error ? error.message : String(error));
+        }
+    }
+
     private sessionDead(): boolean {
-        return this.session.state !== "open";
+        return this.currentSession.state !== "open";
     }
 
     /**
@@ -358,7 +534,7 @@ export class ExecutionOrchestrator {
         const startedAt = Date.now();
         for (;;) {
             try {
-                return this.session.execute(text, opts, sink);
+                return this.currentSession.execute(text, opts, sink);
             } catch (error) {
                 const busy =
                     (error as { code?: string }).code === "SqlDataPlane.Busy" &&

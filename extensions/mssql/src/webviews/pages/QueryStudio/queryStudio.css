@@ -513,6 +513,19 @@
     border-color: var(--vscode-inputOption-activeBorder);
 }
 
+/* Text-label toolbar toggle (SQLCMD — SSMS toolbar parity). */
+.qs-btn-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 0 6px;
+}
+/* Status-bar SQLCMD badge: rendered only while the mode is ON. */
+.qs-status-sqlcmd {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
 /* --- Pinned results (C2D) ------------------------------------------------ */
 
 /* Per-grid pin button: quiet until the caption row is hovered. */

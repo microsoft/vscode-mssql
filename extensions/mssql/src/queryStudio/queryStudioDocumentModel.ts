@@ -14,6 +14,8 @@
  * ownership of persistence, dirty state, undo, and hot exit.
  */
 
+import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
 import {
@@ -130,6 +132,32 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             this._uriKey,
             productionGuard,
         );
+        // SQLCMD seams (SQLCMD_MODE_PLAN.md §3.3): :r resolves against the
+        // backing file's directory (absolute paths always work; untitled
+        // documents have no directory, so only absolute paths resolve), and
+        // :connect opens run-scoped sessions through the binding.
+        this.executionHost.sqlcmdContext = {
+            readInclude: (rawPath) => {
+                try {
+                    const docDir =
+                        this.document.uri.scheme === "file"
+                            ? path.dirname(this.document.uri.fsPath)
+                            : undefined;
+                    const resolved = path.isAbsolute(rawPath)
+                        ? rawPath
+                        : docDir
+                          ? path.join(docDir, rawPath)
+                          : undefined;
+                    if (!resolved) {
+                        return undefined;
+                    }
+                    return { path: resolved, text: fs.readFileSync(resolved, "utf8") };
+                } catch {
+                    return undefined; // preprocessor reports includeFailed
+                }
+            },
+            openConnectSession: (target) => binding.openSqlcmdConnectSession(target),
+        };
         // Live result source registration (C2D-1): snapshots/pins/chat reach
         // this model's results only through the access service.
         this.liveResultSource = new QueryStudioLiveResultSource(this);

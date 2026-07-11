@@ -194,7 +194,7 @@ export interface QsState {
     editor: { hostVersion: number; language: "sql"; issues: number };
     metadata: { readiness: string; generation?: number; mode?: string };
     completions: { enabled: boolean; degraded?: string };
-    toggles: { actualPlan: boolean; viewMode: "grid" | "text" };
+    toggles: { actualPlan: boolean; viewMode: "grid" | "text"; sqlcmd: boolean };
     gridStyle: QsGridStyle;
     statusMessage: {
         kind: "ready" | "info" | "success" | "warning" | "error";
@@ -420,6 +420,9 @@ export namespace QsSetViewModeRequest {
 }
 export namespace QsSetActualPlanRequest {
     export const type = new RequestType<{ enabled: boolean }, void, void>("qs/setActualPlan");
+}
+export namespace QsSetSqlcmdModeRequest {
+    export const type = new RequestType<{ enabled: boolean }, void, void>("qs/setSqlcmdMode");
 }
 
 export interface QsInlineCompletionParams {

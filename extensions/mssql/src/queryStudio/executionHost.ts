@@ -64,6 +64,24 @@ export class ExecutionHost {
     private msToFirstResult: number | undefined;
     private lastTuning: QueryTuningSnapshot | undefined;
     executionState: QsExecutionState = { kind: "idle" };
+    /**
+     * SQLCMD mode (SQLCMD_MODE_PLAN.md §3.3): per-document, toggled from the
+     * webview toolbar. OFF adds zero work to the execute path.
+     */
+    sqlcmdEnabled = false;
+    /**
+     * SQLCMD seams the document model wires (this module stays vscode-free):
+     * :r include resolution against the document's directory, and the
+     * :connect session opener.
+     */
+    sqlcmdContext?: {
+        readInclude?(rawPath: string): { path: string; text: string } | undefined;
+        openConnectSession?(target: {
+            server: string;
+            user?: string;
+            password?: string;
+        }): Promise<import("../services/sqlDataPlane/api").ISqlSession>;
+    };
 
     /** The active/last run's resolved QueryTuning snapshot (QO-7 consumers). */
     get currentTuning(): QueryTuningSnapshot | undefined {
@@ -302,6 +320,23 @@ export class ExecutionHost {
                 },
                 tuningDigest: tuning.digest,
                 tuningProfileId: tuning.profileId,
+                ...(this.sqlcmdEnabled
+                    ? {
+                          sqlcmd: {
+                              seams: {
+                                  env: (name: string) => process.env[name],
+                                  ...(this.sqlcmdContext?.readInclude
+                                      ? { readInclude: this.sqlcmdContext.readInclude }
+                                      : {}),
+                              },
+                              ...(this.sqlcmdContext?.openConnectSession
+                                  ? {
+                                        openConnectSession: this.sqlcmdContext.openConnectSession,
+                                    }
+                                  : {}),
+                          },
+                      }
+                    : {}),
             })
             .then(
                 (result) => this.finishRun(result),

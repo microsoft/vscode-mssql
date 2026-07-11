@@ -39,6 +39,7 @@ import {
     QsListDatabasesRequest,
     QsRowsAppendedNotification,
     QsSetActualPlanRequest,
+    QsSetSqlcmdModeRequest,
     QsSetDatabaseRequest,
     QsPinAllResultsRequest,
     QsPinResultSetRequest,
@@ -940,6 +941,11 @@ export function QueryStudioApp() {
             viewMode: current === "text" ? "grid" : "text",
         });
     }, [rpc, state?.toggles.viewMode]);
+    const toggleSqlcmd = useCallback(() => {
+        void rpc.sendRequest(QsSetSqlcmdModeRequest.type, {
+            enabled: !(state?.toggles.sqlcmd ?? false),
+        });
+    }, [rpc, state?.toggles.sqlcmd]);
 
     // Pin results (C2D-2): one set or all complete sets into a read-only
     // snapshot tab. Refusals (streaming set, disabled, budget) surface via
@@ -1613,6 +1619,14 @@ export function QueryStudioApp() {
                     onClick={toggleActualPlan}>
                     <span className="codicon codicon-graph" />
                 </button>
+                <div className="qs-sep" />
+                <button
+                    className={`qs-btn qs-btn-label ${state?.toggles.sqlcmd ? "toggled" : ""}`}
+                    aria-pressed={state?.toggles.sqlcmd ?? false}
+                    title="Toggle SQLCMD mode (:setvar, :connect, :r, :on error, $(variables))"
+                    onClick={toggleSqlcmd}>
+                    SQLCMD
+                </button>
                 <span className="qs-spacer" />
                 {results?.present ? (
                     <button
@@ -1892,6 +1906,11 @@ export function QueryStudioApp() {
                     {actionHint ?? state?.statusMessage.text ?? "Ready — not connected"}
                 </span>
                 <span className="qs-spacer" />
+                {state?.toggles.sqlcmd ? (
+                    <span className="qs-status-seg qs-status-sqlcmd" title="SQLCMD mode is on">
+                        SQLCMD
+                    </span>
+                ) : null}
                 {results?.present ? (
                     <span className="qs-status-seg">{dataTotalRows.toLocaleString()} rows</span>
                 ) : null}
