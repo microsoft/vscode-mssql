@@ -1868,13 +1868,14 @@ export function QueryStudioApp() {
                 className={`qs-statusbar${connection.accentColor ? " qs-statusbar-accent" : ""}`}
                 role="status"
                 // Production safety: the server-group accent colors the WHOLE
-                // status bar; text color is luminance-picked host-side.
+                // status bar via CSS variables (the stylesheet's !important
+                // rules consume them — deterministic against theme rules).
                 style={
                     connection.accentColor
-                        ? {
-                              background: connection.accentColor,
-                              color: connection.accentTextColor ?? "#ffffff",
-                          }
+                        ? ({
+                              "--qs-accent-bg": connection.accentColor,
+                              "--qs-accent-fg": connection.accentTextColor ?? "#ffffff",
+                          } as React.CSSProperties)
                         : undefined
                 }
                 title={

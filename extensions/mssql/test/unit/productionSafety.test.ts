@@ -16,6 +16,7 @@ import * as os from "os";
 import * as path from "path";
 import {
     accentTextColor,
+    contrastRatio,
     parseHexColor,
     relativeLuminance,
 } from "../../src/sharedInterfaces/colorContrast";
@@ -93,12 +94,31 @@ suite("production safety: accent text color", () => {
         expect(parseHexColor("red")).to.equal(undefined);
     });
 
-    test("dark accents get near-white text; light accents get near-black", () => {
+    test("curated picks: white on dark, soft near-black on light, strongest on mid-tones", () => {
         expect(accentTextColor("#B71C1C")).to.equal("#ffffff"); // production red
         expect(accentTextColor("#1565C0")).to.equal("#ffffff"); // strong blue
-        expect(accentTextColor("#FFEB3B")).to.equal("#1e1e1e"); // yellow
-        expect(accentTextColor("#F6F6F6")).to.equal("#1e1e1e"); // near-white
+        expect(accentTextColor("#8B0000")).to.equal("#ffffff"); // dark red (dogfood repro)
+        expect(accentTextColor("#FFEB3B")).to.equal("#1f1f1f"); // yellow
+        expect(accentTextColor("#F6F6F6")).to.equal("#1f1f1f"); // near-white
+        expect(accentTextColor("#808080")).to.equal("#000000"); // awkward mid-gray → strongest
+        expect(accentTextColor("rgb(183, 28, 28)")).to.equal("#ffffff"); // rgb() form
         expect(accentTextColor("garbage")).to.equal("#ffffff"); // safe default
+    });
+
+    test("every curated pick clears the mid-tone maximum", () => {
+        // For ANY parsable background the chosen color must be the AA pick
+        // or the mathematically strongest available — never a low-contrast
+        // choice when a better candidate existed.
+        for (const bg of ["#B71C1C", "#8B0000", "#FFEB3B", "#808080", "#4CAF50", "#FF9800"]) {
+            const picked = accentTextColor(bg);
+            const bgRgb = parseHexColor(bg)!;
+            const pickedRgb = parseHexColor(picked)!;
+            const white = contrastRatio(bgRgb, [255, 255, 255]);
+            const black = contrastRatio(bgRgb, [0, 0, 0]);
+            expect(contrastRatio(bgRgb, pickedRgb), `${bg} → ${picked}`).to.be.greaterThanOrEqual(
+                Math.min(4.5, Math.max(white, black)) - 0.6,
+            );
+        }
     });
 
     test("luminance sanity", () => {

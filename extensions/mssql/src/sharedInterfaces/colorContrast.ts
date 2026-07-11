@@ -11,9 +11,14 @@
  * webviews.
  */
 
-/** #rgb, #rrggbb, or #rrggbbaa → [r,g,b] 0..255; undefined when unparsable. */
+/** #rgb, #rrggbb, #rrggbbaa, or rgb()/rgba() → [r,g,b]; undefined when unparsable. */
 export function parseHexColor(color: string): [number, number, number] | undefined {
-    const raw = color.trim().replace(/^#/, "");
+    const trimmed = color.trim();
+    const rgbMatch = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/.exec(trimmed);
+    if (rgbMatch) {
+        return [Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3])];
+    }
+    const raw = trimmed.replace(/^#/, "");
     if (/^[0-9a-fA-F]{3}$/.test(raw)) {
         return [
             parseInt(raw[0] + raw[0], 16),
@@ -40,10 +45,28 @@ export function relativeLuminance(rgb: [number, number, number]): number {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+/** WCAG contrast ratio between two colors (1..21). */
+export function contrastRatio(a: [number, number, number], b: [number, number, number]): number {
+    const la = relativeLuminance(a);
+    const lb = relativeLuminance(b);
+    const [hi, lo] = la >= lb ? [la, lb] : [lb, la];
+    return (hi + 0.05) / (lo + 0.05);
+}
+
+const NEAR_BLACK: [number, number, number] = [31, 31, 31]; // #1f1f1f
+const WHITE: [number, number, number] = [255, 255, 255];
+const BLACK: [number, number, number] = [0, 0, 0];
+
 /**
- * Text color for an accent background: near-white on dark, near-black on
- * light. The 0.4 threshold biases toward white text — mid-tones (saturated
- * reds/blues typical of group colors) read better inverted-light.
+ * Text color for an accent background — the curated-candidates approach
+ * (Karl 2026-07-10): classify by CONTRAST RATIO against a small set of
+ * known-good text colors instead of a raw luminance threshold.
+ *  - light backgrounds → soft near-black (#1f1f1f reads calmer than pure
+ *    black on pastel group colors);
+ *  - dark backgrounds → white;
+ *  - awkward mid-tones where neither clears WCAG AA (4.5:1) → whichever of
+ *    pure black/white scores strictly higher (the best any single color
+ *    can do).
  * Unparsable colors get white (accents default to strong/dark hues).
  */
 export function accentTextColor(background: string): string {
@@ -51,5 +74,11 @@ export function accentTextColor(background: string): string {
     if (!rgb) {
         return "#ffffff";
     }
-    return relativeLuminance(rgb) > 0.4 ? "#1e1e1e" : "#ffffff";
+    if (contrastRatio(rgb, NEAR_BLACK) >= 4.5) {
+        return "#1f1f1f";
+    }
+    if (contrastRatio(rgb, WHITE) >= 4.5) {
+        return "#ffffff";
+    }
+    return contrastRatio(rgb, BLACK) > contrastRatio(rgb, WHITE) ? "#000000" : "#ffffff";
 }

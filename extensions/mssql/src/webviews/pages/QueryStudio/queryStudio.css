@@ -565,11 +565,18 @@
 }
 
 /* Production safety: when the server-group accent colors the status bar,
-   every child (muted spans, separators, links) inherits the computed
-   readable text color instead of theme foregrounds. */
-.qs-statusbar-accent,
+   background + text ride CSS VARIABLES the app sets inline. The !important
+   here must NEVER use inherit on the container itself — that beats the
+   inline style and re-inherits the theme foreground (the unreadable-text
+   dogfood bug). Muted spans also drop their dimming: dimmed text over a
+   saturated accent is exactly the unreadable case. */
+.qs-statusbar-accent {
+    background: var(--qs-accent-bg) !important;
+    color: var(--qs-accent-fg) !important;
+}
 .qs-statusbar-accent .qs-muted,
 .qs-statusbar-accent span,
 .qs-statusbar-accent button {
-    color: inherit !important;
+    color: var(--qs-accent-fg) !important;
+    opacity: 1;
 }
