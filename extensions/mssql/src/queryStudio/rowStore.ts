@@ -66,8 +66,9 @@ export const DEFAULT_ROW_STORE_TUNING: RowStoreTuning = {
 
 /**
  * Why a window is being read — drives cache admission policy. Scan reasons
- * (sample/profile/transform/aiTool, C2D) stream without re-admission like
- * export/text so background analysis never evicts the viewport.
+ * (sample/profile/transform/aiTool, C2D; vectorAnalysis, VEC-3) stream
+ * without re-admission like export/text so background analysis never evicts
+ * the viewport.
  */
 export type RowReadReason =
     | "grid"
@@ -79,7 +80,8 @@ export type RowReadReason =
     | "sample"
     | "profile"
     | "transform"
-    | "aiTool";
+    | "aiTool"
+    | "vectorAnalysis";
 
 interface StoredPage {
     rowOffset: number;
@@ -343,15 +345,17 @@ export class RowStore {
      * from memory or spill, return the compact webview shape. Grid-reason
      * reads promote pages to the protected cache segment; export/text reads
      * stream WITHOUT admission so scans never evict the viewport.
-     * `columns` projects the window horizontally (QO-7b): wide-grid copy and
-     * future viewport fetches transfer only the columns they need.
+     * `columns` projects the window horizontally: a contiguous span (QO-7b —
+     * wide-grid copy, viewport fetches) or sparse ordinals (VEC-3 — a vector
+     * scan reads the vector column plus distant key/label columns with ONE
+     * spill materialization per page, never one per column).
      */
     async getRows(
         resultSetId: string,
         start: number,
         count: number,
         reason: RowReadReason = "grid",
-        columns?: { start: number; count: number },
+        columns?: { start: number; count: number } | { ordinals: readonly number[] },
     ): Promise<QsCellWindow> {
         const startedAt = Date.now();
         Perf.marker("mssql.queryStudio.rows.windowFetch.begin", "begin", {
@@ -359,7 +363,12 @@ export class RowStore {
             start,
             count,
             reason,
-            ...(columns ? { columnStart: columns.start, columnSpan: columns.count } : {}),
+            ...(columns && !("ordinals" in columns)
+                ? { columnStart: columns.start, columnSpan: columns.count }
+                : {}),
+            ...(columns && "ordinals" in columns
+                ? { columnOrdinals: columns.ordinals.length }
+                : {}),
         });
         const set = this.resultSets.get(resultSetId);
         const empty: QsCellWindow = {
@@ -389,16 +398,25 @@ export class RowStore {
             return empty;
         }
 
-        // Horizontal projection (QO-7b): clamp to the set's real columns;
-        // undefined = all columns (legacy shape).
+        // Horizontal projection: clamp to the set's real columns; undefined =
+        // all columns (legacy shape). Sparse ordinals (VEC-3) keep caller
+        // order; invalid ordinals are dropped, never clamped to a neighbor.
         const totalColumns = set.columns.length;
-        const columnStart = columns ? Math.max(0, Math.min(columns.start, totalColumns)) : 0;
-        const columnSpan = columns
-            ? Math.max(0, Math.min(columns.count, totalColumns - columnStart))
+        const ordinals =
+            columns && "ordinals" in columns
+                ? columns.ordinals.filter((o) => Number.isInteger(o) && o >= 0 && o < totalColumns)
+                : undefined;
+        const contiguous = columns && !("ordinals" in columns) ? columns : undefined;
+        const columnStart = contiguous ? Math.max(0, Math.min(contiguous.start, totalColumns)) : 0;
+        const columnSpan = contiguous
+            ? Math.max(0, Math.min(contiguous.count, totalColumns - columnStart))
             : totalColumns;
-        const projected = columnStart !== 0 || columnSpan !== totalColumns;
+        const projected =
+            ordinals !== undefined || columnStart !== 0 || columnSpan !== totalColumns;
 
-        const cacheKey = `${resultSetId}:${start}:${count}:${columnStart}:${columnSpan}`;
+        const cacheKey = ordinals
+            ? `${resultSetId}:${start}:${count}:o:${ordinals.join(",")}`
+            : `${resultSetId}:${start}:${count}:${columnStart}:${columnSpan}`;
         const cacheable = this.tuning.windowCacheEntries > 0 && reason === "grid";
         if (cacheable) {
             const cached = this.windowCache.get(cacheKey);
@@ -430,6 +448,10 @@ export class RowStore {
         }
 
         const end = Math.min(start + count, set.rowCount);
+        // The projected column ordinals, fixed for the whole request (sparse
+        // keeps caller order; contiguous expands the span once, not per row).
+        const projectedOrdinals =
+            ordinals ?? Array.from({ length: columnSpan }, (_, i) => columnStart + i);
         const values: unknown[][] = [];
         const nullBits: boolean[] = [];
         let fromSpill = false;
@@ -478,9 +500,13 @@ export class RowStore {
             for (let row = from; row < to; row++) {
                 const sourceRow = compact.values[row] ?? [];
                 values.push(
-                    projected ? sourceRow.slice(columnStart, columnStart + columnSpan) : sourceRow,
+                    ordinals
+                        ? ordinals.map((o) => sourceRow[o])
+                        : projected
+                          ? sourceRow.slice(columnStart, columnStart + columnSpan)
+                          : sourceRow,
                 );
-                for (let col = columnStart; col < columnStart + columnSpan; col++) {
+                for (const col of projectedOrdinals) {
                     const nulled = hasNull(compact, row, col, columnCount, nullBitmap);
                     nullBits.push(nulled);
                     if (!countCells) {

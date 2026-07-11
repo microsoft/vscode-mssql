@@ -183,9 +183,11 @@ export class RetainedRowStore implements IQueryResultStore {
             req.rowStart,
             req.rowCount,
             req.reason,
-            req.columnStart !== undefined && req.columnCount !== undefined
-                ? { start: req.columnStart, count: req.columnCount }
-                : undefined,
+            req.columnOrdinals !== undefined
+                ? { ordinals: req.columnOrdinals }
+                : req.columnStart !== undefined && req.columnCount !== undefined
+                  ? { start: req.columnStart, count: req.columnCount }
+                  : undefined,
         );
     }
 
@@ -199,6 +201,7 @@ export class RetainedRowStore implements IQueryResultStore {
                 resultSetId: req.resultSetId,
                 rowStart: offset,
                 rowCount: Math.min(chunk, end - offset),
+                ...(req.columnOrdinals !== undefined ? { columnOrdinals: req.columnOrdinals } : {}),
                 reason: req.reason,
             });
             if (window.rowCount === 0) {

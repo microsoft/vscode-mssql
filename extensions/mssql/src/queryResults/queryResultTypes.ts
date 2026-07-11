@@ -28,7 +28,8 @@ export type QueryResultLeaseOwnerKind =
     | "chatParticipant"
     | "export"
     | "command"
-    | "debug";
+    | "debug"
+    | "vectorWorkbench";
 
 export interface QueryResultLeaseOwner {
     readonly kind: QueryResultLeaseOwnerKind;
@@ -59,6 +60,13 @@ export interface CellWindowRequest {
     /** Horizontal projection (QO-7b); omitted = all columns. */
     readonly columnStart?: number;
     readonly columnCount?: number;
+    /**
+     * Sparse projection (VEC-3): explicit column ordinals in caller order —
+     * a vector scan reads the vector column plus distant key/label columns
+     * with one spill materialization per page. Wins over columnStart/Count
+     * when both are present.
+     */
+    readonly columnOrdinals?: readonly number[];
     readonly reason: RowReadReason;
 }
 
@@ -68,6 +76,8 @@ export interface RowStreamRequest {
     /** Total rows to stream; clamped to what the set holds. */
     readonly rowCount: number;
     readonly chunkRows: number;
+    /** Sparse projection (VEC-3), forwarded to every chunk window. */
+    readonly columnOrdinals?: readonly number[];
     readonly reason: RowReadReason;
 }
 

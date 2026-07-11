@@ -199,6 +199,77 @@ suite("RowStore", () => {
         store.dispose();
     });
 
+    test("sparse ordinal projection keeps caller order and drops invalid ordinals (VEC-3)", async () => {
+        const store = new RowStore(tempDir());
+        store.beginResultSet("rs1", [
+            { name: "key", displayName: "key" },
+            { name: "label", displayName: "label" },
+            { name: "embedding", displayName: "embedding" },
+        ]);
+        await store.appendPage(
+            "rs1",
+            page(0, [
+                [1, "a", "[1.0]"],
+                [2, null, "[2.0]"],
+            ]),
+        );
+        store.endResultSet("rs1");
+
+        // Caller order [2, 0] — vector column first, distant key second.
+        const window = await store.getRows("rs1", 0, 2, "vectorAnalysis", {
+            ordinals: [2, 0],
+        });
+        expect(window.rowCount).to.equal(2);
+        expect(window.values[0]).to.deep.equal(["[1.0]", 1]);
+        expect(window.values[1]).to.deep.equal(["[2.0]", 2]);
+
+        // Null bits follow the projected ordinal order (label null in row 1
+        // is NOT projected; nothing in the window reads as null).
+        const bits = Buffer.from(window.nullBitmap!, "base64");
+        expect(bits[0]).to.equal(0);
+
+        // Invalid ordinals are dropped, never clamped to a neighbor.
+        const dropped = await store.getRows("rs1", 0, 1, "vectorAnalysis", {
+            ordinals: [99, 1, -1],
+        });
+        expect(dropped.values[0]).to.deep.equal(["a"]);
+        store.dispose();
+    });
+
+    test("vectorAnalysis scans never re-admit spilled pages; grid reads do (VEC-3)", async () => {
+        const store = new RowStore(tempDir(), {
+            ...DEFAULT_LIMITS,
+            maxMemoryBytes: 2500, // forces eviction after ~2 pages
+        });
+        store.beginResultSet("rs1", [{ name: "n", displayName: "n" }]);
+        for (let i = 0; i < 5; i++) {
+            await store.appendPage(
+                "rs1",
+                page(
+                    i * 10,
+                    Array.from({ length: 10 }, (_, r) => [i * 10 + r]),
+                ),
+            );
+        }
+        store.endResultSet("rs1");
+        await store.flushSpill();
+        expect(store.stats.spillBytes).to.be.greaterThan(0);
+        const memoryAfterSpill = store.stats.memoryBytes;
+
+        // A full vectorAnalysis scan over spilled pages: correct values,
+        // ZERO cache growth — background analysis never evicts the viewport.
+        const scan = await store.getRows("rs1", 0, 50, "vectorAnalysis", { ordinals: [0] });
+        expect(scan.rowCount).to.equal(50);
+        expect(scan.values[0][0]).to.equal(0);
+        expect(scan.values[49][0]).to.equal(49);
+        expect(store.stats.memoryBytes).to.equal(memoryAfterSpill);
+
+        // The same window for the grid re-admits (viewport warmth wins).
+        await store.getRows("rs1", 0, 50, "grid");
+        expect(store.stats.memoryBytes).to.be.greaterThan(memoryAfterSpill);
+        store.dispose();
+    });
+
     test("spill disabled: memory keeps pages (honest backpressure posture)", async () => {
         const store = new RowStore(tempDir(), {
             ...DEFAULT_LIMITS,

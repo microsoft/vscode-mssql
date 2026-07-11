@@ -62,6 +62,61 @@ function retained(store: RowStore): RetainedRowStore {
 }
 
 suite("queryResults RetainedRowStore", () => {
+    test("vectorWorkbench lease + sparse ordinal windows and streams (VEC-3)", async () => {
+        const dir = tempDir();
+        const store = new RowStore(dir);
+        store.beginResultSet("rs1", [
+            { name: "key", displayName: "key" },
+            { name: "embedding", displayName: "embedding" },
+        ]);
+        for (let i = 0; i < 6; i++) {
+            await store.appendPage("rs1", page(i, [[i, `[${i}.5]`]]));
+        }
+        store.endResultSet("rs1");
+        const wrapper = retained(store);
+
+        const lease = wrapper.retain({ kind: "vectorWorkbench", label: "vector analysis" });
+        expect(lease).to.not.equal(undefined);
+
+        // getWindow with sparse ordinals (vector column first, key second).
+        const window = await wrapper.getWindow({
+            resultSetId: "rs1",
+            rowStart: 2,
+            rowCount: 2,
+            columnOrdinals: [1, 0],
+            reason: "vectorAnalysis",
+        });
+        expect(window.values).to.deep.equal([
+            ["[2.5]", 2],
+            ["[3.5]", 3],
+        ]);
+
+        // streamRows forwards the projection to every chunk.
+        const streamed: unknown[][] = [];
+        for await (const chunk of wrapper.streamRows({
+            resultSetId: "rs1",
+            rowStart: 0,
+            rowCount: 6,
+            chunkRows: 2,
+            columnOrdinals: [1],
+            reason: "vectorAnalysis",
+        })) {
+            streamed.push(...chunk.values);
+        }
+        expect(streamed).to.deep.equal([
+            ["[0.5]"],
+            ["[1.5]"],
+            ["[2.5]"],
+            ["[3.5]"],
+            ["[4.5]"],
+            ["[5.5]"],
+        ]);
+
+        lease!.dispose();
+        wrapper.releaseLiveOwner("documentClosed");
+        expect(wrapper.state).to.equal("disposed");
+    });
+
     test("live release with no other leases disposes the store (pre-C2D behavior)", async () => {
         const store = await seededStore(tempDir());
         const wrapper = retained(store);
