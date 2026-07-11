@@ -30,6 +30,7 @@
  */
 
 import * as crypto from "crypto";
+import { Perf } from "../../perf/perfTelemetry";
 import { IQueryEventSink, ISqlSession, QueryHandle } from "../../services/sqlDataPlane/api";
 import { decodeVectorFloat32 } from "../../sharedInterfaces/queryResultCellCodec";
 import {
@@ -550,14 +551,22 @@ export class VectorPipelineService {
             };
         }
         const startedAt = performance.now();
+        const markEnd = (outcome: "ok" | "error", dims: number, ms: number) =>
+            Perf.marker("mssql.queryResults.vector.model.end", "instant", {
+                outcome,
+                dims,
+                ms,
+            });
         try {
             const outcome = await runModelCall(lease.session, pending.sql);
             const elapsedMs = Math.round(performance.now() - startedAt);
             if (outcome.failed) {
+                markEnd("error", 0, elapsedMs);
                 return { elapsedMs, error: bounded(outcome.failed) };
             }
             const cell: unknown = outcome.rows[0]?.[0];
             if (typeof cell !== "string" || cell.length === 0) {
+                markEnd("error", 0, elapsedMs);
                 return {
                     elapsedMs,
                     error: "The model call returned no embedding text to compare.",
@@ -565,9 +574,11 @@ export class VectorPipelineService {
             }
             const fresh = parseFreshVectorJson(cell);
             if (fresh.error || !fresh.values) {
+                markEnd("error", 0, elapsedMs);
                 return { elapsedMs, error: fresh.error ?? "Fresh embedding parse failed." };
             }
             if (fresh.values.length !== pending.stored.length) {
+                markEnd("error", fresh.values.length, elapsedMs);
                 return {
                     elapsedMs,
                     error:
@@ -576,6 +587,7 @@ export class VectorPipelineService {
                         `cannot be compared component-wise.`,
                 };
             }
+            markEnd("ok", fresh.values.length, elapsedMs);
             return {
                 comparison: compareStoredVsFresh(pending.stored, fresh.values),
                 elapsedMs,
