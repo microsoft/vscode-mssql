@@ -563,3 +563,13 @@
     font-size: 28px;
     opacity: 0.6;
 }
+
+/* Production safety: when the server-group accent colors the status bar,
+   every child (muted spans, separators, links) inherits the computed
+   readable text color instead of theme foregrounds. */
+.qs-statusbar-accent,
+.qs-statusbar-accent .qs-muted,
+.qs-statusbar-accent span,
+.qs-statusbar-accent button {
+    color: inherit !important;
+}

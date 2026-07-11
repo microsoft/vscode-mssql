@@ -24,6 +24,7 @@ import {
 } from "../sharedInterfaces/queryStudio";
 import { TextSyncEngine } from "./textSync";
 import { DocumentSessionBinding } from "./documentSessionBinding";
+import { isModifyingSql } from "../sql/sqlSafetyClassifier";
 import { ExecutionHost } from "./executionHost";
 import { persistQueryStudioHotExitBackup } from "./queryStudioHotExitBackup";
 import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
@@ -89,7 +90,46 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         private readonly onLastDispose?: (model: QueryStudioDocumentModel) => void,
     ) {
         this._uriKey = document.uri.toString();
-        this.executionHost = new ExecutionHost(spillRoot, this.sessionBinding, this._uriKey);
+        // Production-safety guard (Karl 2026-07-10): modifying SQL against a
+        // production-flagged server group pauses for confirmation. The
+        // suppression is keyed to the SESSION OBJECT, so "don't ask again
+        // this session" resets naturally on reconnect.
+        let productionSuppressedFor: unknown;
+        const binding = this.sessionBinding;
+        const productionGuard = {
+            shouldConfirm: (text: string): boolean =>
+                binding.productionWarnActive &&
+                binding.activeSession !== undefined &&
+                productionSuppressedFor !== binding.activeSession &&
+                isModifyingSql(text),
+            confirm: async (): Promise<"yes" | "yesSession" | "no"> => {
+                const run = "Run Query";
+                const runNoAsk = "Run and Don't Ask Again This Session";
+                const choice = await vscode.window.showWarningMessage(
+                    "You are about to modify a PRODUCTION database.",
+                    {
+                        modal: true,
+                        detail:
+                            "This connection's server group is marked as production, and the " +
+                            "query contains statements that can change or destroy data. " +
+                            "This can result in data loss. Would you like to continue?",
+                    },
+                    run,
+                    runNoAsk,
+                );
+                if (choice === runNoAsk) {
+                    productionSuppressedFor = binding.activeSession;
+                    return "yesSession";
+                }
+                return choice === run ? "yes" : "no";
+            },
+        };
+        this.executionHost = new ExecutionHost(
+            spillRoot,
+            this.sessionBinding,
+            this._uriKey,
+            productionGuard,
+        );
         // Live result source registration (C2D-1): snapshots/pins/chat reach
         // this model's results only through the access service.
         this.liveResultSource = new QueryStudioLiveResultSource(this);

@@ -98,6 +98,10 @@ export interface QsConnectionState {
     database?: string;
     encrypted?: boolean;
     accentColor?: string;
+    /** Production safety: readable text color computed for accentColor. */
+    accentTextColor?: string;
+    /** True when the profile's server group is marked production. */
+    production?: boolean;
     backend?: string;
     lostReason?: string;
     /** Open @@TRANCOUNT on the session when > 0 (post-run probe, SSMS parity). */

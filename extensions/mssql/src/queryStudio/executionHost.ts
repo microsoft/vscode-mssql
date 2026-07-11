@@ -59,6 +59,8 @@ export class ExecutionHost {
     private pendingRerun:
         | { text: string; options: Parameters<ExecutionHost["execute"]>[1] }
         | undefined;
+    /** One-shot production-confirmation bypass for the confirmed re-entry. */
+    private productionConfirmedOnce = false;
     private msToFirstResult: number | undefined;
     private lastTuning: QueryTuningSnapshot | undefined;
     executionState: QsExecutionState = { kind: "idle" };
@@ -72,6 +74,15 @@ export class ExecutionHost {
         private readonly spillRoot: string,
         private readonly binding: DocumentSessionBinding,
         private readonly uriKey: string = "",
+        /**
+         * Production-safety guard (injected — this module stays vscode-free):
+         * shouldConfirm decides from settings + group facts + SQL contents +
+         * per-session suppression; confirm shows the modal.
+         */
+        private readonly productionGuard?: {
+            shouldConfirm(text: string): boolean;
+            confirm(): Promise<"yes" | "yesSession" | "no">;
+        },
     ) {
         // Crash-safe spill hygiene (C2D-1): heartbeat this session's lock so
         // a startup sweep in a later session can reclaim orphaned run dirs.
@@ -132,6 +143,26 @@ export class ExecutionHost {
         }
         if (text.trim().length === 0) {
             return { started: false, reason: "Nothing to execute." };
+        }
+        // Production-safety pause (Karl 2026-07-10): a modifying batch on a
+        // production connection stops HERE until the user confirms; "don't
+        // ask again this session" suppression lives in the guard closure.
+        if (!this.productionConfirmedOnce && this.productionGuard?.shouldConfirm(text) === true) {
+            void this.productionGuard.confirm().then((answer) => {
+                if (answer === "no") {
+                    return;
+                }
+                this.productionConfirmedOnce = true; // one-shot for re-entry
+                try {
+                    this.execute(text, options);
+                } finally {
+                    this.productionConfirmedOnce = false;
+                }
+            });
+            return {
+                started: false,
+                reason: "Confirm the production warning to run this query.",
+            };
         }
 
         // Resolve the QueryTuning snapshot ONCE for the whole run (QO-1):

@@ -3558,6 +3558,18 @@
                     "description": "Enable the Query Studio custom editor for .sql files (preview). Reload required.",
                     "scope": "application"
                 },
+                "mssql.queryStudio.statusBarGroupColor": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Color the Query Studio status bar with the connection's server-group color (text color is picked automatically for readability).",
+                    "scope": "application"
+                },
+                "mssql.queryStudio.warnWhenModifyingProduction": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Ask for confirmation before running statements that modify data (INSERT/UPDATE/DELETE/DDL/EXEC, …) on a connection whose server group is marked `\"production\": true` in `mssql.connectionGroups` (settings JSON only). Production connections also color the Query Studio status bar with the group color (red when the group has none).",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.maxRowsPerResultSet": {
                     "type": "number",
                     "default": 5000000,

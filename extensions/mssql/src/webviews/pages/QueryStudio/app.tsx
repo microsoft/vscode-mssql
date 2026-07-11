@@ -1864,7 +1864,24 @@ export function QueryStudioApp() {
                     </div>
                 </>
             ) : null}
-            <div className="qs-statusbar" role="status">
+            <div
+                className={`qs-statusbar${connection.accentColor ? " qs-statusbar-accent" : ""}`}
+                role="status"
+                // Production safety: the server-group accent colors the WHOLE
+                // status bar; text color is luminance-picked host-side.
+                style={
+                    connection.accentColor
+                        ? {
+                              background: connection.accentColor,
+                              color: connection.accentTextColor ?? "#ffffff",
+                          }
+                        : undefined
+                }
+                title={
+                    connection.production
+                        ? "PRODUCTION connection — modifications will ask for confirmation"
+                        : undefined
+                }>
                 <span
                     className="qs-status-message"
                     data-kind={actionHint ? "error" : (state?.statusMessage.kind ?? "ready")}>

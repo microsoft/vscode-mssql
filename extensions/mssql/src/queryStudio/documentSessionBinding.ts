@@ -36,6 +36,7 @@ import {
     stableProfileId,
 } from "../services/metadata/profileAuthAdapter";
 import { QsConnectionState } from "../sharedInterfaces/queryStudio";
+import { accentTextColor } from "../sharedInterfaces/colorContrast";
 import { buildSessionOptionsBatch, readQuerySessionOptions } from "./sessionOptions";
 
 interface StoredProfile {
@@ -52,6 +53,10 @@ interface StoredProfile {
 
 interface ConnectionStoreSeam {
     readAllConnections(includeRecent?: boolean): Promise<StoredProfile[]>;
+    /** Production safety: group color + the settings-JSON-only production flag. */
+    readAllConnectionGroups?(): Promise<
+        { id?: string; name?: string; color?: string; production?: boolean }[]
+    >;
     lookupPassword(credentials: unknown, isConnectionString?: boolean): Promise<string>;
 }
 
@@ -71,6 +76,8 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private lastProfileRef: SqlConnectionProfileRef | undefined;
     private lastStore: ConnectionStoreSeam | undefined;
     private lastAuthKind: "sql" | "integrated" | undefined;
+    /** Production safety: the connected profile's group facts (color + flag). */
+    private groupAccent: { color?: string; production: boolean } | undefined;
     private onChangeHandlers = new Set<() => void>();
     private metadataLease: DatabaseCatalogLease | undefined;
     private userSessionReady: Promise<void> = Promise.resolve();
@@ -79,6 +86,33 @@ export class DocumentSessionBinding implements vscode.Disposable {
     onDidChange(handler: () => void): vscode.Disposable {
         this.onChangeHandlers.add(handler);
         return { dispose: () => this.onChangeHandlers.delete(handler) };
+    }
+
+    private async resolveGroupAccent(
+        stored: StoredProfile,
+        store: ConnectionStoreSeam,
+    ): Promise<void> {
+        try {
+            const groupId = (stored as { groupId?: string }).groupId;
+            if (!groupId || !store.readAllConnectionGroups) {
+                return;
+            }
+            const groups = await store.readAllConnectionGroups();
+            const group = groups.find((candidate) => candidate.id === groupId);
+            if (!group) {
+                return;
+            }
+            const production = group.production === true;
+            if (group.color !== undefined || production) {
+                this.groupAccent = {
+                    ...(group.color !== undefined ? { color: group.color } : {}),
+                    production,
+                };
+                this.fireChange();
+            }
+        } catch {
+            // Accent/guard facts are best-effort; absence means "off".
+        }
     }
 
     /**
@@ -95,6 +129,51 @@ export class DocumentSessionBinding implements vscode.Disposable {
         }
     }
 
+    /**
+     * Production-safety guard fact: warn setting on AND the connected
+     * profile's group carries `"production": true` (settings-JSON only).
+     */
+    get productionWarnActive(): boolean {
+        return (
+            this.groupAccent?.production === true &&
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.queryStudio.warnWhenModifyingProduction", false) &&
+            (this.stateKind === "connected" || this.stateKind === "executing")
+        );
+    }
+
+    /** Status-bar accent per the option matrix (undefined = default chrome). */
+    private accentFacts():
+        | { accentColor: string; accentTextColor: string; production?: boolean }
+        | undefined {
+        const accent = this.groupAccent;
+        if (!accent || (this.stateKind !== "connected" && this.stateKind !== "executing")) {
+            return undefined;
+        }
+        const config = vscode.workspace.getConfiguration();
+        const colorOption = config.get<boolean>("mssql.queryStudio.statusBarGroupColor", false);
+        const warnOption = config.get<boolean>(
+            "mssql.queryStudio.warnWhenModifyingProduction",
+            false,
+        );
+        // Color shows when the color option is on, OR the connection is
+        // production and the warn option is on (production visibility rides
+        // the safety setting even without the cosmetic one).
+        if (!(colorOption || (accent.production && warnOption))) {
+            return undefined;
+        }
+        const accentColor = accent.color ?? (accent.production ? "#B71C1C" : undefined);
+        if (!accentColor) {
+            return undefined;
+        }
+        return {
+            accentColor,
+            accentTextColor: accentTextColor(accentColor),
+            ...(accent.production ? { production: true } : {}),
+        };
+    }
+
     get connectionState(): QsConnectionState {
         const info = this.session?.info;
         const engineEdition =
@@ -102,6 +181,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 ? Number(info.engineEdition)
                 : undefined;
         return {
+            ...(this.accentFacts() ?? {}),
             kind: this.stateKind,
             ...(info?.serverDisplayName ? { serverDisplayName: info.serverDisplayName } : {}),
             ...(info?.serverVersion ? { serverVersion: info.serverVersion } : {}),
@@ -238,6 +318,10 @@ export class DocumentSessionBinding implements vscode.Disposable {
         this.lastProfileRef = profileRef;
         this.lastStore = store;
         this.lastAuthKind = authKind;
+        // Production safety: resolve the profile's group facts in the
+        // background (accent + production flag); absence is simply "off".
+        this.groupAccent = undefined;
+        void this.resolveGroupAccent(stored, store);
         try {
             const service = await SqlDataPlaneService.get().service();
             const session = await service.openSession({
