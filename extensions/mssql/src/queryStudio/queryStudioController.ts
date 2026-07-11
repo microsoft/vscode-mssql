@@ -73,6 +73,14 @@ import { getQueryResultContextService } from "../queryResults/queryResultContext
 import { pinSourceResults } from "../queryResults/pinCommands";
 import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
+import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
+import {
+    QsVectorCancelRequest,
+    QsVectorCloseRequest,
+    QsVectorFindingDetailRequest,
+    QsVectorOpenRequest,
+    QsVectorProfileRequest,
+} from "../sharedInterfaces/vectorWorkbench";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -144,6 +152,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     /** Database names cached from QsListDatabases for USE completions. */
     private _languageDatabasesCache: string[] | undefined;
     private restoreEditorFocusWhenActive = false;
+    /** Vector Workbench sessions (VEC-4) — created on first vector RPC only. */
+    private vectorService: VectorWorkbenchService | undefined;
 
     private readonly extensionContext: vscode.ExtensionContext;
 
@@ -636,6 +646,18 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.statePushTimer.unref?.();
     }
 
+    private vectorWorkbench(): VectorWorkbenchService {
+        if (!this.vectorService) {
+            // The RUN's resolved tuning wins (budget attribution matches the
+            // data being analyzed); config-resolved is the pre-run fallback.
+            this.vectorService = new VectorWorkbenchService(
+                () => (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params,
+            );
+            this.registerDisposable({ dispose: () => this.vectorService?.dispose() });
+        }
+        return this.vectorService;
+    }
+
     private registerHandlers(): void {
         // --- text sync -----------------------------------------------------
         this.onRequest(QsSyncEditsRequest.type, async (edits) =>
@@ -931,6 +953,25 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
             };
             await showPlanXml(state, { sqlPlanContent });
+        });
+
+        // --- vector workbench (VEC-4): opaque pull sessions -----------------
+        // The service is created lazily on the first vector RPC — a document
+        // that never opens the Vector tab pays nothing here.
+        this.onRequest(QsVectorOpenRequest.type, async (params) =>
+            this.vectorWorkbench().open(this.model.executionHost.retainedStore, params),
+        );
+        this.onRequest(QsVectorProfileRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().profile(handle),
+        );
+        this.onRequest(QsVectorFindingDetailRequest.type, async ({ handle, kind }) =>
+            this.vectorWorkbench().findingDetail(handle, kind),
+        );
+        this.onRequest(QsVectorCancelRequest.type, async ({ handle }) => {
+            this.vectorWorkbench().cancel(handle);
+        });
+        this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
+            this.vectorWorkbench().close(handle);
         });
         this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
             const seam = await this.executionPlanSeam();

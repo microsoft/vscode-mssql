@@ -259,7 +259,9 @@ export async function ingestVectorColumn(args: {
     const descriptor: VectorSampleDescriptor = {
         sampleRows: rows,
         totalRows,
-        method: method === "full" && rows === totalRows ? "full" : "uniformWindows",
+        // Method describes the SCAN plan: a full scan stays "full" even when
+        // nulls/unavailable cells reduce the packed yield below totalRows.
+        method,
         seed,
         rowsScanned,
         budget: {

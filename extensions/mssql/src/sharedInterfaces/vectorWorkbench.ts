@@ -5,7 +5,8 @@
 
 /**
  * Vector Workbench contracts (VEC-4; readiness-review P0-1/P0-2/P0-8, design
- * addendum A6). Shared host ↔ webview — no vscode/DOM/Node imports.
+ * addendum A6). Shared host ↔ webview — vscode-jsonrpc only (the
+ * queryStudio.ts precedent), no vscode/DOM/Node imports.
  *
  * Evidence honesty is structural, not stylistic: every result contract
  * carries its `VectorEvidenceSource`, every finding carries its subject, the
@@ -18,6 +19,8 @@
  * text, keys, labels, distances, or projection coordinates into diagnostics
  * or telemetry. Logging uses counts/bytes/ms/enums only.
  */
+
+import { RequestType } from "vscode-jsonrpc";
 
 // ---------------------------------------------------------------------------
 // Evidence (P0-1): where a displayed fact came from
@@ -250,4 +253,29 @@ export interface QsVectorCancelParams {
 
 export interface QsVectorCloseParams {
     readonly handle: string;
+}
+
+// vscode-jsonrpc request types (host handlers auto-spanned per method name).
+export namespace QsVectorOpenRequest {
+    export const type = new RequestType<QsVectorOpenParams, QsVectorOpenResult, void>(
+        VECTOR_RPC.open,
+    );
+}
+export namespace QsVectorProfileRequest {
+    export const type = new RequestType<QsVectorProfileParams, QsVectorProfileResult, void>(
+        VECTOR_RPC.profile,
+    );
+}
+export namespace QsVectorFindingDetailRequest {
+    export const type = new RequestType<
+        QsVectorFindingDetailParams,
+        QsVectorFindingDetailResult,
+        void
+    >(VECTOR_RPC.findingDetail);
+}
+export namespace QsVectorCancelRequest {
+    export const type = new RequestType<QsVectorCancelParams, void, void>(VECTOR_RPC.cancel);
+}
+export namespace QsVectorCloseRequest {
+    export const type = new RequestType<QsVectorCloseParams, void, void>(VECTOR_RPC.close);
 }
