@@ -49,6 +49,9 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     /** This model's face in the result access service (C2D). */
     readonly liveResultSource: QueryStudioLiveResultSource;
 
+    /** Scan-and-detect ran for this document (once per doc, all panels). */
+    openScanCompleted = false;
+
     private sync: TextSyncEngine;
     private listeners = new Set<ModelTextEvents>();
     private docSubscription: vscode.Disposable;

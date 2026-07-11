@@ -15,6 +15,8 @@
 import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
+import { runScanRules } from "./scanDetect";
+import { QUERY_STUDIO_SCAN_RULES } from "./scanDetectRules";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
     QS_SCHEMA_VERSION,
@@ -109,6 +111,8 @@ import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
 import { saveQueryStudioResult } from "./resultExport";
 
 const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
+/** Scan-and-detect: idle beat after the webview is ready (plan §3.4). */
+const OPEN_SCAN_DELAY_MS = 1_500;
 
 export class QueryStudioController extends WebviewBaseController<QsState, void> {
     private openMarkerEnded = false;
@@ -405,6 +409,97 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     }
 
     /**
+     * Scan-and-detect (SQLCMD_MODE_PLAN.md §3.4): one idle spot-check of the
+     * document a short beat after the webview is ready — pluggable rules
+     * over a bounded sample, actions owned here. Once per DOCUMENT (the
+     * completed flag lives on the shared model, so a second panel doesn't
+     * re-prompt).
+     */
+    private scheduleOpenScan(): void {
+        if (
+            !vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.queryStudio.scan.enabled", true)
+        ) {
+            return;
+        }
+        const timer = setTimeout(() => this.runOpenScan(), OPEN_SCAN_DELAY_MS);
+        timer.unref?.();
+    }
+
+    private runOpenScan(): void {
+        if (this.isDisposed || this.model.openScanCompleted) {
+            return;
+        }
+        this.model.openScanCompleted = true;
+        const started = Date.now();
+        const text = this.model.backingDocument.getText();
+        const matches = runScanRules(text, QUERY_STUDIO_SCAN_RULES);
+        let action = "none";
+        if (matches.some((match) => match.id === "psql")) {
+            // The ask: "detect if this is a PSQL file and turn off TSQL
+            // error detection" — silent, per-document, this session only.
+            this.languageService.suppressDocumentDiagnostics("psql");
+            action = "psqlSuppress";
+        }
+        if (
+            matches.some((match) => match.id === "sqlcmd") &&
+            !this.model.executionHost.sqlcmdEnabled
+        ) {
+            if (
+                vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>("mssql.queryStudio.scan.autoEnableSqlcmd", false)
+            ) {
+                this.setSqlcmdMode(true, "scanAuto");
+                action = "sqlcmdAuto";
+            } else {
+                action = "sqlcmdPrompt";
+                void this.promptSqlcmdEnable();
+            }
+        }
+        Perf.marker("mssql.queryStudio.scan.run", "instant", {
+            rules: QUERY_STUDIO_SCAN_RULES.length,
+            matched: matches.length,
+            sampledLines: Math.min(50, text.split(/\r?\n/).length),
+            ms: Date.now() - started,
+            action,
+        });
+    }
+
+    /** The three-option prompt (the ask — exactly these choices). */
+    private async promptSqlcmdEnable(): Promise<void> {
+        const enable = "Enable";
+        const dontEnable = "Don't Enable";
+        const autoEnable = "Don't show again, auto-enable";
+        const choice = await vscode.window.showInformationMessage(
+            "This file has SQLCMD commands. Do you want to enable SQLCMD mode?",
+            enable,
+            dontEnable,
+            autoEnable,
+        );
+        if (this.isDisposed) {
+            return;
+        }
+        if (choice === autoEnable) {
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    "mssql.queryStudio.scan.autoEnableSqlcmd",
+                    true,
+                    vscode.ConfigurationTarget.Global,
+                );
+        }
+        if (choice === enable || choice === autoEnable) {
+            this.setSqlcmdMode(true, "scanPrompt");
+        }
+        Perf.marker("mssql.queryStudio.scan.run", "instant", {
+            action:
+                choice === dontEnable || choice === undefined ? "sqlcmdDeclined" : "sqlcmdEnabled",
+        });
+    }
+
+    /**
      * SQLCMD mode flip (SQLCMD_MODE_PLAN.md §3.3) — one entry point for the
      * toolbar toggle and the scan-and-detect actions so the marker always
      * says who flipped it.
@@ -564,6 +659,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             if (!this.openMarkerEnded) {
                 this.openMarkerEnded = true;
                 Perf.marker("mssql.queryStudio.open.end", "end", { fromCache: false });
+                this.scheduleOpenScan();
             }
             return {
                 rowsStreamed: 0,

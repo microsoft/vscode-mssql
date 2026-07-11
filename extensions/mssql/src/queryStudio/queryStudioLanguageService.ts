@@ -289,6 +289,27 @@ export class QueryStudioLanguageService implements vscode.Disposable {
     }
 
     /**
+     * Per-DOCUMENT diagnostics suppression (scan-and-detect, SQLCMD_MODE_PLAN
+     * §3.4): the psql rule turns T-SQL error checking off for a file that
+     * is clearly not T-SQL. Settings-level enablement stays untouched;
+     * markers already published clear on the next (empty) pull.
+     */
+    private documentDiagnosticsSuppressedReason: string | undefined;
+
+    suppressDocumentDiagnostics(reason: string): void {
+        if (this.documentDiagnosticsSuppressedReason === reason) {
+            return;
+        }
+        this.documentDiagnosticsSuppressedReason = reason;
+        this.scheduleNativeDiagnostics();
+    }
+
+    /** Settings enablement AND no per-document suppression. */
+    private diagnosticsActive(): boolean {
+        return this.diagnosticsEnabled() && this.documentDiagnosticsSuppressedReason === undefined;
+    }
+
+    /**
      * The classic mssql.intelliSense.* switches apply to the native engine
      * too — they are editor-generic, not an STS implementation detail.
      * enableSuggestions covers completions AND signature help;
@@ -375,7 +396,7 @@ export class QueryStudioLanguageService implements vscode.Disposable {
             this.diagnosticsScheduler.cancel();
             return;
         }
-        if (!this.diagnosticsEnabled()) {
+        if (!this.diagnosticsActive()) {
             this.diagnosticsScheduler.cancel();
             this.notifyDiagnosticsListeners(); // pull yields [] -> markers clear
             return;
@@ -552,7 +573,7 @@ export class QueryStudioLanguageService implements vscode.Disposable {
         // Disabled = the native engine publishes NOTHING (an empty result so
         // previously published markers clear). Bridge routing is unaffected.
         const native = this.router.effectiveEngine("diagnostics") === "nativeTypeScript";
-        if (native && !this.diagnosticsEnabled()) {
+        if (native && !this.diagnosticsActive()) {
             return { diagnostics: [] };
         }
         const req = this.request({ line: 0, character: 0 });

@@ -3570,6 +3570,18 @@
                     "markdownDescription": "Ask for confirmation before running statements that modify data (INSERT/UPDATE/DELETE/DDL/EXEC, …) on a connection whose server group is marked `\"production\": true` in `mssql.connectionGroups` (settings JSON only). Production connections also color the Query Studio status bar with the group color (red when the group has none).",
                     "scope": "application"
                 },
+                "mssql.queryStudio.scan.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Scan newly opened Query Studio documents in idle background time (a bounded spot check of the first lines) to detect things like SQLCMD commands or non-T-SQL dialects and offer/adjust behavior.",
+                    "scope": "application"
+                },
+                "mssql.queryStudio.scan.autoEnableSqlcmd": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically enable SQLCMD mode (without asking) when an opened file contains SQLCMD commands. Set by the \"Don't show again, auto-enable\" choice in the detection prompt.",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.maxRowsPerResultSet": {
                     "type": "number",
                     "default": 5000000,
