@@ -886,9 +886,14 @@ export function QueryStudioApp() {
             dbListRequestRef.current++;
             setDbList(undefined);
             restoreEditorFocusSoon();
-            void rpc
-                .sendRequest(QsSetDatabaseRequest.type, { database })
-                .then(restoreEditorFocusSoon, restoreEditorFocusSoon);
+            void rpc.sendRequest(QsSetDatabaseRequest.type, { database }).then((result) => {
+                // A failed switch must never look like a no-op (the same
+                // rule as refused runs): surface the host's reason.
+                setActionHint(
+                    result.changed ? undefined : (result.reason ?? "Could not switch database."),
+                );
+                restoreEditorFocusSoon();
+            }, restoreEditorFocusSoon);
         },
         [restoreEditorFocusSoon, rpc],
     );

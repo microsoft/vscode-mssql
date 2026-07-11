@@ -132,7 +132,10 @@ export interface ISqlConnectionService {
 export interface SessionInfo {
     serverDisplayName?: string;
     serverVersion?: string;
+    /** Edition DISPLAY name (serverproperty('Edition') — e.g. "SQL Azure"). */
     engineEdition?: string;
+    /** Numeric serverproperty('EngineEdition') — 5 = Azure SQL DB, 8 = MI. */
+    engineEditionId?: number;
     database?: string;
     loginName?: string;
     spid?: number;

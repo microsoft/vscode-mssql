@@ -327,9 +327,11 @@ export namespace QsReconnectRequest {
     export const type = new RequestType<void, { connected: boolean }, void>("qs/reconnect");
 }
 export namespace QsSetDatabaseRequest {
-    export const type = new RequestType<{ database: string }, { changed: boolean }, void>(
-        "qs/setDatabase",
-    );
+    export const type = new RequestType<
+        { database: string },
+        { changed: boolean; reason?: string },
+        void
+    >("qs/setDatabase");
 }
 export namespace QsListDatabasesRequest {
     export const type = new RequestType<void, { databases: string[] }, void>("qs/listDatabases");

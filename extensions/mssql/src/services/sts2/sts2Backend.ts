@@ -502,10 +502,14 @@ export class Sts2Session implements ISqlSession {
             this.backend.availability.state === "available"
                 ? this.backend.availability.capabilities
                 : STS2_CAPABILITIES;
+        const editionId = openResult.serverInfo?.engineEditionId;
         this.info = {
             serverDisplayName: params.profile.server,
             serverVersion: openResult.serverInfo?.version,
             engineEdition: openResult.serverInfo?.engineEdition,
+            ...(editionId !== undefined && editionId !== null && Number.isFinite(Number(editionId))
+                ? { engineEditionId: Number(editionId) }
+                : {}),
             database: params.database ?? params.profile.database,
             loginName: params.profile.user,
             backendKind: "sts2-jsonrpc",

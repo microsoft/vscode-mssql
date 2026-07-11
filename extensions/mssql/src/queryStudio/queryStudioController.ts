@@ -730,12 +730,42 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsSetDatabaseRequest.type, async ({ database }) => {
             // Azure SQL DB has no USE — switch by reconnecting with the new
             // database (STS v1 ChangeConnectionDatabaseContext IsCloud
-            // parity). Everything else keeps the in-session USE.
-            const changed = this.model.sessionBinding.isAzureSqlDb
+            // parity). Everything else keeps the in-session USE. Outcome is
+            // journaled and failures return a reason — a selector pick must
+            // never no-op silently (dogfood 2026-07-11: NaN engine edition
+            // sent Azure down the USE path and the error vanished).
+            const azure = this.model.sessionBinding.isAzureSqlDb;
+            const method = azure ? "reconnect" : "use";
+            const started = Date.now();
+            const changed = azure
                 ? await this.model.sessionBinding.switchDatabaseByReconnect(database)
                 : await this.model.executionHost.setDatabase(database);
+            diag.emit({
+                feature: "queryStudio",
+                type: "queryStudio.dbSwitch",
+                status: changed ? "ok" : "error",
+                fields: {
+                    method: { raw: method, cls: "diagnostic.metadata" },
+                    changed: { raw: changed, cls: "diagnostic.metadata" },
+                    engineEditionKnown: {
+                        raw: this.model.sessionBinding.connectionState.engineEdition !== undefined,
+                        cls: "diagnostic.metadata",
+                    },
+                    ms: { raw: Date.now() - started, cls: "diagnostic.metadata" },
+                },
+            });
             this.queueStatePush();
-            return { changed };
+            return {
+                changed,
+                ...(changed
+                    ? {}
+                    : {
+                          reason:
+                              method === "reconnect"
+                                  ? `Could not reconnect to database "${database}".`
+                                  : `Could not switch to database "${database}" (USE failed).`,
+                      }),
+            };
         });
         this.onRequest(QsListDatabasesRequest.type, async () => {
             const databases = await this.model.executionHost.listDatabases();

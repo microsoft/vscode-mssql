@@ -96,3 +96,43 @@ suite("query studio: Azure database list (master-first)", () => {
         expect(databases).to.deep.equal(["master", "currentdb"]);
     });
 });
+
+suite("query studio: Azure SQL DB detection (engine edition)", () => {
+    function bindingWithInfo(info: Record<string, unknown> | undefined): DocumentSessionBinding {
+        const binding = new DocumentSessionBinding();
+        (binding as unknown as { session?: { info?: unknown } }).session = info
+            ? { info }
+            : undefined;
+        return binding;
+    }
+
+    test("numeric engineEditionId is exact: 5 = Azure SQL DB, 8 (MI) keeps USE", () => {
+        expect(bindingWithInfo({ engineEditionId: 5 }).isAzureSqlDb).to.equal(true);
+        expect(bindingWithInfo({ engineEditionId: 8 }).isAzureSqlDb).to.equal(false);
+        expect(bindingWithInfo({ engineEditionId: 3 }).isAzureSqlDb).to.equal(false);
+    });
+
+    test("id wins over the display name when both are present", () => {
+        // MI reports Edition name "SQL Azure" too — the id must decide.
+        expect(
+            bindingWithInfo({ engineEditionId: 8, engineEdition: "SQL Azure" }).isAzureSqlDb,
+        ).to.equal(false);
+    });
+
+    test("older services: edition NAME sniff (the dogfood bug — 'SQL Azure' is not a number)", () => {
+        expect(bindingWithInfo({ engineEdition: "SQL Azure" }).isAzureSqlDb).to.equal(true);
+        expect(bindingWithInfo({ engineEdition: "5" }).isAzureSqlDb).to.equal(true);
+        expect(
+            bindingWithInfo({ engineEdition: "Developer Edition (64-bit)" }).isAzureSqlDb,
+        ).to.equal(false);
+        expect(
+            bindingWithInfo({ engineEdition: "Enterprise Edition: Core-based Licensing" })
+                .isAzureSqlDb,
+        ).to.equal(false);
+    });
+
+    test("no session / no edition facts → not Azure (USE path)", () => {
+        expect(bindingWithInfo(undefined).isAzureSqlDb).to.equal(false);
+        expect(bindingWithInfo({}).isAzureSqlDb).to.equal(false);
+    });
+});

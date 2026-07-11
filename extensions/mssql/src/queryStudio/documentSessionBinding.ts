@@ -176,10 +176,14 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     get connectionState(): QsConnectionState {
         const info = this.session?.info;
+        // Prefer the numeric engineEditionId (D-0017); the legacy field only
+        // parses when a service ever sends a number there.
         const engineEdition =
-            info?.engineEdition !== undefined && Number.isFinite(Number(info.engineEdition))
-                ? Number(info.engineEdition)
-                : undefined;
+            info?.engineEditionId !== undefined && Number.isFinite(Number(info.engineEditionId))
+                ? Number(info.engineEditionId)
+                : info?.engineEdition !== undefined && Number.isFinite(Number(info.engineEdition))
+                  ? Number(info.engineEdition)
+                  : undefined;
         return {
             ...(this.accentFacts() ?? {}),
             kind: this.stateKind,
@@ -273,9 +277,23 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     private lastStoredProfile: StoredProfile | undefined;
 
-    /** Azure SQL Database (engine edition 5): USE is not supported there. */
+    /**
+     * Azure SQL Database (engine edition 5): USE is not supported there.
+     * Exact when the service sends the numeric engineEditionId (STS2
+     * D-0017); older services only carry serverproperty('Edition')'s NAME
+     * ("SQL Azure") in engineEdition — Number() of that is NaN, which is
+     * exactly the dogfood bug where the DB selector silently ran USE. Name
+     * sniff is the OE v2 recipe (oeV2TreeController.serverScopeFacts); it
+     * also matches Managed Instance, where switch-by-reconnect still works,
+     * just heavier than the USE the numeric id would have picked.
+     */
     get isAzureSqlDb(): boolean {
-        return Number(this.session?.info?.engineEdition) === 5;
+        const info = this.session?.info;
+        if (info?.engineEditionId !== undefined) {
+            return Number(info.engineEditionId) === 5;
+        }
+        const edition = info?.engineEdition;
+        return edition !== undefined && (Number(edition) === 5 || /azure/i.test(String(edition)));
     }
 
     /**

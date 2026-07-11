@@ -113,7 +113,14 @@ export interface V2ConnectionOpenParams {
 export interface V2ServerInfo {
     product?: string;
     version?: string;
+    /** Edition DISPLAY name (serverproperty('Edition') — e.g. "SQL Azure"). */
     engineEdition?: string;
+    /**
+     * Numeric serverproperty('EngineEdition') (additive, STS2 D-0017):
+     * 5 = Azure SQL Database, 8 = Managed Instance. Absent on older
+     * services and failed probes.
+     */
+    engineEditionId?: number;
     dialect?: string;
 }
 
