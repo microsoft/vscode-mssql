@@ -86,6 +86,13 @@ import {
 } from "../sharedInterfaces/vectorWorkbench";
 import { QsVectorCapabilitiesRequest } from "../sharedInterfaces/vectorCatalog";
 import { QsVectorIndexStateRequest } from "../sharedInterfaces/vectorIndex";
+import { VectorPipelineService } from "../queryResults/vector/vectorPipelineService";
+import {
+    QsVectorChunkPreviewRequest,
+    QsVectorPipelineStateRequest,
+    QsVectorReembedExecuteRequest,
+    QsVectorReembedPrepareRequest,
+} from "../sharedInterfaces/vectorPipeline";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -679,6 +686,23 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         return this.vectorService;
     }
 
+    /** Pipeline workspace (VEC-10) — lazy; model calls need host-minted consent. */
+    private vectorPipelineService: VectorPipelineService | undefined;
+
+    private vectorPipeline(): VectorPipelineService {
+        if (!this.vectorPipelineService) {
+            this.vectorPipelineService = new VectorPipelineService({
+                auxModelSession: () =>
+                    this.model.sessionBinding.acquireAuxiliarySession("vectorModelCall"),
+                capabilities: (refresh) =>
+                    this.model.vectorCapabilities.capabilities(refresh === true),
+                workbench: (handle) => this.vectorWorkbench().sessionFacts(handle),
+            });
+            this.registerDisposable({ dispose: () => this.vectorPipelineService?.dispose() });
+        }
+        return this.vectorPipelineService;
+    }
+
     private registerHandlers(): void {
         // --- text sync -----------------------------------------------------
         this.onRequest(QsSyncEditsRequest.type, async (edits) =>
@@ -1009,6 +1033,20 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.model.vectorIndexWorkspace.indexState(
                 (params as { refresh?: boolean } | undefined)?.refresh === true,
             ),
+        );
+        this.onRequest(QsVectorPipelineStateRequest.type, async (params) =>
+            this.vectorPipeline().pipelineState(
+                (params as { refresh?: boolean } | undefined)?.refresh === true,
+            ),
+        );
+        this.onRequest(QsVectorReembedPrepareRequest.type, async (params) =>
+            this.vectorPipeline().reembedPrepare(params),
+        );
+        this.onRequest(QsVectorReembedExecuteRequest.type, async ({ token }) =>
+            this.vectorPipeline().reembedExecute(token),
+        );
+        this.onRequest(QsVectorChunkPreviewRequest.type, async (params) =>
+            this.vectorPipeline().chunkPreview(params),
         );
         this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
             const seam = await this.executionPlanSeam();

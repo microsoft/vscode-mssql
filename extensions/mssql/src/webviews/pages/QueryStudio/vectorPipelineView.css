@@ -1,0 +1,291 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Vector Workbench — Pipeline workspace (VEC-10).
+ * House rules (briefs r01/r06): VS Code tokens only, radii ≤ 2px, 11px
+ * uppercase section labels (shared .qs-vec-section-label), monospace
+ * numerics, no cards/chips/tinted headers; the pane fills and inner regions
+ * scroll. Shadows appear ONLY on the confirmation dialog (sanctioned).
+ * Load path: bundled into the Query Studio entry stylesheet (see wiring —
+ * one import line in webviews/pages/QueryStudio/index.tsx). */
+
+.qs-vecp-root {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto; /* single inner scroll region — the page never scrolls */
+    padding: 0 12px 8px;
+    font-size: 12px;
+}
+
+.qs-vecp-columns {
+    display: grid;
+    grid-template-columns: minmax(320px, 5fr) minmax(360px, 6fr);
+    column-gap: 24px;
+    align-items: start;
+}
+@media (max-width: 860px) {
+    .qs-vecp-columns {
+        grid-template-columns: 1fr; /* narrow density mode stacks (U10) */
+    }
+}
+
+/* Properties-grid values: right-aligned, bounded, ellipsized. */
+.qs-vecp-prop-value {
+    text-align: right;
+    max-width: 420px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qs-vecp-select {
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 1px 4px;
+    max-width: 320px;
+}
+
+.qs-vecp-input {
+    width: 72px;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 2px 6px;
+    text-align: right;
+}
+.qs-vecp-input:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.qs-vecp-button {
+    height: 26px;
+    padding: 0 10px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    border: 1px solid var(--vscode-button-border, var(--vscode-editorWidget-border));
+    border-radius: 2px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.qs-vecp-button:hover:not(:disabled) {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+.qs-vecp-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.qs-vecp-button-primary {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: transparent;
+}
+.qs-vecp-button-primary:hover:not(:disabled) {
+    background: var(--vscode-button-hoverBackground);
+}
+
+/* --- Re-embed panel -------------------------------------------------------- */
+
+.qs-vecp-row-pick {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 8px;
+}
+
+.qs-vecp-source-preview {
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    padding: 6px 8px;
+    margin: 6px 0;
+    max-height: 72px;
+    overflow-y: auto;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+}
+
+.qs-vecp-result {
+    margin-top: 6px;
+}
+.qs-vecp-executed {
+    color: var(--vscode-charts-green, var(--vscode-testing-iconPassed));
+    margin: 4px 0 6px;
+}
+
+/* --- Chunk debugger --------------------------------------------------------- */
+
+.qs-vecp-chunks {
+    margin-top: 8px;
+}
+.qs-vecp-chunk-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.qs-vecp-chunk-spacer {
+    flex: 1;
+}
+.qs-vecp-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+}
+.qs-vecp-stepper > button {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    color: var(--vscode-foreground);
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+}
+.qs-vecp-stepper > button:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+.qs-vecp-stepper > .qs-vec-num {
+    min-width: 44px;
+    text-align: center;
+    border-left: 1px solid var(--vscode-editorWidget-border);
+    border-right: 1px solid var(--vscode-editorWidget-border);
+    padding: 0 4px;
+}
+
+.qs-vecp-ribbon {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 30px;
+    margin: 4px 0;
+}
+.qs-vecp-chunk {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-basis: 0;
+    min-width: 56px;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    padding: 4px 6px;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Hatched overlap spans (mock: diagonal hatch between adjacent chunks). */
+.qs-vecp-overlap {
+    flex-basis: 0;
+    min-width: 8px;
+    max-width: 64px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    background: repeating-linear-gradient(
+        45deg,
+        transparent 0,
+        transparent 3px,
+        var(--vscode-editorWidget-border) 3px,
+        var(--vscode-editorWidget-border) 4px
+    );
+}
+
+/* --- Footer strip (layered network claim, P0-5) ----------------------------- */
+
+.qs-vecp-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+    font-size: 11px;
+}
+
+/* --- Host-minted confirmation dialog ----------------------------------------- */
+
+.qs-vecp-scrim {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--vscode-widget-shadow, #000) 40%, transparent);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 48px;
+    z-index: 10;
+}
+.qs-vecp-dialog {
+    width: min(560px, calc(100% - 48px));
+    background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.4));
+}
+.qs-vecp-dialog-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px 6px;
+    font-weight: 600;
+}
+.qs-vecp-dialog-close {
+    background: transparent;
+    border: none;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 2px;
+}
+.qs-vecp-dialog-close:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+.qs-vecp-dialog-body {
+    padding: 0 14px 8px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+.qs-vecp-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px 14px 12px;
+}
+.qs-vecp-egress-warning {
+    margin: 8px 0 2px;
+    padding: 5px 8px;
+    border-left: 3px solid var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+    background: color-mix(
+        in srgb,
+        var(--vscode-editorWarning-foreground, #cca700) 12%,
+        transparent
+    );
+    color: var(--vscode-foreground);
+}
+.qs-vecp-sql {
+    margin: 8px 0 0;
+    padding: 6px 8px;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    background: var(--vscode-editor-background);
+    font-size: 11px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 160px;
+    overflow-y: auto;
+}

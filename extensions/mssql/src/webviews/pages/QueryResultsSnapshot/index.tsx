@@ -8,6 +8,7 @@ import "../../index.css";
 // The pinned pane reuses the Query Studio result components and their styles.
 import "../QueryStudio/queryStudio.css";
 import "../QueryStudio/vectorIndexView.css";
+import "../QueryStudio/vectorPipelineView.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { PinnedResultsApp } from "./app";
 

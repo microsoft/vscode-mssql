@@ -1422,6 +1422,27 @@ export function QueryStudioApp() {
         [resultSetSummaries],
     );
     const hasVectorResults = vectorColumns.length > 0;
+    // String-typed columns per result set (Pipeline source-text picker).
+    const stringColumnsByResult = React.useMemo(() => {
+        const byResult: Record<string, { ordinal: number; name: string }[]> = {};
+        for (const summary of resultSetSummaries) {
+            const strings = (summary.columns ?? []).flatMap((c, ordinal) => {
+                const t = c.sqlType?.toLowerCase() ?? "";
+                return t === "varchar" ||
+                    t === "nvarchar" ||
+                    t === "char" ||
+                    t === "nchar" ||
+                    t === "text" ||
+                    t === "ntext"
+                    ? [{ ordinal, name: c.displayName || c.name }]
+                    : [];
+            });
+            if (strings.length > 0) {
+                byResult[summary.resultSetId] = strings;
+            }
+        }
+        return byResult;
+    }, [resultSetSummaries]);
     const visibleActiveTab: QueryStudioTab =
         activeTab === "results" && !hasDataResults
             ? "messages"
@@ -1935,6 +1956,7 @@ export function QueryStudioApp() {
                                         rpc={rpc}
                                         columns={vectorColumns}
                                         runKey={String(runId ?? "idle")}
+                                        stringColumnsByResult={stringColumnsByResult}
                                     />
                                 </React.Suspense>
                             ) : (

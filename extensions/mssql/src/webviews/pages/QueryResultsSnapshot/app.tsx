@@ -250,6 +250,7 @@ export function PinnedResultsApp() {
                             rpc={rpc}
                             columns={vectorColumns}
                             runKey={`pinned:${state.createdEpochMs ?? 0}`}
+                            live={false}
                         />
                     </React.Suspense>
                 ) : (

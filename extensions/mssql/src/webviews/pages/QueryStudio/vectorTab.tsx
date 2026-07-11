@@ -24,6 +24,7 @@ import * as React from "react";
 import { Rpc } from "./resultsGridShared";
 import { VectorCompareView } from "./vectorCompareView";
 import { VectorIndexView } from "./vectorIndexView";
+import { VectorPipelineView } from "./vectorPipelineView";
 import { VectorProjectionView } from "./vectorProjectionView";
 import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -53,6 +54,13 @@ export interface VectorWorkbenchTabProps {
     columns: readonly VectorColumnChoice[];
     /** Bumps per run — resets session state without remounting the tab. */
     runKey: string;
+    /**
+     * False on frozen surfaces (pinned snapshots): live-session workspaces
+     * (Pipeline; Search when it lands) lock with an honest tooltip.
+     */
+    live?: boolean;
+    /** String-typed columns per result set (Pipeline source-text picker). */
+    stringColumnsByResult?: Record<string, readonly { ordinal: number; name: string }[]>;
 }
 
 type Workspace = "profile" | "search" | "compare" | "projection" | "index" | "pipeline";
@@ -63,8 +71,11 @@ const WORKSPACES: Array<{ id: Workspace; label: string; enabled: boolean }> = [
     { id: "compare", label: "Compare", enabled: true },
     { id: "projection", label: "Projection", enabled: true },
     { id: "index", label: "Index", enabled: true },
-    { id: "pipeline", label: "Pipeline", enabled: false },
+    { id: "pipeline", label: "Pipeline", enabled: true },
 ];
+
+/** Workspaces that need a LIVE connection (locked on frozen surfaces). */
+const LIVE_ONLY_WORKSPACES: ReadonlySet<Workspace> = new Set(["search", "pipeline"]);
 
 const FINDING_LABELS: Record<VectorFindingKind, string> = {
     nonFiniteComponents: "Vectors contain non-finite components",
@@ -147,7 +158,7 @@ function SectionLabel(props: { children: React.ReactNode; right?: React.ReactNod
 }
 
 export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.Element {
-    const { rpc, columns, runKey } = props;
+    const { rpc, columns, runKey, live = true, stringColumnsByResult } = props;
     const [workspace, setWorkspace] = React.useState<Workspace>("profile");
     const [columnIndex, setColumnIndex] = React.useState(0);
     const [opened, setOpened] = React.useState<QsVectorOpenResult | undefined>();
@@ -271,18 +282,28 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
             </div>
             <div className="qs-vec-body">
                 <nav className="qs-vec-rail" role="tablist" aria-label="Vector workspaces">
-                    {WORKSPACES.map((w) => (
-                        <button
-                            key={w.id}
-                            role="tab"
-                            aria-selected={workspace === w.id}
-                            className={`qs-vec-rail-item${workspace === w.id ? " active" : ""}`}
-                            disabled={!w.enabled}
-                            title={w.enabled ? w.label : `${w.label} — coming in a later build`}
-                            onClick={() => w.enabled && setWorkspace(w.id)}>
-                            {w.label}
-                        </button>
-                    ))}
+                    {WORKSPACES.map((w) => {
+                        const lockedFrozen = !live && LIVE_ONLY_WORKSPACES.has(w.id);
+                        const enabled = w.enabled && !lockedFrozen;
+                        return (
+                            <button
+                                key={w.id}
+                                role="tab"
+                                aria-selected={workspace === w.id}
+                                className={`qs-vec-rail-item${workspace === w.id ? " active" : ""}`}
+                                disabled={!enabled}
+                                title={
+                                    enabled
+                                        ? w.label
+                                        : lockedFrozen
+                                          ? `${w.label} — needs a live connection (pinned results are frozen)`
+                                          : `${w.label} — coming in a later build`
+                                }
+                                onClick={() => enabled && setWorkspace(w.id)}>
+                                {w.label}
+                            </button>
+                        );
+                    })}
                 </nav>
                 <main className="qs-vec-workspace">
                     {error ? (
@@ -308,6 +329,20 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                         />
                     ) : workspace === "index" ? (
                         <VectorIndexView rpc={rpc} generation={opened.generation} />
+                    ) : workspace === "pipeline" ? (
+                        <VectorPipelineView
+                            rpc={rpc}
+                            handle={opened.handle}
+                            generation={opened.generation}
+                            vectorColumn={{
+                                columnName: column.columnName,
+                                ...(column.dimensions !== undefined
+                                    ? { dimensions: column.dimensions }
+                                    : {}),
+                            }}
+                            stringColumns={stringColumnsByResult?.[column.resultSetId] ?? []}
+                            totalRows={opened.totalRows}
+                        />
                     ) : loading || !profile ? (
                         <div className="qs-vec-empty qs-muted">Analyzing vector column…</div>
                     ) : (

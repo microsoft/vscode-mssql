@@ -546,6 +546,22 @@ export class VectorWorkbenchService {
         }
     }
 
+    /** VEC-10 seam: facts about an open analysis session, by handle. */
+    sessionFacts(
+        handle: string,
+    ): { store: IQueryResultStore; resultSetId: string; vectorColumnOrdinal: number } | undefined {
+        const session = this.sessions.get(handle);
+        if (!session || session.disposed) {
+            return undefined;
+        }
+        this.touch(session);
+        return {
+            store: session.store,
+            resultSetId: session.resultSetId,
+            vectorColumnOrdinal: session.columnOrdinal,
+        };
+    }
+
     findingDetail(handle: string, kind: VectorFindingKind): QsVectorFindingDetailResult {
         const session = this.sessions.get(handle);
         if (!session || session.disposed) {

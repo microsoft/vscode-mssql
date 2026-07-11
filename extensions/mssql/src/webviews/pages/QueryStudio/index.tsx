@@ -10,6 +10,7 @@ import "../../index.css";
 import "./queryStudio.css";
 // Lazy-pane CSS rides the ENTRY stylesheet (lazy-chunk CSS is never linked).
 import "./vectorIndexView.css";
+import "./vectorPipelineView.css";
 import { perfMark } from "../../common/perfMarks";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { QueryStudioApp } from "./app";
