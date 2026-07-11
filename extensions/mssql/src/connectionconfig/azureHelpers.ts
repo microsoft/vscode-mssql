@@ -83,7 +83,28 @@ export type AzureSqlDatabaseStatus = "Paused" | "Pausing" | "Resuming" | "Online
 
 export const azureStatusesToRetry: AzureSqlDatabaseStatus[] = ["Paused", "Pausing", "Resuming"];
 
+/**
+ * Location of an Azure SQL logical server resource, resolved from an account + server name. This
+ * is the expensive-to-compute, stable part of a pause-status check (finding which subscription and
+ * resource group a server lives in), so it is cached and reused across status checks.
+ */
+export interface SqlServerResourceInfo {
+    accountId: string;
+    subscriptionId: string;
+    resourceGroup: string;
+}
+
 export class VsCodeAzureHelper {
+    /**
+     * Cache of Azure SQL server resource lookups, keyed by `${accountId}|${serverName}`. Stores the
+     * in-flight/resolved promise so concurrent callers share one lookup and resolved results
+     * (including "UnableToCheck") are reused instead of re-scanning every subscription each time.
+     */
+    private static readonly _sqlResourceCache = new Map<
+        string,
+        Promise<SqlServerResourceInfo | "UnableToCheck">
+    >();
+
     /**
      * Returns the singleton `VSCodeAzureSubscriptionProvider` instance used for all Azure auth operations.
      */
@@ -422,6 +443,10 @@ export class VsCodeAzureHelper {
      * Uses the Azure ARM API to check the wake status of a database. All failures are logged and
      * swallowed, returning "UnableToCheck".
      *
+     * The (expensive) server-to-subscription/resource-group lookup is delegated to
+     * {@link findSqlResource}, which is cached, so repeated status checks for the same server only
+     * pay for the live `databases.get` status call.
+     *
      * @param connection the connection being attempted.
      * @param database optional database name override, used when the database being accessed differs
      *   from the connection's database (e.g. expanding a  database node on a server connection).
@@ -446,11 +471,109 @@ export class VsCodeAzureHelper {
             return "UnableToCheck";
         }
 
-        azureHelperLogger.trace(
-            `Pause status check ${sourceSuffix}: determining if ${accountId} can check status for ${target}`,
-        );
+        // Resolve (from cache when possible) which subscription/resource group the server lives in.
+        const resource = await this.findSqlResource(accountId, serverName);
+        if (resource === "UnableToCheck") {
+            azureHelperLogger.trace(
+                `Pause status check ${sourceSuffix}: server for ${target} could not be located for user ${accountId}`,
+            );
+            return "UnableToCheck";
+        }
 
         try {
+            const subscriptions = await this.getSubscriptionsForAccount(accountId);
+            const subscription = subscriptions.find(
+                (sub) => sub.subscriptionId === resource.subscriptionId,
+            );
+
+            if (!subscription) {
+                azureHelperLogger.trace(
+                    `Pause status check ${sourceSuffix}: subscription ${resource.subscriptionId} for ${target} is no longer available to user ${accountId}`,
+                );
+                return "UnableToCheck";
+            }
+
+            const sql = new SqlManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
+            );
+
+            const dbResource = await sql.databases.get(
+                resource.resourceGroup,
+                serverName,
+                databaseName,
+            );
+
+            azureHelperLogger.trace(
+                `Pause check ${sourceSuffix}: database ${target} is ${dbResource.status}`,
+            );
+
+            return (dbResource?.status as AzureSqlDatabaseStatus) ?? "UnableToCheck";
+        } catch (err) {
+            azureHelperLogger.trace(
+                `Pause check ${sourceSuffix}: error occurred while checking database ${target}; exiting. ${getErrorMessage(err)}`,
+            );
+
+            return "UnableToCheck";
+        }
+    }
+
+    /**
+     * Finds which subscription and resource group an Azure SQL logical server belongs to for the
+     * given account, by scanning the account's subscriptions. The result (including "UnableToCheck"
+     * when the server can't be located) is cached by `${accountId}|${serverName}`, and concurrent
+     * lookups share a single in-flight promise, so the expensive per-subscription server scan runs
+     * at most once per server per session.
+     *
+     * @param accountId the Azure account to search within.
+     * @param serverName the Azure SQL logical server name (without the `.database.*` suffix).
+     */
+    public static findSqlResource(
+        accountId: string,
+        serverName: string,
+    ): Promise<SqlServerResourceInfo | "UnableToCheck"> {
+        const cacheKey = `${accountId}|${serverName.toLowerCase()}`;
+
+        const cached = this._sqlResourceCache.get(cacheKey);
+        if (cached) {
+            azureHelperLogger.trace(
+                `SQL resource lookup: cache hit for server "${serverName}" (user ${accountId})`,
+            );
+            return cached;
+        }
+
+        azureHelperLogger.trace(
+            `SQL resource lookup: cache miss for server "${serverName}" (user ${accountId}); searching subscriptions`,
+        );
+
+        // The worker never rejects (all failures resolve to "UnableToCheck"), so the cached promise
+        // is always safe to reuse.
+        const lookup = this.searchForSqlResource(accountId, serverName);
+        this._sqlResourceCache.set(cacheKey, lookup);
+        return lookup;
+    }
+
+    /**
+     * Clears the cached {@link findSqlResource} lookups. Useful when account/subscription
+     * membership may have changed, and for keeping unit tests isolated from one another.
+     */
+    public static clearSqlResourceCache(): void {
+        azureHelperLogger.trace("SQL resource lookup: clearing cache");
+        this._sqlResourceCache.clear();
+    }
+
+    private static async searchForSqlResource(
+        accountId: string,
+        serverName: string,
+    ): Promise<SqlServerResourceInfo | "UnableToCheck"> {
+        try {
+            azureHelperLogger.trace(
+                `SQL resource lookup: searching for '${serverName}' in account '${accountId}'`,
+            );
+
             const subscriptions = await this.getSubscriptionsForAccount(accountId);
 
             for (const subscription of subscriptions) {
@@ -472,28 +595,26 @@ export class VsCodeAzureHelper {
                         continue;
                     }
 
-                    const resourceGroupName = extractFromResourceId(
+                    const resourceGroup = extractFromResourceId(
                         matchingServer.id,
                         "resourceGroups",
                     );
-                    if (!resourceGroupName) {
+                    if (!resourceGroup) {
                         continue;
                     }
 
-                    const database = await sql.databases.get(
-                        resourceGroupName,
-                        serverName,
-                        databaseName,
-                    );
-
                     azureHelperLogger.trace(
-                        `Pause check ${sourceSuffix}: database ${target} is ${database.status}`,
+                        `SQL resource lookup: found server "${serverName}" in subscription ${subscription.subscriptionId}, resource group ${resourceGroup} (user ${accountId})`,
                     );
 
-                    return (database?.status as AzureSqlDatabaseStatus) ?? "UnableToCheck";
+                    return {
+                        accountId,
+                        subscriptionId: subscription.subscriptionId,
+                        resourceGroup,
+                    };
                 } catch (err) {
                     azureHelperLogger.trace(
-                        `Pause check ${sourceSuffix}: error occurred while checking database ${target} on subscription ${subscription.subscriptionId}; continuing... ${getErrorMessage(err)}`,
+                        `SQL resource lookup: error searching subscription ${subscription.subscriptionId} for server "${serverName}"; continuing... ${getErrorMessage(err)}`,
                     );
 
                     continue;
@@ -501,14 +622,14 @@ export class VsCodeAzureHelper {
             }
         } catch (err) {
             azureHelperLogger.trace(
-                `Pause check ${sourceSuffix}: error occurred while checking database ${target}; exiting. ${getErrorMessage(err)}`,
+                `SQL resource lookup: error searching for server "${serverName}"; exiting. ${getErrorMessage(err)}`,
             );
 
             return "UnableToCheck";
         }
 
         azureHelperLogger.trace(
-            `Pause check ${sourceSuffix}: database ${target} could not be found for user ${accountId}`,
+            `SQL resource lookup: server "${serverName}" could not be found for user ${accountId}`,
         );
 
         return "UnableToCheck";

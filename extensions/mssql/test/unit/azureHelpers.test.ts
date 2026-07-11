@@ -41,6 +41,8 @@ suite("Azure Helpers", () => {
 
     teardown(() => {
         sandbox.restore();
+        // Static cache persists across tests; clear it to keep tests isolated.
+        azureHelpers.VsCodeAzureHelper.clearSqlResourceCache();
     });
 
     suite("VsCodeAzureHelpers", () => {
