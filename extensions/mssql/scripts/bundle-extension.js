@@ -16,6 +16,9 @@ const config = {
     entryPoints: {
         extension: "src/extension.ts",
         serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
+        // Vector Workbench analysis worker (VEC-4): its own node bundle so the
+        // service can spawn worker_threads on dist/vectorAnalysisWorker.js.
+        vectorAnalysisWorker: "src/queryResults/vector/vectorAnalysisWorker.ts",
     },
     bundle: true,
     outdir: "dist",
