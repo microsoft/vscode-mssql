@@ -67,6 +67,23 @@ async function connectionStore(): Promise<ConnectionStoreSeam | undefined> {
     return controller?.connectionManager?.connectionStore;
 }
 
+/** Auxiliary-session purposes (VEC-7) — each maps to a distinct application
+ *  name so sys.dm_exec_sessions shows WHY the extra session exists. */
+export type AuxiliarySessionPurpose = "vectorDiagnostics" | "vectorModelCall";
+
+export interface AuxiliarySessionLease {
+    readonly session: ISqlSession;
+    dispose(): void;
+}
+
+/** Hard cap on concurrently open auxiliary sessions per binding. */
+const MAX_AUX_SESSIONS = 2;
+
+const AUX_APPLICATION_NAMES: Record<AuxiliarySessionPurpose, string> = {
+    vectorDiagnostics: "vscode-mssql-querystudio-vectordiag",
+    vectorModelCall: "vscode-mssql-querystudio-vectormodel",
+};
+
 export class DocumentSessionBinding implements vscode.Disposable {
     private session: ISqlSession | undefined;
     private stateKind: QsConnectionState["kind"] = "disconnected";
@@ -81,6 +98,8 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private onChangeHandlers = new Set<() => void>();
     private metadataLease: DatabaseCatalogLease | undefined;
     private userSessionReady: Promise<void> = Promise.resolve();
+    /** Open auxiliary sessions (VEC-7) — capped, closed with the binding. */
+    private auxSessions = new Set<ISqlSession>();
     metadataStatus: MetadataStatus | undefined;
 
     onDidChange(handler: () => void): vscode.Disposable {
@@ -347,6 +366,82 @@ export class DocumentSessionBinding implements vscode.Disposable {
         });
     }
 
+    /**
+     * Auxiliary diagnostic/model session (VEC-7, RR §6.4): a NARROW separate
+     * session on the SAME saved profile and the user session's CURRENT
+     * database — same principal, same auth material, never elevated. The
+     * application name carries the purpose so server-side diagnostics show
+     * why the session exists. Refuses honestly (undefined) when the binding
+     * has no active profile, the cap (2) is reached, or the open fails.
+     *
+     * NEVER hands out the user session or the metadata session — callers get
+     * a fresh session they must dispose (idempotent; closing releases the
+     * cap slot). All outstanding auxiliary sessions close on disconnect,
+     * reconnect, and binding dispose.
+     */
+    async acquireAuxiliarySession(
+        purpose: AuxiliarySessionPurpose,
+    ): Promise<AuxiliarySessionLease | undefined> {
+        const stored = this.lastStoredProfile;
+        const store = this.lastStore;
+        const profileRef = this.lastProfileRef;
+        if (
+            !stored ||
+            !store ||
+            !profileRef ||
+            (this.stateKind !== "connected" && this.stateKind !== "executing")
+        ) {
+            return undefined; // no active profile — honest refusal
+        }
+        if (this.auxSessions.size >= MAX_AUX_SESSIONS) {
+            return undefined; // cap reached — the caller must dispose first
+        }
+        // Follow the CURRENT database (post-USE), not the profile default.
+        const database = this.session?.info?.database;
+        try {
+            const service = await SqlDataPlaneService.get().service();
+            const session = await service.openSession({
+                profile: profileRef,
+                ...(database ? { database } : {}),
+                applicationName: AUX_APPLICATION_NAMES[purpose],
+                // Password exists only inside the provider closure.
+                auth: buildAuthBundle(stored, store),
+            });
+            this.auxSessions.add(session);
+            session.onDidChangeState((change) => {
+                if (change.current === "closed" || change.current === "lost") {
+                    this.auxSessions.delete(session);
+                }
+            });
+            let disposed = false;
+            return {
+                session,
+                dispose: () => {
+                    if (disposed) {
+                        return;
+                    }
+                    disposed = true;
+                    this.auxSessions.delete(session);
+                    void session.close().catch(() => undefined);
+                },
+            };
+        } catch {
+            return undefined; // open failed — refusal, never a throw
+        }
+    }
+
+    /** Open auxiliary-session count (cap introspection for tests/diag). */
+    get auxiliarySessionCount(): number {
+        return this.auxSessions.size;
+    }
+
+    private closeAuxSessions(): void {
+        for (const session of [...this.auxSessions]) {
+            void session.close().catch(() => undefined);
+        }
+        this.auxSessions.clear();
+    }
+
     private masterDbListCache: { at: number; names: string[] } | undefined;
 
     /**
@@ -428,6 +523,8 @@ export class DocumentSessionBinding implements vscode.Disposable {
     }
 
     private async open(stored: StoredProfile, store: ConnectionStoreSeam): Promise<boolean> {
+        // Auxiliary sessions belong to the PREVIOUS connection context.
+        this.closeAuxSessions();
         this.lastStoredProfile = stored;
         this.userSessionReady = Promise.resolve();
         this.stateKind = "connecting";
@@ -686,6 +783,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
             }
         }
         this.releaseMetadata();
+        this.closeAuxSessions();
         this.stateKind = "disconnecting";
         this.fireChange();
         await this.session.close().catch(() => undefined);
@@ -741,6 +839,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     dispose(): void {
         this.releaseMetadata();
+        this.closeAuxSessions();
         this.userSessionReady = Promise.resolve();
         void this.session?.close().catch(() => undefined);
         this.onChangeHandlers.clear();

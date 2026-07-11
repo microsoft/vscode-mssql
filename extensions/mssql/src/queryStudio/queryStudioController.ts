@@ -82,6 +82,7 @@ import {
     QsVectorOpenRequest,
     QsVectorProfileRequest,
 } from "../sharedInterfaces/vectorWorkbench";
+import { QsVectorCapabilitiesRequest } from "../sharedInterfaces/vectorCatalog";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -980,6 +981,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
             this.vectorWorkbench().close(handle);
         });
+        this.onRequest(QsVectorCapabilitiesRequest.type, async (params) =>
+            this.model.vectorCapabilities.capabilities(
+                (params as { refresh?: boolean } | undefined)?.refresh === true,
+            ),
+        );
         this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
             const seam = await this.executionPlanSeam();
             if (!seam) {

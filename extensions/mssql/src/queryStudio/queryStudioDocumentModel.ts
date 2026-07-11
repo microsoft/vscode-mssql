@@ -28,6 +28,7 @@ import { TextSyncEngine } from "./textSync";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { isModifyingSql } from "../sql/sqlSafetyClassifier";
 import { ExecutionHost } from "./executionHost";
+import { VectorCapabilityService } from "../queryResults/vector/vectorCapabilityService";
 import { persistQueryStudioHotExitBackup } from "./queryStudioHotExitBackup";
 import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
@@ -187,6 +188,24 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             this.handleHostChange(e);
         });
     }
+
+    /**
+     * Vector capability probes (VEC-7): model-owned so the per-connection
+     * cache is shared across panels and survives panel close. Probes run on
+     * a NARROW aux session — never the user or metadata session.
+     */
+    readonly vectorCapabilities = new VectorCapabilityService({
+        identity: () => {
+            const session = this.sessionBinding.activeSession;
+            return session
+                ? {
+                      connectionId: session.connectionId,
+                      ...(session.info.database ? { database: session.info.database } : {}),
+                  }
+                : undefined;
+        },
+        acquire: () => this.sessionBinding.acquireAuxiliarySession("vectorDiagnostics"),
+    });
 
     // --- host-driven results-tab activation (VEC-12 perf seam) --------------
     private readonly activateTabListeners = new Set<(tab: string) => void>();
@@ -495,6 +514,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         this.disposed = true;
         // Doc 04 §7.3 grows here in B2/B3: cancel active query, close session,
         // release metadata handles, tear down shadow LSP, dispose RowStore.
+        this.vectorCapabilities.dispose();
         this.liveResultSourceRegistration?.dispose();
         getQueryResultContextService().clearForSource(this.liveResultSource.sourceId);
         this.executionHost.dispose();
