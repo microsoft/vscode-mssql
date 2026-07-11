@@ -657,6 +657,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.statePushTimer.unref?.();
     }
 
+    /**
+     * Query Studio is pure local content (VEC-5 P0): platform-enforced
+     * zero-network CSP. allowWorker covers Monaco's blob: editor worker.
+     * Validated live by the vector perf scenarios (full boot + query +
+     * pane activation under this policy).
+     */
+    protected override cspOptions(): { enabled: boolean; allowWorker?: boolean } {
+        return { enabled: true, allowWorker: true };
+    }
+
     private vectorWorkbench(): VectorWorkbenchService {
         if (!this.vectorService) {
             // The RUN's resolved tuning wins (budget attribution matches the

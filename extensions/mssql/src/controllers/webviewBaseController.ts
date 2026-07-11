@@ -260,8 +260,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         const baseUrlString = baseUrl.toString() + "/";
         const csp = this.cspOptions();
         const cspSource = this._getWebview().cspSource;
+        // Monaco spawns its editor worker from a blob: URL — surfaces that
+        // opt into allowWorker get `worker-src blob:` alongside the
+        // extension origin; connect-src stays 'none' regardless.
         const cspMeta = csp.enabled
-            ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${cspSource}; style-src ${cspSource} 'unsafe-inline'; img-src ${cspSource} data:; font-src ${cspSource}; connect-src 'none';${csp.allowWorker ? ` worker-src ${cspSource};` : ""}">`
+            ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${cspSource} blob:; style-src ${cspSource} 'unsafe-inline'; img-src ${cspSource} data:; font-src ${cspSource}; connect-src 'none';${csp.allowWorker ? ` worker-src ${cspSource} blob:;` : ""}">`
             : "";
         // BOOT-2: modulepreload the entry's static-closure chunks (manifest
         // emitted at bundle time) — the browser otherwise discovers ESM
