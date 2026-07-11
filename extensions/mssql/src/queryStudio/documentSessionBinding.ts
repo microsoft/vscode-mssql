@@ -25,7 +25,7 @@ import {
     SqlConnectionProfileRef,
 } from "../services/sqlDataPlane/api";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
-import { MetadataStatus } from "../services/metadata/metadataService";
+import { MetadataStatus, runMetadataQuery } from "../services/metadata/metadataService";
 import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
@@ -272,6 +272,81 @@ export class DocumentSessionBinding implements vscode.Disposable {
     }
 
     private lastStoredProfile: StoredProfile | undefined;
+
+    /** Azure SQL Database (engine edition 5): USE is not supported there. */
+    get isAzureSqlDb(): boolean {
+        return Number(this.session?.info?.engineEdition) === 5;
+    }
+
+    /**
+     * Database switch for servers where USE cannot work (Azure SQL DB):
+     * close the session and reconnect with the new database — the exact
+     * semantic of STS v1's ChangeConnectionDatabaseContext IsCloud branch
+     * (ConnectionService.cs: close + rebuild with the new database).
+     */
+    async switchDatabaseByReconnect(database: string): Promise<boolean> {
+        const stored = this.lastStoredProfile;
+        const store = this.lastStore;
+        if (!stored || !store) {
+            return false;
+        }
+        const previous = this.session;
+        this.session = undefined;
+        this.releaseMetadata();
+        void previous?.close().catch(() => undefined);
+        this.masterDbListCache = undefined;
+        return this.open({ ...stored, database }, store);
+    }
+
+    private masterDbListCache: { at: number; names: string[] } | undefined;
+
+    /**
+     * Database list via a transient MASTER-scoped session — sys.databases
+     * from a user database only lists master + itself on Azure SQL DB. This
+     * mirrors STS v1's ListDatabaseRequestHandler: try master FIRST (for
+     * every server kind), and the caller falls back to the current session's
+     * list when master is not accessible (their 18456/40532 fallback).
+     */
+    async listDatabasesViaMaster(): Promise<string[] | undefined> {
+        const stored = this.lastStoredProfile;
+        const store = this.lastStore;
+        const profileRef = this.lastProfileRef;
+        if (!stored || !store || !profileRef || this.stateKind !== "connected") {
+            return undefined;
+        }
+        if ((this.session?.info?.database ?? "").toLowerCase() === "master") {
+            return undefined; // the current session already sees everything
+        }
+        const cached = this.masterDbListCache;
+        if (cached && Date.now() - cached.at < 15_000) {
+            return cached.names;
+        }
+        try {
+            const service = await SqlDataPlaneService.get().service();
+            const session = await service.openSession({
+                profile: profileRef,
+                database: "master",
+                applicationName: "vscode-mssql-querystudio-dblist",
+                auth: buildAuthBundle(stored, store),
+            });
+            try {
+                const rows = await runMetadataQuery(
+                    session,
+                    "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name;",
+                    "queryStudio:dbListMaster",
+                );
+                const names = rows
+                    .map((row) => (row[0] === null || row[0] === undefined ? "" : String(row[0])))
+                    .filter((name) => name.length > 0);
+                this.masterDbListCache = { at: Date.now(), names };
+                return names;
+            } finally {
+                void session.close().catch(() => undefined);
+            }
+        } catch {
+            return undefined; // no master access — caller falls back
+        }
+    }
 
     /**
      * Connect directly to a saved profile by id (OE v2 open-from-context,

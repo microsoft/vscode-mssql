@@ -1883,6 +1883,9 @@ export function QueryStudioApp() {
                         ? "PRODUCTION connection — modifications will ask for confirmation"
                         : undefined
                 }>
+                {connection.production ? (
+                    <span className="qs-status-prod-warning">WARNING: PRODUCTION</span>
+                ) : null}
                 <span
                     className="qs-status-message"
                     data-kind={actionHint ? "error" : (state?.statusMessage.kind ?? "ready")}>

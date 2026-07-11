@@ -580,3 +580,10 @@
     color: var(--qs-accent-fg) !important;
     opacity: 1;
 }
+/* Production safety: the far-left warning label (Karl 2026-07-10). */
+.qs-status-prod-warning {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding-right: 10px;
+    white-space: nowrap;
+}

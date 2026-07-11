@@ -611,7 +611,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             return { connected };
         });
         this.onRequest(QsSetDatabaseRequest.type, async ({ database }) => {
-            const changed = await this.model.executionHost.setDatabase(database);
+            // Azure SQL DB has no USE — switch by reconnecting with the new
+            // database (STS v1 ChangeConnectionDatabaseContext IsCloud
+            // parity). Everything else keeps the in-session USE.
+            const changed = this.model.sessionBinding.isAzureSqlDb
+                ? await this.model.sessionBinding.switchDatabaseByReconnect(database)
+                : await this.model.executionHost.setDatabase(database);
             this.queueStatePush();
             return { changed };
         });

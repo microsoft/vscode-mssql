@@ -452,9 +452,17 @@ export class ExecutionHost {
         return values;
     }
 
-    listDatabases(): Promise<string[]> {
+    async listDatabases(): Promise<string[]> {
         if (this.executionState.kind === "executing") {
-            return Promise.resolve([]);
+            return [];
+        }
+        // Master-first (STS v1 ListDatabaseRequestHandler parity): on Azure
+        // SQL DB, sys.databases from a user database lists only master +
+        // itself — a transient master-scoped session sees them all. No
+        // master access → fall back to the current session's view.
+        const viaMaster = await this.binding.listDatabasesViaMaster?.().catch(() => undefined);
+        if (viaMaster !== undefined && viaMaster.length > 0) {
+            return viaMaster;
         }
         return this.backgroundColumn(
             "SELECT name FROM sys.databases WHERE state = 0 ORDER BY name;",
