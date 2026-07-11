@@ -33,6 +33,15 @@ import { readGridStyle } from "../queryStudio/gridStyle";
 import { cellDocumentText, prettyPrintCellText } from "../queryStudio/cellDocument";
 import { saveQueryStudioResult } from "../queryStudio/resultExport";
 import { resolveQueryTuning } from "../queryStudio/tuning/queryTuningResolver";
+import { VectorWorkbenchService } from "./vector/vectorWorkbenchService";
+import { ingestBudgetFrom } from "./vector/vectorResultSource";
+import {
+    QsVectorCancelRequest,
+    QsVectorCloseRequest,
+    QsVectorFindingDetailRequest,
+    QsVectorOpenRequest,
+    QsVectorProfileRequest,
+} from "../sharedInterfaces/vectorWorkbench";
 import { openExecutionPlanWebview } from "../controllers/sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import SqlDocumentService from "../controllers/sqlDocumentService";
@@ -116,12 +125,63 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         return this.document.snapshotId ?? "";
     }
 
+    /**
+     * Pinned results are pure local content (VEC-5 P0): platform-enforced
+     * zero-network CSP. (Query Studio adopts after the Monaco-worker path is
+     * validated under CSP by the live perf scenarios.)
+     */
+    protected override cspOptions(): { enabled: boolean; allowWorker?: boolean } {
+        return { enabled: true };
+    }
+
+    /** Vector Workbench over the FROZEN snapshot (VEC-11) — lazy, like live QS. */
+    private vectorService: VectorWorkbenchService | undefined;
+
+    private vectorWorkbench(): VectorWorkbenchService {
+        if (!this.vectorService) {
+            this.vectorService = new VectorWorkbenchService(() => resolveQueryTuning().params);
+            this.registerDisposable({ dispose: () => this.vectorService?.dispose() });
+        }
+        return this.vectorService;
+    }
+
     private summaryFor(resultSetId: string): QsResultSetSummary | undefined {
         return this.state.resultSets.find((set) => set.resultSetId === resultSetId);
     }
 
     private registerHandlers(): void {
         const service = getQueryResultAccessService();
+        // Vector Workbench parity (VEC-11): Profile/Compare/Projection analyze
+        // the frozen snapshot exactly like the live pane (local computation
+        // only); derived/transformed snapshots refuse honestly — their rows
+        // would misattribute result ordinals. Live-session workspaces
+        // (Search/Index/Pipeline) stay locked in the pinned UI.
+        this.onRequest(QsVectorOpenRequest.type, async (params) => {
+            const snapshot = service.storeForSnapshot(this.snapshotId);
+            if (snapshot?.derived) {
+                return {
+                    handle: "",
+                    generation: 0,
+                    transport: "textFallback" as const,
+                    totalRows: 0,
+                    effectiveBudget: ingestBudgetFrom(resolveQueryTuning().params),
+                    error: "Transformed snapshots cannot be analyzed — pin the original result set instead.",
+                };
+            }
+            return this.vectorWorkbench().open(snapshot?.store, params);
+        });
+        this.onRequest(QsVectorProfileRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().profile(handle),
+        );
+        this.onRequest(QsVectorFindingDetailRequest.type, async ({ handle, kind }) =>
+            this.vectorWorkbench().findingDetail(handle, kind),
+        );
+        this.onRequest(QsVectorCancelRequest.type, async ({ handle }) => {
+            this.vectorWorkbench().cancel(handle);
+        });
+        this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
+            this.vectorWorkbench().close(handle);
+        });
         this.onRequest(QsGetRowsRequest.type, async (params) =>
             service.getWindow({
                 snapshotId: this.snapshotId,

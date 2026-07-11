@@ -12,6 +12,7 @@
  * message and nothing else.
  */
 
+import * as React from "react";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -28,7 +29,13 @@ const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
 
-type PinnedTab = "results" | "messages";
+type PinnedTab = "results" | "messages" | "vector";
+
+// VEC-11: the Vector Workbench stays a lazy chunk here too — a pinned tab
+// without vector columns never loads it.
+const LazyVectorTab = React.lazy(async () => ({
+    default: (await import("../QueryStudio/vectorTab")).VectorWorkbenchTab,
+}));
 
 export function PinnedResultsApp() {
     const {
@@ -91,6 +98,29 @@ export function PinnedResultsApp() {
         () => (state?.resultSets ?? []).filter((summary) => summary.isPlanResult === true),
         [state?.resultSets],
     );
+    // VEC-11 sniff: frozen summaries carry the same vector column facts.
+    const vectorColumns = useMemo(
+        () =>
+            gridSummaries.flatMap(
+                (summary) =>
+                    summary.columns?.flatMap((column, ordinal) =>
+                        column.vector
+                            ? [
+                                  {
+                                      resultSetId: summary.resultSetId,
+                                      columnOrdinal: ordinal,
+                                      columnName: column.displayName || column.name,
+                                      ...(column.vector.dimensions !== undefined
+                                          ? { dimensions: column.vector.dimensions }
+                                          : {}),
+                                      transport: column.vector.transport,
+                                  },
+                              ]
+                            : [],
+                    ) ?? [],
+            ),
+        [gridSummaries],
+    );
     const singleGrid = gridSummaries.length === 1 && planSummaries.length === 0;
     const maximizedGrid = gridSummaries.some((s) => s.resultSetId === maximizedGridId)
         ? maximizedGridId
@@ -144,6 +174,15 @@ export function PinnedResultsApp() {
                         onClick={() => setActiveTab("results")}>
                         Results
                         {state.totalRows > 0 ? ` (${state.totalRows.toLocaleString()})` : ""}
+                    </button>
+                ) : null}
+                {vectorColumns.length > 0 ? (
+                    <button
+                        role="tab"
+                        aria-selected={activeTab === "vector"}
+                        className={`qs-tab ${activeTab === "vector" ? "active" : ""}`}
+                        onClick={() => setActiveTab("vector")}>
+                        Vector
                     </button>
                 ) : null}
                 {state.hasLocalMessages || state.messageCount > 0 ? (
@@ -204,6 +243,15 @@ export function PinnedResultsApp() {
                             />
                         ))}
                     </QsResultsGridProvider>
+                ) : activeTab === "vector" ? (
+                    <React.Suspense
+                        fallback={<div className="qs-muted">Loading Vector Workbench…</div>}>
+                        <LazyVectorTab
+                            rpc={rpc}
+                            columns={vectorColumns}
+                            runKey={`pinned:${state.createdEpochMs ?? 0}`}
+                        />
+                    </React.Suspense>
                 ) : (
                     <MessagesView rpc={rpc} messages={messages} />
                 )}

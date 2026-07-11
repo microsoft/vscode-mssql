@@ -428,6 +428,23 @@ export class QueryResultAccessService {
 
     // --- reads ------------------------------------------------------------------------
 
+    /**
+     * The snapshot's underlying store for feature analyses (VEC-11 pinned
+     * parity). Derived (transformed) snapshots return `derived: true` —
+     * vector analysis over transformed rows would misattribute ordinals, so
+     * callers refuse those honestly. The caller must retain its OWN lease.
+     */
+    storeForSnapshot(
+        snapshotId: string,
+    ): { store: IQueryResultStore; derived: boolean } | undefined {
+        const record = this.snapshots.get(snapshotId);
+        if (!record) {
+            return undefined;
+        }
+        record.lastAccessEpochMs = this.now();
+        return { store: record.storeLease.store, derived: record.derived !== undefined };
+    }
+
     /** Clamped to the frozen row counts; never throws through the UI path. */
     async getWindow(params: QueryResultGetWindowParams): Promise<QsCellWindow> {
         const record = this.snapshots.get(params.snapshotId);

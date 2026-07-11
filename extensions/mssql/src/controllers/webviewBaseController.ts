@@ -238,6 +238,19 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this._disposables.push(disposable);
     }
 
+    /**
+     * Per-surface Content-Security-Policy (VEC-5 P0; opt-in per controller so
+     * existing webviews are untouched until each surface is proven safe).
+     * When enabled, the policy denies EVERYTHING by default and allows only
+     * what a local-content webview needs: extension-served scripts (nonce),
+     * styles, images, and fonts. `connect-src 'none'` = the surface can make
+     * ZERO network requests — the Vector Workbench's offline guarantee is
+     * enforced by the platform, not by code review.
+     */
+    protected cspOptions(): { enabled: boolean; allowWorker?: boolean } {
+        return { enabled: false };
+    }
+
     protected _getHtmlTemplate() {
         const nonce = getNonce();
 
@@ -245,6 +258,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             vscode.Uri.joinPath(this._context.extensionUri, "dist", "views"),
         );
         const baseUrlString = baseUrl.toString() + "/";
+        const csp = this.cspOptions();
+        const cspSource = this._getWebview().cspSource;
+        const cspMeta = csp.enabled
+            ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${cspSource}; style-src ${cspSource} 'unsafe-inline'; img-src ${cspSource} data:; font-src ${cspSource}; connect-src 'none';${csp.allowWorker ? ` worker-src ${cspSource};` : ""}">`
+            : "";
         // BOOT-2: modulepreload the entry's static-closure chunks (manifest
         // emitted at bundle time) — the browser otherwise discovers ESM
         // static imports only AFTER parsing each module (a fetch waterfall).
@@ -257,6 +275,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 			<html lang="en">
 				<head>
 					<meta charset="UTF-8">
+					${cspMeta}
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<title>mssqlwebview</title>
 					<base href="${baseUrlString}"> <!-- Required for loading relative resources in the webview -->

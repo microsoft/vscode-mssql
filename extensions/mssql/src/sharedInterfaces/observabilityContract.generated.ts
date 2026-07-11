@@ -2059,6 +2059,22 @@ export const OBS_CONTRACT: Registry = {
             feature: "queryStudio",
             derivedFrom: ["mssql.queryStudio.open.begin", "mssql.queryStudio.resultsRendered"],
         },
+        {
+            name: "mssql.queryStudio.boot.vectorChunkLoad",
+            feature: "queryStudio",
+            derivedFrom: [
+                "mssql.queryStudio.boot.vectorChunkRequested",
+                "mssql.queryStudio.boot.vectorChunkLoaded",
+            ],
+        },
+        {
+            name: "mssql.queryResults.vector.analysis",
+            feature: "queryResults",
+            derivedFrom: [
+                "mssql.queryResults.vector.analysis.begin",
+                "mssql.queryResults.vector.analysis.end",
+            ],
+        },
     ],
     classifications: {
         secret: {
