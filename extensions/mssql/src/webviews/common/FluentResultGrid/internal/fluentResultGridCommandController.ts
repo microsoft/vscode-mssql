@@ -756,6 +756,16 @@ export function useFluentResultGridCommandController({
                 return;
             }
 
+            // Keyboard follows the click (dogfood 2026-07-10): ANY cell click
+            // must land DOM focus in the grid's focus sink — the range
+            // selector's mousedown preventDefault suppresses the browser's
+            // default focus transfer, so copy/select-all/arrows kept going
+            // to the editor after a single click (drag selection focused
+            // through the selection model and worked, hence the asymmetry).
+            // focus() never touches the selection anchor, so modifier clicks
+            // are safe to focus too.
+            (args.grid as SlickGrid).focus();
+
             // Modifier clicks belong to the selection model (shift = box from
             // anchor, ctrl = irregular multi-select) — activating/selecting
             // here would destroy the anchor before the model sees the click.
