@@ -614,6 +614,11 @@ export class ExecutionOrchestrator {
                         ...(c.sqlType ? { sqlType: c.sqlType } : {}),
                         ...(c.isXml ? { isXml: true } : {}),
                         ...(c.isJson ? { isJson: true } : {}),
+                        // Vector facts must reach the STORE columns too — the
+                        // workbench service reads them from store summaries
+                        // (live-run bug: dropping this made every session
+                        // refuse as textFallback while the wire was binary).
+                        ...(c.vector ? { vector: c.vector } : {}),
                     })),
                 );
                 const columnNames = meta.columns.map((c) => c.name);
