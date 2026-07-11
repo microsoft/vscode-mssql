@@ -71,7 +71,12 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         profileId?: string;
         database?: string;
         autoRun?: boolean;
+        /** Open with SQLCMD mode already on (perftest scenario seam). */
+        sqlcmd?: boolean;
     }): Promise<void> {
+        if (context.sqlcmd) {
+            this.executionHost.sqlcmdEnabled = true;
+        }
         if (!context.profileId) {
             return;
         }

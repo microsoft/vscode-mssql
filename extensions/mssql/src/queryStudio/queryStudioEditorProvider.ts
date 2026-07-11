@@ -48,7 +48,7 @@ const liveControllers = new Set<QueryStudioController>();
 /** Open-from-context payloads keyed by document uri, consumed at resolve. */
 const pendingOpenContexts = new Map<
     string,
-    { profileId: string; database?: string; autoRun?: boolean }
+    { profileId: string; database?: string; autoRun?: boolean; sqlcmd?: boolean }
 >();
 const explicitClassicOpenUntil = new Map<string, number>();
 const PROBLEM_REDIRECT_SELECTION_SETTLE_MS = 25;
@@ -391,6 +391,8 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 database?: string;
                 initialSql?: string;
                 autoRun?: boolean;
+                /** Open with SQLCMD mode on (perftest sqlcmd scenario seam). */
+                sqlcmd?: boolean;
                 source?: string;
             }) => {
                 const doc = await vscode.workspace.openTextDocument({
@@ -402,6 +404,7 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                         profileId: args.profileId,
                         ...(args.database ? { database: args.database } : {}),
                         ...(args.autoRun ? { autoRun: true } : {}),
+                        ...(args.sqlcmd ? { sqlcmd: true } : {}),
                     });
                 }
                 await vscode.commands.executeCommand(
