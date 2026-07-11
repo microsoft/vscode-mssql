@@ -21,6 +21,8 @@ export interface OeV2StoredProfile {
     database?: string;
     user?: string;
     email?: string;
+    accountId?: string;
+    tenantId?: string;
     authenticationType?: string;
     profileName?: string;
     groupId?: string;
@@ -56,7 +58,6 @@ export interface OeV2ProfileRecord {
     readonly server: string;
     readonly database?: string;
     readonly user?: string;
-    readonly authKind: "sql" | "integrated";
     readonly groupId?: string;
     readonly stored: OeV2StoredProfile;
 }
@@ -101,9 +102,6 @@ export async function readProfileTree(source: ConnectionProfileSource): Promise<
             server: profile.server!,
             ...(profile.database ? { database: profile.database } : {}),
             ...(profile.user ? { user: profile.user } : {}),
-            authKind: (profile.authenticationType ?? "").toLowerCase().includes("integrated")
-                ? "integrated"
-                : "sql",
             ...(profile.groupId ? { groupId: profile.groupId } : {}),
             stored: profile,
         }));

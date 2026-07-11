@@ -367,54 +367,61 @@ export class Sts2Backend implements ISqlConnectionService {
                 true,
             );
         }
-        // Secrets exist ONLY inside this request payload; the service
-        // tokenizes them pre-journal (SPEC §8.5). Never store or log.
-        const auth: V2ConnectionProfile["auth"] = { kind: "integrated" };
-        if (params.profile.authKind === "sql") {
-            auth.kind = "sqlLogin";
-            auth.user = params.profile.user;
-            auth.password = (await params.auth?.passwordProvider?.()) ?? "";
-        } else if (params.profile.authKind === "aad" || params.profile.authKind === "bearer") {
-            auth.kind = "accessToken";
-            auth.accessToken = (await params.auth?.tokenProvider?.()) ?? "";
-        }
-        const profile: V2ConnectionProfile = {
-            server: params.profile.server,
-            ...((params.database ?? params.profile.database)
-                ? { database: params.database ?? params.profile.database }
-                : {}),
-            driver: "sqlclient",
-            auth,
-            options: {
-                applicationName: params.applicationName,
-                ...(params.openTimeoutMs ? { connectTimeoutMs: params.openTimeoutMs } : {}),
-                ...(params.profile.encrypt !== undefined
-                    ? { encrypt: String(params.profile.encrypt) }
-                    : {}),
-                ...(params.profile.trustServerCertificate !== undefined
-                    ? {
-                          trustServerCertificate: String(params.profile.trustServerCertificate),
-                      }
-                    : {}),
-            },
-        };
+        const timeoutMs = params.openTimeoutMs ?? this.deadlines.openMs;
+        const deadlineAt = Date.now() + timeoutMs;
         const openId = nextLocalId("open");
+        const requestedAuthKind =
+            params.profile.authKind === "sql"
+                ? "sqlLogin"
+                : params.profile.authKind === "aad" || params.profile.authKind === "bearer"
+                  ? "accessToken"
+                  : "integrated";
         const span = diag.startSpan({
             feature: "sqlDataPlane",
             kind: "request",
             type: "sqlDataPlane.openSession",
             fields: {
                 backend: { raw: this.backendInfo.kind, cls: "diagnostic.metadata" },
-                authKind: { raw: auth.kind, cls: "diagnostic.metadata" },
+                authKind: { raw: requestedAuthKind, cls: "diagnostic.metadata" },
             },
         });
         try {
+            // Credential lookup and interactive authentication share the same
+            // end-to-end open budget as the wire request. The provider itself
+            // may not be cancellable, but a late completion can no longer open
+            // a session after this call has timed out.
+            const auth = await withDeadline(
+                this.resolveOpenAuth(params),
+                remainingDeadlineMs(deadlineAt),
+            );
+            // Secrets exist ONLY inside this request payload; the service
+            // tokenizes them pre-journal (SPEC §8.5). Never store or log.
+            const profile: V2ConnectionProfile = {
+                server: params.profile.server,
+                ...((params.database ?? params.profile.database)
+                    ? { database: params.database ?? params.profile.database }
+                    : {}),
+                driver: "sqlclient",
+                auth,
+                options: {
+                    applicationName: params.applicationName,
+                    connectTimeoutMs: remainingDeadlineMs(deadlineAt),
+                    ...(params.profile.encrypt !== undefined
+                        ? { encrypt: String(params.profile.encrypt) }
+                        : {}),
+                    ...(params.profile.trustServerCertificate !== undefined
+                        ? {
+                              trustServerCertificate: String(params.profile.trustServerCertificate),
+                          }
+                        : {}),
+                },
+            };
             const result = await withDeadline(
                 this.rpc.sendRequest<V2ConnectionOpenResult>(STS2_METHODS.connectionOpen, {
                     openId,
                     profile,
                 }),
-                params.openTimeoutMs ?? this.deadlines.openMs,
+                remainingDeadlineMs(deadlineAt),
                 () => {
                     // Bounded open: cancel the in-flight open server-side.
                     void this.rpc
@@ -427,9 +434,67 @@ export class Sts2Backend implements ISqlConnectionService {
             span.end("ok");
             return session;
         } catch (error) {
-            span.fail(error);
-            throw mapOpenError(error);
+            const mapped = mapOpenError(error);
+            span.end("error", {
+                errorCode: { raw: mapped.code, cls: "diagnostic.metadata" },
+                backendCode: {
+                    raw: mapped.backend?.code ?? "unknown",
+                    cls: "diagnostic.metadata",
+                },
+                retryable: { raw: mapped.retryable, cls: "diagnostic.metadata" },
+                ...(mapped.server?.number !== undefined
+                    ? {
+                          serverErrorNumber: {
+                              raw: mapped.server.number,
+                              cls: "diagnostic.metadata" as const,
+                          },
+                      }
+                    : {}),
+            });
+            throw mapped;
         }
+    }
+
+    private async resolveOpenAuth(params: OpenSessionParams): Promise<V2ConnectionProfile["auth"]> {
+        if (params.profile.authKind === "sql") {
+            try {
+                return {
+                    kind: "sqlLogin",
+                    user: params.profile.user,
+                    password: (await params.auth?.passwordProvider?.()) ?? "",
+                };
+            } catch (error) {
+                throw new SqlDataPlaneError(
+                    DataPlaneErrorCodes.auth,
+                    error instanceof Error ? error.message : "SQL credential lookup failed.",
+                    false,
+                    { backend: { kind: "sts2-jsonrpc" } },
+                );
+            }
+        }
+        if (params.profile.authKind === "aad" || params.profile.authKind === "bearer") {
+            let token: string | undefined;
+            try {
+                token = await params.auth?.tokenProvider?.();
+            } catch (error) {
+                throw new SqlDataPlaneError(
+                    DataPlaneErrorCodes.auth,
+                    error instanceof Error ? error.message : "SQL access-token acquisition failed.",
+                    false,
+                    { backend: { kind: "sts2-jsonrpc" } },
+                );
+            }
+            if (!token) {
+                throw new SqlDataPlaneError(
+                    DataPlaneErrorCodes.auth,
+                    "A SQL access token was not available for this connection.",
+                    false,
+                    { backend: { kind: "sts2-jsonrpc" } },
+                );
+            }
+            return { kind: "accessToken", token };
+        }
+        return { kind: "integrated" };
     }
 
     removeSession(sessionId: string): void {
@@ -465,6 +530,10 @@ function mapOpenError(error: unknown): SqlDataPlaneError {
     return new SqlDataPlaneError(DataPlaneErrorCodes.unavailable, message, true, {
         backend: { kind: "sts2-jsonrpc", ...(code ? { code } : {}) },
     });
+}
+
+function remainingDeadlineMs(deadlineAt: number): number {
+    return Math.max(1, deadlineAt - Date.now());
 }
 
 function withDeadline<T>(promise: Promise<T>, ms: number, onExpire?: () => void): Promise<T> {

@@ -25,7 +25,7 @@
  * drift — poll stops, strict freshness fails actionably, never auto-rekeys.
  */
 
-import { diag } from "../../diagnostics/diagnosticsCore";
+import { diag, diagnosticErrorClass, DiagSpan } from "../../diagnostics/diagnosticsCore";
 import {
     IQueryEventSink,
     ISqlConnectionService,
@@ -50,6 +50,12 @@ import {
 export interface CatalogKey {
     serverFingerprint: string;
     database: string;
+}
+
+function endSpanWithErrorClass(span: DiagSpan, error: unknown): void {
+    span.end("error", {
+        errorClass: { raw: diagnosticErrorClass(error), cls: "diagnostic.metadata" },
+    });
 }
 
 const keyOf = (key: CatalogKey) => `${key.serverFingerprint}|${key.database}`;
@@ -543,7 +549,7 @@ export class MetadataService {
                     });
                     return result;
                 } catch (error) {
-                    span.fail(error);
+                    endSpanWithErrorClass(span, error);
                     throw error;
                 }
             },
@@ -1117,7 +1123,7 @@ export class MetadataService {
             span.end("ok");
         } catch (error) {
             if (entry.opEpoch !== epoch) {
-                span.fail(error);
+                endSpanWithErrorClass(span, error);
                 return; // abandoned run must not stomp a newer op's state
             }
             entry.status = "failed";
@@ -1133,7 +1139,7 @@ export class MetadataService {
                 };
             }
             this.scheduleFailedRetry(entry);
-            span.fail(error);
+            endSpanWithErrorClass(span, error);
         }
         this.notify(entry);
     }
@@ -1406,7 +1412,7 @@ export class MetadataService {
             });
             return result;
         } catch (error) {
-            span.fail(error);
+            endSpanWithErrorClass(span, error);
             throw error;
         }
     }

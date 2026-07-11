@@ -614,7 +614,10 @@ export class PerfHistoryService {
         }
         const familyNames = new Set<string>();
         for (const marker of [...a, ...b]) {
-            if (/^(rpc\.|webview\.|sts\.)/.test(marker.name) && marker.name.endsWith(".begin")) {
+            if (
+                /^(rpc\.|webview\.|sts\.|sqlDataPlane\.auth\.token(?:\.|$))/.test(marker.name) &&
+                marker.name.endsWith(".begin")
+            ) {
                 familyNames.add(marker.name.slice(0, -".begin".length));
             }
         }

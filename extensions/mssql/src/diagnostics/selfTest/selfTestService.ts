@@ -250,6 +250,7 @@ export class SelfTestService {
                     continue;
                 }
                 if (!creds?.server) continue;
+                const authenticationType = selfTestAuthenticationType(creds.authenticationType);
                 const id = `active:${index++}`;
                 this.optionBacking.set(id, { mode: "active", uri });
                 options.push({
@@ -257,7 +258,12 @@ export class SelfTestService {
                     mode: "active",
                     label: redactedLabel(creds),
                     detail: `${uri === activeUri ? "focused editor" : "connected editor"} · ${creds.authenticationType ?? "unknown auth"}`,
-                    available: true,
+                    available: authenticationType !== undefined,
+                    ...(authenticationType
+                        ? {}
+                        : {
+                              reason: "This self-test currently supports SQL Login and Integrated authentication only",
+                          }),
                 });
             }
         }
@@ -271,16 +277,18 @@ export class SelfTestService {
                     if (!profile.server) continue;
                     const id = `saved:${index++}`;
                     this.optionBacking.set(id, { mode: "saved", profile });
-                    const azure = profile.authenticationType === "AzureMFA";
+                    const authenticationType = selfTestAuthenticationType(
+                        profile.authenticationType,
+                    );
                     options.push({
                         id,
                         mode: "saved",
                         label: profile.profileName || redactedLabel(profile),
                         detail: `${redactedLabel(profile)} · ${profile.authenticationType ?? "unknown auth"}`,
-                        available: !azure,
-                        ...(azure
+                        available: authenticationType !== undefined,
+                        ...(authenticationType === undefined
                             ? {
-                                  reason: "Azure MFA profiles need interactive tokens — not supported for self-test yet",
+                                  reason: "This self-test currently supports SQL Login and Integrated authentication only",
                               }
                             : {}),
                     });
@@ -378,6 +386,11 @@ export class SelfTestService {
             if (!creds?.server) {
                 return { error: "could not read the active connection's details" };
             }
+            if (!selfTestAuthenticationType(creds.authenticationType)) {
+                return {
+                    error: "the selected authentication mode is not supported by self-test; use SQL Login or Integrated authentication",
+                };
+            }
             return { spec: toSpec(creds), label: redactedLabel(creds) };
         }
 
@@ -385,6 +398,11 @@ export class SelfTestService {
         const profile = backing.profile;
         if (!profile?.server) {
             return { error: "saved profile is no longer available" };
+        }
+        if (!selfTestAuthenticationType(profile.authenticationType)) {
+            return {
+                error: "the selected authentication mode is not supported by self-test; use SQL Login or Integrated authentication",
+            };
         }
         let password = profile.password;
         if (!password && profile.authenticationType === "SqlLogin") {
@@ -853,7 +871,7 @@ function toSpec(creds: RawCredentials): ConnectionProfileSpec {
     return {
         server: creds.server!,
         ...(creds.database ? { database: creds.database } : {}),
-        authenticationType: creds.authenticationType === "SqlLogin" ? "SqlLogin" : "Integrated",
+        authenticationType: selfTestAuthenticationType(creds.authenticationType) ?? "SqlLogin",
         ...(creds.user ? { user: creds.user } : {}),
         ...(creds.password ? { password: creds.password } : {}),
         encrypt:
@@ -866,6 +884,22 @@ function toSpec(creds: RawCredentials): ConnectionProfileSpec {
             ? { trustServerCertificate: !!creds.trustServerCertificate }
             : {}),
     };
+}
+
+/** Self-test control contract deliberately carries no interactive/bearer credentials. */
+export function selfTestAuthenticationType(
+    authenticationType: string | undefined,
+): "SqlLogin" | "Integrated" | undefined {
+    switch (authenticationType) {
+        case undefined:
+        case "":
+        case "SqlLogin":
+            return "SqlLogin";
+        case "Integrated":
+            return "Integrated";
+        default:
+            return undefined;
+    }
 }
 
 function makeRunId(): string {

@@ -16,7 +16,7 @@
  * counts only.
  */
 
-import { diag } from "../../diagnostics/diagnosticsCore";
+import { diag, diagnosticErrorClass } from "../../diagnostics/diagnosticsCore";
 import { MetadataSessionSource, runMetadataQuery } from "./metadataService";
 
 export interface AuxCatalogItem {
@@ -183,8 +183,10 @@ export class AuxiliaryCatalog {
             // Failed sections drop their items: stale-as-ready is a lie.
             state.readiness = "failed";
             state.items = undefined;
-            state.errorMessage = error instanceof Error ? error.message : String(error);
-            span.fail(error);
+            state.errorMessage = diagnosticErrorClass(error);
+            span.end("error", {
+                errorClass: { raw: diagnosticErrorClass(error), cls: "diagnostic.metadata" },
+            });
         }
         this.notify();
     }

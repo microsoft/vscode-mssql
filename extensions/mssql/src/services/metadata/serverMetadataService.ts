@@ -15,7 +15,7 @@
  * server). NULL HAS_DBACCESS maps to "unknown".
  */
 
-import { diag } from "../../diagnostics/diagnosticsCore";
+import { diag, diagnosticErrorClass } from "../../diagnostics/diagnosticsCore";
 import { ISqlSession } from "../sqlDataPlane/api";
 import { AuxiliaryCatalog, SERVER_AUX_SECTIONS } from "./auxiliaryCatalog";
 import { FreshServerCatalogResult, ServerMetadataFreshnessPolicy } from "./cache/metadataFreshness";
@@ -192,9 +192,11 @@ export class ServerMetadataService {
                 generation: this.state.generation,
                 databases: undefined,
                 serverInfo: this.state.serverInfo,
-                errorMessage: error instanceof Error ? error.message : String(error),
+                errorMessage: diagnosticErrorClass(error),
             };
-            span.fail(error);
+            span.end("error", {
+                errorClass: { raw: diagnosticErrorClass(error), cls: "diagnostic.metadata" },
+            });
         }
         this.notify();
     }

@@ -13,7 +13,7 @@
  * carry server facts, and (B19) run table-preview queries.
  */
 
-import { diag } from "../../../diagnostics/diagnosticsCore";
+import { diag, diagnosticErrorClass } from "../../../diagnostics/diagnosticsCore";
 import { PreparedConnection } from "../../../services/metadata/profileAuthAdapter";
 import { ISqlConnectionService, ISqlSession } from "../../../services/sqlDataPlane/api";
 
@@ -27,7 +27,7 @@ export type OeV2ConnectionState =
 
 export interface OeV2ConnectionSession {
     readonly connectionId: string;
-    readonly prepared: PreparedConnection;
+    readonly prepared?: PreparedConnection;
     readonly state: OeV2ConnectionState;
     readonly session?: ISqlSession;
     readonly serverVersion?: string;
@@ -39,7 +39,7 @@ export interface OeV2ConnectionSession {
 
 interface Entry {
     connectionId: string;
-    prepared: PreparedConnection;
+    prepared: PreparedConnection | undefined;
     state: OeV2ConnectionState;
     session: ISqlSession | undefined;
     failureReason: string | undefined;
@@ -120,11 +120,24 @@ export class OeV2SessionRegistry {
         });
         try {
             const service = await this.service();
+            if (this.entries.get(connectionId) !== entry || entry.state !== "connecting") {
+                span.end("info", {
+                    result: { raw: "superseded", cls: "diagnostic.metadata" },
+                });
+                return snapshotOf(this.entries.get(connectionId) ?? entry);
+            }
             const session = await service.openSession({
                 profile: prepared.profileRef,
                 applicationName: "vscode-mssql-oe-v2",
                 auth: prepared.auth,
             });
+            if (this.entries.get(connectionId) !== entry || entry.state !== "connecting") {
+                await session.close().catch(() => undefined);
+                span.end("info", {
+                    result: { raw: "superseded", cls: "diagnostic.metadata" },
+                });
+                return snapshotOf(this.entries.get(connectionId) ?? entry);
+            }
             entry.session = session;
             entry.state = "connected";
             entry.stateSubscription = session.onDidChangeState((change) => {
@@ -147,12 +160,52 @@ export class OeV2SessionRegistry {
             this.notify(connectionId);
             return snapshotOf(entry);
         } catch (error) {
+            if (this.entries.get(connectionId) !== entry || entry.state !== "connecting") {
+                span.end("info", {
+                    result: { raw: "superseded", cls: "diagnostic.metadata" },
+                });
+                return snapshotOf(this.entries.get(connectionId) ?? entry);
+            }
             entry.state = "failed";
             entry.failureReason = error instanceof Error ? error.message : String(error);
-            span.fail(error);
+            span.end("error", {
+                errorClass: {
+                    raw: diagnosticErrorClass(error),
+                    cls: "diagnostic.metadata",
+                },
+            });
             this.notify(connectionId);
             return snapshotOf(entry);
         }
+    }
+
+    /** Records a profile/auth preparation failure so command UI can show its reason. */
+    recordPreparationFailure(connectionId: string, failureReason: string, error: unknown): void {
+        const previous = this.entries.get(connectionId);
+        previous?.stateSubscription?.dispose();
+        void previous?.session?.close().catch(() => undefined);
+        this.entries.set(connectionId, {
+            connectionId,
+            prepared: undefined,
+            state: "failed",
+            session: undefined,
+            failureReason,
+            stateSubscription: undefined,
+            connectingSince: undefined,
+        });
+        diag.emit({
+            feature: "objectExplorer",
+            kind: "event",
+            type: "objectExplorerV2.connection.openRejected",
+            status: "error",
+            fields: {
+                errorClass: {
+                    raw: diagnosticErrorClass(error),
+                    cls: "diagnostic.metadata",
+                },
+            },
+        });
+        this.notify(connectionId);
     }
 
     async disconnect(connectionId: string): Promise<void> {
@@ -190,7 +243,7 @@ function snapshotOf(entry: Entry): OeV2ConnectionSession {
     const info = entry.session?.info;
     return {
         connectionId: entry.connectionId,
-        prepared: entry.prepared,
+        ...(entry.prepared ? { prepared: entry.prepared } : {}),
         state: entry.state,
         ...(entry.session ? { session: entry.session } : {}),
         ...(info?.serverVersion ? { serverVersion: info.serverVersion } : {}),

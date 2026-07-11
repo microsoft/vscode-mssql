@@ -21,6 +21,7 @@ import {
     PreparedConnection,
     prepareConnection,
     ProfileSecretSource,
+    ProfileTokenSource,
 } from "../../../services/metadata/profileAuthAdapter";
 import { OeV2MetadataCoordinator } from "../metadata/oeV2MetadataCoordinator";
 import {
@@ -64,6 +65,7 @@ export interface OeV2TreeControllerDeps {
     readonly dataPlane: DataPlaneProbe;
     /** B18 browse deps — absent means shell-only behavior (B17 tests). */
     readonly secrets?: ProfileSecretSource;
+    readonly tokens?: ProfileTokenSource;
     readonly sessions?: OeV2SessionRegistry;
     readonly coordinatorFactory?: (prepared: PreparedConnection) => OeV2MetadataCoordinator;
     readonly settings?: () => OeV2BrowseSettings;
@@ -203,7 +205,7 @@ export class OeV2TreeController {
     /** Explicit connect: opens the data-plane session + metadata coordinator. */
     async connectProfile(connectionId: string): Promise<boolean> {
         this.explicitlyDisconnected.delete(connectionId);
-        const { sessions, secrets, coordinatorFactory } = this.deps;
+        const { sessions, secrets, tokens, coordinatorFactory } = this.deps;
         if (!sessions || !secrets || !coordinatorFactory) {
             return false;
         }
@@ -211,7 +213,17 @@ export class OeV2TreeController {
         if (!profile) {
             return false;
         }
-        const prepared = prepareConnection(profile.stored, secrets);
+        let prepared: PreparedConnection;
+        try {
+            prepared = prepareConnection(profile.stored, secrets, tokens);
+        } catch (error) {
+            sessions.recordPreparationFailure(
+                connectionId,
+                error instanceof Error ? error.message : "Connection profile preparation failed.",
+                error,
+            );
+            return false;
+        }
         const session = await sessions.connect(connectionId, prepared);
         if (session.state !== "connected") {
             return false;

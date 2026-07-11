@@ -45,6 +45,7 @@ export interface SqlConnectionProfileRef {
     profileFingerprint: string;
     server: string;
     database?: string;
+    /** `aad` is a saved Entra profile; `bearer` is a caller-supplied token source. */
     authKind: "sql" | "integrated" | "aad" | "bearer";
     user?: string;
     encrypt?: string | boolean;

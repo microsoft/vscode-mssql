@@ -26,6 +26,11 @@ import { OeV2MetadataCoordinator } from "../../src/objectExplorer/v2/metadata/oe
 import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
 import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
+import type {
+    ProfileSecretSource,
+    ProfileTokenSource,
+    StoredConnectionProfile,
+} from "../../src/services/metadata/profileAuthAdapter";
 
 interface DbScriptOptions {
     /** DB_NAME() answer for the digest identity rider (H-5) — must match
@@ -261,6 +266,7 @@ class RoutingService implements ISqlConnectionService {
     constructor(
         private readonly byDatabase: Record<string, FakeBackend>,
         readonly fallback: FakeBackend,
+        private readonly beforeOpen?: (params: OpenSessionParams) => Promise<void>,
     ) {}
     get availability() {
         return this.fallback.availability;
@@ -274,7 +280,8 @@ class RoutingService implements ISqlConnectionService {
     canOpen() {
         return this.fallback.canOpen();
     }
-    openSession(params: OpenSessionParams): Promise<ISqlSession> {
+    async openSession(params: OpenSessionParams): Promise<ISqlSession> {
+        await this.beforeOpen?.(params);
         const backend = (params.database && this.byDatabase[params.database]) || this.fallback;
         return backend.openSession(params);
     }
@@ -294,6 +301,10 @@ function harness(overrides?: {
     /** CACHE-5 browse-freshness knobs (small TTLs make digests observable). */
     freshness?: { validationTtlMs?: number; timeoutMs?: number };
     serverCounters?: { list: number };
+    profile?: StoredConnectionProfile & { groupId?: string };
+    secrets?: ProfileSecretSource;
+    tokens?: ProfileTokenSource;
+    beforeOpen?: (params: OpenSessionParams) => Promise<void>;
 }): Harness {
     const fallback = new FakeBackend({
         scripts: [
@@ -315,6 +326,7 @@ function harness(overrides?: {
             OtherDb: new FakeBackend({ scripts: dbScripts("Widgets", { currentDb: "OtherDb" }) }),
         },
         fallback,
+        overrides?.beforeOpen,
     );
     const store = new MetadataStore(async () => service, { pollSeconds: 0 });
     const registry = new OeV2SessionRegistry(async () => service);
@@ -323,10 +335,16 @@ function harness(overrides?: {
         profiles: {
             readAllConnectionGroups: async () => [{ id: "ROOT", name: "ROOT" }],
             readAllConnections: async () => [
-                { id: "p1", server: "srv", profileName: "P1", groupId: "ROOT" },
+                overrides?.profile ?? {
+                    id: "p1",
+                    server: "srv",
+                    profileName: "P1",
+                    groupId: "ROOT",
+                },
             ],
         },
-        secrets: { lookupPassword: async () => "" },
+        secrets: overrides?.secrets ?? { lookupPassword: async () => "" },
+        tokens: overrides?.tokens,
         dataPlane: { enabled: () => true, availabilityState: () => "available" },
         sessions: registry,
         coordinatorFactory: (prepared) =>
@@ -380,6 +398,42 @@ suite("Object Explorer v2 browse (B18)", () => {
             "Security",
             "Server Objects",
         ]);
+        h.controller.dispose();
+    });
+
+    test("AzureMFA uses the injected token source for OE and metadata opens with no v1/password path", async () => {
+        let tokenLookups = 0;
+        let passwordLookups = 0;
+        let accessTokenOpens = 0;
+        const h = harness({
+            profile: {
+                id: "p1",
+                server: "ninja.database.windows.net",
+                database: "AppDb",
+                profileName: "Ninja",
+                groupId: "ROOT",
+                authenticationType: "AzureMFA",
+                email: "ninja@example.test",
+                accountId: "account-a",
+                tenantId: "tenant-a",
+            },
+            secrets: { lookupPassword: async () => (passwordLookups++, "wrong-secret") },
+            tokens: { acquireSqlAccessToken: async () => (tokenLookups++, "sql-token") },
+            beforeOpen: async (params) => {
+                expect(params.profile.authKind).to.equal("aad");
+                expect(params.auth?.passwordProvider).to.equal(undefined);
+                expect(await params.auth?.tokenProvider?.()).to.equal("sql-token");
+                accessTokenOpens++;
+            },
+        });
+
+        expect(await h.controller.connectProfile("p1")).to.equal(true);
+        const runtime = h.registry.get("p1");
+        expect(runtime?.state).to.equal("connected");
+        await runtime?.prepared?.auth.tokenProvider?.();
+        expect(accessTokenOpens).to.be.greaterThan(0);
+        expect(tokenLookups).to.be.greaterThan(1);
+        expect(passwordLookups).to.equal(0);
         h.controller.dispose();
     });
 
@@ -613,6 +667,38 @@ suite("Object Explorer v2 browse (B18)", () => {
         const hint = await h.controller.children(server);
         expect(hint[0].kind).to.equal("status");
         expect(hint[0].label).to.contain("Connect");
+        h.controller.dispose();
+    });
+
+    test("disconnect during a pending open closes the late session and remains disconnected", async () => {
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => (release = resolve));
+        const h = harness({ beforeOpen: async () => gate });
+
+        const connecting = h.controller.connectProfile("p1");
+        await sleep(0);
+        expect(h.registry.stateOf("p1")).to.equal("connecting");
+        await h.controller.disconnectProfile("p1");
+        expect(h.registry.stateOf("p1")).to.equal("disconnected");
+
+        release();
+        expect(await connecting).to.equal(false);
+        expect(h.registry.stateOf("p1")).to.equal("disconnected");
+        h.controller.dispose();
+    });
+
+    test("unsupported profile auth is recorded as a normal failed connection", async () => {
+        const h = harness({
+            profile: {
+                id: "p1",
+                server: "srv",
+                groupId: "ROOT",
+                authenticationType: "ActiveDirectoryDefault",
+            },
+        });
+        expect(await h.controller.connectProfile("p1")).to.equal(false);
+        expect(h.registry.stateOf("p1")).to.equal("failed");
+        expect(h.registry.get("p1")?.failureReason).to.include("ActiveDirectoryDefault");
         h.controller.dispose();
     });
 

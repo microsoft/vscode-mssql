@@ -29,6 +29,7 @@
 
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
+import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { logger2 } from "../models/logger2";
 import { CatalogSnapshot } from "../services/metadata/catalogModel";
 import { MetadataPolicies } from "../services/metadata/cache/metadataFreshness";
@@ -36,8 +37,13 @@ import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
     prepareConnection,
+    profilePrincipal,
+    ProfileTokenSource,
+    ResolvedAuthKind,
+    resolveAuthKind,
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
+import { profileFingerprint } from "../services/metadata/profileFingerprint";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { InlineCompletionDebugSchemaContextOverrides } from "../sharedInterfaces/inlineCompletionDebug";
 import { findQueryStudioModel } from "../queryStudio/queryStudioEditorProvider";
@@ -98,6 +104,9 @@ export interface ClassicConnectionFacts {
     server?: string;
     database?: string;
     user?: string;
+    email?: string;
+    accountId?: string;
+    tenantId?: string;
     authenticationType?: string;
     encrypt?: string | boolean;
     trustServerCertificate?: boolean;
@@ -117,7 +126,10 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
     private readonly logger = logger2.withPrefix("SqlInlineSchemaContext");
     private readonly acquisitions = new Map<string, ClassicAcquisition>();
 
-    constructor(private readonly connections: ClassicConnectionSource) {}
+    constructor(
+        private readonly connections: ClassicConnectionSource,
+        private readonly tokens?: ProfileTokenSource,
+    ) {}
 
     async resolve(document: vscode.TextDocument): Promise<CompletionCatalogAccess | undefined> {
         const dataPlane = SqlDataPlaneService.get();
@@ -128,12 +140,22 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         if (!facts?.server) {
             return undefined;
         }
-        const authKind = (facts.authenticationType ?? "").toLowerCase().includes("integrated")
-            ? ("integrated" as const)
-            : ("sql" as const);
+        let authKind: ResolvedAuthKind;
+        try {
+            authKind = resolveAuthKind(facts);
+        } catch (error) {
+            this.logger.debug(
+                `Classic metadata authentication is unsupported: ${error instanceof Error ? error.name : "unknown"}`,
+            );
+            return undefined;
+        }
         // In-memory LRU key only — the store derives the non-reversible
         // fingerprints from the same facts via prepareConnection.
-        const fingerprint = `classic|${facts.server}|${facts.database ?? ""}|${facts.user ?? ""}|${authKind}`;
+        const fingerprint = profileFingerprint({
+            ...facts,
+            user: profilePrincipal(facts),
+            authKind,
+        });
 
         let acquisition = this.acquisitions.get(fingerprint);
         if (!acquisition) {
@@ -170,13 +192,16 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
     private async acquire(
         fingerprint: string,
         facts: ClassicConnectionFacts,
-        authKind: "sql" | "integrated",
+        authKind: ResolvedAuthKind,
     ): Promise<ClassicAcquisition | undefined> {
         try {
             const stored: StoredConnectionProfile = {
                 server: facts.server!,
                 ...(facts.database ? { database: facts.database } : {}),
                 ...(facts.user ? { user: facts.user } : {}),
+                ...(facts.email ? { email: facts.email } : {}),
+                ...(facts.accountId ? { accountId: facts.accountId } : {}),
+                ...(facts.tenantId ? { tenantId: facts.tenantId } : {}),
                 authenticationType:
                     facts.authenticationType ??
                     (authKind === "integrated" ? "Integrated" : "SqlLogin"),
@@ -185,10 +210,15 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
                     ? { trustServerCertificate: facts.trustServerCertificate }
                     : {}),
             };
-            const prepared = prepareConnection(stored, {
-                // Password exists only inside this provider call chain.
-                lookupPassword: async () => (await this.connections.lookupPassword(facts)) ?? "",
-            });
+            const prepared = prepareConnection(
+                stored,
+                {
+                    // Password exists only inside this provider call chain.
+                    lookupPassword: async () =>
+                        (await this.connections.lookupPassword(facts)) ?? "",
+                },
+                this.tokens,
+            );
             const lease = await MetadataStoreService.get()
                 .store()
                 .acquireDatabase(prepared, facts.database ?? "");
@@ -205,7 +235,7 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
             return acquisition;
         } catch (error) {
             this.logger.debug(
-                `Classic metadata acquisition failed: ${error instanceof Error ? error.message : String(error)}`,
+                `Classic metadata acquisition failed: ${diagnosticErrorClass(error)}`,
             );
             return undefined;
         }

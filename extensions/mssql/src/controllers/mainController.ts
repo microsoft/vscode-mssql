@@ -36,6 +36,7 @@ import {
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import { vscodeSqlTokenSource } from "../services/sqlDataPlane/vscodeSqlTokenSource";
 import {
     centralUploadHost,
     CentralUploadService,
@@ -482,6 +483,9 @@ export default class MainController implements vscode.Disposable {
                         server: credentials.server,
                         database: credentials.database,
                         user: credentials.user,
+                        email: credentials.email,
+                        accountId: credentials.accountId,
+                        tenantId: credentials.tenantId,
                         authenticationType: credentials.authenticationType,
                         encrypt: credentials.encrypt,
                         trustServerCertificate: credentials.trustServerCertificate,
@@ -500,7 +504,7 @@ export default class MainController implements vscode.Disposable {
             };
             this.inlineCompletionSchemaContextService = new CompletionSchemaContextService([
                 new QueryStudioCompletionMetadataResolver(),
-                new ClassicCompletionMetadataResolver(classicConnections),
+                new ClassicCompletionMetadataResolver(classicConnections, vscodeSqlTokenSource),
             ]);
             const inlineCompletionProvider = new SqlInlineCompletionProvider(
                 this._context,
@@ -1395,6 +1399,7 @@ export default class MainController implements vscode.Disposable {
         // shares saved profiles/groups READ-ONLY. Classic OE is untouched.
         activateObjectExplorerV2(this._context, {
             profiles: this._connectionMgr.connectionStore,
+            tokens: vscodeSqlTokenSource,
             // Classic connections are reachable ONLY through the explicit
             // legacy-handoff door (oe_view_design §12) — never for browse.
             legacyConnections: this._connectionMgr,
@@ -1464,6 +1469,7 @@ export default class MainController implements vscode.Disposable {
                 const prepared = prepareConnection(
                     stored,
                     this._connectionMgr.connectionStore as unknown as ProfileSecretSource,
+                    vscodeSqlTokenSource,
                 );
                 return {
                     target: {
@@ -1641,6 +1647,7 @@ export default class MainController implements vscode.Disposable {
                     const prepared = prepareConnection(
                         stored,
                         this._connectionMgr.connectionStore as unknown as ProfileSecretSource,
+                        vscodeSqlTokenSource,
                     );
                     const database = stored.database ?? "";
                     const key = { serverFingerprint: prepared.serverFingerprint, database };

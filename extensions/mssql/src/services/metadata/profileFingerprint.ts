@@ -25,6 +25,9 @@ export interface ProfileIdentityInput {
     readonly server?: string;
     readonly database?: string;
     readonly user?: string;
+    /** Stable account/tenant ids separate metadata caches across Entra principals. */
+    readonly accountId?: string;
+    readonly tenantId?: string;
     /** Auth kind string (e.g. "sql" | "integrated" | "aad" | "bearer"). */
     readonly authKind: string;
     readonly encrypt?: string | boolean;
@@ -43,6 +46,8 @@ export function profileFingerprint(input: ProfileIdentityInput): string {
         input.server,
         input.database,
         input.user,
+        input.accountId,
+        input.tenantId,
         input.authKind,
         String(input.encrypt ?? ""),
         String(input.trustServerCertificate ?? ""),
@@ -54,6 +59,8 @@ export function serverFingerprint(input: ProfileIdentityInput): string {
     return digestParts("sfp", [
         input.server,
         input.user,
+        input.accountId,
+        input.tenantId,
         input.authKind,
         String(input.encrypt ?? ""),
         String(input.trustServerCertificate ?? ""),

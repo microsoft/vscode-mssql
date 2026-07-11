@@ -99,7 +99,7 @@ suite("PerfModeSink diagnostic span forwarding", () => {
         expect(s.queuedCount).to.equal(1);
     });
 
-    test("rpc/webview/sts span events forward additively with diag provenance", () => {
+    test("rpc/webview/sts/token span events forward additively with diag provenance", () => {
         const s = sink();
         s.tryWrite(makeEvent({ type: "rpc.query/executeString.begin", kind: "span" }));
         s.tryWrite(
@@ -114,7 +114,43 @@ suite("PerfModeSink diagnostic span forwarding", () => {
             }),
         );
         s.tryWrite(makeEvent({ type: "webview.tableDesigner.processTableEdit.begin" }));
-        expect(s.queuedCount).to.equal(4);
+        s.tryWrite(
+            makeEvent({
+                type: "sqlDataPlane.auth.token.begin",
+                kind: "span",
+                payload: {
+                    authKind: { v: "aad", cls: "diagnostic.metadata", handling: "plain" },
+                },
+            }),
+        );
+        s.tryWrite(
+            makeEvent({
+                type: "sqlDataPlane.auth.token.end",
+                kind: "span",
+                durationMs: 25,
+                payload: {
+                    authKind: { v: "aad", cls: "diagnostic.metadata", handling: "plain" },
+                    result: { v: "acquired", cls: "diagnostic.metadata", handling: "plain" },
+                },
+            }),
+        );
+        expect(s.queuedCount).to.equal(6);
+        const queued = (s as unknown as { queue: Array<Record<string, unknown>> }).queue;
+        expect(queued[4]).to.deep.include({
+            name: "sqlDataPlane.auth.token.begin",
+            phase: "begin",
+        });
+        expect(queued[4]["attrs"]).to.deep.equal({ authKind: "aad", diag: true });
+        expect(queued[5]).to.deep.include({
+            name: "sqlDataPlane.auth.token.end",
+            phase: "end",
+        });
+        expect(queued[5]["attrs"]).to.deep.equal({
+            authKind: "aad",
+            result: "acquired",
+            diag: true,
+            durationMs: 25,
+        });
     });
 
     test("viewer-internal and unrelated events never enter the harness wire", () => {

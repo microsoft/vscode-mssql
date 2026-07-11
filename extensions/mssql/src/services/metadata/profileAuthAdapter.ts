@@ -24,11 +24,27 @@ export interface StoredConnectionProfile {
     server?: string;
     database?: string;
     user?: string;
+    email?: string;
+    accountId?: string;
+    tenantId?: string;
     authenticationType?: string;
     encrypt?: string | boolean;
     trustServerCertificate?: boolean;
     profileName?: string;
     savePassword?: boolean;
+}
+
+/** First usable human-readable principal; empty profile fields are not identities. */
+export function profilePrincipal(
+    stored: Pick<StoredConnectionProfile, "user" | "email">,
+): string | undefined {
+    for (const value of [stored.user, stored.email]) {
+        const candidate = value?.trim();
+        if (candidate) {
+            return candidate;
+        }
+    }
+    return undefined;
 }
 
 /**
@@ -37,9 +53,10 @@ export interface StoredConnectionProfile {
  * Query Studio open-from-context path so ids always agree.
  */
 export function stableProfileId(stored: StoredConnectionProfile): string {
+    const principal = profilePrincipal(stored) ?? stored.accountId?.trim() ?? "";
     return (
         stored.id ??
-        `${stored.server}|${stored.database ?? ""}|${stored.user ?? ""}|${stored.authenticationType ?? ""}`
+        `${stored.server}|${stored.database ?? ""}|${principal}|${stored.tenantId ?? ""}|${stored.authenticationType ?? ""}`
     );
 }
 
@@ -48,22 +65,50 @@ export interface ProfileSecretSource {
     lookupPassword(credentials: unknown, isConnectionString?: boolean): Promise<string>;
 }
 
-export type ResolvedAuthKind = "sql" | "integrated";
+/** Extension-host seam for acquiring a SQL-resource token at physical-open time. */
+export interface ProfileTokenSource {
+    acquireSqlAccessToken(profile: StoredConnectionProfile): Promise<string | undefined>;
+}
+
+export type ResolvedAuthKind = "sql" | "integrated" | "aad";
+
+export class UnsupportedProfileAuthenticationError extends Error {
+    constructor(authenticationType: string) {
+        super(
+            `Authentication type '${authenticationType}' is not supported by the SQL Data Plane. ` +
+                "Use SQL Login, Integrated authentication, or Microsoft Entra MFA.",
+        );
+        this.name = "UnsupportedProfileAuthenticationError";
+        Object.setPrototypeOf(this, UnsupportedProfileAuthenticationError.prototype);
+    }
+}
 
 export function resolveAuthKind(stored: StoredConnectionProfile): ResolvedAuthKind {
-    return (stored.authenticationType ?? "").toLowerCase().includes("integrated")
-        ? "integrated"
-        : "sql";
+    const authenticationType = stored.authenticationType?.trim() ?? "";
+    switch (authenticationType.toLowerCase()) {
+        // Classic connection behavior defaults an absent auth type to SQL Login.
+        case "":
+        case "sqllogin":
+            return "sql";
+        case "integrated":
+            return "integrated";
+        case "azuremfa":
+        case "activedirectoryinteractive":
+            return "aad";
+        default:
+            throw new UnsupportedProfileAuthenticationError(authenticationType);
+    }
 }
 
 export function buildProfileRef(stored: StoredConnectionProfile): SqlConnectionProfileRef {
     const authKind = resolveAuthKind(stored);
+    const principal = profilePrincipal(stored);
     return {
-        profileFingerprint: profileFingerprint({ ...stored, authKind }),
+        profileFingerprint: profileFingerprint({ ...stored, user: principal, authKind }),
         server: stored.server ?? "",
         ...(stored.database ? { database: stored.database } : {}),
         authKind,
-        ...(stored.user ? { user: stored.user } : {}),
+        ...(principal ? { user: principal } : {}),
         ...(stored.encrypt !== undefined ? { encrypt: stored.encrypt } : {}),
         ...(stored.trustServerCertificate !== undefined
             ? { trustServerCertificate: stored.trustServerCertificate }
@@ -73,18 +118,33 @@ export function buildProfileRef(stored: StoredConnectionProfile): SqlConnectionP
 }
 
 /**
- * Password provider closure over the credential store. Integrated auth
- * resolves to no password; SQL auth defers to lookupPassword at open time.
+ * Deferred credential providers. SQL auth resolves the credential-store
+ * password at open time; Entra MFA resolves a SQL-resource token; integrated
+ * auth carries no secret provider.
  */
 export function buildAuthBundle(
     stored: StoredConnectionProfile,
     secrets: ProfileSecretSource,
+    tokens?: ProfileTokenSource,
 ): AuthProviderBundle {
     const authKind = resolveAuthKind(stored);
-    return {
-        passwordProvider: async () =>
-            authKind === "sql" ? secrets.lookupPassword(stored) : undefined,
-    };
+    switch (authKind) {
+        case "sql":
+            return { passwordProvider: async () => secrets.lookupPassword(stored) };
+        case "aad":
+            return {
+                tokenProvider: async () => {
+                    if (!tokens) {
+                        throw new Error(
+                            "Microsoft Entra authentication is unavailable in this host.",
+                        );
+                    }
+                    return tokens.acquireSqlAccessToken(stored);
+                },
+            };
+        case "integrated":
+            return {};
+    }
 }
 
 /** Everything a data-plane consumer needs to open sessions for a profile. */
@@ -101,13 +161,15 @@ export interface PreparedConnection {
 export function prepareConnection(
     stored: StoredConnectionProfile,
     secrets: ProfileSecretSource,
+    tokens?: ProfileTokenSource,
 ): PreparedConnection {
     const authKind = resolveAuthKind(stored);
+    const principal = profilePrincipal(stored);
     return {
         profileRef: buildProfileRef(stored),
-        auth: buildAuthBundle(stored, secrets),
+        auth: buildAuthBundle(stored, secrets, tokens),
         authKind,
-        serverFingerprint: serverFingerprint({ ...stored, authKind }),
+        serverFingerprint: serverFingerprint({ ...stored, user: principal, authKind }),
         ...(stored.database ? { defaultDatabase: stored.database } : {}),
         ...(stored.profileName || stored.server
             ? { displayName: stored.profileName ?? stored.server }

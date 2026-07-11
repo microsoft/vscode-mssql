@@ -25,6 +25,8 @@ import {
 } from "../../src/services/sqlDataPlane/api";
 import { DEFAULT_DEADLINES, Sts2Backend, Sts2Rpc } from "../../src/services/sts2/sts2Backend";
 import { STS2_METHODS } from "../../src/services/sts2/wire/v2";
+import { diag } from "../../src/diagnostics/diagnosticsCore";
+import type { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
 
 const PROFILE: SqlConnectionProfileRef = {
     profileFingerprint: "fp",
@@ -456,25 +458,134 @@ suite("STS2 binding conformance (scripted wire)", () => {
 
     test("open failure maps Sts2.ConnectionFailed.Auth → SqlDataPlane.Auth; secrets never in the error", async () => {
         const rpc = standardRpc();
+        const events: DiagEvent[] = [];
+        const sinkId = `sts2-open-privacy-${Date.now()}`;
+        diag.addSink({ id: sinkId, tryWrite: (event) => events.push(event) });
         rpc.responders.set(STS2_METHODS.connectionOpen, () => {
-            const error = new Error("login failed for user");
+            const error = new Error("login failed for account-canary@example.test");
             (error as { data?: unknown }).data = { code: "Sts2.ConnectionFailed.Auth" };
             throw error;
         });
         const backend = new Sts2Backend(rpc);
         await backend.start();
         try {
+            try {
+                await backend.openSession({
+                    profile: PROFILE,
+                    applicationName: "test",
+                    auth: { passwordProvider: async () => "pw-canary-x" },
+                });
+                expect.fail("open should throw");
+            } catch (error) {
+                const dpError = error as { code: string; message: string };
+                expect(dpError.code).to.equal("SqlDataPlane.Auth");
+                expect(JSON.stringify(dpError.message)).to.not.include("pw-canary-x");
+            }
+            const diagnosticJson = JSON.stringify(events);
+            expect(diagnosticJson).to.not.include("account-canary@example.test");
+            expect(diagnosticJson).to.not.include("pw-canary-x");
+            expect(diagnosticJson).to.include("SqlDataPlane.Auth");
+        } finally {
+            diag.removeSink(sinkId);
+        }
+    });
+
+    test("AzureMFA profile resolves one token and sends canonical accessToken auth", async () => {
+        const rpc = standardRpc();
+        const backend = new Sts2Backend(rpc);
+        await backend.start();
+        let tokenLookups = 0;
+        await backend.openSession({
+            profile: { ...PROFILE, authKind: "aad", user: "ninja@example.test" },
+            applicationName: "test",
+            auth: { tokenProvider: async () => (tokenLookups++, "token-canary-x") },
+        });
+
+        expect(tokenLookups).to.equal(1);
+        const open = rpc.requests.find((request) => request.method === STS2_METHODS.connectionOpen);
+        const auth = (
+            open!.params as {
+                profile: {
+                    auth: { kind: string; token?: string; password?: string; user?: string };
+                };
+            }
+        ).profile.auth;
+        expect(auth).to.deep.equal({ kind: "accessToken", token: "token-canary-x" });
+        expect(auth.password).to.equal(undefined);
+    });
+
+    test("missing AzureMFA token fails locally as SqlDataPlane.Auth before RPC", async () => {
+        const rpc = standardRpc();
+        const backend = new Sts2Backend(rpc);
+        await backend.start();
+        try {
             await backend.openSession({
-                profile: PROFILE,
+                profile: { ...PROFILE, authKind: "aad" },
                 applicationName: "test",
-                auth: { passwordProvider: async () => "pw-canary-x" },
+                auth: { tokenProvider: async () => undefined },
             });
             expect.fail("open should throw");
         } catch (error) {
-            const dpError = error as { code: string; message: string };
-            expect(dpError.code).to.equal("SqlDataPlane.Auth");
-            expect(JSON.stringify(dpError.message)).to.not.include("pw-canary-x");
+            const dataPlaneError = error as { code: string; message: string };
+            expect(dataPlaneError.code).to.equal("SqlDataPlane.Auth");
+            expect(dataPlaneError.message).to.not.include("undefined");
         }
+        expect(
+            rpc.requests.filter((request) => request.method === STS2_METHODS.connectionOpen),
+        ).to.have.length(0);
+    });
+
+    test("AzureMFA token-provider failure is classified as SqlDataPlane.Auth before RPC", async () => {
+        const rpc = standardRpc();
+        const backend = new Sts2Backend(rpc);
+        await backend.start();
+        try {
+            await backend.openSession({
+                profile: { ...PROFILE, authKind: "aad" },
+                applicationName: "test",
+                auth: {
+                    tokenProvider: async () => {
+                        throw new Error("Selected Microsoft Entra account is unavailable.");
+                    },
+                },
+            });
+            expect.fail("open should throw");
+        } catch (error) {
+            const dataPlaneError = error as { code: string; message: string };
+            expect(dataPlaneError.code).to.equal("SqlDataPlane.Auth");
+            expect(dataPlaneError.message).to.include("account is unavailable");
+        }
+        expect(
+            rpc.requests.filter((request) => request.method === STS2_METHODS.connectionOpen),
+        ).to.have.length(0);
+    });
+
+    test("AzureMFA token acquisition shares the open deadline and cannot send a late open", async () => {
+        const rpc = standardRpc();
+        const backend = new Sts2Backend(rpc);
+        await backend.start();
+        let release!: (token: string) => void;
+        const token = new Promise<string>((resolve) => (release = resolve));
+        try {
+            await backend.openSession({
+                profile: { ...PROFILE, authKind: "aad" },
+                applicationName: "test",
+                openTimeoutMs: 15,
+                auth: { tokenProvider: async () => token },
+            });
+            expect.fail("token acquisition should time out");
+        } catch (error) {
+            expect((error as { code?: string }).code).to.equal("SqlDataPlane.Client.Timeout");
+        }
+        expect(
+            rpc.requests.filter((request) => request.method === STS2_METHODS.connectionOpen),
+        ).to.have.length(0);
+
+        release("late-token");
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        expect(
+            rpc.requests.filter((request) => request.method === STS2_METHODS.connectionOpen),
+        ).to.have.length(0);
     });
 
     test("orphan buffer: notifications arriving before the execute result registers are replayed in order", async () => {

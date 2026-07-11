@@ -18,6 +18,7 @@
  */
 
 import * as vscode from "vscode";
+import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import {
     IQueryEventSink,
@@ -29,12 +30,13 @@ import { MetadataStatus, runMetadataQuery } from "../services/metadata/metadataS
 import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
-    buildAuthBundle,
     buildProfileRef,
     prepareConnection,
-    resolveAuthKind,
+    PreparedConnection,
+    ResolvedAuthKind,
     stableProfileId,
 } from "../services/metadata/profileAuthAdapter";
+import { vscodeSqlTokenSource } from "../services/sqlDataPlane/vscodeSqlTokenSource";
 import { QsConnectionState } from "../sharedInterfaces/queryStudio";
 import { accentTextColor } from "../sharedInterfaces/colorContrast";
 import { buildSessionOptionsBatch, readQuerySessionOptions } from "./sessionOptions";
@@ -44,6 +46,9 @@ interface StoredProfile {
     server?: string;
     database?: string;
     user?: string;
+    email?: string;
+    accountId?: string;
+    tenantId?: string;
     authenticationType?: string;
     encrypt?: string | boolean;
     trustServerCertificate?: boolean;
@@ -91,8 +96,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private spid: number | undefined;
     private openTransactions: number | undefined;
     private lastProfileRef: SqlConnectionProfileRef | undefined;
+    private lastPrepared: PreparedConnection | undefined;
     private lastStore: ConnectionStoreSeam | undefined;
-    private lastAuthKind: "sql" | "integrated" | undefined;
+    private lastAuthKind: ResolvedAuthKind | undefined;
     /** Production safety: the connected profile's group facts (color + flag). */
     private groupAccent: { color?: string; production: boolean } | undefined;
     private onChangeHandlers = new Set<() => void>();
@@ -405,7 +411,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 ...(database ? { database } : {}),
                 applicationName: AUX_APPLICATION_NAMES[purpose],
                 // Password exists only inside the provider closure.
-                auth: buildAuthBundle(stored, store),
+                auth: this.lastPrepared?.auth,
             });
             this.auxSessions.add(session);
             session.onDidChangeState((change) => {
@@ -471,7 +477,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 profile: profileRef,
                 database: "master",
                 applicationName: "vscode-mssql-querystudio-dblist",
-                auth: buildAuthBundle(stored, store),
+                auth: this.lastPrepared?.auth,
             });
             try {
                 const rows = await runMetadataQuery(
@@ -526,6 +532,10 @@ export class DocumentSessionBinding implements vscode.Disposable {
         // Auxiliary sessions belong to the PREVIOUS connection context.
         this.closeAuxSessions();
         this.lastStoredProfile = stored;
+        this.lastProfileRef = undefined;
+        this.lastPrepared = undefined;
+        this.lastStore = undefined;
+        this.lastAuthKind = undefined;
         this.userSessionReady = Promise.resolve();
         this.stateKind = "connecting";
         this.lostReason = undefined;
@@ -534,22 +544,23 @@ export class DocumentSessionBinding implements vscode.Disposable {
         // Shared profile-preparation seam (MetadataStore MD-0): fingerprint
         // recipe is now hash-based (non-reversible, per the profileRef
         // contract) — in-memory keys only, so no persisted state shifts.
-        const authKind = resolveAuthKind(stored);
-        const profileRef: SqlConnectionProfileRef = buildProfileRef(stored);
-        this.lastProfileRef = profileRef;
-        this.lastStore = store;
-        this.lastAuthKind = authKind;
-        // Production safety: resolve the profile's group facts in the
-        // background (accent + production flag); absence is simply "off".
-        this.groupAccent = undefined;
-        void this.resolveGroupAccent(stored, store);
         try {
+            const prepared = prepareConnection(stored, store, vscodeSqlTokenSource);
+            const { authKind, profileRef } = prepared;
+            this.lastProfileRef = profileRef;
+            this.lastPrepared = prepared;
+            this.lastStore = store;
+            this.lastAuthKind = authKind;
+            // Production safety: resolve the profile's group facts in the
+            // background (accent + production flag); absence is simply "off".
+            this.groupAccent = undefined;
+            void this.resolveGroupAccent(stored, store);
             const service = await SqlDataPlaneService.get().service();
             const session = await service.openSession({
                 profile: profileRef,
                 applicationName: "vscode-mssql-querystudio",
                 // Password exists only inside the provider closure.
-                auth: buildAuthBundle(stored, store),
+                auth: prepared.auth,
             });
             this.session = session;
             session.onDidChangeState((change) => {
@@ -593,7 +604,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
             const reason = error instanceof Error ? error.message : String(error);
             Perf.marker("mssql.queryStudio.connect.ready", "end", {
                 error: true,
-                reason: reason.slice(0, 120),
+                reason: diagnosticErrorClass(error),
             });
             this.stateKind = "disconnected";
             this.fireChange();
@@ -805,11 +816,15 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private acquireMetadata(
         _profileRef: SqlConnectionProfileRef,
         store: ConnectionStoreSeam,
-        _authKind: "sql" | "integrated",
+        _authKind: ResolvedAuthKind,
     ): void {
         void (async () => {
             try {
-                const prepared = prepareConnection(this.lastStoredProfile ?? {}, store);
+                const prepared = prepareConnection(
+                    this.lastStoredProfile ?? {},
+                    store,
+                    vscodeSqlTokenSource,
+                );
                 this.metadataLease = await MetadataStoreService.get()
                     .store()
                     .acquireDatabase(prepared, this.connectionState.database ?? "", (status) => {

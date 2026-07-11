@@ -16,7 +16,10 @@ import * as vscode from "vscode";
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { Perf } from "../../perf/perfTelemetry";
 import { MetadataStoreService } from "../../services/metadata/metadataStoreService";
-import { ProfileSecretSource } from "../../services/metadata/profileAuthAdapter";
+import {
+    ProfileSecretSource,
+    ProfileTokenSource,
+} from "../../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneService";
 import { ObjectExplorerV2Provider } from "./objectExplorerV2Provider";
 import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
@@ -38,6 +41,7 @@ import { OeV2TreeController } from "./tree/oeV2TreeController";
 
 export interface OeV2ActivationDeps {
     readonly profiles: ConnectionProfileSource & ProfileSecretSource;
+    readonly tokens: ProfileTokenSource;
     /** Classic connection seam for the EXPLICIT legacy handoff door (B20). */
     readonly legacyConnections?: HandoffConnectionSeam;
     /** Shared group storage (B26): the classic ConnectionConfig instance. */
@@ -61,6 +65,7 @@ export function activateObjectExplorerV2(
         controller = new OeV2TreeController({
             profiles: deps.profiles,
             secrets: deps.profiles,
+            tokens: deps.tokens,
             dataPlane: {
                 enabled: () => SqlDataPlaneService.get().enabled,
                 availabilityState: () => SqlDataPlaneService.get().availability().state,

@@ -72,6 +72,46 @@ export interface DiagSpan {
     fail(error: unknown): void;
 }
 
+const SAFE_ERROR_CODES = new Set([
+    "SqlDataPlane.InvalidRequest",
+    "SqlDataPlane.Busy",
+    "SqlDataPlane.Unavailable",
+    "SqlDataPlane.Auth",
+    "SqlDataPlane.Client.Timeout",
+    "SqlDataPlane.Client.ProtocolViolation",
+    "SqlDataPlane.Client.SinkError",
+]);
+
+const SAFE_ERROR_NAMES = new Set([
+    "Error",
+    "TypeError",
+    "RangeError",
+    "SyntaxError",
+    "AggregateError",
+    "SqlDataPlaneError",
+    "UnsupportedProfileAuthenticationError",
+    "MissingEntraAuthAccountError",
+    "UnsupportedEntraAccountStoreError",
+    "EntraAccountMismatchError",
+    "EntraTenantMismatchError",
+    "EntraTokenExpiryError",
+]);
+
+/** Closed-shape error identifier for diagnostics; never returns provider text. */
+export function diagnosticErrorClass(error: unknown): string {
+    const code =
+        error instanceof Error && "code" in error
+            ? (error as Error & { code?: unknown }).code
+            : undefined;
+    if (typeof code === "string" && SAFE_ERROR_CODES.has(code)) {
+        return code;
+    }
+    if (error instanceof Error && SAFE_ERROR_NAMES.has(error.name)) {
+        return error.name;
+    }
+    return "UnknownError";
+}
+
 let traceCounter = 0;
 
 /** New root trace id for a user action. */

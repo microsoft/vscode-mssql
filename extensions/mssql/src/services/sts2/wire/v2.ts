@@ -94,7 +94,8 @@ export interface V2ConnectionProfile {
         kind: "sqlLogin" | "accessToken" | "integrated";
         user?: string;
         password?: string;
-        accessToken?: string;
+        /** Canonical STS2 SPEC §7.4 access-token field. */
+        token?: string;
     };
     options?: {
         applicationName?: string;

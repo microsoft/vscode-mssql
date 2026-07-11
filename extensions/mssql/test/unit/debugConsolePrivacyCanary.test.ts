@@ -17,6 +17,7 @@ import * as os from "os";
 import * as path from "path";
 import { classifyPayload, CAPTURE_POLICIES } from "../../src/diagnostics/redaction";
 import { PerfModeSink, SessionDiagSink } from "../../src/diagnostics/sinks";
+import { diagnosticErrorClass } from "../../src/diagnostics/diagnosticsCore";
 import { DIAG_SCHEMA_VERSION, DiagEvent } from "../../src/sharedInterfaces/debugConsole";
 
 const CANARY = {
@@ -47,6 +48,18 @@ function assertNoCanary(haystack: string, allowed: string[] = []) {
 }
 
 suite("Privacy canary corpus", () => {
+    test("diagnostic error classes reject provider-controlled code and name text", () => {
+        const error = new Error(CANARY.providerMessage);
+        error.name = CANARY.providerMessage;
+        (error as Error & { code: string }).code = CANARY.token;
+        expect(diagnosticErrorClass(error)).to.equal("UnknownError");
+        expect(
+            diagnosticErrorClass(
+                Object.assign(new Error("safe UI message"), { code: "SqlDataPlane.Auth" }),
+            ),
+        ).to.equal("SqlDataPlane.Auth");
+    });
+
     test("digest and redacted modes: no canary survives classification", () => {
         for (const policy of [CAPTURE_POLICIES.digest, CAPTURE_POLICIES.redacted]) {
             const { payload } = classifyPayload(CANARY_FIELDS, policy);
@@ -136,7 +149,22 @@ suite("Privacy canary corpus", () => {
             tags: ["perfMarker", "phase:instant"],
             payload,
         });
-        expect(sink.queuedCount).to.equal(1);
+        sink.tryWrite({
+            schemaVersion: DIAG_SCHEMA_VERSION,
+            eventId: "evt_token_wire",
+            sessionId: "sess",
+            seq: 3,
+            epochMs: Date.now(),
+            process: "extensionHost",
+            feature: "sqlDataPlane",
+            kind: "span",
+            type: "sqlDataPlane.auth.token.end",
+            status: "ok",
+            durationMs: 12,
+            cls: { max: maxClassification, redactedFields, policyId: policy.policyId },
+            payload,
+        });
+        expect(sink.queuedCount).to.equal(2);
         // Serialize exactly what would go on the wire.
         const queued = (sink as unknown as { queue: unknown[] }).queue;
         assertNoCanary(JSON.stringify(queued));

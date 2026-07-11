@@ -12,6 +12,8 @@
  */
 
 import { expect } from "chai";
+import { diag } from "../../src/diagnostics/diagnosticsCore";
+import type { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
 import {
     ISqlConnectionService,
     ISqlSession,
@@ -27,6 +29,7 @@ import {
     prepareConnection,
     resolveAuthKind,
     StoredConnectionProfile,
+    UnsupportedProfileAuthenticationError,
 } from "../../src/services/metadata/profileAuthAdapter";
 import { MetadataStore } from "../../src/services/metadata/metadataStore";
 
@@ -273,8 +276,9 @@ suite("MetadataStore (B15)", () => {
         expect(prepared.profileRef.displayName).to.equal("Alpha");
         expect(prepared.serverFingerprint).to.match(/^sfp_/);
         expect(prepared.defaultDatabase).to.equal("DbDefault");
-        // integrated: provider resolves undefined WITHOUT calling the store
-        expect(await prepared.auth.passwordProvider!()).to.equal(undefined);
+        // Integrated auth has no provider and never touches the credential store.
+        expect(prepared.auth.passwordProvider).to.equal(undefined);
+        expect(prepared.auth.tokenProvider).to.equal(undefined);
 
         let lookups = 0;
         const sqlPrepared = prepareConnection(
@@ -284,6 +288,70 @@ suite("MetadataStore (B15)", () => {
         expect(resolveAuthKind({ authenticationType: "SqlLogin" })).to.equal("sql");
         expect(await sqlPrepared.auth.passwordProvider!()).to.equal("pw-value");
         expect(lookups).to.equal(1);
+    });
+
+    test("prepareConnection: AzureMFA uses deferred SQL token and isolates Entra identities", async () => {
+        let passwordLookups = 0;
+        let tokenLookups = 0;
+        const profile: StoredConnectionProfile = {
+            server: "ninja.database.windows.net",
+            database: "ninjadb",
+            authenticationType: "AzureMFA",
+            // Classic profile normalization may persist an empty user for AzureMFA.
+            user: "",
+            email: "ninja@example.test",
+            accountId: "account-a",
+            tenantId: "tenant-a",
+        };
+        const prepared = prepareConnection(
+            profile,
+            { lookupPassword: async () => (passwordLookups++, "wrong-secret") },
+            { acquireSqlAccessToken: async () => (tokenLookups++, "sql-token") },
+        );
+
+        expect(prepared.authKind).to.equal("aad");
+        expect(prepared.profileRef.authKind).to.equal("aad");
+        expect(prepared.profileRef.user).to.equal("ninja@example.test");
+        expect(prepared.auth.passwordProvider).to.equal(undefined);
+        expect(passwordLookups).to.equal(0);
+        expect(tokenLookups).to.equal(0);
+        expect(await prepared.auth.tokenProvider!()).to.equal("sql-token");
+        expect(tokenLookups).to.equal(1);
+
+        const otherAccount = prepareConnection({ ...profile, accountId: "account-b" }, NO_SECRETS, {
+            acquireSqlAccessToken: async () => "other-token",
+        });
+        expect(otherAccount.profileRef.profileFingerprint).to.not.equal(
+            prepared.profileRef.profileFingerprint,
+        );
+        expect(otherAccount.serverFingerprint).to.not.equal(prepared.serverFingerprint);
+        for (const fingerprint of [
+            prepared.profileRef.profileFingerprint,
+            prepared.serverFingerprint,
+        ]) {
+            expect(fingerprint).to.not.include("ninja");
+            expect(fingerprint).to.not.include("account-a");
+            expect(fingerprint).to.not.include("tenant-a");
+        }
+    });
+
+    test("profile auth mapping is exhaustive and never coerces unsupported Entra modes", () => {
+        expect(resolveAuthKind({})).to.equal("sql");
+        expect(resolveAuthKind({ authenticationType: "SqlLogin" })).to.equal("sql");
+        expect(resolveAuthKind({ authenticationType: "Integrated" })).to.equal("integrated");
+        expect(resolveAuthKind({ authenticationType: "AzureMFA" })).to.equal("aad");
+        expect(resolveAuthKind({ authenticationType: "ActiveDirectoryInteractive" })).to.equal(
+            "aad",
+        );
+        for (const authenticationType of [
+            "ActiveDirectoryDefault",
+            "ActiveDirectoryServicePrincipal",
+            "unknown-auth",
+        ]) {
+            expect(() => resolveAuthKind({ authenticationType })).to.throw(
+                UnsupportedProfileAuthenticationError,
+            );
+        }
     });
 
     test("acquireDatabase: A and B are key-correct and isolated (concurrent)", async () => {
@@ -491,5 +559,37 @@ suite("MetadataStore (B15)", () => {
         }
         lease.dispose();
         store.dispose();
+    });
+
+    test("metadata failure spans keep provider identity messages out of diagnostics", async () => {
+        const events: DiagEvent[] = [];
+        const sinkId = `metadata-auth-privacy-${Date.now()}`;
+        diag.addSink({ id: sinkId, tryWrite: (event) => events.push(event) });
+        const canary = "account-canary@example.test tenant-canary provider details";
+        const service = {
+            availability: { state: "available" as const, backend: "test", capabilities: {} },
+            onDidChangeAvailability: () => ({ dispose: () => undefined }),
+            backendInfo: { kind: "test" },
+            canOpen: async () => ({ ok: true }),
+            openSession: async () => {
+                const error = new Error(canary);
+                (error as Error & { code: string }).code = "SqlDataPlane.Auth";
+                throw error;
+            },
+        } as unknown as ISqlConnectionService;
+        const store = new MetadataStore(async () => service, { pollSeconds: 0 });
+        const prepared = prepareConnection(INTEGRATED, NO_SECRETS);
+        try {
+            const lease = await store.acquireDatabase(prepared, "DbDefault");
+            await lease.refresh().catch(() => undefined);
+            const serialized = JSON.stringify(events);
+            expect(serialized).to.not.include("account-canary@example.test");
+            expect(serialized).to.not.include("tenant-canary");
+            expect(serialized).to.include("SqlDataPlane.Auth");
+            lease.dispose();
+        } finally {
+            store.dispose();
+            diag.removeSink(sinkId);
+        }
     });
 });

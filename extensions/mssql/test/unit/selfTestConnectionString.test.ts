@@ -14,8 +14,17 @@ import {
     connectionStringLabel,
     parseSqlConnectionString,
 } from "../../src/diagnostics/selfTest/connectionString";
+import { selfTestAuthenticationType } from "../../src/diagnostics/selfTest/selfTestService";
 
 suite("Self-test connection string parsing", () => {
+    test("self-test auth mapping is exhaustive and never coerces Entra to Integrated", () => {
+        expect(selfTestAuthenticationType(undefined)).to.equal("SqlLogin");
+        expect(selfTestAuthenticationType("SqlLogin")).to.equal("SqlLogin");
+        expect(selfTestAuthenticationType("Integrated")).to.equal("Integrated");
+        expect(selfTestAuthenticationType("AzureMFA")).to.equal(undefined);
+        expect(selfTestAuthenticationType("ActiveDirectoryDefault")).to.equal(undefined);
+    });
+
     test("parses a standard SQL-login connection string", () => {
         const outcome = parseSqlConnectionString(
             "Server=tcp:myserver,1433;Database=mydb;User ID=sa;Password=P@ss;Encrypt=True;TrustServerCertificate=True",

@@ -48,13 +48,14 @@ interface LegacyPerfMarker {
 
 /**
  * Types of diagnostic span events forwarded to the harness IN ADDITION to the
- * Perf-facade markers: JSON-RPC round-trips, webview request spans, and
- * STS-side dispatcher/SqlCommand/SMO/DacFx spans. These give CLI-run
- * waterfalls real sublane detail instead of one "doing scenario" block. The
- * names are additive to the marker vocabulary (the normalizer tolerates
- * unknown markers; importPerfRep pairs *.begin/*.end into bars).
+ * Perf-facade markers: JSON-RPC round-trips, webview request spans, STS-side
+ * dispatcher/SqlCommand/SMO/DacFx spans, and the narrow SQL-token acquisition
+ * family. These give CLI-run waterfalls real sublane detail instead of one
+ * "doing scenario" block. The names are additive to the marker vocabulary
+ * (the normalizer tolerates unknown markers; importPerfRep pairs
+ * *.begin/*.end into bars).
  */
-const FORWARDED_SPAN_TYPES = /^(rpc\.|webview\.|sts\.)/;
+const FORWARDED_SPAN_TYPES = /^(rpc\.|webview\.|sts\.|sqlDataPlane\.auth\.token(?:\.|$))/;
 
 /**
  * Forwards marker-tagged diagnostics to the perf orchestrator's HTTP sink.
