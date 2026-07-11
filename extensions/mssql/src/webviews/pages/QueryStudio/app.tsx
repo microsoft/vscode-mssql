@@ -96,6 +96,7 @@ import {
     LazyMessagesView,
     LazyQsResultsGridProvider,
     LazyResultGridBlock,
+    LazyVectorTab,
     prefetchGridStack,
     ResultsSurfaceLoading,
     whenGridStackLoaded,
@@ -119,7 +120,7 @@ import { executeParamsForSelection } from "./executionRequests";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
-type QueryStudioTab = "results" | "messages" | "queryPlan";
+type QueryStudioTab = "results" | "messages" | "queryPlan" | "vector";
 
 interface QueryPlanTabState {
     readonly key: string;
@@ -1383,6 +1384,31 @@ export function QueryStudioApp() {
     const gridResultSetSummaries = resultSetSummaries;
     const hasDataResults = resultSetSummaries.length > 0;
     const hasPlanResults = planResultSetSummaries.length > 0;
+    // Vector tab appliesTo sniff (VEC-5): cheap column-metadata scan in the
+    // shell — the pane chunk loads only on first activation.
+    const vectorColumns = React.useMemo(
+        () =>
+            resultSetSummaries.flatMap(
+                (summary) =>
+                    summary.columns?.flatMap((column, ordinal) =>
+                        column.vector
+                            ? [
+                                  {
+                                      resultSetId: summary.resultSetId,
+                                      columnOrdinal: ordinal,
+                                      columnName: column.displayName || column.name,
+                                      ...(column.vector.dimensions !== undefined
+                                          ? { dimensions: column.vector.dimensions }
+                                          : {}),
+                                      transport: column.vector.transport,
+                                  },
+                              ]
+                            : [],
+                    ) ?? [],
+            ),
+        [resultSetSummaries],
+    );
+    const hasVectorResults = vectorColumns.length > 0;
     const visibleActiveTab: QueryStudioTab =
         activeTab === "results" && !hasDataResults
             ? "messages"
@@ -1390,7 +1416,11 @@ export function QueryStudioApp() {
               ? hasDataResults
                   ? "results"
                   : "messages"
-              : activeTab;
+              : activeTab === "vector" && !hasVectorResults
+                ? hasDataResults
+                    ? "results"
+                    : "messages"
+                : activeTab;
     const dataTotalRows = resultSetSummaries.reduce(
         (total, summary) => total + effectiveRowCount(summary),
         0,
@@ -1412,7 +1442,8 @@ export function QueryStudioApp() {
         (visibleActiveTab === "results" &&
             gridResultSetSummaries.length > 0 &&
             (singleGrid || maximizedGrid !== undefined)) ||
-        visibleActiveTab === "queryPlan";
+        visibleActiveTab === "queryPlan" ||
+        visibleActiveTab === "vector";
     const resultsLayout = computeResultsLayout(
         gridResultSetSummaries.map(effectiveRowCount),
         // clientHeight includes the body's 4px vertical paddings.
@@ -1704,6 +1735,15 @@ export function QueryStudioApp() {
                                         : ""}
                                 </button>
                             ) : null}
+                            {hasVectorResults ? (
+                                <button
+                                    role="tab"
+                                    aria-selected={visibleActiveTab === "vector"}
+                                    className={`qs-tab ${visibleActiveTab === "vector" ? "active" : ""}`}
+                                    onClick={() => setActiveTab("vector")}>
+                                    Vector
+                                </button>
+                            ) : null}
                             <button
                                 role="tab"
                                 aria-selected={visibleActiveTab === "messages"}
@@ -1872,6 +1912,16 @@ export function QueryStudioApp() {
                                     <LazyExecutionPlanView
                                         rpc={rpc}
                                         executionPlanState={queryPlanTabState?.executionPlanState}
+                                    />
+                                </React.Suspense>
+                            ) : visibleActiveTab === "vector" ? (
+                                // VEC-5/P2: the Vector Workbench chunk loads on
+                                // FIRST vector-tab activation only.
+                                <React.Suspense fallback={<ResultsSurfaceLoading />}>
+                                    <LazyVectorTab
+                                        rpc={rpc}
+                                        columns={vectorColumns}
+                                        runKey={String(runId ?? "idle")}
                                     />
                                 </React.Suspense>
                             ) : (

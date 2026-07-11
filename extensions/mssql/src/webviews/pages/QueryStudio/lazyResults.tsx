@@ -28,6 +28,7 @@ import { perfMark } from "../../common/perfMarks";
 const resultsModule = () => import("./results");
 const gridModule = () => import("./resultsGrid");
 const planModule = () => import("./queryPlanTab");
+const vectorModule = () => import("./vectorTab");
 
 let gridPrefetchStarted = false;
 let gridLoaded = false;
@@ -94,6 +95,15 @@ export const LazyExecutionPlanView = React.lazy(async () => {
     const module = await planModule();
     perfMark("mssql.queryStudio.boot.planChunkLoaded", {});
     return { default: module.QueryStudioExecutionPlanView };
+});
+
+export const LazyVectorTab = React.lazy(async () => {
+    // P2 on-use (VEC-5): the Vector Workbench chunk loads only on first tab
+    // activation — an unopened tab costs nothing beyond the appliesTo sniff.
+    perfMark("mssql.queryStudio.boot.vectorChunkRequested", {});
+    const module = await vectorModule();
+    perfMark("mssql.queryStudio.boot.vectorChunkLoaded", {});
+    return { default: module.VectorWorkbenchTab };
 });
 
 /** Suspense fallback for the few-ms window where results beat the chunk. */
