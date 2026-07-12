@@ -24,6 +24,7 @@ interface MetafileOutput {
 }
 
 const ENTRY = "dist/views/queryStudio.js";
+const ENTRY_CSS = "dist/views/queryStudio.css";
 
 /**
  * Heavy packages that must NEVER ride the init render (P1/P2 chunks only).
@@ -56,6 +57,8 @@ const DENYLIST = [
 const CLOSURE_CODE_BYTES_CEILING = 11.5 * 1024 * 1024;
 /** Chunk-count ceiling — silent graph growth shows up here. */
 const CLOSURE_CHUNK_CEILING = 20;
+/** Entry stylesheet is parsed before first paint; keep feature CSS growth visible. */
+const ENTRY_CSS_BYTES_CEILING = 560 * 1024;
 
 function loadMetafile(): { outputs: Record<string, MetafileOutput> } {
     const metafilePath = path.join(__dirname, "..", "..", "..", "webviews-metafile.json");
@@ -141,6 +144,17 @@ suite("Query Studio bundle budget (BOOT-3)", () => {
                 "the critical path, raise the ceiling in the SAME review that justifies it.",
         ).to.be.lessThan(CLOSURE_CODE_BYTES_CEILING);
         expect(closure.length, "static chunk count grew").to.be.lessThan(CLOSURE_CHUNK_CEILING);
+    });
+
+    test("the entry stylesheet stays inside its byte ceiling", () => {
+        const { outputs } = loadMetafile();
+        const css = outputs[ENTRY_CSS];
+        expect(css, `${ENTRY_CSS} missing from metafile`).to.not.equal(undefined);
+        expect(
+            css.bytes,
+            `entry CSS grew to ${(css.bytes / 1024).toFixed(1)}KiB — move optional pane ` +
+                "styles behind a linked lazy stylesheet or justify the ceiling change in review.",
+        ).to.be.lessThan(ENTRY_CSS_BYTES_CEILING);
     });
 
     test("the preload manifest exists and covers the Query Studio entry", () => {

@@ -87,7 +87,13 @@ interface VectorSession {
     readonly columnOrdinal: number;
     readonly seed: number;
     readonly transport: "binary-v1" | "textFallback";
+    readonly dimensions?: number;
+    readonly totalRows: number;
     readonly workers: Set<Worker>;
+    readonly activeAnalyses: Map<
+        string,
+        { readonly generation: number; readonly abortController: AbortController }
+    >;
     profile?: VectorProfileSummary;
     /** Cached per-session PCA result (VEC-6) — one worker run per session. */
     projection?: VectorProjectionSummary;
@@ -98,45 +104,145 @@ interface VectorSession {
     disposed: boolean;
 }
 
-/** FIFO worker-slot gate (global across service instances). */
-class SlotGate {
-    private available: number;
-    private readonly waiters: Array<() => void> = [];
-    constructor(slots: number) {
-        this.available = Math.max(1, slots);
-    }
-    async acquire(): Promise<() => void> {
-        if (this.available > 0) {
-            this.available--;
-        } else {
-            await new Promise<void>((resolve) => this.waiters.push(resolve));
+/**
+ * Scoped, lease-backed view used by live-only Vector workspaces. Callers must
+ * release it in a finally block; close/dispose then waits for their store read
+ * to settle before releasing the retained result store.
+ */
+export interface VectorWorkbenchSessionFacts {
+    readonly generation: number;
+    readonly transport: "binary-v1" | "textFallback";
+    readonly dimensions?: number;
+    readonly totalRows: number;
+    readonly store: IQueryResultStore;
+    readonly resultSetId: string;
+    readonly vectorColumnOrdinal: number;
+    readonly isActive: () => boolean;
+    readonly release: () => void;
+}
+
+interface VectorWorkerWaiter {
+    readonly owner: symbol;
+    readonly limit: number;
+    readonly signal: AbortSignal;
+    readonly resolve: (release: (() => void) | undefined) => void;
+    readonly onAbort: () => void;
+}
+
+/**
+ * FIFO process-wide worker coordinator. Each operation contributes the
+ * vectorMaxWorkers value from its resolved run tuning. A lower-cap operation
+ * runs alone once earlier work drains; later higher-cap work cannot bypass it.
+ */
+export class VectorWorkerCoordinator {
+    private readonly active = new Map<number, { readonly owner: symbol; readonly limit: number }>();
+    private readonly waiters: VectorWorkerWaiter[] = [];
+    private nextLeaseId = 1;
+
+    acquire(
+        owner: symbol,
+        effectiveLimit: number,
+        signal: AbortSignal,
+    ): Promise<(() => void) | undefined> {
+        const limit = Number.isFinite(effectiveLimit)
+            ? Math.min(4, Math.max(0, Math.floor(effectiveLimit)))
+            : 0;
+        if (limit === 0 || signal.aborted) {
+            return Promise.resolve(undefined);
         }
-        let released = false;
-        return () => {
-            if (released) {
+        return new Promise((resolve) => {
+            const waiter: VectorWorkerWaiter = {
+                owner,
+                limit,
+                signal,
+                resolve,
+                onAbort: () => this.removeWaiter(waiter),
+            };
+            signal.addEventListener("abort", waiter.onAbort, { once: true });
+            this.waiters.push(waiter);
+            this.drain();
+        });
+    }
+
+    disposeOwner(owner: symbol): void {
+        const removed: VectorWorkerWaiter[] = [];
+        for (let index = this.waiters.length - 1; index >= 0; index--) {
+            const waiter = this.waiters[index];
+            if (waiter.owner === owner) {
+                this.waiters.splice(index, 1);
+                waiter.signal.removeEventListener("abort", waiter.onAbort);
+                removed.push(waiter);
+            }
+        }
+        for (const waiter of removed) {
+            waiter.resolve(undefined);
+        }
+        this.drain();
+    }
+
+    private removeWaiter(waiter: VectorWorkerWaiter): void {
+        const index = this.waiters.indexOf(waiter);
+        if (index < 0) {
+            return;
+        }
+        this.waiters.splice(index, 1);
+        waiter.signal.removeEventListener("abort", waiter.onAbort);
+        waiter.resolve(undefined);
+        this.drain();
+    }
+
+    private drain(): void {
+        for (;;) {
+            const waiter = this.waiters[0];
+            if (!waiter) {
                 return;
             }
-            released = true;
-            const next = this.waiters.shift();
-            if (next) {
-                next();
-            } else {
-                this.available++;
+            if (waiter.signal.aborted) {
+                this.removeWaiter(waiter);
+                continue;
             }
-        };
+            let processLimit = waiter.limit;
+            for (const lease of this.active.values()) {
+                processLimit = Math.min(processLimit, lease.limit);
+            }
+            if (this.active.size >= processLimit) {
+                return;
+            }
+            this.waiters.shift();
+            waiter.signal.removeEventListener("abort", waiter.onAbort);
+            const leaseId = this.nextLeaseId++;
+            this.active.set(leaseId, { owner: waiter.owner, limit: waiter.limit });
+            let released = false;
+            waiter.resolve(() => {
+                if (released) {
+                    return;
+                }
+                released = true;
+                this.active.delete(leaseId);
+                this.drain();
+            });
+        }
     }
 }
 
+const GLOBAL_VECTOR_WORKER_COORDINATOR = new VectorWorkerCoordinator();
+
 export class VectorWorkbenchService {
     private readonly sessions = new Map<string, VectorSession>();
-    private readonly gate: SlotGate;
+    private readonly workerOwner = Symbol("vectorWorkbench");
 
     constructor(
         private readonly tuning: () => QueryTuningParams,
         /** Injectable for tests; production passes dist/vectorAnalysisWorker.js. */
         private readonly workerPath: string = path.join(__dirname, "vectorAnalysisWorker.js"),
-    ) {
-        this.gate = new SlotGate(this.tuning().vectorMaxWorkers);
+        private readonly workerCoordinator: VectorWorkerCoordinator = GLOBAL_VECTOR_WORKER_COORDINATOR,
+    ) {}
+
+    private acquireWorkerSlot(
+        effectiveLimit: number,
+        signal: AbortSignal,
+    ): Promise<(() => void) | undefined> {
+        return this.workerCoordinator.acquire(this.workerOwner, effectiveLimit, signal);
     }
 
     open(store: IQueryResultStore | undefined, params: QsVectorOpenParams): QsVectorOpenResult {
@@ -186,7 +292,12 @@ export class VectorWorkbenchService {
             columnOrdinal: params.columnOrdinal,
             seed: crypto.randomBytes(4).readUInt32LE(0),
             transport: column.vector?.transport ?? "textFallback",
+            ...(column.vector?.dimensions !== undefined
+                ? { dimensions: column.vector.dimensions }
+                : {}),
+            totalRows: summary.rowCount,
             workers: new Set(),
+            activeAnalyses: new Map(),
             details: new Map(),
             activeStoreOperations: 0,
             leaseReleased: false,
@@ -232,17 +343,40 @@ export class VectorWorkbenchService {
         const generation = session.generation;
         const tuning = this.tuning();
         const budget = ingestBudgetFrom(tuning);
-        Perf.marker("mssql.queryResults.vector.analysis.begin", "begin", {
+        const analysis = this.beginAnalysis(session, {
             totalBudgetMs: budget.maxTimeMs,
         });
+        const { correlationId } = analysis;
         const startedAt = performance.now();
-        const ingest = await this.ingest(session, budget);
-        if (session.disposed || session.generation !== generation) {
+        if (tuning.vectorMaxWorkers <= 0) {
+            this.endAnalysis(session, correlationId, "refused", {
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return {
+                generation: session.generation,
+                error: "Vector analysis workers are disabled by the current tuning profile.",
+            };
+        }
+        let ingest: VectorIngestResult | VectorIngestError;
+        try {
+            ingest = await this.ingest(session, budget);
+        } catch (error) {
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
+                return { generation: session.generation, error: "The analysis was cancelled." };
+            }
+            this.endAnalysis(session, correlationId, "error", {
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return {
+                generation: session.generation,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+        if (this.analysisIsCancelled(session, correlationId, generation)) {
             return { generation: session.generation, error: "The analysis was cancelled." };
         }
         if ("error" in ingest) {
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "refused",
+            this.endAnalysis(session, correlationId, "refused", {
                 ms: Math.round(performance.now() - startedAt),
             });
             return { generation: session.generation, error: ingest.error };
@@ -261,23 +395,34 @@ export class VectorWorkbenchService {
                 : {}),
         });
 
-        const release = await this.gate.acquire();
+        const release = await this.acquireWorkerSlot(
+            tuning.vectorMaxWorkers,
+            analysis.abortController.signal,
+        );
+        if (!release) {
+            return { generation: session.generation, error: "The analysis was cancelled." };
+        }
         try {
-            if (session.disposed || session.generation !== generation) {
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
                 return { generation: session.generation, error: "The analysis was cancelled." };
             }
             const remainingMs = Math.max(
                 1000,
                 budget.maxTimeMs - Math.round(performance.now() - startedAt),
             );
-            const result = await this.runWorker(session, ingest, remainingMs);
-            if (session.disposed || session.generation !== generation) {
+            const result = await this.runWorker(
+                session,
+                ingest,
+                remainingMs,
+                undefined,
+                correlationId,
+            );
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
                 return { generation: session.generation, error: "The analysis was cancelled." };
             }
             const summary = this.toProfileSummary(session, ingest, result);
             session.profile = summary;
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "ok",
+            this.endAnalysis(session, correlationId, "ok", {
                 rows: result.rows,
                 dimensions: result.dimensions,
                 findings: result.findings.length,
@@ -287,8 +432,10 @@ export class VectorWorkbenchService {
             });
             return { generation: session.generation, summary };
         } catch (error) {
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "error",
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
+                return { generation: session.generation, error: "The analysis was cancelled." };
+            }
+            this.endAnalysis(session, correlationId, "error", {
                 ms: Math.round(performance.now() - startedAt),
             });
             return {
@@ -323,25 +470,55 @@ export class VectorWorkbenchService {
             };
         }
         const generation = session.generation;
-        const budget = ingestBudgetFrom(this.tuning());
-        Perf.marker("mssql.queryResults.vector.analysis.begin", "begin", {
+        const tuning = this.tuning();
+        const budget = ingestBudgetFrom(tuning);
+        const analysis = this.beginAnalysis(session, {
             totalBudgetMs: budget.maxTimeMs,
         });
+        const { correlationId } = analysis;
         const startedAt = performance.now();
-        const ingest = await this.ingest(session, budget);
-        if (session.disposed || session.generation !== generation) {
+        if (tuning.vectorMaxWorkers <= 0) {
+            this.endAnalysis(session, correlationId, "refused", {
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return {
+                generation: session.generation,
+                error: "Vector analysis workers are disabled by the current tuning profile.",
+            };
+        }
+        let ingest: VectorIngestResult | VectorIngestError;
+        try {
+            ingest = await this.ingest(session, budget);
+        } catch (error) {
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
+                return { generation: session.generation, error: "The projection was cancelled." };
+            }
+            this.endAnalysis(session, correlationId, "error", {
+                ms: Math.round(performance.now() - startedAt),
+            });
+            return {
+                generation: session.generation,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+        if (this.analysisIsCancelled(session, correlationId, generation)) {
             return { generation: session.generation, error: "The analysis was cancelled." };
         }
         if ("error" in ingest) {
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "refused",
+            this.endAnalysis(session, correlationId, "refused", {
                 ms: Math.round(performance.now() - startedAt),
             });
             return { generation: session.generation, error: ingest.error };
         }
-        const release = await this.gate.acquire();
+        const release = await this.acquireWorkerSlot(
+            tuning.vectorMaxWorkers,
+            analysis.abortController.signal,
+        );
+        if (!release) {
+            return { generation: session.generation, error: "The projection was cancelled." };
+        }
         try {
-            if (session.disposed || session.generation !== generation) {
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
                 return { generation: session.generation, error: "The analysis was cancelled." };
             }
             const remainingMs = Math.max(
@@ -349,11 +526,17 @@ export class VectorWorkbenchService {
                 budget.maxTimeMs - Math.round(performance.now() - startedAt),
             );
             const wantProfile = session.profile === undefined;
-            const result = await this.runWorker(session, ingest, remainingMs, {
-                profile: wantProfile,
-                projection: true,
-            });
-            if (session.disposed || session.generation !== generation) {
+            const result = await this.runWorker(
+                session,
+                ingest,
+                remainingMs,
+                {
+                    profile: wantProfile,
+                    projection: true,
+                },
+                correlationId,
+            );
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
                 return { generation: session.generation, error: "The analysis was cancelled." };
             }
             if (wantProfile) {
@@ -361,8 +544,7 @@ export class VectorWorkbenchService {
             }
             const projection = result.projection;
             if (!projection) {
-                Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                    outcome: "error",
+                this.endAnalysis(session, correlationId, "error", {
                     partialTime: result.partialTime,
                     ms: Math.round(performance.now() - startedAt),
                 });
@@ -400,8 +582,7 @@ export class VectorWorkbenchService {
                 sample: descriptor,
             };
             session.projection = summary;
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "ok",
+            this.endAnalysis(session, correlationId, "ok", {
                 rows: result.rows,
                 dimensions: result.dimensions,
                 partialTime: result.partialTime,
@@ -410,8 +591,10 @@ export class VectorWorkbenchService {
             });
             return { generation: session.generation, projection: summary };
         } catch (error) {
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "error",
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
+                return { generation: session.generation, error: "The projection was cancelled." };
+            }
+            this.endAnalysis(session, correlationId, "error", {
                 ms: Math.round(performance.now() - startedAt),
             });
             return {
@@ -479,7 +662,7 @@ export class VectorWorkbenchService {
         }
         const generation = session.generation;
         const startedAt = performance.now();
-        Perf.marker("mssql.queryResults.vector.analysis.begin", "begin", {});
+        const { correlationId } = this.beginAnalysis(session, {});
         this.beginStoreOperation(session);
         try {
             const vectors: VectorCompareInputVector[] = [];
@@ -492,7 +675,7 @@ export class VectorWorkbenchService {
                     columnOrdinals: [session.columnOrdinal],
                     reason: "vectorAnalysis",
                 });
-                if (session.disposed || session.generation !== generation) {
+                if (this.analysisIsCancelled(session, correlationId, generation)) {
                     return {
                         generation: session.generation,
                         error: "The comparison was cancelled.",
@@ -502,8 +685,7 @@ export class VectorWorkbenchService {
                 const decoded =
                     cell === undefined || cell === null ? null : decodeVectorFloat32(cell);
                 if (decoded === null) {
-                    Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                        outcome: "refused",
+                    this.endAnalysis(session, correlationId, "refused", {
                         ms: Math.round(performance.now() - startedAt),
                     });
                     return {
@@ -514,8 +696,7 @@ export class VectorWorkbenchService {
                 if (dimensions === 0) {
                     dimensions = decoded.dimensions;
                 } else if (decoded.dimensions !== dimensions) {
-                    Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                        outcome: "refused",
+                    this.endAnalysis(session, correlationId, "refused", {
                         ms: Math.round(performance.now() - startedAt),
                     });
                     return {
@@ -526,8 +707,7 @@ export class VectorWorkbenchService {
                 vectors.push({ ordinal, values: decoded.values });
             }
             const computed = computeVectorCompare(vectors);
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "ok",
+            this.endAnalysis(session, correlationId, "ok", {
                 rows: vectors.length,
                 dimensions,
                 ms: Math.round(performance.now() - startedAt),
@@ -540,8 +720,10 @@ export class VectorWorkbenchService {
                 },
             };
         } catch (error) {
-            Perf.marker("mssql.queryResults.vector.analysis.end", "end", {
-                outcome: "error",
+            if (this.analysisIsCancelled(session, correlationId, generation)) {
+                return { generation: session.generation, error: "The comparison was cancelled." };
+            }
+            this.endAnalysis(session, correlationId, "error", {
                 ms: Math.round(performance.now() - startedAt),
             });
             return {
@@ -554,27 +736,24 @@ export class VectorWorkbenchService {
     }
 
     /** VEC-10 seam: facts about an open analysis session, by handle. */
-    sessionFacts(handle: string):
-        | {
-              store: IQueryResultStore;
-              resultSetId: string;
-              vectorColumnOrdinal: number;
-              isActive: () => boolean;
-              release: () => void;
-          }
-        | undefined {
+    sessionFacts(handle: string): VectorWorkbenchSessionFacts | undefined {
         const session = this.sessions.get(handle);
         if (!session || session.disposed) {
             return undefined;
         }
         this.touch(session);
         this.beginStoreOperation(session);
+        const generation = session.generation;
         let released = false;
         return {
+            generation,
+            transport: session.transport,
+            ...(session.dimensions !== undefined ? { dimensions: session.dimensions } : {}),
+            totalRows: session.totalRows,
             store: session.store,
             resultSetId: session.resultSetId,
             vectorColumnOrdinal: session.columnOrdinal,
-            isActive: () => !session.disposed,
+            isActive: () => !session.disposed && session.generation === generation,
             release: () => {
                 if (released) {
                     return;
@@ -619,12 +798,16 @@ export class VectorWorkbenchService {
             return;
         }
         session.generation++;
+        for (const [correlationId, analysis] of [...session.activeAnalyses]) {
+            analysis.abortController.abort();
+            Perf.marker("mssql.queryResults.vector.analysis.cancel", "instant", {}, correlationId);
+            this.endAnalysis(session, correlationId, "cancelled", {});
+        }
         if (session.workers.size > 0) {
             for (const worker of session.workers) {
                 void worker.terminate();
             }
             session.workers.clear();
-            Perf.marker("mssql.queryResults.vector.analysis.cancel", "instant", {});
         }
     }
 
@@ -642,10 +825,27 @@ export class VectorWorkbenchService {
         this.releaseLeaseWhenIdle(session);
     }
 
+    /** Cancel only in-flight work; completed session caches remain reusable. */
+    suspend(): boolean {
+        let invalidated = false;
+        for (const session of this.sessions.values()) {
+            if (
+                session.activeAnalyses.size > 0 ||
+                session.workers.size > 0 ||
+                session.activeStoreOperations > 0
+            ) {
+                invalidated = true;
+                this.cancel(session.handle);
+            }
+        }
+        return invalidated;
+    }
+
     dispose(): void {
         for (const handle of [...this.sessions.keys()]) {
             this.close(handle);
         }
+        this.workerCoordinator.disposeOwner(this.workerOwner);
     }
 
     private touch(session: VectorSession): void {
@@ -654,6 +854,52 @@ export class VectorWorkbenchService {
         }
         session.idleTimer = setTimeout(() => this.close(session.handle), IDLE_EXPIRY_MS);
         session.idleTimer.unref?.();
+    }
+
+    private beginAnalysis(
+        session: VectorSession,
+        attrs: Record<string, string | number | boolean | null>,
+    ): {
+        readonly correlationId: string;
+        readonly abortController: AbortController;
+    } {
+        const correlationId = crypto.randomUUID();
+        const abortController = new AbortController();
+        session.activeAnalyses.set(correlationId, {
+            generation: session.generation,
+            abortController,
+        });
+        Perf.marker("mssql.queryResults.vector.analysis.begin", "begin", attrs, correlationId);
+        return { correlationId, abortController };
+    }
+
+    private endAnalysis(
+        session: VectorSession,
+        correlationId: string,
+        outcome: "ok" | "error" | "refused" | "cancelled",
+        attrs: Record<string, string | number | boolean | null>,
+    ): void {
+        if (!session.activeAnalyses.delete(correlationId)) {
+            return;
+        }
+        Perf.marker(
+            "mssql.queryResults.vector.analysis.end",
+            "end",
+            { outcome, ...attrs },
+            correlationId,
+        );
+    }
+
+    private analysisIsCancelled(
+        session: VectorSession,
+        correlationId: string,
+        generation: number,
+    ): boolean {
+        return (
+            session.disposed ||
+            session.generation !== generation ||
+            !session.activeAnalyses.has(correlationId)
+        );
     }
 
     /**
@@ -702,8 +948,12 @@ export class VectorWorkbenchService {
         ingest: VectorIngestResult,
         timeBudgetMs: number,
         opts?: VectorWorkerOptions,
+        correlationId?: string,
     ): Promise<VectorWorkerResult> {
         return new Promise<VectorWorkerResult>((resolve, reject) => {
+            const operation = opts?.projection === true ? "projection" : "profile";
+            const generation = session.generation;
+            const startedAt = performance.now();
             const buffer = ingest.packed.buffer as ArrayBuffer;
             const worker = new Worker(this.workerPath, {
                 workerData: {
@@ -719,27 +969,49 @@ export class VectorWorkbenchService {
             });
             session.workers.add(worker);
             let settled = false;
-            const settle = (fn: () => void) => {
+            const settle = (
+                outcome: "ok" | "error" | "cancelled",
+                fn: () => void,
+                result?: VectorWorkerResult,
+            ) => {
                 if (!settled) {
                     settled = true;
                     session.workers.delete(worker);
                     void worker.terminate();
+                    Perf.marker(
+                        "mssql.queryResults.vector.worker.end",
+                        "instant",
+                        {
+                            operation,
+                            outcome,
+                            rows: ingest.rows,
+                            dimensions: ingest.dimensions,
+                            ...(result ? { partialTime: result.partialTime } : {}),
+                            ms: Math.round(result?.elapsedMs ?? performance.now() - startedAt),
+                        },
+                        correlationId,
+                    );
                     fn();
                 }
             };
+            const failureOutcome = (): "error" | "cancelled" =>
+                session.disposed || session.generation !== generation ? "cancelled" : "error";
             worker.once(
                 "message",
                 (message: { ok: boolean; result?: VectorWorkerResult; error?: string }) => {
-                    settle(() =>
-                        message.ok && message.result
-                            ? resolve(message.result)
-                            : reject(new Error(message.error ?? "Vector analysis failed.")),
-                    );
+                    const result = message.result;
+                    if (message.ok && result) {
+                        settle("ok", () => resolve(result), result);
+                    } else {
+                        settle(failureOutcome(), () =>
+                            reject(new Error(message.error ?? "Vector analysis failed.")),
+                        );
+                    }
                 },
             );
-            worker.once("error", (error) => settle(() => reject(error)));
+            worker.once("error", (error) => settle(failureOutcome(), () => reject(error)));
             worker.once("exit", (code) =>
-                settle(() =>
+                settle(failureOutcome(), () =>
                     reject(new Error(`Vector analysis worker exited early (code ${code}).`)),
                 ),
             );

@@ -12,16 +12,34 @@
    — no cards, no chips, no tinted headers. Inner regions scroll; the page
    never does. */
 
+.qs-vec9-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+.qs-vec9-binding {
+    display: grid;
+    grid-template-columns: max-content minmax(220px, 420px) max-content minmax(180px, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 8px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
 .qs-vec9-root {
     display: grid;
     grid-template-columns: minmax(320px, 5fr) minmax(300px, 4fr);
     gap: 0 24px;
-    height: 100%;
+    flex: 1;
     min-height: 0;
     padding: 0 10px 6px;
     box-sizing: border-box;
 }
 @media (max-width: 960px) {
+    .qs-vec9-binding {
+        grid-template-columns: 1fr;
+    }
     .qs-vec9-root {
         grid-template-columns: 1fr;
         overflow-y: auto;

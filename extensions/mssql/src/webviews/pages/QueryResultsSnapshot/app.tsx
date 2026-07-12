@@ -72,6 +72,7 @@ export function PinnedResultsApp() {
     >(new Map());
     const [panelViewStateReady, setPanelViewStateReady] = useState(false);
     const [paneHeight, setPaneHeight] = useState<number | undefined>(undefined);
+    const [panelVisible, setPanelVisible] = useState(() => document.visibilityState === "visible");
     const reportPaneError = useCallback(
         (label: string, error: Error, componentStack?: string) =>
             rpc.log.error(
@@ -82,6 +83,12 @@ export function PinnedResultsApp() {
             ),
         [rpc],
     );
+
+    useEffect(() => {
+        const onVisibilityChange = () => setPanelVisible(document.visibilityState === "visible");
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+    }, []);
 
     const flushPanelViewState = useCallback(() => {
         if (panelViewStateTimerRef.current) {
@@ -484,6 +491,8 @@ export function PinnedResultsApp() {
                                     columns={vectorColumns}
                                     runKey={`pinned:${state.createdEpochMs ?? 0}`}
                                     live={false}
+                                    active={panelVisible && visibleActiveTab === "vector"}
+                                    panelVisible={panelVisible}
                                     initialViewState={panelViewStateRef.current.vector}
                                     onViewStateChange={persistVectorViewState}
                                 />

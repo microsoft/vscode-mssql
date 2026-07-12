@@ -38,9 +38,11 @@ import { ingestBudgetFrom } from "./vector/vectorResultSource";
 import {
     QsVectorCancelRequest,
     QsVectorCloseRequest,
+    QsVectorCompareRequest,
     QsVectorFindingDetailRequest,
     QsVectorOpenRequest,
     QsVectorProfileRequest,
+    QsVectorProjectionRequest,
 } from "../sharedInterfaces/vectorWorkbench";
 import { openExecutionPlanWebview } from "../controllers/sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
@@ -88,6 +90,13 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         this.updateConnectionWebview(this.panel.webview);
         this.initializeBase();
         this.registerHandlers();
+        this.registerDisposable(
+            this.panel.onDidChangeViewState((event) => {
+                if (!event.webviewPanel.visible) {
+                    this.suspendVectorWorkbench();
+                }
+            }),
+        );
         this.state = PinnedResultsController.buildState(
             document.snapshotId
                 ? getQueryResultAccessService().describeSnapshot(document.snapshotId)
@@ -152,9 +161,14 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
     private vectorWorkbench(): VectorWorkbenchService {
         if (!this.vectorService) {
             this.vectorService = new VectorWorkbenchService(() => resolveQueryTuning().params);
-            this.registerDisposable({ dispose: () => this.vectorService?.dispose() });
+            this.registerDisposable(this.vectorService);
         }
         return this.vectorService;
+    }
+
+    private suspendVectorWorkbench(): void {
+        this.vectorService?.dispose();
+        this.vectorService = undefined;
     }
 
     private summaryFor(resultSetId: string): QsResultSetSummary | undefined {
@@ -201,11 +215,17 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         this.onRequest(QsVectorFindingDetailRequest.type, async ({ handle, kind }) =>
             this.vectorWorkbench().findingDetail(handle, kind),
         );
+        this.onRequest(QsVectorCompareRequest.type, async ({ handle, ordinals }) =>
+            this.vectorWorkbench().compare(handle, ordinals),
+        );
+        this.onRequest(QsVectorProjectionRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().projection(handle),
+        );
         this.onRequest(QsVectorCancelRequest.type, async ({ handle }) => {
-            this.vectorWorkbench().cancel(handle);
+            this.vectorService?.cancel(handle);
         });
         this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
-            this.vectorWorkbench().close(handle);
+            this.vectorService?.close(handle);
         });
         this.onRequest(QsGetRowsRequest.type, async (params) =>
             service.getWindow({

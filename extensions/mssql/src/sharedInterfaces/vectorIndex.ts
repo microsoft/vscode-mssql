@@ -50,6 +50,7 @@ import { RequestType } from "vscode-jsonrpc";
 export type VectorIndexWorkspaceState =
     | "healthyCurrent"
     | "legacyFormat"
+    | "formatUnknown"
     | "noIndex"
     | "buildFailedTier"
     | "permissionDegraded"
@@ -134,8 +135,21 @@ export const VECTOR_INDEX_RPC = {
 } as const;
 
 export interface QsVectorIndexStateParams {
+    /** Workbench handle scopes target discovery and cancellation. */
+    readonly handle: string;
     /** Bypass the capability cache (explicit user refresh only). */
     readonly refresh?: boolean;
+    /** Opaque host-owned target binding selected in Search. */
+    readonly targetId?: string;
+    readonly metric?: "cosine" | "euclidean" | "dot";
+    /** Host revalidates these names against the binding whitelist. */
+    readonly filterColumns?: readonly string[];
+    /**
+     * Result metadata is only a discovery hint. The host resolves it against
+     * freshly catalog-verified targets and refuses ambiguous matches.
+     */
+    readonly resultVectorColumn?: string;
+    readonly resultDimensions?: number;
 }
 
 export interface QsVectorIndexStateResult {

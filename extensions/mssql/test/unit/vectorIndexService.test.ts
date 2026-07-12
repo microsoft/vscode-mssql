@@ -90,9 +90,13 @@ function makeProbe(overrides: Partial<VectorCapabilityProbe> = {}): VectorCapabi
 
 /** RTM-built DiskANN index: build_parameters carries NO $.Version key. */
 const RTM_INDEX: VectorIndexProbeRow = {
+    objectId: 581577110,
+    indexId: 2,
+    vectorColumnId: 3,
     schemaName: "dbo",
     tableName: "DocumentChunks",
     indexName: "vec_DocumentChunks_embedding",
+    vectorColumn: "embedding",
     indexType: "DiskANN",
     distanceMetric: "COSINE",
     buildParameters: '{"StartId":"0","L":"48","M":"48","R":"48"}',
@@ -128,6 +132,8 @@ const AZURE_HEALTH_DMV: VectorHealthDmvProbe = {
 };
 
 const TARGET: VectorIndexTargetFacts = {
+    objectId: 581577110,
+    vectorColumnId: 3,
     schema: "dbo",
     table: "DocumentChunks",
     vectorColumn: "embedding",
@@ -366,6 +372,49 @@ suite("vectorIndexService state machine", () => {
         const mismatch = view.findings.find((f) => /metric mismatch/i.test(f.title));
         expect(mismatch!.severity).to.equal("warning");
         expect(mismatch!.detail).to.match(/exact VECTOR_DISTANCE remains available/i);
+        const script = view.scripts.find((candidate) => candidate.id === "createIndex");
+        expect(script?.title).to.match(/compatible euclidean/i);
+        expect(script?.sql).to.contain("METRIC = 'euclidean'");
+        expect(script?.sql).to.not.contain(`[${AZURE_INDEX.indexName}]`);
+    });
+
+    test("multiple indexes prefer the target metric on the exact catalog identity", () => {
+        const euclidean: VectorIndexProbeRow = {
+            ...AZURE_INDEX,
+            indexId: 4,
+            indexName: "vec_embedding_euclidean",
+            distanceMetric: "EUCLIDEAN",
+        };
+        const cosine: VectorIndexProbeRow = {
+            ...AZURE_INDEX,
+            indexId: 5,
+            indexName: "vec_embedding_cosine",
+            distanceMetric: "COSINE",
+        };
+        const view = deriveVectorIndexView(azureProbe([euclidean, cosine]), TARGET);
+        expect(view.properties.find((property) => property.label === "Index")?.value).to.equal(
+            "vec_embedding_cosine",
+        );
+        expect(
+            view.properties.find((property) => property.label === "Vector indexes visible")?.value,
+        ).to.contain("2");
+        expect(view.scripts.find((script) => script.id === "createIndex")?.title).to.match(
+            /existing index definition \(reference\)/i,
+        );
+    });
+
+    test("missing or malformed version facts on Azure remain format-unknown", () => {
+        const unknown: VectorIndexProbeRow = {
+            ...AZURE_INDEX,
+            buildParameters: "not-json",
+            version: undefined,
+        };
+        const view = deriveVectorIndexView(azureProbe([unknown]), TARGET);
+        expect(view.state).to.equal("formatUnknown");
+        expect(
+            view.findings.some((finding) => /could not be verified/i.test(finding.title)),
+        ).to.equal(true);
+        expect(view.scripts.some((script) => script.id === "migration")).to.equal(false);
     });
 
     test("filter columns produce the review-suggestion finding + supporting-index script", () => {

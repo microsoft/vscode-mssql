@@ -1,0 +1,132 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/** Pure validation for the PERF_MODE-only Query Studio activation command. */
+
+import {
+    QsActivatableTab,
+    QsActivateTabRequest,
+    QsVectorPerfAction,
+} from "../sharedInterfaces/queryStudio";
+import { VECTOR_SEARCH_MAX_K, VECTOR_SEARCH_MIN_K } from "../sharedInterfaces/vectorSearch";
+
+export interface NormalizedQueryStudioPerfActivateTabArgs {
+    readonly uri?: string;
+    readonly activation: QsActivateTabRequest;
+}
+
+export type QueryStudioPerfActivateTabNormalization =
+    | { readonly value: NormalizedQueryStudioPerfActivateTabArgs }
+    | { readonly error: string };
+
+const ACTIVATABLE_TABS: ReadonlySet<string> = new Set([
+    "results",
+    "messages",
+    "queryPlan",
+    "vector",
+]);
+const PERF_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const MAX_IDENTIFIER_LENGTH = 128;
+
+function record(value: unknown): Record<string, unknown> | undefined {
+    return typeof value === "object" && value !== null && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : undefined;
+}
+
+function identifier(value: unknown): string | undefined {
+    return typeof value === "string" &&
+        value.length > 0 &&
+        value.length <= MAX_IDENTIFIER_LENGTH &&
+        PERF_IDENTIFIER.test(value)
+        ? value
+        : undefined;
+}
+
+function normalizeVectorAction(value: unknown): QsVectorPerfAction | undefined {
+    const action = record(value);
+    if (action?.["workspace"] === "projection") {
+        return { workspace: "projection" };
+    }
+    if (action?.["workspace"] !== "search") {
+        return undefined;
+    }
+    const search = record(action["search"]);
+    const source = record(search?.["source"]);
+    const target = record(search?.["target"]);
+    const ordinal = source?.["ordinal"];
+    const metric = search?.["metric"];
+    const k = search?.["k"];
+    const includeApprox = search?.["includeApprox"];
+    const schema = identifier(target?.["schema"]);
+    const table = identifier(target?.["table"]);
+    const vectorColumn = identifier(target?.["vectorColumn"]);
+    if (
+        source?.["kind"] !== "selectedRow" ||
+        !Number.isSafeInteger(ordinal) ||
+        (ordinal as number) < 0 ||
+        (metric !== "cosine" && metric !== "euclidean" && metric !== "dot") ||
+        !Number.isInteger(k) ||
+        (k as number) < VECTOR_SEARCH_MIN_K ||
+        (k as number) > VECTOR_SEARCH_MAX_K ||
+        typeof includeApprox !== "boolean" ||
+        !schema ||
+        !table ||
+        !vectorColumn
+    ) {
+        return undefined;
+    }
+    return {
+        workspace: "search",
+        search: {
+            source: { kind: "selectedRow", ordinal: ordinal as number },
+            target: { schema, table, vectorColumn },
+            metric,
+            k: k as number,
+            includeApprox,
+        },
+    };
+}
+
+/**
+ * Reconstructs the supported command shape from unknown input. Unknown keys
+ * are never forwarded, which keeps SQL/text/vector payloads out of the seam.
+ */
+export function normalizeQueryStudioPerfActivateTabArgs(
+    input: unknown,
+): QueryStudioPerfActivateTabNormalization {
+    if (input === undefined) {
+        return { value: { activation: { tab: "vector" } } };
+    }
+    const args = record(input);
+    if (!args) {
+        return { error: "Query Studio tab activation arguments must be an object." };
+    }
+    const rawTab = args["tab"] ?? "vector";
+    if (typeof rawTab !== "string" || !ACTIVATABLE_TABS.has(rawTab)) {
+        return { error: "Query Studio tab activation requested an unsupported tab." };
+    }
+    const tab = rawTab as QsActivatableTab;
+    const rawUri = args["uri"];
+    if (rawUri !== undefined && (typeof rawUri !== "string" || rawUri.length === 0)) {
+        return { error: "Query Studio tab activation URI must be a non-empty string." };
+    }
+    let vector: QsVectorPerfAction | undefined;
+    if (args["vector"] !== undefined) {
+        if (tab !== "vector") {
+            return { error: "A Vector action requires the Vector results tab." };
+        }
+        vector = normalizeVectorAction(args["vector"]);
+        if (!vector) {
+            return { error: "Query Studio received an invalid Vector performance action." };
+        }
+    }
+    return {
+        value: {
+            ...(rawUri ? { uri: rawUri as string } : {}),
+            activation: { tab, ...(vector ? { vector } : {}) },
+        },
+    };
+}

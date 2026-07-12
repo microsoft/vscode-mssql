@@ -30,7 +30,7 @@
  */
 
 import { RequestType } from "vscode-jsonrpc";
-import { VectorModelEgressClass } from "./vectorCatalog";
+import { VectorModelEgressClass, VectorModelStatementCounts } from "./vectorCatalog";
 
 // ---------------------------------------------------------------------------
 // Constants (host-authoritative; echoed here so the UI renders honest bounds)
@@ -57,6 +57,9 @@ export const VECTOR_CHUNK_PREVIEW_MAX_CHUNKS = 256;
 
 /** Bounded source-text preview returned by reembedPrepare (result data). */
 export const VECTOR_SOURCE_PREVIEW_CHARS = 160;
+/** Full source accepted into one pending model-call statement. */
+export const VECTOR_REEMBED_SOURCE_MAX_CHARS = 65_536;
+export const VECTOR_REEMBED_SOURCE_MAX_UTF8_BYTES = 128 * 1024;
 
 // ---------------------------------------------------------------------------
 // Layered network claim (P0-5): webview vs server-side, per egress class
@@ -90,6 +93,8 @@ export interface VectorPipelineNetworkClaim {
  * scoped name + owner principal — never schema-qualified anywhere).
  */
 export interface VectorPipelineModel {
+    /** Opaque host binding; SQL identifiers never round-trip from the webview. */
+    readonly id: string;
     readonly name: string;
     /** Owner principal — not a schema. Display "owner dbo", never "dbo.". */
     readonly owner?: string;
@@ -115,6 +120,8 @@ export interface QsVectorPipelineStateResult {
     /** EMBEDDINGS models from the probe (empty on refusal — never invented). */
     readonly models: readonly VectorPipelineModel[];
     readonly networkClaim: VectorPipelineNetworkClaim;
+    /** Controller-owned statement counts; renderer state is never authoritative for this claim. */
+    readonly modelStatementCounts: VectorModelStatementCounts;
     /**
      * AI_GENERATE_CHUNKS availability HINT: compatibility level ≥ 170 per the
      * probe. This is a catalog fact, not a verified parse acceptance — the
@@ -137,8 +144,8 @@ export interface QsVectorReembedPrepareParams {
     readonly ordinal: number;
     /** Column ordinal holding the source text (webview's column pick). */
     readonly sourceColumnOrdinal: number;
-    /** Model NAME the user picked; the host re-resolves it against the probe. */
-    readonly modelName: string;
+    /** Opaque verified model binding returned by qs/vector.pipelineState. */
+    readonly modelId: string;
 }
 
 /**
@@ -156,6 +163,7 @@ export interface VectorReembedDescriptor {
     readonly apiFormat: string;
     readonly endpointHost: string;
     readonly egress: VectorModelEgressClass;
+    readonly modelModifyTime: string;
     /** e.g. "Selected row · chunk_text". */
     readonly source: string;
     /** Always 1 for single-row re-embed. */
@@ -180,6 +188,8 @@ export interface QsVectorReembedPrepareResult {
     readonly generatedSql?: string;
     /** Bounded preview of the FULL source text (result data, panel only). */
     readonly sourcePreview?: string;
+    /** True means sourcePreview is explicitly only the first bounded characters. */
+    readonly sourcePreviewTruncated?: boolean;
     /** Stored vector dimensionality (fresh dims are validated against it). */
     readonly storedDimensions?: number;
     /**
@@ -190,6 +200,7 @@ export interface QsVectorReembedPrepareResult {
 }
 
 export interface QsVectorReembedExecuteParams {
+    readonly handle: string;
     /** The host-minted confirmation token — the ONLY accepted authority. */
     readonly token: string;
 }
@@ -209,10 +220,28 @@ export interface VectorReembedComparison {
 }
 
 export interface QsVectorReembedExecuteResult {
+    /** Opaque host-cache id used only to restore this terminal comparison. */
+    readonly runId?: string;
     readonly comparison?: VectorReembedComparison;
-    /** Wall time of the model-call statement (single observation). */
+    readonly context?: {
+        readonly modelId: string;
+        readonly rowOrdinal: number;
+        readonly sourceColumnOrdinal: number;
+    };
+    /** Wall time of the consumed-token attempt, including identity verification (single observation). */
     readonly elapsedMs?: number;
+    /** Host-authored fact: the AI_GENERATE_EMBEDDINGS statement obtained a query handle. */
+    readonly modelStatementIssued?: boolean;
+    /** Egress class of the exact consented model; present only when the model statement was issued. */
+    readonly modelEgress?: VectorModelEgressClass;
+    /** Authoritative counter snapshot after this attempt. */
+    readonly modelStatementCounts?: VectorModelStatementCounts;
     readonly error?: string;
+}
+
+export interface QsVectorReembedResultParams {
+    readonly handle: string;
+    readonly runId: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -260,8 +289,16 @@ export const VECTOR_PIPELINE_RPC = {
     pipelineState: "qs/vector.pipelineState",
     reembedPrepare: "qs/vector.reembedPrepare",
     reembedExecute: "qs/vector.reembedExecute",
+    reembedResult: "qs/vector.reembedResult",
+    cancel: "qs/vector.pipelineCancel",
     chunkPreview: "qs/vector.chunkPreview",
 } as const;
+
+export namespace QsVectorPipelineCancelRequest {
+    export const type = new RequestType<{ readonly handle: string }, void, void>(
+        VECTOR_PIPELINE_RPC.cancel,
+    );
+}
 
 export namespace QsVectorPipelineStateRequest {
     export const type = new RequestType<
@@ -285,6 +322,14 @@ export namespace QsVectorReembedExecuteRequest {
         QsVectorReembedExecuteResult,
         void
     >(VECTOR_PIPELINE_RPC.reembedExecute);
+}
+
+export namespace QsVectorReembedResultRequest {
+    export const type = new RequestType<
+        QsVectorReembedResultParams,
+        QsVectorReembedExecuteResult,
+        void
+    >(VECTOR_PIPELINE_RPC.reembedResult);
 }
 
 export namespace QsVectorChunkPreviewRequest {

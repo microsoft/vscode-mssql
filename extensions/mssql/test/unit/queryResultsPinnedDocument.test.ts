@@ -77,4 +77,21 @@ suite("queryResults pinned document contract", () => {
         // a rename that forgets one side should fail here.
         expect(PINNED_RESULTS_SCHEME).to.equal("mssql-query-results-snapshot");
     });
+
+    test("hidden pinned Vector work is suspended in both host and renderer", () => {
+        const sourceRoot = path.join(__dirname, "..", "..", "..", "src");
+        const controller = fs.readFileSync(
+            path.join(sourceRoot, "queryResults", "pinnedResultsController.ts"),
+            "utf8",
+        );
+        const app = fs.readFileSync(
+            path.join(sourceRoot, "webviews", "pages", "QueryResultsSnapshot", "app.tsx"),
+            "utf8",
+        );
+        expect(controller).to.include("this.panel.onDidChangeViewState");
+        expect(controller).to.include("this.suspendVectorWorkbench()");
+        expect(app).to.include('document.addEventListener("visibilitychange"');
+        expect(app).to.include('active={panelVisible && visibleActiveTab === "vector"}');
+        expect(app).to.include("panelVisible={panelVisible}");
+    });
 });

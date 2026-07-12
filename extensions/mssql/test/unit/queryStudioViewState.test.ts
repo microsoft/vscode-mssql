@@ -53,6 +53,70 @@ suite("Query Studio panel view state", () => {
             scrollTop: 120,
             scrollLeft: 44,
         };
+        state.vector.search = {
+            source: "expression",
+            selectedRowOrdinal: 17,
+            expression: "normalize(A + B)",
+            targetId: "vst_host_owned",
+            lastRunId: "vsr_last_completed",
+            metric: "euclidean",
+            k: 50,
+            includeApprox: false,
+            filters: [{ column: "tenant_id", op: "eq", value: "42" }],
+            sqlOpen: true,
+            sqlTab: "approx",
+            sqlScrollPositions: {
+                exact: { scrollTop: 12, scrollLeft: 3 },
+                approx: { scrollTop: 86, scrollLeft: 41 },
+            },
+            selectedRankIndex: 2,
+            rankScrollTop: 144,
+        };
+        state.vector.workspace = "search";
+        state.vector.selectedColumn = { resultSetId: "b0r0s0", columnOrdinal: 3 };
+        state.vector.profileFinding = "invalidRows";
+        state.vector.profileDrawerScrollTop = 72;
+        state.vector.workspaceScrollTop = {
+            profile: 10,
+            search: 20,
+            compare: 30,
+            projection: 40,
+            index: 50,
+            pipeline: 60,
+        };
+        state.vector.compare = {
+            ordinalInput: "1, 4, 9",
+            lastSubmittedOrdinals: [1, 4, 9],
+            metric: "negativeDot",
+        };
+        state.vector.projection = {
+            fitted: true,
+            centerX: -1.25,
+            centerY: 4.5,
+            scale: 240,
+            selectedOrdinal: 9,
+            listScrollTop: 320,
+        };
+        state.vector.index.selectedScriptId = "create";
+        state.vector.index.scriptScrollTop = 48;
+        state.vector.pipeline = {
+            modelName: "VectorLabEmbeddingModel",
+            sourceColumnOrdinal: 2,
+            rowOrdinal: 8,
+            showSql: true,
+            chunkSize: 1_200,
+            overlapPct: 20,
+            lastRunId: "vpr_abcdefghijklmnop",
+        };
+        state.queryPlan.pageScrollTop = 84;
+        state.queryPlan.graphs["0"] = {
+            zoomPercent: 125,
+            scrollTop: 90,
+            scrollLeft: 12,
+            selectedElementId: "RelOp-7",
+            propertiesPaneOpen: true,
+            propertiesPaneWidth: 420,
+        };
 
         expect(isQueryStudioPanelViewState(JSON.parse(JSON.stringify(state)))).to.equal(true);
         expect(isQueryStudioPanelViewState({ ...state, version: 999 })).to.equal(false);
@@ -69,9 +133,37 @@ suite("Query Studio panel view state", () => {
         ).to.equal(false);
 
         const normalized = normalizeQueryStudioPanelViewState(state, "run-1");
-        expect(normalized).to.deep.equal(state);
+        expect(normalized).to.deep.equal({
+            ...state,
+            vector: {
+                ...state.vector,
+                search: {
+                    ...state.vector.search,
+                    filters: [{ column: "tenant_id", op: "eq", value: "" }],
+                },
+            },
+        });
         expect(normalized).not.to.equal(state);
+        expect(state.vector.search.filters[0].value).to.equal("42");
         expect(normalizeQueryStudioPanelViewState(state, "run-2")).to.equal(undefined);
+        const generated = JSON.parse(JSON.stringify(state));
+        generated.vector.search.source = "generatedVector";
+        delete generated.vector.search.expression;
+        expect(normalizeQueryStudioPanelViewState(generated, "run-1")).not.to.equal(undefined);
+        generated.vector.search.generatedVectorId = "vsg_abcdefghijklmnopqrstuvwx";
+        expect(normalizeQueryStudioPanelViewState(generated, "run-1")).to.equal(undefined);
+        expect(
+            normalizeQueryStudioPanelViewState(
+                {
+                    ...state,
+                    vector: {
+                        ...state.vector,
+                        search: { ...state.vector.search, pastedVector: "[1,2,3]" },
+                    },
+                },
+                "run-1",
+            ),
+        ).to.equal(undefined);
     });
 
     test("new runs clear result-derived state and retain panel preferences", () => {
@@ -93,6 +185,12 @@ suite("Query Studio panel view state", () => {
         state.vector.profileNorm = "linf";
         state.vector.workspaceScrollTop.compare = 88;
         state.vector.selectedColumn = { resultSetId: "b0r0s0", columnOrdinal: 4 };
+        state.vector.search.targetId = "vst_result_bound";
+        state.vector.search.lastRunId = "vsr_result_bound";
+        state.vector.search.selectedRankIndex = 6;
+        state.vector.compare.lastSubmittedOrdinals = [1, 4, 9];
+        state.vector.index.selectedScriptId = "createIndex";
+        state.vector.pipeline.modelName = "VectorLabEmbeddingModel";
         state.queryPlan.graphs["0"] = {
             zoomPercent: 150,
             scrollTop: 10,
@@ -112,10 +210,9 @@ suite("Query Studio panel view state", () => {
         expect(reset.results).to.deep.equal({ stackScrollTop: 0, grids: {} });
         expect(reset.messages).to.deep.equal({ scrollTop: 0 });
         expect(reset.queryPlan).to.deep.equal({ pageScrollTop: 0, graphs: {} });
-        expect(reset.vector).to.deep.equal({
-            workspace: "compare",
-            profileNorm: "linf",
-            workspaceScrollTop: {},
-        });
+        const expectedVector = createQueryStudioPanelViewState("run-2").vector;
+        expectedVector.workspace = "compare";
+        expectedVector.profileNorm = "linf";
+        expect(reset.vector).to.deep.equal(expectedVector);
     });
 });

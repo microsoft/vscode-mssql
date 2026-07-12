@@ -24,11 +24,11 @@
  * - P0-7 read consistency: the builder emits NO isolation hints and never
  *   changes database settings; `declaredReadConsistency` only DECLARES what
  *   the session ran under.
- * - A1 legacy post-filter semantics: the verified ANN surface on this engine
- *   generation is the `VECTOR_SEARCH(..., TOP_N = n)` TVF, which cannot
- *   filter during traversal — an outer WHERE reduces results AFTER the
- *   search, so with filters present TOP_N is oversampled to K×M and the
- *   oversample is disclosed ("Post-filtered, TOP_N ×M").
+ * - A1 filtered-ANN semantics: the host supplies proof for the exact bound
+ *   index. Current/v3 indexes keep TOP_N at K and disclose iterative
+ *   traversal; verified earlier semantics oversample to K×M and disclose
+ *   post-filtering; unknown formats conservatively oversample but remain
+ *   explicitly unverified.
  * - Evidence honesty: `TOP (n) WITH APPROXIMATE` and `FORCE_ANN_ONLY` are
  *   REJECTED on both verified targets, so a successful TVF run can only ever
  *   earn "Approximate requested, strategy unverified".
@@ -112,6 +112,12 @@ export interface VectorSearchSqlRequest {
 
 export interface VectorApproxSearchRequest extends VectorSearchSqlRequest {
     readonly probeFacts: ProbeFacts;
+    /**
+     * Host-derived proof of how this exact confirmed index applies filters.
+     * This is deliberately required at the SQL-builder boundary and is never
+     * accepted from a webview request.
+     */
+    readonly annFilterCapability: VectorAnnFilterCapability;
     /** Host-configured oversample multiplier M for post-filtered TVF searches (A1). */
     readonly oversampleMultiplier?: number;
 }
@@ -135,17 +141,23 @@ export interface VectorSearchSql {
     readonly parameters: readonly SqlParameter[];
 }
 
-export type VectorFilterSemantics = "iterative" | "postFilteredOversample";
+/** Catalog/engine proof supplied by the extension host, never by the webview. */
+export type VectorAnnFilterCapability = "verifiedIterative" | "verifiedPostFilter" | "unknown";
+
+export type VectorFilterSemantics =
+    | "noFilter"
+    | "iterative"
+    | "postFilteredOversample"
+    | "unknownConservativeOversample";
 
 export interface VectorApproxSearchSql extends VectorSearchSql {
     /**
-     * How filters relate to the approximate retrieval. On the TVF path any
-     * outer WHERE (structured predicates or exclusions) applies AFTER the
-     * search → `postFilteredOversample` with a disclosed multiplier. With no
-     * filters at all nothing is post-filtered (`iterative`).
+     * How filters relate to the approximate retrieval, based only on
+     * host-verified index/engine facts. Unknown formats are conservatively
+     * oversampled but remain explicitly unverified.
      */
     readonly filterSemantics: VectorFilterSemantics;
-    /** Present only when post-filtering forced a TOP_N oversample. */
+    /** Present when verified/possible post-filtering forced a TOP_N oversample. */
     readonly disclosedMultiplier?: number;
     /** The literal TOP_N emitted into the statement (k, or k×M when post-filtered). */
     readonly topN: number;
@@ -549,22 +561,56 @@ function renderApproxSql(
     const multiplier = request.oversampleMultiplier ?? DEFAULT_OVERSAMPLE_MULTIPLIER;
     assertPositiveInteger(multiplier, "oversampleMultiplier");
 
-    // A1: ANY outer WHERE on the TVF path (structured predicates or exclusion
-    // predicates) filters AFTER the approximate retrieval — oversample and say so.
-    const postFiltered = fragments.filterFragments.length > 0;
-    const topN = postFiltered ? request.k * multiplier : request.k;
+    const hasFilters = fragments.filterFragments.length > 0;
+    const oversample = hasFilters && request.annFilterCapability !== "verifiedIterative";
+    const topN = oversample ? request.k * multiplier : request.k;
     assertPositiveInteger(topN, "TOP_N");
 
-    const disclosure = postFiltered ? `Post-filtered, TOP_N ×${multiplier}` : undefined;
+    let filterSemantics: VectorFilterSemantics = "noFilter";
+    let disclosure: string | undefined;
+    if (hasFilters) {
+        switch (request.annFilterCapability) {
+            case "verifiedIterative":
+                filterSemantics = "iterative";
+                disclosure = "Iterative filtering (during traversal)";
+                break;
+            case "verifiedPostFilter":
+                filterSemantics = "postFilteredOversample";
+                disclosure = `Post-filtered, TOP_N ×${multiplier}`;
+                break;
+            case "unknown":
+                filterSemantics = "unknownConservativeOversample";
+                disclosure = `Unverified filter behavior; conservative post-filter TOP_N ×${multiplier}`;
+                break;
+            default:
+                throw new Error(
+                    `vectorSqlBuilder: unsupported ANN filter capability ${String(request.annFilterCapability)}`,
+                );
+        }
+    }
     const commentLines = [
         "-- Vector Workbench — approximate (VECTOR_SEARCH TVF, TOP_N form; verified surface of this engine generation).",
         `-- Evidence: ${VECTOR_EXECUTION_EVIDENCE_COPY.approxStrategyUnverified} — no forced-ANN proof mechanism exists on this target.`,
         `-- Frozen query vector: ${QUERY_VECTOR_PARAM} is bound once and shared across all comparison variants.`,
     ];
-    if (postFiltered) {
-        commentLines.push(
-            `-- Filter semantics: post-filtered after approximate retrieval; TOP_N oversampled ×${multiplier} (TOP_N = ${topN}).`,
-        );
+    if (hasFilters) {
+        switch (filterSemantics) {
+            case "iterative":
+                commentLines.push(
+                    `-- Filter semantics: iterative filtering during traversal (verified for the bound current-format index); TOP_N = K = ${topN}.`,
+                );
+                break;
+            case "postFilteredOversample":
+                commentLines.push(
+                    `-- Filter semantics: post-filtered after approximate retrieval; TOP_N oversampled ×${multiplier} (TOP_N = ${topN}).`,
+                );
+                break;
+            case "unknownConservativeOversample":
+                commentLines.push(
+                    `-- Filter semantics: unverified for the bound index; conservatively treated as post-filtered and TOP_N oversampled ×${multiplier} (TOP_N = ${topN}).`,
+                );
+                break;
+        }
     }
 
     const whereClause =
@@ -590,8 +636,8 @@ function renderApproxSql(
     return {
         sql,
         parameters: fragments.parameters,
-        filterSemantics: postFiltered ? "postFilteredOversample" : "iterative",
-        disclosedMultiplier: postFiltered ? multiplier : undefined,
+        filterSemantics,
+        disclosedMultiplier: oversample ? multiplier : undefined,
         topN,
         disclosure,
     };

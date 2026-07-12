@@ -33,7 +33,11 @@ import {
     planWindows,
     VectorIngestBudget,
 } from "../../src/queryResults/vector/vectorResultSource";
-import { VectorWorkbenchService } from "../../src/queryResults/vector/vectorWorkbenchService";
+import {
+    VectorWorkbenchService,
+    VectorWorkerCoordinator,
+} from "../../src/queryResults/vector/vectorWorkbenchService";
+import { Perf } from "../../src/perf/perfTelemetry";
 import { RowStore } from "../../src/queryStudio/rowStore";
 import { RetainedRowStore } from "../../src/queryResults/resultStoreLease";
 import { QUERY_TUNING_DEFAULTS } from "../../src/sharedInterfaces/queryTuning";
@@ -488,6 +492,160 @@ suite("vector ingest source", () => {
             return new VectorWorkbenchService(() => QUERY_TUNING_DEFAULTS, WORKER_PATH);
         }
 
+        test("process worker coordinator honors mixed caps across service owners", async () => {
+            const coordinator = new VectorWorkerCoordinator();
+            const ownerA = Symbol("service-a");
+            const ownerB = Symbol("service-b");
+            const ownerLowMemory = Symbol("service-low-memory");
+            const signalA = new AbortController().signal;
+            const signalB = new AbortController().signal;
+            const lowSignal = new AbortController().signal;
+
+            const releaseA = await coordinator.acquire(ownerA, 2, signalA);
+            const releaseB = await coordinator.acquire(ownerB, 2, signalB);
+            expect(releaseA).to.be.a("function");
+            expect(releaseB).to.be.a("function");
+
+            let lowAdmitted = false;
+            const lowPending = coordinator.acquire(ownerLowMemory, 1, lowSignal).then((release) => {
+                lowAdmitted = true;
+                return release;
+            });
+            await Promise.resolve();
+            expect(lowAdmitted).to.equal(false);
+
+            releaseA!();
+            await Promise.resolve();
+            expect(lowAdmitted).to.equal(false);
+
+            releaseB!();
+            const releaseLow = await lowPending;
+            expect(releaseLow).to.be.a("function");
+
+            let laterHighCapAdmitted = false;
+            const laterHighCap = coordinator.acquire(ownerA, 2, signalA).then((release) => {
+                laterHighCapAdmitted = true;
+                return release;
+            });
+            await Promise.resolve();
+            expect(laterHighCapAdmitted).to.equal(false);
+
+            releaseLow!();
+            const releaseLater = await laterHighCap;
+            expect(releaseLater).to.be.a("function");
+            releaseLater!();
+        });
+
+        test("process worker coordinator refuses zero and removes aborted queued work", async () => {
+            const coordinator = new VectorWorkerCoordinator();
+            const ownerA = Symbol("service-a");
+            const ownerB = Symbol("service-b");
+            const activeController = new AbortController();
+            const releaseA = await coordinator.acquire(ownerA, 1, activeController.signal);
+            expect(releaseA).to.be.a("function");
+
+            const queuedController = new AbortController();
+            const queued = coordinator.acquire(ownerB, 1, queuedController.signal);
+            queuedController.abort();
+            expect(await queued).to.equal(undefined);
+
+            expect(await coordinator.acquire(ownerB, 0, new AbortController().signal)).to.equal(
+                undefined,
+            );
+            releaseA!();
+        });
+
+        test("vectorMaxWorkers zero refuses before scanning the result store", async () => {
+            const wrapper = await seededVectorStore([vectorCell([1, 0, 0])]);
+            const originalStreamRows = wrapper.streamRows.bind(wrapper);
+            let scanned = false;
+            wrapper.streamRows = async function* (request) {
+                scanned = true;
+                yield* originalStreamRows(request);
+            };
+            const svc = new VectorWorkbenchService(
+                () => ({ ...QUERY_TUNING_DEFAULTS, vectorMaxWorkers: 0 }),
+                WORKER_PATH,
+                new VectorWorkerCoordinator(),
+            );
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+            const result = await svc.profile(opened.handle);
+            expect(result.error).to.contain("workers are disabled");
+            expect(scanned).to.equal(false);
+            svc.close(opened.handle);
+            wrapper.releaseLiveOwner("documentClosed");
+            svc.dispose();
+        });
+
+        test("two workbench services share the low-memory process worker cap", async function () {
+            this.timeout(20_000);
+            class TrackingCoordinator extends VectorWorkerCoordinator {
+                acquireCalls = 0;
+                activeCount = 0;
+                peak = 0;
+
+                override async acquire(
+                    owner: symbol,
+                    effectiveLimit: number,
+                    signal: AbortSignal,
+                ): Promise<(() => void) | undefined> {
+                    this.acquireCalls++;
+                    const release = await super.acquire(owner, effectiveLimit, signal);
+                    if (!release) {
+                        return undefined;
+                    }
+                    this.activeCount++;
+                    this.peak = Math.max(this.peak, this.activeCount);
+                    let released = false;
+                    return () => {
+                        if (released) {
+                            return;
+                        }
+                        released = true;
+                        this.activeCount--;
+                        release();
+                    };
+                }
+            }
+
+            const coordinator = new TrackingCoordinator();
+            const tuning = () => ({ ...QUERY_TUNING_DEFAULTS, vectorMaxWorkers: 1 });
+            const firstStore = await seededVectorStore(
+                Array.from({ length: 20 }, (_, index) =>
+                    vectorCell([Math.sin(index), Math.cos(index), index / 20]),
+                ),
+            );
+            const secondStore = await seededVectorStore(
+                Array.from({ length: 20 }, (_, index) =>
+                    vectorCell([Math.cos(index), Math.sin(index), index / 20]),
+                ),
+            );
+            const first = new VectorWorkbenchService(tuning, WORKER_PATH, coordinator);
+            const second = new VectorWorkbenchService(tuning, WORKER_PATH, coordinator);
+            const firstOpen = first.open(firstStore, { resultSetId: "rs1", columnOrdinal: 1 });
+            const secondOpen = second.open(secondStore, {
+                resultSetId: "rs1",
+                columnOrdinal: 1,
+            });
+
+            const [firstResult, secondResult] = await Promise.all([
+                first.profile(firstOpen.handle),
+                second.profile(secondOpen.handle),
+            ]);
+            expect(firstResult.error).to.equal(undefined);
+            expect(secondResult.error).to.equal(undefined);
+            expect(coordinator.acquireCalls).to.equal(2);
+            expect(coordinator.peak).to.equal(1);
+            expect(coordinator.activeCount).to.equal(0);
+
+            first.close(firstOpen.handle);
+            second.close(secondOpen.handle);
+            firstStore.releaseLiveOwner("documentClosed");
+            secondStore.releaseLiveOwner("documentClosed");
+            first.dispose();
+            second.dispose();
+        });
+
         test("open validates the column and holds a lease until close", async () => {
             const wrapper = await seededVectorStore([vectorCell([1, 0, 0]), vectorCell([0, 1, 0])]);
             const svc = service();
@@ -507,6 +665,48 @@ suite("vector ingest source", () => {
             expect(wrapper.state).to.equal("active");
             svc.close(opened.handle);
             expect(wrapper.state).to.equal("disposed");
+            svc.dispose();
+        });
+
+        test("suspend preserves idle completed state and cancels only in-flight analysis", async () => {
+            const wrapper = await seededVectorStore([vectorCell([1, 0, 0]), vectorCell([0, 1, 0])]);
+            const svc = service();
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+
+            const completed = await svc.profile(opened.handle);
+            expect(completed.error).to.equal(undefined);
+            expect(completed.summary).to.not.equal(undefined);
+            expect(svc.suspend()).to.equal(false);
+
+            const restored = await svc.profile(opened.handle);
+            expect(restored.error).to.equal(undefined);
+            expect(restored.generation).to.equal(completed.generation);
+            expect(restored.summary).to.equal(completed.summary);
+
+            const originalStreamRows = wrapper.streamRows.bind(wrapper);
+            let scanEntered!: () => void;
+            let releaseScan!: () => void;
+            const entered = new Promise<void>((resolve) => (scanEntered = resolve));
+            const scanGate = new Promise<void>((resolve) => (releaseScan = resolve));
+            wrapper.streamRows = async function* (request) {
+                scanEntered();
+                await scanGate;
+                yield* originalStreamRows(request);
+            };
+
+            const projection = svc.projection(opened.handle);
+            await entered;
+            expect(svc.suspend()).to.equal(true);
+            releaseScan();
+            expect((await projection).error).to.contain("cancelled");
+
+            const facts = svc.sessionFacts(opened.handle)!;
+            expect(facts.generation).to.be.greaterThan(completed.generation);
+            expect(facts.isActive()).to.equal(true);
+            facts.release();
+
+            svc.close(opened.handle);
+            wrapper.releaseLiveOwner("documentClosed");
             svc.dispose();
         });
 
@@ -683,6 +883,55 @@ suite("vector ingest source", () => {
             svc.dispose();
         });
 
+        test("worker.end is emitted once per Profile and Projection worker with value-free fields", async function () {
+            this.timeout(20_000);
+            const wrapper = await seededVectorStore(
+                Array.from({ length: 12 }, (_, i) =>
+                    vectorCell([Math.sin(i), Math.cos(i), (i % 5) / 5]),
+                ),
+            );
+            const svc = service();
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+            const calls: Array<{ name: string; attrs: Record<string, unknown> }> = [];
+            const original = Perf.marker;
+            Perf.marker = ((name: string, _phase: string, attrs: Record<string, unknown>) => {
+                calls.push({ name, attrs });
+            }) as typeof Perf.marker;
+            try {
+                expect((await svc.profile(opened.handle)).error).to.equal(undefined);
+                expect((await svc.projection(opened.handle)).error).to.equal(undefined);
+
+                const workerCalls = calls.filter(
+                    (call) => call.name === "mssql.queryResults.vector.worker.end",
+                );
+                expect(workerCalls).to.have.length(2);
+                expect(workerCalls.map((call) => call.attrs.operation)).to.deep.equal([
+                    "profile",
+                    "projection",
+                ]);
+                for (const call of workerCalls) {
+                    expect(Object.keys(call.attrs).sort()).to.deep.equal([
+                        "dimensions",
+                        "ms",
+                        "operation",
+                        "outcome",
+                        "partialTime",
+                        "rows",
+                    ]);
+                    expect(call.attrs.outcome).to.equal("ok");
+                    expect(call.attrs.rows).to.equal(12);
+                    expect(call.attrs.dimensions).to.equal(3);
+                    expect(call.attrs.partialTime).to.be.a("boolean");
+                    expect(call.attrs.ms).to.be.a("number");
+                }
+            } finally {
+                Perf.marker = original;
+                svc.close(opened.handle);
+                wrapper.releaseLiveOwner("documentClosed");
+                svc.dispose();
+            }
+        });
+
         test("compare validates ordinals honestly", async () => {
             const wrapper = await seededVectorStore([
                 vectorCell([1, 0, 0]),
@@ -743,7 +992,7 @@ suite("vector ingest source", () => {
             svc.dispose();
         });
 
-        test("cancel bumps the generation and the in-flight profile reports cancelled", async function () {
+        test("cancel balances analysis markers and the in-flight profile reports cancelled", async function () {
             this.timeout(20_000);
             const rows = Array.from({ length: 50 }, (_, i) =>
                 vectorCell([Math.sin(i), Math.cos(i), (i % 7) / 7]),
@@ -751,13 +1000,53 @@ suite("vector ingest source", () => {
             const wrapper = await seededVectorStore(rows);
             const svc = service();
             const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
-            const inFlight = svc.profile(opened.handle);
-            svc.cancel(opened.handle);
-            const result = await inFlight;
-            expect(result.error ?? "").to.contain("cancelled");
-            svc.close(opened.handle);
-            wrapper.releaseLiveOwner("documentClosed");
-            svc.dispose();
+            const calls: Array<{
+                name: string;
+                phase: string;
+                attrs: Record<string, unknown>;
+                correlationId?: string;
+            }> = [];
+            const original = Perf.marker;
+            Perf.marker = ((
+                name: string,
+                phase: string,
+                attrs: Record<string, unknown>,
+                correlationId?: string,
+            ) =>
+                calls.push({
+                    name,
+                    phase,
+                    attrs,
+                    ...(correlationId ? { correlationId } : {}),
+                })) as typeof Perf.marker;
+            try {
+                const inFlight = svc.profile(opened.handle);
+                svc.cancel(opened.handle);
+                const result = await inFlight;
+                expect(result.error ?? "").to.contain("cancelled");
+
+                const begins = calls.filter(
+                    (call) => call.name === "mssql.queryResults.vector.analysis.begin",
+                );
+                const cancels = calls.filter(
+                    (call) => call.name === "mssql.queryResults.vector.analysis.cancel",
+                );
+                const ends = calls.filter(
+                    (call) => call.name === "mssql.queryResults.vector.analysis.end",
+                );
+                expect(begins).to.have.length(1);
+                expect(cancels).to.have.length(1);
+                expect(ends).to.have.length(1);
+                expect(cancels[0].correlationId).to.equal(begins[0].correlationId);
+                expect(ends[0].correlationId).to.equal(begins[0].correlationId);
+                expect(ends[0].phase).to.equal("end");
+                expect(ends[0].attrs.outcome).to.equal("cancelled");
+            } finally {
+                Perf.marker = original;
+                svc.close(opened.handle);
+                wrapper.releaseLiveOwner("documentClosed");
+                svc.dispose();
+            }
         });
     });
 });

@@ -56,6 +56,8 @@ import {
     VECTOR_CHUNK_SIZE_MAX,
     VECTOR_CHUNK_SIZE_MIN,
     VECTOR_REEMBED_TOKEN_TTL_MS,
+    VECTOR_REEMBED_SOURCE_MAX_CHARS,
+    VECTOR_REEMBED_SOURCE_MAX_UTF8_BYTES,
     VECTOR_SERVER_SIDE_CLAIM,
     VECTOR_SOURCE_PREVIEW_CHARS,
     VectorChunkPreviewEntry,
@@ -65,6 +67,7 @@ import {
 } from "../../sharedInterfaces/vectorPipeline";
 import { IQueryResultStore } from "../queryResultTypes";
 import { AuxiliarySessionLease } from "./vectorCapabilityService";
+import { VectorModelStatementCounter } from "./vectorModelStatementCounter";
 
 export const VECTOR_MODEL_CALL_TAG = "queryStudio:vectorModelCall";
 
@@ -78,6 +81,9 @@ export const TRUNCATED_CHUNK_REFUSAL =
 
 const PIPELINE_CLOSED_REFUSAL = "The Vector Pipeline session has closed.";
 const MODEL_CALL_CANCELLED = "The model call was cancelled.";
+const PIPELINE_SUSPENDED_REFUSAL =
+    "The Vector Pipeline request was cancelled because the pane was hidden.";
+const MAX_RETAINED_MODEL_IDS = 256;
 
 // ---------------------------------------------------------------------------
 // Thunks (the controller supplies all authority; the service owns policy)
@@ -102,6 +108,8 @@ export interface VectorPipelineThunks {
     capabilities(refresh?: boolean): Promise<QsVectorCapabilitiesResult>;
     /** Resolve an open workbench analysis session; undefined = expired. */
     workbench(handle: string): VectorPipelineWorkbenchSessionFacts | undefined;
+    /** Controller-owned so hidden-service recreation cannot erase statement history. */
+    readonly modelStatements?: VectorModelStatementCounter;
 }
 
 // ---------------------------------------------------------------------------
@@ -129,6 +137,49 @@ export function buildReembedSql(sourceText: string, modelName: string): string {
         `DECLARE @t nvarchar(max) = N'${escapeNString(sourceText)}';`,
         `SELECT CAST(AI_GENERATE_EMBEDDINGS(@t USE MODEL ${quoteSqlIdentifier(modelName)}) AS nvarchar(max)) AS fresh;`,
     ].join("\n");
+}
+
+/** Catalog row used to re-resolve an opaque model immediately before egress. */
+export function buildPipelineModelVerificationSql(modelName: string): string {
+    return [
+        "SELECT TOP (2)",
+        "    CONVERT(nvarchar(128), m.name),",
+        "    CONVERT(nvarchar(128), USER_NAME(m.principal_id)),",
+        "    CONVERT(nvarchar(64), m.api_format),",
+        "    CONVERT(nvarchar(64), m.model_type_desc),",
+        "    CONVERT(nvarchar(256), m.model),",
+        "    CONVERT(nvarchar(1024), m.location),",
+        "    CONVERT(nvarchar(64), m.modify_time, 126)",
+        "FROM sys.external_models m",
+        `WHERE CONVERT(varbinary(512), m.name) = CONVERT(varbinary(512), N'${escapeNString(modelName)}')`,
+        "  AND CONVERT(varbinary(512), m.model_type_desc) = CONVERT(varbinary(512), N'EMBEDDINGS');",
+    ].join("\n");
+}
+
+function modelIdentity(row: VectorExternalModelProbeRow): string {
+    return JSON.stringify([
+        row.name,
+        row.owner,
+        row.apiFormat,
+        row.modelType,
+        row.providerModel,
+        row.endpointHost,
+        row.modifyTime,
+        row.egress,
+    ]);
+}
+
+function modelIdentityDigest(row: VectorExternalModelProbeRow, key: Buffer): string {
+    return crypto.createHmac("sha256", key).update(modelIdentity(row)).digest("base64url");
+}
+
+function endpointHost(location: string | undefined): string | undefined {
+    if (!location) return undefined;
+    try {
+        return new URL(location).hostname || undefined;
+    } catch {
+        return undefined;
+    }
 }
 
 /**
@@ -281,6 +332,8 @@ export function compareStoredVsFresh(
 interface ModelCallOutcome {
     readonly rows: unknown[][];
     readonly errors: string[];
+    /** True only after session.execute returned a handle for this statement. */
+    readonly issued: boolean;
     /** Set when the statement did not succeed. */
     readonly failed?: string;
 }
@@ -327,10 +380,15 @@ async function executeWhenFree(
 async function runModelCall(
     session: ISqlSession,
     sql: string,
-    control: { signal: AbortSignal; onHandle(handle: QueryHandle): void },
+    control: {
+        signal: AbortSignal;
+        onHandle(handle: QueryHandle): void;
+        onSettled(handle: QueryHandle): Promise<void>;
+    },
 ): Promise<ModelCallOutcome> {
     const rows: unknown[][] = [];
     const errors: string[] = [];
+    let issued = false;
     try {
         const sink: IQueryEventSink = {
             onResultSetStarted: () => undefined,
@@ -345,21 +403,58 @@ async function runModelCall(
             onComplete: () => undefined,
         };
         const handle = await executeWhenFree(session, sql, sink, control.signal);
+        issued = true;
         control.onHandle(handle);
-        if (control.signal.aborted) {
-            return { rows, errors, failed: MODEL_CALL_CANCELLED };
+        try {
+            if (control.signal.aborted) {
+                return { rows, errors, issued, failed: MODEL_CALL_CANCELLED };
+            }
+            const summary = await handle.completion;
+            if (control.signal.aborted) {
+                return { rows, errors, issued, failed: MODEL_CALL_CANCELLED };
+            }
+            if (summary.status !== "succeeded") {
+                return {
+                    rows,
+                    errors,
+                    issued,
+                    failed: errors[0] ?? `model call ${summary.status}`,
+                };
+            }
+            return { rows, errors, issued };
+        } finally {
+            await control.onSettled(handle);
         }
-        const summary = await handle.completion;
-        if (control.signal.aborted) {
-            return { rows, errors, failed: MODEL_CALL_CANCELLED };
-        }
-        if (summary.status !== "succeeded") {
-            return { rows, errors, failed: errors[0] ?? `model call ${summary.status}` };
-        }
-        return { rows, errors };
     } catch (error) {
-        return { rows, errors, failed: error instanceof Error ? error.message : String(error) };
+        return {
+            rows,
+            errors,
+            issued,
+            failed: error instanceof Error ? error.message : String(error),
+        };
     }
+}
+
+function verifiedModelMatches(
+    outcome: ModelCallOutcome,
+    expected: VectorExternalModelProbeRow,
+): boolean {
+    if (outcome.failed || outcome.rows.length !== 1) return false;
+    const row = outcome.rows[0];
+    const text = (index: number): string | undefined => {
+        const value = row[index];
+        return value === null || value === undefined ? undefined : String(value);
+    };
+    return (
+        text(0) === expected.name &&
+        text(1) === expected.owner &&
+        text(2) === expected.apiFormat &&
+        text(3) === "EMBEDDINGS" &&
+        text(3) === expected.modelType &&
+        text(4) === expected.providerModel &&
+        endpointHost(text(5)) === expected.endpointHost &&
+        text(6) === expected.modifyTime
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -368,6 +463,13 @@ async function runModelCall(
 
 interface PendingReembed {
     readonly handle: string;
+    readonly modelId: string;
+    readonly model: VectorExternalModelProbeRow;
+    readonly modelIdentity: string;
+    readonly resultSetId: string;
+    readonly vectorColumnOrdinal: number;
+    readonly rowOrdinal: number;
+    readonly sourceColumnOrdinal: number;
     readonly sql: string;
     readonly descriptor: VectorReembedDescriptor;
     /** Decoded stored vector, held HOST-SIDE only for the comparison. */
@@ -376,27 +478,68 @@ interface PendingReembed {
 }
 
 interface ActiveModelCall {
+    readonly ownerHandle: string;
     readonly abortController: AbortController;
+    readonly done: Promise<void>;
+    readonly settleDone: () => void;
     lease?: AuxiliarySessionLease;
     handle?: QueryHandle;
     queryStop?: Promise<void>;
     leaseReleased: boolean;
 }
 
+interface CompletedPipelineResult {
+    readonly resultSetId: string;
+    readonly vectorColumnOrdinal: number;
+    /** Explicit metadata allowlist: never retain source text, SQL, vectors, or consent state. */
+    readonly result: QsVectorReembedExecuteResult;
+}
+
+function retainCompletedResult(result: QsVectorReembedExecuteResult): QsVectorReembedExecuteResult {
+    return {
+        ...(result.runId !== undefined ? { runId: result.runId } : {}),
+        ...(result.comparison !== undefined ? { comparison: { ...result.comparison } } : {}),
+        ...(result.context !== undefined ? { context: { ...result.context } } : {}),
+        ...(result.elapsedMs !== undefined ? { elapsedMs: result.elapsedMs } : {}),
+        ...(result.modelStatementIssued !== undefined
+            ? { modelStatementIssued: result.modelStatementIssued }
+            : {}),
+        ...(result.modelEgress !== undefined ? { modelEgress: result.modelEgress } : {}),
+        ...(result.modelStatementCounts !== undefined
+            ? { modelStatementCounts: { ...result.modelStatementCounts } }
+            : {}),
+    };
+}
+
 export class VectorPipelineService {
+    /** Opaque binding id -> exact catalog identity from the last successful probe. */
+    private readonly modelBindings = new Map<
+        string,
+        { readonly row: VectorExternalModelProbeRow; readonly info: VectorPipelineModel }
+    >();
+    /** Bounded, non-reversible identity digest -> opaque UI id for suspend/reprobe continuity. */
+    private readonly retainedModelIds = new Map<string, string>();
+    private readonly modelIdentityKey = crypto.randomBytes(32);
+    private modelsStale = false;
     /** token → pending confirmation (single-use; TTL-swept). */
     private readonly pending = new Map<string, PendingReembed>();
     /** handle → its one outstanding token (a new mint replaces the old). */
     private readonly tokenByHandle = new Map<string, string>();
     /** Model calls registered before their first await, so dispose sees all races. */
     private readonly activeModelCalls = new Set<ActiveModelCall>();
+    private readonly completedResults = new Map<string, CompletedPipelineResult>();
+    private readonly modelStatements: VectorModelStatementCounter;
+    /** Invalidates async work that crossed a suspend boundary. */
+    private sensitiveStateEpoch = 0;
     private disposed = false;
 
     constructor(
         private readonly thunks: VectorPipelineThunks,
         /** Injectable clock for deterministic TTL tests. */
         private readonly now: () => number = Date.now,
-    ) {}
+    ) {
+        this.modelStatements = thunks.modelStatements ?? new VectorModelStatementCounter();
+    }
 
     // --- pipeline state (provenance inputs) --------------------------------
 
@@ -405,55 +548,128 @@ export class VectorPipelineService {
             return {
                 models: [],
                 networkClaim: { webview: "none", serverSide: VECTOR_SERVER_SIDE_CLAIM },
+                modelStatementCounts: this.modelStatements.snapshot(),
                 chunkingAvailable: false,
                 error: PIPELINE_CLOSED_REFUSAL,
             };
         }
         const networkClaim = { webview: "none" as const, serverSide: VECTOR_SERVER_SIDE_CLAIM };
-        const capabilities = await this.thunks.capabilities(refresh);
+        const cachedModels = () => [...this.modelBindings.values()].map((binding) => binding.info);
+        const stateEpoch = this.sensitiveStateEpoch;
+        let capabilities: QsVectorCapabilitiesResult;
+        try {
+            capabilities = await this.thunks.capabilities(refresh);
+        } catch (error) {
+            if (stateEpoch !== this.sensitiveStateEpoch) {
+                return {
+                    models: [],
+                    networkClaim,
+                    modelStatementCounts: this.modelStatements.snapshot(),
+                    chunkingAvailable: false,
+                    error: PIPELINE_SUSPENDED_REFUSAL,
+                };
+            }
+            this.modelsStale = this.modelBindings.size > 0;
+            return {
+                models: cachedModels(),
+                networkClaim,
+                modelStatementCounts: this.modelStatements.snapshot(),
+                chunkingAvailable: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
         if (this.disposed) {
             return {
                 models: [],
                 networkClaim,
+                modelStatementCounts: this.modelStatements.snapshot(),
                 chunkingAvailable: false,
                 error: PIPELINE_CLOSED_REFUSAL,
             };
         }
-        if (capabilities.error || !capabilities.probe) {
+        if (stateEpoch !== this.sensitiveStateEpoch) {
             return {
                 models: [],
                 networkClaim,
+                modelStatementCounts: this.modelStatements.snapshot(),
+                chunkingAvailable: false,
+                error: PIPELINE_SUSPENDED_REFUSAL,
+            };
+        }
+        if (capabilities.error || !capabilities.probe) {
+            this.modelsStale = this.modelBindings.size > 0;
+            return {
+                models: cachedModels(),
+                networkClaim,
+                modelStatementCounts: this.modelStatements.snapshot(),
                 chunkingAvailable: false,
                 error: capabilities.error ?? "Vector capabilities are unavailable.",
             };
         }
         const probe = capabilities.probe;
+        if (probe.externalModels.error) {
+            this.modelsStale = this.modelBindings.size > 0;
+            return {
+                models: cachedModels(),
+                networkClaim,
+                modelStatementCounts: this.modelStatements.snapshot(),
+                chunkingAvailable: false,
+                error: probe.externalModels.error,
+            };
+        }
         // A9 guard: offer ONLY MODEL_TYPE = EMBEDDINGS, re-filtered here even
         // though the probe filters server-side — a future type expansion must
         // degrade to "not offered", never to a wrong offer.
+        const previousIds = new Map(this.retainedModelIds);
+        for (const [id, binding] of this.modelBindings) {
+            previousIds.set(modelIdentityDigest(binding.row, this.modelIdentityKey), id);
+        }
+        const nextBindings = new Map<
+            string,
+            { readonly row: VectorExternalModelProbeRow; readonly info: VectorPipelineModel }
+        >();
         const models: VectorPipelineModel[] = probe.externalModels.models
             .filter((model) => (model.modelType ?? "").trim().toUpperCase() === "EMBEDDINGS")
-            .map((model) => ({
-                name: model.name,
-                ...(model.owner !== undefined ? { owner: model.owner } : {}),
-                ...(model.apiFormat !== undefined ? { apiFormat: model.apiFormat } : {}),
-                modelType: "EMBEDDINGS",
-                ...(model.providerModel !== undefined
-                    ? { providerModel: model.providerModel }
-                    : {}),
-                ...(model.endpointHost !== undefined ? { endpointHost: model.endpointHost } : {}),
-                ...(model.modifyTime !== undefined ? { modifyTime: model.modifyTime } : {}),
-                egress: model.egress,
-            }));
+            .map((model) => {
+                const id =
+                    previousIds.get(modelIdentityDigest(model, this.modelIdentityKey)) ??
+                    `vpm_${crypto.randomBytes(12).toString("base64url")}`;
+                const info: VectorPipelineModel = {
+                    id,
+                    name: model.name,
+                    ...(model.owner !== undefined ? { owner: model.owner } : {}),
+                    ...(model.apiFormat !== undefined ? { apiFormat: model.apiFormat } : {}),
+                    modelType: "EMBEDDINGS",
+                    ...(model.providerModel !== undefined
+                        ? { providerModel: model.providerModel }
+                        : {}),
+                    ...(model.endpointHost !== undefined
+                        ? { endpointHost: model.endpointHost }
+                        : {}),
+                    ...(model.modifyTime !== undefined ? { modifyTime: model.modifyTime } : {}),
+                    egress: model.egress,
+                };
+                nextBindings.set(id, { row: model, info });
+                return info;
+            });
+        this.modelBindings.clear();
+        for (const [id, binding] of nextBindings) this.modelBindings.set(id, binding);
+        this.retainedModelIds.clear();
+        for (const [id, binding] of nextBindings) {
+            this.retainedModelIds.set(modelIdentityDigest(binding.row, this.modelIdentityKey), id);
+            if (this.retainedModelIds.size > MAX_RETAINED_MODEL_IDS) {
+                const oldest = this.retainedModelIds.keys().next().value as string | undefined;
+                if (oldest) this.retainedModelIds.delete(oldest);
+            }
+        }
+        this.modelsStale = false;
         const chunkingAvailable =
             probe.engine.compatibilityLevel !== undefined && probe.engine.compatibilityLevel >= 170;
         return {
             models,
             networkClaim,
+            modelStatementCounts: this.modelStatements.snapshot(),
             chunkingAvailable,
-            ...(models.length === 0 && probe.externalModels.error
-                ? { error: probe.externalModels.error }
-                : {}),
         };
     }
 
@@ -465,6 +681,7 @@ export class VectorPipelineService {
         if (this.disposed) {
             return { error: PIPELINE_CLOSED_REFUSAL };
         }
+        const stateEpoch = this.sensitiveStateEpoch;
         this.sweepExpired();
         const facts = this.thunks.workbench(params.handle);
         if (!facts) {
@@ -497,18 +714,16 @@ export class VectorPipelineService {
                     error: "Choose a text column as the source — not the vector column itself.",
                 };
             }
-            // Host-resolves the model against the probe: the webview's string
-            // selects, it never names an object into SQL directly.
-            const model = await this.resolveModel(params.modelName);
-            if (this.disposed || facts.isActive?.() === false) {
+            const model = this.modelBindings.get(params.modelId);
+            if (!model || this.modelsStale) {
                 return {
-                    error: this.disposed
-                        ? PIPELINE_CLOSED_REFUSAL
-                        : "The analysis session has expired; reopen the Vector tab.",
+                    error: "Refresh the catalog-verified EMBEDDINGS model list before re-embedding.",
                 };
             }
-            if ("error" in model) {
-                return { error: model.error };
+            if (!model.row.modifyTime) {
+                return {
+                    error: "The model probe did not return a modification identity; Pipeline will not authorize an unverifiable model call.",
+                };
             }
             // Fetch the FULL source text and the stored vector in one sparse read
             // (reason vectorAnalysis — non-admitting, never evicts the grid).
@@ -519,11 +734,17 @@ export class VectorPipelineService {
                 columnOrdinals: [params.sourceColumnOrdinal, facts.vectorColumnOrdinal],
                 reason: "vectorAnalysis",
             });
-            if (this.disposed || facts.isActive?.() === false) {
+            if (
+                this.disposed ||
+                stateEpoch !== this.sensitiveStateEpoch ||
+                facts.isActive?.() === false
+            ) {
                 return {
                     error: this.disposed
                         ? PIPELINE_CLOSED_REFUSAL
-                        : "The analysis session has expired; reopen the Vector tab.",
+                        : stateEpoch !== this.sensitiveStateEpoch
+                          ? PIPELINE_SUSPENDED_REFUSAL
+                          : "The analysis session has expired; reopen the Vector tab.",
                 };
             }
             const sourceCell: unknown = window.values[0]?.[0];
@@ -538,6 +759,16 @@ export class VectorPipelineService {
             const text = cellTextForPurpose(sourceCell, "copy");
             if (text.length === 0) {
                 return { error: "The selected row's source text is empty." };
+            }
+            if (text.length > VECTOR_REEMBED_SOURCE_MAX_CHARS) {
+                return {
+                    error: `Source text exceeds ${VECTOR_REEMBED_SOURCE_MAX_CHARS.toLocaleString("en-US")} characters; Pipeline will not build or retain the model-call SQL.`,
+                };
+            }
+            if (Buffer.byteLength(text, "utf8") > VECTOR_REEMBED_SOURCE_MAX_UTF8_BYTES) {
+                return {
+                    error: `Source text exceeds ${VECTOR_REEMBED_SOURCE_MAX_UTF8_BYTES.toLocaleString("en-US")} UTF-8 bytes; Pipeline will not build or retain the model-call SQL.`,
+                };
             }
             const stored =
                 vectorCell === undefined || vectorCell === null
@@ -563,6 +794,7 @@ export class VectorPipelineService {
                     model.row.endpointHost ??
                     (egress === "inProcess" ? "local runtime (no endpoint)" : "unknown"),
                 egress,
+                modelModifyTime: model.row.modifyTime,
                 source: `Selected row · ${sourceColumnName}`,
                 rowsCalls: 1,
                 textChars: text.length,
@@ -580,12 +812,28 @@ export class VectorPipelineService {
             const expiresAtMs = this.now() + VECTOR_REEMBED_TOKEN_TTL_MS;
             this.pending.set(token, {
                 handle: params.handle,
+                modelId: params.modelId,
+                model: model.row,
+                modelIdentity: modelIdentity(model.row),
+                resultSetId: facts.resultSetId,
+                vectorColumnOrdinal: facts.vectorColumnOrdinal,
+                rowOrdinal: params.ordinal,
+                sourceColumnOrdinal: params.sourceColumnOrdinal,
                 sql,
                 descriptor,
                 stored: stored.values,
                 expiresAtMs,
             });
             this.tokenByHandle.set(params.handle, token);
+            const expiryTimer = setTimeout(() => {
+                const current = this.pending.get(token);
+                if (!current) return;
+                this.pending.delete(token);
+                if (this.tokenByHandle.get(current.handle) === token) {
+                    this.tokenByHandle.delete(current.handle);
+                }
+            }, VECTOR_REEMBED_TOKEN_TTL_MS);
+            expiryTimer.unref?.();
             const sourcePreview =
                 text.length > VECTOR_SOURCE_PREVIEW_CHARS
                     ? `${text.slice(0, VECTOR_SOURCE_PREVIEW_CHARS)}…`
@@ -596,6 +844,7 @@ export class VectorPipelineService {
                 descriptor,
                 generatedSql: sql,
                 sourcePreview,
+                sourcePreviewTruncated: text.length > VECTOR_SOURCE_PREVIEW_CHARS,
                 storedDimensions: stored.dimensions,
             };
         } finally {
@@ -605,13 +854,13 @@ export class VectorPipelineService {
 
     // --- re-embed execute (token-gated, aux session, single-use) ------------
 
-    async reembedExecute(token: string): Promise<QsVectorReembedExecuteResult> {
+    async reembedExecute(handle: string, token: string): Promise<QsVectorReembedExecuteResult> {
         if (this.disposed) {
             return { error: PIPELINE_CLOSED_REFUSAL };
         }
         this.sweepExpired();
         const pending = typeof token === "string" ? this.pending.get(token) : undefined;
-        if (!pending) {
+        if (!pending || pending.handle !== handle) {
             return { error: "The confirmation token is invalid, expired, or already used." };
         }
         // Consume BEFORE executing: single-use even when the call fails.
@@ -619,8 +868,93 @@ export class VectorPipelineService {
         if (this.tokenByHandle.get(pending.handle) === token) {
             this.tokenByHandle.delete(pending.handle);
         }
+        const startedAt = performance.now();
+        let result: QsVectorReembedExecuteResult;
+        try {
+            result = await this.executeConsumedReembed(pending);
+        } catch (error) {
+            result = { error: error instanceof Error ? error.message : String(error) };
+        }
+        const elapsedMs = Math.round(performance.now() - startedAt);
+        Perf.marker("mssql.queryResults.vector.model.end", "instant", {
+            outcome: result.comparison ? "ok" : "error",
+            dims: result.comparison?.dimensions ?? 0,
+            ms: elapsedMs,
+        });
+        let finalResult: QsVectorReembedExecuteResult = {
+            ...result,
+            elapsedMs,
+            modelStatementIssued: result.modelStatementIssued === true,
+            ...(result.modelStatementIssued === true ? { modelEgress: pending.model.egress } : {}),
+            modelStatementCounts: this.modelStatements.snapshot(),
+        };
+        if (finalResult.comparison) {
+            const runId = `vpr_${crypto.randomBytes(12).toString("base64url")}`;
+            finalResult = {
+                ...finalResult,
+                runId,
+                context: {
+                    modelId: pending.modelId,
+                    rowOrdinal: pending.rowOrdinal,
+                    sourceColumnOrdinal: pending.sourceColumnOrdinal,
+                },
+            };
+            this.completedResults.set(runId, {
+                resultSetId: pending.resultSetId,
+                vectorColumnOrdinal: pending.vectorColumnOrdinal,
+                result: retainCompletedResult(finalResult),
+            });
+            while (this.completedResults.size > 2) {
+                const oldest = this.completedResults.keys().next().value as string | undefined;
+                if (!oldest) break;
+                this.completedResults.delete(oldest);
+            }
+        }
+        return finalResult;
+    }
+
+    async reembedResult(handle: string, runId: string): Promise<QsVectorReembedExecuteResult> {
+        if (!/^vpr_[A-Za-z0-9_-]{16}$/.test(runId)) {
+            return { error: "The Pipeline result reference is invalid." };
+        }
+        const cached = this.completedResults.get(runId);
+        const facts = this.thunks.workbench(handle);
+        if (!cached || !facts) {
+            facts?.release?.();
+            return { error: "The completed Pipeline comparison is no longer available." };
+        }
+        try {
+            if (
+                facts.resultSetId !== cached.resultSetId ||
+                facts.vectorColumnOrdinal !== cached.vectorColumnOrdinal ||
+                facts.isActive?.() === false
+            ) {
+                return { error: "The completed Pipeline comparison belongs to another result." };
+            }
+            return { ...cached.result, modelStatementCounts: this.modelStatements.snapshot() };
+        } finally {
+            facts.release?.();
+        }
+    }
+
+    private async executeConsumedReembed(
+        pending: PendingReembed,
+    ): Promise<QsVectorReembedExecuteResult> {
+        const current = this.modelBindings.get(pending.modelId);
+        if (!current || this.modelsStale || modelIdentity(current.row) !== pending.modelIdentity) {
+            return { error: "The verified EMBEDDINGS model changed; refresh and prepare again." };
+        }
+        const facts = this.thunks.workbench(pending.handle);
+        if (!facts || facts.isActive?.() === false) {
+            facts?.release?.();
+            return { error: "The analysis session has expired; reopen the Vector tab." };
+        }
+        let settleDone!: () => void;
         const operation: ActiveModelCall = {
+            ownerHandle: pending.handle,
             abortController: new AbortController(),
+            done: new Promise<void>((resolve) => (settleDone = resolve)),
+            settleDone: () => settleDone(),
             leaseReleased: false,
         };
         this.activeModelCalls.add(operation);
@@ -633,66 +967,66 @@ export class VectorPipelineService {
             }
             operation.lease = lease;
             if (this.disposed || operation.abortController.signal.aborted) {
-                this.releaseModelCallLease(operation);
                 return { error: MODEL_CALL_CANCELLED };
             }
-            const startedAt = performance.now();
-            const markEnd = (outcome: "ok" | "error", dims: number, ms: number) =>
-                Perf.marker("mssql.queryResults.vector.model.end", "instant", {
-                    outcome,
-                    dims,
-                    ms,
-                });
-            const outcome = await runModelCall(lease.session, pending.sql, {
-                signal: operation.abortController.signal,
-                onHandle: (handle) => {
-                    operation.handle = handle;
-                    this.stopActiveQuery(operation);
-                },
-            });
-            const elapsedMs = Math.round(performance.now() - startedAt);
+            const verified = await this.runTrackedModelStatement(
+                lease.session,
+                buildPipelineModelVerificationSql(pending.model.name),
+                operation,
+            );
             if (this.disposed || operation.abortController.signal.aborted) {
-                markEnd("error", 0, elapsedMs);
-                return { elapsedMs, error: MODEL_CALL_CANCELLED };
+                return { error: MODEL_CALL_CANCELLED };
+            }
+            if (!verifiedModelMatches(verified, pending.model)) {
+                return {
+                    error: "The EMBEDDINGS model identity or endpoint changed after confirmation; refresh and prepare again.",
+                };
+            }
+            const outcome = await this.runTrackedModelStatement(
+                lease.session,
+                pending.sql,
+                operation,
+                pending.model.egress,
+            );
+            if (this.disposed || operation.abortController.signal.aborted) {
+                return { error: MODEL_CALL_CANCELLED, modelStatementIssued: outcome.issued };
             }
             if (outcome.failed) {
-                markEnd("error", 0, elapsedMs);
-                return { elapsedMs, error: bounded(outcome.failed) };
+                return { error: bounded(outcome.failed), modelStatementIssued: outcome.issued };
             }
             const cell: unknown = outcome.rows[0]?.[0];
             if (typeof cell !== "string" || cell.length === 0) {
-                markEnd("error", 0, elapsedMs);
                 return {
-                    elapsedMs,
                     error: "The model call returned no embedding text to compare.",
+                    modelStatementIssued: outcome.issued,
                 };
             }
             const fresh = parseFreshVectorJson(cell);
             if (fresh.error || !fresh.values) {
-                markEnd("error", 0, elapsedMs);
-                return { elapsedMs, error: fresh.error ?? "Fresh embedding parse failed." };
+                return {
+                    error: fresh.error ?? "Fresh embedding parse failed.",
+                    modelStatementIssued: outcome.issued,
+                };
             }
             if (fresh.values.length !== pending.stored.length) {
-                markEnd("error", fresh.values.length, elapsedMs);
                 return {
-                    elapsedMs,
                     error:
                         `The fresh embedding has ${fresh.values.length} dimensions; the stored ` +
                         `vector has ${pending.stored.length}. Different models or model versions ` +
                         `cannot be compared component-wise.`,
+                    modelStatementIssued: outcome.issued,
                 };
             }
-            markEnd("ok", fresh.values.length, elapsedMs);
             return {
                 comparison: compareStoredVsFresh(pending.stored, fresh.values),
-                elapsedMs,
+                modelStatementIssued: outcome.issued,
             };
         } finally {
-            if (operation.queryStop) {
-                await operation.queryStop;
-            }
+            if (operation.queryStop) await operation.queryStop;
             this.activeModelCalls.delete(operation);
             this.releaseModelCallLease(operation);
+            facts.release?.();
+            operation.settleDone();
         }
     }
 
@@ -702,6 +1036,7 @@ export class VectorPipelineService {
         if (this.disposed) {
             return { error: PIPELINE_CLOSED_REFUSAL };
         }
+        const stateEpoch = this.sensitiveStateEpoch;
         if (
             !Number.isInteger(params.chunkSize) ||
             params.chunkSize < VECTOR_CHUNK_SIZE_MIN ||
@@ -753,11 +1088,17 @@ export class VectorPipelineService {
                 columnOrdinals: [params.sourceColumnOrdinal],
                 reason: "vectorAnalysis",
             });
-            if (this.disposed || facts.isActive?.() === false) {
+            if (
+                this.disposed ||
+                stateEpoch !== this.sensitiveStateEpoch ||
+                facts.isActive?.() === false
+            ) {
                 return {
                     error: this.disposed
                         ? PIPELINE_CLOSED_REFUSAL
-                        : "The analysis session has expired; reopen the Vector tab.",
+                        : stateEpoch !== this.sensitiveStateEpoch
+                          ? PIPELINE_SUSPENDED_REFUSAL
+                          : "The analysis session has expired; reopen the Vector tab.",
                 };
             }
             const sourceCell: unknown = window.values[0]?.[0];
@@ -782,13 +1123,64 @@ export class VectorPipelineService {
         }
     }
 
+    /** Revoke this pane's pending consent and settle any active model SQL. */
+    async cancel(handle: string): Promise<void> {
+        this.revokePending(handle);
+        const operations = [...this.activeModelCalls].filter(
+            (operation) => operation.ownerHandle === handle,
+        );
+        for (const operation of operations) {
+            operation.abortController.abort();
+            this.stopActiveQuery(operation);
+        }
+        await Promise.all(
+            operations.map(async (operation) => {
+                if (operation.queryStop) await operation.queryStop;
+                await operation.done;
+            }),
+        );
+    }
+
+    /**
+     * Revoke live and source-sensitive state without erasing terminal comparison metadata.
+     * The retained cache is already capped at two entries and contains only the explicit
+     * metadata allowlist built by retainCompletedResult; statement counters are controller-owned.
+     */
+    async suspendSensitiveState(): Promise<void> {
+        if (this.disposed) {
+            return;
+        }
+        this.sensitiveStateEpoch++;
+        this.pending.clear();
+        this.tokenByHandle.clear();
+        this.modelBindings.clear();
+        this.modelsStale = false;
+
+        const operations = [...this.activeModelCalls];
+        for (const operation of operations) {
+            operation.abortController.abort();
+            this.stopActiveQuery(operation);
+        }
+        await Promise.all(
+            operations.map(async (operation) => {
+                if (operation.queryStop) await operation.queryStop;
+                await operation.done;
+            }),
+        );
+    }
+
     dispose(): void {
         if (this.disposed) {
             return;
         }
         this.disposed = true;
+        this.sensitiveStateEpoch++;
         this.pending.clear();
         this.tokenByHandle.clear();
+        this.modelBindings.clear();
+        this.retainedModelIds.clear();
+        this.modelIdentityKey.fill(0);
+        this.completedResults.clear();
         for (const operation of this.activeModelCalls) {
             operation.abortController.abort();
             this.stopActiveQuery(operation);
@@ -805,32 +1197,38 @@ export class VectorPipelineService {
 
     // --- internals ----------------------------------------------------------
 
-    private async resolveModel(
-        modelName: string,
-    ): Promise<{ row: VectorExternalModelProbeRow } | { error: string }> {
-        if (typeof modelName !== "string" || modelName.trim().length === 0) {
-            return { error: "No embedding model was selected." };
-        }
-        const capabilities = await this.thunks.capabilities();
-        if (capabilities.error || !capabilities.probe) {
-            return {
-                error:
-                    capabilities.error ??
-                    "Vector capabilities are unavailable; cannot verify the model.",
-            };
-        }
-        const wanted = modelName.trim().toLowerCase();
-        const row = capabilities.probe.externalModels.models.find(
-            (candidate) =>
-                candidate.name.toLowerCase() === wanted &&
-                (candidate.modelType ?? "").trim().toUpperCase() === "EMBEDDINGS",
-        );
-        if (!row) {
-            return {
-                error: `"${modelName}" is not an EMBEDDINGS external model on this connection.`,
-            };
-        }
-        return { row };
+    private runTrackedModelStatement(
+        session: ISqlSession,
+        sql: string,
+        operation: ActiveModelCall,
+        modelEgress?: VectorModelEgressClass,
+    ): Promise<ModelCallOutcome> {
+        return runModelCall(session, sql, {
+            signal: operation.abortController.signal,
+            onHandle: (handle) => {
+                if (modelEgress !== undefined) {
+                    this.modelStatements.record(modelEgress);
+                }
+                operation.handle = handle;
+                operation.queryStop = undefined;
+                this.stopActiveQuery(operation);
+            },
+            onSettled: async (handle) => {
+                if (operation.queryStop) {
+                    await operation.queryStop;
+                } else {
+                    await handle.dispose().catch(() => undefined);
+                }
+                if (operation.handle === handle) operation.handle = undefined;
+                operation.queryStop = undefined;
+            },
+        });
+    }
+
+    private revokePending(handle: string): void {
+        const token = this.tokenByHandle.get(handle);
+        if (token) this.pending.delete(token);
+        this.tokenByHandle.delete(handle);
     }
 
     private sweepExpired(): void {

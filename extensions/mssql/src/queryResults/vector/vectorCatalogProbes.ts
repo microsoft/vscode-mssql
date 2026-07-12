@@ -119,17 +119,32 @@ export const VECTOR_PROBE_SQL = {
      */
     vectorIndexes: (filter?: VectorProbeTableFilter): string =>
         [
-            "SELECT TOP (64)",
+            filter ? "SELECT" : "SELECT TOP (64)",
+            "    TRY_CONVERT(int, v.object_id),",
+            "    TRY_CONVERT(int, v.index_id),",
             "    CONVERT(nvarchar(128), SCHEMA_NAME(o.schema_id)),",
             "    CONVERT(nvarchar(128), o.name),",
             "    CONVERT(nvarchar(128), v.name),",
+            "    CONVERT(nvarchar(128), vc.name),",
             "    CONVERT(nvarchar(64), v.vector_index_type),",
             "    CONVERT(nvarchar(64), v.distance_metric),",
             "    CONVERT(nvarchar(max), v.build_parameters),",
-            "    CASE WHEN i.index_id IS NOT NULL THEN 1 ELSE 0 END",
+            "    TRY_CONVERT(int, vc.column_id),",
+            "    CASE WHEN iraw.index_id IS NOT NULL THEN 1 ELSE 0 END,",
+            "    CASE WHEN iusable.index_id IS NOT NULL THEN 1 ELSE 0 END",
             "FROM sys.vector_indexes v",
             "JOIN sys.objects o ON o.object_id = v.object_id",
-            "LEFT JOIN sys.indexes i ON i.object_id = v.object_id AND i.index_id = v.index_id",
+            "LEFT JOIN sys.indexes iraw ON iraw.object_id = v.object_id AND iraw.index_id = v.index_id",
+            "LEFT JOIN sys.indexes iusable ON iusable.object_id = v.object_id AND iusable.index_id = v.index_id",
+            "    AND iusable.is_disabled = 0 AND iusable.is_hypothetical = 0",
+            "OUTER APPLY (",
+            "    SELECT TOP (1) c.name, c.column_id",
+            "    FROM sys.index_columns ic",
+            "    JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id",
+            "    WHERE ic.object_id = v.object_id AND ic.index_id = v.index_id",
+            "      AND ic.is_included_column = 0",
+            "    ORDER BY ic.key_ordinal, ic.index_column_id",
+            ") vc",
             ...(filter
                 ? [
                       `WHERE v.object_id = OBJECT_ID(N'${ident(filter.schema).replace(/'/g, "''")}.${ident(filter.table).replace(/'/g, "''")}')`,
@@ -149,14 +164,21 @@ export const VECTOR_PROBE_SQL = {
     ].join("\n"),
 
     /** Dynamic projection over RESOLVED names — never the guide's assumed ones. */
-    healthDmvRows: (columns: readonly string[]): string =>
-        [
-            "SELECT TOP (16)",
+    healthDmvRows: (columns: readonly string[], filter?: VectorProbeTableFilter): string => {
+        const objectIdColumn = columns.find((column) => column.toLowerCase() === "object_id");
+        return [
+            filter && objectIdColumn ? "SELECT" : "SELECT TOP (16)",
             columns
                 .map((c) => `    TRY_CONVERT(nvarchar(256), ${ident(c)}) AS ${ident(c)}`)
                 .join(",\n"),
-            "FROM sys.dm_db_vector_indexes;",
-        ].join("\n"),
+            "FROM sys.dm_db_vector_indexes",
+            ...(filter && objectIdColumn
+                ? [
+                      `WHERE ${ident(objectIdColumn)} = OBJECT_ID(N'${ident(filter.schema).replace(/'/g, "''")}.${ident(filter.table).replace(/'/g, "''")}');`,
+                  ]
+                : [";"]),
+        ].join("\n");
+    },
 
     /** EMBEDDINGS filter server-side (A9); owner via principal (P0-4). */
     externalModels: [
@@ -531,20 +553,30 @@ export async function probeVectorCapabilities(
     } else {
         const confirmed: VectorIndexProbeRow[] = [];
         let phantomCount = 0;
+        let unusableCount = 0;
         for (const row of indexesOutcome.rows) {
-            const isConfirmed = cellInt(row[6]) === 1;
-            if (!isConfirmed) {
+            const rawPresent = cellInt(row[10]) === 1;
+            const isUsable = cellInt(row[11]) === 1;
+            if (!rawPresent) {
                 phantomCount++; // failed-build residue: never usable, never hidden
                 continue;
             }
-            const buildParameters = cellText(row[5]);
+            if (!isUsable) {
+                unusableCount++;
+                continue;
+            }
+            const buildParameters = cellText(row[8]);
             const version = extractBuildParametersVersion(buildParameters);
             confirmed.push({
-                schemaName: cellText(row[0]) ?? "",
-                tableName: cellText(row[1]) ?? "",
-                indexName: cellText(row[2]) ?? "",
-                ...(cellText(row[3]) ? { indexType: cellText(row[3]) } : {}),
-                ...(cellText(row[4]) ? { distanceMetric: cellText(row[4]) } : {}),
+                ...(cellInt(row[0]) !== undefined ? { objectId: cellInt(row[0]) } : {}),
+                ...(cellInt(row[1]) !== undefined ? { indexId: cellInt(row[1]) } : {}),
+                ...(cellInt(row[9]) !== undefined ? { vectorColumnId: cellInt(row[9]) } : {}),
+                schemaName: cellText(row[2]) ?? "",
+                tableName: cellText(row[3]) ?? "",
+                indexName: cellText(row[4]) ?? "",
+                ...(cellText(row[5]) ? { vectorColumn: cellText(row[5]) } : {}),
+                ...(cellText(row[6]) ? { indexType: cellText(row[6]) } : {}),
+                ...(cellText(row[7]) ? { distanceMetric: cellText(row[7]) } : {}),
                 ...(buildParameters ? { buildParameters } : {}),
                 ...(version !== undefined ? { version } : {}),
             });
@@ -554,6 +586,7 @@ export async function probeVectorCapabilities(
             available: true,
             indexes: confirmed,
             phantomCount,
+            ...(unusableCount > 0 ? { unusableCount } : {}),
         };
     }
 
@@ -583,7 +616,10 @@ export async function probeVectorCapabilities(
             };
         } else {
             const resolved = resolveHealthColumns(dmvColumns);
-            const rowsOutcome = await runProbe(session, VECTOR_PROBE_SQL.healthDmvRows(dmvColumns));
+            const rowsOutcome = await runProbe(
+                session,
+                VECTOR_PROBE_SQL.healthDmvRows(dmvColumns, options?.table),
+            );
             const rows = rowsOutcome.failed
                 ? undefined
                 : rowsOutcome.rows.map((row) => {

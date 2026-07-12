@@ -21,6 +21,7 @@ import { Rpc } from "./resultsGridShared";
 import {
     QsVectorCompareRequest,
     QsVectorCompareResult,
+    QsVectorCancelRequest,
     VECTOR_COMPARE_MAX_ROWS,
     VECTOR_COMPARE_MIN_ROWS,
     VectorCompareBody,
@@ -34,6 +35,7 @@ import {
     VecPropRow,
     VecSectionLabel,
 } from "./vectorViewsShared";
+import type { QsVectorCompareViewState } from "../../../sharedInterfaces/queryStudioViewState";
 
 export interface VectorCompareViewProps {
     rpc: Rpc;
@@ -41,10 +43,14 @@ export interface VectorCompareViewProps {
     handle: string;
     /** Generation stamp — a rerun remounts/reset via this changing. */
     generation: number;
+    /** Only the visible workspace may issue or retain an active analysis. */
+    active: boolean;
     /** Row count of the bound result set (input validation hint). */
     totalRows?: number;
     /** Optional seed selection (e.g. grid multi-select) — compared on mount. */
     initialOrdinals?: readonly number[];
+    initialViewState?: QsVectorCompareViewState;
+    onViewStateChange?: (state: QsVectorCompareViewState) => void;
 }
 
 /** Integration descriptor for vectorTab.tsx (rail id + mount component). */
@@ -127,13 +133,27 @@ function BarList(props: {
 }
 
 export function VectorCompareView(props: VectorCompareViewProps): React.JSX.Element {
-    const { rpc, handle, generation, totalRows, initialOrdinals } = props;
-    const [input, setInput] = React.useState(initialOrdinals?.join(", ") ?? "");
+    const {
+        rpc,
+        handle,
+        generation,
+        active,
+        totalRows,
+        initialOrdinals,
+        initialViewState,
+        onViewStateChange,
+    } = props;
+    const [input, setInput] = React.useState(
+        initialViewState?.ordinalInput ?? initialOrdinals?.join(", ") ?? "",
+    );
     const [inputError, setInputError] = React.useState<string | undefined>();
     const [busy, setBusy] = React.useState(false);
     const [error, setError] = React.useState<string | undefined>();
     const [body, setBody] = React.useState<VectorCompareBody | undefined>();
-    const [metric, setMetric] = React.useState<PairMetric>("cosine");
+    const [metric, setMetric] = React.useState<PairMetric>(initialViewState?.metric ?? "cosine");
+    const [lastSubmittedOrdinals, setLastSubmittedOrdinals] = React.useState<
+        readonly number[] | undefined
+    >(initialViewState?.lastSubmittedOrdinals);
     const requestSerial = React.useRef(0);
 
     const run = React.useCallback(
@@ -151,14 +171,13 @@ export function VectorCompareView(props: VectorCompareViewProps): React.JSX.Elem
                 }
                 if (result.error || !result.compare) {
                     setError(result.error ?? "The comparison returned no data.");
-                    setBody(undefined);
                 } else {
                     setBody(result.compare);
+                    setLastSubmittedOrdinals([...ordinals]);
                 }
             } catch (e) {
                 if (serial === requestSerial.current) {
                     setError(e instanceof Error ? e.message : String(e));
-                    setBody(undefined);
                 }
             } finally {
                 if (serial === requestSerial.current) {
@@ -172,15 +191,37 @@ export function VectorCompareView(props: VectorCompareViewProps): React.JSX.Elem
     // Seed selection (when provided) runs once per handle/generation; a
     // mid-session change to initialOrdinals intentionally does NOT re-run —
     // the basket belongs to the user once mounted.
-    const initialRef = React.useRef(initialOrdinals);
+    const initialRef = React.useRef(initialOrdinals ?? initialViewState?.lastSubmittedOrdinals);
+    const initialRunStartedRef = React.useRef(false);
     React.useEffect(() => {
+        if (!active || initialRunStartedRef.current) {
+            return;
+        }
+        initialRunStartedRef.current = true;
         setBody(undefined);
         setError(undefined);
         const seed = initialRef.current;
         if (seed && seed.length >= VECTOR_COMPARE_MIN_ROWS) {
             void run(seed.slice(0, VECTOR_COMPARE_MAX_ROWS));
         }
-    }, [handle, generation, run]);
+    }, [active, handle, generation, run]);
+
+    React.useEffect(() => {
+        if (active || !busy) {
+            return;
+        }
+        requestSerial.current++;
+        setBusy(false);
+        void rpc.sendRequest(QsVectorCancelRequest.type, { handle }).catch(() => undefined);
+    }, [active, busy, handle, rpc]);
+
+    React.useEffect(() => {
+        onViewStateChange?.({
+            ordinalInput: input,
+            ...(lastSubmittedOrdinals ? { lastSubmittedOrdinals: [...lastSubmittedOrdinals] } : {}),
+            metric,
+        });
+    }, [input, lastSubmittedOrdinals, metric, onViewStateChange]);
 
     const submit = () => {
         const parsed = parseOrdinals(input);
@@ -203,6 +244,29 @@ export function VectorCompareView(props: VectorCompareViewProps): React.JSX.Elem
 
     const letters = (index: number) => BASKET_LETTERS[index] ?? `#${index}`;
     const matrix = body?.pairwise[metric];
+    const parsedInput = parseOrdinals(input).ordinals;
+    const inputDirty =
+        body !== undefined &&
+        (parsedInput?.join(",") ?? "") !== (lastSubmittedOrdinals?.join(",") ?? "");
+
+    const onMetricKeyDown = (event: React.KeyboardEvent, current: PairMetric) => {
+        const metrics = Object.keys(METRIC_LABELS) as PairMetric[];
+        const index = metrics.indexOf(current);
+        let next = index;
+        if (event.key === "ArrowRight" || event.key === "ArrowDown")
+            next = (index + 1) % metrics.length;
+        else if (event.key === "ArrowLeft" || event.key === "ArrowUp")
+            next = (index - 1 + metrics.length) % metrics.length;
+        else if (event.key === "Home") next = 0;
+        else if (event.key === "End") next = metrics.length - 1;
+        else return;
+        event.preventDefault();
+        const metric = metrics[next];
+        setMetric(metric);
+        event.currentTarget.parentElement
+            ?.querySelector<HTMLButtonElement>(`[data-metric="${metric}"]`)
+            ?.focus();
+    };
     const matrixMax = matrix
         ? Math.max(
               1e-12,
@@ -222,6 +286,7 @@ export function VectorCompareView(props: VectorCompareViewProps): React.JSX.Elem
                     value={input}
                     placeholder={`Result-row ordinals, e.g. 0, 4, 17 (${VECTOR_COMPARE_MIN_ROWS}–${VECTOR_COMPARE_MAX_ROWS} rows)`}
                     aria-label="Result-row ordinals to compare"
+                    disabled={busy}
                     onChange={(e) => setInput(e.currentTarget.value)}
                     onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -234,9 +299,20 @@ export function VectorCompareView(props: VectorCompareViewProps): React.JSX.Elem
                 </button>
             </div>
             {inputError ? (
-                <div className="qs-vec-error qs-vec6-inline-error">{inputError}</div>
+                <div className="qs-vec-error qs-vec6-inline-error" role="alert">
+                    {inputError}
+                </div>
             ) : null}
-            {error ? <div className="qs-vec-error qs-vec6-inline-error">{error}</div> : null}
+            {inputDirty ? (
+                <div className="qs-vec-muted" role="status">
+                    Input changed; the comparison below is the last submitted basket.
+                </div>
+            ) : null}
+            {error ? (
+                <div className="qs-vec-error qs-vec6-inline-error" role="alert">
+                    {error}
+                </div>
+            ) : null}
             {!body && !error && !busy ? (
                 <div className="qs-vec-empty qs-muted">
                     Pick 2–8 result rows by ordinal to compare their vectors — every metric is
@@ -307,7 +383,10 @@ export function VectorCompareView(props: VectorCompareViewProps): React.JSX.Elem
                                                 key={m}
                                                 role="radio"
                                                 aria-checked={metric === m}
+                                                tabIndex={metric === m ? 0 : -1}
+                                                data-metric={m}
                                                 className={metric === m ? "active" : ""}
+                                                onKeyDown={(event) => onMetricKeyDown(event, m)}
                                                 onClick={() => setMetric(m)}>
                                                 {METRIC_LABELS[m]}
                                             </button>

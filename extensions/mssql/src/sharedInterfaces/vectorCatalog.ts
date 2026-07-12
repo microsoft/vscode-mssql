@@ -108,9 +108,15 @@ export interface VectorColumnMetadataProbe {
 }
 
 export interface VectorIndexProbeRow {
+    /** Catalog identity used to correlate the current DMV snapshot. */
+    readonly objectId?: number;
+    readonly indexId?: number;
+    readonly vectorColumnId?: number;
     readonly schemaName: string;
     readonly tableName: string;
     readonly indexName: string;
+    /** Indexed vector column, resolved through sys.index_columns. */
+    readonly vectorColumn?: string;
     /** e.g. "DiskANN" — column is `vector_index_type` (never `_desc`). */
     readonly indexType?: string;
     /** e.g. "COSINE" — column is `distance_metric` (never `_desc`). */
@@ -136,6 +142,8 @@ export interface VectorIndexCatalogProbe {
      * unusable, undroppable, self-cleans). Counted honestly, never usable.
      */
     readonly phantomCount: number;
+    /** Rows present in sys.indexes but disabled or hypothetical (never usable). */
+    readonly unusableCount?: number;
     readonly error?: string;
 }
 
@@ -175,6 +183,14 @@ export interface VectorHealthDmvProbe {
  * - `unknown`: unrecognized API_FORMAT — never guessed downward.
  */
 export type VectorModelEgressClass = "externalEgress" | "hostLocal" | "inProcess" | "unknown";
+
+/** Host-owned counts of model statements actually issued, grouped by exact consented egress. */
+export interface VectorModelStatementCounts {
+    readonly externalEgress: number;
+    readonly hostLocal: number;
+    readonly inProcess: number;
+    readonly unknown: number;
+}
 
 export function classifyModelEgress(apiFormat: string | undefined): VectorModelEgressClass {
     switch ((apiFormat ?? "").trim().toLowerCase()) {

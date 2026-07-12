@@ -1,0 +1,624 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* qs-vec8: Search workspace (VEC-8; statically hoisted — lazy-chunk CSS must
+   ride the entry stylesheet, cascade discipline per BOOT Entry 17). House
+   rules: VS Code tokens only, ≤2px radii, no cards/chips/tinted headers,
+   11px uppercase section labels, mono right-aligned numerics; the pane
+   fills, inner regions scroll, the page never does. */
+
+.qs-vec8-search {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    font-size: 13px;
+}
+
+/* -- source tabs (26px underline tabs per r06) ---------------------------- */
+.qs-vec8-tabs {
+    display: flex;
+    gap: 14px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    margin-top: 6px;
+}
+.qs-vec8-tab {
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+    line-height: 25px;
+    padding: 0 2px;
+    cursor: pointer;
+}
+.qs-vec8-tab.active {
+    color: var(--vscode-foreground);
+    border-bottom-color: var(--vscode-focusBorder);
+}
+
+/* -- composer rows --------------------------------------------------------- */
+.qs-vec8-source-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 12px;
+}
+.qs-vec8-inline-label {
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    flex: none;
+}
+.qs-vec8-input {
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 2px 6px;
+    min-width: 0;
+}
+.qs-vec8-input:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+.qs-vec8-source-row .qs-vec8-input {
+    width: 88px;
+}
+.qs-vec8-expression-panel {
+    padding: 4px 0 6px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+}
+.qs-vec8-expression-panel .qs-vec8-source-row {
+    padding: 2px 0 4px;
+}
+.qs-vec8-source-row .qs-vec8-expression-input {
+    flex: 1;
+    width: auto;
+    min-width: 180px;
+}
+.qs-vec8-expression-basket {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    min-height: 20px;
+    align-items: center;
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+}
+.qs-vec8-expression-basket strong {
+    color: var(--vscode-foreground);
+    font-weight: 600;
+}
+.qs-vec8-expression-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+    color: var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+    font-size: 12px;
+}
+.qs-vec8-expression-note + [role="status"] {
+    min-height: 18px;
+    font-size: 12px;
+}
+.qs-vec8-paste {
+    flex: 1;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 4px 6px;
+    resize: vertical;
+}
+.qs-vec8-paste:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+.qs-vec8-model-panel {
+    display: grid;
+    gap: 6px;
+    padding: 4px 0 7px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+}
+.qs-vec8-model-select {
+    min-width: 220px;
+    max-width: min(480px, 55vw);
+}
+.qs-vec8-model-text-label,
+.qs-vec8-model-advanced label {
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+.qs-vec8-model-text,
+.qs-vec8-model-parameters {
+    box-sizing: border-box;
+    width: 100%;
+    resize: vertical;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    padding: 5px 7px;
+    font: inherit;
+    line-height: 17px;
+}
+.qs-vec8-model-advanced {
+    font-size: 12px;
+}
+.qs-vec8-model-advanced summary {
+    width: max-content;
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+}
+.qs-vec8-model-advanced[open] {
+    display: grid;
+    gap: 5px;
+}
+.qs-vec8-model-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.qs-vec8-generated-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    font-size: 12px;
+}
+.qs-vec8-model-actions .qs-vec-primary {
+    margin-left: auto;
+}
+
+/* -- host-minted model-call confirmation ---------------------------------- */
+.qs-vec8-model-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 16px 16px;
+    background: color-mix(in srgb, var(--vscode-widget-shadow, #000) 45%, transparent);
+}
+.qs-vec8-model-dialog {
+    width: min(560px, 100%);
+    max-height: calc(100vh - 64px);
+    overflow: auto;
+    background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+    color: var(--vscode-foreground);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 2px;
+    box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.4));
+    padding: 12px 14px;
+}
+.qs-vec8-model-dialog h2 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+.qs-vec8-model-descriptor-row {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.65fr) minmax(0, 1.35fr);
+    gap: 10px;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    font-size: 12px;
+}
+.qs-vec8-model-descriptor-row > span {
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec8-model-descriptor-row > strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 400;
+}
+.qs-vec8-model-egress,
+.qs-vec8-model-local {
+    display: flex;
+    gap: 7px;
+    margin: 9px 0 4px;
+    padding: 6px 8px;
+    border-left: 3px solid var(--vscode-editorWarning-foreground, var(--vscode-charts-yellow));
+    background: color-mix(
+        in srgb,
+        var(--vscode-editorWarning-foreground, #cca700) 12%,
+        transparent
+    );
+    font-size: 12px;
+}
+.qs-vec8-model-local {
+    border-left-color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    background: transparent;
+}
+.qs-vec8-model-cancel-note {
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+    margin-top: 5px;
+}
+.qs-vec8-model-sql {
+    max-height: 180px;
+    overflow: auto;
+    padding: 7px 8px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+}
+.qs-vec8-model-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.qs-vec8-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0 6px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+}
+.qs-vec8-stepper {
+    display: inline-flex;
+    align-items: center;
+}
+.qs-vec8-stepper button {
+    width: 22px;
+    height: 22px;
+    background: var(--vscode-button-secondaryBackground, var(--vscode-input-background));
+    color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    cursor: pointer;
+    line-height: 1;
+}
+.qs-vec8-stepper input {
+    width: 52px;
+    height: 22px;
+    text-align: right;
+    margin: 0 2px;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    font-size: 12px;
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+.qs-vec8-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.qs-vec8-check input {
+    margin: 0;
+}
+.qs-vec8-approx-reason {
+    max-width: 360px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* -- filter rows ------------------------------------------------------------ */
+.qs-vec8-filter-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) 64px minmax(160px, 1.4fr) 24px;
+    gap: 6px;
+    align-items: center;
+    padding: 2px 0;
+}
+.qs-vec8-icon-btn {
+    background: none;
+    border: none;
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 22px;
+}
+.qs-vec8-icon-btn:hover {
+    color: var(--vscode-foreground);
+}
+.qs-vec8-run-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+}
+.qs-vec8-add-filter {
+    background: none;
+    border: none;
+    color: var(--vscode-textLink-foreground);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+}
+.qs-vec8-disclosure {
+    flex: 1;
+    font-size: 12px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* -- idle teaching state ------------------------------------------------------ */
+.qs-vec8-idle {
+    padding: 32px 24px;
+    text-align: center;
+    max-width: 560px;
+    align-self: center;
+}
+.qs-vec8-idle-head {
+    font-size: 13px;
+    color: var(--vscode-foreground);
+    margin-bottom: 6px;
+}
+
+/* -- evidence block ------------------------------------------------------------ */
+.qs-vec8-evidence {
+    font-size: 12px;
+}
+.qs-vec8-evidence-row {
+    display: grid;
+    grid-template-columns: 170px 1fr auto;
+    gap: 0 10px;
+    align-items: baseline;
+    line-height: 20px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    padding: 1px 0;
+}
+.qs-vec8-evidence-label {
+    color: var(--vscode-descriptionForeground);
+}
+
+/* -- rank grid + rank flow ------------------------------------------------------ */
+.qs-vec8-rank-wrap {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    min-height: 0;
+}
+.qs-vec8-rank-scroll {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+    max-height: 420px;
+    border: 1px solid var(--vscode-editorWidget-border);
+}
+.qs-vec8-rank {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.qs-vec8-rank th {
+    position: sticky;
+    top: 0;
+    background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+    text-align: right;
+    font-weight: normal;
+    color: var(--vscode-descriptionForeground);
+    padding: 2px 8px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    line-height: 20px;
+    white-space: nowrap;
+}
+.qs-vec8-rank th.qs-vec8-th-left {
+    text-align: left;
+}
+.qs-vec8-rank td {
+    padding: 2px 8px;
+    line-height: 20px; /* 24px rows: 20 + 2·2 padding */
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 45%, transparent);
+}
+.qs-vec8-rank tr.qs-vec8-rank-spacer td {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+.qs-vec8-rank tbody tr:nth-child(even) td {
+    background: color-mix(in srgb, var(--vscode-list-hoverBackground) 35%, transparent);
+}
+.qs-vec8-rank tbody tr.active td {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+.qs-vec8-rank tbody tr:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+.qs-vec8-rank td.qs-vec8-neighbor {
+    text-align: left;
+    max-width: 380px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.qs-vec8-rank td.qs-vec8-status {
+    text-align: left;
+}
+.qs-vec8-rank td[data-delta="worse"] {
+    color: var(--vscode-charts-orange);
+}
+.qs-vec8-rank td[data-delta="better"] {
+    color: var(--vscode-charts-green);
+}
+.qs-vec8-status[data-status="matched"] {
+    color: var(--vscode-charts-green);
+}
+.qs-vec8-status[data-status="exactOnly"] {
+    color: var(--vscode-charts-orange);
+}
+.qs-vec8-status[data-status="approxOnly"] {
+    color: var(--vscode-charts-blue);
+}
+.qs-vec8-flow {
+    flex: none;
+    width: 150px;
+    padding: 0 4px;
+}
+.qs-vec8-flow-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-family: var(--vscode-editor-font-family);
+    color: var(--vscode-descriptionForeground);
+    text-transform: uppercase;
+    letter-spacing: 0;
+    padding: 2px 0 4px;
+}
+
+.qs-vec8-result-detail {
+    margin-top: 8px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+}
+
+/* -- generated T-SQL drawer ------------------------------------------------------ */
+.qs-vec8-drawer {
+    margin-top: 12px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+}
+.qs-vec8-drawer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 24px;
+    background: none;
+    border: none;
+    color: var(--vscode-foreground);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+}
+.qs-vec8-chevron {
+    width: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec8-drawer-title {
+    letter-spacing: 0;
+    color: var(--vscode-descriptionForeground);
+}
+.qs-vec8-executed {
+    color: var(--vscode-charts-green);
+}
+.qs-vec8-sql-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 2px 0 4px 20px;
+}
+.qs-vec8-sql-tabs {
+    display: flex;
+    gap: 12px;
+}
+.qs-vec8-sql-tabs button {
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 2px 2px;
+}
+.qs-vec8-sql-tabs button.active {
+    color: var(--vscode-foreground);
+    border-bottom-color: var(--vscode-focusBorder);
+}
+.qs-vec8-sql-actions {
+    display: inline-flex;
+    gap: 4px;
+    margin-left: auto;
+}
+.qs-vec8-sql-actions button {
+    width: 24px;
+    height: 22px;
+    padding: 0;
+}
+.qs-vec8-sql {
+    margin: 0 0 8px 20px;
+    padding: 6px 8px;
+    max-height: 170px;
+    overflow: auto;
+    font-size: 11px;
+    line-height: 15px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    white-space: pre;
+}
+
+.qs-vec8-search button:focus-visible,
+.qs-vec8-search select:focus-visible,
+.qs-vec8-search input:focus-visible,
+.qs-vec8-search textarea:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 1px;
+}
+
+@media (max-width: 639px) {
+    .qs-vec8-source-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .qs-vec8-source-row .qs-vec8-input {
+        width: 100%;
+    }
+
+    .qs-vec8-filter-row {
+        grid-template-columns: minmax(0, 1fr) 72px 24px;
+    }
+
+    .qs-vec8-filter-row > :nth-child(3) {
+        grid-column: 1 / 3;
+    }
+
+    .qs-vec8-run-row {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .qs-vec8-disclosure {
+        flex-basis: 100%;
+        white-space: normal;
+    }
+
+    .qs-vec8-evidence-row {
+        grid-template-columns: minmax(110px, 0.6fr) minmax(0, 1.4fr);
+    }
+
+    .qs-vec8-evidence-row > :last-child {
+        grid-column: 2;
+    }
+
+    .qs-vec8-flow {
+        display: none;
+    }
+
+    .qs-vec8-sql {
+        margin-left: 0;
+    }
+}
+
+@media (forced-colors: active) {
+    .qs-vec8-tab.active,
+    .qs-vec8-rank-scroll,
+    .qs-vec8-sql {
+        border-color: CanvasText;
+    }
+}

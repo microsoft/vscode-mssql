@@ -25,20 +25,25 @@ import { formatCount, formatStat, VecSectionLabel } from "./vectorViewsShared";
 import {
     QsVectorChunkPreviewRequest,
     QsVectorChunkPreviewResult,
+    QsVectorPipelineCancelRequest,
     QsVectorPipelineStateRequest,
     QsVectorPipelineStateResult,
     QsVectorReembedExecuteRequest,
     QsVectorReembedExecuteResult,
     QsVectorReembedPrepareRequest,
     QsVectorReembedPrepareResult,
+    QsVectorReembedResultRequest,
     VECTOR_CHUNK_OVERLAP_MAX,
     VECTOR_CHUNK_OVERLAP_MIN,
     VECTOR_CHUNK_OVERLAP_STEP,
     VECTOR_CHUNK_SIZE_MAX,
     VECTOR_CHUNK_SIZE_MIN,
     VECTOR_CHUNK_SIZE_STEP,
+    VECTOR_SOURCE_PREVIEW_CHARS,
     VectorPipelineModel,
 } from "../../../sharedInterfaces/vectorPipeline";
+import type { VectorModelStatementCounts } from "../../../sharedInterfaces/vectorCatalog";
+import type { QsVectorPipelineViewState } from "../../../sharedInterfaces/queryStudioViewState";
 
 export interface VectorPipelineColumnFacts {
     readonly columnName: string;
@@ -57,12 +62,16 @@ export interface VectorPipelineViewProps {
     handle: string;
     /** Generation stamp — a rerun resets the workspace via this changing. */
     generation: number;
+    /** Only the visible workspace may hold consent or issue model/catalog work. */
+    active: boolean;
     /** The session's vector column (VectorColumnChoice-like facts). */
     vectorColumn: VectorPipelineColumnFacts;
     /** String-typed columns of the result — source text candidates. */
     stringColumns: readonly VectorPipelineSourceColumn[];
     /** Row count of the bound result set (ordinal input validation hint). */
     totalRows?: number;
+    initialViewState?: QsVectorPipelineViewState;
+    onViewStateChange?: (state: QsVectorPipelineViewState) => void;
 }
 
 /** Integration descriptor for vectorTab.tsx (rail id + mount component). */
@@ -78,6 +87,37 @@ const EGRESS_SHORT: Record<VectorPipelineModel["egress"], string> = {
     inProcess: "in-process",
     unknown: "unclassified",
 };
+
+const EMPTY_MODEL_CALL_COUNTS: VectorModelStatementCounts = {
+    externalEgress: 0,
+    hostLocal: 0,
+    inProcess: 0,
+    unknown: 0,
+};
+
+function modelCallClaim(counts: VectorModelStatementCounts): string {
+    const parts = [
+        counts.externalEgress > 0 ? `external egress ${formatCount(counts.externalEgress)}` : "",
+        counts.hostLocal > 0 ? `host-local ${formatCount(counts.hostLocal)}` : "",
+        counts.inProcess > 0 ? `in-process ${formatCount(counts.inProcess)}` : "",
+        counts.unknown > 0 ? `unclassified ${formatCount(counts.unknown)}` : "",
+    ].filter(Boolean);
+    return parts.length === 0
+        ? "Server-side model statements from this panel: none"
+        : `Server-side model statements from this panel: ${parts.join(" · ")}`;
+}
+
+function mergeModelStatementCounts(
+    current: VectorModelStatementCounts,
+    incoming: VectorModelStatementCounts,
+): VectorModelStatementCounts {
+    return {
+        externalEgress: Math.max(current.externalEgress, incoming.externalEgress),
+        hostLocal: Math.max(current.hostLocal, incoming.hostLocal),
+        inProcess: Math.max(current.inProcess, incoming.inProcess),
+        unknown: Math.max(current.unknown, incoming.unknown),
+    };
+}
 
 function parseRowOrdinal(text: string, totalRows?: number): { ordinal?: number; error?: string } {
     const cleaned = text.trim().replace(/^#/, "");
@@ -104,54 +144,154 @@ function PropRow(props: { label: string; children: React.ReactNode }): React.JSX
 }
 
 export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.Element {
-    const { rpc, handle, generation, vectorColumn, stringColumns, totalRows } = props;
+    const {
+        rpc,
+        handle,
+        generation,
+        active,
+        vectorColumn,
+        stringColumns,
+        totalRows,
+        initialViewState,
+        onViewStateChange,
+    } = props;
     const [state, setState] = React.useState<QsVectorPipelineStateResult | undefined>();
     const [stateError, setStateError] = React.useState<string | undefined>();
     const [modelIndex, setModelIndex] = React.useState(0);
-    const [sourceIndex, setSourceIndex] = React.useState(0);
-    const [rowText, setRowText] = React.useState("0");
+    const [sourceIndex, setSourceIndex] = React.useState(() => {
+        const index = stringColumns.findIndex(
+            (column) => column.ordinal === initialViewState?.sourceColumnOrdinal,
+        );
+        return Math.max(0, index);
+    });
+    const [rowText, setRowText] = React.useState(String(initialViewState?.rowOrdinal ?? 0));
     const [panelError, setPanelError] = React.useState<string | undefined>();
     const [prepare, setPrepare] = React.useState<QsVectorReembedPrepareResult | undefined>();
     const [dialogOpen, setDialogOpen] = React.useState(false);
-    const [showSql, setShowSql] = React.useState(false);
+    const [showSql, setShowSql] = React.useState(initialViewState?.showSql ?? false);
     const [busy, setBusy] = React.useState(false);
+    const [modelExecutionPending, setModelExecutionPending] = React.useState(false);
     const [result, setResult] = React.useState<QsVectorReembedExecuteResult | undefined>();
-    const [callCount, setCallCount] = React.useState(0);
-    const [chunkSize, setChunkSize] = React.useState(800);
-    const [overlapPct, setOverlapPct] = React.useState(15);
+    const [lastRunId, setLastRunId] = React.useState(initialViewState?.lastRunId);
+    const [resultContext, setResultContext] = React.useState<{
+        modelId: string;
+        row: number;
+        sourceColumnOrdinal: number;
+    }>();
+    const [modelCallCounts, setModelCallCounts] =
+        React.useState<VectorModelStatementCounts>(EMPTY_MODEL_CALL_COUNTS);
+    const [chunkSize, setChunkSize] = React.useState(initialViewState?.chunkSize ?? 800);
+    const [overlapPct, setOverlapPct] = React.useState(initialViewState?.overlapPct ?? 15);
     const [chunks, setChunks] = React.useState<QsVectorChunkPreviewResult | undefined>();
     const [chunkBusy, setChunkBusy] = React.useState(false);
+    const initialModelBindingIdRef = React.useRef(initialViewState?.modelName);
+    const stateRequestSerialRef = React.useRef(0);
+    const modelRequestSerialRef = React.useRef(0);
+    const chunkRequestSerialRef = React.useRef(0);
+    const restoredRunIdRef = React.useRef<string | undefined>(undefined);
+    const reembedComposerInitializedRef = React.useRef(false);
+    const chunkComposerInitializedRef = React.useRef(false);
+    const reembedButtonRef = React.useRef<HTMLButtonElement | null>(null);
+    const dialogRef = React.useRef<HTMLDivElement | null>(null);
+    const confirmButtonRef = React.useRef<HTMLButtonElement | null>(null);
+    const closeDialog = React.useCallback(() => {
+        modelRequestSerialRef.current++;
+        setPrepare(undefined);
+        setDialogOpen(false);
+        setBusy(false);
+        void rpc.sendRequest(QsVectorPipelineCancelRequest.type, { handle }).catch(() => undefined);
+        requestAnimationFrame(() => reembedButtonRef.current?.focus());
+    }, [handle, rpc]);
+
+    React.useEffect(() => {
+        if (!dialogOpen) {
+            return;
+        }
+        confirmButtonRef.current?.focus();
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeDialog();
+                return;
+            }
+            if (event.key !== "Tab") {
+                return;
+            }
+            const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            );
+            if (!focusable || focusable.length === 0) {
+                event.preventDefault();
+                return;
+            }
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [closeDialog, dialogOpen]);
 
     // Pipeline state per (handle, generation): a rerun resets everything.
     React.useEffect(() => {
-        let cancelled = false;
+        if (!active) {
+            stateRequestSerialRef.current++;
+            modelRequestSerialRef.current++;
+            chunkRequestSerialRef.current++;
+            setPrepare(undefined);
+            setDialogOpen(false);
+            setBusy(false);
+            setModelExecutionPending(false);
+            setChunkBusy(false);
+            void rpc
+                .sendRequest(QsVectorPipelineCancelRequest.type, { handle })
+                .catch(() => undefined);
+            return;
+        }
+        const serial = ++stateRequestSerialRef.current;
         setState(undefined);
         setStateError(undefined);
         setPanelError(undefined);
         setPrepare(undefined);
         setDialogOpen(false);
-        setResult(undefined);
-        setChunks(undefined);
-        setCallCount(0);
         void (async () => {
             try {
                 const loaded = await rpc.sendRequest<
                     { refresh?: boolean },
                     QsVectorPipelineStateResult
                 >(QsVectorPipelineStateRequest.type, {});
-                if (!cancelled) {
+                setModelCallCounts((current) =>
+                    mergeModelStatementCounts(current, loaded.modelStatementCounts),
+                );
+                if (serial === stateRequestSerialRef.current) {
                     setState(loaded);
+                    const restoredModel = loaded.models?.findIndex(
+                        (candidate) => candidate.id === initialModelBindingIdRef.current,
+                    );
+                    if (restoredModel !== undefined && restoredModel >= 0) {
+                        setModelIndex(restoredModel);
+                    }
                 }
             } catch (e) {
-                if (!cancelled) {
+                if (serial === stateRequestSerialRef.current) {
                     setStateError(e instanceof Error ? e.message : String(e));
                 }
             }
         })();
         return () => {
-            cancelled = true;
+            stateRequestSerialRef.current++;
+            modelRequestSerialRef.current++;
+            void rpc
+                .sendRequest(QsVectorPipelineCancelRequest.type, { handle })
+                .catch(() => undefined);
         };
-    }, [rpc, handle, generation]);
+    }, [active, rpc, handle, generation]);
 
     const models = state?.models ?? [];
     const model = models[Math.min(modelIndex, Math.max(0, models.length - 1))];
@@ -159,13 +299,102 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
         stringColumns[Math.min(sourceIndex, Math.max(0, stringColumns.length - 1))];
     const parsedRow = parseRowOrdinal(rowText, totalRows);
 
+    React.useEffect(() => {
+        if (!reembedComposerInitializedRef.current) {
+            reembedComposerInitializedRef.current = true;
+            return;
+        }
+        modelRequestSerialRef.current++;
+        setPrepare(undefined);
+        setDialogOpen(false);
+        setPanelError(undefined);
+    }, [model?.id, parsedRow.ordinal, rowText, sourceColumn?.ordinal]);
+
+    React.useEffect(() => {
+        if (!chunkComposerInitializedRef.current) {
+            chunkComposerInitializedRef.current = true;
+            return;
+        }
+        chunkRequestSerialRef.current++;
+        setChunks(undefined);
+    }, [chunkSize, overlapPct, parsedRow.ordinal, rowText, sourceColumn?.ordinal]);
+
+    React.useEffect(
+        () => () => {
+            modelRequestSerialRef.current++;
+            chunkRequestSerialRef.current++;
+        },
+        [],
+    );
+
+    React.useEffect(() => {
+        onViewStateChange?.({
+            ...(model?.id ? { modelName: model.id } : {}),
+            ...(sourceColumn ? { sourceColumnOrdinal: sourceColumn.ordinal } : {}),
+            rowOrdinal: parsedRow.ordinal ?? 0,
+            showSql,
+            chunkSize,
+            overlapPct,
+            ...(lastRunId ? { lastRunId } : {}),
+        });
+    }, [
+        chunkSize,
+        model?.id,
+        lastRunId,
+        onViewStateChange,
+        overlapPct,
+        parsedRow.ordinal,
+        showSql,
+        sourceColumn,
+    ]);
+
+    React.useEffect(() => {
+        if (!active || !lastRunId || result || restoredRunIdRef.current === lastRunId) {
+            return;
+        }
+        restoredRunIdRef.current = lastRunId;
+        const serial = ++modelRequestSerialRef.current;
+        void rpc
+            .sendRequest<
+                { readonly handle: string; readonly runId: string },
+                QsVectorReembedExecuteResult
+            >(QsVectorReembedResultRequest.type, { handle, runId: lastRunId })
+            .then((restored) => {
+                if (restored.modelStatementCounts) {
+                    setModelCallCounts((current) =>
+                        mergeModelStatementCounts(current, restored.modelStatementCounts!),
+                    );
+                }
+                if (serial !== modelRequestSerialRef.current) return;
+                if (restored.error || !restored.comparison) {
+                    setPanelError(
+                        restored.error ?? "The completed Pipeline comparison is unavailable.",
+                    );
+                    return;
+                }
+                setResult(restored);
+                if (restored.context) {
+                    setResultContext({
+                        modelId: restored.context.modelId,
+                        row: restored.context.rowOrdinal,
+                        sourceColumnOrdinal: restored.context.sourceColumnOrdinal,
+                    });
+                }
+            })
+            .catch((cause) => {
+                if (serial === modelRequestSerialRef.current) {
+                    setPanelError(cause instanceof Error ? cause.message : String(cause));
+                }
+            });
+    }, [active, handle, lastRunId, result, rpc]);
+
     const onPrepare = async (): Promise<void> => {
         if (!model || !sourceColumn || parsedRow.ordinal === undefined) {
             setPanelError(parsedRow.error ?? "Pick a model and a source text column first.");
             return;
         }
         setPanelError(undefined);
-        setResult(undefined);
+        const serial = ++modelRequestSerialRef.current;
         setBusy(true);
         try {
             const prepared = await rpc.sendRequest<
@@ -173,15 +402,18 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                     handle: string;
                     ordinal: number;
                     sourceColumnOrdinal: number;
-                    modelName: string;
+                    modelId: string;
                 },
                 QsVectorReembedPrepareResult
             >(QsVectorReembedPrepareRequest.type, {
                 handle,
                 ordinal: parsedRow.ordinal,
                 sourceColumnOrdinal: sourceColumn.ordinal,
-                modelName: model.name,
+                modelId: model.id,
             });
+            if (serial !== modelRequestSerialRef.current) {
+                return;
+            }
             if (prepared.error || !prepared.descriptor || !prepared.confirmationToken) {
                 setPanelError(prepared.error ?? "The host refused the confirmation.");
                 setPrepare(undefined);
@@ -191,9 +423,13 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
             setShowSql(false);
             setDialogOpen(true);
         } catch (e) {
-            setPanelError(e instanceof Error ? e.message : String(e));
+            if (serial === modelRequestSerialRef.current) {
+                setPanelError(e instanceof Error ? e.message : String(e));
+            }
         } finally {
-            setBusy(false);
+            if (serial === modelRequestSerialRef.current) {
+                setBusy(false);
+            }
         }
     };
 
@@ -201,23 +437,50 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
         if (!prepare?.confirmationToken) {
             return;
         }
+        const serial = ++modelRequestSerialRef.current;
         setBusy(true);
+        setModelExecutionPending(true);
         setDialogOpen(false);
         try {
-            const executed = await rpc.sendRequest<{ token: string }, QsVectorReembedExecuteResult>(
-                QsVectorReembedExecuteRequest.type,
-                { token: prepare.confirmationToken },
-            );
-            setResult(executed);
-            if (executed.elapsedMs !== undefined) {
-                // A statement reached the server (success or failure) — the
-                // layered network claim must count it either way.
-                setCallCount((count) => count + 1);
+            const executed = await rpc.sendRequest<
+                { handle: string; token: string },
+                QsVectorReembedExecuteResult
+            >(QsVectorReembedExecuteRequest.type, { handle, token: prepare.confirmationToken });
+            if (executed.modelStatementCounts) {
+                setModelCallCounts((current) =>
+                    mergeModelStatementCounts(current, executed.modelStatementCounts!),
+                );
+            }
+            if (serial !== modelRequestSerialRef.current) {
+                return;
+            }
+            if (executed.error) {
+                setPanelError(executed.error);
+            } else {
+                setResult(executed);
+                if (executed.runId) {
+                    setLastRunId(executed.runId);
+                    restoredRunIdRef.current = executed.runId;
+                }
+                if (executed.context) {
+                    setResultContext({
+                        modelId: executed.context.modelId,
+                        row: executed.context.rowOrdinal,
+                        sourceColumnOrdinal: executed.context.sourceColumnOrdinal,
+                    });
+                }
             }
         } catch (e) {
-            setResult({ error: e instanceof Error ? e.message : String(e) });
+            if (serial === modelRequestSerialRef.current) {
+                setPanelError(e instanceof Error ? e.message : String(e));
+            }
         } finally {
-            setBusy(false);
+            if (serial === modelRequestSerialRef.current) {
+                setBusy(false);
+                setModelExecutionPending(false);
+                setPrepare(undefined);
+                requestAnimationFrame(() => reembedButtonRef.current?.focus());
+            }
         }
     };
 
@@ -226,6 +489,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
             setPanelError(parsedRow.error ?? "Pick a source text column and a row first.");
             return;
         }
+        const serial = ++chunkRequestSerialRef.current;
         setChunkBusy(true);
         try {
             const preview = await rpc.sendRequest<
@@ -244,40 +508,57 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                 chunkSize,
                 overlapPct,
             });
-            setChunks(preview);
+            if (serial === chunkRequestSerialRef.current) {
+                if (preview.error) {
+                    setPanelError(preview.error);
+                } else {
+                    setChunks(preview);
+                }
+            }
         } catch (e) {
-            setChunks({ error: e instanceof Error ? e.message : String(e) });
+            if (serial === chunkRequestSerialRef.current) {
+                setPanelError(e instanceof Error ? e.message : String(e));
+            }
         } finally {
-            setChunkBusy(false);
+            if (serial === chunkRequestSerialRef.current) {
+                setChunkBusy(false);
+            }
         }
     };
 
     const step = (value: number, delta: number, min: number, max: number): number =>
         Math.min(max, Math.max(min, value + delta));
+    const controlsLocked = busy || chunkBusy || dialogOpen;
 
     if (stateError) {
         return (
             <div className="qs-vecp-root">
-                <div className="qs-vec-error">{stateError}</div>
+                <div className="qs-vec-error" role="alert">
+                    {stateError}
+                </div>
             </div>
         );
     }
 
     const descriptor = prepare?.descriptor;
     const comparison = result?.comparison;
-    const serverSideClaim =
-        callCount === 0
-            ? "Server-side model calls: none from this panel"
-            : model?.egress === "externalEgress"
-              ? `Server-side external calls: ${formatCount(callCount)}`
-              : `Server-side model calls: ${formatCount(callCount)}`;
+    const resultMatchesComposer =
+        resultContext !== undefined &&
+        resultContext.modelId === model?.id &&
+        resultContext.row === parsedRow.ordinal &&
+        resultContext.sourceColumnOrdinal === sourceColumn?.ordinal;
+    const serverSideClaim = modelExecutionPending
+        ? "Server-side model request in progress; statement count updates if SQL is issued"
+        : modelCallClaim(modelCallCounts);
 
     return (
         <div className="qs-vecp-root">
             <div className="qs-vecp-columns">
-                {/* --- PROVENANCE ------------------------------------------ */}
+                {/* --- EXPERIMENT INPUTS ----------------------------------- */}
                 <section className="qs-vecp-provenance">
-                    <VecSectionLabel right="declared · stored locally">Provenance</VecSectionLabel>
+                    <VecSectionLabel right="current panel selection">
+                        Experiment inputs
+                    </VecSectionLabel>
                     <PropRow label="Vector column">{vectorColumn.columnName}</PropRow>
                     <div className="qs-vec6-prop-row">
                         <span className="qs-vec6-prop-label">Source text column</span>
@@ -287,6 +568,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             <select
                                 className="qs-vecp-select"
                                 value={sourceIndex}
+                                disabled={controlsLocked}
                                 onChange={(e) => setSourceIndex(Number(e.currentTarget.value))}
                                 aria-label="Source text column">
                                 {stringColumns.map((column, i) => (
@@ -309,10 +591,11 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             <select
                                 className="qs-vecp-select"
                                 value={modelIndex}
+                                disabled={controlsLocked}
                                 onChange={(e) => setModelIndex(Number(e.currentTarget.value))}
                                 aria-label="External model">
                                 {models.map((candidate, i) => (
-                                    <option key={candidate.name} value={i}>
+                                    <option key={candidate.id} value={i}>
                                         {candidate.name}
                                         {candidate.owner ? ` · owner ${candidate.owner}` : ""}
                                     </option>
@@ -333,8 +616,10 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             ? formatCount(vectorColumn.dimensions)
                             : "unknown"}
                     </PropRow>
-                    <PropRow label="Expected metric">cosine</PropRow>
-                    <PropRow label="Expected normalization">unit norm</PropRow>
+                    <PropRow label="Comparison outputs">
+                        cosine distance · Euclidean · negative dot · norms
+                    </PropRow>
+                    <PropRow label="Normalization">not assumed</PropRow>
                 </section>
 
                 {/* --- RE-EMBED SELECTED ROW -------------------------------- */}
@@ -350,31 +635,44 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             id="qs-vecp-row-input"
                             className="qs-vecp-input qs-vec-num"
                             value={rowText}
+                            disabled={controlsLocked}
                             onChange={(e) => setRowText(e.currentTarget.value)}
                             spellCheck={false}
                             aria-label="Result-row ordinal"
                         />
                         <button
+                            ref={reembedButtonRef}
                             className="qs-vecp-button"
                             disabled={
-                                busy || !model || !sourceColumn || parsedRow.ordinal === undefined
+                                busy ||
+                                Boolean(state?.error) ||
+                                !model ||
+                                !sourceColumn ||
+                                parsedRow.ordinal === undefined
                             }
                             onClick={() => void onPrepare()}>
                             Re-embed &amp; compare…
                         </button>
                     </div>
-                    {panelError ? <div className="qs-vec-error">{panelError}</div> : null}
+                    {panelError ? (
+                        <div className="qs-vec-error" role="alert">
+                            {panelError}
+                        </div>
+                    ) : null}
                     {parsedRow.error && rowText.trim().length > 0 ? (
                         <div className="qs-vec-muted">{parsedRow.error}</div>
                     ) : null}
                     {prepare?.sourcePreview ? (
                         <div className="qs-vecp-source-preview qs-vec-num">
+                            {prepare.sourcePreviewTruncated
+                                ? `Preview (first ${formatCount(VECTOR_SOURCE_PREVIEW_CHARS)} of ${formatCount(prepare.descriptor?.textChars ?? 0)} characters): `
+                                : "Full source: "}
                             “{prepare.sourcePreview}”
                         </div>
                     ) : null}
                     {result ? (
                         result.error ? (
-                            <div className="qs-vec-error">
+                            <div className="qs-vec-error" role="alert">
                                 {result.error}
                                 {result.elapsedMs !== undefined
                                     ? ` (${formatCount(result.elapsedMs)} ms)`
@@ -382,6 +680,11 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             </div>
                         ) : comparison ? (
                             <div className="qs-vecp-result">
+                                {!resultMatchesComposer ? (
+                                    <div className="qs-vec-warning">
+                                        Last completed output · composer has changed
+                                    </div>
+                                ) : null}
                                 <div className="qs-vecp-executed">
                                     Executed · one confirmed model call ·{" "}
                                     {result.elapsedMs !== undefined
@@ -424,6 +727,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                     <span className="qs-vecp-stepper">
                         <button
                             aria-label="Decrease chunk size"
+                            disabled={controlsLocked}
                             onClick={() =>
                                 setChunkSize((v) =>
                                     step(
@@ -439,6 +743,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                         <span className="qs-vec-num">{formatCount(chunkSize)}</span>
                         <button
                             aria-label="Increase chunk size"
+                            disabled={controlsLocked}
                             onClick={() =>
                                 setChunkSize((v) =>
                                     step(
@@ -456,6 +761,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                     <span className="qs-vecp-stepper">
                         <button
                             aria-label="Decrease overlap"
+                            disabled={controlsLocked}
                             onClick={() =>
                                 setOverlapPct((v) =>
                                     step(
@@ -471,6 +777,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                         <span className="qs-vec-num">{overlapPct}</span>
                         <button
                             aria-label="Increase overlap"
+                            disabled={controlsLocked}
                             onClick={() =>
                                 setOverlapPct((v) =>
                                     step(
@@ -486,17 +793,25 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                     </span>
                     <button
                         className="qs-vecp-button"
-                        disabled={chunkBusy || !sourceColumn || parsedRow.ordinal === undefined}
+                        disabled={
+                            controlsLocked || !sourceColumn || parsedRow.ordinal === undefined
+                        }
                         onClick={() => void onChunkPreview()}>
                         Preview chunks
                     </button>
                     <span className="qs-vecp-chunk-spacer" />
                     <button
                         className="qs-vecp-button"
-                        disabled
+                        aria-disabled="true"
+                        aria-describedby="qs-vecp-batch-unavailable"
+                        onClick={(event) => event.preventDefault()}
                         title="Batch chunk embedding ships in a later build — every chunk is one confirmed model call.">
                         Generate embeddings for chunks…
                     </button>
+                    <span id="qs-vecp-batch-unavailable" className="qs-vec6-sr-live">
+                        Batch chunk embedding is unavailable in this build. Every future chunk call
+                        will require confirmation.
+                    </span>
                 </div>
                 {state && !state.chunkingAvailable ? (
                     <div className="qs-vec-muted">
@@ -504,7 +819,11 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                         preview below is local character math either way.
                     </div>
                 ) : null}
-                {chunks?.error ? <div className="qs-vec-error">{chunks.error}</div> : null}
+                {chunks?.error ? (
+                    <div className="qs-vec-error" role="alert">
+                        {chunks.error}
+                    </div>
+                ) : null}
                 {chunks?.chunks && chunks.chunks.length > 0 ? (
                     <>
                         <div className="qs-vecp-ribbon" role="list" aria-label="Chunk preview">
@@ -545,7 +864,9 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                 <span>Webview network: none</span>
                 <span className="qs-vec-muted">
                     {serverSideClaim}
-                    {model && state ? ` · ${state.networkClaim.serverSide[model.egress]}` : ""}
+                    {model && state
+                        ? ` · Current selection: ${state.networkClaim.serverSide[model.egress]}`
+                        : ""}
                 </span>
             </div>
 
@@ -553,6 +874,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
             {dialogOpen && descriptor && prepare ? (
                 <div className="qs-vecp-scrim" role="presentation">
                     <div
+                        ref={dialogRef}
                         className="qs-vecp-dialog"
                         role="dialog"
                         aria-modal="true"
@@ -562,8 +884,8 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             <button
                                 className="qs-vecp-dialog-close"
                                 aria-label="Cancel"
-                                onClick={() => setDialogOpen(false)}>
-                                ✕
+                                onClick={closeDialog}>
+                                <span className="codicon codicon-close" aria-hidden="true" />
                             </button>
                         </div>
                         <div className="qs-vecp-dialog-body">
@@ -574,6 +896,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             <PropRow label="Model type">{descriptor.modelType}</PropRow>
                             <PropRow label="API format">{descriptor.apiFormat}</PropRow>
                             <PropRow label="Endpoint host">{descriptor.endpointHost}</PropRow>
+                            <PropRow label="Model modified">{descriptor.modelModifyTime}</PropRow>
                             <PropRow label="Source">{descriptor.source}</PropRow>
                             <PropRow label="Rows / calls">
                                 {formatCount(descriptor.rowsCalls)}
@@ -596,7 +919,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             ) : null}
                         </div>
                         <div className="qs-vecp-dialog-buttons">
-                            <button className="qs-vecp-button" onClick={() => setDialogOpen(false)}>
+                            <button className="qs-vecp-button" onClick={closeDialog}>
                                 Cancel
                             </button>
                             <button
@@ -605,6 +928,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                                 View generated T-SQL
                             </button>
                             <button
+                                ref={confirmButtonRef}
                                 className="qs-vecp-button qs-vecp-button-primary"
                                 disabled={busy}
                                 onClick={() => void onExecute()}>

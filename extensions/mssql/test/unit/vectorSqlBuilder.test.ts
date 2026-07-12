@@ -65,7 +65,12 @@ function exactRequest(overrides?: Partial<VectorSearchSqlRequest>): VectorSearch
 }
 
 function approxRequest(overrides?: Partial<VectorApproxSearchRequest>): VectorApproxSearchRequest {
-    return { ...exactRequest(), probeFacts: TVF_ACCEPTED, ...overrides };
+    return {
+        ...exactRequest(),
+        probeFacts: TVF_ACCEPTED,
+        annFilterCapability: "verifiedPostFilter",
+        ...overrides,
+    };
 }
 
 function approxOrFail(overrides?: Partial<VectorApproxSearchRequest>): VectorApproxSearchSql {
@@ -372,7 +377,7 @@ suite("vectorSqlBuilder approximate search (TVF path, A1 semantics)", () => {
         expect(built.sql).to.contain("METRIC = 'cosine',");
         expect(built.sql).to.contain("FROM VECTOR_SEARCH(");
         expect(built.sql).to.not.contain("WHERE");
-        expect(built.filterSemantics).to.equal("iterative");
+        expect(built.filterSemantics).to.equal("noFilter");
         expect(built.disclosedMultiplier).to.equal(undefined);
         expect(built.disclosure).to.equal(undefined);
         expect(built.topN).to.equal(10);
@@ -393,6 +398,63 @@ suite("vectorSqlBuilder approximate search (TVF path, A1 semantics)", () => {
         expect(built.sql).to.contain("TOP_N oversampled ×3");
         // The outer TOP (@k) trims the oversample back to K.
         expect(built.sql).to.contain("SELECT TOP (@k)");
+    });
+
+    test("verified current-format filtering stays at K and discloses iterative traversal", () => {
+        const built = approxOrFail({
+            k: 7,
+            annFilterCapability: "verifiedIterative",
+            predicates: [{ column: "category", op: "eq", value: "news" }],
+        });
+        expect(built.topN).to.equal(7);
+        expect(built.sql).to.contain("TOP_N = 7");
+        expect(built.sql).to.contain("TOP_N = K = 7");
+        expect(built.filterSemantics).to.equal("iterative");
+        expect(built.disclosedMultiplier).to.equal(undefined);
+        expect(built.disclosure).to.equal("Iterative filtering (during traversal)");
+    });
+
+    test("unknown filter behavior is conservatively oversampled and never called iterative", () => {
+        const built = approxOrFail({
+            k: 7,
+            oversampleMultiplier: 3,
+            annFilterCapability: "unknown",
+            predicates: [{ column: "category", op: "eq", value: "news" }],
+        });
+        expect(built.topN).to.equal(21);
+        expect(built.filterSemantics).to.equal("unknownConservativeOversample");
+        expect(built.disclosedMultiplier).to.equal(3);
+        expect(built.disclosure).to.equal(
+            "Unverified filter behavior; conservative post-filter TOP_N ×3",
+        );
+        expect(built.sql).to.contain("unverified for the bound index");
+        expect(built.sql).to.not.contain("iterative filtering during traversal");
+    });
+
+    test("host filter capability changes only ANN retrieval semantics, never exact filters", () => {
+        const capabilities = ["verifiedIterative", "verifiedPostFilter", "unknown"] as const;
+        const comparisons = capabilities.map((annFilterCapability) =>
+            buildComparison(
+                approxRequest({
+                    annFilterCapability,
+                    predicates: [{ column: "category", op: "eq", value: "news" }],
+                    exclusion: {
+                        excludeSourceRow: true,
+                        excludeExactVectorDuplicates: false,
+                        keyPredicate: { sourceRowKey: 17 },
+                    },
+                }),
+            ),
+        );
+        expect(new Set(comparisons.map((comparison) => comparison.exact.sql)).size).to.equal(1);
+        for (const comparison of comparisons) {
+            expect(comparison.exact.sql).to.contain("t.[category] = @p0");
+            expect(comparison.exact.sql).to.contain("t.[chunk_id] <> @xsrc");
+            expect("unavailable" in comparison.approx).to.equal(false);
+            const approx = comparison.approx as { sql: string };
+            expect(approx.sql).to.contain("t.[category] = @p0");
+            expect(approx.sql).to.contain("t.[chunk_id] <> @xsrc");
+        }
     });
 
     test("exclusions alone are outer filters on the TVF path and trigger the oversample too", () => {
@@ -763,6 +825,7 @@ suite("vectorSqlBuilder live smoke (VectorLab, gated)", function () {
             queryVectorJson,
             dims,
             probeFacts: TVF_ACCEPTED,
+            annFilterCapability: "unknown",
         });
         expect("unavailable" in comparison.approx).to.equal(false);
         const approxSql = (comparison.approx as { sql: string }).sql;

@@ -30,6 +30,7 @@ import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
     QsVectorFindingDetailRequest,
     QsVectorFindingDetailResult,
+    QsVectorCancelRequest,
     QsVectorCloseRequest,
     QsVectorOpenRequest,
     QsVectorOpenResult,
@@ -42,8 +43,14 @@ import {
 } from "../../../sharedInterfaces/vectorWorkbench";
 import type {
     QsVectorPanelViewState,
+    QsVectorSearchViewState,
+    QsVectorCompareViewState,
+    QsVectorProjectionViewState,
+    QsVectorIndexViewState,
+    QsVectorPipelineViewState,
     QsVectorWorkspaceId,
 } from "../../../sharedInterfaces/queryStudioViewState";
+import type { QsActivateTabParams } from "../../../sharedInterfaces/queryStudio";
 
 export interface VectorColumnChoice {
     readonly resultSetId: string;
@@ -66,17 +73,25 @@ export interface VectorWorkbenchTabProps {
     live?: boolean;
     /** String-typed columns per result set (Pipeline source-text picker). */
     stringColumnsByResult?: Record<string, readonly { ordinal: number; name: string }[]>;
-    /** False while the owning VS Code panel is hidden. */
+    /** False while Vector is not the selected result tab or its panel is hidden. */
     active?: boolean;
+    /** Owning VS Code panel visibility, independent of the selected result tab. */
+    panelVisible?: boolean;
+    /** Transient PERF_MODE request; never persisted with panel view state. */
+    perfAction?: QsActivateTabParams;
     initialViewState?: QsVectorPanelViewState;
     onViewStateChange?: (state: QsVectorPanelViewState) => void;
 }
 
 type Workspace = QsVectorWorkspaceId;
 
+const LazyVectorSearchView = React.lazy(async () => ({
+    default: (await import("./vectorSearchView")).VectorSearchView,
+}));
+
 const WORKSPACES: Array<{ id: Workspace; label: string; enabled: boolean }> = [
     { id: "profile", label: "Profile", enabled: true },
-    { id: "search", label: "Search", enabled: false },
+    { id: "search", label: "Search", enabled: true },
     { id: "compare", label: "Compare", enabled: true },
     { id: "projection", label: "Projection", enabled: true },
     { id: "index", label: "Index", enabled: true },
@@ -84,7 +99,7 @@ const WORKSPACES: Array<{ id: Workspace; label: string; enabled: boolean }> = [
 ];
 
 /** Workspaces that need a LIVE connection (locked on frozen surfaces). */
-const LIVE_ONLY_WORKSPACES: ReadonlySet<Workspace> = new Set(["search", "pipeline"]);
+const LIVE_ONLY_WORKSPACES: ReadonlySet<Workspace> = new Set(["search", "index", "pipeline"]);
 
 const FINDING_LABELS: Record<VectorFindingKind, string> = {
     nonFiniteComponents: "Vectors contain non-finite components",
@@ -108,6 +123,18 @@ const FINDING_HINTS: Partial<Record<VectorFindingKind, string>> = {
     nearConstantDimensions: "per-dimension variance < 1e-5",
 };
 
+const FINDING_SUBJECT_COUNT_LABELS: Record<VectorFindingSummary["subject"], string> = {
+    row: "Affected rows",
+    dimension: "Affected dimensions",
+    duplicateGroup: "Affected duplicate groups",
+    pair: "Affected pairs",
+    category: "Affected categories",
+    document: "Affected documents",
+    index: "Affected indexes",
+    model: "Affected models",
+    chunk: "Affected chunks",
+};
+
 function formatCount(value: number): string {
     return value.toLocaleString("en-US");
 }
@@ -123,9 +150,12 @@ function Histogram(props: { data: VectorHistogram; height?: number }): React.JSX
     const { data } = props;
     const height = props.height ?? 84;
     const max = Math.max(1, ...data.bucketCounts);
+    const total = data.bucketCounts.reduce((sum, count) => sum + count, 0);
+    const bucketWidth =
+        data.bucketCounts.length > 0 ? (data.max - data.min) / data.bucketCounts.length : 0;
     return (
         <div>
-            <div className="qs-vec-hist" style={{ height }}>
+            <div className="qs-vec-hist" style={{ height }} aria-hidden="true">
                 {data.bucketCounts.map((count, i) => (
                     <div
                         key={i}
@@ -135,6 +165,38 @@ function Histogram(props: { data: VectorHistogram; height?: number }): React.JSX
                     />
                 ))}
             </div>
+            <p className="qs-vec-sr-only">
+                Histogram of {formatCount(total)} analyzed values in {data.bucketCounts.length}{" "}
+                buckets from {formatStat(data.min)} to {formatStat(data.max)}. Median{" "}
+                {formatStat(data.median)}, fifth percentile {formatStat(data.p5)}, ninety-fifth
+                percentile {formatStat(data.p95)}.
+            </p>
+            <table className="qs-vec-sr-only">
+                <caption>Histogram bucket values</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Bucket</th>
+                        <th scope="col">Range</th>
+                        <th scope="col">Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.bucketCounts.map((count, index) => {
+                        const lower = data.min + bucketWidth * index;
+                        const upper =
+                            index === data.bucketCounts.length - 1 ? data.max : lower + bucketWidth;
+                        return (
+                            <tr key={index}>
+                                <th scope="row">{index + 1}</th>
+                                <td>
+                                    {formatStat(lower)} to {formatStat(upper)}
+                                </td>
+                                <td>{formatCount(count)}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
             <div className="qs-vec-hist-range">
                 <span>{formatStat(data.min)}</span>
                 <span>{formatStat(data.max)}</span>
@@ -174,18 +236,90 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
         live = true,
         stringColumnsByResult,
         active = true,
+        panelVisible = true,
+        perfAction,
         initialViewState,
         onViewStateChange,
     } = props;
-    const [workspace, setWorkspace] = React.useState<Workspace>(
-        initialViewState?.workspace ?? "profile",
-    );
+    const initialWorkspace =
+        !live && LIVE_ONLY_WORKSPACES.has(initialViewState?.workspace ?? "profile")
+            ? "profile"
+            : (initialViewState?.workspace ?? "profile");
+    const [workspace, setWorkspace] = React.useState<Workspace>(initialWorkspace);
     const [selectedColumn, setSelectedColumn] = React.useState<
         { resultSetId: string; columnOrdinal: number } | undefined
     >(initialViewState?.selectedColumn);
     const [profileNorm, setProfileNorm] = React.useState<"l2" | "l1" | "linf">(
         initialViewState?.profileNorm ?? "l2",
     );
+    const [searchViewState, setSearchViewState] = React.useState<QsVectorSearchViewState>(
+        initialViewState?.search ?? {
+            source: "selectedRow",
+            selectedRowOrdinal: 0,
+            expression: "normalize(A + B)",
+            metric: "cosine",
+            k: 20,
+            includeApprox: true,
+            filters: [],
+            sqlOpen: false,
+            sqlTab: "exact",
+            sqlScrollPositions: {
+                exact: { scrollTop: 0, scrollLeft: 0 },
+                approx: { scrollTop: 0, scrollLeft: 0 },
+            },
+            rankScrollTop: 0,
+        },
+    );
+    const [compareViewState, setCompareViewState] = React.useState<QsVectorCompareViewState>(
+        initialViewState?.compare ?? { ordinalInput: "", metric: "cosine" },
+    );
+    const [projectionViewState, setProjectionViewState] =
+        React.useState<QsVectorProjectionViewState>(
+            initialViewState?.projection ?? {
+                fitted: false,
+                centerX: 0,
+                centerY: 0,
+                scale: 60,
+                listScrollTop: 0,
+            },
+        );
+    const [indexViewState, setIndexViewState] = React.useState<QsVectorIndexViewState>(
+        initialViewState?.index ?? {},
+    );
+    const [pipelineViewState, setPipelineViewState] = React.useState<QsVectorPipelineViewState>(
+        initialViewState?.pipeline ?? {
+            rowOrdinal: 0,
+            showSql: false,
+            chunkSize: 800,
+            overlapPct: 15,
+        },
+    );
+    const searchFilterColumns = React.useMemo(
+        () =>
+            searchViewState.filters
+                .map((filter) => filter.column)
+                .filter((column) => column.length > 0),
+        [searchViewState.filters],
+    );
+    const onIndexTargetChange = React.useCallback((targetId: string | undefined) => {
+        setSearchViewState((current) => ({
+            source: current.source,
+            selectedRowOrdinal: current.selectedRowOrdinal,
+            ...(current.expression !== undefined ? { expression: current.expression } : {}),
+            ...(targetId ? { targetId } : {}),
+            metric: current.metric,
+            k: current.k,
+            includeApprox: current.includeApprox,
+            filters: [],
+            sqlOpen: false,
+            sqlTab: "exact",
+            sqlScrollPositions: {
+                exact: { scrollTop: 0, scrollLeft: 0 },
+                approx: { scrollTop: 0, scrollLeft: 0 },
+            },
+            rankScrollTop: 0,
+        }));
+    }, []);
     const [opened, setOpened] = React.useState<QsVectorOpenResult | undefined>();
     const [openedIdentity, setOpenedIdentity] = React.useState<string | undefined>();
     const [profile, setProfile] = React.useState<VectorProfileSummary | undefined>();
@@ -193,10 +327,26 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
     const [openErrorIdentity, setOpenErrorIdentity] = React.useState<string | undefined>();
     const [profileError, setProfileError] = React.useState<string | undefined>();
     const [loading, setLoading] = React.useState(false);
+    const [sessionReady, setSessionReady] = React.useState(false);
+    const activeRef = React.useRef(active);
+    activeRef.current = active;
+    const [openEnabled, setOpenEnabled] = React.useState(active);
     const [drawer, setDrawer] = React.useState<
-        | { finding: VectorFindingSummary; detail?: QsVectorFindingDetailResult["detail"] }
+        | {
+              finding: VectorFindingSummary;
+              detail?: QsVectorFindingDetailResult["detail"];
+              error?: string;
+          }
         | undefined
     >();
+    const [profileFinding, setProfileFinding] = React.useState<string | undefined>(
+        initialViewState?.profileFinding,
+    );
+    const [profileDrawerScrollTop, setProfileDrawerScrollTop] = React.useState(
+        initialViewState?.profileDrawerScrollTop ?? 0,
+    );
+    const profileDrawerScrollTopRef = React.useRef(profileDrawerScrollTop);
+    profileDrawerScrollTopRef.current = profileDrawerScrollTop;
     const columnIndex = Math.max(
         0,
         columns.findIndex(
@@ -213,14 +363,33 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
     const visibleOpenError = openErrorIdentity === currentIdentity ? openError : undefined;
     const visibleHandleRef = React.useRef<string | undefined>(visibleOpened?.handle);
     visibleHandleRef.current = visibleOpened?.handle;
+    const drawerRef = React.useRef<HTMLElement | null>(null);
+    const drawerBodyRef = React.useRef<HTMLDivElement | null>(null);
+    const drawerReturnFocusRef = React.useRef<HTMLElement | null>(null);
     const workspaceRef = React.useRef<HTMLElement | null>(null);
     const workspaceScrollTopRef = React.useRef<Partial<Record<Workspace, number>>>({
         ...initialViewState?.workspaceScrollTop,
     });
     const [mountedWorkspaces, setMountedWorkspaces] = React.useState<ReadonlySet<Workspace>>(
-        () => new Set([initialViewState?.workspace ?? "profile"]),
+        () => new Set([initialWorkspace]),
     );
     const lastIdentityRef = React.useRef<string | undefined>(undefined);
+    React.useEffect(() => {
+        setOpenEnabled(active);
+        if (!active) {
+            setSessionReady(false);
+        }
+    }, [active]);
+    React.useEffect(() => {
+        if (!activeRef.current) {
+            setOpenEnabled(false);
+            lastIdentityRef.current = undefined;
+            setOpened(undefined);
+            setOpenedIdentity(undefined);
+            setProfile(undefined);
+            setDrawer(undefined);
+        }
+    }, [runKey]);
 
     React.useEffect(() => {
         setMountedWorkspaces((current) => {
@@ -253,8 +422,27 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                 : {}),
             profileNorm,
             workspaceScrollTop: { ...workspaceScrollTopRef.current },
+            ...(profileFinding ? { profileFinding } : {}),
+            profileDrawerScrollTop,
+            search: searchViewState,
+            compare: compareViewState,
+            projection: projectionViewState,
+            index: indexViewState,
+            pipeline: pipelineViewState,
         });
-    }, [column, onViewStateChange, profileNorm, workspace]);
+    }, [
+        column,
+        compareViewState,
+        indexViewState,
+        onViewStateChange,
+        pipelineViewState,
+        profileFinding,
+        profileDrawerScrollTop,
+        profileNorm,
+        projectionViewState,
+        searchViewState,
+        workspace,
+    ]);
 
     React.useEffect(() => {
         emitViewState();
@@ -282,6 +470,50 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
         [workspace],
     );
 
+    const processedPerfActionRef = React.useRef(0);
+    React.useEffect(() => {
+        const action = perfAction?.vector;
+        if (!action || processedPerfActionRef.current === perfAction.requestId) {
+            return;
+        }
+        if (action.workspace === "search" && !live) {
+            return;
+        }
+        processedPerfActionRef.current = perfAction.requestId;
+        selectWorkspace(action.workspace);
+    }, [live, perfAction, selectWorkspace]);
+
+    const onWorkspaceKeyDown = React.useCallback(
+        (event: React.KeyboardEvent<HTMLButtonElement>, current: Workspace) => {
+            const index = WORKSPACES.findIndex((candidate) => candidate.id === current);
+            if (index < 0) {
+                return;
+            }
+            let next = index;
+            if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+                next = (index + 1) % WORKSPACES.length;
+            } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+                next = (index - 1 + WORKSPACES.length) % WORKSPACES.length;
+            } else if (event.key === "Home") {
+                next = 0;
+            } else if (event.key === "End") {
+                next = WORKSPACES.length - 1;
+            } else {
+                return;
+            }
+            event.preventDefault();
+            const nextItem = WORKSPACES[next];
+            const nextWorkspace = nextItem.id;
+            if (nextItem.enabled && (live || !LIVE_ONLY_WORKSPACES.has(nextWorkspace))) {
+                selectWorkspace(nextWorkspace);
+            }
+            event.currentTarget.parentElement
+                ?.querySelector<HTMLButtonElement>(`[data-workspace="${nextWorkspace}"]`)
+                ?.focus();
+        },
+        [live, selectWorkspace],
+    );
+
     // Open + profile per (run, column). The handle lives host-side; closing
     // on cleanup releases the result-store lease and any active worker.
     React.useEffect(() => {
@@ -297,12 +529,7 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                 .sendRequest(QsVectorCloseRequest.type, { handle: closing })
                 .catch(() => undefined);
         };
-        if (!active) {
-            lastIdentityRef.current = undefined;
-            setOpened(undefined);
-            setOpenedIdentity(undefined);
-            setOpenErrorIdentity(undefined);
-            setLoading(false);
+        if (!openEnabled || !active) {
             return;
         }
         if (!column) {
@@ -320,7 +547,7 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
         setOpenErrorIdentity(identity);
         setProfileError(undefined);
         setLoading(true);
-        perfMark("mssql.queryResults.vector.render.begin", {});
+        setSessionReady(false);
         void (async () => {
             try {
                 const openResult = await rpc.sendRequest<
@@ -335,29 +562,19 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                     close();
                     return;
                 }
-                setOpened(openResult);
-                setOpenedIdentity(identity);
                 if (openResult.error) {
                     setOpenError(openResult.error);
+                    setSessionReady(false);
                     setLoading(false);
                     return;
                 }
-                const profileResult = await rpc.sendRequest<
-                    { handle: string },
-                    QsVectorProfileResult
-                >(QsVectorProfileRequest.type, { handle: openResult.handle });
-                if (cancelled) {
-                    return;
-                }
-                if (profileResult.error || !profileResult.summary) {
-                    setProfileError(profileResult.error ?? "Analysis returned no summary.");
-                } else {
-                    setProfile(profileResult.summary);
-                    perfMarkAfterNextPaint("mssql.queryResults.vector.render.firstPaint", {});
-                }
+                setOpened(openResult);
+                setOpenedIdentity(identity);
+                setSessionReady(true);
             } catch (e) {
                 if (!cancelled) {
                     setOpenError(e instanceof Error ? e.message : String(e));
+                    setSessionReady(false);
                 }
             } finally {
                 if (!cancelled) {
@@ -369,28 +586,151 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
             cancelled = true;
             close();
         };
-    }, [active, rpc, runKey, column?.resultSetId, column?.columnOrdinal]);
+    }, [active, openEnabled, rpc, runKey, column?.resultSetId, column?.columnOrdinal]);
 
-    const openDrawer = async (finding: VectorFindingSummary) => {
-        setDrawer({ finding });
-        if (!finding.hasDetail || !visibleOpened?.handle) {
+    React.useEffect(() => {
+        if (
+            !active ||
+            !sessionReady ||
+            workspace !== "profile" ||
+            !visibleOpened?.handle ||
+            profile ||
+            profileError
+        ) {
             return;
         }
-        const requestedHandle = visibleOpened.handle;
-        const result = await rpc.sendRequest<
-            { handle: string; kind: VectorFindingKind },
-            QsVectorFindingDetailResult
-        >(QsVectorFindingDetailRequest.type, {
-            handle: requestedHandle,
-            kind: finding.kind,
-        });
-        if (visibleHandleRef.current !== requestedHandle) {
+        let cancelled = false;
+        let settled = false;
+        const handle = visibleOpened.handle;
+        setLoading(true);
+        perfMark("mssql.queryResults.vector.render.begin", { workspace: "profile" });
+        void rpc
+            .sendRequest<{ handle: string }, QsVectorProfileResult>(QsVectorProfileRequest.type, {
+                handle,
+            })
+            .then((profileResult) => {
+                if (cancelled || visibleHandleRef.current !== handle) {
+                    return;
+                }
+                if (profileResult.error || !profileResult.summary) {
+                    setProfileError(profileResult.error ?? "Analysis returned no summary.");
+                } else {
+                    setProfile(profileResult.summary);
+                    perfMarkAfterNextPaint("mssql.queryResults.vector.render.firstPaint", {
+                        workspace: "profile",
+                    });
+                }
+            })
+            .catch((cause) => {
+                if (!cancelled && visibleHandleRef.current === handle) {
+                    setProfileError(cause instanceof Error ? cause.message : String(cause));
+                }
+            })
+            .finally(() => {
+                settled = true;
+                if (!cancelled && visibleHandleRef.current === handle) {
+                    setLoading(false);
+                }
+            });
+        return () => {
+            cancelled = true;
+            if (!settled) {
+                void rpc.sendRequest(QsVectorCancelRequest.type, { handle }).catch(() => undefined);
+            }
+        };
+    }, [active, profile, profileError, rpc, sessionReady, visibleOpened?.handle, workspace]);
+
+    const openDrawer = React.useCallback(
+        async (finding: VectorFindingSummary) => {
+            const activeElement = document.activeElement;
+            if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+                drawerReturnFocusRef.current = activeElement;
+            }
+            setProfileFinding(finding.kind);
+            setDrawer({ finding });
+            if (!finding.hasDetail || !visibleOpened?.handle) {
+                return;
+            }
+            if (!sessionReady) {
+                setDrawer({
+                    finding,
+                    error: "Reconnect the analysis session before loading finding details.",
+                });
+                return;
+            }
+            const requestedHandle = visibleOpened.handle;
+            try {
+                const result = await rpc.sendRequest<
+                    { handle: string; kind: VectorFindingKind },
+                    QsVectorFindingDetailResult
+                >(QsVectorFindingDetailRequest.type, {
+                    handle: requestedHandle,
+                    kind: finding.kind,
+                });
+                if (visibleHandleRef.current !== requestedHandle) {
+                    return;
+                }
+                setDrawer((current) =>
+                    current?.finding.kind === finding.kind
+                        ? {
+                              finding,
+                              detail: result.detail,
+                              ...(result.error ? { error: result.error } : {}),
+                          }
+                        : current,
+                );
+            } catch (cause) {
+                if (visibleHandleRef.current !== requestedHandle) {
+                    return;
+                }
+                setDrawer((current) =>
+                    current?.finding.kind === finding.kind
+                        ? {
+                              finding,
+                              error: cause instanceof Error ? cause.message : String(cause),
+                          }
+                        : current,
+                );
+            }
+        },
+        [rpc, sessionReady, visibleOpened?.handle],
+    );
+
+    const closeDrawer = React.useCallback(() => {
+        setDrawer(undefined);
+        setProfileFinding(undefined);
+        requestAnimationFrame(() => drawerReturnFocusRef.current?.focus());
+    }, []);
+
+    React.useEffect(() => {
+        if (!drawer) {
             return;
         }
-        setDrawer((current) =>
-            current?.finding.kind === finding.kind ? { finding, detail: result.detail } : current,
-        );
-    };
+        drawerRef.current?.focus();
+        if (drawerBodyRef.current) {
+            drawerBodyRef.current.scrollTop = profileDrawerScrollTopRef.current;
+        }
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeDrawer();
+            }
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [closeDrawer, drawer?.finding.kind]);
+
+    React.useEffect(() => {
+        if (!profile || !profileFinding || drawer) {
+            return;
+        }
+        const finding = profile.findings.find((candidate) => candidate.kind === profileFinding);
+        if (finding) {
+            void openDrawer(finding);
+        } else {
+            setProfileFinding(undefined);
+        }
+    }, [drawer, openDrawer, profile, profileFinding]);
 
     if (columns.length === 0) {
         return (
@@ -450,10 +790,21 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                         return (
                             <button
                                 key={w.id}
+                                id={`qs-vec-workspace-tab-${w.id}`}
                                 role="tab"
                                 aria-selected={workspace === w.id}
+                                aria-controls={enabled ? `qs-vec-workspace-${w.id}` : undefined}
+                                aria-disabled={!enabled}
+                                aria-label={
+                                    enabled
+                                        ? w.label
+                                        : lockedFrozen
+                                          ? `${w.label}. Needs a live connection; pinned results are frozen.`
+                                          : `${w.label}. Coming in a later build.`
+                                }
+                                tabIndex={workspace === w.id ? 0 : -1}
+                                data-workspace={w.id}
                                 className={`qs-vec-rail-item${workspace === w.id ? " active" : ""}`}
-                                disabled={!enabled}
                                 title={
                                     enabled
                                         ? w.label
@@ -461,6 +812,7 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                                           ? `${w.label} — needs a live connection (pinned results are frozen)`
                                           : `${w.label} — coming in a later build`
                                 }
+                                onKeyDown={(event) => onWorkspaceKeyDown(event, w.id)}
                                 onClick={() => enabled && selectWorkspace(w.id)}>
                                 {w.label}
                             </button>
@@ -468,21 +820,33 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                     })}
                 </nav>
                 <main className="qs-vec-workspace" ref={workspaceRef} onScroll={persistScroll}>
-                    {!active ? (
-                        <div className="qs-vec-empty qs-muted">Vector analysis is paused.</div>
-                    ) : visibleOpenError ? (
+                    {visibleOpenError && !visibleOpened ? (
                         <div className="qs-vec-empty">
-                            <div className="qs-vec-error">{visibleOpenError}</div>
+                            <div className="qs-vec-error" role="alert">
+                                {visibleOpenError}
+                            </div>
                         </div>
                     ) : !visibleOpened || visibleOpened.error ? (
                         <div className="qs-vec-empty qs-muted">Analyzing vector column…</div>
                     ) : (
                         <>
+                            {visibleOpenError ? (
+                                <div className="qs-vec-warning" role="status">
+                                    Analysis session reconnect failed; completed workspace state is
+                                    retained. {visibleOpenError}
+                                </div>
+                            ) : null}
                             {mountedWorkspaces.has("profile") ? (
-                                <div hidden={workspace !== "profile"}>
+                                <div
+                                    id="qs-vec-workspace-profile"
+                                    role="tabpanel"
+                                    aria-labelledby="qs-vec-workspace-tab-profile"
+                                    hidden={workspace !== "profile"}>
                                     {profileError ? (
                                         <div className="qs-vec-empty">
-                                            <div className="qs-vec-error">{profileError}</div>
+                                            <div className="qs-vec-error" role="alert">
+                                                {profileError}
+                                            </div>
                                         </div>
                                     ) : loading || !profile ? (
                                         <div className="qs-vec-empty qs-muted">
@@ -499,42 +863,113 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                                 </div>
                             ) : null}
                             {mountedWorkspaces.has("compare") ? (
-                                <div hidden={workspace !== "compare"}>
+                                <div
+                                    id="qs-vec-workspace-compare"
+                                    role="tabpanel"
+                                    aria-labelledby="qs-vec-workspace-tab-compare"
+                                    hidden={workspace !== "compare"}>
                                     <VectorCompareView
-                                        key={visibleOpened.handle}
+                                        key={currentIdentity}
                                         rpc={rpc}
                                         handle={visibleOpened.handle}
                                         generation={visibleOpened.generation}
+                                        active={sessionReady && active && workspace === "compare"}
                                         totalRows={visibleOpened.totalRows}
+                                        initialViewState={compareViewState}
+                                        onViewStateChange={setCompareViewState}
                                     />
+                                </div>
+                            ) : null}
+                            {live && mountedWorkspaces.has("search") ? (
+                                <div
+                                    id="qs-vec-workspace-search"
+                                    role="tabpanel"
+                                    aria-labelledby="qs-vec-workspace-tab-search"
+                                    hidden={workspace !== "search"}>
+                                    <React.Suspense
+                                        fallback={
+                                            <div className="qs-vec-empty qs-muted">
+                                                Loading Search…
+                                            </div>
+                                        }>
+                                        <LazyVectorSearchView
+                                            key={currentIdentity}
+                                            rpc={rpc}
+                                            handle={visibleOpened.handle}
+                                            generation={visibleOpened.generation}
+                                            totalRows={visibleOpened.totalRows}
+                                            expressionBasketOrdinals={
+                                                compareViewState.lastSubmittedOrdinals
+                                            }
+                                            active={
+                                                sessionReady && active && workspace === "search"
+                                            }
+                                            panelActive={panelVisible}
+                                            sessionReady={sessionReady}
+                                            authoritativeTargetId={searchViewState.targetId}
+                                            perfAction={perfAction}
+                                            initialViewState={searchViewState}
+                                            onViewStateChange={setSearchViewState}
+                                        />
+                                    </React.Suspense>
                                 </div>
                             ) : null}
                             {mountedWorkspaces.has("projection") ? (
-                                <div hidden={workspace !== "projection"}>
+                                <div
+                                    id="qs-vec-workspace-projection"
+                                    role="tabpanel"
+                                    aria-labelledby="qs-vec-workspace-tab-projection"
+                                    hidden={workspace !== "projection"}>
                                     <VectorProjectionView
-                                        key={visibleOpened.handle}
+                                        key={currentIdentity}
                                         rpc={rpc}
                                         handle={visibleOpened.handle}
                                         generation={visibleOpened.generation}
+                                        active={
+                                            sessionReady && active && workspace === "projection"
+                                        }
+                                        initialViewState={projectionViewState}
+                                        onViewStateChange={setProjectionViewState}
                                     />
                                 </div>
                             ) : null}
-                            {mountedWorkspaces.has("index") ? (
-                                <div hidden={workspace !== "index"}>
+                            {live && mountedWorkspaces.has("index") ? (
+                                <div
+                                    id="qs-vec-workspace-index"
+                                    role="tabpanel"
+                                    aria-labelledby="qs-vec-workspace-tab-index"
+                                    hidden={workspace !== "index"}>
                                     <VectorIndexView
-                                        key={visibleOpened.handle}
-                                        rpc={rpc}
-                                        generation={visibleOpened.generation}
-                                    />
-                                </div>
-                            ) : null}
-                            {mountedWorkspaces.has("pipeline") ? (
-                                <div hidden={workspace !== "pipeline"}>
-                                    <VectorPipelineView
-                                        key={visibleOpened.handle}
+                                        key={currentIdentity}
                                         rpc={rpc}
                                         handle={visibleOpened.handle}
                                         generation={visibleOpened.generation}
+                                        active={sessionReady && active && workspace === "index"}
+                                        initialViewState={indexViewState}
+                                        onViewStateChange={setIndexViewState}
+                                        targetId={searchViewState.targetId}
+                                        onTargetChange={onIndexTargetChange}
+                                        metric={searchViewState.metric}
+                                        filterColumns={searchFilterColumns}
+                                        resultVectorColumn={column.columnName}
+                                        {...(column.dimensions !== undefined
+                                            ? { resultDimensions: column.dimensions }
+                                            : {})}
+                                    />
+                                </div>
+                            ) : null}
+                            {live && mountedWorkspaces.has("pipeline") ? (
+                                <div
+                                    id="qs-vec-workspace-pipeline"
+                                    role="tabpanel"
+                                    aria-labelledby="qs-vec-workspace-tab-pipeline"
+                                    hidden={workspace !== "pipeline"}>
+                                    <VectorPipelineView
+                                        key={currentIdentity}
+                                        rpc={rpc}
+                                        handle={visibleOpened.handle}
+                                        generation={visibleOpened.generation}
+                                        active={sessionReady && active && workspace === "pipeline"}
                                         vectorColumn={{
                                             columnName: column.columnName,
                                             ...(column.dimensions !== undefined
@@ -545,6 +980,8 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                                             stringColumnsByResult?.[column.resultSetId] ?? []
                                         }
                                         totalRows={visibleOpened.totalRows}
+                                        initialViewState={pipelineViewState}
+                                        onViewStateChange={setPipelineViewState}
                                     />
                                 </div>
                             ) : null}
@@ -552,24 +989,38 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                     )}
                 </main>
                 {drawer && visibleOpened ? (
-                    <aside className="qs-vec-drawer">
+                    <aside
+                        ref={drawerRef}
+                        className="qs-vec-drawer"
+                        role="region"
+                        aria-labelledby="qs-vec-drawer-title"
+                        tabIndex={-1}>
                         <div className="qs-vec-drawer-header">
-                            <span>{FINDING_LABELS[drawer.finding.kind]}</span>
+                            <span id="qs-vec-drawer-title">
+                                {FINDING_LABELS[drawer.finding.kind]}
+                            </span>
                             <button
                                 className="qs-vec-drawer-close"
                                 aria-label="Close"
-                                onClick={() => setDrawer(undefined)}>
-                                ✕
+                                onClick={closeDrawer}>
+                                <span className="codicon codicon-close" aria-hidden="true" />
                             </button>
                         </div>
-                        <div className="qs-vec-drawer-body">
+                        <div
+                            ref={drawerBodyRef}
+                            className="qs-vec-drawer-body"
+                            onScroll={(event) =>
+                                setProfileDrawerScrollTop(event.currentTarget.scrollTop)
+                            }>
                             <div className="qs-vec-muted">
-                                {drawer.finding.subject === "dimension"
-                                    ? "Affected dimensions"
-                                    : "Affected rows"}{" "}
-                                · {formatCount(drawer.finding.affectedCount)}
+                                {FINDING_SUBJECT_COUNT_LABELS[drawer.finding.subject]} ·{" "}
+                                {formatCount(drawer.finding.affectedCount)}
                             </div>
-                            {drawer.detail ? (
+                            {drawer.error ? (
+                                <div className="qs-vec-error" role="alert">
+                                    {drawer.error}
+                                </div>
+                            ) : drawer.detail ? (
                                 <ul className="qs-vec-ordinal-list">
                                     {(
                                         drawer.detail.resultRowOrdinals ??
@@ -578,9 +1029,11 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                                     ).map((ordinal, i) => (
                                         <li key={i}>
                                             <span className="qs-vec-num">
-                                                {drawer.detail!.resultRowOrdinals
-                                                    ? `row ${formatCount(ordinal)}`
-                                                    : `dim ${formatCount(ordinal + 1)}`}
+                                                {drawer.detail!.dimensionOrdinals
+                                                    ? `dim ${formatCount(ordinal + 1)}`
+                                                    : drawer.finding.subject === "duplicateGroup"
+                                                      ? `member row ${formatCount(ordinal)}`
+                                                      : `result row ${formatCount(ordinal)}`}
                                             </span>
                                             {drawer.detail!.values?.[i] !== undefined ? (
                                                 <span className="qs-vec-num qs-vec-muted">
@@ -591,7 +1044,9 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                                     ))}
                                 </ul>
                             ) : drawer.finding.hasDetail ? (
-                                <div className="qs-vec-muted">Loading…</div>
+                                <div className="qs-vec-muted" role="status">
+                                    Loading…
+                                </div>
                             ) : null}
                             {drawer.detail?.truncated ? (
                                 <div className="qs-vec-muted">List capped — not exhaustive.</div>
@@ -605,12 +1060,23 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
                     {scopeText}
                     {profile ? ` · ${formatCount(profile.dimensions)}-D ${profile.baseType}` : ""}
                 </span>
-                <span className="qs-vec-muted">
-                    Local computation · no SQL executed · no network requests
-                </span>
+                <span className="qs-vec-muted">{workspaceActivityText(workspace)}</span>
             </div>
         </div>
     );
+}
+
+function workspaceActivityText(workspace: Workspace): string {
+    switch (workspace) {
+        case "search":
+            return "Search runs SQL on a separate database session · the webview makes no network requests";
+        case "index":
+            return "Catalog and non-scanning capability probes · generated scripts are never executed";
+        case "pipeline":
+            return "Model calls require confirmation · external egress is disclosed before execution";
+        default:
+            return "Local analysis only · no database SQL or external model calls";
+    }
 }
 
 function ProfileView(props: {

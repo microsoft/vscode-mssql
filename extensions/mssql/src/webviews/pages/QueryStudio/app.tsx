@@ -46,6 +46,7 @@ import {
     QsSetViewModeRequest,
     QsState,
     QsStateChangedNotification,
+    QsActivateTabParams,
     QsActivateTabNotification,
     QsRestoreEditorFocusNotification,
     QsRunStartedNotification,
@@ -212,6 +213,7 @@ export function QueryStudioApp() {
     // debounced (≤10/s); the max of the two keeps grids growing smoothly.
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
     const [activeTab, setActiveTab] = useState<QueryStudioTab>("results");
+    const [vectorPerfAction, setVectorPerfAction] = useState<QsActivateTabParams | undefined>();
     const [mountedTabs, setMountedTabs] = useState<ReadonlySet<QueryStudioTab>>(
         () => new Set(["results"]),
     );
@@ -768,11 +770,13 @@ export function QueryStudioApp() {
                 },
             ),
             rpc.onNotification(QsRunStartedNotification.type, (p: { startedEpochMs: number }) => {
+                setVectorPerfAction(undefined);
                 resetRunViewForStart(p.startedEpochMs, false);
             }),
-            rpc.onNotification(QsActivateTabNotification.type, (p: { tab: string }) => {
-                // Host-driven activation (VEC-12 perf seam). Unknown ids no-op;
-                // visibleActiveTab still falls back when the tab doesn't apply.
+            rpc.onNotification(QsActivateTabNotification.type, (p: QsActivateTabParams) => {
+                // Host-driven activation (VEC-12 PERF_MODE seam). Nested
+                // actions are transient and never enter durable panel state.
+                setVectorPerfAction(p.tab === "vector" && p.vector ? p : undefined);
                 if (
                     p.tab === "results" ||
                     p.tab === "messages" ||
@@ -2319,7 +2323,12 @@ export function QueryStudioApp() {
                                                         stringColumnsByResult={
                                                             stringColumnsByResult
                                                         }
-                                                        active={panelVisible}
+                                                        active={
+                                                            panelVisible &&
+                                                            visibleActiveTab === "vector"
+                                                        }
+                                                        panelVisible={panelVisible}
+                                                        perfAction={vectorPerfAction}
                                                         initialViewState={
                                                             panelViewStateRef.current.vector
                                                         }

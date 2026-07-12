@@ -19,6 +19,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
 import {
+    QsActivateTabParams,
+    QsActivateTabRequest,
     QsSyncEdits,
     QsSyncRemote,
     QsSyncResync,
@@ -214,19 +216,24 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     );
 
     // --- host-driven results-tab activation (VEC-12 perf seam) --------------
-    private readonly activateTabListeners = new Set<(tab: string) => void>();
+    private readonly activateTabListeners = new Set<(request: QsActivateTabParams) => void>();
+    private activateTabRequestId = 0;
 
     /** Controllers subscribe; each forwards to its webview. */
-    onActivateTabRequest(listener: (tab: string) => void): vscode.Disposable {
+    onActivateTabRequest(listener: (request: QsActivateTabParams) => void): vscode.Disposable {
         this.activateTabListeners.add(listener);
         return { dispose: () => this.activateTabListeners.delete(listener) };
     }
 
     /** Ask every attached panel to activate a results tab (no-op when unknown). */
-    requestActivateTab(tab: string): void {
+    requestActivateTab(request: QsActivateTabRequest): void {
+        const params: QsActivateTabParams = {
+            ...request,
+            requestId: ++this.activateTabRequestId,
+        };
         for (const listener of [...this.activateTabListeners]) {
             try {
-                listener(tab);
+                listener(params);
             } catch {
                 /* listener isolation */
             }

@@ -20,6 +20,7 @@ import {
     explainEventName,
     lintCorrelation,
 } from "../../src/sharedInterfaces/observabilityContract.generated";
+import { featureFor } from "../../src/perf/perfTelemetry";
 
 const SRC_ROOT = path.join(__dirname, "..", "..", "..", "src");
 
@@ -36,6 +37,11 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 suite("Observability Contract conformance", () => {
+    test("query-results markers retain their registry feature bucket", () => {
+        expect(featureFor("mssql.queryResults.vector.search.end")).to.equal("queryResults");
+        expect(featureFor("mssql.query.execute.begin")).to.equal("query");
+    });
+
     test("every Perf marker literal emitted by src/ is registered", function () {
         if (!fs.existsSync(SRC_ROOT)) {
             this.skip(); // packaged test run without sources

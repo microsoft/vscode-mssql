@@ -54,6 +54,7 @@ import {
     VectorIndexWorkspaceState,
     VectorIndexWorkspaceView,
 } from "../../sharedInterfaces/vectorIndex";
+import type { VectorProbeTableFilter } from "./vectorCatalogProbes";
 import { quoteIdentifier } from "./vectorSqlBuilder";
 
 // ---------------------------------------------------------------------------
@@ -67,6 +68,8 @@ import { quoteIdentifier } from "./vectorSqlBuilder";
  * in review-only scripts (never guessed).
  */
 export interface VectorIndexTargetFacts {
+    readonly objectId?: number;
+    readonly vectorColumnId?: number;
     readonly schema: string;
     readonly table: string;
     readonly vectorColumn?: string;
@@ -82,7 +85,10 @@ export interface VectorIndexTargetFacts {
 }
 
 /** Thunk over VectorCapabilityService.capabilities — the ONLY collaborator. */
-export type VectorCapabilityThunk = (refresh?: boolean) => Promise<QsVectorCapabilitiesResult>;
+export type VectorCapabilityThunk = (
+    refresh?: boolean,
+    table?: VectorProbeTableFilter,
+) => Promise<QsVectorCapabilitiesResult>;
 
 // ---------------------------------------------------------------------------
 // Script builders (pure string builders; QUOTENAME escaping; review-only)
@@ -117,6 +123,25 @@ function escapeLiteral(text: string): string {
 /** `vec_<table>_<column>` (mock convention), clamped to the 128-char cap. */
 export function deriveIndexName(table: string, vectorColumn: string): string {
     return `vec_${table}_${vectorColumn}`.slice(0, 128);
+}
+
+/** Deterministic non-colliding name for a second metric on the same column. */
+function deriveUnusedIndexName(
+    table: string,
+    vectorColumn: string,
+    metric: string,
+    existingNames: readonly string[],
+): string {
+    const taken = new Set(existingNames.map((name) => name.toLowerCase()));
+    const stem = `vec_${table}_${vectorColumn}_${metric.toLowerCase()}`;
+    for (let ordinal = 1; ordinal <= 999; ordinal++) {
+        const suffix = ordinal === 1 ? "" : `_${ordinal}`;
+        const candidate = `${stem.slice(0, 128 - suffix.length)}${suffix}`;
+        if (!taken.has(candidate.toLowerCase())) {
+            return candidate;
+        }
+    }
+    throw new Error("Unable to derive a distinct vector index name for the selected metric.");
 }
 
 const KNOWN_METRICS = new Set(["cosine", "euclidean", "dot"]);
@@ -282,21 +307,53 @@ export function buildSupportingIndexScript(facts: SupportingIndexScriptFacts): s
 const sameIdent = (a: string, b: string): boolean => a.toLowerCase() === b.toLowerCase();
 
 /** Format-class facts for one confirmed index row (guide §8.3 corrected). */
-function classifyVersion(row: VectorIndexProbeRow): {
+function classifyVersion(
+    probe: VectorCapabilityProbe,
+    row: VectorIndexProbeRow,
+): {
     readonly legacy: boolean;
+    readonly knownCurrent: boolean;
     readonly versionText: string;
 } {
     if (row.version === undefined) {
+        let validJsonWithoutVersion = false;
+        try {
+            const parsed = row.buildParameters ? JSON.parse(row.buildParameters) : undefined;
+            validJsonWithoutVersion =
+                parsed !== null &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed) &&
+                !Object.prototype.hasOwnProperty.call(parsed, "Version");
+        } catch {
+            validJsonWithoutVersion = false;
+        }
+        const verifiedRtmSurface =
+            probe.engine.engineEditionId === 3 &&
+            /^17\./.test(probe.engine.productVersion ?? "") &&
+            validJsonWithoutVersion;
+        if (!verifiedRtmSurface) {
+            return {
+                legacy: false,
+                knownCurrent: false,
+                versionText:
+                    "unknown — build_parameters did not provide a trustworthy format version on this engine",
+            };
+        }
         return {
             legacy: false,
+            knownCurrent: true,
             versionText:
                 "absent — no $.Version key in build_parameters; on this engine that IS " +
                 "the current format (probed, never assumed)",
         };
     }
     return row.version >= 3
-        ? { legacy: false, versionText: `v${row.version} (current format)` }
-        : { legacy: true, versionText: `v${row.version} (earlier format — migration available)` };
+        ? { legacy: false, knownCurrent: true, versionText: `v${row.version} (current format)` }
+        : {
+              legacy: true,
+              knownCurrent: false,
+              versionText: `v${row.version} (earlier format — migration available)`,
+          };
 }
 
 const TIER_BUILD_ERROR_NUMBER = 42234;
@@ -371,7 +428,10 @@ function sharedFacts(probe: VectorCapabilityProbe): SharedFacts {
 }
 
 /** Health facts for a state that shows an index (present-DMV vs absent-DMV). */
-function healthFacts(probe: VectorCapabilityProbe): {
+function healthFacts(
+    probe: VectorCapabilityProbe,
+    index?: VectorIndexProbeRow,
+): {
     readonly properties: VectorIndexProperty[];
     readonly findings: VectorIndexFinding[];
 } {
@@ -409,13 +469,26 @@ function healthFacts(probe: VectorCapabilityProbe): {
         return { properties, findings };
     }
 
-    const row = dmv.rows?.[0];
-    if ((dmv.rows?.length ?? 0) > 1) {
+    if (index?.objectId === undefined || index.indexId === undefined) {
         properties.push({
-            label: "Health rows",
-            value: `${dmv.rows!.length} DMV rows visible — first shown`,
+            label: "Target health",
+            value: "unavailable — no selected index identity to correlate",
             source: "healthDmv",
         });
+        return { properties, findings };
+    }
+    const row = dmv.rows?.find(
+        (candidate) =>
+            Number(candidate.object_id) === index.objectId &&
+            Number(candidate.index_id) === index.indexId,
+    );
+    if (!row) {
+        properties.push({
+            label: "Target health",
+            value: "unavailable — no DMV row for the selected index",
+            source: "healthDmv",
+        });
+        return { properties, findings };
     }
     if (dmv.stalenessColumn) {
         const raw = row?.[dmv.stalenessColumn];
@@ -509,17 +582,30 @@ export function deriveVectorIndexView(
 
     const confirmed = probe.indexes.indexes;
     const relevant = target
-        ? confirmed.filter(
-              (row) =>
-                  sameIdent(row.schemaName, target.schema) &&
-                  sameIdent(row.tableName, target.table),
-          )
+        ? confirmed.filter((row) => {
+              const objectMatches =
+                  target.objectId !== undefined && row.objectId !== undefined
+                      ? target.objectId === row.objectId
+                      : row.schemaName === target.schema && row.tableName === target.table;
+              const columnMatches =
+                  !target.vectorColumn ||
+                  (target.vectorColumnId !== undefined && row.vectorColumnId !== undefined
+                      ? target.vectorColumnId === row.vectorColumnId
+                      : row.vectorColumn === target.vectorColumn);
+              return objectMatches && columnMatches;
+          })
         : confirmed;
-    const index = relevant[0];
+    const index =
+        (target?.metric
+            ? relevant.find(
+                  (candidate) =>
+                      candidate.distanceMetric?.toLowerCase() === target.metric!.toLowerCase(),
+              )
+            : undefined) ?? relevant[0];
 
     // --- states WITH a confirmed index --------------------------------------
     if (index) {
-        return deriveIndexPresentView(probe, target, index, confirmed.length, shared);
+        return deriveIndexPresentView(probe, target, index, relevant, shared);
     }
 
     // --- buildFailedTier: host-observed CREATE failure (Msg 42234) ----------
@@ -578,12 +664,16 @@ function deriveIndexPresentView(
     probe: VectorCapabilityProbe,
     target: VectorIndexTargetFacts | undefined,
     index: VectorIndexProbeRow,
-    confirmedCount: number,
+    relevantIndexes: readonly VectorIndexProbeRow[],
     shared: SharedFacts,
 ): VectorIndexWorkspaceView {
-    const format = classifyVersion(index);
-    const state: VectorIndexWorkspaceState = format.legacy ? "legacyFormat" : "healthyCurrent";
-    const health = healthFacts(probe);
+    const format = classifyVersion(probe, index);
+    const state: VectorIndexWorkspaceState = format.legacy
+        ? "legacyFormat"
+        : format.knownCurrent
+          ? "healthyCurrent"
+          : "formatUnknown";
+    const health = healthFacts(probe, index);
 
     const properties: VectorIndexProperty[] = [
         { label: "Index", value: index.indexName, source: "catalog" },
@@ -598,10 +688,10 @@ function deriveIndexPresentView(
         ...shared.configProps,
         ...shared.engineProps,
     ];
-    if (confirmedCount > 1) {
+    if (relevantIndexes.length > 1) {
         properties.push({
             label: "Vector indexes visible",
-            value: `${confirmedCount} — first on this target shown`,
+            value: `${relevantIndexes.length} — preferred metric on this target shown`,
             source: "derived",
         });
     }
@@ -631,7 +721,7 @@ function deriveIndexPresentView(
                 "predicates apply after approximate retrieval on earlier formats — the " +
                 "Search workspace oversamples TOP_N ×M and discloses it.",
         });
-    } else {
+    } else if (format.knownCurrent) {
         findings.push(
             index.version !== undefined
                 ? {
@@ -649,6 +739,12 @@ function deriveIndexPresentView(
                           "— absence IS the current format there (probed, never assumed).",
                   },
         );
+    } else {
+        findings.push({
+            severity: "warning",
+            title: "Index format could not be verified",
+            detail: "build_parameters was missing, malformed, or versionless on an unverified engine surface; no current-format or migration claim is made",
+        });
     }
     if (target?.metric && index.distanceMetric) {
         const match = sameIdent(target.metric, index.distanceMetric);
@@ -674,6 +770,9 @@ function deriveIndexPresentView(
     if (probe.indexes.phantomCount > 0) {
         findings.push(phantomFinding(probe.indexes.phantomCount));
     }
+    if ((probe.indexes.unusableCount ?? 0) > 0) {
+        findings.push(unusableIndexFinding(probe.indexes.unusableCount!));
+    }
 
     const vectorColumn = target?.vectorColumn;
     const scripts: VectorIndexScript[] = [];
@@ -690,17 +789,40 @@ function deriveIndexPresentView(
             }),
         });
     }
-    scripts.push({
-        id: "createIndex",
-        title: "Generate create vector index script",
-        sql: buildCreateVectorIndexScript({
-            schema: index.schemaName,
-            table: index.tableName,
-            indexName: index.indexName,
-            ...(vectorColumn ? { vectorColumn } : {}),
-            ...(index.distanceMetric ? { metric: index.distanceMetric } : {}),
-        }),
-    });
+    const metricMismatch = Boolean(
+        target?.metric && index.distanceMetric && !sameIdent(target.metric, index.distanceMetric),
+    );
+    if (metricMismatch && target?.metric) {
+        const column = target.vectorColumn ?? index.vectorColumn;
+        scripts.push({
+            id: "createIndex",
+            title: `Generate compatible ${target.metric} index script`,
+            sql: buildCreateVectorIndexScript({
+                schema: target.schema,
+                table: target.table,
+                indexName: deriveUnusedIndexName(
+                    target.table,
+                    column ?? PLACEHOLDER_VECTOR_COLUMN,
+                    target.metric,
+                    relevantIndexes.map((candidate) => candidate.indexName),
+                ),
+                ...(column ? { vectorColumn: column } : {}),
+                metric: target.metric,
+            }),
+        });
+    } else {
+        scripts.push({
+            id: "createIndex",
+            title: "Generate existing index definition (reference)",
+            sql: buildCreateVectorIndexScript({
+                schema: index.schemaName,
+                table: index.tableName,
+                indexName: index.indexName,
+                ...(vectorColumn ? { vectorColumn } : {}),
+                ...(index.distanceMetric ? { metric: index.distanceMetric } : {}),
+            }),
+        });
+    }
     scripts.push({
         id: "healthSnapshot",
         title: "Generate health snapshot query",
@@ -714,12 +836,20 @@ function deriveIndexPresentView(
 function phantomFinding(phantomCount: number): VectorIndexFinding {
     return {
         severity: "warning",
-        title: `Transient phantom row${phantomCount === 1 ? "" : "s"} in sys.vector_indexes (${phantomCount})`,
+        title: `Database-wide transient phantom row${phantomCount === 1 ? "" : "s"} in sys.vector_indexes (${phantomCount})`,
         detail:
-            "residue of a failed DiskANN build (verified live on Azure): absent from " +
+            "database-wide count, not attributed to this target; residue of a failed DiskANN build (verified live on Azure): absent from " +
             "sys.indexes, unusable by VECTOR_SEARCH (42227), not droppable (3701), " +
             "blocks re-CREATE in the same window (42230), and self-cleans in about a " +
             "minute. Treated as no usable index.",
+    };
+}
+
+function unusableIndexFinding(count: number): VectorIndexFinding {
+    return {
+        severity: "warning",
+        title: `Database-wide disabled or hypothetical vector index row${count === 1 ? "" : "s"} (${count})`,
+        detail: "database-wide count, not attributed to this target; present in sys.indexes but excluded from approximate-search eligibility",
     };
 }
 
@@ -756,6 +886,9 @@ function deriveNoIndexView(
     const findings: VectorIndexFinding[] = [...(options.extraFindings ?? [])];
     if (probe.indexes.phantomCount > 0) {
         findings.push(phantomFinding(probe.indexes.phantomCount));
+    }
+    if ((probe.indexes.unusableCount ?? 0) > 0) {
+        findings.push(unusableIndexFinding(probe.indexes.unusableCount!));
     }
     findings.push({
         severity: "info",
@@ -840,7 +973,11 @@ export class VectorIndexService {
 
     /** Answer `qs/vector.indexState` (refresh bypasses the probe cache). */
     async indexState(refresh = false): Promise<QsVectorIndexStateResult> {
-        const capabilities = await this.capabilities(refresh);
+        const target = this.targetFacts();
+        const capabilities = await this.capabilities(
+            refresh,
+            target ? { schema: target.schema, table: target.table } : undefined,
+        );
         if (!capabilities.probe) {
             return {
                 error:
@@ -848,6 +985,6 @@ export class VectorIndexService {
                     "Vector capability probe unavailable for this connection.",
             };
         }
-        return { view: deriveVectorIndexView(capabilities.probe, this.targetFacts()) };
+        return { view: deriveVectorIndexView(capabilities.probe, target) };
     }
 }

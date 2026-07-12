@@ -694,7 +694,7 @@
     cursor: pointer;
     border-left: 2px solid transparent;
 }
-.qs-vec-rail-item:hover:not(:disabled) {
+.qs-vec-rail-item:hover:not(:disabled):not([aria-disabled="true"]) {
     background: var(--vscode-list-hoverBackground);
 }
 .qs-vec-rail-item.active {
@@ -702,7 +702,8 @@
     color: var(--vscode-list-activeSelectionForeground);
     border-left-color: var(--vscode-focusBorder);
 }
-.qs-vec-rail-item:disabled {
+.qs-vec-rail-item:disabled,
+.qs-vec-rail-item[aria-disabled="true"] {
     color: var(--vscode-disabledForeground);
     cursor: default;
 }
@@ -773,6 +774,17 @@
     flex: 1;
     background: var(--vscode-charts-blue);
     min-height: 0;
+}
+.qs-vec-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 .qs-vec-hist-range {
     display: flex;

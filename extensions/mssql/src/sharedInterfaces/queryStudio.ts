@@ -290,10 +290,48 @@ export interface QsMessageRow {
 export namespace QsSyncEditsRequest {
     export const type = new RequestType<QsSyncEdits, QsSyncEditsResult, void>("qs/syncEdits");
 }
+
+/**
+ * PERF_MODE-only Vector action accepted by mssql.perf.queryStudioActivateTab.
+ * The payload is deliberately composition-only: selected result-row ordinal,
+ * catalog selector, metric, K, and variant gate. SQL, pasted vectors, source
+ * text, and model input have no representation in this contract.
+ */
+export interface QsVectorPerfTargetSelector {
+    readonly schema: string;
+    readonly table: string;
+    readonly vectorColumn: string;
+}
+
+export interface QsVectorPerfSearchAction {
+    readonly source: { readonly kind: "selectedRow"; readonly ordinal: number };
+    readonly target: QsVectorPerfTargetSelector;
+    readonly metric: "cosine" | "euclidean" | "dot";
+    readonly k: number;
+    readonly includeApprox: boolean;
+}
+
+export type QsVectorPerfAction =
+    | { readonly workspace: "projection" }
+    | { readonly workspace: "search"; readonly search: QsVectorPerfSearchAction };
+
+export type QsActivatableTab = "results" | "messages" | "queryPlan" | "vector";
+
+/** Host-internal activation after PERF_MODE argument normalization. */
+export interface QsActivateTabRequest {
+    readonly tab: QsActivatableTab;
+    readonly vector?: QsVectorPerfAction;
+}
+
+/** Host-to-webview envelope. requestId makes repeated identical actions observable. */
+export interface QsActivateTabParams extends QsActivateTabRequest {
+    readonly requestId: number;
+}
+
 export namespace QsActivateTabNotification {
-    // Host-driven results-tab activation (VEC-12 perf seam; also usable by
-    // commands). The webview treats unknown tab ids as a no-op.
-    export const type = new NotificationType<{ tab: string }>("qs/activateTab");
+    // Host-driven results-tab activation (VEC-12 perf seam). Nested Vector
+    // actions exist only behind the PERF_MODE command that originates them.
+    export const type = new NotificationType<QsActivateTabParams>("qs/activateTab");
 }
 export namespace QsShowCommandPaletteRequest {
     // F1 inside the embedded Monaco must open the VS CODE palette (commands

@@ -24,11 +24,14 @@
 import * as React from "react";
 import { Rpc } from "./resultsGridShared";
 import {
+    QsVectorCancelRequest,
     QsVectorProjectionRequest,
     QsVectorProjectionResult,
     VectorProjectionSummary,
 } from "../../../sharedInterfaces/vectorWorkbench";
 import { formatCount, formatPct, formatStat, resolveToken } from "./vectorViewsShared";
+import type { QsVectorProjectionViewState } from "../../../sharedInterfaces/queryStudioViewState";
+import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 
 export interface VectorProjectionViewProps {
     rpc: Rpc;
@@ -36,6 +39,10 @@ export interface VectorProjectionViewProps {
     handle: string;
     /** Generation stamp — a rerun resets via this changing. */
     generation: number;
+    /** Only the visible workspace may run analysis or retain Canvas listeners. */
+    active: boolean;
+    initialViewState?: QsVectorProjectionViewState;
+    onViewStateChange?: (state: QsVectorProjectionViewState) => void;
 }
 
 /** Integration descriptor for vectorTab.tsx (rail id + mount component). */
@@ -67,12 +74,12 @@ interface ViewTransform {
 }
 
 export function VectorProjectionView(props: VectorProjectionViewProps): React.JSX.Element {
-    const { rpc, handle, generation } = props;
+    const { rpc, handle, generation, active, initialViewState, onViewStateChange } = props;
     const [summary, setSummary] = React.useState<VectorProjectionSummary | undefined>();
     const [error, setError] = React.useState<string | undefined>();
     const [loading, setLoading] = React.useState(true);
     const [selected, setSelected] = React.useState(-1);
-    const [listScrollTop, setListScrollTop] = React.useState(0);
+    const [listScrollTop, setListScrollTop] = React.useState(initialViewState?.listScrollTop ?? 0);
     const [listHeight, setListHeight] = React.useState(0);
     const [announcement, setAnnouncement] = React.useState("");
 
@@ -80,10 +87,50 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
     const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
     const listRef = React.useRef<HTMLDivElement | null>(null);
     const pointsRef = React.useRef<PointStore | undefined>(undefined);
-    const viewRef = React.useRef<ViewTransform>({ cx: 0, cy: 0, scale: 60 });
+    const viewRef = React.useRef<ViewTransform>({
+        cx: initialViewState?.centerX ?? 0,
+        cy: initialViewState?.centerY ?? 0,
+        scale: initialViewState?.scale ?? 60,
+    });
+    const fittedRef = React.useRef(initialViewState?.fitted ?? false);
+    const listScrollTopRef = React.useRef(initialViewState?.listScrollTop ?? 0);
+    const pendingListScrollTopRef = React.useRef(initialViewState?.listScrollTop ?? 0);
+    const initialSelectedOrdinalRef = React.useRef(initialViewState?.selectedOrdinal);
     const selectedRef = React.useRef(-1);
     const dragRef = React.useRef<{ x: number; y: number; moved: boolean } | undefined>(undefined);
     const scrollRafRef = React.useRef(0);
+    const persistTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const firstPaintGenerationRef = React.useRef<number | undefined>(undefined);
+    const projectionStartedRef = React.useRef(false);
+
+    const emitViewStateNow = React.useCallback(() => {
+        if (!onViewStateChange) {
+            return;
+        }
+        const points = pointsRef.current;
+        const index = selectedRef.current;
+        const view = viewRef.current;
+        onViewStateChange({
+            fitted: fittedRef.current,
+            centerX: view.cx,
+            centerY: view.cy,
+            scale: view.scale,
+            ...(points && index >= 0 && index < points.count
+                ? { selectedOrdinal: points.ordinals[index] }
+                : {}),
+            listScrollTop: listScrollTopRef.current,
+        });
+    }, [onViewStateChange]);
+
+    const persistViewState = React.useCallback(() => {
+        if (persistTimerRef.current) {
+            clearTimeout(persistTimerRef.current);
+        }
+        persistTimerRef.current = setTimeout(() => {
+            persistTimerRef.current = undefined;
+            emitViewStateNow();
+        }, 80);
+    }, [emitViewStateNow]);
 
     // --- canvas engine (direct-DOM hot paths; no React state involved) ------
     const draw = React.useCallback(() => {
@@ -179,8 +226,10 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
             SCALE_MAX,
             Math.max(SCALE_MIN, Math.min(w / spanX, h / spanY) * FIT_PADDING),
         );
+        fittedRef.current = true;
         draw();
-    }, [draw]);
+        persistViewState();
+    }, [draw, persistViewState]);
 
     const zoomAt = React.useCallback(
         (factor: number, sx?: number, sy?: number) => {
@@ -201,8 +250,10 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
             view.cx = wx - (px - w / 2) / view.scale;
             view.cy = wy + (py - h / 2) / view.scale;
             draw();
+            fittedRef.current = true;
+            persistViewState();
         },
-        [draw],
+        [draw, persistViewState],
     );
 
     const select = React.useCallback(
@@ -220,8 +271,9 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
                     list.scrollTop = Math.max(0, target);
                 }
             }
+            persistViewState();
         },
-        [draw],
+        [draw, persistViewState],
     );
 
     const pick = React.useCallback(
@@ -255,13 +307,19 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
 
     // --- data fetch (per handle/generation) ---------------------------------
     React.useEffect(() => {
+        if (!active || projectionStartedRef.current) {
+            return;
+        }
+        projectionStartedRef.current = true;
         let cancelled = false;
+        let settled = false;
         setSummary(undefined);
         setError(undefined);
         setLoading(true);
         setSelected(-1);
         selectedRef.current = -1;
         pointsRef.current = undefined;
+        perfMark("mssql.queryResults.vector.render.begin", { workspace: "projection" });
         void (async () => {
             try {
                 const result = await rpc.sendRequest<{ handle: string }, QsVectorProjectionResult>(
@@ -291,6 +349,16 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
                         pointGroup: new Uint8Array(count),
                         count,
                     };
+                    const restoredOrdinal = initialSelectedOrdinalRef.current;
+                    if (restoredOrdinal !== undefined) {
+                        const restoredIndex = ordinals.findIndex(
+                            (ordinal) => ordinal === restoredOrdinal,
+                        );
+                        if (restoredIndex >= 0) {
+                            selectedRef.current = restoredIndex;
+                            setSelected(restoredIndex);
+                        }
+                    }
                     setSummary(projection);
                 }
             } catch (e) {
@@ -298,6 +366,7 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
                     setError(e instanceof Error ? e.message : String(e));
                 }
             } finally {
+                settled = true;
                 if (!cancelled) {
                     setLoading(false);
                 }
@@ -305,12 +374,15 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
         })();
         return () => {
             cancelled = true;
+            if (!settled) {
+                void rpc.sendRequest(QsVectorCancelRequest.type, { handle }).catch(() => undefined);
+            }
         };
-    }, [rpc, handle, generation]);
+    }, [active, rpc, handle, generation]);
 
     // --- canvas lifecycle: DPR backing store + auto-fit once ----------------
     React.useLayoutEffect(() => {
-        if (!summary) {
+        if (!active || !summary) {
             return;
         }
         const wrap = wrapRef.current;
@@ -321,14 +393,30 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
         let fitted = false;
         const resize = () => {
             const rect = wrap.getBoundingClientRect();
+            if (rect.width < 2 || rect.height < 2) {
+                return;
+            }
             const dpr = window.devicePixelRatio || 1;
             canvas.width = Math.max(1, Math.round(rect.width * dpr));
             canvas.height = Math.max(1, Math.round(rect.height * dpr));
             if (!fitted) {
                 fitted = true;
-                fit(); // auto-fit once after the first complete projection
+                if (fittedRef.current) {
+                    draw();
+                } else {
+                    fit(); // auto-fit once after the first complete projection
+                }
             } else {
                 draw();
+            }
+            if (
+                (pointsRef.current?.count ?? 0) > 0 &&
+                firstPaintGenerationRef.current !== generation
+            ) {
+                firstPaintGenerationRef.current = generation;
+                perfMarkAfterNextPaint("mssql.queryResults.vector.render.firstPaint", {
+                    workspace: "projection",
+                });
             }
         };
         const observer = new ResizeObserver(resize);
@@ -342,10 +430,13 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
             observer.disconnect();
             themeObserver.disconnect();
         };
-    }, [summary, fit, draw]);
+    }, [active, summary, fit, draw, generation]);
 
     // --- global drag listeners (capture-phase; survive leaving the canvas) --
     React.useEffect(() => {
+        if (!active) {
+            return;
+        }
         const move = (e: MouseEvent) => {
             const drag = dragRef.current;
             const canvas = canvasRef.current;
@@ -368,7 +459,12 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
             const drag = dragRef.current;
             const canvas = canvasRef.current;
             dragRef.current = undefined;
-            if (!drag || !canvas || drag.moved) {
+            if (!drag || !canvas) {
+                return;
+            }
+            if (drag.moved) {
+                fittedRef.current = true;
+                persistViewState();
                 return;
             }
             const rect = canvas.getBoundingClientRect();
@@ -380,12 +476,12 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
             window.removeEventListener("mousemove", move, { capture: true });
             window.removeEventListener("mouseup", up, { capture: true });
         };
-    }, [draw, pick]);
+    }, [active, draw, persistViewState, pick]);
 
     // --- wheel zoom to cursor (non-passive to preventDefault) ---------------
     React.useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas || !summary) {
+        if (!active || !canvas || !summary) {
             return;
         }
         const wheel = (e: WheelEvent) => {
@@ -395,11 +491,11 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
         };
         canvas.addEventListener("wheel", wheel, { passive: false });
         return () => canvas.removeEventListener("wheel", wheel);
-    }, [summary, zoomAt]);
+    }, [active, summary, zoomAt]);
 
     // --- list viewport measurement + rAF-throttled scroll window ------------
     React.useLayoutEffect(() => {
-        if (!summary) {
+        if (!active || !summary) {
             return;
         }
         const list = listRef.current;
@@ -409,26 +505,42 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
         const observer = new ResizeObserver(() => setListHeight(list.clientHeight));
         observer.observe(list);
         setListHeight(list.clientHeight);
+        list.scrollTop = listScrollTopRef.current;
         return () => observer.disconnect();
-    }, [summary]);
+    }, [active, summary]);
 
     const onListScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const top = e.currentTarget.scrollTop;
+        pendingListScrollTopRef.current = top;
         if (scrollRafRef.current !== 0) {
             return;
         }
         scrollRafRef.current = requestAnimationFrame(() => {
             scrollRafRef.current = 0;
-            setListScrollTop(top);
+            listScrollTopRef.current = pendingListScrollTopRef.current;
+            setListScrollTop(pendingListScrollTopRef.current);
+            persistViewState();
         });
     };
     React.useEffect(
         () => () => {
+            let shouldEmit = false;
             if (scrollRafRef.current !== 0) {
                 cancelAnimationFrame(scrollRafRef.current);
+                scrollRafRef.current = 0;
+                listScrollTopRef.current = pendingListScrollTopRef.current;
+                shouldEmit = true;
+            }
+            if (persistTimerRef.current) {
+                clearTimeout(persistTimerRef.current);
+                persistTimerRef.current = undefined;
+                shouldEmit = true;
+            }
+            if (shouldEmit) {
+                emitViewStateNow();
             }
         },
-        [],
+        [emitViewStateNow],
     );
 
     const onCanvasKeyDown = (e: React.KeyboardEvent) => {
@@ -470,7 +582,9 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
     if (error || !summary) {
         return (
             <div className="qs-vec-empty">
-                <div className="qs-vec-error">{error ?? "No projection available."}</div>
+                <div className="qs-vec-error" role={error ? "alert" : "status"}>
+                    {error ?? "No projection available."}
+                </div>
             </div>
         );
     }
@@ -484,13 +598,18 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
     );
     const visible: React.JSX.Element[] = [];
     if (points) {
-        for (let i = windowStart; i < windowEnd; i++) {
+        const visibleIndexes = new Set<number>();
+        for (let i = windowStart; i < windowEnd; i++) visibleIndexes.add(i);
+        if (selected >= 0 && selected < count) visibleIndexes.add(selected);
+        for (const i of [...visibleIndexes].sort((a, b) => a - b)) {
             visible.push(
                 <div
                     key={i}
                     role="option"
                     id={`qs-vec6-point-${i}`}
                     aria-selected={selected === i}
+                    aria-setsize={count}
+                    aria-posinset={i + 1}
                     className={`qs-vec6-point-row${selected === i ? " active" : ""}`}
                     style={{ top: i * ROW_HEIGHT }}
                     onClick={() => select(i)}>

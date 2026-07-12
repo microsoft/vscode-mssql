@@ -146,15 +146,33 @@ function rtmScripts(): FakeScript[] {
         probeScript(
             "indexes",
             ok(
-                ["schema", "table", "index", "type", "metric", "params", "confirmed"],
+                [
+                    "object_id",
+                    "index_id",
+                    "schema",
+                    "table",
+                    "index",
+                    "column",
+                    "type",
+                    "metric",
+                    "params",
+                    "vector_column_id",
+                    "raw_present",
+                    "usable",
+                ],
                 [
                     [
+                        101,
+                        2,
                         "dbo",
                         "VectorLabSearchCorpus",
                         "IX_VectorLabSearchCorpus_Embedding",
+                        "embedding",
                         "DiskANN",
                         "COSINE",
                         RTM_BUILD_PARAMS,
+                        2,
+                        1,
                         1,
                     ],
                 ],
@@ -238,27 +256,50 @@ function azureScripts(): FakeScript[] {
         probeScript(
             "indexes",
             ok(
-                ["schema", "table", "index", "type", "metric", "params", "confirmed"],
+                [
+                    "object_id",
+                    "index_id",
+                    "schema",
+                    "table",
+                    "index",
+                    "column",
+                    "type",
+                    "metric",
+                    "params",
+                    "vector_column_id",
+                    "raw_present",
+                    "usable",
+                ],
                 [
                     // Confirmed current-format index (Version 3).
                     [
+                        1525580473,
+                        5,
                         "vectorlab",
                         "VectorLabSearchCorpus",
                         "IX_ok",
+                        "embedding",
                         "DiskANN",
                         "COSINE",
                         AZURE_BUILD_PARAMS,
+                        2,
+                        1,
                         1,
                     ],
                     // Phantom residue of a failed build: in sys.vector_indexes,
                     // NOT in sys.indexes (verified live on GP_S serverless).
                     [
+                        202,
+                        7,
                         "vectorlab",
                         "Phantoms",
                         "IX_phantom",
+                        "embedding",
                         "DiskANN",
                         "EUCLIDEAN",
                         '{"StartId":"0"}',
+                        2,
+                        0,
                         0,
                     ],
                 ],
@@ -321,6 +362,31 @@ function azureScripts(): FakeScript[] {
 // ---------------------------------------------------------------------------
 
 suite("Vector catalog probes (VEC-7)", () => {
+    test("vector-index confirmation excludes disabled and hypothetical catalog rows", () => {
+        const sql = VECTOR_PROBE_SQL.vectorIndexes();
+        expect(sql).to.contain("iusable.is_disabled = 0");
+        expect(sql).to.contain("iusable.is_hypothetical = 0");
+    });
+
+    test("target-scoped index confirmation is authoritative beyond the global preview cap", () => {
+        const globalSql = VECTOR_PROBE_SQL.vectorIndexes();
+        const scopedSql = VECTOR_PROBE_SQL.vectorIndexes({
+            schema: "vectorlab",
+            table: "VectorLabSearchCorpus",
+        });
+        expect(globalSql).to.contain("SELECT TOP (64)");
+        expect(scopedSql).to.match(/^SELECT\r?\n/);
+        expect(scopedSql).to.not.contain("TOP (64)");
+        expect(scopedSql).to.contain("WHERE v.object_id = OBJECT_ID");
+
+        const scopedHealth = VECTOR_PROBE_SQL.healthDmvRows(
+            ["object_id", "index_id", "graph_catchup_pending_percent"],
+            { schema: "vectorlab", table: "VectorLabSearchCorpus" },
+        );
+        expect(scopedHealth).to.not.contain("TOP (16)");
+        expect(scopedHealth).to.contain("WHERE [object_id] = OBJECT_ID");
+    });
+
     test("RTM shape: DMV honestly absent, no $.Version, TVF accepted on the indexed table, WITH APPROXIMATE rejected", async () => {
         const probe = await probeVectorCapabilities(await sessionFor(rtmScripts()));
 
@@ -438,7 +504,23 @@ suite("Vector catalog probes (VEC-7)", () => {
         // the verified Msg 42227 text — syntax was accepted; the limitation
         // is carried on the message (and on the index probe itself).
         const custom = withOverrides(rtmScripts(), {
-            indexes: ok(["schema", "table", "index", "type", "metric", "params", "confirmed"], []),
+            indexes: ok(
+                [
+                    "object_id",
+                    "index_id",
+                    "schema",
+                    "table",
+                    "index",
+                    "column",
+                    "type",
+                    "metric",
+                    "params",
+                    "vector_column_id",
+                    "raw_present",
+                    "usable",
+                ],
+                [],
+            ),
             tvf: fail("Cannot find a vector index with metric 'cosine' on column 'embedding'."),
         });
         const probe = await probeVectorCapabilities(await sessionFor(custom));
@@ -603,6 +685,18 @@ suite("VectorCapabilityService (VEC-7)", () => {
         h.setIdentity({ connectionId: "conn1", database: "VectorLab" });
         await h.service.capabilities();
         expect(h.acquires).to.equal(2);
+    });
+
+    test("table-scoped probes use independent cache entries", async () => {
+        const h = harness();
+        const table = { schema: "dbo", table: "VectorLabChunks" };
+        await h.service.capabilities(false, table);
+        await h.service.capabilities(false, table);
+        expect(h.acquires).to.equal(1);
+
+        await h.service.capabilities(false, { schema: "dbo", table: "OtherVectors" });
+        await h.service.capabilities();
+        expect(h.acquires).to.equal(3);
     });
 
     test("concurrent callers coalesce onto one probe pass", async () => {
@@ -970,11 +1064,11 @@ suite("Vector catalog probes — LIVE (gated, skip-not-fail)", function () {
         expect(indexRows.length, "expected at least one vector index in VectorLab").to.be.at.least(
             1,
         );
-        const confirmed = indexRows.filter((row) => row[6] === "1");
+        const confirmed = indexRows.filter((row) => row[11] === "1");
         expect(confirmed.length, "expected a sys.indexes-confirmed vector index").to.be.at.least(1);
-        expect(confirmed[0][3]).to.equal("DiskANN");
+        expect(confirmed[0][6]).to.equal("DiskANN");
         for (const row of confirmed) {
-            expect(extractBuildParametersVersion(row[5])).to.equal(undefined);
+            expect(extractBuildParametersVersion(row[8])).to.equal(undefined);
         }
 
         // 3. VECTOR_SEARCH TVF parse probe on the indexed table: ACCEPTED
@@ -988,7 +1082,7 @@ suite("Vector catalog probes — LIVE (gated, skip-not-fail)", function () {
         const columns = dataRows(discovery.text);
         const indexedColumn =
             columns.find((row) =>
-                confirmed.some((index) => index[0] === row[0] && index[1] === row[1]),
+                confirmed.some((index) => index[2] === row[0] && index[3] === row[1]),
             ) ?? columns[0];
         expect(indexedColumn, "expected a vector column in VectorLab").to.not.equal(undefined);
         const probeTarget: VectorProbeTarget = {

@@ -25,6 +25,7 @@ import * as cp from "child_process";
 import { FakeBackend, FakeScript } from "../../src/services/sqlDataPlane/fakeBackend";
 import { ISqlSession } from "../../src/services/sqlDataPlane/api";
 import {
+    buildPipelineModelVerificationSql,
     buildReembedSql,
     compareStoredVsFresh,
     computeFixedChunks,
@@ -42,8 +43,11 @@ import {
     VECTOR_CHUNK_PREVIEW_CHARS,
     VECTOR_CHUNK_PREVIEW_MAX_CHUNKS,
     VECTOR_REEMBED_TOKEN_TTL_MS,
+    VECTOR_REEMBED_SOURCE_MAX_CHARS,
+    VECTOR_REEMBED_SOURCE_MAX_UTF8_BYTES,
     VECTOR_SERVER_SIDE_CLAIM,
 } from "../../src/sharedInterfaces/vectorPipeline";
+import { Perf } from "../../src/perf/perfTelemetry";
 import {
     VectorCapabilityProbe,
     VectorExternalModelProbeRow,
@@ -124,7 +128,7 @@ function fakeProbe(
 }
 
 /** Minimal result-store fake: summary + sparse getWindow over fixed rows. */
-function fakeStore(columns: string[], rows: unknown[][]): IQueryResultStore {
+function fakeStore(columns: string[], rows: unknown[][], windowDelayMs = 0): IQueryResultStore {
     const summary: QueryResultSetFrozenSummary = {
         resultSetId: "rs1",
         columnNames: [...columns],
@@ -140,15 +144,22 @@ function fakeStore(columns: string[], rows: unknown[][]): IQueryResultStore {
         kind: "rowStoreV1",
         state: "active",
         retain: () => undefined,
-        getWindow: async (req) => ({
-            resultSetId: req.resultSetId,
-            start: req.rowStart,
-            rowCount: 1,
-            columns: [],
-            values: [
-                (req.columnOrdinals ?? []).map((ordinal) => rows[req.rowStart]?.[ordinal] ?? null),
-            ],
-        }),
+        getWindow: async (req) => {
+            if (windowDelayMs > 0) {
+                await new Promise((resolve) => setTimeout(resolve, windowDelayMs));
+            }
+            return {
+                resultSetId: req.resultSetId,
+                start: req.rowStart,
+                rowCount: 1,
+                columns: [],
+                values: [
+                    (req.columnOrdinals ?? []).map(
+                        (ordinal) => rows[req.rowStart]?.[ordinal] ?? null,
+                    ),
+                ],
+            };
+        },
 
         streamRows: async function* () {
             throw new Error("streamRows is not used by the pipeline service");
@@ -179,15 +190,22 @@ interface HarnessOptions {
     /** Model-call script outcome: server error text (failure path). */
     modelFailure?: string;
     modelDelayMs?: number;
+    verificationModel?: VectorExternalModelProbeRow;
+    verificationLocation?: string;
+    verificationFailure?: string;
     auxAcquireDelayMs?: number;
+    auxAcquireFailure?: string;
     auxAvailable?: boolean;
+    capabilitiesDelayMs?: number;
+    windowDelayMs?: number;
 }
 
 function makeHarness(options: HarnessOptions = {}) {
     const columns = options.columns ?? ["id", "chunk_text", "embedding"];
     const rows = options.rows ?? [[1, SOURCE_TEXT, vectorCell([0.6, 0.8])]];
-    const store = fakeStore(columns, rows);
+    const store = fakeStore(columns, rows, options.windowDelayMs);
     const models = options.models ?? [defaultModel()];
+    const verificationModel = options.verificationModel ?? models[0];
     const executed: string[] = [];
     const counters = {
         auxAcquired: 0,
@@ -217,23 +235,66 @@ function makeHarness(options: HarnessOptions = {}) {
               ];
         return {
             match: (text) => {
-                executed.push(text);
-                return text.includes("AI_GENERATE_EMBEDDINGS");
+                const matches = text.includes("AI_GENERATE_EMBEDDINGS");
+                if (matches) executed.push(text);
+                return matches;
             },
             events,
         };
     };
+    const verificationScript = (): FakeScript => ({
+        match: (text) => text.includes("FROM sys.external_models m"),
+        events: options.verificationFailure
+            ? [
+                  { type: "message", kind: "error", text: options.verificationFailure },
+                  { type: "complete", status: "failed" },
+              ]
+            : [
+                  {
+                      type: "resultSet",
+                      columns: [
+                          "name",
+                          "owner",
+                          "api_format",
+                          "model_type_desc",
+                          "model",
+                          "location",
+                          "modify_time",
+                      ],
+                      rows: verificationModel
+                          ? [
+                                [
+                                    verificationModel.name,
+                                    verificationModel.owner ?? null,
+                                    verificationModel.apiFormat ?? null,
+                                    verificationModel.modelType ?? null,
+                                    verificationModel.providerModel ?? null,
+                                    options.verificationLocation ??
+                                        (verificationModel.endpointHost
+                                            ? `https://${verificationModel.endpointHost}/openai/embeddings`
+                                            : null),
+                                    verificationModel.modifyTime ?? null,
+                                ],
+                            ]
+                          : [],
+                  },
+                  { type: "complete", status: "succeeded" },
+              ],
+    });
 
     const thunks: VectorPipelineThunks = {
         auxModelSession: async () => {
             if (options.auxAcquireDelayMs) {
                 await new Promise((resolve) => setTimeout(resolve, options.auxAcquireDelayMs));
             }
+            if (options.auxAcquireFailure) {
+                throw new Error(options.auxAcquireFailure);
+            }
             if (options.auxAvailable === false) {
                 return undefined;
             }
             counters.auxAcquired++;
-            const backend = new FakeBackend({ scripts: [modelScript()] });
+            const backend = new FakeBackend({ scripts: [verificationScript(), modelScript()] });
             const session: ISqlSession = await backend.openSession({
                 profile: { profileFingerprint: "fp", server: "srv", authKind: "integrated" },
                 applicationName: "test-vector-model-call",
@@ -242,7 +303,7 @@ function makeHarness(options: HarnessOptions = {}) {
             session.execute = (text, executeOptions, sink) => {
                 counters.queryStarted++;
                 const handle = execute(text, executeOptions, sink);
-                modelStarted();
+                if (text.includes("AI_GENERATE_EMBEDDINGS")) modelStarted();
                 return {
                     ...handle,
                     cancel: async () => {
@@ -263,10 +324,14 @@ function makeHarness(options: HarnessOptions = {}) {
                 },
             };
         },
-        capabilities: async () =>
-            options.capabilitiesError
+        capabilities: async () => {
+            if (options.capabilitiesDelayMs) {
+                await new Promise((resolve) => setTimeout(resolve, options.capabilitiesDelayMs));
+            }
+            return options.capabilitiesError
                 ? { error: options.capabilitiesError }
-                : { probe: fakeProbe(models, options.compat ?? 170) },
+                : { probe: fakeProbe(models, options.compat ?? 170) };
+        },
         workbench: (handle) =>
             handle === "h1" ? { store, resultSetId: "rs1", vectorColumnOrdinal: 2 } : undefined,
     };
@@ -286,8 +351,24 @@ const PREPARE_DEFAULTS = {
     handle: "h1",
     ordinal: 0,
     sourceColumnOrdinal: 1,
-    modelName: "VectorLabEmbeddingModel",
 };
+
+async function prepareDefault(
+    harness: ReturnType<typeof makeHarness>,
+    overrides: Partial<{
+        handle: string;
+        ordinal: number;
+        sourceColumnOrdinal: number;
+        modelId: string;
+    }> = {},
+) {
+    const state = await harness.service.pipelineState();
+    return harness.service.reembedPrepare({
+        ...PREPARE_DEFAULTS,
+        modelId: state.models[0]?.id ?? "missing-model-binding",
+        ...overrides,
+    });
+}
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -314,6 +395,14 @@ suite("VectorPipelineService (VEC-10) — pure helpers", () => {
         const declareLine = sql.split("\n")[0];
         const quoteCount = (declareLine.match(/'/g) ?? []).length;
         expect(quoteCount % 2).to.equal(0);
+    });
+
+    test("model verification uses an exact binary database-scoped identity", () => {
+        const sql = buildPipelineModelVerificationSql("Case]Sensitive'Model");
+        expect(sql).to.contain("FROM sys.external_models m");
+        expect(sql).to.contain("CONVERT(varbinary(512), m.name)");
+        expect(sql).to.contain("N'Case]Sensitive''Model'");
+        expect(sql).to.contain("m.model_type_desc");
     });
 
     test("payload estimate: UTF-16 upper bound rounded UP to 0.1 KiB (mock: 842 chars → 1.7 KiB)", () => {
@@ -492,12 +581,13 @@ suite("VectorPipelineService (VEC-10) — pipelineState", () => {
 suite("VectorPipelineService (VEC-10) — reembedPrepare", () => {
     test("descriptor carries EVERY confirmation-dialog field from the mock", async () => {
         const h = makeHarness();
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
+        const prepared = await prepareDefault(h);
         expect(prepared.error).to.equal(undefined);
         expect(prepared.confirmationToken).to.be.a("string").with.length.greaterThan(20);
         expect(prepared.tokenExpiresEpochMs).to.equal(1_000_000 + VECTOR_REEMBED_TOKEN_TTL_MS);
         expect(prepared.storedDimensions).to.equal(2);
         expect(prepared.sourcePreview).to.equal(SOURCE_TEXT); // short text: no ellipsis
+        expect(prepared.sourcePreviewTruncated).to.equal(false);
 
         const d = prepared.descriptor!;
         expect(d.model).to.equal("VectorLabEmbeddingModel");
@@ -506,6 +596,7 @@ suite("VectorPipelineService (VEC-10) — reembedPrepare", () => {
         expect(d.apiFormat).to.equal("Azure OpenAI");
         expect(d.endpointHost).to.equal("example.openai.azure.com");
         expect(d.egress).to.equal("externalEgress");
+        expect(d.modelModifyTime).to.equal("2026-07-11T00:00:00");
         expect(d.source).to.equal("Selected row · chunk_text");
         expect(d.rowsCalls).to.equal(1);
         expect(d.textChars).to.equal(SOURCE_TEXT.length);
@@ -530,25 +621,59 @@ suite("VectorPipelineService (VEC-10) — reembedPrepare", () => {
                 ],
             ],
         });
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
+        const prepared = await prepareDefault(h);
         expect(prepared.error).to.equal(TRUNCATED_SOURCE_REFUSAL);
         expect(prepared.confirmationToken).to.equal(undefined);
         expect(prepared.generatedSql).to.equal(undefined);
     });
 
-    test("model is host-resolved against the probe (case-insensitive; probe casing wins; EMBEDDINGS only)", async () => {
+    test("independent source character and UTF-8 byte caps refuse before SQL/token retention", async () => {
+        const tooManyChars = makeHarness({
+            rows: [[1, "x".repeat(VECTOR_REEMBED_SOURCE_MAX_CHARS + 1), vectorCell([0.6, 0.8])]],
+        });
+        const chars = await prepareDefault(tooManyChars);
+        expect(chars.error).to.include("characters");
+        expect(chars.confirmationToken).to.equal(undefined);
+        expect(chars.generatedSql).to.equal(undefined);
+
+        const byteHeavy = "€".repeat(Math.floor(VECTOR_REEMBED_SOURCE_MAX_UTF8_BYTES / 3) + 1);
+        expect(byteHeavy.length).to.be.lessThan(VECTOR_REEMBED_SOURCE_MAX_CHARS);
+        const tooManyBytes = makeHarness({
+            rows: [[1, byteHeavy, vectorCell([0.6, 0.8])]],
+        });
+        const bytes = await prepareDefault(tooManyBytes);
+        expect(bytes.error).to.include("UTF-8 bytes");
+        expect(bytes.confirmationToken).to.equal(undefined);
+        expect(bytes.generatedSql).to.equal(undefined);
+    });
+
+    test("bounded source preview is explicitly labeled while SQL retains the full accepted source", async () => {
+        const fullSource = "a".repeat(220);
+        const h = makeHarness({ rows: [[1, fullSource, vectorCell([0.6, 0.8])]] });
+        const prepared = await prepareDefault(h);
+        expect(prepared.sourcePreview).to.equal(fullSource.slice(0, 160) + "…");
+        expect(prepared.sourcePreviewTruncated).to.equal(true);
+        expect(prepared.descriptor?.textChars).to.equal(fullSource.length);
+        expect(prepared.generatedSql).to.equal(
+            buildReembedSql(fullSource, "VectorLabEmbeddingModel"),
+        );
+    });
+
+    test("model selection is opaque and preserves the probe's exact case-sensitive identity", async () => {
         const h = makeHarness();
+        const state = await h.service.pipelineState();
+        expect(state.models[0].id).to.match(/^vpm_/);
         const prepared = await h.service.reembedPrepare({
             ...PREPARE_DEFAULTS,
-            modelName: "vectorlabembeddingmodel",
+            modelId: state.models[0].id,
         });
         expect(prepared.descriptor?.model).to.equal("VectorLabEmbeddingModel");
 
         const unknown = await h.service.reembedPrepare({
             ...PREPARE_DEFAULTS,
-            modelName: "NoSuchModel",
+            modelId: "vpm_forged",
         });
-        expect(unknown.error).to.include("not an EMBEDDINGS external model");
+        expect(unknown.error).to.include("Refresh the catalog-verified");
     });
 
     test("refusals: expired handle, ordinal range, vector column as source, no stored vector, null source", async () => {
@@ -559,21 +684,17 @@ suite("VectorPipelineService (VEC-10) — reembedPrepare", () => {
                 [3, null, vectorCell([0.6, 0.8])], // no source text
             ],
         });
-        expect(
-            (await h.service.reembedPrepare({ ...PREPARE_DEFAULTS, handle: "gone" })).error,
-        ).to.include("session has expired");
-        expect(
-            (await h.service.reembedPrepare({ ...PREPARE_DEFAULTS, ordinal: 99 })).error,
-        ).to.include("out of range");
-        expect(
-            (await h.service.reembedPrepare({ ...PREPARE_DEFAULTS, sourceColumnOrdinal: 2 })).error,
-        ).to.include("not the vector column");
-        expect(
-            (await h.service.reembedPrepare({ ...PREPARE_DEFAULTS, ordinal: 1 })).error,
-        ).to.include("no analyzable stored vector");
-        expect(
-            (await h.service.reembedPrepare({ ...PREPARE_DEFAULTS, ordinal: 2 })).error,
-        ).to.include("no source text");
+        expect((await prepareDefault(h, { handle: "gone" })).error).to.include(
+            "session has expired",
+        );
+        expect((await prepareDefault(h, { ordinal: 99 })).error).to.include("out of range");
+        expect((await prepareDefault(h, { sourceColumnOrdinal: 2 })).error).to.include(
+            "not the vector column",
+        );
+        expect((await prepareDefault(h, { ordinal: 1 })).error).to.include(
+            "no analyzable stored vector",
+        );
+        expect((await prepareDefault(h, { ordinal: 2 })).error).to.include("no source text");
     });
 });
 
@@ -584,23 +705,98 @@ suite("VectorPipelineService (VEC-10) — reembedPrepare", () => {
 suite("VectorPipelineService (VEC-10) — token lifecycle + execute", () => {
     test("wrong token: refused, no session acquired", async () => {
         const h = makeHarness();
-        const executed = await h.service.reembedExecute("not-a-token");
+        const executed = await h.service.reembedExecute("h1", "not-a-token");
         expect(executed.error).to.include("invalid, expired, or already used");
         expect(h.counters.auxAcquired).to.equal(0);
     });
 
+    test("consumed consent emits exactly one value-free model.end for success and pre-SQL failures", async () => {
+        const calls: Array<{ name: string; attrs: Record<string, unknown> }> = [];
+        const original = Perf.marker;
+        Perf.marker = ((name: string, _phase: string, attrs: Record<string, unknown>) => {
+            calls.push({ name, attrs });
+        }) as typeof Perf.marker;
+        try {
+            const success = makeHarness();
+            const successPrepared = await prepareDefault(success);
+            expect(
+                (await success.service.reembedExecute("h1", successPrepared.confirmationToken!))
+                    .comparison,
+            ).not.to.equal(undefined);
+
+            const unavailable = makeHarness({ auxAvailable: false });
+            const unavailablePrepared = await prepareDefault(unavailable);
+            expect(
+                (
+                    await unavailable.service.reembedExecute(
+                        "h1",
+                        unavailablePrepared.confirmationToken!,
+                    )
+                ).error,
+            ).to.include("No auxiliary session");
+
+            const throwing = makeHarness({ auxAcquireFailure: "model session factory failed" });
+            const throwingPrepared = await prepareDefault(throwing);
+            expect(
+                (await throwing.service.reembedExecute("h1", throwingPrepared.confirmationToken!))
+                    .error,
+            ).to.include("factory failed");
+
+            const markers = calls.filter(
+                (call) => call.name === "mssql.queryResults.vector.model.end",
+            );
+            expect(markers).to.have.length(3);
+            expect(markers.map((call) => call.attrs.outcome)).to.deep.equal([
+                "ok",
+                "error",
+                "error",
+            ]);
+            for (const marker of markers) {
+                expect(Object.keys(marker.attrs).sort()).to.deep.equal(["dims", "ms", "outcome"]);
+                expect(JSON.stringify(marker.attrs)).not.to.include("VectorLab");
+                expect(JSON.stringify(marker.attrs)).not.to.include("example.openai");
+            }
+        } finally {
+            Perf.marker = original;
+        }
+    });
+
+    test("same-session verification refuses case/endpoint drift before external egress", async () => {
+        const changed = {
+            ...defaultModel(),
+            name: "vectorlabembeddingmodel",
+            endpointHost: "different.example.com",
+        };
+        const h = makeHarness({ verificationModel: changed });
+        const prepared = await prepareDefault(h);
+        const executed = await h.service.reembedExecute("h1", prepared.confirmationToken!);
+        expect(executed.error).to.include("identity or endpoint changed");
+        expect(executed.modelStatementIssued).to.equal(false);
+        expect(h.executed).to.have.length(0);
+        expect(h.counters.queryStarted).to.equal(1);
+        expect(h.counters.queryDisposed).to.equal(1);
+    });
+
     test("happy path: displayed SQL == executed SQL; comparison hand-checked; lease disposed", async () => {
         const h = makeHarness({ modelResponse: "[0.8,0.6]" });
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
-        const executed = await h.service.reembedExecute(prepared.confirmationToken!);
+        const prepared = await prepareDefault(h);
+        const executed = await h.service.reembedExecute("h1", prepared.confirmationToken!);
         expect(executed.error).to.equal(undefined);
         expect(executed.elapsedMs).to.be.a("number");
+        expect(executed.modelStatementIssued).to.equal(true);
+        expect(executed.modelEgress).to.equal("externalEgress");
+        expect(executed.modelStatementCounts?.externalEgress).to.equal(1);
+        expect(executed.runId).to.match(/^vpr_[A-Za-z0-9_-]{16}$/);
+        expect(executed.context).to.include({ rowOrdinal: 0, sourceColumnOrdinal: 1 });
+        expect(executed.context?.modelId).to.match(/^vpm_/);
 
         // The auxiliary "vectorModelCall" session ran EXACTLY the displayed SQL.
         expect(h.executed).to.have.length(1);
         expect(h.executed[0]).to.equal(prepared.generatedSql);
         expect(h.counters.auxAcquired).to.equal(1);
         expect(h.counters.auxDisposed).to.equal(1);
+        expect(h.counters.queryStarted).to.equal(2); // identity verification + model call
+        expect(h.counters.queryDisposed).to.equal(2); // every completed handle is disposed
 
         // stored ≈ [0.6, 0.8] (float32), fresh = [0.8, 0.6]:
         // dot ≈ 0.96 ⇒ cosine ≈ 0.04; distance ≈ √0.08; norms ≈ 1.
@@ -611,55 +807,123 @@ suite("VectorPipelineService (VEC-10) — token lifecycle + execute", () => {
         expect(comparison.normStored).to.be.closeTo(1, 1e-6);
         expect(comparison.normFresh).to.be.closeTo(1, 1e-6);
         expect(comparison.dimensions).to.equal(2);
+
+        const restored = await h.service.reembedResult("h1", executed.runId!);
+        expect(restored).to.deep.equal(executed);
+        expect((await h.service.reembedResult("h1", "forged")).error).to.include("invalid");
     });
 
     test("consume-once: a token works exactly once, even when the call fails", async () => {
         const h = makeHarness({ modelResponse: "[0.8,0.6]" });
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
-        expect((await h.service.reembedExecute(prepared.confirmationToken!)).comparison)
+        const prepared = await prepareDefault(h);
+        expect((await h.service.reembedExecute("h1", prepared.confirmationToken!)).comparison)
             .to.not //
             .equal(undefined);
-        const replay = await h.service.reembedExecute(prepared.confirmationToken!);
+        const replay = await h.service.reembedExecute("h1", prepared.confirmationToken!);
         expect(replay.error).to.include("invalid, expired, or already used");
         expect(h.counters.auxAcquired).to.equal(1); // replay never reached a session
 
         const failing = makeHarness({
             modelFailure: "Msg 42902: external endpoint refused the call.",
         });
-        const preparedFailing = await failing.service.reembedPrepare(PREPARE_DEFAULTS);
-        const first = await failing.service.reembedExecute(preparedFailing.confirmationToken!);
+        const preparedFailing = await prepareDefault(failing);
+        const first = await failing.service.reembedExecute(
+            "h1",
+            preparedFailing.confirmationToken!,
+        );
         expect(first.error).to.include("external endpoint refused");
+        expect(first.modelStatementIssued).to.equal(true);
+        expect(first.modelEgress).to.equal("externalEgress");
         expect(failing.counters.auxDisposed).to.equal(1); // lease released in finally
-        const second = await failing.service.reembedExecute(preparedFailing.confirmationToken!);
+        const second = await failing.service.reembedExecute(
+            "h1",
+            preparedFailing.confirmationToken!,
+        );
         expect(second.error).to.include("invalid, expired, or already used");
     });
 
     test("expiry: a token older than 2 minutes is refused without touching a session", async () => {
         const h = makeHarness();
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
+        const prepared = await prepareDefault(h);
         h.advance(VECTOR_REEMBED_TOKEN_TTL_MS + 1);
-        const executed = await h.service.reembedExecute(prepared.confirmationToken!);
+        const executed = await h.service.reembedExecute("h1", prepared.confirmationToken!);
         expect(executed.error).to.include("invalid, expired, or already used");
         expect(h.counters.auxAcquired).to.equal(0);
     });
 
     test("re-mint replaces: a new confirmation for the same handle invalidates the previous token", async () => {
         const h = makeHarness({ modelResponse: "[0.8,0.6]" });
-        const first = await h.service.reembedPrepare(PREPARE_DEFAULTS);
-        const second = await h.service.reembedPrepare(PREPARE_DEFAULTS);
+        const first = await prepareDefault(h);
+        const second = await prepareDefault(h);
         expect(first.confirmationToken).to.not.equal(second.confirmationToken);
-        expect((await h.service.reembedExecute(first.confirmationToken!)).error).to.include(
+        expect((await h.service.reembedExecute("h1", first.confirmationToken!)).error).to.include(
             "invalid, expired, or already used",
         );
-        expect((await h.service.reembedExecute(second.confirmationToken!)).comparison).to.not.equal(
-            undefined,
-        );
+        expect(
+            (await h.service.reembedExecute("h1", second.confirmationToken!)).comparison,
+        ).to.not.equal(undefined);
+    });
+
+    test("token binds the exact opaque model identity across refresh", async () => {
+        const models = [defaultModel()];
+        const h = makeHarness({ models });
+        const prepared = await prepareDefault(h);
+        models[0] = { ...defaultModel(), modifyTime: "2026-07-12T00:00:00" };
+        await h.service.pipelineState(true);
+        const executed = await h.service.reembedExecute("h1", prepared.confirmationToken!);
+        expect(executed.error).to.include("model changed");
+        expect(h.counters.auxAcquired).to.equal(0);
+    });
+
+    test("handle-scoped cancel revokes only matching consent and settles active SQL", async () => {
+        const pendingHarness = makeHarness();
+        const pending = await prepareDefault(pendingHarness);
+        await pendingHarness.service.cancel("other-handle");
+        expect(
+            (
+                await pendingHarness.service.reembedExecute(
+                    "wrong-handle",
+                    pending.confirmationToken!,
+                )
+            ).error,
+        ).to.include("invalid, expired, or already used");
+        expect(
+            (await pendingHarness.service.reembedExecute("h1", pending.confirmationToken!))
+                .comparison,
+        ).not.to.equal(undefined);
+
+        const revoked = await prepareDefault(pendingHarness);
+        await pendingHarness.service.cancel("h1");
+        expect(
+            (await pendingHarness.service.reembedExecute("h1", revoked.confirmationToken!)).error,
+        ).to.include("invalid, expired, or already used");
+
+        const activeHarness = makeHarness({ modelDelayMs: 250 });
+        const active = await prepareDefault(activeHarness);
+        const markerCalls: string[] = [];
+        const originalMarker = Perf.marker;
+        Perf.marker = ((name: string) => markerCalls.push(name)) as typeof Perf.marker;
+        try {
+            const executing = activeHarness.service.reembedExecute("h1", active.confirmationToken!);
+            await activeHarness.modelStarted;
+            await activeHarness.service.cancel("h1");
+            const result = await executing;
+            expect(result.error).to.include("cancelled");
+            expect(activeHarness.counters.queryCanceled).to.equal(1);
+            expect(activeHarness.counters.queryDisposed).to.equal(2);
+            expect(activeHarness.counters.auxDisposed).to.equal(1);
+            expect(
+                markerCalls.filter((name) => name === "mssql.queryResults.vector.model.end"),
+            ).to.have.length(1);
+        } finally {
+            Perf.marker = originalMarker;
+        }
     });
 
     test("dimension mismatch: fresh vs stored dims refuse the comparison with both counts", async () => {
         const h = makeHarness({ modelResponse: "[1,2,3]" });
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
-        const executed = await h.service.reembedExecute(prepared.confirmationToken!);
+        const prepared = await prepareDefault(h);
+        const executed = await h.service.reembedExecute("h1", prepared.confirmationToken!);
         expect(executed.comparison).to.equal(undefined);
         expect(executed.error).to.include("3 dimensions");
         expect(executed.error).to.include("2");
@@ -667,22 +931,115 @@ suite("VectorPipelineService (VEC-10) — token lifecycle + execute", () => {
 
     test("non-JSON model output and missing aux session are honest refusals", async () => {
         const garbage = makeHarness({ modelResponse: "oops not json" });
-        const preparedGarbage = await garbage.service.reembedPrepare(PREPARE_DEFAULTS);
+        const preparedGarbage = await prepareDefault(garbage);
         expect(
-            (await garbage.service.reembedExecute(preparedGarbage.confirmationToken!)).error,
+            (await garbage.service.reembedExecute("h1", preparedGarbage.confirmationToken!)).error,
         ).to.include("not valid JSON");
 
         const noAux = makeHarness({ auxAvailable: false });
-        const preparedNoAux = await noAux.service.reembedPrepare(PREPARE_DEFAULTS);
+        const preparedNoAux = await prepareDefault(noAux);
+        const noAuxResult = await noAux.service.reembedExecute(
+            "h1",
+            preparedNoAux.confirmationToken!,
+        );
+        expect(noAuxResult.error).to.include("No auxiliary session");
+        expect(noAuxResult.modelStatementIssued).to.equal(false);
+    });
+
+    test("suspend retains only two terminal comparisons and counters while revoking consent and bindings", async () => {
+        const h = makeHarness({ modelResponse: "[0.8,0.6]" });
+        const completed = [];
+        for (let index = 0; index < 3; index++) {
+            const prepared = await prepareDefault(h);
+            completed.push(await h.service.reembedExecute("h1", prepared.confirmationToken!));
+        }
+        const state = await h.service.pipelineState();
+        const pending = await h.service.reembedPrepare({
+            ...PREPARE_DEFAULTS,
+            modelId: state.models[0].id,
+        });
+
+        await h.service.suspendSensitiveState();
+
+        expect((await h.service.reembedExecute("h1", pending.confirmationToken!)).error).to.include(
+            "invalid, expired, or already used",
+        );
         expect(
-            (await noAux.service.reembedExecute(preparedNoAux.confirmationToken!)).error,
-        ).to.include("No auxiliary session");
+            (
+                await h.service.reembedPrepare({
+                    ...PREPARE_DEFAULTS,
+                    modelId: state.models[0].id,
+                })
+            ).error,
+        ).to.include("Refresh the catalog-verified");
+        expect((await h.service.reembedResult("h1", completed[0].runId!)).error).to.include(
+            "no longer available",
+        );
+        const restored = await h.service.reembedResult("h1", completed[2].runId!);
+        expect(restored.runId).to.equal(completed[2].runId);
+        expect(restored.comparison).to.deep.equal(completed[2].comparison);
+        expect(restored.modelStatementCounts?.externalEgress).to.equal(3);
+
+        const resumed = await h.service.pipelineState();
+        expect(resumed.error).to.equal(undefined);
+        expect(resumed.models).to.have.length(1);
+        expect(resumed.models[0].id).to.equal(state.models[0].id);
+        expect(resumed.modelStatementCounts.externalEgress).to.equal(3);
+    });
+
+    test("suspend settles active model SQL and leaves the service reusable", async () => {
+        const h = makeHarness({ modelDelayMs: 250 });
+        const prepared = await prepareDefault(h);
+        const executing = h.service.reembedExecute("h1", prepared.confirmationToken!);
+        await h.modelStarted;
+
+        const issuedState = await h.service.pipelineState();
+        expect(issuedState.modelStatementCounts.externalEgress).to.equal(1);
+
+        const suspending = h.service.suspendSensitiveState();
+        const reopenedState = await h.service.pipelineState();
+        expect(reopenedState.modelStatementCounts.externalEgress).to.equal(1);
+        await suspending;
+        const result = await executing;
+
+        expect(result.comparison).to.equal(undefined);
+        expect(result.error).to.include("cancelled");
+        expect(h.counters.queryCanceled).to.equal(1);
+        expect(h.counters.queryDisposed).to.equal(2);
+        expect(h.counters.auxDisposed).to.equal(1);
+        const resumed = await h.service.pipelineState();
+        expect(resumed.error).to.equal(undefined);
+        expect(resumed.models).to.have.length(1);
+        expect(resumed.modelStatementCounts.externalEgress).to.equal(1);
+    });
+
+    test("suspend invalidates in-flight catalog and source reads", async () => {
+        const catalog = makeHarness({ capabilitiesDelayMs: 25 });
+        const loading = catalog.service.pipelineState();
+        await catalog.service.suspendSensitiveState();
+        const staleState = await loading;
+        expect(staleState.models).to.have.length(0);
+        expect(staleState.error).to.include("pane was hidden");
+        const freshState = await catalog.service.pipelineState();
+        expect(freshState.models).to.have.length(1);
+
+        const source = makeHarness({ windowDelayMs: 25 });
+        const sourceState = await source.service.pipelineState();
+        const preparing = source.service.reembedPrepare({
+            ...PREPARE_DEFAULTS,
+            modelId: sourceState.models[0].id,
+        });
+        await source.service.suspendSensitiveState();
+        const stalePrepare = await preparing;
+        expect(stalePrepare.confirmationToken).to.equal(undefined);
+        expect(stalePrepare.generatedSql).to.equal(undefined);
+        expect(stalePrepare.error).to.include("pane was hidden");
     });
 
     test("dispose cancels an active query, suppresses its result, and releases the lease once", async () => {
         const h = makeHarness({ modelDelayMs: 250 });
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
-        const executing = h.service.reembedExecute(prepared.confirmationToken!);
+        const prepared = await prepareDefault(h);
+        const executing = h.service.reembedExecute("h1", prepared.confirmationToken!);
         await h.modelStarted;
 
         h.service.dispose();
@@ -691,14 +1048,14 @@ suite("VectorPipelineService (VEC-10) — token lifecycle + execute", () => {
         expect(result.comparison).to.equal(undefined);
         expect(result.error).to.include("cancelled");
         expect(h.counters.queryCanceled).to.equal(1);
-        expect(h.counters.queryDisposed).to.equal(1);
+        expect(h.counters.queryDisposed).to.equal(2);
         expect(h.counters.auxDisposed).to.equal(1);
     });
 
     test("dispose during auxiliary-session acquisition closes the late lease without executing", async () => {
         const h = makeHarness({ auxAcquireDelayMs: 25 });
-        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
-        const executing = h.service.reembedExecute(prepared.confirmationToken!);
+        const prepared = await prepareDefault(h);
+        const executing = h.service.reembedExecute("h1", prepared.confirmationToken!);
 
         h.service.dispose();
         const result = await executing;
@@ -707,7 +1064,9 @@ suite("VectorPipelineService (VEC-10) — token lifecycle + execute", () => {
         expect(h.counters.auxAcquired).to.equal(1);
         expect(h.counters.auxDisposed).to.equal(1);
         expect(h.counters.queryStarted).to.equal(0);
-        expect((await h.service.reembedPrepare(PREPARE_DEFAULTS)).error).to.include("closed");
+        expect(
+            (await h.service.reembedPrepare({ ...PREPARE_DEFAULTS, modelId: "vpm_closed" })).error,
+        ).to.include("closed");
     });
 });
 

@@ -28,7 +28,7 @@ import {
     QsVectorCapabilitiesResult,
     VectorCapabilityProbe,
 } from "../../sharedInterfaces/vectorCatalog";
-import { probeVectorCapabilities } from "./vectorCatalogProbes";
+import { probeVectorCapabilities, VectorProbeTableFilter } from "./vectorCatalogProbes";
 
 export interface AuxiliarySessionLease {
     readonly session: ISqlSession;
@@ -59,14 +59,18 @@ export class VectorCapabilityService {
     ) {}
 
     /** Probe (or serve cached) capabilities for the current connection. */
-    async capabilities(refresh = false): Promise<QsVectorCapabilitiesResult> {
+    async capabilities(
+        refresh = false,
+        table?: VectorProbeTableFilter,
+    ): Promise<QsVectorCapabilitiesResult> {
         const identity = this.source.identity();
         if (!identity) {
             return {
                 error: "No active connection. Connect this document before probing vector capabilities.",
             };
         }
-        const key = `${identity.connectionId}|${identity.database ?? ""}`;
+        const scope = table ? JSON.stringify([table.schema, table.table]) : "*";
+        const key = `${identity.connectionId}|${identity.database ?? ""}|${scope}`;
         if (!refresh) {
             const cached = this.cache.get(key);
             if (cached && this.now() - cached.at < this.ttlMs) {
@@ -77,7 +81,7 @@ export class VectorCapabilityService {
                 return pending;
             }
         }
-        const run = this.probeOnce(key, identity.database);
+        const run = this.probeOnce(key, identity.database, table);
         this.inFlight.set(key, run);
         try {
             return await run;
@@ -98,7 +102,11 @@ export class VectorCapabilityService {
         this.inFlight.clear();
     }
 
-    private async probeOnce(key: string, database?: string): Promise<QsVectorCapabilitiesResult> {
+    private async probeOnce(
+        key: string,
+        database?: string,
+        table?: VectorProbeTableFilter,
+    ): Promise<QsVectorCapabilitiesResult> {
         const lease = await this.source.acquire();
         if (!lease) {
             return {
@@ -106,7 +114,11 @@ export class VectorCapabilityService {
             };
         }
         try {
-            const probe = await probeVectorCapabilities(lease.session, database);
+            const probe = await probeVectorCapabilities(
+                lease.session,
+                database,
+                table ? { table } : undefined,
+            );
             this.cache.set(key, { at: this.now(), probe });
             return { probe };
         } catch (error) {

@@ -78,10 +78,11 @@
     font-size: 12px;
     cursor: pointer;
 }
-.qs-vecp-button:hover:not(:disabled) {
+.qs-vecp-button:hover:not(:disabled):not([aria-disabled="true"]) {
     background: var(--vscode-toolbar-hoverBackground);
 }
-.qs-vecp-button:disabled {
+.qs-vecp-button:disabled,
+.qs-vecp-button[aria-disabled="true"] {
     opacity: 0.5;
     cursor: default;
 }
@@ -90,7 +91,7 @@
     color: var(--vscode-button-foreground);
     border-color: transparent;
 }
-.qs-vecp-button-primary:hover:not(:disabled) {
+.qs-vecp-button-primary:hover:not(:disabled):not([aria-disabled="true"]) {
     background: var(--vscode-button-hoverBackground);
 }
 
