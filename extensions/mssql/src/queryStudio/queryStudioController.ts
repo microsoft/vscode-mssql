@@ -757,7 +757,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
 
     /**
      * Query Studio is pure local content (VEC-5 P0): platform-enforced
-     * zero-network CSP. allowWorker covers Monaco's blob: editor worker.
+     * zero-external-network CSP. allowWorker permits fetching this webview's
+     * own bundled worker resources before converting them to blob: workers.
      * Validated live by the vector perf scenarios (full boot + query +
      * pane activation under this policy).
      */

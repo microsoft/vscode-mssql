@@ -21,6 +21,7 @@ import { QsUpdateGridSelectionRequest } from "../../../../sharedInterfaces/query
 import { SpatialMap } from "./SpatialMap";
 import type { SpatialDecodeResponse, SpatialDecodedFeature } from "./spatialWorkerProtocol";
 import { locConstants } from "../../../common/locConstants";
+import { createResourceWorker, type DisposableResourceWorker } from "./resourceWorker";
 
 export interface SpatialColumnChoice {
     resultSetId: string;
@@ -190,9 +191,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
         let canceled = false;
         let handle = "";
         let generation = 0;
-        const worker = new Worker(new URL("spatialDecodeWorker.js", document.baseURI), {
-            type: "module",
-        });
+        let resourceWorker: DisposableResourceWorker | undefined;
         setFeatures([]);
         setLoadState({ kind: "loading", scanned: 0, total: selectedColumn.totalRows });
         updateState({
@@ -202,6 +201,10 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             },
         });
         const load = async () => {
+            resourceWorker = await createResourceWorker(
+                new URL("spatialDecodeWorker.js", document.baseURI),
+            );
+            const worker = resourceWorker.worker;
             const opened = await props.rpc.sendRequest<QsSpatialOpenParams, QsSpatialOpenResult>(
                 QsSpatialOpenRequest.type,
                 {
@@ -312,7 +315,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
         });
         return () => {
             canceled = true;
-            worker.terminate();
+            resourceWorker?.dispose();
             if (handle) {
                 void props.rpc.sendRequest(QsSpatialCancelRequest.type, { handle, generation });
                 void props.rpc.sendRequest(QsSpatialCloseRequest.type, { handle });
