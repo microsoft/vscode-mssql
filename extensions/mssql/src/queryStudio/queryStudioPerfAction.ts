@@ -26,6 +26,7 @@ const ACTIVATABLE_TABS: ReadonlySet<string> = new Set([
     "messages",
     "queryPlan",
     "vector",
+    "spatial",
 ]);
 const PERF_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const MAX_IDENTIFIER_LENGTH = 128;

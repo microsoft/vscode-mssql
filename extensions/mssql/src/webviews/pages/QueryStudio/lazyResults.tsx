@@ -24,12 +24,17 @@
 
 import * as React from "react";
 import { perfMark } from "../../common/perfMarks";
+import {
+    queryPlanResultPaneContribution,
+    spatialResultPaneContribution,
+    vectorResultPaneContribution,
+} from "./resultPaneRegistry";
 
 const resultsModule = () => import("./results");
 const gridModule = () => import("./resultsGrid");
-const planModule = () => import("./queryPlanTab");
-const vectorModule = () => import("./vectorTab");
-const spatialModule = () => import("./spatialTab");
+const planModule = () => queryPlanResultPaneContribution.load();
+const vectorModule = () => vectorResultPaneContribution.load();
+const spatialModule = () => spatialResultPaneContribution.load();
 
 let gridPrefetchStarted = false;
 let gridLoaded = false;
@@ -95,7 +100,9 @@ export const LazyQsResultsGridProvider = React.lazy(async () => ({
 export const LazyExecutionPlanView = React.lazy(async () => {
     const module = await planModule();
     perfMark("mssql.queryStudio.boot.planChunkLoaded", {});
-    return { default: module.QueryStudioExecutionPlanView };
+    return {
+        default: (module as typeof import("./queryPlanTab")).QueryStudioExecutionPlanView,
+    };
 });
 
 export const LazyVectorTab = React.lazy(async () => {
@@ -104,14 +111,14 @@ export const LazyVectorTab = React.lazy(async () => {
     perfMark("mssql.queryStudio.boot.vectorChunkRequested", {});
     const module = await vectorModule();
     perfMark("mssql.queryStudio.boot.vectorChunkLoaded", {});
-    return { default: module.VectorWorkbenchTab };
+    return { default: (module as typeof import("./vectorTab")).VectorWorkbenchTab };
 });
 
 export const LazySpatialTab = React.lazy(async () => {
     perfMark("mssql.queryStudio.boot.spatialChunkRequested", {});
     const module = await spatialModule();
     perfMark("mssql.queryStudio.boot.spatialChunkLoaded", {});
-    return { default: module.SpatialResultsPane };
+    return { default: (module as typeof import("./spatialTab")).SpatialResultsPane };
 });
 
 /** Suspense fallback for the few-ms window where results beat the chunk. */

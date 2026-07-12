@@ -11,6 +11,7 @@
 
 import * as crypto from "crypto";
 import { Perf } from "../../perf/perfTelemetry";
+import { cellDisplayText } from "../../sharedInterfaces/queryStudioGridOps";
 import {
     isSpatialCellEncodingV1,
     SpatialCellEncodingV1,
@@ -42,6 +43,12 @@ interface SpatialSession {
     readonly totalRows: number;
     nextRow: number;
     nextSequence: number;
+    candidateCells: number;
+    nullCells: number;
+    unavailableCells: number;
+    payloadBytes: number;
+    startedAt: number;
+    prepareEnded: boolean;
     closed: boolean;
 }
 
@@ -49,7 +56,7 @@ function boundedText(value: unknown): string | undefined {
     if (value === undefined || value === null) {
         return undefined;
     }
-    const text = typeof value === "string" ? value : String(value);
+    const text = cellDisplayText(value);
     if (Buffer.byteLength(text, "utf8") <= MAX_TEXT_BYTES) {
         return text;
     }
@@ -128,16 +135,19 @@ export class SpatialSessionManager {
             totalRows: summary.rowCount,
             nextRow: 0,
             nextSequence: 0,
+            candidateCells: 0,
+            nullCells: 0,
+            unavailableCells: 0,
+            payloadBytes: 0,
+            startedAt: performance.now(),
+            prepareEnded: false,
             closed: false,
         };
         this.sessions.set(session.handle, session);
         Perf.marker("mssql.queryResults.spatial.prepare.begin", "begin", {
-            totalRows: summary.rowCount,
-            projectedColumns: new Set(
-                [params.spatialColumn, params.labelColumn, params.colorColumn].filter(
-                    (value): value is number => value !== undefined,
-                ),
-            ).size,
+            sourceMode: "capturedResult",
+            rowBudget: summary.rowCount,
+            payloadBudgetBytes: MAX_RESPONSE_BYTES,
         });
         return {
             handle: session.handle,
@@ -222,6 +232,14 @@ export class SpatialSessionManager {
                 features.push(feature);
                 estimatedBytes += bytes;
                 scannedRows++;
+                session.candidateCells++;
+                if (spatial === null) {
+                    session.nullCells++;
+                } else if (spatial.status === "unrenderable") {
+                    session.unavailableCells++;
+                } else {
+                    session.payloadBytes += spatial.wkbBytes;
+                }
             }
         }
         // A hard-to-fit feature still advances; typed cell guards cap it at 1 MiB.
@@ -236,18 +254,35 @@ export class SpatialSessionManager {
             scannedRows,
             wireBytes: 0,
         };
-        const wireBytes = Buffer.byteLength(JSON.stringify(provisional), "utf8");
+        let wireBytes = 0;
+        for (let i = 0; i < 3; i++) {
+            const measured = Buffer.byteLength(
+                JSON.stringify({ ...provisional, wireBytes }),
+                "utf8",
+            );
+            if (measured === wireBytes) break;
+            wireBytes = measured;
+        }
         Perf.marker("mssql.queryResults.spatial.chunk.end", "instant", {
             sequence: params.sequence,
-            rows: scannedRows,
-            wireBytes,
+            sourceRowsScanned: scannedRows,
+            features: features.length,
+            payloadBytes: wireBytes,
             done,
             ms: Math.round((performance.now() - startedAt) * 100) / 100,
         });
         if (done) {
+            session.prepareEnded = true;
             Perf.marker("mssql.queryResults.spatial.prepare.end", "end", {
-                scannedRows: session.nextRow,
-                totalRows: session.totalRows,
+                outcome: "ok",
+                sourceRowsScanned: session.nextRow,
+                candidateCells: session.candidateCells,
+                nullCells: session.nullCells,
+                transportUnavailableCells: session.unavailableCells,
+                payloadBytes: session.payloadBytes,
+                partial: session.nextRow < session.totalRows ? "true" : "false",
+                partialReason: session.nextRow < session.totalRows ? "storeShortRead" : "none",
+                ms: Math.round((performance.now() - session.startedAt) * 100) / 100,
             });
         }
         return { ...provisional, wireBytes };
@@ -256,23 +291,40 @@ export class SpatialSessionManager {
     cancel(handle: string, generation: number): void {
         const session = this.sessions.get(handle);
         if (session && session.generation === generation) {
-            Perf.marker("mssql.queryResults.spatial.prepare.cancel", "end", {
-                scannedRows: session.nextRow,
+            Perf.marker("mssql.queryResults.spatial.prepare.cancel", "instant", {
+                reason: "clientCancel",
+                sourceRowsScanned: session.nextRow,
             });
-            this.close(handle);
+            this.close(handle, "cancel");
         }
     }
 
-    close(handle: string): void {
+    close(handle: string, reason = "close"): void {
         const session = this.sessions.get(handle);
         if (!session) {
             return;
         }
         session.closed = true;
         this.sessions.delete(handle);
+        if (!session.prepareEnded) {
+            session.prepareEnded = true;
+            Perf.marker("mssql.queryResults.spatial.prepare.end", "end", {
+                outcome: "canceled",
+                sourceRowsScanned: session.nextRow,
+                candidateCells: session.candidateCells,
+                nullCells: session.nullCells,
+                transportUnavailableCells: session.unavailableCells,
+                payloadBytes: session.payloadBytes,
+                partial: "true",
+                partialReason: reason,
+                ms: Math.round((performance.now() - session.startedAt) * 100) / 100,
+            });
+        }
         session.lease.dispose();
         Perf.marker("mssql.queryResults.spatial.resources.released", "instant", {
-            scannedRows: session.nextRow,
+            reason,
+            leases: 0,
+            sessions: this.sessions.size,
         });
     }
 

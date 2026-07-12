@@ -791,7 +791,8 @@ export function QueryStudioApp() {
                     p.tab === "results" ||
                     p.tab === "messages" ||
                     p.tab === "queryPlan" ||
-                    p.tab === "vector"
+                    p.tab === "vector" ||
+                    p.tab === "spatial"
                 ) {
                     setActiveTab(p.tab);
                 }

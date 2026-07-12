@@ -37,12 +37,15 @@ const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
 
-type PinnedTab = "results" | "messages" | "vector";
+type PinnedTab = "results" | "messages" | "vector" | "spatial";
 
 // VEC-11: the Vector Workbench stays a lazy chunk here too — a pinned tab
 // without vector columns never loads it.
 const LazyVectorTab = React.lazy(async () => ({
     default: (await import("../QueryStudio/vectorTab")).VectorWorkbenchTab,
+}));
+const LazySpatialTab = React.lazy(async () => ({
+    default: (await import("../QueryStudio/spatialTab")).SpatialResultsPane,
 }));
 
 export function PinnedResultsApp() {
@@ -161,6 +164,12 @@ export function PinnedResultsApp() {
         },
         [updatePanelViewState],
     );
+    const persistSpatialViewState = useCallback(
+        (spatialState: QueryStudioPanelViewState["spatial"]) => {
+            updatePanelViewState((current) => ({ ...current, spatial: spatialState }));
+        },
+        [updatePanelViewState],
+    );
     const selectTab = useCallback(
         (tab: PinnedTab) => {
             setActiveTab(tab);
@@ -193,7 +202,9 @@ export function PinnedResultsApp() {
                 panelViewStateRef.current = saved;
                 panelViewStateReadyRef.current = true;
                 const savedTab: PinnedTab =
-                    saved.shell.activeTab === "messages" || saved.shell.activeTab === "vector"
+                    saved.shell.activeTab === "messages" ||
+                    saved.shell.activeTab === "vector" ||
+                    saved.shell.activeTab === "spatial"
                         ? saved.shell.activeTab
                         : "results";
                 setActiveTab(savedTab);
@@ -292,6 +303,34 @@ export function PinnedResultsApp() {
             ),
         [gridSummaries],
     );
+    const spatialColumns = useMemo(
+        () =>
+            gridSummaries.flatMap(
+                (summary, resultIndex) =>
+                    summary.columns?.flatMap((column, ordinal) =>
+                        column.spatial?.encoding === "wkb-v1"
+                            ? [
+                                  {
+                                      resultSetId: summary.resultSetId,
+                                      resultSetLabel: `Result ${resultIndex + 1}`,
+                                      columnOrdinal: ordinal,
+                                      columnName: column.displayName || column.name,
+                                      kind: column.spatial.kind,
+                                      totalRows: summary.rowCount,
+                                      columns: (summary.columns ?? []).map((candidate, index) => ({
+                                          ordinal: index,
+                                          name: candidate.displayName || candidate.name,
+                                          ...(candidate.sqlType
+                                              ? { sqlType: candidate.sqlType }
+                                              : {}),
+                                      })),
+                                  },
+                              ]
+                            : [],
+                    ) ?? [],
+            ),
+        [gridSummaries],
+    );
     const singleGrid = gridSummaries.length === 1 && planSummaries.length === 0;
     const maximizedGrid = gridSummaries.some((s) => s.resultSetId === maximizedGridId)
         ? maximizedGridId
@@ -310,6 +349,7 @@ export function PinnedResultsApp() {
         results: gridSummaries.length > 0 || planSummaries.length > 0,
         messages: state?.hasLocalMessages === true || (state?.messageCount ?? 0) > 0,
         vector: vectorColumns.length > 0,
+        spatial: spatialColumns.length > 0,
         queryPlan: false,
     }) as PinnedTab[];
     const visibleActiveTab = availableTabs.includes(activeTab)
@@ -375,7 +415,9 @@ export function PinnedResultsApp() {
                             ? `Results${state.totalRows > 0 ? ` (${state.totalRows.toLocaleString()})` : ""}`
                             : tab === "messages"
                               ? `Messages${state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""}`
-                              : "Vector"}
+                              : tab === "vector"
+                                ? "Vector"
+                                : "Spatial"}
                     </button>
                 ))}
             </div>
@@ -495,6 +537,29 @@ export function PinnedResultsApp() {
                                     panelVisible={panelVisible}
                                     initialViewState={panelViewStateRef.current.vector}
                                     onViewStateChange={persistVectorViewState}
+                                />
+                            </React.Suspense>
+                        </QueryStudioErrorBoundary>
+                    </div>
+                ) : null}
+                {spatialColumns.length > 0 && mountedTabs.has("spatial") ? (
+                    <div
+                        className="qs-tab-panel qs-tab-panel-fill"
+                        hidden={visibleActiveTab !== "spatial"}>
+                        <QueryStudioErrorBoundary
+                            label="Spatial"
+                            resetKey={`spatial:${panelViewStateRef.current.generation}`}
+                            onError={reportPaneError}>
+                            <React.Suspense
+                                fallback={<div className="qs-muted">Loading Spatial view…</div>}>
+                                <LazySpatialTab
+                                    rpc={rpc}
+                                    columns={spatialColumns}
+                                    runKey={`pinned:${state.createdEpochMs ?? 0}`}
+                                    active={panelVisible && visibleActiveTab === "spatial"}
+                                    panelVisible={panelVisible}
+                                    initialViewState={panelViewStateRef.current.spatial}
+                                    onViewStateChange={persistSpatialViewState}
                                 />
                             </React.Suspense>
                         </QueryStudioErrorBoundary>

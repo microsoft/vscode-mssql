@@ -29,6 +29,7 @@ export interface QueryResultResolvedContext {
     readonly snapshotId?: string;
     readonly resultSetId: string;
     readonly active?: { row: number; column: number };
+    readonly spatial?: { row: number; column: number };
     readonly selectedCellCount: number;
     readonly selectedRowCount: number;
     readonly updatedEpochMs: number;
@@ -65,6 +66,7 @@ export class QueryResultContextService {
             ...(owner.kind === "pinnedSnapshot" ? { snapshotId: owner.snapshotId } : {}),
             resultSetId: update.resultSetId,
             ...(update.active ? { active: update.active } : {}),
+            ...(update.spatial ? { spatial: update.spatial } : {}),
             selectedCellCount,
             selectedRowCount: update.selectedRowCount ?? (update.active ? 1 : 0),
             updatedEpochMs: this.now(),

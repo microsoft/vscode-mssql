@@ -17,6 +17,9 @@ export interface SpatialDecodedFeature {
     geometryType?: string;
     layout?: string;
     vertices?: number;
+    envelope?: [minX: number, minY: number, maxX: number, maxY: number];
+    parts?: number;
+    rings?: number;
     /** GeoJSON geometry only; properties never carry source values. */
     geometry?: Record<string, unknown>;
     projection?: "EPSG:4326" | "EPSG:3857" | "planar";

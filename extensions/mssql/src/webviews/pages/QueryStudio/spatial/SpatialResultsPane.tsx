@@ -17,6 +17,7 @@ import {
 } from "../../../../sharedInterfaces/spatialResults";
 import type { QsSpatialPanelViewState } from "../../../../sharedInterfaces/queryStudioViewState";
 import { perfMark, perfMarkAfterNextPaint } from "../../../common/perfMarks";
+import { QsUpdateGridSelectionRequest } from "../../../../sharedInterfaces/queryStudio";
 import { SpatialMap } from "./SpatialMap";
 import type { SpatialDecodeResponse, SpatialDecodedFeature } from "./spatialWorkerProtocol";
 
@@ -219,6 +220,11 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             generation = opened.generation;
             let sequence = 0;
             let scanned = 0;
+            let rendered = 0;
+            let vertices = 0;
+            let skipped = 0;
+            let derivedBytes = 0;
+            const renderStartedAt = performance.now();
             while (!canceled) {
                 const chunk = await props.rpc.sendRequest<QsSpatialNextParams, QsSpatialNextResult>(
                     QsSpatialNextRequest.type,
@@ -226,8 +232,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 );
                 if (chunk.error) throw new Error(chunk.error);
                 perfMark("mssql.queryResults.spatial.decode.begin", {
-                    sequence,
-                    rows: chunk.features.length,
+                    mode: "worker",
                 });
                 const decoded = await workerDecode(
                     worker,
@@ -237,13 +242,30 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 );
                 if (canceled) return;
                 perfMark("mssql.queryResults.spatial.decode.end", {
-                    sequence,
-                    rows: decoded.decoded,
-                    unsupported: decoded.unsupported,
-                    errors: decoded.errors,
+                    outcome: decoded.errors > 0 ? "partial" : "ok",
+                    features: decoded.decoded,
+                    vertices: decoded.features.reduce(
+                        (total, feature) => total + (feature.vertices ?? 0),
+                        0,
+                    ),
+                    skipped: decoded.unsupported + decoded.errors,
+                    derivedBytes: decoded.features.reduce(
+                        (total, feature) => total + (feature.vertices ?? 0) * 16,
+                        0,
+                    ),
                     ms: Math.round(decoded.elapsedMs * 100) / 100,
                 });
                 setFeatures((current) => [...current, ...decoded.features]);
+                rendered += decoded.decoded;
+                vertices += decoded.features.reduce(
+                    (total, feature) => total + (feature.vertices ?? 0),
+                    0,
+                );
+                skipped += decoded.unsupported + decoded.errors;
+                derivedBytes += decoded.features.reduce(
+                    (total, feature) => total + (feature.vertices ?? 0) * 16,
+                    0,
+                );
                 scanned += chunk.scannedRows;
                 setLoadState({
                     kind: chunk.done ? "ready" : "loading",
@@ -252,7 +274,14 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 });
                 if (chunk.done) {
                     void perfMarkAfterNextPaint("mssql.queryResults.spatial.render.settled", {
-                        rows: scanned,
+                        tier: "canvas",
+                        features: rendered,
+                        vertices,
+                        skipped,
+                        partial: "false",
+                        longTasks: 0,
+                        derivedBytes,
+                        ms: Math.round((performance.now() - renderStartedAt) * 100) / 100,
                     });
                     break;
                 }
@@ -274,7 +303,9 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 void props.rpc.sendRequest(QsSpatialCancelRequest.type, { handle, generation });
                 void props.rpc.sendRequest(QsSpatialCloseRequest.type, { handle });
             }
-            perfMark("mssql.queryResults.spatial.decode.cancel", { generation });
+            perfMark("mssql.queryResults.spatial.decode.cancel", {
+                reason: "generationInvalidated",
+            });
         };
     }, [
         props.active,
@@ -313,6 +344,18 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
     if (!selectedColumn) {
         return <div className="qs-spatial-empty">No eligible spatial columns.</div>;
     }
+
+    const selectFeature = (selectedRowOrdinal: number) => {
+        updateState({ selectedRowOrdinal });
+        void props.rpc.sendRequest(QsUpdateGridSelectionRequest.type, {
+            resultSetId: selectedColumn.resultSetId,
+            spatial: { row: selectedRowOrdinal, column: selectedColumn.columnOrdinal },
+            selectedCellCount: 1,
+            selectedRowCount: 1,
+            displayedRowCount: selectedColumn.totalRows,
+            reason: "spatial",
+        });
+    };
 
     return (
         <section className="qs-spatial-root" aria-label="Spatial results analysis">
@@ -431,7 +474,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         <VirtualFeatureList
                             features={filteredFeatures}
                             selected={viewState.selectedRowOrdinal}
-                            onSelect={(selectedRowOrdinal) => updateState({ selectedRowOrdinal })}
+                            onSelect={selectFeature}
                             initialScrollTop={viewState.listScrollTop}
                             onScroll={(listScrollTop) => updateState({ listScrollTop })}
                         />
@@ -441,7 +484,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     <SpatialMap
                         features={filteredFeatures}
                         selectedOrdinal={viewState.selectedRowOrdinal}
-                        onSelect={(selectedRowOrdinal) => updateState({ selectedRowOrdinal })}
+                        onSelect={selectFeature}
                         initialCamera={viewState.camera}
                         onCameraChange={(camera) => updateState({ camera })}
                         fitNonce={fitNonce}
@@ -474,6 +517,16 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                                 <dd>{selectedFeature.layout ?? "—"}</dd>
                                 <dt>Vertices</dt>
                                 <dd>{selectedFeature.vertices ?? "—"}</dd>
+                                <dt>Parts</dt>
+                                <dd>{selectedFeature.parts ?? "—"}</dd>
+                                <dt>Rings</dt>
+                                <dd>{selectedFeature.rings ?? "—"}</dd>
+                                <dt>Envelope</dt>
+                                <dd>
+                                    {selectedFeature.envelope
+                                        ?.map((value) => value.toPrecision(8))
+                                        .join(", ") ?? "—"}
+                                </dd>
                                 <dt>WKB bytes</dt>
                                 <dd>{selectedFeature.wkbBytes ?? "—"}</dd>
                                 <dt>Reason</dt>

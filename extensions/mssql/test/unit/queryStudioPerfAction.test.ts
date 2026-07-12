@@ -36,6 +36,18 @@ function target(overrides?: Partial<VectorSearchTargetInfo>): VectorSearchTarget
 }
 
 suite("Query Studio PERF_MODE Vector actions", () => {
+    test("generic pane activation admits Spatial without accepting a payload", () => {
+        expect(normalizeQueryStudioPerfActivateTabArgs({ tab: "spatial" })).to.deep.equal({
+            value: { activation: { tab: "spatial" } },
+        });
+        expect(
+            normalizeQueryStudioPerfActivateTabArgs({
+                tab: "spatial",
+                vector: { workspace: "projection" },
+            }),
+        ).to.have.property("error");
+    });
+
     test("normalizes the supported Projection and Search command shapes", () => {
         expect(normalizeQueryStudioPerfActivateTabArgs(undefined)).to.deep.equal({
             value: { activation: { tab: "vector" } },

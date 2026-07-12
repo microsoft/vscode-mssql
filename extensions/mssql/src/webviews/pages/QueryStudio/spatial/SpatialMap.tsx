@@ -8,7 +8,7 @@ import Map from "ol/Map.js";
 import View from "ol/View.js";
 import Feature from "ol/Feature.js";
 import GeoJSON from "ol/format/GeoJSON.js";
-import VectorLayer from "ol/layer/Vector.js";
+import VectorImageLayer from "ol/layer/VectorImage.js";
 import VectorSource from "ol/source/Vector.js";
 import { defaults as defaultControls } from "ol/control/defaults.js";
 import { Fill, Stroke, Style, Circle as CircleStyle } from "ol/style.js";
@@ -34,26 +34,54 @@ function themeColor(variable: string): string {
     return style.getPropertyValue(variable).trim() || style.color;
 }
 
+function hashCategory(value: string): number {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index++) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+}
+
 export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
     const targetRef = React.useRef<HTMLDivElement>(null);
     const mapRef = React.useRef<Map | undefined>(undefined);
     const sourceRef = React.useRef<VectorSource<Feature> | undefined>(undefined);
     const loadedRef = React.useRef(new Set<number>());
+    const previousInputRef = React.useRef<readonly SpatialDecodedFeature[]>([]);
     const propsRef = React.useRef(props);
     propsRef.current = props;
     const firstPaintRef = React.useRef(false);
+    const renderBeginRef = React.useRef(false);
 
     React.useLayoutEffect(() => {
         if (!targetRef.current) return;
-        const normal = new Style({
-            fill: new Fill({ color: themeColor("--vscode-charts-blue") }),
-            stroke: new Stroke({ color: themeColor("--vscode-editor-foreground"), width: 1 }),
-            image: new CircleStyle({
-                radius: 4,
-                fill: new Fill({ color: themeColor("--vscode-charts-blue") }),
-                stroke: new Stroke({ color: themeColor("--vscode-editor-foreground"), width: 1 }),
-            }),
-        });
+        const palette = [
+            "--vscode-charts-blue",
+            "--vscode-charts-orange",
+            "--vscode-charts-green",
+            "--vscode-charts-purple",
+            "--vscode-charts-yellow",
+            "--vscode-charts-red",
+        ].map(themeColor);
+        const normalStyles = palette.map(
+            (color) =>
+                new Style({
+                    fill: new Fill({ color }),
+                    stroke: new Stroke({
+                        color: themeColor("--vscode-editor-foreground"),
+                        width: 1,
+                    }),
+                    image: new CircleStyle({
+                        radius: 4,
+                        fill: new Fill({ color }),
+                        stroke: new Stroke({
+                            color: themeColor("--vscode-editor-foreground"),
+                            width: 1,
+                        }),
+                    }),
+                }),
+        );
         const selected = new Style({
             fill: new Fill({ color: themeColor("--vscode-list-activeSelectionBackground") }),
             stroke: new Stroke({ color: themeColor("--vscode-focusBorder"), width: 3 }),
@@ -64,12 +92,15 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             }),
         });
         const source = new VectorSource<Feature>({ useSpatialIndex: true });
-        const layer = new VectorLayer({
+        // VectorImage keeps panning/zooming responsive by reusing a rendered
+        // image while interaction is active, then refreshes at rest.
+        const layer = new VectorImageLayer({
             source,
-            updateWhileAnimating: false,
-            updateWhileInteracting: false,
+            imageRatio: 1.25,
             style: (feature) =>
-                feature.get("ordinal") === propsRef.current.selectedOrdinal ? selected : normal,
+                feature.get("ordinal") === propsRef.current.selectedOrdinal
+                    ? selected
+                    : normalStyles[feature.get("colorIndex") ?? 0],
         });
         const camera = props.initialCamera;
         const view = new View({
@@ -104,8 +135,11 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                     rotation: view.getRotation(),
                 });
                 perfMark("mssql.queryResults.spatial.interaction.end", {
-                    interaction: "move",
-                    rendered: source.getFeatures().length,
+                    action: "panOrZoom",
+                    tier: "canvas",
+                    frames: 0,
+                    p95FrameMs: 0,
+                    inputDelayMs: 0,
                 });
             }
         });
@@ -113,7 +147,14 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             if (!firstPaintRef.current && source.getFeatures().length > 0) {
                 firstPaintRef.current = true;
                 perfMark("mssql.queryResults.spatial.render.firstPaint", {
-                    rendered: source.getFeatures().length,
+                    tier: "canvas",
+                    features: source.getFeatures().length,
+                    vertices: propsRef.current.features.reduce(
+                        (total, feature) => total + (feature.vertices ?? 0),
+                        0,
+                    ),
+                    partial: "true",
+                    rafThrottled: 0,
                 });
             }
         });
@@ -121,7 +162,6 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
         sourceRef.current = source;
         const observer = new ResizeObserver(() => map.updateSize());
         observer.observe(targetRef.current);
-        perfMark("mssql.queryResults.spatial.render.begin", { renderer: "canvas" });
         return () => {
             observer.disconnect();
             map.setTarget(undefined);
@@ -130,9 +170,7 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             mapRef.current = undefined;
             sourceRef.current = undefined;
             loadedRef.current.clear();
-            perfMark("mssql.queryResults.spatial.render.cancel", {
-                rendered: source.getFeatures().length,
-            });
+            perfMark("mssql.queryResults.spatial.render.cancel", { reason: "unmount" });
         };
     }, []);
 
@@ -142,7 +180,19 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
         if (!source || !map) return;
         const reader = new GeoJSON();
         const added: Feature[] = [];
-        for (const decoded of props.features) {
+        const previous = previousInputRef.current;
+        const isAppend =
+            props.features.length >= previous.length &&
+            (previous.length === 0 ||
+                props.features[previous.length - 1]?.ordinal ===
+                    previous[previous.length - 1]?.ordinal);
+        if (!isAppend) {
+            source.clear(true);
+            loadedRef.current.clear();
+        }
+        const pending = isAppend ? props.features.slice(previous.length) : props.features;
+        previousInputRef.current = props.features;
+        for (const decoded of pending) {
             if (
                 decoded.status !== "ready" ||
                 !decoded.geometry ||
@@ -160,6 +210,8 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                     },
                 ) as Feature;
                 feature.set("ordinal", decoded.ordinal, true);
+                const category = decoded.colorValue ?? decoded.geometryType ?? "Spatial";
+                feature.set("colorIndex", hashCategory(category) % 6, true);
                 added.push(feature);
                 loadedRef.current.add(decoded.ordinal);
             } catch {
@@ -168,6 +220,13 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             }
         }
         if (added.length > 0) {
+            if (!renderBeginRef.current) {
+                renderBeginRef.current = true;
+                perfMark("mssql.queryResults.spatial.render.begin", {
+                    tier: "canvas",
+                    offline: "true",
+                });
+            }
             source.addFeatures(added);
             if (loadedRef.current.size === added.length && !props.initialCamera) {
                 const extent = source.getExtent();

@@ -61,6 +61,20 @@ suite("queryResults context service", () => {
         expect(keys["mssql.queryResults.activeSourceKind"]).to.equal("pinnedSnapshot");
     });
 
+    test("spatial selection is contextual but never impersonates an active grid cell", () => {
+        const { service, keys } = makeService();
+        service.updateFromQueryStudio("src1", {
+            resultSetId: "rs1",
+            spatial: { row: 17, column: 3 },
+            selectedCellCount: 1,
+            selectedRowCount: 1,
+            reason: "spatial",
+        });
+        expect(service.current()!.spatial).to.deep.equal({ row: 17, column: 3 });
+        expect(service.current()!.active).to.equal(undefined);
+        expect(keys["mssql.queryResults.hasActiveSelection"]).to.equal(true);
+    });
+
     test("empty selection clears the selection key but keeps the source", () => {
         const { service, keys } = makeService();
         service.updateFromQueryStudio("src1", {

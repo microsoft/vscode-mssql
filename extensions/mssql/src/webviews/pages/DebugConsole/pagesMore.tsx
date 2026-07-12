@@ -363,7 +363,8 @@ export function ConnectionsPage() {
 // ---------------------------------------------------------------------------
 
 export function QueryResultsPage() {
-    const events = useFeatureEvents(["query", "resultsGrid"]);
+    const events = useFeatureEvents(["query", "resultsGrid", "queryResults"]);
+    const [subview, setSubview] = useState<"queries" | "spatial">("queries");
     const occurrences = useMemo(
         () => pairOccurrences(events, "mssql.query.submit", "mssql.query.complete"),
         [events],
@@ -384,62 +385,170 @@ export function QueryResultsPage() {
     const windowFetches = events.filter(
         (e) => e.type === "mssql.resultsGrid.windowFetch.end",
     ).length;
+    const spatialEvents = events.filter((event) => event.type.includes(".spatial."));
+    const spatialSessions = spatialEvents.filter(
+        (event) => event.type === "mssql.queryResults.spatial.prepare.begin",
+    ).length;
+    const spatialFirstPaints = spatialEvents.filter(
+        (event) => event.type === "mssql.queryResults.spatial.render.firstPaint",
+    ).length;
+    const spatialFeatures = spatialEvents
+        .filter((event) => event.type === "mssql.queryResults.spatial.decode.end")
+        .reduce((total, event) => total + (payloadNumber(event, "features") ?? 0), 0);
+    const spatialFailures = spatialEvents.filter(
+        (event) =>
+            event.status === "error" ||
+            event.payload?.["outcome"]?.v === "error" ||
+            event.payload?.["outcome"]?.v === "partial",
+    ).length;
     return (
         <>
             <PageHeader
                 title="Query & Results"
                 sub="Every query execution with duration, rows, errors, and grid rendering."
             />
-            <div className="dc-kpis">
-                <Kpi label="Queries" value={kpis.count} />
-                <Kpi
-                    label="Median duration"
-                    value={kpis.medianMs !== undefined ? formatDuration(kpis.medianMs) : "—"}
-                />
-                <Kpi
-                    label="p95"
-                    value={kpis.p95Ms !== undefined ? formatDuration(kpis.p95Ms) : "—"}
-                />
-                <Kpi
-                    label="Errors"
-                    value={kpis.errors}
-                    tone={kpis.errors > 0 ? "error" : undefined}
-                />
-                <Kpi
-                    label="Window fetches"
-                    value={windowFetches}
-                    note={windowFetches > 0 ? "virtual windowing active" : undefined}
-                />
-                <div className="dc-kpi">
-                    <div className="label">Duration trend</div>
-                    <div style={{ marginTop: 8 }}>
-                        <Sparkline values={kpis.durations.slice(-30)} width={140} height={30} />
-                    </div>
-                </div>
+            <div className="dc-tabs" role="tablist" aria-label="Query and results views">
+                <button
+                    role="tab"
+                    aria-selected={subview === "queries"}
+                    className={subview === "queries" ? "active" : ""}
+                    onClick={() => setSubview("queries")}>
+                    Queries
+                </button>
+                <button
+                    role="tab"
+                    aria-selected={subview === "spatial"}
+                    className={subview === "spatial" ? "active" : ""}
+                    onClick={() => setSubview("spatial")}>
+                    Spatial
+                </button>
             </div>
-            <OccurrenceTable
-                occurrences={occurrences}
-                extraColumns={[
-                    {
-                        label: "Rows",
-                        value: (occurrence) =>
-                            payloadNumber(occurrence.endEvent, "rowCount")?.toLocaleString() ?? "—",
-                    },
-                    {
-                        label: "Rendered",
-                        value: (occurrence) =>
-                            occurrence.traceId !== undefined &&
-                            rendersByTrace.has(occurrence.traceId)
-                                ? rendersByTrace.get(occurrence.traceId)!.toLocaleString()
-                                : "—",
-                    },
-                    {
-                        label: "Error",
-                        value: (occurrence) =>
-                            occurrence.endEvent.payload?.["hasError"]?.v === true ? "yes" : "—",
-                    },
-                ]}
-            />
+            {subview === "spatial" ? (
+                <>
+                    <div className="dc-kpis">
+                        <Kpi label="Sessions" value={spatialSessions} />
+                        <Kpi label="Decoded features" value={spatialFeatures.toLocaleString()} />
+                        <Kpi label="First paints" value={spatialFirstPaints} />
+                        <Kpi
+                            label="Partial / errors"
+                            value={spatialFailures}
+                            tone={spatialFailures > 0 ? "error" : undefined}
+                        />
+                    </div>
+                    {spatialEvents.length === 0 ? (
+                        <EmptyState
+                            title="No Spatial activity"
+                            body="Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here."
+                        />
+                    ) : (
+                        <table className="dc-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Stage</th>
+                                    <th>Status</th>
+                                    <th>Count</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {spatialEvents
+                                    .slice(-200)
+                                    .reverse()
+                                    .map((event) => (
+                                        <tr key={event.eventId}>
+                                            <td>{formatTime(event.epochMs)}</td>
+                                            <td>
+                                                {event.type.replace(
+                                                    "mssql.queryResults.spatial.",
+                                                    "",
+                                                )}
+                                            </td>
+                                            <td>
+                                                <StatusPill status={event.status} />
+                                            </td>
+                                            <td>
+                                                {(
+                                                    payloadNumber(event, "features") ??
+                                                    payloadNumber(event, "sourceRowsScanned")
+                                                )?.toLocaleString() ?? "—"}
+                                            </td>
+                                            <td>
+                                                {payloadNumber(event, "ms") !== undefined
+                                                    ? formatDuration(payloadNumber(event, "ms")!)
+                                                    : "—"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    )}
+                </>
+            ) : (
+                <>
+                    <div className="dc-kpis">
+                        <Kpi label="Queries" value={kpis.count} />
+                        <Kpi
+                            label="Median duration"
+                            value={
+                                kpis.medianMs !== undefined ? formatDuration(kpis.medianMs) : "—"
+                            }
+                        />
+                        <Kpi
+                            label="p95"
+                            value={kpis.p95Ms !== undefined ? formatDuration(kpis.p95Ms) : "—"}
+                        />
+                        <Kpi
+                            label="Errors"
+                            value={kpis.errors}
+                            tone={kpis.errors > 0 ? "error" : undefined}
+                        />
+                        <Kpi
+                            label="Window fetches"
+                            value={windowFetches}
+                            note={windowFetches > 0 ? "virtual windowing active" : undefined}
+                        />
+                        <div className="dc-kpi">
+                            <div className="label">Duration trend</div>
+                            <div style={{ marginTop: 8 }}>
+                                <Sparkline
+                                    values={kpis.durations.slice(-30)}
+                                    width={140}
+                                    height={30}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <OccurrenceTable
+                        occurrences={occurrences}
+                        extraColumns={[
+                            {
+                                label: "Rows",
+                                value: (occurrence) =>
+                                    payloadNumber(
+                                        occurrence.endEvent,
+                                        "rowCount",
+                                    )?.toLocaleString() ?? "—",
+                            },
+                            {
+                                label: "Rendered",
+                                value: (occurrence) =>
+                                    occurrence.traceId !== undefined &&
+                                    rendersByTrace.has(occurrence.traceId)
+                                        ? rendersByTrace.get(occurrence.traceId)!.toLocaleString()
+                                        : "—",
+                            },
+                            {
+                                label: "Error",
+                                value: (occurrence) =>
+                                    occurrence.endEvent.payload?.["hasError"]?.v === true
+                                        ? "yes"
+                                        : "—",
+                            },
+                        ]}
+                    />
+                </>
+            )}
         </>
     );
 }

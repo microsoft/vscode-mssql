@@ -34,6 +34,13 @@ import { cellDocumentText, prettyPrintCellText } from "../queryStudio/cellDocume
 import { saveQueryStudioResult } from "../queryStudio/resultExport";
 import { resolveQueryTuning } from "../queryStudio/tuning/queryTuningResolver";
 import { VectorWorkbenchService } from "./vector/vectorWorkbenchService";
+import { SpatialSessionManager } from "./spatial/spatialSessionManager";
+import {
+    QsSpatialCancelRequest,
+    QsSpatialCloseRequest,
+    QsSpatialNextRequest,
+    QsSpatialOpenRequest,
+} from "../sharedInterfaces/spatialResults";
 import { ingestBudgetFrom } from "./vector/vectorResultSource";
 import {
     QsVectorCancelRequest,
@@ -94,6 +101,7 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             this.panel.onDidChangeViewState((event) => {
                 if (!event.webviewPanel.visible) {
                     this.suspendVectorWorkbench();
+                    this.suspendSpatialResults();
                 }
             }),
         );
@@ -152,11 +160,12 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
      * validated under CSP by the live perf scenarios.)
      */
     protected override cspOptions(): { enabled: boolean; allowWorker?: boolean } {
-        return { enabled: true };
+        return { enabled: true, allowWorker: true };
     }
 
     /** Vector Workbench over the FROZEN snapshot (VEC-11) — lazy, like live QS. */
     private vectorService: VectorWorkbenchService | undefined;
+    private spatialService: SpatialSessionManager | undefined;
 
     private vectorWorkbench(): VectorWorkbenchService {
         if (!this.vectorService) {
@@ -169,6 +178,19 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
     private suspendVectorWorkbench(): void {
         this.vectorService?.dispose();
         this.vectorService = undefined;
+    }
+
+    private spatialResults(): SpatialSessionManager {
+        if (!this.spatialService) {
+            this.spatialService = new SpatialSessionManager();
+            this.registerDisposable(this.spatialService);
+        }
+        return this.spatialService;
+    }
+
+    private suspendSpatialResults(): void {
+        this.spatialService?.dispose();
+        this.spatialService = undefined;
     }
 
     private summaryFor(resultSetId: string): QsResultSetSummary | undefined {
@@ -226,6 +248,28 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         });
         this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
             this.vectorService?.close(handle);
+        });
+        this.onRequest(QsSpatialOpenRequest.type, async (params) => {
+            const snapshot = service.storeForSnapshot(this.snapshotId);
+            if (snapshot?.derived) {
+                return {
+                    handle: "",
+                    generation: 0,
+                    totalRows: 0,
+                    chunkRows: 512,
+                    error: "Transformed snapshots cannot be mapped — pin the original result set instead.",
+                };
+            }
+            return this.spatialResults().open(snapshot?.store, params);
+        });
+        this.onRequest(QsSpatialNextRequest.type, async (params) =>
+            this.spatialResults().next(params),
+        );
+        this.onRequest(QsSpatialCancelRequest.type, async ({ handle, generation }) => {
+            this.spatialService?.cancel(handle, generation);
+        });
+        this.onRequest(QsSpatialCloseRequest.type, async ({ handle }) => {
+            this.spatialService?.close(handle);
         });
         this.onRequest(QsGetRowsRequest.type, async (params) =>
             service.getWindow({

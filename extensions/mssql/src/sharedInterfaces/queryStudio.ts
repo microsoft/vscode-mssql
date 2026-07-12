@@ -546,11 +546,13 @@ export interface QsGridSelectionRange {
 export interface QsGridSelectionUpdate {
     resultSetId: string;
     active?: { row: number; column: number };
+    /** Source-row spatial selection; intentionally not an active grid cell. */
+    spatial?: { row: number; column: number };
     ranges?: QsGridSelectionRange[];
     selectedCellCount?: number;
     selectedRowCount?: number;
     displayedRowCount?: number;
-    reason: "selection" | "focus";
+    reason: "selection" | "focus" | "spatial";
     /** Stamped host-side for pinned documents; webviews leave it unset. */
     snapshotView?: { snapshotId: string };
 }

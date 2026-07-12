@@ -10,6 +10,7 @@ import "../../index.css";
 import "../QueryStudio/queryStudio.css";
 import "../QueryStudio/vectorIndexView.css";
 import "../QueryStudio/vectorPipelineView.css";
+import "../QueryStudio/spatial/spatial.css";
 import { useVscodeWebview, VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { PinnedResultsApp } from "./app";
 import { QueryStudioErrorBoundary } from "../QueryStudio/queryStudioErrorBoundary";
