@@ -13,6 +13,7 @@ import {
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
     resolveQueryStudioVisibleTab,
+    shouldResetQueryStudioRunView,
 } from "../../src/sharedInterfaces/queryStudioViewState";
 
 suite("Query Studio panel view state", () => {
@@ -23,6 +24,18 @@ suite("Query Studio panel view state", () => {
             resolveQueryStudioVisibleTab("results", { ...empty, results: true }, false),
         ).to.equal("results");
         expect(resolveQueryStudioVisibleTab("results", empty, false)).to.equal("messages");
+    });
+
+    test("a fast terminal-only state push still resets a genuinely new run", () => {
+        const runId = 1_783_900_000_000;
+        expect(shouldResetQueryStudioRunView(runId, undefined, "idle")).to.equal(true);
+        expect(shouldResetQueryStudioRunView(runId, runId - 1, String(runId - 1))).to.equal(true);
+
+        // Recreating the webview for the same completed generation retains
+        // an explicit Messages selection instead of pretending it is new.
+        expect(shouldResetQueryStudioRunView(runId, undefined, String(runId))).to.equal(false);
+        expect(shouldResetQueryStudioRunView(runId, runId, "idle")).to.equal(false);
+        expect(shouldResetQueryStudioRunView(undefined, undefined, "idle")).to.equal(false);
     });
 
     test("orders every contributed tab after Messages", () => {

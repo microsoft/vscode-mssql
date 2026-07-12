@@ -37,6 +37,22 @@ export function resolveQueryStudioVisibleTab(
     return available.results ? "results" : "messages";
 }
 
+/**
+ * Whether a newly observed run must reset result-bound renderer state.
+ *
+ * Coarse state pushes are debounced, so a fast query can be first observed
+ * in its terminal state without the renderer ever seeing `executing`.
+ * Conversely, recreating a renderer for the same completed generation must
+ * retain its panel-local tab and scroll state.
+ */
+export function shouldResetQueryStudioRunView(
+    runId: number | undefined,
+    startedRunId: number | undefined,
+    panelGeneration: string,
+): boolean {
+    return runId !== undefined && startedRunId !== runId && panelGeneration !== String(runId);
+}
+
 /** Results is the only tab allowed before Messages; contributed tabs follow it. */
 export const QUERY_STUDIO_TAB_ORDER: readonly QueryStudioTabId[] = [
     "results",

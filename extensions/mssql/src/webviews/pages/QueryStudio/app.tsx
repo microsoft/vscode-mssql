@@ -76,6 +76,7 @@ import {
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
     resolveQueryStudioVisibleTab,
+    shouldResetQueryStudioRunView,
 } from "../../../sharedInterfaces/queryStudioViewState";
 import {
     QsLangCompletionItemKind,
@@ -883,16 +884,22 @@ export function QueryStudioApp() {
         // whole run, so EVERY executing-kind push wiped `messages` again and
         // a finished run showed "No messages".
         if (
-            executionKind === "executing" &&
-            runId !== undefined &&
-            startedRunRef.current !== runId
+            shouldResetQueryStudioRunView(
+                runId,
+                startedRunRef.current,
+                panelViewStateRef.current.generation,
+            )
         ) {
             // Message notifications can beat this (debounced) state push —
             // clearing alone would drop the run's opening lines. Replace
             // with the host's snapshot instead: notifications processed
             // after the response are strictly newer than the snapshot
             // (ordered channel), so nothing is lost or duplicated.
-            resetRunViewForStart(runId, true);
+            resetRunViewForStart(runId!, true);
+        } else if (runId !== undefined && startedRunRef.current !== runId) {
+            // Renderer recreation for the current generation: adopt it
+            // without clearing the restored panel-local state.
+            startedRunRef.current = runId;
         }
         if (TERMINAL_KINDS.has(executionKind) && runId && renderedRunRef.current !== runId) {
             renderedRunRef.current = runId;
