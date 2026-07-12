@@ -51,6 +51,7 @@ const DENYLIST = [
     "cesium",
     "@arcgis",
     "d3",
+    "ol",
 ];
 
 /** Init closure code-byte ceiling: 10.4MB measured post-split + headroom. */
