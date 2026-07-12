@@ -11,7 +11,10 @@ import {
     QsShowPlanXmlRequest,
 } from "../../../sharedInterfaces/queryStudio";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { ExecutionPlanPageContent } from "../ExecutionPlan/executionPlanPage";
+import {
+    ExecutionPlanPageContent,
+    ExecutionPlanPageViewState,
+} from "../ExecutionPlan/executionPlanPage";
 import {
     ExecutionPlanContext,
     ExecutionPlanContextProps,
@@ -24,11 +27,16 @@ const LOADING_PLAN_STATE: ExecutionPlanState = {
     totalCost: 0,
 };
 
+export type QueryStudioExecutionPlanViewState = ExecutionPlanPageViewState;
+
 export function QueryStudioExecutionPlanView(props: {
     rpc: Rpc;
     executionPlanState?: ExecutionPlanState | undefined;
+    active?: boolean;
+    initialViewState?: QueryStudioExecutionPlanViewState;
+    onViewStateChange?: (viewState: QueryStudioExecutionPlanViewState) => void;
 }) {
-    const { rpc, executionPlanState } = props;
+    const { rpc, executionPlanState, active, initialViewState, onViewStateChange } = props;
     const context = useMemo<ExecutionPlanContextProps>(
         () => ({
             getExecutionPlan: () => undefined,
@@ -51,6 +59,9 @@ export function QueryStudioExecutionPlanView(props: {
             <div className="qs-query-plan-view">
                 <ExecutionPlanPageContent
                     executionPlanState={executionPlanState ?? LOADING_PLAN_STATE}
+                    active={active}
+                    initialViewState={initialViewState}
+                    onViewStateChange={onViewStateChange}
                 />
             </div>
         </ExecutionPlanContext.Provider>

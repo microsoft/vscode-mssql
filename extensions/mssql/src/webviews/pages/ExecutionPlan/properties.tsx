@@ -115,12 +115,14 @@ interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanView;
     setPropertiesClicked: any;
     inputRef: any;
+    active?: boolean;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
     setPropertiesClicked,
     inputRef,
+    active = true,
 }) => {
     const { themeKind } = useVscodeWebview();
     const classes = useStyles();
@@ -160,6 +162,9 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     }, [items, isFiltered]);
 
     useEffect(() => {
+        if (!active) {
+            return;
+        }
         // poll for whether there has been a new element selected in the graph
         const intervalId = setInterval(() => {
             const selectedElement = executionPlanView.getSelectedElement();
@@ -175,7 +180,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         }, 1000);
 
         return () => clearInterval(intervalId);
-    });
+    }, [active, executionPlanView, id]);
 
     function loadItems(element: ep.ExecutionPlanNode) {
         setName(element.name);

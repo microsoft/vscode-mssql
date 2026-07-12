@@ -24,6 +24,7 @@ import { DocumentSessionBinding } from "../../src/queryStudio/documentSessionBin
 import {
     IQueryEventSink,
     ISqlSession,
+    ExecuteOptions,
     QueryCompleteSummary,
     QueryHandle,
 } from "../../src/services/sqlDataPlane/api";
@@ -65,6 +66,37 @@ async function waitFor(predicate: () => boolean, ms = 4_000): Promise<void> {
 }
 
 suite("Query Studio restart-on-execute (dogfood)", () => {
+    test("ExecutionHost opts into typed vector transport only when its run gate is enabled", async () => {
+        for (const enabled of [false, true]) {
+            let executeOptions: ExecuteOptions | undefined;
+            const session = {
+                state: "open",
+                info: {},
+                execute(_text: string, opts: ExecuteOptions, sink: IQueryEventSink): QueryHandle {
+                    executeOptions = opts;
+                    return instantHandle(sink);
+                },
+            } as unknown as ISqlSession;
+            const binding = {
+                activeSession: session,
+                setExecuting: () => undefined,
+                notifyExecutedBatch: () => undefined,
+                probeTransactionState: async () => undefined,
+                metadataStatus: undefined,
+            } as unknown as DocumentSessionBinding;
+            const spillRoot = fs.mkdtempSync(path.join(os.tmpdir(), "qs-vector-gate-"));
+            const host = new ExecutionHost(path.join(spillRoot, "spill"), binding, "test-uri");
+            host.vectorWorkbenchGate = () => enabled;
+
+            expect(
+                host.execute("select 1", { selectionStartLine: 1, scope: "document" }).started,
+            ).to.equal(true);
+            await waitFor(() => host.executionState.kind === "succeeded");
+            expect(executeOptions?.vectorEncoding).to.equal(enabled ? "binary-v1" : undefined);
+            host.dispose();
+        }
+    });
+
     test("orchestrator waits out a briefly-busy session instead of failing the run", async () => {
         let busyThrows = 2;
         const session = {

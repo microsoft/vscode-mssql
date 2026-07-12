@@ -573,6 +573,8 @@ export function QsResultGridSurface(props: {
     gridStyle: QsGridStyle | undefined;
     /** Transient user-facing notice (copy guard / threshold gating). */
     notify: (text: string) => void;
+    initialState?: FluentResultGridState;
+    onStateChange?: (state: FluentResultGridState) => void;
 }) {
     const { rpc, summary, rowCount, gridStyle, notify } = props;
     const shellRef = useRef<HTMLDivElement | null>(null);
@@ -806,6 +808,18 @@ export function QsResultGridSurface(props: {
     const stopSelectionDragClass = useCallback(() => {
         shellRef.current?.classList.remove("qs-grid-selecting");
     }, []);
+
+    // This is a mount-time restore snapshot. Feeding later persisted
+    // callbacks back through `initialState` would make unrelated shell
+    // renders reapply selection/scroll while the user is interacting.
+    const initialGridStateRef = useRef(props.initialState);
+    const restoredGridState = useMemo<FluentResultGridState>(
+        () => ({
+            ...QUERY_STUDIO_GRID_INITIAL_STATE,
+            ...(initialGridStateRef.current ?? {}),
+        }),
+        [],
+    );
     const handlePointerDownCapture = useCallback(
         (event: PointerEvent<HTMLDivElement>) => {
             if (!(event.target instanceof Element) || !event.target.closest(".slick-cell")) {
@@ -830,7 +844,7 @@ export function QsResultGridSurface(props: {
                 dataSource={dataSource}
                 heightMode={{ kind: "fill" }}
                 showRowNumberColumn
-                initialState={QUERY_STUDIO_GRID_INITIAL_STATE}
+                initialState={restoredGridState}
                 enableColumnReorder={false}
                 inMemoryDataProcessingThreshold={inMemoryThreshold}
                 gridSettings={gridSettings}
@@ -843,6 +857,7 @@ export function QsResultGridSurface(props: {
                 viewMode="grid"
                 canToggleViewMode
                 onCommand={handleCommand}
+                onStateChange={props.onStateChange}
                 onSelectionSummaryChange={handleSelectionSummaryChange}
                 onInMemoryDataProcessingThresholdExceeded={handleThresholdExceeded}
             />

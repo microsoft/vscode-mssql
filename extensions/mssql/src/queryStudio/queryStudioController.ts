@@ -129,6 +129,14 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import { readGridStyle } from "./gridStyle";
 import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
 import { saveQueryStudioResult } from "./resultExport";
+import {
+    QueryStudioPanelViewState,
+    QsGetPanelViewStateRequest,
+    QsUpdatePanelViewStateNotification,
+    createQueryStudioPanelViewState,
+    normalizeQueryStudioPanelViewState,
+    resetQueryStudioPanelViewState,
+} from "../sharedInterfaces/queryStudioViewState";
 
 const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
 /** Scan-and-detect: idle beat after the webview is ready (plan §3.4). */
@@ -166,6 +174,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private restoreEditorFocusWhenActive = false;
     /** Vector Workbench sessions (VEC-4) — created on first vector RPC only. */
     private vectorService: VectorWorkbenchService | undefined;
+    /** Monotonic invalidation token for renderer-held Vector handles. */
+    private vectorSessionEpoch = 0;
+    /** Per-panel, memory-only UI state; deliberately excluded from QsState. */
+    private panelViewState: QueryStudioPanelViewState;
 
     private readonly extensionContext: vscode.ExtensionContext;
 
@@ -176,6 +188,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     ) {
         super(context, "queryStudio", QueryStudioController.initialState(model), "queryStudio");
         this.extensionContext = context;
+        this.panelViewState = createQueryStudioPanelViewState(
+            String(this.model.executionHost.executionState.startedEpochMs ?? "idle"),
+        );
+        this.panelViewState.shell.resultsHeightPct =
+            QueryStudioController.currentGridStyle().resultsPaneHeightPct ?? 50;
         this.panel.webview.options = {
             enableScripts: true,
             localResourceRoots: [vscode.Uri.file(context.extensionPath)],
@@ -198,6 +215,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
         this.registerDisposable(
             this.panel.onDidChangeViewState((event) => {
+                if (!event.webviewPanel.visible) {
+                    // Hidden retained webviews keep their React tree alive.
+                    // Revoke analysis sessions host-side and advertise the
+                    // visibility transition so the pane atomically drops its
+                    // stale handles before reopening when revealed.
+                    this.resetVectorServices();
+                    this.queueStatePush();
+                    return;
+                }
+                this.queueStatePush();
                 if (!event.webviewPanel.active || !this.restoreEditorFocusWhenActive) {
                     return;
                 }
@@ -244,8 +271,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 if (
                     e.affectsConfiguration("mssql.resultsFontFamily") ||
                     e.affectsConfiguration("mssql.resultsFontSize") ||
-                    e.affectsConfiguration("mssql.resultsGrid")
+                    e.affectsConfiguration("mssql.resultsGrid") ||
+                    e.affectsConfiguration("mssql.queryStudio.vectorWorkbench.enabled")
                 ) {
+                    if (
+                        e.affectsConfiguration("mssql.queryStudio.vectorWorkbench.enabled") &&
+                        !this.model.executionHost.vectorWorkbenchGate()
+                    ) {
+                        this.resetVectorServices();
+                    }
                     this.queueStatePush();
                 }
             }),
@@ -278,6 +312,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 this.messagesSentCount = 0;
                 this.pendingMessages = [];
                 this.pendingRows.clear();
+                this.panelViewState = resetQueryStudioPanelViewState(
+                    this.panelViewState,
+                    String(startedEpochMs),
+                );
+                // A run invalidates every analysis handle and its retained old
+                // result store. The pane can lazily create fresh services when
+                // it next becomes active.
+                this.resetVectorServices();
                 void this.sendNotification(QsRunStartedNotification.type, { startedEpochMs });
                 this.queueStatePush();
             },
@@ -426,7 +468,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             toggles: { actualPlan: false, viewMode: "grid", sqlcmd: false },
             gridStyle: QueryStudioController.currentGridStyle(),
             statusMessage: { kind: "ready", text: "Ready — not connected" },
-            capabilities: {},
+            capabilities: {
+                vectorWorkbench: model.executionHost.vectorWorkbenchGate(),
+                panelVisible: true,
+            },
+            vectorSessionEpoch: 0,
         };
     }
 
@@ -566,6 +612,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
         }
         state.completions = { enabled: isInlineCompletionFeatureEnabled() };
+        state.capabilities.vectorWorkbench = this.model.executionHost.vectorWorkbenchGate();
+        state.capabilities.panelVisible = this.panel.visible;
+        state.vectorSessionEpoch = this.vectorSessionEpoch;
         // Grid windowing knobs ride the style snapshot (QO-7): the run's
         // tuning when one exists, else the current resolution.
         const tuning = (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params;
@@ -681,9 +730,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.vectorService = new VectorWorkbenchService(
                 () => (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params,
             );
-            this.registerDisposable({ dispose: () => this.vectorService?.dispose() });
         }
         return this.vectorService;
+    }
+
+    private resetVectorServices(): void {
+        this.vectorSessionEpoch++;
+        this.vectorService?.dispose();
+        this.vectorService = undefined;
+        this.vectorPipelineService?.dispose();
+        this.vectorPipelineService = undefined;
     }
 
     /** Pipeline workspace (VEC-10) — lazy; model calls need host-minted consent. */
@@ -698,12 +754,25 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     this.model.vectorCapabilities.capabilities(refresh === true),
                 workbench: (handle) => this.vectorWorkbench().sessionFacts(handle),
             });
-            this.registerDisposable({ dispose: () => this.vectorPipelineService?.dispose() });
         }
         return this.vectorPipelineService;
     }
 
     private registerHandlers(): void {
+        // --- panel-local view state -----------------------------------------
+        this.onRequest(QsGetPanelViewStateRequest.type, async () => this.panelViewState);
+        this.onNotification(QsUpdatePanelViewStateNotification.type, (next) => {
+            // Ignore stale renderer callbacks after a rerun. Payload contents
+            // remain memory-only and never enter diagnostics/replay/telemetry.
+            const normalized = normalizeQueryStudioPanelViewState(
+                next,
+                this.panelViewState.generation,
+            );
+            if (normalized) {
+                this.panelViewState = normalized;
+            }
+        });
+
         // --- text sync -----------------------------------------------------
         this.onRequest(QsSyncEditsRequest.type, async (edits) =>
             this.model.applyWebviewEdits(edits),
@@ -1013,10 +1082,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.vectorWorkbench().findingDetail(handle, kind),
         );
         this.onRequest(QsVectorCancelRequest.type, async ({ handle }) => {
-            this.vectorWorkbench().cancel(handle);
+            this.vectorService?.cancel(handle);
         });
         this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
-            this.vectorWorkbench().close(handle);
+            // A late cleanup from a renderer invalidated by rerun/hide must
+            // not recreate an otherwise-empty analysis service.
+            this.vectorService?.close(handle);
         });
         this.onRequest(QsVectorCapabilitiesRequest.type, async (params) =>
             this.model.vectorCapabilities.capabilities(
@@ -1278,6 +1349,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         }
         this.inlineCompletionCts?.cancel();
         this.inlineCompletionCts = undefined;
+        this.resetVectorServices();
         this.languageService.dispose();
         this.modelListener.dispose();
         this.bindingListener?.dispose();

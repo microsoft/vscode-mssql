@@ -46,6 +46,7 @@ interface IconStackProps {
     executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     setZoomNumber: any;
+    onZoomChange?: (zoomPercent: number) => void;
     setCustomZoomClicked: any;
     setFindNodeClicked: any;
     setHighlightOpsClicked: any;
@@ -58,6 +59,7 @@ export const IconStack: React.FC<IconStackProps> = ({
     executionPlanView,
     setExecutionPlanView,
     setZoomNumber,
+    onZoomChange,
     setCustomZoomClicked,
     setFindNodeClicked,
     setHighlightOpsClicked,
@@ -110,7 +112,9 @@ export const IconStack: React.FC<IconStackProps> = ({
         if (executionPlanView) {
             executionPlanView.zoomIn();
             setExecutionPlanView(executionPlanView);
-            setZoomNumber(executionPlanView.getZoomLevel());
+            const zoomPercent = executionPlanView.getZoomLevel();
+            setZoomNumber(zoomPercent);
+            onZoomChange?.(zoomPercent);
         }
     };
 
@@ -118,7 +122,9 @@ export const IconStack: React.FC<IconStackProps> = ({
         if (executionPlanView) {
             executionPlanView.zoomOut();
             setExecutionPlanView(executionPlanView);
-            setZoomNumber(executionPlanView.getZoomLevel());
+            const zoomPercent = executionPlanView.getZoomLevel();
+            setZoomNumber(zoomPercent);
+            onZoomChange?.(zoomPercent);
         }
     };
 
@@ -126,7 +132,9 @@ export const IconStack: React.FC<IconStackProps> = ({
         if (executionPlanView) {
             executionPlanView.zoomToFit();
             setExecutionPlanView(executionPlanView);
-            setZoomNumber(executionPlanView.getZoomLevel());
+            const zoomPercent = executionPlanView.getZoomLevel();
+            setZoomNumber(zoomPercent);
+            onZoomChange?.(zoomPercent);
         }
     };
 

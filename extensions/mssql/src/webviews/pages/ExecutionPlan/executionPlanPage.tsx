@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ExecutionPlanGraphView } from "./executionPlanGraph";
+import { ExecutionPlanGraphView, ExecutionPlanGraphViewState } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
@@ -40,13 +40,58 @@ interface ExecutionPlanPageProps {
     autoLoad?: boolean;
 }
 
-interface ExecutionPlanPageContentProps {
-    executionPlanState?: ExecutionPlanState;
+export interface ExecutionPlanPageViewState {
+    pageScrollTop: number;
+    graphs: Record<string, ExecutionPlanGraphViewState>;
 }
 
-export const ExecutionPlanPageContent = ({ executionPlanState }: ExecutionPlanPageContentProps) => {
+interface ExecutionPlanPageContentProps {
+    executionPlanState?: ExecutionPlanState;
+    active?: boolean;
+    initialViewState?: ExecutionPlanPageViewState;
+    onViewStateChange?: (viewState: ExecutionPlanPageViewState) => void;
+}
+
+export const ExecutionPlanPageContent = ({
+    executionPlanState,
+    active = true,
+    initialViewState,
+    onViewStateChange,
+}: ExecutionPlanPageContentProps) => {
     const classes = useStyles();
+    const outerRef = useRef<HTMLDivElement>(null);
+    const currentViewState = useRef<ExecutionPlanPageViewState>({
+        pageScrollTop: initialViewState?.pageScrollTop ?? 0,
+        graphs: { ...initialViewState?.graphs },
+    });
+    const onViewStateChangeRef = useRef(onViewStateChange);
+    onViewStateChangeRef.current = onViewStateChange;
+    const handleGraphViewStateChange = useCallback(
+        (graphIndex: number, graphViewState: ExecutionPlanGraphViewState) => {
+            currentViewState.current = {
+                ...currentViewState.current,
+                graphs: {
+                    ...currentViewState.current.graphs,
+                    [graphIndex.toString()]: graphViewState,
+                },
+            };
+            onViewStateChangeRef.current?.(currentViewState.current);
+        },
+        [],
+    );
+    const handlePageScroll = useCallback(() => {
+        currentViewState.current = {
+            ...currentViewState.current,
+            pageScrollTop: outerRef.current?.scrollTop ?? 0,
+        };
+        onViewStateChangeRef.current?.(currentViewState.current);
+    }, []);
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
+    useEffect(() => {
+        if (loadState === ApiStatus.Loaded && outerRef.current) {
+            outerRef.current.scrollTop = initialViewState?.pageScrollTop ?? 0;
+        }
+    }, [initialViewState?.pageScrollTop, loadState]);
     const renderMainContent = () => {
         switch (loadState) {
             case ApiStatus.Loading:
@@ -64,7 +109,12 @@ export const ExecutionPlanPageContent = ({ executionPlanState }: ExecutionPlanPa
                     <ExecutionPlanGraphView
                         key={`${index}:${graph.root.id}:${graph.graphFile.graphFileContent.length}`}
                         graphIndex={index}
+                        active={active}
                         executionPlanState={executionPlanState!}
+                        initialViewState={initialViewState?.graphs[index.toString()]}
+                        onViewStateChange={(graphViewState) =>
+                            handleGraphViewStateChange(index, graphViewState)
+                        }
                     />
                 ));
             case ApiStatus.Error:
@@ -77,7 +127,11 @@ export const ExecutionPlanPageContent = ({ executionPlanState }: ExecutionPlanPa
         }
     };
 
-    return <div className={classes.outerDiv}>{renderMainContent()}</div>;
+    return (
+        <div className={classes.outerDiv} ref={outerRef} onScroll={handlePageScroll}>
+            {renderMainContent()}
+        </div>
+    );
 };
 
 export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) => {

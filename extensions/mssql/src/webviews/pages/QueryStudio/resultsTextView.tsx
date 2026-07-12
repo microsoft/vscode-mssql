@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { editor as MonacoEditor } from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -17,6 +18,7 @@ import {
 import { cellTextForPurpose } from "../../../sharedInterfaces/queryStudioGridOps";
 import { perfMark, perfMarksEnabled } from "../../common/perfMarks";
 import type { Rpc } from "./resultsGridShared";
+import type { QsResultsTextViewState } from "../../../sharedInterfaces/queryStudioViewState";
 
 const TEXT_VIEW_CHUNK = 5000;
 const MIN_COLUMN_WIDTH = 10;
@@ -28,11 +30,78 @@ export function QueryStudioResultsTextView(props: {
     resultSets: readonly QsResultSetSummary[];
     liveRowCounts: Readonly<Record<string, number>>;
     gridStyle: QsGridStyle | undefined;
+    initialViewState?: QsResultsTextViewState;
+    onViewStateChange?: (state: QsResultsTextViewState) => void;
 }) {
     const { rpc, resultSets, liveRowCounts, gridStyle } = props;
     const { EOL, themeKind } = useVscodeWebview<QsState, void>();
     const [textContent, setTextContent] = useState("");
     const [loading, setLoading] = useState(true);
+    const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | undefined>(undefined);
+    const editorDisposablesRef = useRef<Array<{ dispose(): void }>>([]);
+    const latestViewStateRef = useRef(props.initialViewState);
+    const onViewStateChangeRef = useRef(props.onViewStateChange);
+    onViewStateChangeRef.current = props.onViewStateChange;
+
+    const emitViewState = useCallback(() => {
+        const editor = editorRef.current;
+        const selection = editor?.getSelection();
+        if (!editor || !selection) {
+            return;
+        }
+        const next: QsResultsTextViewState = {
+            selection: {
+                startLineNumber: selection.startLineNumber,
+                startColumn: selection.startColumn,
+                endLineNumber: selection.endLineNumber,
+                endColumn: selection.endColumn,
+            },
+            scrollTop: editor.getScrollTop(),
+            scrollLeft: editor.getScrollLeft(),
+        };
+        latestViewStateRef.current = next;
+        onViewStateChangeRef.current?.(next);
+    }, []);
+
+    const mountEditor = useCallback(
+        (editor: MonacoEditor.IStandaloneCodeEditor) => {
+            for (const disposable of editorDisposablesRef.current) {
+                disposable.dispose();
+            }
+            editorDisposablesRef.current = [];
+            editorRef.current = editor;
+            if (latestViewStateRef.current) {
+                editor.setSelection(latestViewStateRef.current.selection);
+                editor.setScrollPosition({
+                    scrollTop: latestViewStateRef.current.scrollTop,
+                    scrollLeft: latestViewStateRef.current.scrollLeft,
+                });
+            }
+            editorDisposablesRef.current = [
+                editor.onDidChangeCursorSelection(emitViewState),
+                editor.onDidScrollChange(emitViewState),
+                editor.onDidDispose(() => {
+                    if (editorRef.current === editor) {
+                        emitViewState();
+                        editorRef.current = undefined;
+                    }
+                }),
+            ];
+        },
+        [emitViewState],
+    );
+
+    useEffect(
+        () => () => {
+            emitViewState();
+            for (const disposable of editorDisposablesRef.current) {
+                disposable.dispose();
+            }
+            editorDisposablesRef.current = [];
+            editorRef.current = undefined;
+        },
+        [emitViewState],
+    );
 
     useEffect(() => {
         let canceled = false;
@@ -69,6 +138,7 @@ export function QueryStudioResultsTextView(props: {
                 language="plaintext"
                 themeKind={themeKind}
                 value={textContent || locConstants.queryResult.noResultsToDisplay}
+                onMount={mountEditor}
                 options={{
                     readOnly: true,
                     minimap: { enabled: false },

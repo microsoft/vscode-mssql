@@ -57,7 +57,13 @@ import {
     selectRenderIndices,
     VectorCompareInputVector,
 } from "./vectorCompareMath";
-import { ingestBudgetFrom, ingestVectorColumn, VectorIngestResult } from "./vectorResultSource";
+import {
+    ingestBudgetFrom,
+    ingestVectorColumn,
+    VectorIngestBudget,
+    VectorIngestError,
+    VectorIngestResult,
+} from "./vectorResultSource";
 
 const MAX_SESSIONS = 2;
 const IDLE_EXPIRY_MS = 5 * 60_000;
@@ -81,12 +87,14 @@ interface VectorSession {
     readonly columnOrdinal: number;
     readonly seed: number;
     readonly transport: "binary-v1" | "textFallback";
-    worker?: Worker;
+    readonly workers: Set<Worker>;
     profile?: VectorProfileSummary;
     /** Cached per-session PCA result (VEC-6) — one worker run per session. */
     projection?: VectorProjectionSummary;
     details: Map<VectorFindingKind, FindingDetailCache>;
     idleTimer?: ReturnType<typeof setTimeout>;
+    activeStoreOperations: number;
+    leaseReleased: boolean;
     disposed: boolean;
 }
 
@@ -148,6 +156,11 @@ export class VectorWorkbenchService {
         if (!summary) {
             return refused("The result set is no longer available.");
         }
+        if (!summary.complete) {
+            return refused(
+                "Vector analysis waits for the result set to reach a terminal state; this result is still streaming.",
+            );
+        }
         const column = summary.columns?.[params.columnOrdinal];
         if (!column || column.sqlType?.toLowerCase() !== "vector") {
             return refused("The selected column is not a native vector column.");
@@ -173,7 +186,10 @@ export class VectorWorkbenchService {
             columnOrdinal: params.columnOrdinal,
             seed: crypto.randomBytes(4).readUInt32LE(0),
             transport: column.vector?.transport ?? "textFallback",
+            workers: new Set(),
             details: new Map(),
+            activeStoreOperations: 0,
+            leaseReleased: false,
             disposed: false,
         };
         this.sessions.set(session.handle, session);
@@ -220,13 +236,7 @@ export class VectorWorkbenchService {
             totalBudgetMs: budget.maxTimeMs,
         });
         const startedAt = performance.now();
-        const ingest = await ingestVectorColumn({
-            store: session.store,
-            resultSetId: session.resultSetId,
-            columnOrdinal: session.columnOrdinal,
-            budget,
-            seed: session.seed,
-        });
+        const ingest = await this.ingest(session, budget);
         if (session.disposed || session.generation !== generation) {
             return { generation: session.generation, error: "The analysis was cancelled." };
         }
@@ -318,13 +328,7 @@ export class VectorWorkbenchService {
             totalBudgetMs: budget.maxTimeMs,
         });
         const startedAt = performance.now();
-        const ingest = await ingestVectorColumn({
-            store: session.store,
-            resultSetId: session.resultSetId,
-            columnOrdinal: session.columnOrdinal,
-            budget,
-            seed: session.seed,
-        });
+        const ingest = await this.ingest(session, budget);
         if (session.disposed || session.generation !== generation) {
             return { generation: session.generation, error: "The analysis was cancelled." };
         }
@@ -476,6 +480,7 @@ export class VectorWorkbenchService {
         const generation = session.generation;
         const startedAt = performance.now();
         Perf.marker("mssql.queryResults.vector.analysis.begin", "begin", {});
+        this.beginStoreOperation(session);
         try {
             const vectors: VectorCompareInputVector[] = [];
             let dimensions = 0;
@@ -543,22 +548,40 @@ export class VectorWorkbenchService {
                 generation: session.generation,
                 error: error instanceof Error ? error.message : String(error),
             };
+        } finally {
+            this.endStoreOperation(session);
         }
     }
 
     /** VEC-10 seam: facts about an open analysis session, by handle. */
-    sessionFacts(
-        handle: string,
-    ): { store: IQueryResultStore; resultSetId: string; vectorColumnOrdinal: number } | undefined {
+    sessionFacts(handle: string):
+        | {
+              store: IQueryResultStore;
+              resultSetId: string;
+              vectorColumnOrdinal: number;
+              isActive: () => boolean;
+              release: () => void;
+          }
+        | undefined {
         const session = this.sessions.get(handle);
         if (!session || session.disposed) {
             return undefined;
         }
         this.touch(session);
+        this.beginStoreOperation(session);
+        let released = false;
         return {
             store: session.store,
             resultSetId: session.resultSetId,
             vectorColumnOrdinal: session.columnOrdinal,
+            isActive: () => !session.disposed,
+            release: () => {
+                if (released) {
+                    return;
+                }
+                released = true;
+                this.endStoreOperation(session);
+            },
         };
     }
 
@@ -596,9 +619,11 @@ export class VectorWorkbenchService {
             return;
         }
         session.generation++;
-        if (session.worker) {
-            void session.worker.terminate();
-            session.worker = undefined;
+        if (session.workers.size > 0) {
+            for (const worker of session.workers) {
+                void worker.terminate();
+            }
+            session.workers.clear();
             Perf.marker("mssql.queryResults.vector.analysis.cancel", "instant", {});
         }
     }
@@ -613,8 +638,8 @@ export class VectorWorkbenchService {
         if (session.idleTimer) {
             clearTimeout(session.idleTimer);
         }
-        session.lease.dispose();
         this.sessions.delete(handle);
+        this.releaseLeaseWhenIdle(session);
     }
 
     dispose(): void {
@@ -629,6 +654,47 @@ export class VectorWorkbenchService {
         }
         session.idleTimer = setTimeout(() => this.close(session.handle), IDLE_EXPIRY_MS);
         session.idleTimer.unref?.();
+    }
+
+    /**
+     * Keep the result-store lease alive until a scan that started before
+     * close/dispose has settled. Store streams are not cooperatively
+     * cancellable yet, so releasing the lease in close() would let a rerun
+     * dispose the store underneath an awaited getWindow().
+     */
+    private async ingest(
+        session: VectorSession,
+        budget: VectorIngestBudget,
+    ): Promise<VectorIngestResult | VectorIngestError> {
+        this.beginStoreOperation(session);
+        try {
+            return await ingestVectorColumn({
+                store: session.store,
+                resultSetId: session.resultSetId,
+                columnOrdinal: session.columnOrdinal,
+                budget,
+                seed: session.seed,
+            });
+        } finally {
+            this.endStoreOperation(session);
+        }
+    }
+
+    private beginStoreOperation(session: VectorSession): void {
+        session.activeStoreOperations++;
+    }
+
+    private endStoreOperation(session: VectorSession): void {
+        session.activeStoreOperations--;
+        this.releaseLeaseWhenIdle(session);
+    }
+
+    private releaseLeaseWhenIdle(session: VectorSession): void {
+        if (!session.disposed || session.activeStoreOperations !== 0 || session.leaseReleased) {
+            return;
+        }
+        session.leaseReleased = true;
+        session.lease.dispose();
     }
 
     private runWorker(
@@ -651,12 +717,12 @@ export class VectorWorkbenchService {
                 },
                 transferList: [buffer],
             });
-            session.worker = worker;
+            session.workers.add(worker);
             let settled = false;
             const settle = (fn: () => void) => {
                 if (!settled) {
                     settled = true;
-                    session.worker = undefined;
+                    session.workers.delete(worker);
                     void worker.terminate();
                     fn();
                 }

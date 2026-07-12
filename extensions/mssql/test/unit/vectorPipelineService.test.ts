@@ -178,6 +178,8 @@ interface HarnessOptions {
     modelResponse?: string;
     /** Model-call script outcome: server error text (failure path). */
     modelFailure?: string;
+    modelDelayMs?: number;
+    auxAcquireDelayMs?: number;
     auxAvailable?: boolean;
 }
 
@@ -187,7 +189,15 @@ function makeHarness(options: HarnessOptions = {}) {
     const store = fakeStore(columns, rows);
     const models = options.models ?? [defaultModel()];
     const executed: string[] = [];
-    const counters = { auxAcquired: 0, auxDisposed: 0 };
+    const counters = {
+        auxAcquired: 0,
+        auxDisposed: 0,
+        queryStarted: 0,
+        queryCanceled: 0,
+        queryDisposed: 0,
+    };
+    let modelStarted!: () => void;
+    const modelStartedPromise = new Promise<void>((resolve) => (modelStarted = resolve));
     let nowMs = 1_000_000;
 
     const modelScript = (): FakeScript => {
@@ -201,6 +211,7 @@ function makeHarness(options: HarnessOptions = {}) {
                       type: "resultSet",
                       columns: ["fresh"],
                       rows: [[options.modelResponse ?? "[0.8,0.6]"]],
+                      ...(options.modelDelayMs ? { delayMs: options.modelDelayMs } : {}),
                   },
                   { type: "complete", status: "succeeded" },
               ];
@@ -215,6 +226,9 @@ function makeHarness(options: HarnessOptions = {}) {
 
     const thunks: VectorPipelineThunks = {
         auxModelSession: async () => {
+            if (options.auxAcquireDelayMs) {
+                await new Promise((resolve) => setTimeout(resolve, options.auxAcquireDelayMs));
+            }
             if (options.auxAvailable === false) {
                 return undefined;
             }
@@ -224,6 +238,23 @@ function makeHarness(options: HarnessOptions = {}) {
                 profile: { profileFingerprint: "fp", server: "srv", authKind: "integrated" },
                 applicationName: "test-vector-model-call",
             });
+            const execute = session.execute.bind(session);
+            session.execute = (text, executeOptions, sink) => {
+                counters.queryStarted++;
+                const handle = execute(text, executeOptions, sink);
+                modelStarted();
+                return {
+                    ...handle,
+                    cancel: async () => {
+                        counters.queryCanceled++;
+                        return handle.cancel();
+                    },
+                    dispose: async () => {
+                        counters.queryDisposed++;
+                        return handle.dispose();
+                    },
+                };
+            };
             return {
                 session,
                 dispose: () => {
@@ -244,6 +275,7 @@ function makeHarness(options: HarnessOptions = {}) {
         service,
         executed,
         counters,
+        modelStarted: modelStartedPromise,
         advance: (ms: number) => {
             nowMs += ms;
         },
@@ -645,6 +677,37 @@ suite("VectorPipelineService (VEC-10) — token lifecycle + execute", () => {
         expect(
             (await noAux.service.reembedExecute(preparedNoAux.confirmationToken!)).error,
         ).to.include("No auxiliary session");
+    });
+
+    test("dispose cancels an active query, suppresses its result, and releases the lease once", async () => {
+        const h = makeHarness({ modelDelayMs: 250 });
+        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
+        const executing = h.service.reembedExecute(prepared.confirmationToken!);
+        await h.modelStarted;
+
+        h.service.dispose();
+        const result = await executing;
+
+        expect(result.comparison).to.equal(undefined);
+        expect(result.error).to.include("cancelled");
+        expect(h.counters.queryCanceled).to.equal(1);
+        expect(h.counters.queryDisposed).to.equal(1);
+        expect(h.counters.auxDisposed).to.equal(1);
+    });
+
+    test("dispose during auxiliary-session acquisition closes the late lease without executing", async () => {
+        const h = makeHarness({ auxAcquireDelayMs: 25 });
+        const prepared = await h.service.reembedPrepare(PREPARE_DEFAULTS);
+        const executing = h.service.reembedExecute(prepared.confirmationToken!);
+
+        h.service.dispose();
+        const result = await executing;
+
+        expect(result.error).to.include("cancelled");
+        expect(h.counters.auxAcquired).to.equal(1);
+        expect(h.counters.auxDisposed).to.equal(1);
+        expect(h.counters.queryStarted).to.equal(0);
+        expect((await h.service.reembedPrepare(PREPARE_DEFAULTS)).error).to.include("closed");
     });
 });
 

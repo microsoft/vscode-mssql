@@ -76,6 +76,9 @@ export const TRUNCATED_SOURCE_REFUSAL =
 export const TRUNCATED_CHUNK_REFUSAL =
     "Source text is truncated in the result — chunk offsets over a partial document would be wrong.";
 
+const PIPELINE_CLOSED_REFUSAL = "The Vector Pipeline session has closed.";
+const MODEL_CALL_CANCELLED = "The model call was cancelled.";
+
 // ---------------------------------------------------------------------------
 // Thunks (the controller supplies all authority; the service owns policy)
 // ---------------------------------------------------------------------------
@@ -86,6 +89,10 @@ export interface VectorPipelineWorkbenchSessionFacts {
     readonly resultSetId: string;
     /** Vector column ordinal the analysis session was opened on. */
     readonly vectorColumnOrdinal: number;
+    /** Releases the workbench's scoped result-store operation lease. */
+    readonly release?: () => void;
+    /** False once the originating analysis handle has closed. */
+    readonly isActive?: () => boolean;
 }
 
 export interface VectorPipelineThunks {
@@ -286,10 +293,14 @@ async function executeWhenFree(
     session: ISqlSession,
     text: string,
     sink: IQueryEventSink,
+    signal?: AbortSignal,
     deadlineMs = 5_000,
 ): Promise<QueryHandle> {
     const startedAt = Date.now();
     for (;;) {
+        if (signal?.aborted) {
+            throw new Error(MODEL_CALL_CANCELLED);
+        }
         try {
             return session.execute(
                 text,
@@ -313,7 +324,11 @@ async function executeWhenFree(
     }
 }
 
-async function runModelCall(session: ISqlSession, sql: string): Promise<ModelCallOutcome> {
+async function runModelCall(
+    session: ISqlSession,
+    sql: string,
+    control: { signal: AbortSignal; onHandle(handle: QueryHandle): void },
+): Promise<ModelCallOutcome> {
     const rows: unknown[][] = [];
     const errors: string[] = [];
     try {
@@ -329,8 +344,15 @@ async function runModelCall(session: ISqlSession, sql: string): Promise<ModelCal
             },
             onComplete: () => undefined,
         };
-        const handle = await executeWhenFree(session, sql, sink);
+        const handle = await executeWhenFree(session, sql, sink, control.signal);
+        control.onHandle(handle);
+        if (control.signal.aborted) {
+            return { rows, errors, failed: MODEL_CALL_CANCELLED };
+        }
         const summary = await handle.completion;
+        if (control.signal.aborted) {
+            return { rows, errors, failed: MODEL_CALL_CANCELLED };
+        }
         if (summary.status !== "succeeded") {
             return { rows, errors, failed: errors[0] ?? `model call ${summary.status}` };
         }
@@ -353,11 +375,22 @@ interface PendingReembed {
     readonly expiresAtMs: number;
 }
 
+interface ActiveModelCall {
+    readonly abortController: AbortController;
+    lease?: AuxiliarySessionLease;
+    handle?: QueryHandle;
+    queryStop?: Promise<void>;
+    leaseReleased: boolean;
+}
+
 export class VectorPipelineService {
     /** token → pending confirmation (single-use; TTL-swept). */
     private readonly pending = new Map<string, PendingReembed>();
     /** handle → its one outstanding token (a new mint replaces the old). */
     private readonly tokenByHandle = new Map<string, string>();
+    /** Model calls registered before their first await, so dispose sees all races. */
+    private readonly activeModelCalls = new Set<ActiveModelCall>();
+    private disposed = false;
 
     constructor(
         private readonly thunks: VectorPipelineThunks,
@@ -368,8 +401,24 @@ export class VectorPipelineService {
     // --- pipeline state (provenance inputs) --------------------------------
 
     async pipelineState(refresh = false): Promise<QsVectorPipelineStateResult> {
+        if (this.disposed) {
+            return {
+                models: [],
+                networkClaim: { webview: "none", serverSide: VECTOR_SERVER_SIDE_CLAIM },
+                chunkingAvailable: false,
+                error: PIPELINE_CLOSED_REFUSAL,
+            };
+        }
         const networkClaim = { webview: "none" as const, serverSide: VECTOR_SERVER_SIDE_CLAIM };
         const capabilities = await this.thunks.capabilities(refresh);
+        if (this.disposed) {
+            return {
+                models: [],
+                networkClaim,
+                chunkingAvailable: false,
+                error: PIPELINE_CLOSED_REFUSAL,
+            };
+        }
         if (capabilities.error || !capabilities.probe) {
             return {
                 models: [],
@@ -413,127 +462,153 @@ export class VectorPipelineService {
     async reembedPrepare(
         params: QsVectorReembedPrepareParams,
     ): Promise<QsVectorReembedPrepareResult> {
+        if (this.disposed) {
+            return { error: PIPELINE_CLOSED_REFUSAL };
+        }
         this.sweepExpired();
         const facts = this.thunks.workbench(params.handle);
         if (!facts) {
             return { error: "The analysis session has expired; reopen the Vector tab." };
         }
-        const summary = facts.store.summary(facts.resultSetId);
-        if (!summary) {
-            return { error: "The result set is no longer available." };
-        }
-        if (
-            !Number.isInteger(params.ordinal) ||
-            params.ordinal < 0 ||
-            params.ordinal >= summary.rowCount
-        ) {
-            return {
-                error: `Result-row ordinal ${params.ordinal} is out of range (0–${summary.rowCount - 1}).`,
+        try {
+            const summary = facts.store.summary(facts.resultSetId);
+            if (!summary) {
+                return { error: "The result set is no longer available." };
+            }
+            if (
+                !Number.isInteger(params.ordinal) ||
+                params.ordinal < 0 ||
+                params.ordinal >= summary.rowCount
+            ) {
+                return {
+                    error: `Result-row ordinal ${params.ordinal} is out of range (0–${summary.rowCount - 1}).`,
+                };
+            }
+            const columnCount = summary.columns?.length ?? summary.columnNames.length;
+            if (
+                !Number.isInteger(params.sourceColumnOrdinal) ||
+                params.sourceColumnOrdinal < 0 ||
+                params.sourceColumnOrdinal >= columnCount
+            ) {
+                return { error: "The selected source text column does not exist in this result." };
+            }
+            if (params.sourceColumnOrdinal === facts.vectorColumnOrdinal) {
+                return {
+                    error: "Choose a text column as the source — not the vector column itself.",
+                };
+            }
+            // Host-resolves the model against the probe: the webview's string
+            // selects, it never names an object into SQL directly.
+            const model = await this.resolveModel(params.modelName);
+            if (this.disposed || facts.isActive?.() === false) {
+                return {
+                    error: this.disposed
+                        ? PIPELINE_CLOSED_REFUSAL
+                        : "The analysis session has expired; reopen the Vector tab.",
+                };
+            }
+            if ("error" in model) {
+                return { error: model.error };
+            }
+            // Fetch the FULL source text and the stored vector in one sparse read
+            // (reason vectorAnalysis — non-admitting, never evicts the grid).
+            const window = await facts.store.getWindow({
+                resultSetId: facts.resultSetId,
+                rowStart: params.ordinal,
+                rowCount: 1,
+                columnOrdinals: [params.sourceColumnOrdinal, facts.vectorColumnOrdinal],
+                reason: "vectorAnalysis",
+            });
+            if (this.disposed || facts.isActive?.() === false) {
+                return {
+                    error: this.disposed
+                        ? PIPELINE_CLOSED_REFUSAL
+                        : "The analysis session has expired; reopen the Vector tab.",
+                };
+            }
+            const sourceCell: unknown = window.values[0]?.[0];
+            const vectorCell: unknown = window.values[0]?.[1];
+            if (sourceCell === undefined || sourceCell === null) {
+                return { error: "The selected row has no source text in the chosen column." };
+            }
+            // The Pipeline NEVER sends a truncated cell prefix to a model.
+            if (isTruncatedCellMarker(sourceCell)) {
+                return { error: TRUNCATED_SOURCE_REFUSAL };
+            }
+            const text = cellTextForPurpose(sourceCell, "copy");
+            if (text.length === 0) {
+                return { error: "The selected row's source text is empty." };
+            }
+            const stored =
+                vectorCell === undefined || vectorCell === null
+                    ? null
+                    : decodeVectorFloat32(vectorCell);
+            if (stored === null) {
+                return {
+                    error: "The selected row has no analyzable stored vector to compare against.",
+                };
+            }
+            const sql = buildReembedSql(text, model.row.name);
+            const sourceColumnName =
+                summary.columns?.[params.sourceColumnOrdinal]?.name ??
+                summary.columnNames[params.sourceColumnOrdinal] ??
+                `column ${params.sourceColumnOrdinal}`;
+            const egress = model.row.egress;
+            const descriptor: VectorReembedDescriptor = {
+                model: model.row.name,
+                ...(model.row.owner !== undefined ? { owner: model.row.owner } : {}),
+                modelType: "EMBEDDINGS",
+                apiFormat: model.row.apiFormat ?? "unknown",
+                endpointHost:
+                    model.row.endpointHost ??
+                    (egress === "inProcess" ? "local runtime (no endpoint)" : "unknown"),
+                egress,
+                source: `Selected row · ${sourceColumnName}`,
+                rowsCalls: 1,
+                textChars: text.length,
+                approxPayloadKiB: estimatePayloadKiB(text.length),
+                execution: executionCopyForEgress(egress),
+                resultHandling: "kept in this panel · not written to the table",
             };
-        }
-        const columnCount = summary.columns?.length ?? summary.columnNames.length;
-        if (
-            !Number.isInteger(params.sourceColumnOrdinal) ||
-            params.sourceColumnOrdinal < 0 ||
-            params.sourceColumnOrdinal >= columnCount
-        ) {
-            return { error: "The selected source text column does not exist in this result." };
-        }
-        if (params.sourceColumnOrdinal === facts.vectorColumnOrdinal) {
-            return { error: "Choose a text column as the source — not the vector column itself." };
-        }
-        // Host-resolves the model against the probe: the webview's string
-        // selects, it never names an object into SQL directly.
-        const model = await this.resolveModel(params.modelName);
-        if ("error" in model) {
-            return { error: model.error };
-        }
-        // Fetch the FULL source text and the stored vector in one sparse read
-        // (reason vectorAnalysis — non-admitting, never evicts the grid).
-        const window = await facts.store.getWindow({
-            resultSetId: facts.resultSetId,
-            rowStart: params.ordinal,
-            rowCount: 1,
-            columnOrdinals: [params.sourceColumnOrdinal, facts.vectorColumnOrdinal],
-            reason: "vectorAnalysis",
-        });
-        const sourceCell: unknown = window.values[0]?.[0];
-        const vectorCell: unknown = window.values[0]?.[1];
-        if (sourceCell === undefined || sourceCell === null) {
-            return { error: "The selected row has no source text in the chosen column." };
-        }
-        // The Pipeline NEVER sends a truncated cell prefix to a model.
-        if (isTruncatedCellMarker(sourceCell)) {
-            return { error: TRUNCATED_SOURCE_REFUSAL };
-        }
-        const text = cellTextForPurpose(sourceCell, "copy");
-        if (text.length === 0) {
-            return { error: "The selected row's source text is empty." };
-        }
-        const stored =
-            vectorCell === undefined || vectorCell === null
-                ? null
-                : decodeVectorFloat32(vectorCell);
-        if (stored === null) {
+            // Mint: crypto-random, single-use, short TTL. A new mint for the same
+            // handle invalidates the previous token (one pending confirmation).
+            const token = crypto.randomBytes(24).toString("base64url");
+            const previous = this.tokenByHandle.get(params.handle);
+            if (previous !== undefined) {
+                this.pending.delete(previous);
+            }
+            const expiresAtMs = this.now() + VECTOR_REEMBED_TOKEN_TTL_MS;
+            this.pending.set(token, {
+                handle: params.handle,
+                sql,
+                descriptor,
+                stored: stored.values,
+                expiresAtMs,
+            });
+            this.tokenByHandle.set(params.handle, token);
+            const sourcePreview =
+                text.length > VECTOR_SOURCE_PREVIEW_CHARS
+                    ? `${text.slice(0, VECTOR_SOURCE_PREVIEW_CHARS)}…`
+                    : text;
             return {
-                error: "The selected row has no analyzable stored vector to compare against.",
+                confirmationToken: token,
+                tokenExpiresEpochMs: expiresAtMs,
+                descriptor,
+                generatedSql: sql,
+                sourcePreview,
+                storedDimensions: stored.dimensions,
             };
+        } finally {
+            facts.release?.();
         }
-        const sql = buildReembedSql(text, model.row.name);
-        const sourceColumnName =
-            summary.columns?.[params.sourceColumnOrdinal]?.name ??
-            summary.columnNames[params.sourceColumnOrdinal] ??
-            `column ${params.sourceColumnOrdinal}`;
-        const egress = model.row.egress;
-        const descriptor: VectorReembedDescriptor = {
-            model: model.row.name,
-            ...(model.row.owner !== undefined ? { owner: model.row.owner } : {}),
-            modelType: "EMBEDDINGS",
-            apiFormat: model.row.apiFormat ?? "unknown",
-            endpointHost:
-                model.row.endpointHost ??
-                (egress === "inProcess" ? "local runtime (no endpoint)" : "unknown"),
-            egress,
-            source: `Selected row · ${sourceColumnName}`,
-            rowsCalls: 1,
-            textChars: text.length,
-            approxPayloadKiB: estimatePayloadKiB(text.length),
-            execution: executionCopyForEgress(egress),
-            resultHandling: "kept in this panel · not written to the table",
-        };
-        // Mint: crypto-random, single-use, short TTL. A new mint for the same
-        // handle invalidates the previous token (one pending confirmation).
-        const token = crypto.randomBytes(24).toString("base64url");
-        const previous = this.tokenByHandle.get(params.handle);
-        if (previous !== undefined) {
-            this.pending.delete(previous);
-        }
-        const expiresAtMs = this.now() + VECTOR_REEMBED_TOKEN_TTL_MS;
-        this.pending.set(token, {
-            handle: params.handle,
-            sql,
-            descriptor,
-            stored: stored.values,
-            expiresAtMs,
-        });
-        this.tokenByHandle.set(params.handle, token);
-        const sourcePreview =
-            text.length > VECTOR_SOURCE_PREVIEW_CHARS
-                ? `${text.slice(0, VECTOR_SOURCE_PREVIEW_CHARS)}…`
-                : text;
-        return {
-            confirmationToken: token,
-            tokenExpiresEpochMs: expiresAtMs,
-            descriptor,
-            generatedSql: sql,
-            sourcePreview,
-            storedDimensions: stored.dimensions,
-        };
     }
 
     // --- re-embed execute (token-gated, aux session, single-use) ------------
 
     async reembedExecute(token: string): Promise<QsVectorReembedExecuteResult> {
+        if (this.disposed) {
+            return { error: PIPELINE_CLOSED_REFUSAL };
+        }
         this.sweepExpired();
         const pending = typeof token === "string" ? this.pending.get(token) : undefined;
         if (!pending) {
@@ -544,22 +619,42 @@ export class VectorPipelineService {
         if (this.tokenByHandle.get(pending.handle) === token) {
             this.tokenByHandle.delete(pending.handle);
         }
-        const lease = await this.thunks.auxModelSession();
-        if (!lease) {
-            return {
-                error: "No auxiliary session is available for the model call on this connection.",
-            };
-        }
-        const startedAt = performance.now();
-        const markEnd = (outcome: "ok" | "error", dims: number, ms: number) =>
-            Perf.marker("mssql.queryResults.vector.model.end", "instant", {
-                outcome,
-                dims,
-                ms,
-            });
+        const operation: ActiveModelCall = {
+            abortController: new AbortController(),
+            leaseReleased: false,
+        };
+        this.activeModelCalls.add(operation);
         try {
-            const outcome = await runModelCall(lease.session, pending.sql);
+            const lease = await this.thunks.auxModelSession();
+            if (!lease) {
+                return {
+                    error: "No auxiliary session is available for the model call on this connection.",
+                };
+            }
+            operation.lease = lease;
+            if (this.disposed || operation.abortController.signal.aborted) {
+                this.releaseModelCallLease(operation);
+                return { error: MODEL_CALL_CANCELLED };
+            }
+            const startedAt = performance.now();
+            const markEnd = (outcome: "ok" | "error", dims: number, ms: number) =>
+                Perf.marker("mssql.queryResults.vector.model.end", "instant", {
+                    outcome,
+                    dims,
+                    ms,
+                });
+            const outcome = await runModelCall(lease.session, pending.sql, {
+                signal: operation.abortController.signal,
+                onHandle: (handle) => {
+                    operation.handle = handle;
+                    this.stopActiveQuery(operation);
+                },
+            });
             const elapsedMs = Math.round(performance.now() - startedAt);
+            if (this.disposed || operation.abortController.signal.aborted) {
+                markEnd("error", 0, elapsedMs);
+                return { elapsedMs, error: MODEL_CALL_CANCELLED };
+            }
             if (outcome.failed) {
                 markEnd("error", 0, elapsedMs);
                 return { elapsedMs, error: bounded(outcome.failed) };
@@ -593,13 +688,20 @@ export class VectorPipelineService {
                 elapsedMs,
             };
         } finally {
-            lease.dispose();
+            if (operation.queryStop) {
+                await operation.queryStop;
+            }
+            this.activeModelCalls.delete(operation);
+            this.releaseModelCallLease(operation);
         }
     }
 
     // --- chunk debugger (local character math) ------------------------------
 
     async chunkPreview(params: QsVectorChunkPreviewParams): Promise<QsVectorChunkPreviewResult> {
+        if (this.disposed) {
+            return { error: PIPELINE_CLOSED_REFUSAL };
+        }
         if (
             !Number.isInteger(params.chunkSize) ||
             params.chunkSize < VECTOR_CHUNK_SIZE_MIN ||
@@ -622,56 +724,83 @@ export class VectorPipelineService {
         if (!facts) {
             return { error: "The analysis session has expired; reopen the Vector tab." };
         }
-        const summary = facts.store.summary(facts.resultSetId);
-        if (!summary) {
-            return { error: "The result set is no longer available." };
-        }
-        if (
-            !Number.isInteger(params.ordinal) ||
-            params.ordinal < 0 ||
-            params.ordinal >= summary.rowCount
-        ) {
+        try {
+            const summary = facts.store.summary(facts.resultSetId);
+            if (!summary) {
+                return { error: "The result set is no longer available." };
+            }
+            if (
+                !Number.isInteger(params.ordinal) ||
+                params.ordinal < 0 ||
+                params.ordinal >= summary.rowCount
+            ) {
+                return {
+                    error: `Result-row ordinal ${params.ordinal} is out of range (0–${summary.rowCount - 1}).`,
+                };
+            }
+            const columnCount = summary.columns?.length ?? summary.columnNames.length;
+            if (
+                !Number.isInteger(params.sourceColumnOrdinal) ||
+                params.sourceColumnOrdinal < 0 ||
+                params.sourceColumnOrdinal >= columnCount
+            ) {
+                return { error: "The selected source text column does not exist in this result." };
+            }
+            const window = await facts.store.getWindow({
+                resultSetId: facts.resultSetId,
+                rowStart: params.ordinal,
+                rowCount: 1,
+                columnOrdinals: [params.sourceColumnOrdinal],
+                reason: "vectorAnalysis",
+            });
+            if (this.disposed || facts.isActive?.() === false) {
+                return {
+                    error: this.disposed
+                        ? PIPELINE_CLOSED_REFUSAL
+                        : "The analysis session has expired; reopen the Vector tab.",
+                };
+            }
+            const sourceCell: unknown = window.values[0]?.[0];
+            if (sourceCell === undefined || sourceCell === null) {
+                return { error: "The selected row has no source text in the chosen column." };
+            }
+            if (isTruncatedCellMarker(sourceCell)) {
+                return { error: TRUNCATED_CHUNK_REFUSAL };
+            }
+            const text = cellTextForPurpose(sourceCell, "copy");
+            if (text.length === 0) {
+                return { error: "The selected row's source text is empty." };
+            }
+            const computed = computeFixedChunks(text, params.chunkSize, params.overlapPct);
             return {
-                error: `Result-row ordinal ${params.ordinal} is out of range (0–${summary.rowCount - 1}).`,
+                chunks: computed.chunks,
+                totalChars: computed.totalChars,
+                chunkListTruncated: computed.chunkListTruncated,
             };
+        } finally {
+            facts.release?.();
         }
-        const columnCount = summary.columns?.length ?? summary.columnNames.length;
-        if (
-            !Number.isInteger(params.sourceColumnOrdinal) ||
-            params.sourceColumnOrdinal < 0 ||
-            params.sourceColumnOrdinal >= columnCount
-        ) {
-            return { error: "The selected source text column does not exist in this result." };
-        }
-        const window = await facts.store.getWindow({
-            resultSetId: facts.resultSetId,
-            rowStart: params.ordinal,
-            rowCount: 1,
-            columnOrdinals: [params.sourceColumnOrdinal],
-            reason: "vectorAnalysis",
-        });
-        const sourceCell: unknown = window.values[0]?.[0];
-        if (sourceCell === undefined || sourceCell === null) {
-            return { error: "The selected row has no source text in the chosen column." };
-        }
-        if (isTruncatedCellMarker(sourceCell)) {
-            return { error: TRUNCATED_CHUNK_REFUSAL };
-        }
-        const text = cellTextForPurpose(sourceCell, "copy");
-        if (text.length === 0) {
-            return { error: "The selected row's source text is empty." };
-        }
-        const computed = computeFixedChunks(text, params.chunkSize, params.overlapPct);
-        return {
-            chunks: computed.chunks,
-            totalChars: computed.totalChars,
-            chunkListTruncated: computed.chunkListTruncated,
-        };
     }
 
     dispose(): void {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
         this.pending.clear();
         this.tokenByHandle.clear();
+        for (const operation of this.activeModelCalls) {
+            operation.abortController.abort();
+            this.stopActiveQuery(operation);
+            if (operation.queryStop) {
+                // Keep the auxiliary-session lease until cancel/dispose has
+                // reached the active handle. reembedExecute's finally also
+                // awaits this promise; release is idempotent for either path.
+                void operation.queryStop.finally(() => this.releaseModelCallLease(operation));
+            } else {
+                this.releaseModelCallLease(operation);
+            }
+        }
     }
 
     // --- internals ----------------------------------------------------------
@@ -714,5 +843,32 @@ export class VectorPipelineService {
                 }
             }
         }
+    }
+
+    private stopActiveQuery(operation: ActiveModelCall): void {
+        const handle = operation.handle;
+        if (!operation.abortController.signal.aborted || !handle || operation.queryStop) {
+            return;
+        }
+        operation.queryStop = (async () => {
+            try {
+                await handle.cancel();
+            } catch {
+                // Disposal is best-effort but must still reach handle.dispose().
+            }
+            try {
+                await handle.dispose();
+            } catch {
+                // The auxiliary lease close below is the final liveness floor.
+            }
+        })();
+    }
+
+    private releaseModelCallLease(operation: ActiveModelCall): void {
+        if (!operation.lease || operation.leaseReleased) {
+            return;
+        }
+        operation.leaseReleased = true;
+        operation.lease.dispose();
     }
 }

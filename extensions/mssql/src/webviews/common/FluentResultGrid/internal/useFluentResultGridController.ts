@@ -199,7 +199,13 @@ export function useFluentResultGridController({
     );
 
     useEffect(() => {
+        const flushOnPageHide = () => persistScrollPosition.flush();
+        window.addEventListener("pagehide", flushOnPageHide);
         return () => {
+            window.removeEventListener("pagehide", flushOnPageHide);
+            // A fast tab switch/webview teardown can happen inside the 100ms
+            // debounce window. Flush the last viewport before disposing it.
+            persistScrollPosition.flush();
             persistScrollPosition.cancel();
         };
     }, [persistScrollPosition]);

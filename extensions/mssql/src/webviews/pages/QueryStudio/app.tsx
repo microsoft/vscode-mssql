@@ -64,6 +64,16 @@ import {
     QsTextEdit,
 } from "../../../sharedInterfaces/queryStudio";
 import {
+    QueryStudioPanelViewState,
+    QueryStudioTabId,
+    QsGetPanelViewStateRequest,
+    QsUpdatePanelViewStateNotification,
+    createQueryStudioPanelViewState,
+    isVectorTabEligible,
+    orderedQueryStudioTabs,
+    resetQueryStudioPanelViewState,
+} from "../../../sharedInterfaces/queryStudioViewState";
+import {
     QsLangCompletionItemKind,
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -118,10 +128,11 @@ import {
     QS_UNDO_ACTION,
 } from "./keybindings";
 import { executeParamsForSelection } from "./executionRequests";
+import { QueryStudioErrorBoundary } from "./queryStudioErrorBoundary";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
-type QueryStudioTab = "results" | "messages" | "queryPlan" | "vector";
+type QueryStudioTab = QueryStudioTabId;
 
 interface QueryPlanTabState {
     readonly key: string;
@@ -185,6 +196,15 @@ export function QueryStudioApp() {
     const providerState = isQueryStudioState(snapshot) ? snapshot : undefined;
     const [pushedState, setPushedState] = useState<QsState | undefined>(undefined);
     const state = providerState ?? pushedState;
+    const panelViewStateRef = useRef<QueryStudioPanelViewState>(
+        createQueryStudioPanelViewState(String(providerState?.execution.startedEpochMs ?? "idle")),
+    );
+    const panelViewStateReadyRef = useRef(false);
+    const panelViewStateTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const panelViewStateBootstrapEpochRef = useRef(0);
+    const hostGenerationRef = useRef(String(providerState?.execution.startedEpochMs ?? "idle"));
+    hostGenerationRef.current = String(state?.execution.startedEpochMs ?? "idle");
+    const [panelViewStateReady, setPanelViewStateReady] = useState(false);
     const [cursor, setCursor] = useState({ line: 1, column: 1 });
     const [messages, setMessages] = useState<QsMessageRow[]>([]);
     // Live per-set row counts accumulated from QsRowsAppended (counts only —
@@ -192,6 +212,9 @@ export function QueryStudioApp() {
     // debounced (≤10/s); the max of the two keeps grids growing smoothly.
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
     const [activeTab, setActiveTab] = useState<QueryStudioTab>("results");
+    const [mountedTabs, setMountedTabs] = useState<ReadonlySet<QueryStudioTab>>(
+        () => new Set(["results"]),
+    );
     const [queryPlanTabState, setQueryPlanTabState] = useState<QueryPlanTabState | undefined>(
         undefined,
     );
@@ -208,6 +231,16 @@ export function QueryStudioApp() {
     const [maximizedGridId, setMaximizedGridId] = useState<string | undefined>(undefined);
     // Measured results-body height — drives stacked-grid default heights.
     const resultsBodyRef = useRef<HTMLDivElement | null>(null);
+    const resultsPanelRef = useRef<HTMLDivElement | null>(null);
+    const gridStateHandlersRef = useRef<
+        Map<
+            string,
+            {
+                generation: string;
+                handler: (state: QueryStudioPanelViewState["results"]["grids"][string]) => void;
+            }
+        >
+    >(new Map());
     const [resultsPaneHeight, setResultsPaneHeight] = useState<number | undefined>(undefined);
     // Transient reason from a refused run attempt (execute guards return
     // { started: false, reason } — silence here was the "Execute does
@@ -243,6 +276,176 @@ export function QueryStudioApp() {
     const startedRunRef = useRef<number | undefined>(undefined);
     const planTabFocusRef = useRef<{ runId?: number; focused: boolean }>({ focused: false });
 
+    const flushPanelViewState = useCallback(() => {
+        if (panelViewStateTimerRef.current) {
+            clearTimeout(panelViewStateTimerRef.current);
+            panelViewStateTimerRef.current = undefined;
+        }
+        if (panelViewStateReadyRef.current) {
+            void rpc.sendNotification(
+                QsUpdatePanelViewStateNotification.type,
+                panelViewStateRef.current,
+            );
+        }
+    }, [rpc]);
+
+    const updatePanelViewState = useCallback(
+        (update: (current: QueryStudioPanelViewState) => QueryStudioPanelViewState) => {
+            panelViewStateRef.current = update(panelViewStateRef.current);
+            if (!panelViewStateReadyRef.current) {
+                return;
+            }
+            if (panelViewStateTimerRef.current) {
+                clearTimeout(panelViewStateTimerRef.current);
+            }
+            panelViewStateTimerRef.current = setTimeout(flushPanelViewState, 100);
+        },
+        [flushPanelViewState],
+    );
+
+    const persistGridViewState = useCallback(
+        (
+            generation: string,
+            resultSetId: string,
+            gridState: QueryStudioPanelViewState["results"]["grids"][string],
+        ) => {
+            updatePanelViewState((current) =>
+                current.generation === generation
+                    ? {
+                          ...current,
+                          results: {
+                              ...current.results,
+                              grids: { ...current.results.grids, [resultSetId]: gridState },
+                          },
+                      }
+                    : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const gridStateHandler = useCallback(
+        (generation: string, resultSetId: string) => {
+            const current = gridStateHandlersRef.current.get(resultSetId);
+            if (current?.generation === generation) {
+                return current.handler;
+            }
+            const handler = (gridState: QueryStudioPanelViewState["results"]["grids"][string]) =>
+                persistGridViewState(generation, resultSetId, gridState);
+            gridStateHandlersRef.current.set(resultSetId, { generation, handler });
+            return handler;
+        },
+        [persistGridViewState],
+    );
+
+    const persistResultsScroll = useCallback(
+        (generation: string) => {
+            const scrollTop = resultsPanelRef.current?.scrollTop ?? 0;
+            updatePanelViewState((current) =>
+                current.generation === generation
+                    ? {
+                          ...current,
+                          results: { ...current.results, stackScrollTop: scrollTop },
+                      }
+                    : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const persistResultsTextViewState = useCallback(
+        (
+            generation: string,
+            textView: NonNullable<QueryStudioPanelViewState["results"]["textView"]>,
+        ) => {
+            updatePanelViewState((current) =>
+                current.generation === generation
+                    ? {
+                          ...current,
+                          results: { ...current.results, textView },
+                      }
+                    : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const persistMessagesViewState = useCallback(
+        (generation: string, messagesState: QueryStudioPanelViewState["messages"]) => {
+            updatePanelViewState((current) =>
+                current.generation === generation
+                    ? { ...current, messages: messagesState }
+                    : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const persistVectorViewState = useCallback(
+        (generation: string, vectorState: QueryStudioPanelViewState["vector"]) => {
+            updatePanelViewState((current) =>
+                current.generation === generation ? { ...current, vector: vectorState } : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const persistPlanViewState = useCallback(
+        (generation: string, queryPlan: QueryStudioPanelViewState["queryPlan"]) => {
+            updatePanelViewState((current) =>
+                current.generation === generation ? { ...current, queryPlan } : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const reportPaneError = useCallback(
+        (label: string, error: Error, componentStack?: string) =>
+            rpc.log.error(
+                "Query Studio pane render failure",
+                label,
+                `${error.name}: ${error.message}`.slice(0, 2_000),
+                componentStack?.slice(0, 8_000),
+            ),
+        [rpc],
+    );
+
+    useEffect(() => {
+        let disposed = false;
+        const bootstrapEpoch = ++panelViewStateBootstrapEpochRef.current;
+        void rpc
+            .sendRequest(QsGetPanelViewStateRequest.type, undefined)
+            .then((saved) => {
+                if (disposed || bootstrapEpoch !== panelViewStateBootstrapEpochRef.current) {
+                    return;
+                }
+                panelViewStateRef.current = saved;
+                panelViewStateReadyRef.current = true;
+                setActiveTab(saved.shell.activeTab);
+                setMountedTabs(new Set([saved.shell.activeTab]));
+                splitAdjustedRef.current = true;
+                setResultsHeightPct(saved.shell.resultsHeightPct);
+                setResultsCollapsed(saved.shell.resultsCollapsed);
+                setResultsPaneMaximized(saved.shell.resultsPaneMaximized);
+                setMaximizedGridId(saved.shell.maximizedGridId);
+                setPanelViewStateReady(true);
+            })
+            .catch(() => {
+                if (disposed || bootstrapEpoch !== panelViewStateBootstrapEpochRef.current) {
+                    return;
+                }
+                panelViewStateRef.current = createQueryStudioPanelViewState(
+                    hostGenerationRef.current,
+                );
+                panelViewStateReadyRef.current = true;
+                setPanelViewStateReady(true);
+            });
+        const flushBeforeUnload = () => flushPanelViewState();
+        const flushAfterPageHideListeners = () => queueMicrotask(flushPanelViewState);
+        window.addEventListener("beforeunload", flushBeforeUnload);
+        window.addEventListener("pagehide", flushAfterPageHideListeners);
+        return () => {
+            disposed = true;
+            window.removeEventListener("beforeunload", flushBeforeUnload);
+            window.removeEventListener("pagehide", flushAfterPageHideListeners);
+            flushPanelViewState();
+        };
+    }, [flushPanelViewState, rpc]);
+
     const captureEditorFocusBookmark = useCallback(() => {
         const editor = editorRef.current;
         if (!editor) {
@@ -277,9 +480,18 @@ export function QueryStudioApp() {
     const resetRunViewForStart = useCallback(
         (runId: number, fetchMessageSnapshot: boolean) => {
             startedRunRef.current = runId;
+            panelViewStateBootstrapEpochRef.current++;
+            gridStateHandlersRef.current.clear();
+            panelViewStateRef.current = resetQueryStudioPanelViewState(
+                panelViewStateRef.current,
+                String(runId),
+            );
+            panelViewStateReadyRef.current = true;
+            setPanelViewStateReady(true);
             setActionHint(undefined);
             setLiveRowCounts({});
             setActiveTab("results");
+            setMountedTabs(new Set(["results"]));
             setResultsCollapsed(false);
             setMaximizedGridId(undefined);
             setMessages([]);
@@ -621,6 +833,28 @@ export function QueryStudioApp() {
     // resultsRendered mark once per run after the terminal paint.
     const runId = state?.execution.startedEpochMs;
     const executionKind = state?.execution.kind ?? "idle";
+    useEffect(() => {
+        if (!panelViewStateReadyRef.current) {
+            return;
+        }
+        updatePanelViewState((current) => ({
+            ...current,
+            shell: {
+                activeTab,
+                resultsHeightPct,
+                resultsCollapsed,
+                resultsPaneMaximized,
+                ...(maximizedGridId ? { maximizedGridId } : {}),
+            },
+        }));
+    }, [
+        activeTab,
+        maximizedGridId,
+        resultsCollapsed,
+        resultsHeightPct,
+        resultsPaneMaximized,
+        updatePanelViewState,
+    ]);
     // Mirror the host's actual-plan toggle so `execute` can read it at
     // trigger time without re-registering its callback on every state push.
     useEffect(() => {
@@ -1399,7 +1633,8 @@ export function QueryStudioApp() {
     const hasPlanResults = planResultSetSummaries.length > 0;
     // Vector tab appliesTo sniff (VEC-5): cheap column-metadata scan in the
     // shell — the pane chunk loads only on first activation.
-    const vectorColumns = React.useMemo(
+    const vectorWorkbenchEnabled = state?.capabilities.vectorWorkbench === true;
+    const vectorColumnCandidates = React.useMemo(
         () =>
             resultSetSummaries.flatMap(
                 (summary) =>
@@ -1421,7 +1656,20 @@ export function QueryStudioApp() {
             ),
         [resultSetSummaries],
     );
-    const hasVectorResults = vectorColumns.length > 0;
+    const hasVectorResults =
+        isVectorTabEligible(
+            vectorWorkbenchEnabled,
+            vectorColumnCandidates.map((column) => column.transport),
+        ) && results?.streaming !== true;
+    const panelVisible = state?.capabilities.panelVisible !== false;
+    const vectorSessionEpoch = state?.vectorSessionEpoch ?? 0;
+    const vectorColumns = React.useMemo(
+        () =>
+            hasVectorResults
+                ? vectorColumnCandidates.filter((column) => column.transport === "binary-v1")
+                : [],
+        [hasVectorResults, vectorColumnCandidates],
+    );
     // String-typed columns per result set (Pipeline source-text picker).
     const stringColumnsByResult = React.useMemo(() => {
         const byResult: Record<string, { ordinal: number; name: string }[]> = {};
@@ -1455,6 +1703,11 @@ export function QueryStudioApp() {
                     ? "results"
                     : "messages"
                 : activeTab;
+    useEffect(() => {
+        if (activeTab !== visibleActiveTab) {
+            setActiveTab(visibleActiveTab);
+        }
+    }, [activeTab, visibleActiveTab]);
     const dataTotalRows = resultSetSummaries.reduce(
         (total, summary) => total + effectiveRowCount(summary),
         0,
@@ -1489,6 +1742,25 @@ export function QueryStudioApp() {
             captionPx: GRID_CAPTION_PX,
         },
     );
+    useEffect(() => {
+        setMountedTabs((current) => {
+            if (current.has(visibleActiveTab)) {
+                return current;
+            }
+            return new Set([...current, visibleActiveTab]);
+        });
+    }, [visibleActiveTab]);
+    const resultsTabMounted = mountedTabs.has("results");
+    useEffect(() => {
+        if (
+            panelViewStateReady &&
+            resultsTabMounted &&
+            visibleActiveTab === "results" &&
+            resultsPanelRef.current
+        ) {
+            resultsPanelRef.current.scrollTop = panelViewStateRef.current.results.stackScrollTop;
+        }
+    }, [panelViewStateReady, resultsTabMounted, runId, showResults, visibleActiveTab]);
     useEffect(() => {
         const el = resultsBodyRef.current;
         if (!el) {
@@ -1587,6 +1859,33 @@ export function QueryStudioApp() {
         executing && startedEpochMs !== undefined
             ? Math.max(0, nowMs - startedEpochMs)
             : state?.execution.elapsedMs;
+    const availableTabs = orderedQueryStudioTabs({
+        results: hasDataResults,
+        vector: hasVectorResults,
+        queryPlan: hasPlanResults,
+    });
+    const panelGeneration = panelViewStateRef.current.generation;
+    const tabLabel = (tab: QueryStudioTab): React.ReactNode => {
+        switch (tab) {
+            case "results":
+                return (
+                    <>Results{dataTotalRows > 0 ? ` (${dataTotalRows.toLocaleString()})` : ""}</>
+                );
+            case "messages":
+                return <>Messages{errorCount > 0 ? ` (${errorCount} ⚠)` : ""}</>;
+            case "vector":
+                return "Vector";
+            case "queryPlan":
+                return (
+                    <>
+                        Query Plan
+                        {planResultSetSummaries.length > 1
+                            ? ` (${planResultSetSummaries.length})`
+                            : ""}
+                    </>
+                );
+        }
+    };
 
     return (
         <div className="qs-root" ref={rootRef}>
@@ -1757,47 +2056,18 @@ export function QueryStudioApp() {
                             flexBasis: resultsPaneMaximized ? "100%" : `${resultsHeightPct}%`,
                         }}>
                         <div className="qs-results-tabs" role="tablist">
-                            {hasDataResults ? (
+                            {availableTabs.map((tab) => (
                                 <button
+                                    key={tab}
+                                    id={`qs-results-tab-${tab}`}
                                     role="tab"
-                                    aria-selected={visibleActiveTab === "results"}
-                                    className={`qs-tab ${visibleActiveTab === "results" ? "active" : ""}`}
-                                    onClick={() => setActiveTab("results")}>
-                                    Results
-                                    {dataTotalRows > 0
-                                        ? ` (${dataTotalRows.toLocaleString()})`
-                                        : ""}
+                                    aria-controls={`qs-results-panel-${tab}`}
+                                    aria-selected={visibleActiveTab === tab}
+                                    className={`qs-tab ${visibleActiveTab === tab ? "active" : ""} ${tab === "messages" && errorCount > 0 ? "has-errors" : ""}`}
+                                    onClick={() => setActiveTab(tab)}>
+                                    {tabLabel(tab)}
                                 </button>
-                            ) : null}
-                            {hasVectorResults ? (
-                                <button
-                                    role="tab"
-                                    aria-selected={visibleActiveTab === "vector"}
-                                    className={`qs-tab ${visibleActiveTab === "vector" ? "active" : ""}`}
-                                    onClick={() => setActiveTab("vector")}>
-                                    Vector
-                                </button>
-                            ) : null}
-                            <button
-                                role="tab"
-                                aria-selected={visibleActiveTab === "messages"}
-                                className={`qs-tab ${visibleActiveTab === "messages" ? "active" : ""} ${errorCount > 0 ? "has-errors" : ""}`}
-                                onClick={() => setActiveTab("messages")}>
-                                Messages
-                                {errorCount > 0 ? ` (${errorCount} ⚠)` : ""}
-                            </button>
-                            {hasPlanResults ? (
-                                <button
-                                    role="tab"
-                                    aria-selected={visibleActiveTab === "queryPlan"}
-                                    className={`qs-tab ${visibleActiveTab === "queryPlan" ? "active" : ""}`}
-                                    onClick={() => setActiveTab("queryPlan")}>
-                                    Query Plan
-                                    {planResultSetSummaries.length > 1
-                                        ? ` (${planResultSetSummaries.length})`
-                                        : ""}
-                                </button>
-                            ) : null}
+                            ))}
                             <span className="qs-spacer" />
                             {visibleActiveTab === "results" &&
                             hasDataResults &&
@@ -1867,102 +2137,241 @@ export function QueryStudioApp() {
                             ) : null}
                         </div>
                         <div
-                            className={`qs-results-body${resultsFillActive ? " qs-results-body-fill" : ""}`}
+                            className="qs-results-body qs-results-body-panels"
                             ref={resultsBodyRef}>
-                            {visibleActiveTab === "results" ? (
-                                resultViewMode === "text" ? (
-                                    <QueryStudioResultsTextView
-                                        rpc={rpc}
-                                        resultSets={gridResultSetSummaries}
-                                        liveRowCounts={liveRowCounts}
-                                        gridStyle={state?.gridStyle}
-                                    />
-                                ) : (
-                                    // Lazy mounting: captions always render; grid
-                                    // bodies mount near the viewport (never unmount).
-                                    // BOOT-2: the grid stack is a dynamic chunk —
-                                    // Suspense covers the rare results-beat-chunk ms.
-                                    <React.Suspense fallback={<ResultsSurfaceLoading />}>
-                                        <LazyQsResultsGridProvider>
-                                            {gridResultSetSummaries.map((summary, index) => {
-                                                const isMaximized =
-                                                    maximizedGrid === summary.resultSetId;
-                                                return (
-                                                    <LazyResultGridBlock
-                                                        key={summary.resultSetId}
+                            {!panelViewStateReady ? (
+                                <ResultsSurfaceLoading />
+                            ) : (
+                                <>
+                                    {hasDataResults && mountedTabs.has("results") ? (
+                                        <div
+                                            id="qs-results-panel-results"
+                                            role="tabpanel"
+                                            aria-labelledby="qs-results-tab-results"
+                                            hidden={visibleActiveTab !== "results"}
+                                            className={`qs-tab-panel${resultsFillActive ? " qs-tab-panel-fill" : ""}`}
+                                            ref={resultsPanelRef}
+                                            onScroll={() => persistResultsScroll(panelGeneration)}>
+                                            <QueryStudioErrorBoundary
+                                                label="Results"
+                                                resetKey={`results:${panelGeneration}:${resultViewMode}`}
+                                                onError={reportPaneError}>
+                                                {resultViewMode === "text" ? (
+                                                    <QueryStudioResultsTextView
                                                         rpc={rpc}
-                                                        summary={summary}
-                                                        displayOrdinal={index + 1}
-                                                        rowCount={effectiveRowCount(summary)}
+                                                        resultSets={gridResultSetSummaries}
+                                                        liveRowCounts={liveRowCounts}
                                                         gridStyle={state?.gridStyle}
-                                                        sizing={
-                                                            singleGrid || isMaximized
-                                                                ? { kind: "fill" }
-                                                                : (resultsLayout.sizing[index] ?? {
-                                                                      kind: "fill",
-                                                                  })
+                                                        initialViewState={
+                                                            panelViewStateRef.current.results
+                                                                .textView
                                                         }
-                                                        runActive={executing}
-                                                        hidden={
-                                                            maximizedGrid !== undefined &&
-                                                            !isMaximized
-                                                        }
-                                                        maximized={isMaximized}
-                                                        onToggleMaximize={
-                                                            singleGrid
-                                                                ? undefined
-                                                                : () =>
-                                                                      setMaximizedGridId(
-                                                                          isMaximized
-                                                                              ? undefined
-                                                                              : summary.resultSetId,
-                                                                      )
-                                                        }
-                                                        captionExtras={
-                                                            summary.complete ? (
-                                                                <button
-                                                                    className="qs-btn qs-grid-pin"
-                                                                    title="Pin this result set to a read-only tab that survives reruns"
-                                                                    aria-label="Pin result set"
-                                                                    onClick={() =>
-                                                                        pinResults(
-                                                                            summary.resultSetId,
-                                                                        )
-                                                                    }>
-                                                                    <span className="codicon codicon-pin" />
-                                                                </button>
-                                                            ) : undefined
+                                                        onViewStateChange={(textView) =>
+                                                            persistResultsTextViewState(
+                                                                panelGeneration,
+                                                                textView,
+                                                            )
                                                         }
                                                     />
-                                                );
-                                            })}
-                                        </LazyQsResultsGridProvider>
-                                    </React.Suspense>
-                                )
-                            ) : visibleActiveTab === "queryPlan" ? (
-                                // BOOT-2/P2: azdataGraph loads on FIRST plan-tab
-                                // activation only — never at init.
-                                <React.Suspense fallback={<ResultsSurfaceLoading />}>
-                                    <LazyExecutionPlanView
-                                        rpc={rpc}
-                                        executionPlanState={queryPlanTabState?.executionPlanState}
-                                    />
-                                </React.Suspense>
-                            ) : visibleActiveTab === "vector" ? (
-                                // VEC-5/P2: the Vector Workbench chunk loads on
-                                // FIRST vector-tab activation only.
-                                <React.Suspense fallback={<ResultsSurfaceLoading />}>
-                                    <LazyVectorTab
-                                        rpc={rpc}
-                                        columns={vectorColumns}
-                                        runKey={String(runId ?? "idle")}
-                                        stringColumnsByResult={stringColumnsByResult}
-                                    />
-                                </React.Suspense>
-                            ) : (
-                                <React.Suspense fallback={<ResultsSurfaceLoading />}>
-                                    <LazyMessagesView rpc={rpc} messages={messages} />
-                                </React.Suspense>
+                                                ) : (
+                                                    <React.Suspense
+                                                        fallback={<ResultsSurfaceLoading />}>
+                                                        <LazyQsResultsGridProvider
+                                                            key={`grids:${panelGeneration}`}>
+                                                            {gridResultSetSummaries.map(
+                                                                (summary, index) => {
+                                                                    const isMaximized =
+                                                                        maximizedGrid ===
+                                                                        summary.resultSetId;
+                                                                    return (
+                                                                        <LazyResultGridBlock
+                                                                            key={
+                                                                                summary.resultSetId
+                                                                            }
+                                                                            rpc={rpc}
+                                                                            summary={summary}
+                                                                            displayOrdinal={
+                                                                                index + 1
+                                                                            }
+                                                                            rowCount={effectiveRowCount(
+                                                                                summary,
+                                                                            )}
+                                                                            gridStyle={
+                                                                                state?.gridStyle
+                                                                            }
+                                                                            sizing={
+                                                                                singleGrid ||
+                                                                                isMaximized
+                                                                                    ? {
+                                                                                          kind: "fill",
+                                                                                      }
+                                                                                    : (resultsLayout
+                                                                                          .sizing[
+                                                                                          index
+                                                                                      ] ?? {
+                                                                                          kind: "fill",
+                                                                                      })
+                                                                            }
+                                                                            runActive={executing}
+                                                                            hidden={
+                                                                                maximizedGrid !==
+                                                                                    undefined &&
+                                                                                !isMaximized
+                                                                            }
+                                                                            maximized={isMaximized}
+                                                                            initialGridState={
+                                                                                panelViewStateRef
+                                                                                    .current.results
+                                                                                    .grids[
+                                                                                    summary
+                                                                                        .resultSetId
+                                                                                ]
+                                                                            }
+                                                                            onGridStateChange={gridStateHandler(
+                                                                                panelGeneration,
+                                                                                summary.resultSetId,
+                                                                            )}
+                                                                            onToggleMaximize={
+                                                                                singleGrid
+                                                                                    ? undefined
+                                                                                    : () =>
+                                                                                          setMaximizedGridId(
+                                                                                              isMaximized
+                                                                                                  ? undefined
+                                                                                                  : summary.resultSetId,
+                                                                                          )
+                                                                            }
+                                                                            captionExtras={
+                                                                                summary.complete ? (
+                                                                                    <button
+                                                                                        className="qs-btn qs-grid-pin"
+                                                                                        title="Pin this result set to a read-only tab that survives reruns"
+                                                                                        aria-label="Pin result set"
+                                                                                        onClick={() =>
+                                                                                            pinResults(
+                                                                                                summary.resultSetId,
+                                                                                            )
+                                                                                        }>
+                                                                                        <span className="codicon codicon-pin" />
+                                                                                    </button>
+                                                                                ) : undefined
+                                                                            }
+                                                                        />
+                                                                    );
+                                                                },
+                                                            )}
+                                                        </LazyQsResultsGridProvider>
+                                                    </React.Suspense>
+                                                )}
+                                            </QueryStudioErrorBoundary>
+                                        </div>
+                                    ) : null}
+                                    {mountedTabs.has("messages") ? (
+                                        <div
+                                            id="qs-results-panel-messages"
+                                            role="tabpanel"
+                                            aria-labelledby="qs-results-tab-messages"
+                                            hidden={visibleActiveTab !== "messages"}
+                                            className="qs-tab-panel qs-tab-panel-fill">
+                                            <QueryStudioErrorBoundary
+                                                label="Messages"
+                                                resetKey={`messages:${panelGeneration}`}
+                                                onError={reportPaneError}>
+                                                <React.Suspense
+                                                    fallback={<ResultsSurfaceLoading />}>
+                                                    <LazyMessagesView
+                                                        key={`messages:${panelGeneration}`}
+                                                        rpc={rpc}
+                                                        messages={messages}
+                                                        active={visibleActiveTab === "messages"}
+                                                        initialViewState={
+                                                            panelViewStateRef.current.messages
+                                                        }
+                                                        onViewStateChange={(messagesState) =>
+                                                            persistMessagesViewState(
+                                                                panelGeneration,
+                                                                messagesState,
+                                                            )
+                                                        }
+                                                    />
+                                                </React.Suspense>
+                                            </QueryStudioErrorBoundary>
+                                        </div>
+                                    ) : null}
+                                    {hasVectorResults && mountedTabs.has("vector") ? (
+                                        <div
+                                            id="qs-results-panel-vector"
+                                            role="tabpanel"
+                                            aria-labelledby="qs-results-tab-vector"
+                                            hidden={visibleActiveTab !== "vector"}
+                                            className="qs-tab-panel qs-tab-panel-fill">
+                                            <QueryStudioErrorBoundary
+                                                label="Vector"
+                                                resetKey={`vector:${panelGeneration}`}
+                                                onError={reportPaneError}>
+                                                <React.Suspense
+                                                    fallback={<ResultsSurfaceLoading />}>
+                                                    <LazyVectorTab
+                                                        key={`vector:${panelGeneration}`}
+                                                        rpc={rpc}
+                                                        columns={vectorColumns}
+                                                        runKey={`${runId ?? "idle"}:${vectorSessionEpoch}`}
+                                                        stringColumnsByResult={
+                                                            stringColumnsByResult
+                                                        }
+                                                        active={panelVisible}
+                                                        initialViewState={
+                                                            panelViewStateRef.current.vector
+                                                        }
+                                                        onViewStateChange={(vectorState) =>
+                                                            persistVectorViewState(
+                                                                panelGeneration,
+                                                                vectorState,
+                                                            )
+                                                        }
+                                                    />
+                                                </React.Suspense>
+                                            </QueryStudioErrorBoundary>
+                                        </div>
+                                    ) : null}
+                                    {hasPlanResults && mountedTabs.has("queryPlan") ? (
+                                        <div
+                                            id="qs-results-panel-queryPlan"
+                                            role="tabpanel"
+                                            aria-labelledby="qs-results-tab-queryPlan"
+                                            hidden={visibleActiveTab !== "queryPlan"}
+                                            className="qs-tab-panel qs-tab-panel-fill">
+                                            <QueryStudioErrorBoundary
+                                                label="Query Plan"
+                                                resetKey={`plan:${panelGeneration}:${planResultSetKey}`}
+                                                onError={reportPaneError}>
+                                                <React.Suspense
+                                                    fallback={<ResultsSurfaceLoading />}>
+                                                    <LazyExecutionPlanView
+                                                        key={`plan:${panelGeneration}:${planResultSetKey}`}
+                                                        rpc={rpc}
+                                                        executionPlanState={
+                                                            queryPlanTabState?.executionPlanState
+                                                        }
+                                                        active={
+                                                            panelVisible &&
+                                                            visibleActiveTab === "queryPlan"
+                                                        }
+                                                        initialViewState={
+                                                            panelViewStateRef.current.queryPlan
+                                                        }
+                                                        onViewStateChange={(queryPlan) =>
+                                                            persistPlanViewState(
+                                                                panelGeneration,
+                                                                queryPlan,
+                                                            )
+                                                        }
+                                                    />
+                                                </React.Suspense>
+                                            </QueryStudioErrorBoundary>
+                                        </div>
+                                    ) : null}
+                                </>
                             )}
                         </div>
                     </div>

@@ -12,7 +12,7 @@ import * as utils from "./queryPlanSetup";
 
 import { Button, Input, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ExecutionPlanView } from "./executionPlanView";
 import { FindNode } from "./findNodes";
@@ -87,15 +87,65 @@ const useStyles = makeStyles({
     },
 });
 
+export interface ExecutionPlanGraphViewState {
+    zoomPercent: number;
+    scrollTop: number;
+    scrollLeft: number;
+    selectedElementId?: string;
+    propertiesPaneOpen: boolean;
+    propertiesPaneWidth: number;
+}
+
+export const DEFAULT_EXECUTION_PLAN_GRAPH_VIEW_STATE: ExecutionPlanGraphViewState = {
+    zoomPercent: 100,
+    scrollTop: 0,
+    scrollLeft: 0,
+    propertiesPaneOpen: false,
+    propertiesPaneWidth: 400,
+};
+
+export function normalizeExecutionPlanGraphViewState(
+    viewState?: Partial<ExecutionPlanGraphViewState>,
+): ExecutionPlanGraphViewState {
+    const zoomPercent = Number.isFinite(viewState?.zoomPercent)
+        ? Math.min(200, Math.max(1, viewState!.zoomPercent!))
+        : DEFAULT_EXECUTION_PLAN_GRAPH_VIEW_STATE.zoomPercent;
+    const propertiesPaneWidth = Number.isFinite(viewState?.propertiesPaneWidth)
+        ? Math.max(275, viewState!.propertiesPaneWidth!)
+        : DEFAULT_EXECUTION_PLAN_GRAPH_VIEW_STATE.propertiesPaneWidth;
+
+    return {
+        zoomPercent,
+        scrollTop: Number.isFinite(viewState?.scrollTop) ? Math.max(0, viewState!.scrollTop!) : 0,
+        scrollLeft: Number.isFinite(viewState?.scrollLeft)
+            ? Math.max(0, viewState!.scrollLeft!)
+            : 0,
+        selectedElementId:
+            typeof viewState?.selectedElementId === "string"
+                ? viewState.selectedElementId
+                : undefined,
+        propertiesPaneOpen: viewState?.propertiesPaneOpen === true,
+        propertiesPaneWidth,
+    };
+}
+
 interface ExecutionPlanGraphProps {
     graphIndex: number;
+    active?: boolean;
+    initialViewState?: ExecutionPlanGraphViewState;
+    onViewStateChange?: (viewState: ExecutionPlanGraphViewState) => void;
 }
 
 interface ExecutionPlanGraphViewProps extends ExecutionPlanGraphProps {
     executionPlanState: ExecutionPlanState;
 }
 
-export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
+export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
+    graphIndex,
+    active,
+    initialViewState,
+    onViewStateChange,
+}) => {
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );
@@ -103,38 +153,66 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
         return null;
     }
     return (
-        <ExecutionPlanGraphView graphIndex={graphIndex} executionPlanState={executionPlanState} />
+        <ExecutionPlanGraphView
+            graphIndex={graphIndex}
+            active={active}
+            executionPlanState={executionPlanState}
+            initialViewState={initialViewState}
+            onViewStateChange={onViewStateChange}
+        />
     );
 };
 
 export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
     graphIndex,
+    active = true,
     executionPlanState,
+    initialViewState,
+    onViewStateChange,
 }) => {
+    const restoredViewState = useRef<ExecutionPlanGraphViewState>(
+        normalizeExecutionPlanGraphViewState(initialViewState),
+    );
+    const hasRestoredViewState = useRef(initialViewState !== undefined);
+    const currentViewState = useRef<ExecutionPlanGraphViewState>(restoredViewState.current);
+    const onViewStateChangeRef = useRef(onViewStateChange);
+    onViewStateChangeRef.current = onViewStateChange;
+
+    const updateViewState = useCallback((patch: Partial<ExecutionPlanGraphViewState>) => {
+        currentViewState.current = { ...currentViewState.current, ...patch };
+        onViewStateChangeRef.current?.(currentViewState.current);
+    }, []);
+
     const classes = useStyles();
     const { themeKind } = useVscodeWebview();
-    const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
+    const executionPlanGraphState = executionPlanState.executionPlanGraphs?.[graphIndex];
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");
     const [cost, setCost] = useState(0);
     const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanView | null>(null);
-    const [zoomNumber, setZoomNumber] = useState(100);
+    const [zoomNumber, setZoomNumber] = useState(restoredViewState.current.zoomPercent);
     const [customZoomClicked, setCustomZoomClicked] = useState(false);
     const [findNodeClicked, setFindNodeClicked] = useState(false);
     const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
     const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
-    const [propertiesClicked, setPropertiesClicked] = useState(false);
-    const [propertiesWidth, setPropertiesWidth] = useState(400);
+    const [propertiesClicked, setPropertiesClicked] = useState(
+        restoredViewState.current.propertiesPaneOpen,
+    );
+    const [propertiesWidth, setPropertiesWidth] = useState(
+        restoredViewState.current.propertiesPaneWidth,
+    );
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
+    const graphContainerRef = useRef<HTMLDivElement>(null);
+    const propertiesWidthRef = useRef(restoredViewState.current.propertiesPaneWidth);
     const inputRef = useRef<any | null>(null);
 
     useEffect(() => {
-        if (!executionPlanState || isExecutionPlanLoaded) return;
+        if (!executionPlanGraphState) return;
 
         setContainerHeight(
-            executionPlanState!.executionPlanGraphs!.length > 1 &&
-                graphIndex !== executionPlanState!.executionPlanGraphs!.length - 1
+            executionPlanState.executionPlanGraphs!.length > 1 &&
+                graphIndex !== executionPlanState.executionPlanGraphs!.length - 1
                 ? "500px"
                 : "100%",
         );
@@ -152,14 +230,20 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
 
         const mxClient = azdataGraph.mx();
 
+        let graphSelectionModel: any | undefined;
+        let selectionChanged: (() => void) | undefined;
+        let graphContainer: HTMLDivElement | null = null;
+        let captureScroll: (() => void) | undefined;
+        let scrollFrame: number | undefined;
+        let restoreFrame: number | undefined;
+
         function loadExecutionPlan() {
-            if (executionPlanState && executionPlanState.executionPlanGraphs) {
-                const executionPlanRootNode =
-                    executionPlanState.executionPlanGraphs[graphIndex].root;
+            if (executionPlanGraphState) {
+                const executionPlanRootNode = executionPlanGraphState.root;
                 const executionPlanView = new ExecutionPlanView(executionPlanRootNode);
                 const executionPlanGraph = executionPlanView.populate(executionPlanRootNode);
 
-                const div = document.getElementById(`queryPlanParent${graphIndex + 1}`);
+                const div = graphContainerRef.current;
                 // create a div to hold the graph
                 const queryPlanConfiguration = {
                     container: div,
@@ -175,11 +259,64 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
 
                 executionPlanView.setDiagram(pen);
 
+                const restoredState = restoredViewState.current;
+                if (hasRestoredViewState.current) {
+                    executionPlanView.setZoomLevel(restoredState.zoomPercent);
+                }
+                const loadedZoom = executionPlanView.getZoomLevel();
+                setZoomNumber(loadedZoom);
+                currentViewState.current = {
+                    ...currentViewState.current,
+                    zoomPercent: loadedZoom,
+                };
+
+                if (restoredState.selectedElementId) {
+                    const restoredElement = executionPlanView.getElementById(
+                        restoredState.selectedElementId,
+                    );
+                    if (restoredElement) {
+                        executionPlanView.selectElement(restoredElement);
+                    }
+                }
+
+                graphContainer = div;
+                graphSelectionModel = pen.graph.getSelectionModel();
+                selectionChanged = () => {
+                    updateViewState({
+                        selectedElementId: pen.graph.getSelectionCell()?.id,
+                    });
+                };
+                graphSelectionModel.addListener(mxClient.mxEvent.CHANGE, selectionChanged);
+
+                captureScroll = () => {
+                    if (scrollFrame !== undefined) {
+                        return;
+                    }
+                    scrollFrame = window.requestAnimationFrame(() => {
+                        scrollFrame = undefined;
+                        if (graphContainer) {
+                            updateViewState({
+                                scrollTop: graphContainer.scrollTop,
+                                scrollLeft: graphContainer.scrollLeft,
+                            });
+                        }
+                    });
+                };
+                graphContainer?.addEventListener("scroll", captureScroll, { passive: true });
+
+                if (hasRestoredViewState.current) {
+                    restoreFrame = window.requestAnimationFrame(() => {
+                        if (graphContainer) {
+                            graphContainer.scrollTop = restoredState.scrollTop;
+                            graphContainer.scrollLeft = restoredState.scrollLeft;
+                        }
+                    });
+                }
+
                 setExecutionPlanView(executionPlanView);
-                setIsExecutionPlanLoaded(true);
                 setFindNodeOptions(executionPlanView.getUniqueElementProperties());
 
-                let tempQuery = executionPlanState.executionPlanGraphs[graphIndex].query;
+                let tempQuery = executionPlanGraphState.query;
                 if (graphIndex != 0) {
                     const firstAlphaIndex = tempQuery.search(/[a-zA-Z]/);
 
@@ -188,16 +325,37 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
                     }
                 }
                 setQuery(tempQuery);
-                setXml(
-                    executionPlanState.executionPlanGraphs[graphIndex].graphFile.graphFileContent,
-                );
+                setXml(executionPlanGraphState.graphFile.graphFileContent);
                 setCost(executionPlanView.getTotalRelativeCost());
             } else {
                 return;
             }
         }
         loadExecutionPlan();
-    }, [executionPlanState]);
+
+        return () => {
+            if (graphContainer) {
+                // Do not drop the final viewport when teardown lands before
+                // the requestAnimationFrame scroll coalescer.
+                updateViewState({
+                    scrollTop: graphContainer.scrollTop,
+                    scrollLeft: graphContainer.scrollLeft,
+                });
+            }
+            if (restoreFrame !== undefined) {
+                window.cancelAnimationFrame(restoreFrame);
+            }
+            if (scrollFrame !== undefined) {
+                window.cancelAnimationFrame(scrollFrame);
+            }
+            if (graphContainer && captureScroll) {
+                graphContainer.removeEventListener("scroll", captureScroll);
+            }
+            if (graphSelectionModel && selectionChanged) {
+                graphSelectionModel.removeListener(selectionChanged);
+            }
+        };
+    }, [executionPlanGraphState?.graphFile.graphFileContent, graphIndex]);
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
@@ -209,7 +367,9 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
         if (executionPlanView) {
             executionPlanView.setZoomLevel(zoomNumber);
             setExecutionPlanView(executionPlanView);
-            setZoomNumber(executionPlanView.getZoomLevel());
+            const appliedZoom = executionPlanView.getZoomLevel();
+            setZoomNumber(appliedZoom);
+            updateViewState({ zoomPercent: appliedZoom });
         }
         setCustomZoomClicked(false);
     };
@@ -235,6 +395,7 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
         const onMouseMove = (e: any) => {
             const newWidth = startWidth - (e.pageX - startX);
             if (newWidth >= 275) {
+                propertiesWidthRef.current = newWidth;
                 setPropertiesWidth(newWidth);
             }
         };
@@ -242,6 +403,7 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
         const onMouseUp = () => {
             document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseup", onMouseUp);
+            updateViewState({ propertiesPaneWidth: propertiesWidthRef.current });
         };
 
         document.addEventListener("mousemove", onMouseMove);
@@ -282,6 +444,7 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
                     {query}
                 </div>
                 <div
+                    ref={graphContainerRef}
                     id={`queryPlanParent${graphIndex + 1}`}
                     className={classes.queryPlanParent}
                     style={{
@@ -364,7 +527,7 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
                         />
                     </div>
                 )}
-                {propertiesClicked && (
+                {propertiesClicked && executionPlanView && (
                     <div
                         className={classes.resizable}
                         style={{ width: `${propertiesWidth}px` }}
@@ -374,8 +537,12 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
                             <PropertiesPane
                                 // guaranteed to be non-null
                                 executionPlanView={executionPlanView!}
-                                setPropertiesClicked={setPropertiesClicked}
+                                setPropertiesClicked={(isOpen: boolean) => {
+                                    setPropertiesClicked(isOpen);
+                                    updateViewState({ propertiesPaneOpen: isOpen });
+                                }}
                                 inputRef={inputRef}
+                                active={active}
                             />
                         </div>
                     </div>
@@ -385,10 +552,14 @@ export const ExecutionPlanGraphView: React.FC<ExecutionPlanGraphViewProps> = ({
                 executionPlanView={executionPlanView!}
                 setExecutionPlanView={setExecutionPlanView}
                 setZoomNumber={setZoomNumber}
+                onZoomChange={(zoomPercent) => updateViewState({ zoomPercent })}
                 setCustomZoomClicked={setCustomZoomClicked}
                 setFindNodeClicked={setFindNodeClicked}
                 setHighlightOpsClicked={setHighlightOpsClicked}
-                setPropertiesClicked={setPropertiesClicked}
+                setPropertiesClicked={(isOpen: boolean) => {
+                    setPropertiesClicked(isOpen);
+                    updateViewState({ propertiesPaneOpen: isOpen });
+                }}
                 query={query}
                 xml={xml}
             />

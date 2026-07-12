@@ -49,9 +49,18 @@ import { getQueryResultAccessService } from "./queryResultAccessService";
 import { getQueryResultContextService } from "./queryResultContextService";
 import { PinnedQueryResultsDocument } from "./pinnedResultsDocumentProvider";
 import { QueryResultSnapshotDescription } from "./queryResultTypes";
+import {
+    QueryStudioPanelViewState,
+    QsGetPanelViewStateRequest,
+    QsUpdatePanelViewStateNotification,
+    createQueryStudioPanelViewState,
+    normalizeQueryStudioPanelViewState,
+} from "../sharedInterfaces/queryStudioViewState";
 
 export class PinnedResultsController extends WebviewBaseController<PinnedResultsState, void> {
     readonly resultSetCount: number;
+    /** Per-panel, memory-only state restored when VS Code recreates this webview. */
+    private panelViewState: QueryStudioPanelViewState;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -66,6 +75,9 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             "queryResultsSnapshot",
             PinnedResultsController.buildState(description),
             "queryResultsSnapshot",
+        );
+        this.panelViewState = createQueryStudioPanelViewState(
+            document.snapshotId ?? document.uri.toString(),
         );
         this.resultSetCount = description?.resultSetCount ?? 0;
         this.panel.webview.options = {
@@ -151,6 +163,19 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
 
     private registerHandlers(): void {
         const service = getQueryResultAccessService();
+        this.onRequest(QsGetPanelViewStateRequest.type, async () => this.panelViewState);
+        this.onNotification(QsUpdatePanelViewStateNotification.type, (next) => {
+            // The snapshot identity is the generation boundary: callbacks from
+            // a stale renderer must not overwrite this panel's current state.
+            const normalized = normalizeQueryStudioPanelViewState(
+                next,
+                this.panelViewState.generation,
+            );
+            if (normalized) {
+                this.panelViewState = normalized;
+            }
+        });
+
         // Vector Workbench parity (VEC-11): Profile/Compare/Projection analyze
         // the frozen snapshot exactly like the live pane (local computation
         // only); derived/transformed snapshots refuse honestly — their rows

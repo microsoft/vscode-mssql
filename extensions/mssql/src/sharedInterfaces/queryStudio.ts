@@ -201,6 +201,8 @@ export interface QsState {
         text: string;
     };
     capabilities: Record<string, boolean>;
+    /** Invalidates renderer-held Vector handles after host-side session reset. */
+    vectorSessionEpoch?: number;
 }
 
 // ---------------------------------------------------------------------------

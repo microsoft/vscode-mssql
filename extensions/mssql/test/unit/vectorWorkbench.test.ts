@@ -377,6 +377,8 @@ suite("vector ingest source", () => {
     async function seededVectorStore(
         rows: Array<object | string | null>,
         dims = 3,
+        complete = true,
+        truncatedReason?: string,
     ): Promise<RetainedRowStore> {
         const store = new RowStore(fs.mkdtempSync(path.join(os.tmpdir(), "vec-ingest-")));
         store.beginResultSet("rs1", [
@@ -400,7 +402,9 @@ suite("vector ingest source", () => {
                 },
             });
         }
-        store.endResultSet("rs1");
+        if (complete) {
+            store.endResultSet("rs1", truncatedReason);
+        }
         return new RetainedRowStore(store, {
             runId: "qsrun_vectest",
             createdEpochMs: Date.now(),
@@ -503,6 +507,91 @@ suite("vector ingest source", () => {
             expect(wrapper.state).to.equal("active");
             svc.close(opened.handle);
             expect(wrapper.state).to.equal("disposed");
+            svc.dispose();
+        });
+
+        test("open refuses streaming sets but accepts terminal partial sets", async () => {
+            const streaming = await seededVectorStore([vectorCell([1, 0, 0])], 3, false);
+            const svc = service();
+            const refused = svc.open(streaming, { resultSetId: "rs1", columnOrdinal: 1 });
+            expect(refused.error).to.contain("terminal state");
+            streaming.releaseLiveOwner("documentClosed");
+
+            const partial = await seededVectorStore(
+                [vectorCell([1, 0, 0])],
+                3,
+                true,
+                "maxRowsPerResultSet",
+            );
+            const opened = svc.open(partial, { resultSetId: "rs1", columnOrdinal: 1 });
+            expect(opened.error).to.equal(undefined);
+            svc.close(opened.handle);
+            partial.releaseLiveOwner("documentClosed");
+            svc.dispose();
+        });
+
+        test("close defers its store lease until an active ingest settles", async () => {
+            const wrapper = await seededVectorStore([vectorCell([1, 0, 0])]);
+            const originalStreamRows = wrapper.streamRows.bind(wrapper);
+            let scanEntered!: () => void;
+            let releaseScan!: () => void;
+            const entered = new Promise<void>((resolve) => (scanEntered = resolve));
+            const scanGate = new Promise<void>((resolve) => (releaseScan = resolve));
+            wrapper.streamRows = async function* (request) {
+                scanEntered();
+                await scanGate;
+                yield* originalStreamRows(request);
+            };
+
+            const svc = service();
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+            wrapper.releaseLiveOwner("rerun");
+            const inFlight = svc.profile(opened.handle);
+            await entered;
+
+            svc.close(opened.handle);
+            expect(wrapper.state).to.equal("active");
+
+            releaseScan();
+            const result = await inFlight;
+            expect(result.error).to.contain("cancelled");
+            expect(wrapper.state).to.equal("disposed");
+            svc.dispose();
+        });
+
+        test("close defers its store lease through compare and scoped Pipeline reads", async () => {
+            const wrapper = await seededVectorStore([vectorCell([1, 0, 0]), vectorCell([0, 1, 0])]);
+            const originalGetWindow = wrapper.getWindow.bind(wrapper);
+            let readEntered!: () => void;
+            let releaseRead!: () => void;
+            const entered = new Promise<void>((resolve) => (readEntered = resolve));
+            const readGate = new Promise<void>((resolve) => (releaseRead = resolve));
+            wrapper.getWindow = async (request) => {
+                readEntered();
+                await readGate;
+                return originalGetWindow(request);
+            };
+
+            const svc = service();
+            const opened = svc.open(wrapper, { resultSetId: "rs1", columnOrdinal: 1 });
+            wrapper.releaseLiveOwner("rerun");
+            const comparing = svc.compare(opened.handle, [0, 1]);
+            await entered;
+
+            svc.close(opened.handle);
+            expect(wrapper.state).to.equal("active");
+            releaseRead();
+            expect((await comparing).error).to.contain("cancelled");
+            expect(wrapper.state).to.equal("disposed");
+
+            const second = await seededVectorStore([vectorCell([1, 0, 0])]);
+            const openedSecond = svc.open(second, { resultSetId: "rs1", columnOrdinal: 1 });
+            const facts = svc.sessionFacts(openedSecond.handle)!;
+            second.releaseLiveOwner("rerun");
+            svc.close(openedSecond.handle);
+            expect(second.state).to.equal("active");
+            facts.release();
+            expect(second.state).to.equal("disposed");
             svc.dispose();
         });
 

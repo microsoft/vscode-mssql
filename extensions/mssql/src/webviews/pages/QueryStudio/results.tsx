@@ -37,8 +37,13 @@ import {
     messageLineCount,
 } from "../../../sharedInterfaces/queryStudioMessages";
 import type { QsGridSizing } from "../../../sharedInterfaces/queryStudioResultsLayout";
+import type {
+    QsMessageSelectionPoint,
+    QsMessagesPanelViewState,
+} from "../../../sharedInterfaces/queryStudioViewState";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 import { QsResultGridSurface, Rpc } from "./resultsGrid";
+import type { FluentResultGridState } from "../../common/FluentResultGrid";
 
 const NOTICE_DISMISS_MS = 6000;
 
@@ -131,6 +136,9 @@ interface GridProps extends GridSizingProps {
     gridStyle?: QsGridStyle;
     /** Extra caption actions (e.g. the pin button, C2D-2). */
     captionExtras?: ReactNode;
+    /** Panel-local state restored when this result surface is recreated. */
+    initialGridState?: FluentResultGridState;
+    onGridStateChange?: (state: FluentResultGridState) => void;
 }
 
 /** One FluentResultGrid over a single result set (caption + sized body). */
@@ -187,6 +195,8 @@ export function ResultGrid(props: GridProps) {
                     rowCount={rowCount}
                     gridStyle={gridStyle}
                     notify={notify}
+                    initialState={props.initialGridState}
+                    onStateChange={props.onGridStateChange}
                 />
             </div>
         </div>
@@ -221,7 +231,10 @@ export function ResultGridBlock(props: GridProps) {
                     setMounted(true); // never unmounts once mounted
                 }
             },
-            { root: el.closest(".qs-results-body"), rootMargin: "150% 0px" },
+            {
+                root: el.closest(".qs-tab-panel") ?? el.closest(".qs-results-body"),
+                rootMargin: "150% 0px",
+            },
         );
         observer.observe(el);
         return () => observer.disconnect();
@@ -307,13 +320,15 @@ function renderMessageForDisplay(
 }
 
 const MessageRow = memo(function MessageRow(props: {
+    index: number;
     row: PreparedMessageRow;
     navigate: (message: QsMessageRow) => void;
 }) {
-    const { row, navigate } = props;
+    const { index, row, navigate } = props;
     return (
         <div
             className={`qs-message-row qs-message-${row.message.kind}`}
+            data-message-index={index}
             aria-label={row.message.text}>
             {renderMessageForDisplay(row, navigate)}
         </div>
@@ -332,8 +347,14 @@ const MESSAGE_LINE_HEIGHT_PX = 18;
 /** Rows rendered beyond the viewport on each side. */
 const MESSAGE_OVERSCAN_ROWS = 12;
 
-function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
-    const { rpc, messages } = props;
+function MessagesViewImpl(props: {
+    rpc: Rpc;
+    messages: QsMessageRow[];
+    active?: boolean;
+    initialViewState?: QsMessagesPanelViewState;
+    onViewStateChange?: (state: QsMessagesPanelViewState) => void;
+}) {
+    const { rpc, messages, active = true, initialViewState, onViewStateChange } = props;
     // Virtualized pane (QO-7): only visible rows are prepared and mounted —
     // a 10k-PRINT flood keeps a bounded DOM and O(visible) format work.
     // Heights are line-count exact (multi-line server errors included), via
@@ -346,6 +367,10 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
         return arr;
     }, [messages]);
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const selectionRef = useRef(initialViewState?.selection);
+    const restoredInitialScrollRef = useRef(false);
+    const restoreSelectionPendingRef = useRef(active);
+    const previousActiveRef = useRef(active);
     const [range, setRange] = useState({ start: 0, end: 80 });
     const recompute = useCallback(() => {
         const el = scrollRef.current;
@@ -360,7 +385,24 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
             current.start === start && current.end === end ? current : { start, end },
         );
     }, [offsets, messages.length]);
-    useEffect(recompute, [recompute]);
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) {
+            return;
+        }
+        if (!restoredInitialScrollRef.current) {
+            const restoreNeedsHydratedMessages =
+                messages.length === 0 &&
+                ((initialViewState?.scrollTop ?? 0) > 0 ||
+                    initialViewState?.selection !== undefined);
+            if (restoreNeedsHydratedMessages) {
+                return;
+            }
+            restoredInitialScrollRef.current = true;
+            el.scrollTop = initialViewState?.scrollTop ?? 0;
+        }
+        recompute();
+    }, [initialViewState?.scrollTop, recompute]);
 
     const visibleRows = useMemo(() => {
         const perfEnabled = perfMarksEnabled();
@@ -404,6 +446,88 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
     }, [rpc]);
     const totalHeight = offsets[messages.length] ?? 0;
     const topPad = offsets[Math.min(range.start, messages.length)] ?? 0;
+    const emitViewState = useCallback(() => {
+        onViewStateChange?.({
+            scrollTop: scrollRef.current?.scrollTop ?? 0,
+            ...(selectionRef.current ? { selection: selectionRef.current } : {}),
+        });
+    }, [onViewStateChange]);
+    const onScroll = useCallback(() => {
+        recompute();
+        emitViewState();
+    }, [emitViewState, recompute]);
+
+    useEffect(() => {
+        const shell = scrollRef.current;
+        if (!shell) {
+            return;
+        }
+        const onSelectionChange = () => {
+            const selection = document.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                return;
+            }
+            if (selection.isCollapsed) {
+                // A click inside Messages explicitly clears its bookmark. A
+                // tab click collapses selection outside this shell and must
+                // retain the last in-pane bookmark for restoration.
+                if (logicalMessagePoint(shell, selection.anchorNode, selection.anchorOffset)) {
+                    selectionRef.current = undefined;
+                    emitViewState();
+                }
+                return;
+            }
+            const anchor = logicalMessagePoint(shell, selection.anchorNode, selection.anchorOffset);
+            const focus = logicalMessagePoint(shell, selection.focusNode, selection.focusOffset);
+            if (!anchor || !focus) {
+                // A tab click moves selection outside this pane. Keep the last
+                // in-pane bookmark instead of overwriting it with that collapse.
+                return;
+            }
+            selectionRef.current = { anchor, focus };
+            emitViewState();
+        };
+        document.addEventListener("selectionchange", onSelectionChange);
+        return () => document.removeEventListener("selectionchange", onSelectionChange);
+    }, [emitViewState]);
+
+    useEffect(() => {
+        if (active && !previousActiveRef.current) {
+            restoreSelectionPendingRef.current = true;
+        }
+        previousActiveRef.current = active;
+        if (!active || !restoreSelectionPendingRef.current || !selectionRef.current) {
+            return;
+        }
+        const shell = scrollRef.current;
+        if (!shell) {
+            return;
+        }
+        const { anchor, focus } = selectionRef.current;
+        const anchorRow = shell.querySelector<HTMLElement>(
+            `[data-message-index="${anchor.messageIndex}"]`,
+        );
+        const focusRow = shell.querySelector<HTMLElement>(
+            `[data-message-index="${focus.messageIndex}"]`,
+        );
+        if (!anchorRow || !focusRow) {
+            return;
+        }
+        const anchorDom = domPointForMessageOffset(anchorRow, anchor.offset);
+        const focusDom = domPointForMessageOffset(focusRow, focus.offset);
+        const selection = document.getSelection();
+        if (!selection || !anchorDom || !focusDom) {
+            return;
+        }
+        selection.setBaseAndExtent(
+            anchorDom.node,
+            anchorDom.offset,
+            focusDom.node,
+            focusDom.offset,
+        );
+        restoreSelectionPendingRef.current = false;
+    }, [active, range, visibleRows]);
+
     return (
         <div className="qs-messages-shell">
             <div className="qs-messages-toolbar">
@@ -418,11 +542,11 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
                     <span>Copy All</span>
                 </button>
             </div>
-            <div className="qs-messages" role="log" ref={scrollRef} onScroll={recompute}>
+            <div className="qs-messages" role="log" ref={scrollRef} onScroll={onScroll}>
                 <div style={{ height: totalHeight, position: "relative" }}>
                     <div style={{ position: "absolute", top: topPad, left: 0, right: 0 }}>
                         {visibleRows.map(({ index, row }) => (
-                            <MessageRow key={index} row={row} navigate={navigate} />
+                            <MessageRow key={index} index={index} row={row} navigate={navigate} />
                         ))}
                     </div>
                 </div>
@@ -435,6 +559,48 @@ function MessagesViewImpl(props: { rpc: Rpc; messages: QsMessageRow[] }) {
             </div>
         </div>
     );
+}
+
+function logicalMessagePoint(
+    shell: HTMLElement,
+    node: Node | null,
+    offset: number,
+): QsMessageSelectionPoint | undefined {
+    const element = node instanceof Element ? node : node?.parentElement;
+    const row = element?.closest<HTMLElement>("[data-message-index]");
+    if (!row || !shell.contains(row)) {
+        return undefined;
+    }
+    const messageIndex = Number(row.dataset.messageIndex);
+    if (!Number.isInteger(messageIndex) || messageIndex < 0) {
+        return undefined;
+    }
+    try {
+        const range = document.createRange();
+        range.selectNodeContents(row);
+        range.setEnd(node!, offset);
+        return { messageIndex, offset: range.toString().length };
+    } catch {
+        return undefined;
+    }
+}
+
+function domPointForMessageOffset(
+    row: HTMLElement,
+    requestedOffset: number,
+): { node: Node; offset: number } | undefined {
+    const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+    let remaining = Math.max(0, requestedOffset);
+    let last: Text | undefined;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const text = node as Text;
+        last = text;
+        if (remaining <= text.data.length) {
+            return { node: text, offset: remaining };
+        }
+        remaining -= text.data.length;
+    }
+    return last ? { node: last, offset: last.data.length } : { node: row, offset: 0 };
 }
 
 /** First index in the prefix-sum array with offsets[i] > value. */
