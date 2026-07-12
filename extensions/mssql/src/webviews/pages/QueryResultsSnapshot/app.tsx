@@ -16,6 +16,7 @@ import * as React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { locConstants } from "../../common/locConstants";
 import {
     PinnedResultsState,
     isPinnedResultsState,
@@ -417,7 +418,7 @@ export function PinnedResultsApp() {
                               ? `Messages${state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""}`
                               : tab === "vector"
                                 ? "Vector"
-                                : "Spatial"}
+                                : locConstants.spatialResults.spatial}
                     </button>
                 ))}
             </div>
@@ -547,11 +548,15 @@ export function PinnedResultsApp() {
                         className="qs-tab-panel qs-tab-panel-fill"
                         hidden={visibleActiveTab !== "spatial"}>
                         <QueryStudioErrorBoundary
-                            label="Spatial"
+                            label={locConstants.spatialResults.spatial}
                             resetKey={`spatial:${panelViewStateRef.current.generation}`}
                             onError={reportPaneError}>
                             <React.Suspense
-                                fallback={<div className="qs-muted">Loading Spatial view…</div>}>
+                                fallback={
+                                    <div className="qs-muted">
+                                        {locConstants.spatialResults.loadingView}
+                                    </div>
+                                }>
                                 <LazySpatialTab
                                     rpc={rpc}
                                     columns={spatialColumns}

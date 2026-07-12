@@ -20,6 +20,7 @@ import { perfMark, perfMarkAfterNextPaint } from "../../../common/perfMarks";
 import { QsUpdateGridSelectionRequest } from "../../../../sharedInterfaces/queryStudio";
 import { SpatialMap } from "./SpatialMap";
 import type { SpatialDecodeResponse, SpatialDecodedFeature } from "./spatialWorkerProtocol";
+import { locConstants } from "../../../common/locConstants";
 
 export interface SpatialColumnChoice {
     resultSetId: string;
@@ -82,7 +83,7 @@ function workerDecode(
         const onError = (event: ErrorEvent) => {
             worker.removeEventListener("message", onMessage);
             worker.removeEventListener("error", onError);
-            reject(new Error(event.message || "Spatial decode worker failed."));
+            reject(new Error(event.message || locConstants.spatialResults.decodeWorkerFailed));
         };
         worker.addEventListener("message", onMessage);
         worker.addEventListener("error", onError);
@@ -116,7 +117,7 @@ function VirtualFeatureList(props: {
             className="qs-spatial-list"
             ref={viewportRef}
             role="listbox"
-            aria-label="Spatial features"
+            aria-label={locConstants.spatialResults.featuresLabel}
             onScroll={(event) => {
                 const top = event.currentTarget.scrollTop;
                 setScrollTop(top);
@@ -134,7 +135,8 @@ function VirtualFeatureList(props: {
                         onClick={() => props.onSelect(feature.ordinal)}>
                         <span className={`qs-spatial-status-dot ${feature.status}`} />
                         <span className="qs-spatial-row-label">
-                            {feature.label || `Row ${feature.ordinal + 1}`}
+                            {feature.label ||
+                                `${locConstants.spatialResults.sourceRow} ${feature.ordinal + 1}`}
                         </span>
                         <span className="qs-spatial-row-kind">
                             {feature.geometryType ?? feature.status}
@@ -214,7 +216,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 },
             );
             if (opened.error || !opened.handle) {
-                throw new Error(opened.error ?? "Spatial session could not be opened.");
+                throw new Error(opened.error ?? locConstants.spatialResults.sessionOpenFailed);
             }
             handle = opened.handle;
             generation = opened.generation;
@@ -321,6 +323,18 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
     const filteredFeatures = React.useMemo(
         () =>
             features.filter((feature) => {
+                if (
+                    viewState.filters.geometryType !== undefined &&
+                    feature.geometryType !== viewState.filters.geometryType
+                ) {
+                    return false;
+                }
+                if (
+                    viewState.filters.srid !== undefined &&
+                    feature.srid !== viewState.filters.srid
+                ) {
+                    return false;
+                }
                 if (feature.status === "null") return viewState.filters.showNull;
                 if (feature.status === "unsupported" || feature.status === "error") {
                     return viewState.filters.showUnsupported;
@@ -340,9 +354,49 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
     );
     const readyCount = features.filter((feature) => feature.status === "ready").length;
     const unavailableCount = features.length - readyCount;
+    const geometryTypes = React.useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    features.flatMap((feature) =>
+                        feature.geometryType ? [feature.geometryType] : [],
+                    ),
+                ),
+            ).sort(),
+        [features],
+    );
+    const srids = React.useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    features.flatMap((feature) =>
+                        feature.srid !== undefined ? [feature.srid] : [],
+                    ),
+                ),
+            ).sort((left, right) => left - right),
+        [features],
+    );
+    const groupSummary = React.useMemo(() => {
+        if (viewState.groupBy === "none") return undefined;
+        const counts = new Map<string, number>();
+        for (const feature of features) {
+            const key =
+                viewState.groupBy === "srid"
+                    ? String(feature.srid ?? "—")
+                    : (feature.geometryType ?? feature.status);
+            counts.set(key, (counts.get(key) ?? 0) + 1);
+        }
+        return Array.from(counts.entries())
+            .sort((left, right) => right[1] - left[1])
+            .slice(0, 8)
+            .map(([key, count]) => `${key}: ${count.toLocaleString()}`)
+            .join(" · ");
+    }, [features, viewState.groupBy]);
 
     if (!selectedColumn) {
-        return <div className="qs-spatial-empty">No eligible spatial columns.</div>;
+        return (
+            <div className="qs-spatial-empty">{locConstants.spatialResults.noEligibleColumns}</div>
+        );
     }
 
     const selectFeature = (selectedRowOrdinal: number) => {
@@ -358,10 +412,13 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
     };
 
     return (
-        <section className="qs-spatial-root" aria-label="Spatial results analysis">
-            <div className="qs-spatial-toolbar" role="toolbar" aria-label="Spatial controls">
+        <section className="qs-spatial-root" aria-label={locConstants.spatialResults.analysisLabel}>
+            <div
+                className="qs-spatial-toolbar"
+                role="toolbar"
+                aria-label={locConstants.spatialResults.controlsLabel}>
                 <label>
-                    <span>Spatial column</span>
+                    <span>{locConstants.spatialResults.column}</span>
                     <select
                         value={selectedKey}
                         onChange={(event) => setSelectedKey(event.target.value)}>
@@ -375,7 +432,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     </select>
                 </label>
                 <label>
-                    <span>Label</span>
+                    <span>{locConstants.spatialResults.label}</span>
                     <select
                         value={viewState.labelColumnOrdinal ?? ""}
                         onChange={(event) =>
@@ -386,7 +443,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                                         : Number(event.target.value),
                             })
                         }>
-                        <option value="">Row number</option>
+                        <option value="">{locConstants.spatialResults.rowNumber}</option>
                         {labelCandidates?.map((column) => (
                             <option key={column.ordinal} value={column.ordinal}>
                                 {column.name}
@@ -395,7 +452,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     </select>
                 </label>
                 <label>
-                    <span>Color by</span>
+                    <span>{locConstants.spatialResults.colorBy}</span>
                     <select
                         value={viewState.colorColumnOrdinal ?? ""}
                         onChange={(event) =>
@@ -406,7 +463,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                                         : Number(event.target.value),
                             })
                         }>
-                        <option value="">Geometry type</option>
+                        <option value="">{locConstants.spatialResults.geometryType}</option>
                         {labelCandidates?.map((column) => (
                             <option key={column.ordinal} value={column.ordinal}>
                                 {column.name}
@@ -415,7 +472,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     </select>
                 </label>
                 <label>
-                    <span>Group</span>
+                    <span>{locConstants.spatialResults.group}</span>
                     <select
                         value={viewState.groupBy}
                         onChange={(event) =>
@@ -423,32 +480,100 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                                 groupBy: event.target.value as QsSpatialPanelViewState["groupBy"],
                             })
                         }>
-                        <option value="none">None</option>
-                        <option value="srid">SRID</option>
-                        <option value="geometryType">Geometry type</option>
+                        <option value="none">{locConstants.common.none}</option>
+                        <option value="srid">{locConstants.spatialResults.srid}</option>
+                        <option value="geometryType">
+                            {locConstants.spatialResults.geometryType}
+                        </option>
+                    </select>
+                </label>
+                <label>
+                    <span>{locConstants.spatialResults.renderer}</span>
+                    <select
+                        value={viewState.renderer}
+                        onChange={(event) =>
+                            updateState({
+                                renderer: event.target.value as QsSpatialPanelViewState["renderer"],
+                            })
+                        }>
+                        <option value="auto">{locConstants.spatialResults.automatic}</option>
+                        <option value="canvas">{locConstants.spatialResults.canvas}</option>
+                        <option value="gpuPoints">{locConstants.spatialResults.gpuPoints}</option>
                     </select>
                 </label>
                 <button type="button" className="qs-btn" onClick={() => setFitNonce((n) => n + 1)}>
-                    <span className="codicon codicon-screen-full" aria-hidden="true" /> Fit
+                    <span className="codicon codicon-screen-full" aria-hidden="true" />{" "}
+                    {locConstants.spatialResults.fit}
                 </button>
             </div>
             <div className="qs-spatial-facts" aria-live="polite">
                 <span>{selectedColumn.kind.toUpperCase()}</span>
-                <span>{readyCount.toLocaleString()} renderable</span>
-                <span>{unavailableCount.toLocaleString()} null / unsupported</span>
+                <span>{locConstants.spatialResults.renderable(readyCount)}</span>
+                <span>{locConstants.spatialResults.unavailable(unavailableCount)}</span>
                 <span>
                     {loadState.kind === "loading" || loadState.kind === "ready"
-                        ? `${loadState.scanned.toLocaleString()} / ${loadState.total.toLocaleString()} rows`
+                        ? locConstants.spatialResults.rowProgress(
+                              loadState.scanned,
+                              loadState.total,
+                          )
                         : loadState.kind === "error"
                           ? loadState.message
-                          : "Waiting"}
+                          : locConstants.spatialResults.waiting}
                 </span>
-                <span>Offline · no basemap requests</span>
+                <span>{locConstants.spatialResults.offline}</span>
+                {groupSummary ? (
+                    <span>{locConstants.spatialResults.groups(groupSummary)}</span>
+                ) : null}
             </div>
             <div className="qs-spatial-body">
                 {viewState.listOpen ? (
                     <aside className="qs-spatial-sidebar">
                         <div className="qs-spatial-filter-row">
+                            <label>
+                                <select
+                                    aria-label={locConstants.spatialResults.geometryType}
+                                    value={viewState.filters.geometryType ?? ""}
+                                    onChange={(event) =>
+                                        updateState({
+                                            filters: {
+                                                ...viewState.filters,
+                                                geometryType: event.target.value || undefined,
+                                            },
+                                        })
+                                    }>
+                                    <option value="">
+                                        {locConstants.spatialResults.allGeometryTypes}
+                                    </option>
+                                    {geometryTypes.map((geometryType) => (
+                                        <option key={geometryType} value={geometryType}>
+                                            {geometryType}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label>
+                                <select
+                                    aria-label={locConstants.spatialResults.srid}
+                                    value={viewState.filters.srid ?? ""}
+                                    onChange={(event) =>
+                                        updateState({
+                                            filters: {
+                                                ...viewState.filters,
+                                                srid:
+                                                    event.target.value === ""
+                                                        ? undefined
+                                                        : Number(event.target.value),
+                                            },
+                                        })
+                                    }>
+                                    <option value="">{locConstants.spatialResults.allSrids}</option>
+                                    {srids.map((srid) => (
+                                        <option key={srid} value={srid}>
+                                            {srid}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
                             {(["showNull", "showEmpty", "showUnsupported"] as const).map((key) => (
                                 <label key={key}>
                                     <input
@@ -464,10 +589,10 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                                         }
                                     />
                                     {key === "showNull"
-                                        ? "Null"
+                                        ? locConstants.spatialResults.null
                                         : key === "showEmpty"
-                                          ? "Empty"
-                                          : "Unsupported"}
+                                          ? locConstants.spatialResults.empty
+                                          : locConstants.spatialResults.unsupported}
                                 </label>
                             ))}
                         </div>
@@ -488,52 +613,55 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         initialCamera={viewState.camera}
                         onCameraChange={(camera) => updateState({ camera })}
                         fitNonce={fitNonce}
+                        renderer={viewState.renderer}
                     />
                     {loadState.kind === "loading" ? (
                         <div className="qs-spatial-progress" role="status">
-                            Loading {loadState.scanned.toLocaleString()} of{" "}
-                            {loadState.total.toLocaleString()}…
+                            {locConstants.spatialResults.loadingProgress(
+                                loadState.scanned,
+                                loadState.total,
+                            )}
                         </div>
                     ) : null}
                 </main>
                 {viewState.detailsOpen ? (
                     <aside
                         className="qs-spatial-details"
-                        aria-label="Selected spatial feature details">
-                        <h3>Feature details</h3>
+                        aria-label={locConstants.spatialResults.detailsLabel}>
+                        <h3>{locConstants.spatialResults.featureDetails}</h3>
                         {selectedFeature ? (
                             <dl>
-                                <dt>Source row</dt>
+                                <dt>{locConstants.spatialResults.sourceRow}</dt>
                                 <dd>{selectedFeature.ordinal + 1}</dd>
-                                <dt>Status</dt>
+                                <dt>{locConstants.spatialResults.status}</dt>
                                 <dd>{selectedFeature.status}</dd>
-                                <dt>Kind</dt>
+                                <dt>{locConstants.spatialResults.kind}</dt>
                                 <dd>{selectedFeature.kind ?? "—"}</dd>
-                                <dt>Geometry</dt>
+                                <dt>{locConstants.spatialResults.geometry}</dt>
                                 <dd>{selectedFeature.geometryType ?? "—"}</dd>
-                                <dt>SRID</dt>
+                                <dt>{locConstants.spatialResults.srid}</dt>
                                 <dd>{selectedFeature.srid ?? "—"}</dd>
-                                <dt>Layout</dt>
+                                <dt>{locConstants.spatialResults.layout}</dt>
                                 <dd>{selectedFeature.layout ?? "—"}</dd>
-                                <dt>Vertices</dt>
+                                <dt>{locConstants.spatialResults.vertices}</dt>
                                 <dd>{selectedFeature.vertices ?? "—"}</dd>
-                                <dt>Parts</dt>
+                                <dt>{locConstants.spatialResults.parts}</dt>
                                 <dd>{selectedFeature.parts ?? "—"}</dd>
-                                <dt>Rings</dt>
+                                <dt>{locConstants.spatialResults.rings}</dt>
                                 <dd>{selectedFeature.rings ?? "—"}</dd>
-                                <dt>Envelope</dt>
+                                <dt>{locConstants.spatialResults.envelope}</dt>
                                 <dd>
                                     {selectedFeature.envelope
                                         ?.map((value) => value.toPrecision(8))
                                         .join(", ") ?? "—"}
                                 </dd>
-                                <dt>WKB bytes</dt>
+                                <dt>{locConstants.spatialResults.wkbBytes}</dt>
                                 <dd>{selectedFeature.wkbBytes ?? "—"}</dd>
-                                <dt>Reason</dt>
+                                <dt>{locConstants.spatialResults.reason}</dt>
                                 <dd>{selectedFeature.reason ?? "—"}</dd>
                             </dl>
                         ) : (
-                            <p className="qs-muted">Select a feature on the map or in the list.</p>
+                            <p className="qs-muted">{locConstants.spatialResults.selectFeature}</p>
                         )}
                     </aside>
                 ) : null}

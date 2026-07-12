@@ -20,6 +20,7 @@ import type * as monacoNs from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
+import { locConstants } from "../../common/locConstants";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import {
@@ -1933,7 +1934,7 @@ export function QueryStudioApp() {
             case "vector":
                 return "Vector";
             case "spatial":
-                return "Spatial";
+                return locConstants.spatialResults.spatial;
             case "queryPlan":
                 return (
                     <>
@@ -2406,7 +2407,7 @@ export function QueryStudioApp() {
                                             hidden={visibleActiveTab !== "spatial"}
                                             className="qs-tab-panel qs-tab-panel-fill">
                                             <QueryStudioErrorBoundary
-                                                label="Spatial"
+                                                label={locConstants.spatialResults.spatial}
                                                 resetKey={`spatial:${panelGeneration}`}
                                                 onError={reportPaneError}>
                                                 <React.Suspense

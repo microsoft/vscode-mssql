@@ -163,7 +163,13 @@ export interface QsSpatialPanelViewState {
     sidebarOpen: boolean;
     listOpen: boolean;
     detailsOpen: boolean;
-    filters: { showNull: boolean; showEmpty: boolean; showUnsupported: boolean };
+    filters: {
+        showNull: boolean;
+        showEmpty: boolean;
+        showUnsupported: boolean;
+        geometryType?: string;
+        srid?: number;
+    };
     selectedRowOrdinal?: number;
     camera?: { centerX: number; centerY: number; zoom: number; rotation: number };
     listScrollTop: number;

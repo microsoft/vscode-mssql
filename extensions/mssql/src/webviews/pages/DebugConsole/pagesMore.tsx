@@ -28,6 +28,7 @@ import {
 } from "./common";
 import { useDc } from "./state";
 import { CentralUploadCard } from "./centralUploadCard";
+import { locConstants } from "../../common/locConstants";
 
 export function GatedPage({ title, body }: { title: string; body: string }) {
     return (
@@ -420,35 +421,44 @@ export function QueryResultsPage() {
                     aria-selected={subview === "spatial"}
                     className={subview === "spatial" ? "active" : ""}
                     onClick={() => setSubview("spatial")}>
-                    Spatial
+                    {locConstants.spatialResults.spatial}
                 </button>
             </div>
             {subview === "spatial" ? (
                 <>
                     <div className="dc-kpis">
-                        <Kpi label="Sessions" value={spatialSessions} />
-                        <Kpi label="Decoded features" value={spatialFeatures.toLocaleString()} />
-                        <Kpi label="First paints" value={spatialFirstPaints} />
                         <Kpi
-                            label="Partial / errors"
+                            label={locConstants.spatialResults.diagnosticSessions}
+                            value={spatialSessions}
+                        />
+                        <Kpi
+                            label={locConstants.spatialResults.diagnosticDecodedFeatures}
+                            value={spatialFeatures.toLocaleString()}
+                        />
+                        <Kpi
+                            label={locConstants.spatialResults.diagnosticFirstPaints}
+                            value={spatialFirstPaints}
+                        />
+                        <Kpi
+                            label={locConstants.spatialResults.diagnosticPartialErrors}
                             value={spatialFailures}
                             tone={spatialFailures > 0 ? "error" : undefined}
                         />
                     </div>
                     {spatialEvents.length === 0 ? (
                         <EmptyState
-                            title="No Spatial activity"
-                            body="Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here."
+                            title={locConstants.spatialResults.diagnosticNoActivity}
+                            body={locConstants.spatialResults.diagnosticNoActivityBody}
                         />
                     ) : (
                         <table className="dc-table">
                             <thead>
                                 <tr>
-                                    <th>Time</th>
-                                    <th>Stage</th>
-                                    <th>Status</th>
-                                    <th>Count</th>
-                                    <th>Duration</th>
+                                    <th>{locConstants.spatialResults.diagnosticTime}</th>
+                                    <th>{locConstants.spatialResults.diagnosticStage}</th>
+                                    <th>{locConstants.spatialResults.status}</th>
+                                    <th>{locConstants.spatialResults.diagnosticCount}</th>
+                                    <th>{locConstants.spatialResults.diagnosticDuration}</th>
                                 </tr>
                             </thead>
                             <tbody>

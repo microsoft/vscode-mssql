@@ -312,11 +312,17 @@
     <trans-unit id="++CODE++6ae05840acdd06389f12106699a3e0a576640acff674dba36b6f0c4720913361">
       <source xml:lang="en">All Files (*.*)</source>
     </trans-unit>
+    <trans-unit id="++CODE++9fb56a10a2a4f6d8d8b05d97c6e1522162c3560ac1e83252a3ae452e4c21d381">
+      <source xml:lang="en">All SRIDs</source>
+    </trans-unit>
     <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
       <source xml:lang="en">All Schemas</source>
     </trans-unit>
     <trans-unit id="++CODE++866956901fd1536273ad6dd922ba6ae8f46bf4cc51a14b5f21353cdd56d7570d">
       <source xml:lang="en">All files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f39a9ab4aef036971d091c009c8ce5f90c501f15784771b47abb3b5681f3289">
+      <source xml:lang="en">All geometry types</source>
     </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -567,6 +573,9 @@
     </trans-unit>
     <trans-unit id="++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471">
       <source xml:lang="en">Auto-scroll enabled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d461a493a3753877c9486cffa3444265a33370af8a7fff242fb119b71750839c">
+      <source xml:lang="en">Automatic</source>
     </trans-unit>
     <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
       <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
@@ -903,6 +912,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
       <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3824a9f4dafe92c6f1b80b40656a59784c03a824c27d58125d7d0ace753e2df2">
+      <source xml:lang="en">Canvas</source>
     </trans-unit>
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
@@ -1248,6 +1260,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26e43ef8709fee68365fba0b2ecb94eb2cbb9cfde3a0a3b32ac82a09b4f221a5">
+      <source xml:lang="en">Color by</source>
     </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
@@ -2102,6 +2117,9 @@
     <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
       <source xml:lang="en">Database the table is created in</source>
     </trans-unit>
+    <trans-unit id="++CODE++5191aa33efee0799a1c940701c80f431062de1587ff3fc034a8a963a7fdaac65">
+      <source xml:lang="en">Decoded features</source>
+    </trans-unit>
     <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
       <source xml:lang="en">Default</source>
     </trans-unit>
@@ -2387,6 +2405,9 @@
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
+    <trans-unit id="++CODE++4fc52a3c4c558b517c463b22d86d0e3b9cfd4255c98fe3510f9075b37ab419c9">
+      <source xml:lang="en">Duration</source>
+    </trans-unit>
     <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
       <source xml:lang="en">EF Core</source>
     </trans-unit>
@@ -2433,6 +2454,9 @@
     <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c6c094bc0054f9cbe34102ff49f86b3928b5ac09f3d2ac87e170d0500675921f">
+      <source xml:lang="en">Empty</source>
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
@@ -2633,6 +2657,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47a1436c7090cfb59614a6bee2c6ef99043cddceda2b6df9d996427f6e42077d">
+      <source xml:lang="en">Envelope</source>
     </trans-unit>
     <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
       <source xml:lang="en">Equal to</source>
@@ -3371,6 +3398,9 @@
     <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
       <source xml:lang="en">Failed to update table.</source>
     </trans-unit>
+    <trans-unit id="++CODE++db977fde0b1cbb3a3a5c4093cbff6b231ea747d7daebfb7bd6b9280805625bcc">
+      <source xml:lang="en">Feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
     </trans-unit>
@@ -3538,6 +3568,12 @@
     <trans-unit id="++CODE++50f82f3bd4638f41e11892aa681c016d9f858ac119041d52c52d5fb661c5936f">
       <source xml:lang="en">First Page</source>
     </trans-unit>
+    <trans-unit id="++CODE++f52a2f2671751a32f1233ec911b45d88946f6f2c23a154d6378b9018ae356ea1">
+      <source xml:lang="en">First paints</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9f872ed43d00d8bdb372b1c05bd345b22f2ad5f7f41e06656d05625602e065b1">
+      <source xml:lang="en">Fit</source>
+    </trans-unit>
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
     </trans-unit>
@@ -3640,6 +3676,9 @@
     <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
       <source xml:lang="en">Functions</source>
     </trans-unit>
+    <trans-unit id="++CODE++1917ffe7c4493824e9bb04458b22b335056e7b2917cd72798da86a77ab093d2c">
+      <source xml:lang="en">GPU points</source>
+    </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
     </trans-unit>
@@ -3686,6 +3725,12 @@
     </trans-unit>
     <trans-unit id="++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac">
       <source xml:lang="en">Geo-redundant backup storage</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa9da5754ccfd409028cef393a17acae922be11469a590d1f2b99d9f45349337">
+      <source xml:lang="en">Geometry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87b666c8b99621c291c2a2567af02e6c25d1717e7634aad62ebe803345ec3cb8">
+      <source xml:lang="en">Geometry type</source>
     </trans-unit>
     <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
       <source xml:lang="en">Get Connection Details</source>
@@ -3766,11 +3811,18 @@
     <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
       <source xml:lang="en">Grid View</source>
     </trans-unit>
+    <trans-unit id="++CODE++34ca0e76608842ff3e7d924a455a396a82f471052c15e3f2ed7f090ac702e5c1">
+      <source xml:lang="en">Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826">
       <source xml:lang="en">Group by</source>
     </trans-unit>
     <trans-unit id="++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0">
       <source xml:lang="en">Group differences by</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39328434f7cc46533fb21fdd1d89878a47e4c82063edcd72c5875f4151ddbc88">
+      <source xml:lang="en">Groups: {0}</source>
+      <note>{0} is a summary of safe spatial type or SRID group counts</note>
     </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
@@ -4067,14 +4119,23 @@
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5387f9bb6ed70315a77fdcb9335facc27a9bf241f35955bd2755c55e0c016c7">
+      <source xml:lang="en">Kind</source>
+    </trans-unit>
     <trans-unit id="++CODE++0ca9017c8fb85ae12ca8668af23d92b03040f0d7f3b3dc6df332a7ec59ef611f">
       <source xml:lang="en">LRS</source>
     </trans-unit>
     <trans-unit id="++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900">
       <source xml:lang="en">LRS backup (locally redundant)</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e66373f45dcf3dd656151e519f7ee5e3d558d9c22cb87df339bbdd2b6c6a3c1">
+      <source xml:lang="en">Label</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
+      <source xml:lang="en">Layout</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -4257,6 +4318,9 @@
     <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
       <source xml:lang="en">Loading Schema Designer Model...</source>
     </trans-unit>
+    <trans-unit id="++CODE++d63b3e2f5cae2836cf9451c389e17acb187d62868ad9987f00f44701713a434b">
+      <source xml:lang="en">Loading Spatial view…</source>
+    </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
@@ -4356,6 +4420,11 @@
     </trans-unit>
     <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
       <source xml:lang="en">Loading workspaces...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++000818b889f2c179b884f373f20379a71dd67750d9f76d559109840b754dab17">
+      <source xml:lang="en">Loading {0} of {1}…</source>
+      <note>{0} is the scanned row count
+{1} is the total row count</note>
     </trans-unit>
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
@@ -4470,6 +4539,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
       <source xml:lang="en">Mandatory (True)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d2c1b44580c3174463c5515d330b289c012384751e5350be4cb2b5d568d174f">
+      <source xml:lang="en">Map zoom controls</source>
     </trans-unit>
     <trans-unit id="++CODE++a1a5936d3b0f8a69fd62c91ed9990d3bd414c5e78c603e2837c65c9f46a93eb8">
       <source xml:lang="en">Max</source>
@@ -4823,6 +4895,9 @@
       <source xml:lang="en">No SQL Tools MCP connection found for connectionName: {0}</source>
       <note>{0} is the SQL Tools MCP registered connection name</note>
     </trans-unit>
+    <trans-unit id="++CODE++212b6a0fa5aececa42bf5175a9e51c01c1eb0cab3ee5c55904dc7fbe3b1d5cc3">
+      <source xml:lang="en">No Spatial activity</source>
+    </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
     </trans-unit>
@@ -4947,6 +5022,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e93ca69f8c0c25ca28aad47bc9953a774f54a2a71e5b00521eba992710d54ec0">
+      <source xml:lang="en">No eligible spatial columns.</source>
     </trans-unit>
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
@@ -5195,6 +5273,9 @@
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
     </trans-unit>
+    <trans-unit id="++CODE++fc9246f00d5d990217d65613d5ce96efdb0cfe7250cc5e8fb7b842ca077bed0a">
+      <source xml:lang="en">Offline · no basemap requests</source>
+    </trans-unit>
     <trans-unit id="++CODE++3d371d39d42ed88021e2eb01088039bc934a712a3d74c7813debf543f8dba608">
       <source xml:lang="en">On Delete</source>
     </trans-unit>
@@ -5253,6 +5334,9 @@
     </trans-unit>
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f22bd213b6a2f93198a3fda9b1dc6e58526c5f68f06380fc6124774c30af6faa">
+      <source xml:lang="en">Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.</source>
     </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
@@ -5359,6 +5443,12 @@
     </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++66b45de27e1411a123aeed6e4928add19d8ddd09659a5af511731dedf4c360fd">
+      <source xml:lang="en">Partial / errors</source>
+    </trans-unit>
+    <trans-unit id="++CODE++efbcd674b4f43dccabacb225785788da668a0a975e51eae40b05687ddea370f9">
+      <source xml:lang="en">Parts</source>
     </trans-unit>
     <trans-unit id="++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a">
       <source xml:lang="en">Password</source>
@@ -5778,6 +5868,9 @@
     <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
       <source xml:lang="en">Readying container for connections...</source>
     </trans-unit>
+    <trans-unit id="++CODE++f81ab834de5f84918dc040b884267c2b61cb1a52d46442de10e97f35a94d0500">
+      <source xml:lang="en">Reason</source>
+    </trans-unit>
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
@@ -5911,6 +6004,9 @@
       <source xml:lang="en">Renaming database &apos;{0}&apos; to &apos;{1}&apos;...</source>
       <note>{0} is the current database name
 {1} is the new database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9deb780b4331c60e997ac3b4855911f7e0fc8c432d7607992e566cb0087e7ca2">
+      <source xml:lang="en">Renderer</source>
     </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
@@ -6059,6 +6155,9 @@
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
     </trans-unit>
+    <trans-unit id="++CODE++bab4c75d0722c872ee0bc206f672c3ae2d20219a780e3d6cf5ef0e82a2d15ec4">
+      <source xml:lang="en">Rings</source>
+    </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
     </trans-unit>
@@ -6070,6 +6169,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
       <source xml:lang="en">Row marked for removal.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b45f1e3b69953e74281481b588fe89f31f968fbb356448e9d60703387b87c730">
+      <source xml:lang="en">Row number</source>
     </trans-unit>
     <trans-unit id="++CODE++101f2ff3de22441fcab3e15ca0b09ac3428642cf628558f16fa404fc3137baea">
       <source xml:lang="en">Rows</source>
@@ -6182,6 +6284,9 @@
     </trans-unit>
     <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
       <source xml:lang="en">SQLCMD Variables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de61aa1f92cfd24adc5f04d3800af6ec3513a856e66b385afc008594838b4025">
+      <source xml:lang="en">SRID</source>
     </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
@@ -6521,6 +6626,9 @@
     <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
       <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
     </trans-unit>
+    <trans-unit id="++CODE++6bc21e615e3f1c0ee7a14aed4b6f65fd94e342f3aa3646d6260df1aa5572d6f6">
+      <source xml:lang="en">Select a feature on the map or in the list.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
     </trans-unit>
@@ -6672,6 +6780,9 @@
     <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
       <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
     </trans-unit>
+    <trans-unit id="++CODE++c5d73b03f5712446ca6cd4aae18d6a8c85ba213db560a22376456562e839d9e6">
+      <source xml:lang="en">Selected spatial feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
       <source xml:lang="en">Selection</source>
     </trans-unit>
@@ -6749,6 +6860,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4b80d5f9dd620b5ac11a742d3d138e56e05b6b4ce0cd9575b1ca820590a7fce0">
       <source xml:lang="en">Session not running</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6fa3cbf451b2a1d54159d42c3ea5ab8725b0c8620d831f8c1602676b38ab00e6">
+      <source xml:lang="en">Sessions</source>
     </trans-unit>
     <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
       <source xml:lang="en">Set Default</source>
@@ -6967,6 +7081,9 @@
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc2ec826bf30a7434d345d8b1e114e649e2c0bea7e4d34741a81996f6022bc90">
+      <source xml:lang="en">Source row</source>
+    </trans-unit>
     <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the fully qualified DAB source object name</note>
@@ -6974,6 +7091,30 @@
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f94a59f5619b20aef0a4a38316801f035b9a1534a26e79ccd8c8a11cc02be5dd">
+      <source xml:lang="en">Spatial</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c2d495b1562f6f037ceb191ffa9f825a9034363d852d261ff341413f311e929d">
+      <source xml:lang="en">Spatial column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a98d3295f8978a1c5f5f8ec11d5e5607db542c9ec569fd54077102185fc79454">
+      <source xml:lang="en">Spatial controls</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1f3f70fdcb20c383825395ca5bde21613410f74785d7bb06a0bf493902133876">
+      <source xml:lang="en">Spatial decode worker failed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++48a82b83199ee31101979baeba2f3b8826ce91bb605db8dc8776e655962c2abd">
+      <source xml:lang="en">Spatial feature map</source>
+    </trans-unit>
+    <trans-unit id="++CODE++89ff5697374c47bc35d008eecad946bbc67d0dbb517fcdb6ee806a5e645459b7">
+      <source xml:lang="en">Spatial features</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a4a2039189d95ac8717438746dbae5f24c167eaeeb080a73d6f8b7210b11836">
+      <source xml:lang="en">Spatial results analysis</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bdbc9d96a4e6017cd25eff17e86ca1cd230435429813bd402621ff7e0400c689">
+      <source xml:lang="en">Spatial session could not be opened.</source>
     </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -6986,6 +7127,9 @@
     </trans-unit>
     <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
       <source xml:lang="en">SqlPackage Command</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de838855e4a6e04ea2f284b246a07a1126e7fcd151be9449e112006ad7db5c50">
+      <source xml:lang="en">Stage</source>
     </trans-unit>
     <trans-unit id="++CODE++042beab64062efc6a2e69013111afa772e5cb23c39d380bc06cc12b9bf4c8042">
       <source xml:lang="en">Standby file</source>
@@ -7698,6 +7842,9 @@
     <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
       <source xml:lang="en">Unsaved Changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++54324658e2eba91c826cb01a802414559c8b8b713b28b4df68cd5075611cf1b5">
+      <source xml:lang="en">Unsupported</source>
+    </trans-unit>
     <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
       <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
       <note>{0} is the architecture name of the machine</note>
@@ -7843,6 +7990,9 @@
     <trans-unit id="++CODE++231f6c3aeb3c4c3fccb71154ec11eea4e310360cd379f33c6530bef5fa2c7efd">
       <source xml:lang="en">Verifying the API is ready to accept requests</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5af129ea336fc4a23c0c6eb2bb8a2505e41346d7bc12f595ff1085547e4e625">
+      <source xml:lang="en">Vertices</source>
+    </trans-unit>
     <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
       <source xml:lang="en">Very Dissatisfied</source>
     </trans-unit>
@@ -7893,6 +8043,12 @@
     </trans-unit>
     <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
       <source xml:lang="en">WHERE</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dc1a08f64a7e7dcec2ef1709e9ae0e63e6d6fc929509ad7ea1b058a0fc622be5">
+      <source xml:lang="en">WKB bytes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e293a8c009e001103199768f7bcbea1729c59f9fc1ef2748958757f47ab99ed">
+      <source xml:lang="en">Waiting</source>
     </trans-unit>
     <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
       <source xml:lang="en">Warehouse</source>
@@ -8047,6 +8203,12 @@
     <trans-unit id="++CODE++24649ee0c7a92fd868db079f46ef6b58509081e8b0e8b9ed929606f33c62831d">
       <source xml:lang="en">Zoom Out</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e47f09a748fa1321dbaee5c8983f8e8f2880b1212956fb4f21ae9d60b88a8b2">
+      <source xml:lang="en">Zoom in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bc7b631a689b45ca5c51923515d31eb3597b2d9b129d88d0dbee066ee5c35453">
+      <source xml:lang="en">Zoom out</source>
+    </trans-unit>
     <trans-unit id="++CODE++dc81206350e3da642fed43285f8b5a1dc00e0d91b4b81b6bffe3181d0e261d2e">
       <source xml:lang="en">Zoom to Fit</source>
     </trans-unit>
@@ -8194,6 +8356,11 @@
 {1} is the completion percent
 {2} is the task message</note>
     </trans-unit>
+    <trans-unit id="++CODE++8b58842c5c8b4e9424aab89f63ca3f920a6a0a235f1303ac9c8b216b4d725d92">
+      <source xml:lang="en">{0} / {1} rows</source>
+      <note>{0} is the scanned row count
+{1} is the total row count</note>
+    </trans-unit>
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
       <note>{0} is the number of accounts</note>
@@ -8287,6 +8454,10 @@
       <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
       <note>{0} is the DAB source type, e.g. Table or View</note>
     </trans-unit>
+    <trans-unit id="++CODE++bf1f5ddb7b3a894a6412012918b1b81a99b65f250b623edb110f8c13ec9745f0">
+      <source xml:lang="en">{0} null / unsupported</source>
+      <note>{0} is the number of unavailable spatial features</note>
+    </trans-unit>
     <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
       <source xml:lang="en">{0} objects found</source>
       <note>{0} is the number of objects found</note>
@@ -8330,6 +8501,10 @@
     <trans-unit id="++CODE++5cfce2c8b0bf6572d859afa030e35d76e8740a8750643214bd34c31876496f67">
       <source xml:lang="en">{0} query</source>
       <note>{0} is the Quick Query shortcut name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++746f8ff96534fae2aa9932a24de85ee39ab3360c0f297da61d0e1b6a9a458517">
+      <source xml:lang="en">{0} renderable</source>
+      <note>{0} is the number of renderable spatial features</note>
     </trans-unit>
     <trans-unit id="++CODE++08d28ae712434acde7968129899d99a2085a2a11f46288f0ae410bbc1d7af999">
       <source xml:lang="en">{0} rows</source>
