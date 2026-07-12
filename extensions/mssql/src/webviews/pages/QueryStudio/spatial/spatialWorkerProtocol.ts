@@ -5,6 +5,9 @@
 
 import type { QsSpatialFeatureTransport } from "../../../../sharedInterfaces/spatialResults";
 
+/** Keep medium sets on lower-overhead canvas; reserve WebGL for large point clouds. */
+export const SPATIAL_GPU_POINT_THRESHOLD = 50_000;
+
 export type SpatialDecodeStatus = "ready" | "null" | "unrenderable" | "unsupported" | "error";
 
 export interface SpatialDecodedFeature {

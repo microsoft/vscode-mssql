@@ -19,7 +19,11 @@ import type { QsSpatialPanelViewState } from "../../../../sharedInterfaces/query
 import { perfMark, perfMarkAfterNextPaint } from "../../../common/perfMarks";
 import { QsUpdateGridSelectionRequest } from "../../../../sharedInterfaces/queryStudio";
 import { SpatialMap } from "./SpatialMap";
-import type { SpatialDecodeResponse, SpatialDecodedFeature } from "./spatialWorkerProtocol";
+import {
+    SPATIAL_GPU_POINT_THRESHOLD,
+    type SpatialDecodeResponse,
+    type SpatialDecodedFeature,
+} from "./spatialWorkerProtocol";
 import { locConstants } from "../../../common/locConstants";
 import { createResourceWorker, type DisposableResourceWorker } from "./resourceWorker";
 
@@ -287,7 +291,8 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     const settledTier =
                         allRenderableArePoints &&
                         (viewState.renderer === "gpuPoints" ||
-                            (viewState.renderer === "auto" && rendered >= 10_000))
+                            (viewState.renderer === "auto" &&
+                                rendered >= SPATIAL_GPU_POINT_THRESHOLD))
                             ? "gpuPoints"
                             : "canvas";
                     void perfMarkAfterNextPaint("mssql.queryResults.spatial.render.settled", {

@@ -13,7 +13,7 @@ import WebGLPointsLayer from "ol/layer/WebGLPoints.js";
 import VectorSource from "ol/source/Vector.js";
 import { defaults as defaultControls } from "ol/control/defaults.js";
 import { Fill, Stroke, Style, Circle as CircleStyle } from "ol/style.js";
-import type { SpatialDecodedFeature } from "./spatialWorkerProtocol";
+import { SPATIAL_GPU_POINT_THRESHOLD, type SpatialDecodedFeature } from "./spatialWorkerProtocol";
 import { perfMark } from "../../../common/perfMarks";
 import { locConstants } from "../../../common/locConstants";
 
@@ -31,8 +31,6 @@ export interface SpatialMapProps {
     fitNonce: number;
     renderer: "auto" | "canvas" | "gpuPoints";
 }
-
-const GPU_POINT_THRESHOLD = 10_000;
 
 function themeColor(variable: string): string {
     const style = getComputedStyle(document.documentElement);
@@ -280,7 +278,7 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                 allPoints &&
                 (props.renderer === "gpuPoints" ||
                     (props.renderer === "auto" &&
-                        source.getFeatures().length >= GPU_POINT_THRESHOLD));
+                        source.getFeatures().length >= SPATIAL_GPU_POINT_THRESHOLD));
             tierRef.current = useGpu ? "gpuPoints" : "canvas";
             canvasLayerRef.current?.setVisible(!useGpu);
             gpuLayerRef.current?.setVisible(useGpu);
