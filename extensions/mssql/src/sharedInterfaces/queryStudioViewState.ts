@@ -21,6 +21,22 @@ export const QS_PANEL_VIEW_STATE_VERSION = 3;
 
 export type QueryStudioTabId = "results" | "messages" | "vector" | "spatial" | "queryPlan";
 
+export function resolveQueryStudioVisibleTab(
+    requested: QueryStudioTabId,
+    available: Readonly<Record<Exclude<QueryStudioTabId, "messages">, boolean>>,
+    executionInProgress: boolean,
+): QueryStudioTabId {
+    if (requested === "messages") return requested;
+    if (requested === "results" && executionInProgress) {
+        // A new run clears result metadata before the first result-set event.
+        // Preserve Results through that transient gap; otherwise the normal
+        // eligibility fallback permanently selects the empty Messages tab.
+        return "results";
+    }
+    if (available[requested]) return requested;
+    return available.results ? "results" : "messages";
+}
+
 /** Results is the only tab allowed before Messages; contributed tabs follow it. */
 export const QUERY_STUDIO_TAB_ORDER: readonly QueryStudioTabId[] = [
     "results",

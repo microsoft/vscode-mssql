@@ -226,6 +226,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             let vertices = 0;
             let skipped = 0;
             let derivedBytes = 0;
+            let allRenderableArePoints = true;
             const renderStartedAt = performance.now();
             while (!canceled) {
                 const chunk = await props.rpc.sendRequest<QsSpatialNextParams, QsSpatialNextResult>(
@@ -259,6 +260,11 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 });
                 setFeatures((current) => [...current, ...decoded.features]);
                 rendered += decoded.decoded;
+                allRenderableArePoints =
+                    allRenderableArePoints &&
+                    decoded.features.every(
+                        (feature) => feature.status !== "ready" || feature.geometryType === "Point",
+                    );
                 vertices += decoded.features.reduce(
                     (total, feature) => total + (feature.vertices ?? 0),
                     0,
@@ -275,8 +281,14 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     total: opened.totalRows,
                 });
                 if (chunk.done) {
+                    const settledTier =
+                        allRenderableArePoints &&
+                        (viewState.renderer === "gpuPoints" ||
+                            (viewState.renderer === "auto" && rendered >= 10_000))
+                            ? "gpuPoints"
+                            : "canvas";
                     void perfMarkAfterNextPaint("mssql.queryResults.spatial.render.settled", {
-                        tier: "canvas",
+                        tier: settledTier,
                         features: rendered,
                         vertices,
                         skipped,

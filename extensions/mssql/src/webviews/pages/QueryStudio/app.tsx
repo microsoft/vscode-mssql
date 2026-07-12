@@ -75,6 +75,7 @@ import {
     isVectorTabEligible,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
+    resolveQueryStudioVisibleTab,
 } from "../../../sharedInterfaces/queryStudioViewState";
 import {
     QsLangCompletionItemKind,
@@ -1743,22 +1744,16 @@ export function QueryStudioApp() {
         }
         return byResult;
     }, [resultSetSummaries]);
-    const visibleActiveTab: QueryStudioTab =
-        activeTab === "results" && !hasDataResults
-            ? "messages"
-            : activeTab === "queryPlan" && !hasPlanResults
-              ? hasDataResults
-                  ? "results"
-                  : "messages"
-              : activeTab === "vector" && !hasVectorResults
-                ? hasDataResults
-                    ? "results"
-                    : "messages"
-                : activeTab === "spatial" && !hasSpatialResults
-                  ? hasDataResults
-                      ? "results"
-                      : "messages"
-                  : activeTab;
+    const visibleActiveTab = resolveQueryStudioVisibleTab(
+        activeTab,
+        {
+            results: hasDataResults,
+            queryPlan: hasPlanResults,
+            vector: hasVectorResults,
+            spatial: hasSpatialResults,
+        },
+        executing,
+    );
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {
             setActiveTab(visibleActiveTab);

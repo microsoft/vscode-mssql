@@ -117,8 +117,14 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
         const gpuLayer = new WebGLPointsLayer({
             source,
             visible: false,
+            variables: { selectedOrdinal: props.selectedOrdinal ?? -1 },
             style: {
-                "circle-radius": 4,
+                "circle-radius": [
+                    "case",
+                    ["==", ["get", "ordinal"], ["var", "selectedOrdinal"]],
+                    7,
+                    4,
+                ],
                 "circle-fill-color": [
                     "match",
                     ["get", "colorIndex"],
@@ -135,7 +141,12 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                     palette[5],
                 ],
                 "circle-stroke-color": themeColor("--vscode-editor-foreground"),
-                "circle-stroke-width": 1,
+                "circle-stroke-width": [
+                    "case",
+                    ["==", ["get", "ordinal"], ["var", "selectedOrdinal"]],
+                    3,
+                    1,
+                ],
             },
         });
         const camera = props.initialCamera;
@@ -295,6 +306,9 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
 
     React.useEffect(() => {
         sourceRef.current?.changed();
+        gpuLayerRef.current?.updateStyleVariables({
+            selectedOrdinal: props.selectedOrdinal ?? -1,
+        });
     }, [props.selectedOrdinal]);
 
     React.useEffect(() => {

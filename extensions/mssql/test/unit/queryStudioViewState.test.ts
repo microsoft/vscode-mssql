@@ -12,9 +12,19 @@ import {
     normalizeQueryStudioPanelViewState,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
+    resolveQueryStudioVisibleTab,
 } from "../../src/sharedInterfaces/queryStudioViewState";
 
 suite("Query Studio panel view state", () => {
+    test("a running query keeps Results selected while result metadata is transiently empty", () => {
+        const empty = { results: false, vector: false, spatial: false, queryPlan: false };
+        expect(resolveQueryStudioVisibleTab("results", empty, true)).to.equal("results");
+        expect(
+            resolveQueryStudioVisibleTab("results", { ...empty, results: true }, false),
+        ).to.equal("results");
+        expect(resolveQueryStudioVisibleTab("results", empty, false)).to.equal("messages");
+    });
+
     test("orders every contributed tab after Messages", () => {
         expect(
             orderedQueryStudioTabs({
