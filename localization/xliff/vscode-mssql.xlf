@@ -8802,6 +8802,9 @@
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.enabled">
+      <source xml:lang="en">Enable the Spatial results tab (preview): queries with native geometry or geography columns transport complete typed WKB and gain the offline spatial analysis pane. Applies to the next query execution.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>
     </trans-unit>

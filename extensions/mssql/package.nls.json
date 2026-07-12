@@ -1,4 +1,5 @@
 {
+    "mssql.queryStudio.spatial.enabled": "Enable the Spatial results tab (preview): queries with native geometry or geography columns transport complete typed WKB and gain the offline spatial analysis pane. Applies to the next query execution.",
     "mssql.runQuery": "Execute Query (MSSQL)",
     "mssql.runCurrentStatement": "Execute Selection or Current Statement (MSSQL)",
     "mssql.cancelQuery": "Cancel Query (MSSQL)",

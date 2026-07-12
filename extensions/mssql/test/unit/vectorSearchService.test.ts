@@ -84,6 +84,7 @@ const CAPS: SqlBackendCapabilities = {
     queryTimeoutHonored: false,
     compactRows: true,
     vectorBinaryV1: false,
+    spatialWkbV1: false,
     captureControl: false,
     replayDescriptors: false,
     resumeAfterDisconnect: false,

@@ -8,6 +8,7 @@ import {
     createQueryStudioPanelViewState,
     isQueryStudioPanelViewState,
     isVectorTabEligible,
+    isSpatialTabEligible,
     normalizeQueryStudioPanelViewState,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
@@ -16,11 +17,23 @@ import {
 suite("Query Studio panel view state", () => {
     test("orders every contributed tab after Messages", () => {
         expect(
-            orderedQueryStudioTabs({ results: true, vector: true, queryPlan: true }),
-        ).to.deep.equal(["results", "messages", "vector", "queryPlan"]);
+            orderedQueryStudioTabs({
+                results: true,
+                vector: true,
+                spatial: true,
+                queryPlan: true,
+            }),
+        ).to.deep.equal(["results", "messages", "vector", "spatial", "queryPlan"]);
         expect(
             orderedQueryStudioTabs({ results: false, vector: true, queryPlan: false }),
         ).to.deep.equal(["messages", "vector"]);
+    });
+
+    test("requires both the Spatial feature gate and negotiated column metadata", () => {
+        const columns = [{ spatial: { kind: "geometry" as const, encoding: "wkb-v1" as const } }];
+        expect(isSpatialTabEligible(false, columns)).to.equal(false);
+        expect(isSpatialTabEligible(true, [{}])).to.equal(false);
+        expect(isSpatialTabEligible(true, columns)).to.equal(true);
     });
 
     test("requires both the Vector feature gate and typed transport", () => {
@@ -108,6 +121,20 @@ suite("Query Studio panel view state", () => {
             overlapPct: 20,
             lastRunId: "vpr_abcdefghijklmnop",
         };
+        state.spatial = {
+            selectedColumn: { resultSetId: "b0r0s0", columnOrdinal: 4 },
+            labelColumnOrdinal: 1,
+            colorColumnOrdinal: 2,
+            groupBy: "srid",
+            renderer: "canvas",
+            sidebarOpen: true,
+            listOpen: false,
+            detailsOpen: true,
+            filters: { showNull: false, showEmpty: true, showUnsupported: false },
+            selectedRowOrdinal: 17,
+            camera: { centerX: -122.3, centerY: 47.6, zoom: 8, rotation: 0.25 },
+            listScrollTop: 220,
+        };
         state.queryPlan.pageScrollTop = 84;
         state.queryPlan.graphs["0"] = {
             zoomPercent: 125,
@@ -191,6 +218,12 @@ suite("Query Studio panel view state", () => {
         state.vector.compare.lastSubmittedOrdinals = [1, 4, 9];
         state.vector.index.selectedScriptId = "createIndex";
         state.vector.pipeline.modelName = "VectorLabEmbeddingModel";
+        state.spatial.selectedColumn = { resultSetId: "b0r0s0", columnOrdinal: 2 };
+        state.spatial.selectedRowOrdinal = 9;
+        state.spatial.camera = { centerX: 1, centerY: 2, zoom: 5, rotation: 0 };
+        state.spatial.groupBy = "geometryType";
+        state.spatial.renderer = "gpuPoints";
+        state.spatial.listOpen = false;
         state.queryPlan.graphs["0"] = {
             zoomPercent: 150,
             scrollTop: 10,
@@ -210,6 +243,12 @@ suite("Query Studio panel view state", () => {
         expect(reset.results).to.deep.equal({ stackScrollTop: 0, grids: {} });
         expect(reset.messages).to.deep.equal({ scrollTop: 0 });
         expect(reset.queryPlan).to.deep.equal({ pageScrollTop: 0, graphs: {} });
+        expect(reset.spatial).to.deep.equal({
+            ...createQueryStudioPanelViewState("run-2").spatial,
+            groupBy: "geometryType",
+            renderer: "gpuPoints",
+            listOpen: false,
+        });
         const expectedVector = createQueryStudioPanelViewState("run-2").vector;
         expectedVector.workspace = "compare";
         expectedVector.profileNorm = "linf";

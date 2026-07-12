@@ -76,6 +76,8 @@ export class ExecutionHost {
      * honestly when the service did not negotiate `vectorBinaryV1`.
      */
     vectorWorkbenchGate: () => boolean = () => false;
+    /** Spatial results gate; evaluated per run, applying to the next execution. */
+    spatialResultsGate: () => boolean = () => false;
     /**
      * SQLCMD seams the document model wires (this module stays vscode-free):
      * :r include resolution against the document's directory, and the
@@ -326,6 +328,7 @@ export class ExecutionHost {
                     maxCellBytes: tuning.params.maxCellBytes,
                 },
                 ...(this.vectorWorkbenchGate() ? { vectorEncoding: "binary-v1" as const } : {}),
+                ...(this.spatialResultsGate() ? { spatialEncoding: "wkb-v1" as const } : {}),
                 tuningDigest: tuning.digest,
                 tuningProfileId: tuning.profileId,
                 ...(this.sqlcmdEnabled

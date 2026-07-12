@@ -81,7 +81,8 @@ export type RowReadReason =
     | "profile"
     | "transform"
     | "aiTool"
-    | "vectorAnalysis";
+    | "vectorAnalysis"
+    | "spatial";
 
 interface StoredPage {
     rowOffset: number;

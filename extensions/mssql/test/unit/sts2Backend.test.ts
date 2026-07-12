@@ -824,6 +824,115 @@ suite("STS2 binding conformance (scripted wire)", () => {
     });
 });
 
+suite("STS2 binding: spatial WKB negotiation and column typing (D-0020)", () => {
+    function spatialRpc(): ScriptedRpc {
+        const rpc = standardRpc();
+        rpc.responders.set(STS2_METHODS.initialize, () => ({
+            specVersion: "2.0.0-preview.1",
+            capabilities: { spatialWkbV1: true },
+        }));
+        return rpc;
+    }
+
+    test("capability is strict and execute option requires caller plus service opt-in", async () => {
+        const yes = new Sts2Backend(spatialRpc());
+        const availability = await yes.start();
+        expect(availability.state).to.equal("available");
+        expect(yes.spatialWkbNegotiated).to.equal(true);
+
+        const rpc = spatialRpc();
+        await openAndExecute(rpc, new RecordingSink(), DEFAULT_DEADLINES, {
+            spatialEncoding: "wkb-v1",
+        });
+        const execute = rpc.requests.find((r) => r.method === STS2_METHODS.queryExecute);
+        expect((execute?.params as { options?: unknown }).options).to.deep.equal({
+            spatialEncoding: "wkb-v1",
+        });
+
+        const absentRpc = standardRpc();
+        await openAndExecute(absentRpc, new RecordingSink(), DEFAULT_DEADLINES, {
+            spatialEncoding: "wkb-v1",
+        });
+        const absentExecute = absentRpc.requests.find(
+            (r) => r.method === STS2_METHODS.queryExecute,
+        );
+        expect(absentExecute?.params).to.not.have.property("options");
+    });
+
+    test("negotiated metadata and cell become spatial facts plus typed hint", async () => {
+        const rpc = spatialRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink, DEFAULT_DEADLINES, {
+            spatialEncoding: "wkb-v1",
+        });
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [
+                {
+                    name: "shape",
+                    type: "SpatialLab.sys.geometry",
+                    spatial: { kind: "geometry", encoding: "wkb-v1" },
+                },
+            ],
+        });
+        const wireCell = {
+            $t: "spatial",
+            version: 1,
+            status: "ok",
+            kind: "geometry",
+            encoding: "wkb",
+            srid: 4326,
+            wkbBytes: 21,
+            wkb: "AQEAAAAAAAAAAADwPwAAAAAAAABA",
+        };
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [[wireCell]],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+
+        expect(sink.metas[0].columns[0].spatial).to.deep.equal({
+            kind: "geometry",
+            encoding: "wkb-v1",
+        });
+        expect(sink.pages[0].compact.typeHints).to.deep.equal(["spatial:wkb:v1"]);
+        expect(sink.pages[0].compact.values[0][0]).to.deep.equal(wireCell);
+    });
+
+    test("non-opted and malformed spatial metadata never claim eligibility", async () => {
+        const rpc = spatialRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [
+                {
+                    name: "shape",
+                    type: "geometry",
+                    spatial: { kind: "geometry", encoding: "wkb-v2" },
+                },
+            ],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+        expect(sink.metas[0].columns[0].spatial).to.equal(undefined);
+    });
+});
+
 /** Typed vector cells (D-0019) + column typing over the scripted wire. */
 suite("STS2 binding: vector encoding negotiation and column typing", () => {
     /** standardRpc whose initialize also negotiates vectorBinaryV1. */

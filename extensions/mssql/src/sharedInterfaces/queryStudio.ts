@@ -320,7 +320,7 @@ export type QsVectorPerfAction =
     | { readonly workspace: "projection" }
     | { readonly workspace: "search"; readonly search: QsVectorPerfSearchAction };
 
-export type QsActivatableTab = "results" | "messages" | "queryPlan" | "vector";
+export type QsActivatableTab = "results" | "messages" | "queryPlan" | "vector" | "spatial";
 
 /** Host-internal activation after PERF_MODE argument normalization. */
 export interface QsActivateTabRequest {

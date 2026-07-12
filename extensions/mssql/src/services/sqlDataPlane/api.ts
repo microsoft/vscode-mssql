@@ -17,7 +17,10 @@
  * descriptors carry digests/metadata only.
  */
 
-import type { VectorColumnMetadata } from "../../sharedInterfaces/queryResultCellCodec";
+import type {
+    SpatialColumnMetadata,
+    VectorColumnMetadata,
+} from "../../sharedInterfaces/queryResultCellCodec";
 
 // ---------------------------------------------------------------------------
 // Events (minimal local event shape — no vscode dependency so the domain core
@@ -94,6 +97,8 @@ export interface SqlBackendCapabilities {
     compactRows: boolean;
     /** Backend can emit typed vector cells for opted-in queries (D-0019). */
     vectorBinaryV1: boolean;
+    /** Backend can emit complete typed geometry/geography WKB (D-0020). */
+    spatialWkbV1: boolean;
     captureControl: boolean;
     replayDescriptors: boolean;
     resumeAfterDisconnect: boolean;
@@ -201,6 +206,8 @@ export interface ExecuteOptions {
      * as JSON text (D-0018) and column metadata says `textFallback`.
      */
     vectorEncoding?: "binary-v1";
+    /** Request complete typed SQL geometry/geography WKB for this query (D-0020). */
+    spatialEncoding?: "wkb-v1";
     priority?: "interactive" | "background";
     /** Diag/replay label — metadata only, never SQL-derived text. */
     tag?: string;
@@ -292,6 +299,8 @@ export interface ColumnMetadata {
      * per-cell facts are authoritative for typed cells.
      */
     vector?: VectorColumnMetadata;
+    /** Present only when this query negotiated typed spatial WKB. */
+    spatial?: SpatialColumnMetadata;
 }
 
 export interface ResultSetMetadata {

@@ -70,6 +70,7 @@ import {
     QsGetPanelViewStateRequest,
     QsUpdatePanelViewStateNotification,
     createQueryStudioPanelViewState,
+    isSpatialTabEligible,
     isVectorTabEligible,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
@@ -109,6 +110,7 @@ import {
     LazyQsResultsGridProvider,
     LazyResultGridBlock,
     LazyVectorTab,
+    LazySpatialTab,
     prefetchGridStack,
     ResultsSurfaceLoading,
     whenGridStackLoaded,
@@ -383,6 +385,14 @@ export function QueryStudioApp() {
         (generation: string, vectorState: QueryStudioPanelViewState["vector"]) => {
             updatePanelViewState((current) =>
                 current.generation === generation ? { ...current, vector: vectorState } : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const persistSpatialViewState = useCallback(
+        (generation: string, spatialState: QueryStudioPanelViewState["spatial"]) => {
+            updatePanelViewState((current) =>
+                current.generation === generation ? { ...current, spatial: spatialState } : current,
             );
         },
         [updatePanelViewState],
@@ -1674,6 +1684,42 @@ export function QueryStudioApp() {
                 : [],
         [hasVectorResults, vectorColumnCandidates],
     );
+    const spatialResultsEnabled = state?.capabilities.spatialResults === true;
+    const spatialColumns = React.useMemo(
+        () =>
+            resultSetSummaries.flatMap(
+                (summary, resultIndex) =>
+                    summary.columns?.flatMap((column, ordinal) =>
+                        column.spatial
+                            ? [
+                                  {
+                                      resultSetId: summary.resultSetId,
+                                      resultSetLabel: `Result ${resultIndex + 1}`,
+                                      columnOrdinal: ordinal,
+                                      columnName: column.displayName || column.name,
+                                      kind: column.spatial.kind,
+                                      totalRows: effectiveRowCount(summary),
+                                      columns: (summary.columns ?? []).map((candidate, index) => ({
+                                          ordinal: index,
+                                          name: candidate.displayName || candidate.name,
+                                          ...(candidate.sqlType
+                                              ? { sqlType: candidate.sqlType }
+                                              : {}),
+                                      })),
+                                  },
+                              ]
+                            : [],
+                    ) ?? [],
+            ),
+        [resultSetSummaries, liveRowCounts],
+    );
+    const hasSpatialResults =
+        isSpatialTabEligible(
+            spatialResultsEnabled,
+            spatialColumns.map((column) => ({
+                spatial: { kind: column.kind, encoding: "wkb-v1" as const },
+            })),
+        ) && results?.streaming !== true;
     // String-typed columns per result set (Pipeline source-text picker).
     const stringColumnsByResult = React.useMemo(() => {
         const byResult: Record<string, { ordinal: number; name: string }[]> = {};
@@ -1706,7 +1752,11 @@ export function QueryStudioApp() {
                 ? hasDataResults
                     ? "results"
                     : "messages"
-                : activeTab;
+                : activeTab === "spatial" && !hasSpatialResults
+                  ? hasDataResults
+                      ? "results"
+                      : "messages"
+                  : activeTab;
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {
             setActiveTab(visibleActiveTab);
@@ -1734,7 +1784,8 @@ export function QueryStudioApp() {
             gridResultSetSummaries.length > 0 &&
             (singleGrid || maximizedGrid !== undefined)) ||
         visibleActiveTab === "queryPlan" ||
-        visibleActiveTab === "vector";
+        visibleActiveTab === "vector" ||
+        visibleActiveTab === "spatial";
     const resultsLayout = computeResultsLayout(
         gridResultSetSummaries.map(effectiveRowCount),
         // clientHeight includes the body's 4px vertical paddings.
@@ -1866,6 +1917,7 @@ export function QueryStudioApp() {
     const availableTabs = orderedQueryStudioTabs({
         results: hasDataResults,
         vector: hasVectorResults,
+        spatial: hasSpatialResults,
         queryPlan: hasPlanResults,
     });
     const panelGeneration = panelViewStateRef.current.generation;
@@ -1879,6 +1931,8 @@ export function QueryStudioApp() {
                 return <>Messages{errorCount > 0 ? ` (${errorCount} ⚠)` : ""}</>;
             case "vector":
                 return "Vector";
+            case "spatial":
+                return "Spatial";
             case "queryPlan":
                 return (
                     <>
@@ -2336,6 +2390,43 @@ export function QueryStudioApp() {
                                                             persistVectorViewState(
                                                                 panelGeneration,
                                                                 vectorState,
+                                                            )
+                                                        }
+                                                    />
+                                                </React.Suspense>
+                                            </QueryStudioErrorBoundary>
+                                        </div>
+                                    ) : null}
+                                    {hasSpatialResults && mountedTabs.has("spatial") ? (
+                                        <div
+                                            id="qs-results-panel-spatial"
+                                            role="tabpanel"
+                                            aria-labelledby="qs-results-tab-spatial"
+                                            hidden={visibleActiveTab !== "spatial"}
+                                            className="qs-tab-panel qs-tab-panel-fill">
+                                            <QueryStudioErrorBoundary
+                                                label="Spatial"
+                                                resetKey={`spatial:${panelGeneration}`}
+                                                onError={reportPaneError}>
+                                                <React.Suspense
+                                                    fallback={<ResultsSurfaceLoading />}>
+                                                    <LazySpatialTab
+                                                        key={`spatial:${panelGeneration}`}
+                                                        rpc={rpc}
+                                                        columns={spatialColumns}
+                                                        runKey={String(runId ?? "idle")}
+                                                        active={
+                                                            panelVisible &&
+                                                            visibleActiveTab === "spatial"
+                                                        }
+                                                        panelVisible={panelVisible}
+                                                        initialViewState={
+                                                            panelViewStateRef.current.spatial
+                                                        }
+                                                        onViewStateChange={(spatialState) =>
+                                                            persistSpatialViewState(
+                                                                panelGeneration,
+                                                                spatialState,
                                                             )
                                                         }
                                                     />

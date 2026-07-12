@@ -1,0 +1,256 @@
+.qs-spatial-root {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-editor-background);
+}
+
+.qs-spatial-toolbar {
+    display: flex;
+    align-items: end;
+    gap: 8px;
+    min-height: 44px;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-editorGroupHeader-tabsBackground);
+}
+
+.qs-spatial-toolbar label {
+    display: grid;
+    gap: 2px;
+    min-width: 120px;
+    font-size: 11px;
+}
+
+.qs-spatial-toolbar label:first-child {
+    min-width: 220px;
+}
+
+.qs-spatial-toolbar select {
+    height: 24px;
+    padding: 1px 22px 1px 6px;
+    color: var(--vscode-dropdown-foreground);
+    background: var(--vscode-dropdown-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 2px;
+}
+
+.qs-spatial-facts {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 25px;
+    padding: 0 8px;
+    color: var(--vscode-descriptionForeground);
+    border-bottom: 1px solid var(--vscode-panel-border);
+    font-size: 11px;
+}
+
+.qs-spatial-body {
+    display: grid;
+    grid-template-columns: minmax(210px, 24%) minmax(320px, 1fr) minmax(190px, 22%);
+    flex: 1;
+    min-height: 0;
+}
+
+.qs-spatial-sidebar,
+.qs-spatial-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: var(--vscode-sideBar-background);
+}
+
+.qs-spatial-sidebar {
+    border-right: 1px solid var(--vscode-panel-border);
+}
+
+.qs-spatial-details {
+    padding: 8px;
+    overflow: auto;
+    border-left: 1px solid var(--vscode-panel-border);
+}
+
+.qs-spatial-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    font-size: 11px;
+}
+
+.qs-spatial-filter-row label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.qs-spatial-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.qs-spatial-list-row {
+    position: absolute;
+    left: 0;
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    padding: 0 6px;
+    color: var(--vscode-list-foreground);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--vscode-tree-tableOddRowsBackground);
+}
+
+.qs-spatial-list-row:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.qs-spatial-list-row.selected {
+    color: var(--vscode-list-activeSelectionForeground);
+    background: var(--vscode-list-activeSelectionBackground);
+}
+
+.qs-spatial-row-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qs-spatial-row-kind {
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family);
+    font-size: 10px;
+}
+
+.qs-spatial-status-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--vscode-testing-iconUnset);
+    border-radius: 50%;
+}
+
+.qs-spatial-status-dot.ready {
+    background: var(--vscode-testing-iconPassed);
+}
+
+.qs-spatial-status-dot.unsupported,
+.qs-spatial-status-dot.unrenderable {
+    background: var(--vscode-testing-iconQueued);
+}
+
+.qs-spatial-status-dot.error {
+    background: var(--vscode-testing-iconFailed);
+}
+
+.qs-spatial-map-region,
+.qs-spatial-map-shell,
+.qs-spatial-map,
+.qs-spatial-map .ol-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.qs-spatial-map {
+    background: var(--vscode-editor-background);
+    background-image:
+        linear-gradient(var(--vscode-editorIndentGuide-background1) 1px, transparent 1px),
+        linear-gradient(90deg, var(--vscode-editorIndentGuide-background1) 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+.qs-spatial-map canvas {
+    display: block;
+}
+
+.qs-spatial-map-controls {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: grid;
+    border: 1px solid var(--vscode-widget-border);
+    box-shadow: 0 1px 4px var(--vscode-widget-shadow);
+}
+
+.qs-spatial-map-controls button {
+    width: 28px;
+    height: 27px;
+    color: var(--vscode-button-secondaryForeground);
+    background: var(--vscode-button-secondaryBackground);
+    border: 0;
+    border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.qs-spatial-map-controls button:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.qs-spatial-progress {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    padding: 4px 7px;
+    color: var(--vscode-notifications-foreground);
+    background: var(--vscode-notifications-background);
+    border: 1px solid var(--vscode-notifications-border);
+    box-shadow: 0 1px 4px var(--vscode-widget-shadow);
+    font-size: 11px;
+}
+
+.qs-spatial-details h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.qs-spatial-details dl {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 5px 8px;
+    margin: 0;
+    font-size: 11px;
+}
+
+.qs-spatial-details dt {
+    color: var(--vscode-descriptionForeground);
+}
+
+.qs-spatial-details dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--vscode-editor-font-family);
+}
+
+.qs-spatial-empty {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    color: var(--vscode-descriptionForeground);
+}
+
+@media (max-width: 760px) {
+    .qs-spatial-body {
+        grid-template-columns: minmax(170px, 34%) 1fr;
+    }
+
+    .qs-spatial-details {
+        display: none;
+    }
+}

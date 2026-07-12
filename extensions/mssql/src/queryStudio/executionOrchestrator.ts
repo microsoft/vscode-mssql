@@ -75,6 +75,8 @@ export interface RunOptions {
      * only when it negotiated `vectorBinaryV1` (else honest text fallback).
      */
     vectorEncoding?: "binary-v1";
+    /** Request complete SQL geometry/geography WKB for this run (D-0020). */
+    spatialEncoding?: "wkb-v1";
     /** Tuning attribution stamped on the submit marker (QO-1). */
     tuningDigest?: string;
     tuningProfileId?: string;
@@ -137,6 +139,7 @@ function toQsResultColumn(column: ColumnMetadata): QsResultColumn {
         // Safe vector facts mirror (D-0018/D-0019) — feeds the Vector tab's
         // cheap appliesTo sniff without any extra webview round trip.
         ...(column.vector ? { vector: column.vector } : {}),
+        ...(column.spatial ? { spatial: column.spatial } : {}),
     };
 }
 
@@ -619,6 +622,7 @@ export class ExecutionOrchestrator {
                         // (live-run bug: dropping this made every session
                         // refuse as textFallback while the wire was binary).
                         ...(c.vector ? { vector: c.vector } : {}),
+                        ...(c.spatial ? { spatial: c.spatial } : {}),
                     })),
                 );
                 const columnNames = meta.columns.map((c) => c.name);
@@ -735,6 +739,7 @@ export class ExecutionOrchestrator {
                     : {}),
                 // Typed vector cells (D-0019): gate-driven per-run opt-in.
                 ...(options.vectorEncoding ? { vectorEncoding: options.vectorEncoding } : {}),
+                ...(options.spatialEncoding ? { spatialEncoding: options.spatialEncoding } : {}),
             },
             sink,
         );

@@ -75,6 +75,13 @@ import { pinSourceResults } from "../queryResults/pinCommands";
 import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
+import { SpatialSessionManager } from "../queryResults/spatial/spatialSessionManager";
+import {
+    QsSpatialCancelRequest,
+    QsSpatialCloseRequest,
+    QsSpatialNextRequest,
+    QsSpatialOpenRequest,
+} from "../sharedInterfaces/spatialResults";
 import {
     QsVectorCancelRequest,
     QsVectorCloseRequest,
@@ -188,6 +195,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private restoreEditorFocusWhenActive = false;
     /** Vector Workbench sessions (VEC-4) — created on first vector RPC only. */
     private vectorService: VectorWorkbenchService | undefined;
+    /** Spatial pull sessions — created only when the lazy pane opens. */
+    private spatialService: SpatialSessionManager | undefined;
     /** Monotonic invalidation token for renderer-held Vector handles. */
     private vectorSessionEpoch = 0;
     /** Authoritative per-run statement counts; retained across pane suspension. */
@@ -289,13 +298,20 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     e.affectsConfiguration("mssql.resultsFontFamily") ||
                     e.affectsConfiguration("mssql.resultsFontSize") ||
                     e.affectsConfiguration("mssql.resultsGrid") ||
-                    e.affectsConfiguration("mssql.queryStudio.vectorWorkbench.enabled")
+                    e.affectsConfiguration("mssql.queryStudio.vectorWorkbench.enabled") ||
+                    e.affectsConfiguration("mssql.queryStudio.spatial.enabled")
                 ) {
                     if (
                         e.affectsConfiguration("mssql.queryStudio.vectorWorkbench.enabled") &&
                         !this.model.executionHost.vectorWorkbenchGate()
                     ) {
                         this.resetVectorServices();
+                    }
+                    if (
+                        e.affectsConfiguration("mssql.queryStudio.spatial.enabled") &&
+                        !this.model.executionHost.spatialResultsGate()
+                    ) {
+                        this.resetSpatialServices();
                     }
                     this.queueStatePush();
                 }
@@ -322,6 +338,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             // Database/principal/session changes invalidate catalog bindings
             // and any source handles held by live-only Vector workspaces.
             this.resetVectorServices();
+            this.resetSpatialServices();
             this.queueStatePush();
         });
 
@@ -342,6 +359,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 // result store. The pane can lazily create fresh services when
                 // it next becomes active.
                 this.resetVectorServices();
+                this.resetSpatialServices();
                 void this.sendNotification(QsRunStartedNotification.type, { startedEpochMs });
                 this.queueStatePush();
             },
@@ -492,6 +510,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             statusMessage: { kind: "ready", text: "Ready — not connected" },
             capabilities: {
                 vectorWorkbench: model.executionHost.vectorWorkbenchGate(),
+                spatialResults: model.executionHost.spatialResultsGate(),
                 panelVisible: true,
             },
             vectorSessionEpoch: 0,
@@ -635,6 +654,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         }
         state.completions = { enabled: isInlineCompletionFeatureEnabled() };
         state.capabilities.vectorWorkbench = this.model.executionHost.vectorWorkbenchGate();
+        state.capabilities.spatialResults = this.model.executionHost.spatialResultsGate();
         state.capabilities.panelVisible = this.panel.visible;
         state.vectorSessionEpoch = this.vectorSessionEpoch;
         // Grid windowing knobs ride the style snapshot (QO-7): the run's
@@ -754,6 +774,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             );
         }
         return this.vectorService;
+    }
+
+    private spatialResults(): SpatialSessionManager {
+        this.spatialService ??= new SpatialSessionManager();
+        return this.spatialService;
+    }
+
+    private resetSpatialServices(): void {
+        this.spatialService?.dispose();
+        this.spatialService = undefined;
     }
 
     private resetVectorServices(): void {
@@ -1130,6 +1160,20 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             await showPlanXml(state, { sqlPlanContent });
         });
 
+        // --- spatial results: lazy, opaque, bounded pull sessions -----------
+        this.onRequest(QsSpatialOpenRequest.type, async (params) =>
+            this.spatialResults().open(this.model.executionHost.retainedStore, params),
+        );
+        this.onRequest(QsSpatialNextRequest.type, async (params) =>
+            this.spatialResults().next(params),
+        );
+        this.onRequest(QsSpatialCancelRequest.type, async ({ handle, generation }) => {
+            this.spatialService?.cancel(handle, generation);
+        });
+        this.onRequest(QsSpatialCloseRequest.type, async ({ handle }) => {
+            this.spatialService?.close(handle);
+        });
+
         // --- vector workbench (VEC-4): opaque pull sessions -----------------
         // The service is created lazily on the first vector RPC — a document
         // that never opens the Vector tab pays nothing here.
@@ -1471,6 +1515,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.inlineCompletionCts?.cancel();
         this.inlineCompletionCts = undefined;
         this.resetVectorServices();
+        this.resetSpatialServices();
         this.languageService.dispose();
         this.modelListener.dispose();
         this.bindingListener?.dispose();

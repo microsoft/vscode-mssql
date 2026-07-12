@@ -176,6 +176,10 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             vscode.workspace
                 .getConfiguration("mssql")
                 .get<boolean>("queryStudio.vectorWorkbench.enabled") === true;
+        this.executionHost.spatialResultsGate = () =>
+            vscode.workspace
+                .getConfiguration("mssql")
+                .get<boolean>("queryStudio.spatial.enabled") === true;
         // Live result source registration (C2D-1): snapshots/pins/chat reach
         // this model's results only through the access service.
         this.liveResultSource = new QueryStudioLiveResultSource(this);

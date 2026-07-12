@@ -13,6 +13,7 @@ import "./queryStudio.css";
 import "./vectorIndexView.css";
 import "./vectorPipelineView.css";
 import "./vectorSearchView.css";
+import "./spatial/spatial.css";
 import { perfMark } from "../../common/perfMarks";
 import { useVscodeWebview, VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { QueryStudioApp } from "./app";

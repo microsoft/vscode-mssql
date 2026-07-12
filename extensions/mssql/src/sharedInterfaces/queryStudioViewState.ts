@@ -17,15 +17,16 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { SortProperties, type ColumnFilterMap, type GridViewState } from "./queryResult";
 
-export const QS_PANEL_VIEW_STATE_VERSION = 2;
+export const QS_PANEL_VIEW_STATE_VERSION = 3;
 
-export type QueryStudioTabId = "results" | "messages" | "vector" | "queryPlan";
+export type QueryStudioTabId = "results" | "messages" | "vector" | "spatial" | "queryPlan";
 
 /** Results is the only tab allowed before Messages; contributed tabs follow it. */
 export const QUERY_STUDIO_TAB_ORDER: readonly QueryStudioTabId[] = [
     "results",
     "messages",
     "vector",
+    "spatial",
     "queryPlan",
 ];
 
@@ -153,6 +154,21 @@ export interface QsExecutionPlanViewState {
     graphs: Record<string, QsExecutionPlanGraphViewState>;
 }
 
+export interface QsSpatialPanelViewState {
+    selectedColumn?: { resultSetId: string; columnOrdinal: number };
+    labelColumnOrdinal?: number;
+    colorColumnOrdinal?: number;
+    groupBy: "none" | "srid" | "geometryType";
+    renderer: "auto" | "canvas" | "gpuPoints";
+    sidebarOpen: boolean;
+    listOpen: boolean;
+    detailsOpen: boolean;
+    filters: { showNull: boolean; showEmpty: boolean; showUnsupported: boolean };
+    selectedRowOrdinal?: number;
+    camera?: { centerX: number; centerY: number; zoom: number; rotation: number };
+    listScrollTop: number;
+}
+
 export interface QueryStudioPanelViewState {
     version: typeof QS_PANEL_VIEW_STATE_VERSION;
     /** Run start epoch as a string, or "idle" before the first run. */
@@ -171,6 +187,7 @@ export interface QueryStudioPanelViewState {
     };
     messages: QsMessagesPanelViewState;
     vector: QsVectorPanelViewState;
+    spatial: QsSpatialPanelViewState;
     queryPlan: QsExecutionPlanViewState;
 }
 
@@ -222,6 +239,15 @@ export function createQueryStudioPanelViewState(generation: string): QueryStudio
                 overlapPct: 15,
             },
         },
+        spatial: {
+            groupBy: "none",
+            renderer: "auto",
+            sidebarOpen: true,
+            listOpen: true,
+            detailsOpen: true,
+            filters: { showNull: true, showEmpty: true, showUnsupported: true },
+            listScrollTop: 0,
+        },
         queryPlan: { pageScrollTop: 0, graphs: {} },
     };
 }
@@ -241,6 +267,12 @@ export function resetQueryStudioPanelViewState(
     next.vector.search.includeApprox = previous.vector.search.includeApprox;
     next.vector.pipeline.chunkSize = previous.vector.pipeline.chunkSize;
     next.vector.pipeline.overlapPct = previous.vector.pipeline.overlapPct;
+    next.spatial.groupBy = previous.spatial.groupBy;
+    next.spatial.renderer = previous.spatial.renderer;
+    next.spatial.sidebarOpen = previous.spatial.sidebarOpen;
+    next.spatial.listOpen = previous.spatial.listOpen;
+    next.spatial.detailsOpen = previous.spatial.detailsOpen;
+    next.spatial.filters = { ...previous.spatial.filters };
     return next;
 }
 
@@ -289,6 +321,7 @@ export function normalizeQueryStudioPanelViewState(
         !isResultsState(candidate.results) ||
         !isMessagesState(candidate.messages) ||
         !isVectorState(candidate.vector) ||
+        !isSpatialState(candidate.spatial) ||
         !isExecutionPlanState(candidate.queryPlan)
     ) {
         return undefined;
@@ -311,6 +344,14 @@ function isBoundedString(value: unknown, maxLength = MAX_SHORT_STRING_LENGTH): v
 
 function isFiniteNumber(value: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): value is number {
     return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isAnyFiniteNumber(value: unknown): value is number {
+    return typeof value === "number" && Number.isFinite(value);
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+    return Number.isInteger(value) && isFiniteNumber(value);
 }
 
 function hasOnlyKeys(record: Record<string, unknown>, allowed: readonly string[]): boolean {
@@ -676,6 +717,58 @@ function isVectorPipelineState(value: unknown): boolean {
     );
 }
 
+function isSpatialState(value: unknown): boolean {
+    if (!isRecord(value) || !isRecord(value.filters)) {
+        return false;
+    }
+    const selectedColumn = value.selectedColumn;
+    const camera = value.camera;
+    return (
+        hasOnlyKeys(value, [
+            "selectedColumn",
+            "labelColumnOrdinal",
+            "colorColumnOrdinal",
+            "groupBy",
+            "renderer",
+            "sidebarOpen",
+            "listOpen",
+            "detailsOpen",
+            "filters",
+            "selectedRowOrdinal",
+            "camera",
+            "listScrollTop",
+        ]) &&
+        (selectedColumn === undefined ||
+            (isRecord(selectedColumn) &&
+                hasOnlyKeys(selectedColumn, ["resultSetId", "columnOrdinal"]) &&
+                isBoundedString(selectedColumn.resultSetId) &&
+                isNonNegativeInteger(selectedColumn.columnOrdinal))) &&
+        (value.labelColumnOrdinal === undefined ||
+            isNonNegativeInteger(value.labelColumnOrdinal)) &&
+        (value.colorColumnOrdinal === undefined ||
+            isNonNegativeInteger(value.colorColumnOrdinal)) &&
+        ["none", "srid", "geometryType"].includes(value.groupBy as string) &&
+        ["auto", "canvas", "gpuPoints"].includes(value.renderer as string) &&
+        typeof value.sidebarOpen === "boolean" &&
+        typeof value.listOpen === "boolean" &&
+        typeof value.detailsOpen === "boolean" &&
+        hasOnlyKeys(value.filters, ["showNull", "showEmpty", "showUnsupported"]) &&
+        typeof value.filters.showNull === "boolean" &&
+        typeof value.filters.showEmpty === "boolean" &&
+        typeof value.filters.showUnsupported === "boolean" &&
+        (value.selectedRowOrdinal === undefined ||
+            isNonNegativeInteger(value.selectedRowOrdinal)) &&
+        (camera === undefined ||
+            (isRecord(camera) &&
+                hasOnlyKeys(camera, ["centerX", "centerY", "zoom", "rotation"]) &&
+                isAnyFiniteNumber(camera.centerX) &&
+                isAnyFiniteNumber(camera.centerY) &&
+                isFiniteNumber(camera.zoom, 0, 30) &&
+                isAnyFiniteNumber(camera.rotation))) &&
+        isFiniteNumber(value.listScrollTop)
+    );
+}
+
 function isExecutionPlanState(value: unknown): boolean {
     if (!isRecord(value) || !isFiniteNumber(value.pageScrollTop) || !isRecord(value.graphs)) {
         return false;
@@ -712,15 +805,24 @@ export function orderedQueryStudioTabs(options: {
     results: boolean;
     messages?: boolean;
     vector: boolean;
+    spatial?: boolean;
     queryPlan: boolean;
 }): QueryStudioTabId[] {
     const applies: Record<QueryStudioTabId, boolean> = {
         results: options.results,
         messages: options.messages !== false,
         vector: options.vector,
+        spatial: options.spatial === true,
         queryPlan: options.queryPlan,
     };
     return QUERY_STUDIO_TAB_ORDER.filter((tab) => applies[tab]);
+}
+
+export function isSpatialTabEligible(
+    featureEnabled: boolean,
+    columns: readonly { spatial?: { encoding: "wkb-v1" } }[],
+): boolean {
+    return featureEnabled && columns.some((column) => column.spatial?.encoding === "wkb-v1");
 }
 
 /** A fallback-text result must not expose a pane whose numeric tools cannot run. */

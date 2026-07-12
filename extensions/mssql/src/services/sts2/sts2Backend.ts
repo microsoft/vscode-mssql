@@ -72,8 +72,10 @@ import {
     wireColumnPrecision,
     wireColumnScale,
     wireColumnType,
+    wireColumnSpatial,
 } from "./wire/v2";
 import {
+    SPATIAL_TYPE_HINT_V1,
     VECTOR_TYPE_HINT_V1,
     vectorDimensionsFromColumnLength,
 } from "../../sharedInterfaces/queryResultCellCodec";
@@ -123,6 +125,7 @@ const STS2_CAPABILITIES: SqlBackendCapabilities = {
     queryTimeoutHonored: false,
     compactRows: false,
     vectorBinaryV1: false,
+    spatialWkbV1: false,
     captureControl: true,
     replayDescriptors: true,
     resumeAfterDisconnect: false,
@@ -165,7 +168,11 @@ function toTruncatedCellEncoding(cell: V2TruncatedCell): TruncatedCellEncoding {
  * including D-0019: vector columns hint `vector:f32le:v1` ONLY for queries
  * that executed with the typed encoding; text-fallback queries stay "string".
  */
-function typeHintFor(engineType: string | undefined, vectorBinary: boolean): string {
+function typeHintFor(
+    engineType: string | undefined,
+    vectorBinary: boolean,
+    spatialWkb: boolean,
+): string {
     const t = (engineType ?? "").toLowerCase();
     if (!t) return "string";
     if (t === "bit") return "boolean";
@@ -174,6 +181,7 @@ function typeHintFor(engineType: string | undefined, vectorBinary: boolean): str
     if (["varbinary", "binary", "image", "timestamp", "rowversion"].includes(t)) return "binary";
     if (t === "xml") return "xml";
     if (t === "vector" && vectorBinary) return VECTOR_TYPE_HINT_V1;
+    if (spatialWkb) return SPATIAL_TYPE_HINT_V1;
     if (t.startsWith("date") || t.startsWith("time") || t === "smalldatetime") return "datetime";
     return "string";
 }
@@ -219,6 +227,14 @@ export class Sts2Backend implements ISqlConnectionService {
         );
     }
 
+    /** True when initialize negotiated typed spatial WKB cells (D-0020). */
+    get spatialWkbNegotiated(): boolean {
+        return (
+            this.availability.state === "available" &&
+            this.availability.capabilities.spatialWkbV1 === true
+        );
+    }
+
     /** v2/initialize handshake; MethodNotFound ⇒ notEnabledOnService. */
     async start(): Promise<DataPlaneAvailability> {
         this.subscribe();
@@ -239,6 +255,7 @@ export class Sts2Backend implements ISqlConnectionService {
                     queryTimeoutHonored: result.capabilities?.["queryTimeoutHonored"] === true,
                     compactRows: result.capabilities?.["compactRows"] === true,
                     vectorBinaryV1: result.capabilities?.["vectorBinaryV1"] === true,
+                    spatialWkbV1: result.capabilities?.["spatialWkbV1"] === true,
                     protocolVersion: result.specVersion,
                 },
             };
@@ -702,6 +719,8 @@ export class Sts2Query {
     private cancelRequested = false;
     /** True when THIS query executes with the typed vector encoding (D-0019). */
     private vectorBinaryActive = false;
+    /** True when THIS query executes with typed spatial WKB (D-0020). */
+    private spatialWkbActive = false;
     private cancelDeadlineTimer: ReturnType<typeof setTimeout> | undefined;
     private lane: Promise<void> = Promise.resolve();
     private ledgers = new Map<number, ResultSetLedger>();
@@ -814,6 +833,10 @@ export class Sts2Query {
                 options.vectorEncoding = "binary-v1";
                 this.vectorBinaryActive = true;
             }
+            if (this.opts.spatialEncoding === "wkb-v1" && this.backend.spatialWkbNegotiated) {
+                options.spatialEncoding = "wkb-v1";
+                this.spatialWkbActive = true;
+            }
             const result = await this.rpc.sendRequest<V2QueryExecuteResult>(
                 STS2_METHODS.queryExecute,
                 {
@@ -852,7 +875,11 @@ export class Sts2Query {
             nextRowOffset: 0,
             columnCount: params.columns.length,
             typeHints: params.columns.map((c) =>
-                typeHintFor(wireColumnType(c), this.vectorBinaryActive),
+                typeHintFor(
+                    wireColumnType(c),
+                    this.vectorBinaryActive,
+                    this.spatialWkbActive && wireColumnSpatial(c) !== undefined,
+                ),
             ),
         };
         this.ledgers.set(params.resultSetId, ledger);
@@ -866,6 +893,7 @@ export class Sts2Query {
                 const scale = wireColumnScale(column);
                 const maxLength = wireColumnLength(column);
                 const isVector = sqlType?.toLowerCase() === "vector";
+                const spatial = this.spatialWkbActive ? wireColumnSpatial(column) : undefined;
                 return {
                     ordinal,
                     name: wireColumnName(column),
@@ -893,6 +921,7 @@ export class Sts2Query {
                               },
                           }
                         : {}),
+                    ...(spatial ? { spatial } : {}),
                 };
             }),
         };

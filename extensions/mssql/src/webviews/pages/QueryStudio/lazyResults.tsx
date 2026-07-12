@@ -29,6 +29,7 @@ const resultsModule = () => import("./results");
 const gridModule = () => import("./resultsGrid");
 const planModule = () => import("./queryPlanTab");
 const vectorModule = () => import("./vectorTab");
+const spatialModule = () => import("./spatialTab");
 
 let gridPrefetchStarted = false;
 let gridLoaded = false;
@@ -104,6 +105,13 @@ export const LazyVectorTab = React.lazy(async () => {
     const module = await vectorModule();
     perfMark("mssql.queryStudio.boot.vectorChunkLoaded", {});
     return { default: module.VectorWorkbenchTab };
+});
+
+export const LazySpatialTab = React.lazy(async () => {
+    perfMark("mssql.queryStudio.boot.spatialChunkRequested", {});
+    const module = await spatialModule();
+    perfMark("mssql.queryStudio.boot.spatialChunkLoaded", {});
+    return { default: module.SpatialResultsPane };
 });
 
 /** Suspense fallback for the few-ms window where results beat the chunk. */

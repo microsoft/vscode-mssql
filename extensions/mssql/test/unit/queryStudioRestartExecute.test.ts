@@ -66,7 +66,7 @@ async function waitFor(predicate: () => boolean, ms = 4_000): Promise<void> {
 }
 
 suite("Query Studio restart-on-execute (dogfood)", () => {
-    test("ExecutionHost opts into typed vector transport only when its run gate is enabled", async () => {
+    test("ExecutionHost opts into typed vector/spatial transport only when each run gate is enabled", async () => {
         for (const enabled of [false, true]) {
             let executeOptions: ExecuteOptions | undefined;
             const session = {
@@ -87,12 +87,14 @@ suite("Query Studio restart-on-execute (dogfood)", () => {
             const spillRoot = fs.mkdtempSync(path.join(os.tmpdir(), "qs-vector-gate-"));
             const host = new ExecutionHost(path.join(spillRoot, "spill"), binding, "test-uri");
             host.vectorWorkbenchGate = () => enabled;
+            host.spatialResultsGate = () => enabled;
 
             expect(
                 host.execute("select 1", { selectionStartLine: 1, scope: "document" }).started,
             ).to.equal(true);
             await waitFor(() => host.executionState.kind === "succeeded");
             expect(executeOptions?.vectorEncoding).to.equal(enabled ? "binary-v1" : undefined);
+            expect(executeOptions?.spatialEncoding).to.equal(enabled ? "wkb-v1" : undefined);
             host.dispose();
         }
     });

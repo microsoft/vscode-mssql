@@ -148,6 +148,8 @@ export interface V2QueryExecuteParams {
         queryTimeoutMs?: number;
         /** QO-5: switch v2/query.rows to the compact shape for this query. */
         compactRows?: boolean;
+        vectorEncoding?: "binary-v1";
+        spatialEncoding?: "wkb-v1";
         [key: string]: unknown;
     };
     [key: string]: unknown;
@@ -186,6 +188,27 @@ export interface V2WireColumn {
     Length?: number | null;
     collation?: string | null;
     Collation?: string | null;
+    spatial?: {
+        kind?: "geometry" | "geography" | string;
+        encoding?: "wkb-v1" | string;
+    } | null;
+    Spatial?: {
+        Kind?: "geometry" | "geography" | string;
+        Encoding?: "wkb-v1" | string;
+    } | null;
+}
+
+/** Strictly normalize negotiated spatial metadata; unknown shapes are ignored. */
+export function wireColumnSpatial(
+    column: V2WireColumn,
+): { kind: "geometry" | "geography"; encoding: "wkb-v1" } | undefined {
+    const compact = column.spatial;
+    const pascal = column.Spatial;
+    const kind = compact?.kind ?? pascal?.Kind;
+    const encoding = compact?.encoding ?? pascal?.Encoding;
+    return (kind === "geometry" || kind === "geography") && encoding === "wkb-v1"
+        ? { kind, encoding }
+        : undefined;
 }
 
 export interface V2ResultSetNotification {

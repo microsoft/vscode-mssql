@@ -130,6 +130,7 @@ const FAKE_CAPABILITIES: SqlBackendCapabilities = {
     queryTimeoutHonored: false,
     compactRows: false,
     vectorBinaryV1: false,
+    spatialWkbV1: false,
     captureControl: false,
     replayDescriptors: true,
     resumeAfterDisconnect: false,

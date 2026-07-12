@@ -29,7 +29,8 @@ export type QueryResultLeaseOwnerKind =
     | "export"
     | "command"
     | "debug"
-    | "vectorWorkbench";
+    | "vectorWorkbench"
+    | "spatialView";
 
 export interface QueryResultLeaseOwner {
     readonly kind: QueryResultLeaseOwnerKind;

@@ -3565,6 +3565,12 @@
                     "description": "Enable the Vector Workbench results tab (preview): queries with native VECTOR columns transport typed float32 cells and gain the Vector debugger pane. Applies to the next query execution.",
                     "scope": "application"
                 },
+                "mssql.queryStudio.spatial.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.queryStudio.spatial.enabled%",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.statusBarGroupColor": {
                     "type": "boolean",
                     "default": false,
