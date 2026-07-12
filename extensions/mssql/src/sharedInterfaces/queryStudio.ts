@@ -253,6 +253,11 @@ export interface QsResultColumn {
         dimensions?: number;
         baseType?: "float32" | "float16";
     };
+    /** Native SQL Server spatial column transported as typed WKB for this run. */
+    spatial?: {
+        kind: "geometry" | "geography";
+        encoding: "wkb-v1";
+    };
 }
 
 /** Compact window (Appendix A): values + null bitmap, never tagged unions. */

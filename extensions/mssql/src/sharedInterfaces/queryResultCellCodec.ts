@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Shared codec for typed result-cell encodings (vector today; spatial next).
+ * Shared codec for typed result-cell encodings (vector and spatial).
  * Import-free and environment-free by convention: no vscode/DOM/Node imports —
  * shared by the extension host, the results webview, and test/unit.
  *
@@ -67,11 +67,145 @@ export const VECTOR_MAX_DIMENSIONS = 1998;
 export const VECTOR_TYPE_HINT_V1 = "vector:f32le:v1";
 
 // ---------------------------------------------------------------------------
+// Spatial WKB v1 (STS2 D-0020)
+// ---------------------------------------------------------------------------
+
+export type SpatialKind = "geometry" | "geography";
+
+export type SpatialTransportReason =
+    | "maxCellBytes"
+    | "conversionFailed"
+    | "unsupportedNativeValue"
+    | "unsupportedInterchange";
+
+export interface SpatialCellOkV1 {
+    readonly $t: "spatial";
+    readonly version: 1;
+    readonly status: "ok";
+    readonly kind: SpatialKind;
+    readonly encoding: "wkb";
+    readonly srid: number;
+    readonly wkbBytes: number;
+    /** Complete OGC/SQL-MM WKB from SqlGeometry/SqlGeography.AsBinaryZM(). */
+    readonly wkb: string;
+}
+
+export interface SpatialCellUnavailableV1 {
+    readonly $t: "spatial";
+    readonly version: 1;
+    readonly status: "unrenderable";
+    readonly kind: SpatialKind;
+    readonly reason: SpatialTransportReason;
+    readonly srid?: number;
+    readonly sourceBytes?: number;
+    readonly sourceDigest?: string;
+}
+
+export type SpatialCellEncodingV1 = SpatialCellOkV1 | SpatialCellUnavailableV1;
+
+export interface SpatialColumnMetadata {
+    readonly kind: SpatialKind;
+    readonly encoding: "wkb-v1";
+}
+
+/** STS2's pinned cell ceiling. Guard before allocating browser/host bytes. */
+export const SPATIAL_MAX_WKB_BYTES = 1024 * 1024;
+
+/** Compact type hint emitted only for negotiated spatial columns. */
+export const SPATIAL_TYPE_HINT_V1 = "spatial:wkb:v1";
+
+// ---------------------------------------------------------------------------
 // Structural guards (strict: shape AND arithmetic must hold)
 // ---------------------------------------------------------------------------
 
 function isObject(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object";
+}
+
+function isInt32(value: unknown): value is number {
+    return (
+        typeof value === "number" &&
+        Number.isInteger(value) &&
+        value >= -2147483648 &&
+        value <= 2147483647
+    );
+}
+
+function isNonNegativeSafeInteger(value: unknown): value is number {
+    return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isCanonicalBase64(value: string): boolean {
+    if (base64ByteLength(value) < 0) {
+        return false;
+    }
+    const paddingIndex = value.indexOf("=");
+    const end = paddingIndex < 0 ? value.length : paddingIndex;
+    for (let i = 0; i < end; i++) {
+        const code = value.charCodeAt(i);
+        if (code >= 128 || BASE64_LOOKUP[code] < 0) {
+            return false;
+        }
+    }
+    if (paddingIndex >= 0) {
+        const padding = value.length - paddingIndex;
+        if (padding > 2 || !/^={1,2}$/.test(value.slice(paddingIndex))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/** Strict guard for a complete spatial WKB value. */
+export function isSpatialCellOkV1(value: unknown): value is SpatialCellOkV1 {
+    if (!isObject(value)) {
+        return false;
+    }
+    const cell = value as Partial<SpatialCellOkV1>;
+    return (
+        cell.$t === "spatial" &&
+        cell.version === 1 &&
+        cell.status === "ok" &&
+        (cell.kind === "geometry" || cell.kind === "geography") &&
+        cell.encoding === "wkb" &&
+        isInt32(cell.srid) &&
+        isNonNegativeSafeInteger(cell.wkbBytes) &&
+        cell.wkbBytes >= 5 &&
+        cell.wkbBytes <= SPATIAL_MAX_WKB_BYTES &&
+        typeof cell.wkb === "string" &&
+        isCanonicalBase64(cell.wkb) &&
+        base64ByteLength(cell.wkb) === cell.wkbBytes
+    );
+}
+
+const SPATIAL_TRANSPORT_REASONS: readonly SpatialTransportReason[] = [
+    "maxCellBytes",
+    "conversionFailed",
+    "unsupportedNativeValue",
+    "unsupportedInterchange",
+];
+
+/** Strict guard for a transport-unavailable spatial value. */
+export function isSpatialCellUnavailableV1(value: unknown): value is SpatialCellUnavailableV1 {
+    if (!isObject(value)) {
+        return false;
+    }
+    const cell = value as Partial<SpatialCellUnavailableV1>;
+    return (
+        cell.$t === "spatial" &&
+        cell.version === 1 &&
+        cell.status === "unrenderable" &&
+        (cell.kind === "geometry" || cell.kind === "geography") &&
+        typeof cell.reason === "string" &&
+        SPATIAL_TRANSPORT_REASONS.includes(cell.reason as SpatialTransportReason) &&
+        (cell.srid === undefined || isInt32(cell.srid)) &&
+        (cell.sourceBytes === undefined || isNonNegativeSafeInteger(cell.sourceBytes)) &&
+        (cell.sourceDigest === undefined || /^sha256:[0-9a-f]{64}$/.test(cell.sourceDigest))
+    );
+}
+
+export function isSpatialCellEncodingV1(value: unknown): value is SpatialCellEncodingV1 {
+    return isSpatialCellOkV1(value) || isSpatialCellUnavailableV1(value);
 }
 
 /** Strict guard for the successful typed vector cell. */
@@ -182,6 +316,24 @@ export function decodeBase64(base64: string): Uint8Array | null {
 export interface DecodedFloat32Vector {
     readonly dimensions: number;
     readonly values: Float32Array;
+}
+
+export interface DecodedSpatialWkb {
+    readonly kind: SpatialKind;
+    readonly srid: number;
+    readonly bytes: Uint8Array;
+}
+
+/** Decode a complete validated WKB cell without interpreting geometry. */
+export function decodeSpatialWkb(cell: unknown): DecodedSpatialWkb | null {
+    if (!isSpatialCellOkV1(cell)) {
+        return null;
+    }
+    const bytes = decodeBase64(cell.wkb);
+    if (bytes === null || bytes.byteLength !== cell.wkbBytes) {
+        return null;
+    }
+    return { kind: cell.kind, srid: cell.srid, bytes };
 }
 
 /**
@@ -371,6 +523,45 @@ export function vectorCellText(cell: VectorCellEncodingV1, purpose: CellTextPurp
     }
 }
 
+function spatialUnavailableText(cell: SpatialCellUnavailableV1): string {
+    const facts = [
+        cell.kind.toUpperCase(),
+        cell.srid !== undefined ? `SRID ${cell.srid}` : undefined,
+        cell.sourceBytes !== undefined ? `${cell.sourceBytes} source bytes` : undefined,
+        cell.reason,
+    ].filter((fact): fact is string => fact !== undefined);
+    return `<spatial unavailable: ${facts.join(", ")}>`;
+}
+
+function bytesToSqlHex(bytes: Uint8Array): string {
+    const digits = "0123456789ABCDEF";
+    const output = new Array<string>(bytes.byteLength * 2 + 1);
+    output[0] = "0x";
+    for (let i = 0; i < bytes.byteLength; i++) {
+        output[i * 2 + 1] = digits[bytes[i] >> 4] + digits[bytes[i] & 0x0f];
+    }
+    return output.join("");
+}
+
+/** Purpose-specific text for one typed spatial cell. */
+export function spatialCellText(cell: SpatialCellEncodingV1, purpose: CellTextPurpose): string {
+    if (cell.status === "unrenderable") {
+        return purpose === "insertExport" ? "NULL" : spatialUnavailableText(cell);
+    }
+    if (purpose === "gridPreview" || purpose === "toolSummary") {
+        return `${cell.kind.toUpperCase()} · SRID ${cell.srid} · ${cell.wkbBytes} WKB bytes`;
+    }
+    const decoded = decodeSpatialWkb(cell);
+    if (decoded === null) {
+        return "<spatial unavailable: decodeFailed>";
+    }
+    const hex = bytesToSqlHex(decoded.bytes);
+    if (purpose === "insertExport") {
+        return `${cell.kind}::STGeomFromWKB(${hex}, ${cell.srid})`;
+    }
+    return hex;
+}
+
 /**
  * Purpose-aware text for ANY cell value: typed vector cells route through the
  * vector formatter; everything else returns null so the caller falls through
@@ -380,6 +571,9 @@ export function vectorCellText(cell: VectorCellEncodingV1, purpose: CellTextPurp
 export function typedCellTextForPurpose(value: unknown, purpose: CellTextPurpose): string | null {
     if (isVectorCellEncodingV1(value)) {
         return vectorCellText(value, purpose);
+    }
+    if (isSpatialCellEncodingV1(value)) {
+        return spatialCellText(value, purpose);
     }
     return null;
 }

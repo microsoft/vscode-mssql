@@ -14,6 +14,7 @@
 
 import {
     isVectorCellOkV1,
+    SPATIAL_TYPE_HINT_V1,
     typedCellTextForPurpose,
     VECTOR_TYPE_HINT_V1,
 } from "./queryResultCellCodec";
@@ -355,7 +356,10 @@ export function applyFilterSort(
     if (sort) {
         // SQL vectors have no scalar ordering: sorting a vector column is a
         // no-op (grid headers disable the affordance via the same hint).
-        if (typeHints?.[sort.column] === VECTOR_TYPE_HINT_V1) {
+        if (
+            typeHints?.[sort.column] === VECTOR_TYPE_HINT_V1 ||
+            typeHints?.[sort.column] === SPATIAL_TYPE_HINT_V1
+        ) {
             return indices;
         }
         // Wire hints are "number" (int/float) or "number:approx" (bigint/

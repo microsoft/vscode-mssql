@@ -23,6 +23,8 @@ import {
     distinctValues,
 } from "../../src/sharedInterfaces/queryStudioGridOps";
 import {
+    SPATIAL_TYPE_HINT_V1,
+    SpatialCellOkV1,
     VECTOR_TYPE_HINT_V1,
     VectorCellOkV1,
 } from "../../src/sharedInterfaces/queryResultCellCodec";
@@ -41,6 +43,21 @@ function vectorCell(values: number[]): VectorCellOkV1 {
         encoding: "f32le",
         byteLength: values.length * 4,
         data: Buffer.from(bytes).toString("base64"),
+    };
+}
+
+/** OGC WKB POINT (1 2), little-endian. */
+function spatialPointCell(): SpatialCellOkV1 {
+    const wkb = Buffer.from("0101000000000000000000F03F0000000000000040", "hex");
+    return {
+        $t: "spatial",
+        version: 1,
+        status: "ok",
+        kind: "geometry",
+        encoding: "wkb",
+        srid: 0,
+        wkbBytes: wkb.byteLength,
+        wkb: wkb.toString("base64"),
     };
 }
 
@@ -399,6 +416,44 @@ suite("Query Studio grid client ops", () => {
             expect(
                 cellTextForPurpose({ $t: "truncated", of: "string", v: "prefix" }, "copy"),
             ).to.equal("prefix");
+        });
+    });
+
+    suite("typed spatial cells (D-0020)", () => {
+        test("cellDisplayText is bounded metadata, never payload JSON or base64", () => {
+            const cell = spatialPointCell();
+            const text = cellDisplayText(cell);
+            expect(text).to.equal("GEOMETRY · SRID 0 · 21 WKB bytes");
+            expect(text).to.not.include(cell.wkb);
+            expect(text).to.not.include("$t");
+        });
+
+        test("copy and INSERT export preserve exact WKB and SRID", () => {
+            const cell = spatialPointCell();
+            const hex = "0x0101000000000000000000F03F0000000000000040";
+            expect(cellTextForPurpose(cell, "copy")).to.equal(hex);
+            expect(cellTextForPurpose(cell, "insertExport")).to.equal(
+                `geometry::STGeomFromWKB(${hex}, 0)`,
+            );
+        });
+
+        test("applyFilterSort: sorting a spatial-hinted column is a no-op", () => {
+            const rows = [
+                [spatialPointCell(), "a"],
+                [{ ...spatialPointCell(), srid: 4326 }, "b"],
+            ];
+            expect(
+                applyFilterSort(
+                    rows,
+                    { column: 0, direction: "desc" },
+                    [],
+                    [SPATIAL_TYPE_HINT_V1, undefined],
+                ),
+            ).to.deep.equal([0, 1]);
+        });
+
+        test("spatial cells are not misclassified as JSON documents", () => {
+            expect(cellDocumentLanguage(spatialPointCell())).to.equal(undefined);
         });
     });
 });

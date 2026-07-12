@@ -14,17 +14,26 @@
 
 import { expect } from "chai";
 import {
+    SPATIAL_MAX_WKB_BYTES,
+    SPATIAL_TYPE_HINT_V1,
+    SpatialCellOkV1,
+    SpatialCellUnavailableV1,
     VECTOR_MAX_DIMENSIONS,
     VectorCellOkV1,
     VectorCellUnavailableV1,
     base64ByteLength,
     decodeBase64,
+    decodeSpatialWkb,
     decodeVectorFloat32,
     decodeVectorPrefix,
     formatFloat32Shortest,
     isVectorCellEncodingV1,
     isVectorCellOkV1,
     isVectorCellUnavailableV1,
+    isSpatialCellEncodingV1,
+    isSpatialCellOkV1,
+    isSpatialCellUnavailableV1,
+    spatialCellText,
     typedCellTextForPurpose,
     vectorCellText,
     vectorDimensionsFromColumnLength,
@@ -61,6 +70,39 @@ function unavailableCell(overrides: Record<string, unknown> = {}): VectorCellUna
         reason: "cellLimit",
         ...overrides,
     } as VectorCellUnavailableV1;
+}
+
+const POINT_WKB_HEX = "0101000000000000000000F03F0000000000000040";
+const POINT_ZM_WKB_HEX =
+    "01B90B0000000000000000F03F000000000000004000000000000008400000000000001040";
+
+function spatialCell(
+    overrides: Record<string, unknown> = {},
+    hex = POINT_WKB_HEX,
+): SpatialCellOkV1 {
+    const bytes = Buffer.from(hex, "hex");
+    return {
+        $t: "spatial",
+        version: 1,
+        status: "ok",
+        kind: "geometry",
+        encoding: "wkb",
+        srid: 0,
+        wkbBytes: bytes.byteLength,
+        wkb: bytes.toString("base64"),
+        ...overrides,
+    } as SpatialCellOkV1;
+}
+
+function unavailableSpatialCell(overrides: Record<string, unknown> = {}): SpatialCellUnavailableV1 {
+    return {
+        $t: "spatial",
+        version: 1,
+        status: "unrenderable",
+        kind: "geometry",
+        reason: "maxCellBytes",
+        ...overrides,
+    } as SpatialCellUnavailableV1;
 }
 
 suite("Query result cell codec (typed vector cells, D-0019)", () => {
@@ -409,5 +451,104 @@ suite("Query result cell codec (typed vector cells, D-0019)", () => {
             expect(decodeBase64("!!!!")).to.equal(null);
             expect(decodeBase64("AA")).to.equal(null);
         });
+    });
+});
+
+suite("Query result cell codec (typed spatial cells, D-0020)", () => {
+    test("exports the lockstep spatial type hint and pinned WKB ceiling", () => {
+        expect(SPATIAL_TYPE_HINT_V1).to.equal("spatial:wkb:v1");
+        expect(SPATIAL_MAX_WKB_BYTES).to.equal(1024 * 1024);
+    });
+
+    test("strict success guard accepts complete XY and ISO ZM WKB", () => {
+        expect(isSpatialCellOkV1(spatialCell())).to.equal(true);
+        expect(isSpatialCellEncodingV1(spatialCell())).to.equal(true);
+        expect(isSpatialCellOkV1(spatialCell({}, POINT_ZM_WKB_HEX))).to.equal(true);
+    });
+
+    test("strict success guard rejects collision, malformed base64, size, SRID and version", () => {
+        expect(isSpatialCellEncodingV1({ $t: "spatial", v: "AAAA" })).to.equal(false);
+        expect(isSpatialCellOkV1(spatialCell({ version: 2 }))).to.equal(false);
+        expect(isSpatialCellOkV1(spatialCell({ srid: 1.5 }))).to.equal(false);
+        expect(isSpatialCellOkV1(spatialCell({ wkb: "!!!!" }))).to.equal(false);
+        expect(isSpatialCellOkV1(spatialCell({ wkbBytes: 20 }))).to.equal(false);
+        expect(
+            isSpatialCellOkV1(
+                spatialCell({
+                    wkbBytes: SPATIAL_MAX_WKB_BYTES + 1,
+                    wkb: Buffer.alloc(SPATIAL_MAX_WKB_BYTES + 1).toString("base64"),
+                }),
+            ),
+        ).to.equal(false);
+    });
+
+    test("unavailable guard validates reason, digest, bytes and optional SRID", () => {
+        const valid = unavailableSpatialCell({
+            kind: "geography",
+            srid: 4326,
+            sourceBytes: 2_000_000,
+            sourceDigest: `sha256:${"a".repeat(64)}`,
+        });
+        expect(isSpatialCellUnavailableV1(valid)).to.equal(true);
+        expect(isSpatialCellEncodingV1(valid)).to.equal(true);
+        expect(
+            isSpatialCellUnavailableV1(unavailableSpatialCell({ reason: "vertexBudget" })),
+        ).to.equal(false);
+        expect(isSpatialCellUnavailableV1(unavailableSpatialCell({ sourceBytes: -1 }))).to.equal(
+            false,
+        );
+        expect(
+            isSpatialCellUnavailableV1(unavailableSpatialCell({ sourceDigest: "sha256:xyz" })),
+        ).to.equal(false);
+    });
+
+    test("decode returns complete bytes and preserves ISO ZM payload", () => {
+        const decoded = decodeSpatialWkb(
+            spatialCell({ kind: "geography", srid: 4326 }, POINT_ZM_WKB_HEX),
+        );
+        expect(decoded).to.not.equal(null);
+        expect(decoded!.kind).to.equal("geography");
+        expect(decoded!.srid).to.equal(4326);
+        expect(Buffer.from(decoded!.bytes).toString("hex").toUpperCase()).to.equal(
+            POINT_ZM_WKB_HEX,
+        );
+        expect(decodeSpatialWkb(unavailableSpatialCell())).to.equal(null);
+    });
+
+    test("purpose formatting never exposes base64 or raw tagged JSON", () => {
+        const cell = spatialCell({ kind: "geography", srid: 4326 });
+        expect(spatialCellText(cell, "gridPreview")).to.equal(
+            "GEOGRAPHY · SRID 4326 · 21 WKB bytes",
+        );
+        expect(spatialCellText(cell, "toolSummary")).to.equal(
+            "GEOGRAPHY · SRID 4326 · 21 WKB bytes",
+        );
+        expect(spatialCellText(cell, "copy")).to.equal(`0x${POINT_WKB_HEX}`);
+        expect(spatialCellText(cell, "cellDocument")).to.equal(`0x${POINT_WKB_HEX}`);
+        expect(spatialCellText(cell, "csvExport")).to.equal(`0x${POINT_WKB_HEX}`);
+        expect(spatialCellText(cell, "jsonExport")).to.equal(`0x${POINT_WKB_HEX}`);
+        expect(spatialCellText(cell, "insertExport")).to.equal(
+            `geography::STGeomFromWKB(0x${POINT_WKB_HEX}, 4326)`,
+        );
+        for (const purpose of ["gridPreview", "copy", "cellDocument"] as const) {
+            const text = spatialCellText(cell, purpose);
+            expect(text).to.not.include(cell.wkb);
+            expect(text).to.not.include('"$t"');
+            expect(text).to.not.include("[object Object]");
+        }
+    });
+
+    test("unavailable values remain honest in text and valid SQL in INSERT export", () => {
+        const cell = unavailableSpatialCell({ sourceBytes: 2_000_000, srid: 0 });
+        expect(spatialCellText(cell, "copy")).to.equal(
+            "<spatial unavailable: GEOMETRY, SRID 0, 2000000 source bytes, maxCellBytes>",
+        );
+        expect(spatialCellText(cell, "insertExport")).to.equal("NULL");
+    });
+
+    test("typed chokepoint routes spatial cells without changing scalar behavior", () => {
+        expect(typedCellTextForPurpose(spatialCell(), "copy")).to.equal(`0x${POINT_WKB_HEX}`);
+        expect(typedCellTextForPurpose({ $t: "spatial", v: "AAAA" }, "copy")).to.equal(null);
+        expect(typedCellTextForPurpose("plain", "copy")).to.equal(null);
     });
 });
