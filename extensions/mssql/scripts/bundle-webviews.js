@@ -34,7 +34,6 @@ const config = {
         queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",
         inlineCompletionDebug: "src/webviews/pages/InlineCompletionDebug/index.tsx",
         editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",
-        spatialDecodeWorker: "src/webviews/pages/QueryStudio/spatial/spatialDecodeWorker.ts",
         userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
         schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
         schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",
@@ -75,14 +74,26 @@ const config = {
     splitting: true,
 };
 
+// Blob-backed web workers cannot resolve relative ESM imports from blob:.
+// Build the Spatial decoder as one self-contained module while keeping it
+// outside the Query Studio bootstrap graph.
+const spatialWorkerConfig = {
+    ...config,
+    entryPoints: {
+        spatialDecodeWorker: "src/webviews/pages/QueryStudio/spatial/spatialDecodeWorker.ts",
+    },
+    splitting: false,
+    metafile: false,
+};
+
 // Main execution
 async function main() {
     if (isWatch) {
         logger.header("Building webviews (watch mode)");
-        await watch(config);
+        await Promise.all([watch(config), watch(spatialWorkerConfig)]);
     } else {
         logger.header(`Building webviews`);
-        const success = await build(config, isProd);
+        const success = (await build(config, isProd)) && (await build(spatialWorkerConfig, isProd));
         process.exit(success ? 0 : 1);
     }
 }

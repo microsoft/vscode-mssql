@@ -176,4 +176,25 @@ suite("Query Studio bundle budget (BOOT-3)", () => {
         expect(manifest.queryStudio, "queryStudio preload entry").to.not.equal(undefined);
         expect(manifest.queryStudio.length).to.be.greaterThan(0);
     });
+
+    test("the Blob-backed Spatial worker is self-contained", () => {
+        const workerPath = path.join(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "dist",
+            "views",
+            "spatialDecodeWorker.js",
+        );
+        expect(fs.existsSync(workerPath), "spatialDecodeWorker.js missing").to.equal(true);
+        const worker = fs.readFileSync(workerPath, "utf8");
+        expect(worker, "blob worker cannot resolve relative ESM imports").not.to.match(
+            /^\s*import\s/m,
+        );
+        expect(
+            Buffer.byteLength(worker),
+            "Spatial worker bundle unexpectedly large",
+        ).to.be.lessThan(3 * 1024 * 1024);
+    });
 });
