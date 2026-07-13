@@ -78,6 +78,7 @@ import {
     QsGetPanelViewStateRequest,
     QsUpdatePanelViewStateNotification,
     createQueryStudioPanelViewState,
+    isQueryStudioRunStartPending,
     isSpatialTabEligible,
     isVectorTabEligible,
     orderedQueryStudioTabs,
@@ -239,6 +240,11 @@ export function QueryStudioApp() {
     // debounced (≤10/s); the max of the two keeps grids growing smoothly.
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
     const [activeTab, setActiveTabState] = useState<QueryStudioTab>("results");
+    // QsRunStarted is deliberately lower-latency than the debounced coarse
+    // state. Preserve Results during that notification -> state gap so the
+    // stale previous/idle snapshot cannot immediately fail eligibility and
+    // select Messages before result metadata arrives.
+    const [pendingRunStart, setPendingRunStart] = useState<number | undefined>(undefined);
     const [vectorPerfAction, setVectorPerfAction] = useState<QsActivateTabParams | undefined>();
     const [mountedTabs, setMountedTabs] = useState<ReadonlySet<QueryStudioTab>>(
         () => new Set(["results"]),
@@ -547,6 +553,7 @@ export function QueryStudioApp() {
     const resetRunViewForStart = useCallback(
         (runId: number, fetchMessageSnapshot: boolean) => {
             startedRunRef.current = runId;
+            setPendingRunStart(runId);
             panelViewStateBootstrapEpochRef.current++;
             gridStateHandlersRef.current.clear();
             panelViewStateRef.current = resetQueryStudioPanelViewState(
@@ -1016,7 +1023,10 @@ export function QueryStudioApp() {
                 resultSets: state?.results.resultSets.length ?? 0,
             };
             const markTerminalPaint = () => {
-                perfMarkAfterNextPaint("mssql.queryStudio.resultsRendered", attrs);
+                perfMarkAfterNextPaintComputed("mssql.queryStudio.resultsRendered", () => ({
+                    ...attrs,
+                    activeTab: activeTabRef.current,
+                }));
                 if (perfMarksEnabled()) {
                     perfMarkAfterNextPaintComputed("mssql.queryStudio.webview.health", () =>
                         queryStudioWebviewHealthAttrs("terminalPaint", mountedTabsRef.current.size),
@@ -1867,7 +1877,7 @@ export function QueryStudioApp() {
             vector: hasVectorResults,
             spatial: hasSpatialResults,
         },
-        executing,
+        executing || isQueryStudioRunStartPending(pendingRunStart, runId),
     );
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {

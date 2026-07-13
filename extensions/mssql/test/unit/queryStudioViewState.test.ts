@@ -7,8 +7,9 @@ import { expect } from "chai";
 import {
     createQueryStudioPanelViewState,
     isQueryStudioPanelViewState,
-    isVectorTabEligible,
+    isQueryStudioRunStartPending,
     isSpatialTabEligible,
+    isVectorTabEligible,
     normalizeQueryStudioPanelViewState,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
@@ -36,6 +37,18 @@ suite("Query Studio panel view state", () => {
         expect(shouldResetQueryStudioRunView(runId, undefined, String(runId))).to.equal(false);
         expect(shouldResetQueryStudioRunView(runId, runId, "idle")).to.equal(false);
         expect(shouldResetQueryStudioRunView(undefined, undefined, "idle")).to.equal(false);
+    });
+
+    test("run-start notification protects Results until coarse state catches up", () => {
+        expect(isQueryStudioRunStartPending(42, undefined)).to.equal(true);
+        expect(isQueryStudioRunStartPending(42, 41)).to.equal(true);
+        expect(isQueryStudioRunStartPending(42, 42)).to.equal(false);
+        expect(isQueryStudioRunStartPending(undefined, 42)).to.equal(false);
+
+        const empty = { results: false, vector: false, spatial: false, queryPlan: false };
+        expect(
+            resolveQueryStudioVisibleTab("results", empty, isQueryStudioRunStartPending(42, 41)),
+        ).to.equal("results");
     });
 
     test("orders every contributed tab after Messages", () => {

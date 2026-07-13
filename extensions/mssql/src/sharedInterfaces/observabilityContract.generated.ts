@@ -785,11 +785,12 @@ export const OBS_CONTRACT: Registry = {
             attrs: {
                 rows: "structuralMetadata",
                 resultSets: "structuralMetadata",
+                activeTab: "safeEnum",
                 partial: "structuralMetadata",
                 fromSpill: "structuralMetadata",
             },
             attrsComplete: false,
-            notes: "Semantic end of the user-perceived query; measurement-eligible via the harness calibrated plane only (same rule as classic renderComplete).",
+            notes: "Semantic end of the user-perceived query; activeTab is sampled at the actual post-paint boundary. Measurement-eligible via the harness calibrated plane only (same rule as classic renderComplete).",
         },
         {
             name: "mssql.queryStudio.boot.scriptStart",

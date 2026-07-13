@@ -53,6 +53,18 @@ export function shouldResetQueryStudioRunView(
     return runId !== undefined && startedRunId !== runId && panelGeneration !== String(runId);
 }
 
+/**
+ * The run-start notification intentionally precedes debounced coarse state.
+ * Treat the renderer as executing until that state observes the same run so
+ * stale idle/terminal eligibility cannot move Results to Messages.
+ */
+export function isQueryStudioRunStartPending(
+    notifiedRunId: number | undefined,
+    observedRunId: number | undefined,
+): boolean {
+    return notifiedRunId !== undefined && notifiedRunId !== observedRunId;
+}
+
 /** Results is the only tab allowed before Messages; contributed tabs follow it. */
 export const QUERY_STUDIO_TAB_ORDER: readonly QueryStudioTabId[] = [
     "results",
