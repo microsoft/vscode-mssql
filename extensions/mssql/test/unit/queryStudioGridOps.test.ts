@@ -22,6 +22,8 @@ import {
     compareCells,
     distinctValues,
 } from "../../src/sharedInterfaces/queryStudioGridOps";
+import { queryStudioWindowToGridRows } from "../../src/sharedInterfaces/queryStudioGridWindow";
+import type { QsCellWindow } from "../../src/sharedInterfaces/queryStudio";
 import {
     SPATIAL_TYPE_HINT_V1,
     SpatialCellOkV1,
@@ -62,6 +64,37 @@ function spatialPointCell(): SpatialCellOkV1 {
 }
 
 suite("Query Studio grid client ops", () => {
+    suite("projected windows", () => {
+        test("maps a projected wire span back to stable source ordinals", () => {
+            const window: QsCellWindow = {
+                resultSetId: "rs",
+                start: 10,
+                rowCount: 1,
+                columns: [
+                    { name: "c2", displayName: "c2", isJson: true },
+                    { name: "c3", displayName: "c3" },
+                ],
+                values: [['{"ok":true}', undefined]],
+                nullBitmap: Buffer.from([0b10]).toString("base64"),
+            };
+
+            const rows = queryStudioWindowToGridRows(window, 5, 2);
+
+            expect(rows).to.have.length(1);
+            expect(rows[0]).to.have.length(5);
+            expect(Object.keys(rows[0])).to.deep.equal(["2", "3"]);
+            expect(rows[0][2]).to.include({
+                displayValue: '{"ok":true}',
+                isNull: false,
+                rowId: 10,
+                languageId: "json",
+            });
+            expect(rows[0][3]).to.include({ displayValue: "", isNull: true, rowId: 10 });
+            expect(rows[0][0]).to.equal(undefined);
+            expect(rows[0][4]).to.equal(undefined);
+        });
+    });
+
     suite("compareCells", () => {
         test("numbers compare numerically under the numeric hint", () => {
             expect(compareCells(9, 10, true)).to.be.lessThan(0);

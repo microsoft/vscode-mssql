@@ -88,7 +88,18 @@ export function useFluentResultGridSlickLifecycle({
                 onGridDisposedRef.current?.();
             }
         };
-    }, [dataView, detachFrozenPaneWheelHandler]);
+    }, [detachFrozenPaneWheelHandler]);
+
+    // SlickGrid can retain its live instance while React swaps the custom
+    // data view (for example, a rerun changes a one-column readiness result
+    // into a 300-column result with the same logical id). Reattach the new
+    // view without tearing down the grid's render/keyboard/selection events.
+    useEffect(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (grid) {
+            dataViewRef.current?.setGrid(grid);
+        }
+    }, [dataView, dataViewRef, reactGridRef]);
 
     const handleReactGridCreated = useCallback(
         (event: CustomEvent<SlickgridReactInstance>) => {

@@ -222,7 +222,8 @@ export interface QsGetRowsParams {
     count: number;
     /**
      * Horizontal projection (QO-7b): return only this column span. Absent =
-     * all columns. Wide-grid copy uses it today; viewport fetches later.
+     * all columns. Wide-grid viewport and copy reads use bounded spans;
+     * transforms, export, and other full-row operations omit the projection.
      */
     columnStart?: number;
     columnCount?: number;

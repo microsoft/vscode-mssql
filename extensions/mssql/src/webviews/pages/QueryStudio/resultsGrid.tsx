@@ -33,6 +33,7 @@ import {
     FluentResultGridProvider,
     type FluentResultGridCommandConfiguration,
     type FluentResultGridCommandEvent,
+    type FluentResultGridColumnWindow,
     type FluentResultGridKeyBindingMap,
     type FluentResultGridHandle,
     type FluentResultGridStrings,
@@ -49,7 +50,6 @@ import {
     type WebviewKeyBindings,
 } from "../../../sharedInterfaces/webview";
 import type {
-    DbCellValue,
     GridSettings,
     IDbColumn,
     ISlickRange,
@@ -58,6 +58,7 @@ import type {
 import {
     QsCellWindow,
     QsGetRowsRequest,
+    type QsGetRowsParams,
     QsGridStyle,
     QsOpenCellDocumentRequest,
     QsResultColumn,
@@ -67,13 +68,11 @@ import {
     QsState,
     QsUpdateGridSelectionRequest,
 } from "../../../sharedInterfaces/queryStudio";
+import { cellTextForPurpose } from "../../../sharedInterfaces/queryStudioGridOps";
 import {
-    QS_CELL_DISPLAY_CLAMP,
-    cellDocumentLanguage,
-    cellDisplayText,
-    cellTextForPurpose,
-    clampDisplay,
-} from "../../../sharedInterfaces/queryStudioGridOps";
+    queryStudioWindowNullFlags,
+    queryStudioWindowToGridRows,
+} from "../../../sharedInterfaces/queryStudioGridWindow";
 import {
     planQueryStudioGridCopy,
     queryStudioGridCopyColumnRuns,
@@ -99,6 +98,10 @@ const COPY_TARGET_DECODED_CELLS_PER_WINDOW = 8_192;
 /** Approx. 16 MiB UTF-16 payload, before the browser clipboard's own copy. */
 const COPY_MAX_TSV_CHARACTERS = 8_000_000;
 const DEFAULT_FONT_SIZE = 12;
+const GRID_COLUMN_WINDOWING = {
+    minimumColumnCount: 64,
+    overscanColumnCount: 8,
+} as const;
 
 export const COPY_TOO_LARGE_NOTICE =
     "Selection is too large to copy to the clipboard — use a smaller selection.";
@@ -110,65 +113,6 @@ export const PROCESSING_STREAMING_NOTICE =
 const QUERY_STUDIO_GRID_INITIAL_STATE = {
     frozenColumnIndex: -1,
 } satisfies FluentResultGridState;
-
-/** Decode one window's null bitmap into per-cell null flags. */
-function windowNullFlags(window: QsCellWindow): (row: number, col: number) => boolean {
-    const bytes = window.nullBitmap ? atob(window.nullBitmap) : undefined;
-    const colCount = window.columns.length;
-    return (row, col) => {
-        const value = window.values[row]?.[col];
-        if (value === undefined || value === null) {
-            return true;
-        }
-        if (!bytes) {
-            return false;
-        }
-        const index = row * colCount + col;
-        const byteIndex = index >> 3;
-        return byteIndex < bytes.length && (bytes.charCodeAt(byteIndex) & (1 << (index & 7))) !== 0;
-    };
-}
-
-/**
- * QsCellWindow → grid rows (DbCellValue with the SOURCE row id). Rendered
- * windows clamp display text (huge cells would bog the DOM); the copy path
- * passes clamp=false so the clipboard carries the full received value —
- * full-fidelity text, never the bounded grid preview (typed vector cells
- * copy as their complete JSON array, engine-text parity).
- */
-function windowToGridRows(
-    window: QsCellWindow,
-    columnCount: number,
-    clamp: boolean = true,
-): DbCellValue[][] {
-    const isNull = windowNullFlags(window);
-    return window.values.map((row, r) => {
-        const cells: DbCellValue[] = [];
-        for (let c = 0; c < columnCount; c++) {
-            const nulled = isNull(r, c);
-            const text = nulled
-                ? ""
-                : clamp
-                  ? cellDisplayText(row[c])
-                  : cellTextForPurpose(row[c], "copy");
-            const languageId = nulled
-                ? undefined
-                : cellDocumentLanguage(row[c], {
-                      sqlType: window.columns[c]?.sqlType,
-                      typeHint: window.typeHints?.[c],
-                      isXml: window.columns[c]?.isXml,
-                      isJson: window.columns[c]?.isJson,
-                  });
-            cells.push({
-                displayValue: clamp ? clampDisplay(text, QS_CELL_DISPLAY_CLAMP) : text,
-                isNull: nulled,
-                rowId: window.start + r,
-                ...(languageId ? { languageId } : {}),
-            });
-        }
-        return cells;
-    });
-}
 
 function fabricateColumnInfo(
     columnNames: readonly string[],
@@ -206,7 +150,7 @@ function resultSetOrdinal(resultSetId: string): number {
 
 /** Decode a projected copy window directly to exact TSV field text. */
 function windowToCopyRows(window: QsCellWindow, columnCount: number): string[][] {
-    const isNull = windowNullFlags(window);
+    const isNull = queryStudioWindowNullFlags(window);
     return window.values.map((row, rowIndex) => {
         const fields: string[] = [];
         for (let column = 0; column < columnCount; column++) {
@@ -791,45 +735,72 @@ export function QsResultGridSurface(props: {
     // First REAL rows painted for this grid (QO-2): the user-perceived
     // "results are here" moment, tighter than the terminal resultsRendered.
     const firstRowsPaintedRef = useRef(false);
-    const pendingRenderedWindowRef = useRef<{ receivedAt: number; rows: number } | undefined>(
-        undefined,
-    );
+    const pendingRenderedWindowRef = useRef<
+        { receivedAt: number; rows: number; columns: number; projected: boolean } | undefined
+    >(undefined);
 
     const dataSource = useMemo(
         () => ({
             kind: "windowed" as const,
             rowCount,
-            getRows: async (offset: number, count: number) => {
+            columnWindowing: GRID_COLUMN_WINDOWING,
+            getRows: async (
+                offset: number,
+                count: number,
+                columnWindow?: FluentResultGridColumnWindow,
+            ) => {
                 const perfEnabled = perfMarksEnabled();
                 const requestedAt = perfEnabled ? performance.now() : 0;
+                const requestedColumns = columnWindow?.count ?? columnCount;
+                const projected = columnWindow !== undefined;
                 if (perfEnabled) {
                     perfMark("mssql.queryStudio.grid.window.request", {
                         resultSetId: summary.resultSetId,
                         start: offset,
                         count,
+                        columnStart: columnWindow?.start ?? 0,
+                        columnCount: requestedColumns,
+                        totalColumns: columnCount,
+                        requestedCells: count * requestedColumns,
+                        projected,
                     });
                 }
-                const window = await rpc.sendRequest<
-                    { resultSetId: string; start: number; count: number },
-                    QsCellWindow
-                >(QsGetRowsRequest.type, {
-                    resultSetId: summary.resultSetId,
-                    start: offset,
-                    count,
-                });
+                const window = await rpc.sendRequest<QsGetRowsParams, QsCellWindow>(
+                    QsGetRowsRequest.type,
+                    {
+                        resultSetId: summary.resultSetId,
+                        start: offset,
+                        count,
+                        ...(columnWindow
+                            ? {
+                                  columnStart: columnWindow.start,
+                                  columnCount: columnWindow.count,
+                              }
+                            : {}),
+                    },
+                );
                 if (perfEnabled) {
                     perfMark("mssql.queryStudio.grid.window.received", {
                         resultSetId: summary.resultSetId,
                         start: offset,
                         count,
+                        columnStart: columnWindow?.start ?? 0,
+                        columnCount: requestedColumns,
+                        totalColumns: columnCount,
+                        returnedRows: window.rowCount,
+                        returnedColumns: window.columns.length,
+                        returnedCells: window.rowCount * window.columns.length,
+                        projected,
                         ms: Math.round((performance.now() - requestedAt) * 100) / 100,
                     });
                     pendingRenderedWindowRef.current = {
                         receivedAt: performance.now(),
                         rows: window.rowCount,
+                        columns: window.columns.length,
+                        projected,
                     };
                 }
-                return windowToGridRows(window, columnCount);
+                return queryStudioWindowToGridRows(window, columnCount, columnWindow?.start ?? 0);
             },
         }),
         [rpc, summary.resultSetId, columnCount, rowCount],
@@ -857,6 +828,8 @@ export function QsResultGridSurface(props: {
             resultSetId: summary.resultSetId,
             rows: pending.rows,
             columns: columnCount,
+            fetchedColumns: pending.columns,
+            projected: pending.projected,
             msFromWindowReceived: Math.round((performance.now() - pending.receivedAt) * 100) / 100,
         });
         if (!firstRowsPaintedRef.current && pending.rows > 0) {
@@ -865,6 +838,8 @@ export function QsResultGridSurface(props: {
                 resultSetId: summary.resultSetId,
                 rows: pending.rows,
                 columns: columnCount,
+                fetchedColumns: pending.columns,
+                projected: pending.projected,
             });
         }
     }, [columnCount, summary.resultSetId]);

@@ -296,7 +296,13 @@ export function useFluentResultGridLayout({
                             return;
                         }
 
-                        const useLoadedRowsOnly = attempt < initialAutoSizeRetryDelaysMs.length;
+                        // Automatic autosize must never defeat a wide source's
+                        // viewport projection. Explicit user autosize still
+                        // calls applyAutoSizeColumns without this restriction
+                        // and therefore retains authoritative full-row reads.
+                        const useLoadedRowsOnly =
+                            dataView.hasColumnWindowing ||
+                            attempt < initialAutoSizeRetryDelaysMs.length;
                         void applyAutoSizeColumns(requestId, { useLoadedRowsOnly }).then(
                             (applied) => {
                                 if (
