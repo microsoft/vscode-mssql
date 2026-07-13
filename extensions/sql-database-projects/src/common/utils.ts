@@ -7,13 +7,13 @@ import * as vscode from "vscode";
 import * as os from "os";
 import * as constants from "./constants";
 import * as path from "path";
-import * as glob from "fast-glob";
+import { glob } from "glob";
 import * as dataworkspace from "dataworkspace";
 import * as vscodeMssql from "vscode-mssql";
 import * as fse from "fs-extra";
-import * as which from "which";
+import which from "which";
 import { promises as fs } from "fs";
-import { ISqlProject, SqlTargetPlatform } from "sqldbproj";
+import { ISqlProject, SqlTargetPlatform } from "../sqldbproj";
 import { SystemDatabase } from "./typeHelper";
 import { DeploymentScenario } from "./enums";
 
@@ -282,10 +282,7 @@ export function validateSqlCmdVariableName(name: string | undefined): string | n
  * @param folderPath
  */
 export async function getSqlProjectFilesInFolder(folderPath: string): Promise<string[]> {
-    // path needs to use forward slashes for glob to work
-    const escapedPath = glob.escapePath(folderPath.replace(/\\/g, "/"));
-    const sqlprojFilter = path.posix.join(escapedPath, "**", "*.sqlproj");
-    const results = await glob(sqlprojFilter);
+    const results = await glob("**/*.sqlproj", { cwd: folderPath, absolute: true });
 
     return results;
 }
@@ -463,18 +460,16 @@ export async function getSqlFilesInFolder(
     folderPath: string,
     ignoreBinObj?: boolean,
 ): Promise<string[]> {
-    // path needs to use forward slashes for glob to work
-    folderPath = folderPath.replace(/\\/g, "/");
-    const sqlFilter = path.posix.join(folderPath, "**", "*.sql");
+    const options = { cwd: folderPath, absolute: true };
 
     if (ignoreBinObj) {
         // don't add files in bin and obj folders
-        const binIgnore = path.posix.join(folderPath, "bin", "**", "*.sql");
-        const objIgnore = path.posix.join(folderPath, "obj", "**", "*.sql");
-
-        return await glob(sqlFilter, { ignore: [binIgnore, objIgnore] });
+        return await glob("**/*.sql", {
+            ...options,
+            ignore: ["bin/**/*.sql", "obj/**/*.sql"],
+        });
     } else {
-        return await glob(sqlFilter);
+        return await glob("**/*.sql", options);
     }
 }
 
@@ -487,18 +482,16 @@ export async function getFoldersInFolder(
     folderPath: string,
     ignoreBinObj?: boolean,
 ): Promise<string[]> {
-    // path needs to use forward slashes for glob to work
-    const escapedPath = glob.escapePath(folderPath.replace(/\\/g, "/"));
-    const folderFilter = path.posix.join(escapedPath, "/**");
+    const results = await glob("**/", {
+        cwd: folderPath,
+        absolute: true,
+        ignore: ignoreBinObj ? ["bin/**", "obj/**"] : undefined,
+    });
 
-    if (ignoreBinObj) {
-        // don't add bin and obj folders
-        const binIgnore = path.posix.join(escapedPath, "bin");
-        const objIgnore = path.posix.join(escapedPath, "obj");
-        return await glob(folderFilter, { onlyDirectories: true, ignore: [binIgnore, objIgnore] });
-    } else {
-        return await glob(folderFilter, { onlyDirectories: true });
-    }
+    // A directory-ending glob includes cwd itself. Exclude it to preserve fast-glob's previous
+    // onlyDirectories behavior.
+    const rootPath = path.resolve(folderPath);
+    return results.filter((folder) => path.resolve(folder) !== rootPath);
 }
 
 /**

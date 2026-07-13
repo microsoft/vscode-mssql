@@ -21,7 +21,7 @@ import {
 } from "../../common/constants";
 import { IconPathHelper } from "../../common/iconHelper";
 import { FileProjectEntry } from "../projectEntry";
-import { EntryType } from "sqldbproj";
+import { EntryType } from "../../sqldbproj";
 import { DBProjectConfigurationKey } from "../../tools/netcoreTool";
 import { SqlCmdVariablesTreeItem } from "./sqlcmdVariableTreeItem";
 

@@ -13,7 +13,7 @@ import { BuildHelper, NugetExtractionError } from "../src/tools/buildHelper";
 import { HttpClient } from "../src/http/httpClient";
 import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
-import * as sqldbproj from "sqldbproj";
+import * as sqldbproj from "../src/sqldbproj";
 import * as constants from "../src/common/constants";
 import * as utils from "../src/common/utils";
 

@@ -38,7 +38,7 @@ import {
     ISqlProject,
     ItemType,
     SqlTargetPlatform,
-} from "sqldbproj";
+} from "../sqldbproj";
 import { createNewProjectFromDatabaseWithQuickpick } from "../dialogs/createProjectFromDatabaseQuickpick";
 import { UpdateProjectFromDatabaseWithQuickpick } from "../dialogs/updateProjectFromDatabaseQuickpick";
 import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQuickpick";

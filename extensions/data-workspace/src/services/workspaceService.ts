@@ -9,7 +9,7 @@ import * as path from "path";
 // TODO: Remove ADS git dependency - Phase 2
 // import * as git from '../../../git/src/api/git';
 import * as constants from "../common/constants";
-import * as glob from "fast-glob";
+import { glob } from "glob";
 import { IWorkspaceService } from "../common/interfaces";
 import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
 import Logger from "../common/logger";
@@ -260,18 +260,16 @@ export class WorkspaceService implements IWorkspaceService {
             ),
         ];
 
-        // path needs to use forward slashes for glob to work
-        const escapedPath = glob.escapePath(folder.fsPath.replace(/\\/g, "/"));
-
         // can filter for multiple file extensions using folder/**/*.{sqlproj,csproj} format, but this notation doesn't work if there's only one extension
         // so the filter needs to be in the format folder/**/*.sqlproj if there's only one supported projectextension
         const projFilter =
             supportedProjectExtensions.length > 1
-                ? path.posix.join(escapedPath, "**", `*.{${supportedProjectExtensions.toString()}}`)
-                : path.posix.join(escapedPath, "**", `*.${supportedProjectExtensions[0]}`);
+                ? `**/*.{${supportedProjectExtensions.toString()}}`
+                : `**/*.${supportedProjectExtensions[0]}`;
 
-        // glob will return an array of file paths with forward slashes, so they need to be converted back if on windows
-        return (await glob(projFilter)).map((p) => vscode.Uri.file(path.resolve(p)));
+        return (await glob(projFilter, { cwd: folder.fsPath, absolute: true })).map((p) =>
+            vscode.Uri.file(p),
+        );
     }
 
     async getProjectProvider(

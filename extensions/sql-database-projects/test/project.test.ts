@@ -26,7 +26,7 @@ import {
     IProjectReferenceSettings,
     ISystemDatabaseReferenceSettings,
 } from "../src/models/IDatabaseReferenceSettings";
-import { ItemType } from "sqldbproj";
+import { ItemType } from "../src/sqldbproj";
 import {
     SystemDatabaseReferenceProjectEntry,
     SqlProjectReferenceProjectEntry,

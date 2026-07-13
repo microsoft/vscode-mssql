@@ -8,7 +8,7 @@ import * as os from "os";
 import * as constants from "../src/common/constants";
 import * as templates from "../src/templates/templates";
 import * as vscode from "vscode";
-import * as sqldbproj from "sqldbproj";
+import * as sqldbproj from "../src/sqldbproj";
 
 import { promises as fs } from "fs";
 import { expect } from "chai";

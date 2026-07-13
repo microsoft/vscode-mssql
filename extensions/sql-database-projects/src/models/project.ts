@@ -12,7 +12,7 @@ import { randomUUID } from "crypto";
 
 import { promises as fs } from "fs";
 import { Uri, window } from "vscode";
-import { EntryType, IDatabaseReferenceProjectEntry, ISqlProject, ItemType } from "sqldbproj";
+import { EntryType, IDatabaseReferenceProjectEntry, ISqlProject, ItemType } from "../sqldbproj";
 import { DataSource } from "./dataSources/dataSources";
 import {
     ISystemDatabaseReferenceSettings,
