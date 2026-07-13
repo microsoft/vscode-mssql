@@ -74,6 +74,11 @@ import {
     cellTextForPurpose,
     clampDisplay,
 } from "../../../sharedInterfaces/queryStudioGridOps";
+import {
+    planQueryStudioGridCopy,
+    queryStudioGridCopyColumnRuns,
+    type QueryStudioGridCopyInterval,
+} from "../../../sharedInterfaces/queryStudioGridCopy";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 import { countFluentResultGridSelectedRows } from "../../common/FluentResultGrid/internal/fluentResultGridSelection";
 import {
@@ -87,10 +92,12 @@ import {
 export { qsGridRowHeight, type Rpc } from "./resultsGridShared";
 import { qsGridRowHeight, Rpc } from "./resultsGridShared";
 
-/** Chunk size for copy fetches (same bounded window scale as materialize). */
-const COPY_CHUNK = 512;
-/** Copy guard: refuse silently-unbounded clipboard payloads. */
-const COPY_MAX_ROWS = 100_000;
+/** Large narrow copies may amortize RPC overhead, but never request more rows. */
+const COPY_MAX_ROWS_PER_WINDOW = 8_192;
+/** Responsive work quantum: decoded cell objects retained/processed per turn. */
+const COPY_TARGET_DECODED_CELLS_PER_WINDOW = 8_192;
+/** Approx. 16 MiB UTF-16 payload, before the browser clipboard's own copy. */
+const COPY_MAX_TSV_CHARACTERS = 8_000_000;
 const DEFAULT_FONT_SIZE = 12;
 
 export const COPY_TOO_LARGE_NOTICE =
@@ -197,42 +204,63 @@ function resultSetOrdinal(resultSetId: string): number {
 // Copy (issue C): selection ranges → chunked QsGetRows → TSV
 // ---------------------------------------------------------------------------
 
-async function fetchDecodedRows(
+/** Decode a projected copy window directly to exact TSV field text. */
+function windowToCopyRows(window: QsCellWindow, columnCount: number): string[][] {
+    const isNull = windowNullFlags(window);
+    return window.values.map((row, rowIndex) => {
+        const fields: string[] = [];
+        for (let column = 0; column < columnCount; column++) {
+            fields.push(
+                isNull(rowIndex, column) ? "NULL" : cellTextForPurpose(row[column], "copy"),
+            );
+        }
+        return fields;
+    });
+}
+
+async function fetchCopyRowsWindow(
     rpc: Rpc,
     resultSetId: string,
-    fromRow: number,
-    toRow: number,
+    start: number,
+    count: number,
     columns: { start: number; count: number },
-): Promise<DbCellValue[][]> {
-    const rows: DbCellValue[][] = [];
-    for (let start = fromRow; start <= toRow; start += COPY_CHUNK) {
-        const count = Math.min(COPY_CHUNK, toRow - start + 1);
-        // Projected fetch (QO-7b): only the selection's columns cross the
-        // RPC — copying 3 columns of a 300-column grid no longer drags the
-        // other 297 through serialization.
-        const window = await rpc.sendRequest<
-            {
-                resultSetId: string;
-                start: number;
-                count: number;
-                columnStart: number;
-                columnCount: number;
-            },
-            QsCellWindow
-        >(QsGetRowsRequest.type, {
-            resultSetId,
-            start,
-            count,
-            columnStart: columns.start,
-            columnCount: columns.count,
-        });
-        const decoded = windowToGridRows(window, columns.count, /* clamp */ false);
-        rows.push(...decoded);
-        if (decoded.length === 0) {
-            break; // defensive: host returned short
+): Promise<string[][]> {
+    // Projected fetch (QO-7b): only selected contiguous column runs cross
+    // the RPC. Two distant columns never pull the intervening wide payload.
+    const window = await rpc.sendRequest<
+        {
+            resultSetId: string;
+            start: number;
+            count: number;
+            columnStart: number;
+            columnCount: number;
+        },
+        QsCellWindow
+    >(QsGetRowsRequest.type, {
+        resultSetId,
+        start,
+        count,
+        columnStart: columns.start,
+        columnCount: columns.count,
+    });
+    return windowToCopyRows(window, columns.count);
+}
+
+function columnCount(interval: QueryStudioGridCopyInterval): number {
+    return interval.to - interval.from + 1;
+}
+
+function copyHeaderLine(
+    summary: QsResultSetSummary,
+    columnRuns: readonly QueryStudioGridCopyInterval[],
+): string {
+    const headers: string[] = [];
+    for (const run of columnRuns) {
+        for (let column = run.from; column <= run.to; column++) {
+            headers.push(summary.columnNames[column] ?? "");
         }
     }
-    return rows;
+    return headers.join("\t");
 }
 
 /**
@@ -251,95 +279,182 @@ export async function copySelectionAsTsv(
     selection: readonly ISlickRange[],
     includeHeaders: boolean,
 ): Promise<"copied" | "tooLarge" | "empty"> {
-    if (selection.length === 0) {
-        return "empty";
-    }
-    if (selection.length === 1) {
-        const range = selection[0];
-        if (range.toRow - range.fromRow + 1 > COPY_MAX_ROWS) {
-            return "tooLarge";
-        }
-        const lines: string[] = [];
-        if (includeHeaders) {
-            lines.push(summary.columnNames.slice(range.fromCell, range.toCell + 1).join("\t"));
-        }
-        // The window arrives already projected to the selection's columns.
-        const rows = await fetchDecodedRows(rpc, summary.resultSetId, range.fromRow, range.toRow, {
-            start: range.fromCell,
-            count: range.toCell - range.fromCell + 1,
+    const started = performance.now();
+    perfMark("mssql.queryStudio.grid.copy.begin", {
+        resultSetId: summary.resultSetId,
+        ranges: selection.length,
+        resultRows: summary.rowCount,
+        resultColumns: summary.columnNames.length,
+        includeHeaders,
+    });
+    const planned = planQueryStudioGridCopy(
+        selection,
+        summary.rowCount,
+        summary.columnNames.length,
+    );
+    const planMs = Math.max(0, performance.now() - started);
+    let rpcRequests = 0;
+    let characters = 0;
+    let fetchDecodeMs = 0;
+    let formatMs = 0;
+    let clipboardMs = 0;
+    let windowRows = 0;
+    const finish = (
+        outcome: "copied" | "tooLarge" | "empty" | "error",
+        details?: { rows?: number; columns?: number; cells?: number; reason?: string },
+    ) => {
+        perfMark("mssql.queryStudio.grid.copy.end", {
+            resultSetId: summary.resultSetId,
+            outcome,
+            rpcRequests,
+            characters,
+            planMs,
+            fetchDecodeMs,
+            formatMs,
+            clipboardMs,
+            windowRows,
+            durationMs: Math.max(0, performance.now() - started),
+            ...details,
         });
-        for (const row of rows) {
-            lines.push(row.map((cell) => (cell.isNull ? "NULL" : cell.displayValue)).join("\t"));
-        }
-        await navigator.clipboard.writeText(lines.join("\n"));
-        return "copied";
+    };
+    if (planned.kind !== "ok") {
+        finish(planned.kind, planned.kind === "tooLarge" ? { reason: planned.reason } : undefined);
+        return planned.kind;
     }
 
-    const rowSet = new Set<number>();
-    const colSet = new Set<number>();
-    for (const range of selection) {
-        for (let row = range.fromRow; row <= range.toRow; row++) {
-            rowSet.add(row);
+    const { plan } = planned;
+    const details = {
+        rows: plan.rowCount,
+        columns: plan.columnCount,
+        cells: plan.outputCellCount,
+    };
+    // Keep line strings until the Clipboard API call, but do not retain a
+    // second decoded matrix. Newline segments avoid another lines.join("\n")
+    // traversal and let the exact character budget include separators.
+    const textSegments: string[] = [];
+    let lineCount = 0;
+    const appendLine = (line: string): boolean => {
+        const added = line.length + (lineCount > 0 ? 1 : 0);
+        if (characters + added > COPY_MAX_TSV_CHARACTERS) {
+            return false;
         }
-        for (let col = range.fromCell; col <= range.toCell; col++) {
-            colSet.add(col);
+        if (lineCount > 0) {
+            textSegments.push("\n");
         }
-    }
-    if (rowSet.size > COPY_MAX_ROWS) {
-        return "tooLarge";
-    }
-    const unionRows = [...rowSet].sort((a, b) => a - b);
-    const unionCols = [...colSet].sort((a, b) => a - b);
-    const isSelected = (row: number, col: number) =>
-        selection.some(
-            (range) =>
-                row >= range.fromRow &&
-                row <= range.toRow &&
-                col >= range.fromCell &&
-                col <= range.toCell,
+        textSegments.push(line);
+        characters += added;
+        lineCount++;
+        return true;
+    };
+
+    try {
+        if (includeHeaders) {
+            const formatStarted = performance.now();
+            const appended = appendLine(copyHeaderLine(summary, plan.columnRuns));
+            formatMs += Math.max(0, performance.now() - formatStarted);
+            if (!appended) {
+                finish("tooLarge", { ...details, reason: "characters" });
+                return "tooLarge";
+            }
+        }
+
+        // Bound the sum of decoded objects across all projected column runs.
+        // Wide selections therefore use fewer rows per request window.
+        windowRows = Math.max(
+            1,
+            Math.min(
+                COPY_MAX_ROWS_PER_WINDOW,
+                Math.floor(COPY_TARGET_DECODED_CELLS_PER_WINDOW / plan.columnCount),
+            ),
         );
+        let rowBandIndex = 0;
+        for (const rowRun of plan.rowRuns) {
+            let start = rowRun.from;
+            while (start <= rowRun.to) {
+                const requestedRows = Math.min(windowRows, rowRun.to - start + 1);
+                const fetchedRuns: string[][][] = [];
+                let returnedRows = requestedRows;
+                for (const run of plan.columnRuns) {
+                    const fetchStarted = performance.now();
+                    const decoded = await fetchCopyRowsWindow(
+                        rpc,
+                        summary.resultSetId,
+                        start,
+                        requestedRows,
+                        { start: run.from, count: columnCount(run) },
+                    );
+                    fetchDecodeMs += Math.max(0, performance.now() - fetchStarted);
+                    rpcRequests++;
+                    fetchedRuns.push(decoded);
+                    returnedRows = Math.min(returnedRows, decoded.length);
+                }
+                if (returnedRows === 0) {
+                    break; // Defensive: the host returned a short/empty window.
+                }
 
-    // One projected fetch per contiguous row run over the union column span.
-    const colStart = unionCols[0];
-    const colCount = unionCols[unionCols.length - 1] - colStart + 1;
-    const valuesByRow = new Map<number, DbCellValue[]>();
-    let runStart = 0;
-    while (runStart < unionRows.length) {
-        let runEnd = runStart;
-        while (runEnd + 1 < unionRows.length && unionRows[runEnd + 1] === unionRows[runEnd] + 1) {
-            runEnd++;
-        }
-        const fetched = await fetchDecodedRows(
-            rpc,
-            summary.resultSetId,
-            unionRows[runStart],
-            unionRows[runEnd],
-            { start: colStart, count: colCount },
-        );
-        fetched.forEach((rowValues, i) => valuesByRow.set(unionRows[runStart] + i, rowValues));
-        runStart = runEnd + 1;
-    }
-
-    const lines: string[] = [];
-    if (includeHeaders) {
-        lines.push(unionCols.map((col) => summary.columnNames[col] ?? "").join("\t"));
-    }
-    for (const row of unionRows) {
-        const rowValues = valuesByRow.get(row);
-        lines.push(
-            unionCols
-                .map((col) => {
-                    if (!isSelected(row, col)) {
-                        return "";
+                const formatStarted = performance.now();
+                for (let rowOffset = 0; rowOffset < returnedRows; rowOffset++) {
+                    const sourceRow = start + rowOffset;
+                    while (
+                        rowBandIndex + 1 < plan.rowBands.length &&
+                        plan.rowBands[rowBandIndex].toRow < sourceRow
+                    ) {
+                        rowBandIndex++;
                     }
-                    const cell = rowValues?.[col - colStart];
-                    return cell ? (cell.isNull ? "NULL" : cell.displayValue) : "";
-                })
-                .join("\t"),
-        );
+                    const selectedColumns = plan.rowBands[rowBandIndex]?.columnRuns ?? [];
+                    let selectedRunIndex = 0;
+                    const fields: string[] = [];
+                    let prospectiveCharacters = characters + (lineCount > 0 ? 1 : 0);
+                    for (let runIndex = 0; runIndex < plan.columnRuns.length; runIndex++) {
+                        const run = plan.columnRuns[runIndex];
+                        const rowValues = fetchedRuns[runIndex]?.[rowOffset];
+                        for (let column = run.from; column <= run.to; column++) {
+                            while (
+                                selectedRunIndex < selectedColumns.length &&
+                                selectedColumns[selectedRunIndex].to < column
+                            ) {
+                                selectedRunIndex++;
+                            }
+                            const selected =
+                                selectedRunIndex < selectedColumns.length &&
+                                selectedColumns[selectedRunIndex].from <= column;
+                            const value = selected ? (rowValues?.[column - run.from] ?? "") : "";
+                            prospectiveCharacters += value.length + (fields.length > 0 ? 1 : 0);
+                            if (prospectiveCharacters > COPY_MAX_TSV_CHARACTERS) {
+                                formatMs += Math.max(0, performance.now() - formatStarted);
+                                finish("tooLarge", { ...details, reason: "characters" });
+                                return "tooLarge";
+                            }
+                            fields.push(value);
+                        }
+                    }
+                    // The prospective check above makes this false only if a
+                    // future separator-accounting change drifts.
+                    if (!appendLine(fields.join("\t"))) {
+                        formatMs += Math.max(0, performance.now() - formatStarted);
+                        finish("tooLarge", { ...details, reason: "characters" });
+                        return "tooLarge";
+                    }
+                }
+                formatMs += Math.max(0, performance.now() - formatStarted);
+                start += returnedRows;
+            }
+        }
+        const finalFormatStarted = performance.now();
+        const text = textSegments.join("");
+        formatMs += Math.max(0, performance.now() - finalFormatStarted);
+        const clipboardStarted = performance.now();
+        try {
+            await navigator.clipboard.writeText(text);
+        } finally {
+            clipboardMs += Math.max(0, performance.now() - clipboardStarted);
+        }
+        finish("copied", details);
+        return "copied";
+    } catch (error) {
+        finish("error", details);
+        throw error;
     }
-    await navigator.clipboard.writeText(lines.join("\n"));
-    return "copied";
 }
 
 function copyHeaders(summary: QsResultSetSummary, selection: readonly ISlickRange[]): void {
@@ -347,17 +462,12 @@ function copyHeaders(summary: QsResultSetSummary, selection: readonly ISlickRang
         selection.length > 0
             ? selection
             : [{ fromCell: 0, toCell: summary.columnNames.length - 1, fromRow: 0, toRow: 0 }];
-    // Union of selected columns, one header line (multi-range parity with copy).
-    const cols = new Set<number>();
-    for (const range of ranges) {
-        for (let col = range.fromCell; col <= range.toCell; col++) {
-            cols.add(col);
-        }
-    }
-    const text = [...cols]
-        .sort((a, b) => a - b)
-        .map((col) => summary.columnNames[col] ?? "")
-        .join("\t");
+    // Union of selected columns, one header line (multi-range parity with
+    // copy), planned without expanding duplicate/overlapping ranges.
+    const text = copyHeaderLine(
+        summary,
+        queryStudioGridCopyColumnRuns(ranges, summary.columnNames.length),
+    );
     void navigator.clipboard.writeText(text);
 }
 
@@ -588,6 +698,8 @@ export function QsResultGridSurface(props: {
     const perfSelectionSettledRef = useRef<(() => void) | undefined>(undefined);
     const rowCountRef = useRef(rowCount);
     rowCountRef.current = rowCount;
+    const summaryRef = useRef(summary);
+    summaryRef.current = summary;
     const columnCount = summary.columnNames.length;
 
     useEffect(
@@ -622,8 +734,35 @@ export function QsResultGridSurface(props: {
                     await settled;
                     return "applied";
                 },
+                copyAll: async (includeHeaders) => {
+                    const currentSummary = {
+                        ...summaryRef.current,
+                        rowCount: rowCountRef.current,
+                    };
+                    if (currentSummary.rowCount <= 0 || columnCount <= 0) {
+                        return "copyEmpty";
+                    }
+                    const outcome = await copySelectionAsTsv(
+                        rpc,
+                        currentSummary,
+                        [
+                            {
+                                fromRow: 0,
+                                toRow: currentSummary.rowCount - 1,
+                                fromCell: 0,
+                                toCell: columnCount - 1,
+                            },
+                        ],
+                        includeHeaders,
+                    );
+                    return outcome === "copied"
+                        ? "applied"
+                        : outcome === "tooLarge"
+                          ? "copyTooLarge"
+                          : "copyEmpty";
+                },
             }),
-        [columnCount, summary.resultSetId],
+        [columnCount, rpc, summary.resultSetId],
     );
 
     // Column identity must stay STABLE across the coarse state pushes while

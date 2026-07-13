@@ -11,6 +11,7 @@ import {
 import { resolveVectorPerfSearchTarget } from "../../src/webviews/pages/QueryStudio/vectorPerfAction";
 import {
     performRegisteredQueryStudioPerfGridScroll,
+    performRegisteredQueryStudioPerfGridCopy,
     performRegisteredQueryStudioPerfGridSelection,
     queryStudioPerfScrollOffset,
     registerQueryStudioPerfGridController,
@@ -208,6 +209,26 @@ suite("Query Studio PERF_MODE result interactions", () => {
         );
     });
 
+    test("routes copy-all through the current product copy implementation", async () => {
+        const headers: boolean[] = [];
+        const dispose = registerQueryStudioPerfGridController("copy-grid", {
+            scroll: () => "applied",
+            copyAll: async (includeHeaders) => {
+                headers.push(includeHeaders);
+                return "applied";
+            },
+        });
+
+        expect(await performRegisteredQueryStudioPerfGridCopy("copy-grid", true)).to.equal(
+            "applied",
+        );
+        expect(headers).to.deep.equal([true]);
+        dispose();
+        expect(await performRegisteredQueryStudioPerfGridCopy("copy-grid", false)).to.equal(
+            "selectionUnavailable",
+        );
+    });
+
     test("normalizes relative scroll actions and drops unknown payload", () => {
         expect(
             normalizeQueryStudioPerfInteractionArgs({
@@ -253,6 +274,26 @@ suite("Query Studio PERF_MODE result interactions", () => {
                 action: { kind: "selectGrid", resultSetIndex: 3, selection: "all" },
             },
         });
+        expect(
+            normalizeQueryStudioPerfInteractionArgs({
+                action: {
+                    kind: "copyGrid",
+                    resultSetIndex: 4,
+                    selection: "all",
+                    includeHeaders: true,
+                    selector: "#arbitrary",
+                },
+            }),
+        ).to.deep.equal({
+            value: {
+                action: {
+                    kind: "copyGrid",
+                    resultSetIndex: 4,
+                    selection: "all",
+                    includeHeaders: true,
+                },
+            },
+        });
     });
 
     test("rejects arbitrary selectors, coordinates, and unsupported targets", () => {
@@ -261,6 +302,7 @@ suite("Query Studio PERF_MODE result interactions", () => {
             { kind: "scrollGrid", resultSetIndex: 0, axis: "diagonal", target: "end" },
             { kind: "scrollGrid", resultSetIndex: 0, axis: "vertical", target: "42px" },
             { kind: "selectGrid", resultSetIndex: 0, selection: "rectangle" },
+            { kind: "copyGrid", resultSetIndex: 0, selection: "all" },
             { kind: "click", selector: "#anything", target: "end" },
         ]) {
             expect(normalizeQueryStudioPerfInteractionArgs({ action })).to.have.property("error");

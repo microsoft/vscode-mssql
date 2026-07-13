@@ -14,6 +14,8 @@ export type QueryStudioPerfInteractionOutcome =
     | "gridUnavailable"
     | "viewportUnavailable"
     | "selectionUnavailable"
+    | "copyTooLarge"
+    | "copyEmpty"
     | "notScrollable";
 
 interface QueryStudioPerfGridController {
@@ -22,6 +24,7 @@ interface QueryStudioPerfGridController {
         target: QsPerfScrollTarget,
     ) => QueryStudioPerfInteractionOutcome;
     selectAll?: () => Promise<QueryStudioPerfInteractionOutcome>;
+    copyAll?: (includeHeaders: boolean) => Promise<QueryStudioPerfInteractionOutcome>;
 }
 
 const gridControllers = new Map<string, QueryStudioPerfGridController>();
@@ -56,6 +59,16 @@ export function performRegisteredQueryStudioPerfGridSelection(
 ): Promise<QueryStudioPerfInteractionOutcome> {
     return (
         gridControllers.get(resultSetId)?.selectAll?.() ?? Promise.resolve("selectionUnavailable")
+    );
+}
+
+export function performRegisteredQueryStudioPerfGridCopy(
+    resultSetId: string,
+    includeHeaders: boolean,
+): Promise<QueryStudioPerfInteractionOutcome> {
+    return (
+        gridControllers.get(resultSetId)?.copyAll?.(includeHeaders) ??
+        Promise.resolve("selectionUnavailable")
     );
 }
 
@@ -115,7 +128,11 @@ export async function performQueryStudioPerfInteraction(
     if (!gridId) {
         return "viewportUnavailable";
     }
-    return action.kind === "selectGrid"
-        ? performRegisteredQueryStudioPerfGridSelection(gridId)
-        : performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
+    if (action.kind === "selectGrid") {
+        return performRegisteredQueryStudioPerfGridSelection(gridId);
+    }
+    if (action.kind === "copyGrid") {
+        return performRegisteredQueryStudioPerfGridCopy(gridId, action.includeHeaders);
+    }
+    return performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
 }

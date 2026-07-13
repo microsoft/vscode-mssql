@@ -858,15 +858,20 @@ export function QueryStudioApp() {
                 const attrs = {
                     requestId: p.requestId,
                     action: p.action.kind,
-                    ...(p.action.kind !== "selectGrid" ? { target: p.action.target } : {}),
+                    ...(p.action.kind === "scrollGrid" || p.action.kind === "scrollResultStack"
+                        ? { target: p.action.target }
+                        : {}),
                     ...(p.action.kind === "scrollGrid"
                         ? {
                               axis: p.action.axis,
                               resultSetIndex: p.action.resultSetIndex,
                           }
-                        : p.action.kind === "selectGrid"
+                        : p.action.kind === "selectGrid" || p.action.kind === "copyGrid"
                           ? { resultSetIndex: p.action.resultSetIndex }
                           : {}),
+                    ...(p.action.kind === "copyGrid"
+                        ? { includeHeaders: p.action.includeHeaders }
+                        : {}),
                 };
                 perfMark("mssql.queryStudio.interaction.begin", attrs);
                 const complete = (outcome: string) => {

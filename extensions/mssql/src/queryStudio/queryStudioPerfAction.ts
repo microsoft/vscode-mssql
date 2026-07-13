@@ -155,21 +155,30 @@ export function normalizeQueryStudioPerfInteractionArgs(
         return { error: "Query Studio interaction URI must be a non-empty string." };
     }
     let normalized: QsPerfInteractionAction;
-    if (action["kind"] === "selectGrid") {
+    if (action["kind"] === "selectGrid" || action["kind"] === "copyGrid") {
         const resultSetIndex = action["resultSetIndex"];
         if (
             !Number.isSafeInteger(resultSetIndex) ||
             (resultSetIndex as number) < 0 ||
             (resultSetIndex as number) > 10_000 ||
-            action["selection"] !== "all"
+            action["selection"] !== "all" ||
+            (action["kind"] === "copyGrid" && typeof action["includeHeaders"] !== "boolean")
         ) {
-            return { error: "Query Studio received an invalid grid selection action." };
+            return { error: "Query Studio received an invalid grid selection/copy action." };
         }
-        normalized = {
-            kind: "selectGrid",
-            resultSetIndex: resultSetIndex as number,
-            selection: "all",
-        };
+        normalized =
+            action["kind"] === "copyGrid"
+                ? {
+                      kind: "copyGrid",
+                      resultSetIndex: resultSetIndex as number,
+                      selection: "all",
+                      includeHeaders: action["includeHeaders"] as boolean,
+                  }
+                : {
+                      kind: "selectGrid",
+                      resultSetIndex: resultSetIndex as number,
+                      selection: "all",
+                  };
     } else if (action["kind"] === "scrollResultStack") {
         const target = action["target"];
         if (target !== "start" && target !== "middle" && target !== "end") {

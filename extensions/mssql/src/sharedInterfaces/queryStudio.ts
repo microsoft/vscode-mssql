@@ -361,6 +361,12 @@ export type QsPerfInteractionAction =
           readonly kind: "selectGrid";
           readonly resultSetIndex: number;
           readonly selection: "all";
+      }
+    | {
+          readonly kind: "copyGrid";
+          readonly resultSetIndex: number;
+          readonly selection: "all";
+          readonly includeHeaders: boolean;
       };
 
 export interface QsPerfInteractionParams {
