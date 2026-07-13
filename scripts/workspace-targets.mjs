@@ -1,6 +1,7 @@
 export const workspaceTargets = [
     {
         target: "extension-toolkit",
+        kind: "package",
         aliases: ["extension-toolkit", "toolkit"],
         packageName: "extension-toolkit",
         directory: "packages/extension-toolkit",
@@ -8,6 +9,7 @@ export const workspaceTargets = [
     },
     {
         target: "mssql",
+        kind: "extension",
         aliases: ["mssql"],
         packageName: "mssql",
         directory: "extensions/mssql",
@@ -21,6 +23,7 @@ export const workspaceTargets = [
     },
     {
         target: "sql-database-projects",
+        kind: "extension",
         aliases: ["sql-database-projects", "sqlproj"],
         packageName: "sql-database-projects-vscode",
         directory: "extensions/sql-database-projects",
@@ -33,6 +36,7 @@ export const workspaceTargets = [
     },
     {
         target: "data-workspace",
+        kind: "extension",
         aliases: ["data-workspace", "dataworkspace"],
         packageName: "data-workspace-vscode",
         directory: "extensions/data-workspace",
@@ -45,6 +49,7 @@ export const workspaceTargets = [
     },
     {
         target: "database-management-keymap",
+        kind: "extension",
         aliases: ["database-management-keymap", "keymap"],
         packageName: "mssql-database-management-keymap",
         directory: "extensions/database-management-keymap",
