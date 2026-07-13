@@ -25,6 +25,7 @@ import {
     type FluentResultGridKeyboardShortcutEvent,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboard";
 import type { SourceRow } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridControllerTypes";
+import { updateFluentResultGridHeaderButtonState } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
 
 function cell(value: string | null): DbCellValue {
     return {
@@ -48,6 +49,46 @@ function keyboardEvent(
 }
 
 suite("Fluent Result Grid", () => {
+    suite("header state", () => {
+        test("updates only the supplied header's filter and sort buttons", () => {
+            const filterClasses = new Set<string>();
+            const sortClasses = new Set<string>(["sorted-desc"]);
+            const classList = (classes: Set<string>) =>
+                ({
+                    add: (...tokens: string[]) => tokens.forEach((token) => classes.add(token)),
+                    remove: (...tokens: string[]) =>
+                        tokens.forEach((token) => classes.delete(token)),
+                    toggle: (token: string, force?: boolean) => {
+                        const enabled = force ?? !classes.has(token);
+                        if (enabled) {
+                            classes.add(token);
+                        } else {
+                            classes.delete(token);
+                        }
+                        return enabled;
+                    },
+                }) as DOMTokenList;
+            const filterButton = { classList: classList(filterClasses) } as HTMLButtonElement;
+            const sortButton = { classList: classList(sortClasses) } as HTMLButtonElement;
+            const headerNode = {
+                querySelector: (selector: string) =>
+                    selector === ".slick-header-filterbutton" ? filterButton : sortButton,
+            } as unknown as HTMLElement;
+
+            updateFluentResultGridHeaderButtonState({
+                headerNode,
+                columnId: "299",
+                filters: {
+                    "299": { columnDef: "299", filterValues: ["active"] },
+                },
+                sort: { columnId: "299", direction: SortProperties.ASC },
+            });
+
+            expect([...filterClasses]).to.deep.equal(["filtered"]);
+            expect([...sortClasses]).to.deep.equal(["sorted-asc"]);
+        });
+    });
+
     suite("transforms", () => {
         test("preserves row IDs while filtering and sorting source rows", () => {
             const rows: SourceRow[] = [

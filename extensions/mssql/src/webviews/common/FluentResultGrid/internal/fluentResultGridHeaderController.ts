@@ -43,20 +43,39 @@ export function updateFluentResultGridHeaderButtonStates({
         }
 
         const headerNode = grid.getHeaderColumn(grid.getColumnIndex(column.id));
-        const filterButton = headerNode?.querySelector<HTMLButtonElement>(
-            ".slick-header-filterbutton",
-        );
-        const sortButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
-        const filterValues = filters[columnId]?.filterValues ?? [];
-        filterButton?.classList.toggle("filtered", filterValues.length > 0);
+        if (headerNode) {
+            updateFluentResultGridHeaderButtonState({
+                headerNode,
+                columnId,
+                filters,
+                sort,
+            });
+        }
+    }
+}
 
-        sortButton?.classList.remove("sorted-asc", "sorted-desc");
-        if (sort?.columnId === columnId) {
-            if (sort.direction === "ASC") {
-                sortButton?.classList.add("sorted-asc");
-            } else if (sort.direction === "DESC") {
-                sortButton?.classList.add("sorted-desc");
-            }
+/** Update one rendered header without scanning every grid column. */
+export function updateFluentResultGridHeaderButtonState({
+    headerNode,
+    columnId,
+    filters,
+    sort,
+}: {
+    headerNode: HTMLElement;
+    columnId: string;
+    filters: ColumnFilterMap;
+    sort: { columnId: string; direction: SortProperties } | undefined;
+}): void {
+    const filterButton = headerNode.querySelector<HTMLButtonElement>(".slick-header-filterbutton");
+    const sortButton = headerNode.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
+    filterButton?.classList.toggle("filtered", (filters[columnId]?.filterValues?.length ?? 0) > 0);
+
+    sortButton?.classList.remove("sorted-asc", "sorted-desc");
+    if (sort?.columnId === columnId) {
+        if (sort.direction === "ASC") {
+            sortButton?.classList.add("sorted-asc");
+        } else if (sort.direction === "DESC") {
+            sortButton?.classList.add("sorted-desc");
         }
     }
 }
@@ -114,17 +133,6 @@ export function useFluentResultGridHeaderController({
         column: Column<FluentResultGridDataRow>,
     ) => Promise<void>;
 }): FluentResultGridHeaderController {
-    const updateHeaderButtonStates = useCallback(
-        (grid: SlickGrid) => {
-            updateFluentResultGridHeaderButtonStates({
-                grid,
-                filters: filterStateRef.current,
-                sort: sortStateRef.current,
-            });
-        },
-        [filterStateRef, sortStateRef],
-    );
-
     const openHeaderContextMenuForColumn = useCallback(
         (grid: SlickGrid, column: Column<FluentResultGridDataRow>, x: number, y: number) => {
             const columnId = column.id?.toString();
@@ -226,7 +234,12 @@ export function useFluentResultGridHeaderController({
                 node.classList.remove("slick-header-sortable", "slick-header-column-sorted");
                 node.querySelector(".slick-sort-indicator")?.remove();
                 node.querySelector(".slick-sort-indicator-numbered")?.remove();
-                updateHeaderButtonStates(grid);
+                updateFluentResultGridHeaderButtonState({
+                    headerNode: node,
+                    columnId: column.id.toString(),
+                    filters: filterStateRef.current,
+                    sort: sortStateRef.current,
+                });
                 return;
             }
 
@@ -277,9 +290,20 @@ export function useFluentResultGridHeaderController({
                 await openFilterMenuForColumn(grid, column);
             });
             node.insertBefore(filterButton, resizableHandle);
-            updateHeaderButtonStates(grid);
+            updateFluentResultGridHeaderButtonState({
+                headerNode: node,
+                columnId: column.id.toString(),
+                filters: filterStateRef.current,
+                sort: sortStateRef.current,
+            });
         },
-        [openFilterMenuForColumn, strings.commands, toggleSortForColumn, updateHeaderButtonStates],
+        [
+            filterStateRef,
+            openFilterMenuForColumn,
+            sortStateRef,
+            strings.commands,
+            toggleSortForColumn,
+        ],
     );
 
     const handleBeforeHeaderCellDestroy = useCallback((event: CustomEvent) => {
