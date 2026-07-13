@@ -21,6 +21,8 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import {
     QsActivateTabParams,
     QsActivateTabRequest,
+    QsPerfInteractionAction,
+    QsPerfInteractionParams,
     QsSyncEdits,
     QsSyncRemote,
     QsSyncResync,
@@ -230,7 +232,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     }
 
     /** Ask every attached panel to activate a results tab (no-op when unknown). */
-    requestActivateTab(request: QsActivateTabRequest): void {
+    requestActivateTab(request: QsActivateTabRequest): QsActivateTabParams {
         const params: QsActivateTabParams = {
             ...request,
             requestId: ++this.activateTabRequestId,
@@ -242,6 +244,31 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
                 /* listener isolation */
             }
         }
+        return params;
+    }
+
+    private readonly perfInteractionListeners = new Set<
+        (request: QsPerfInteractionParams) => void
+    >();
+    private perfInteractionRequestId = 0;
+
+    onPerfInteractionRequest(
+        listener: (request: QsPerfInteractionParams) => void,
+    ): vscode.Disposable {
+        this.perfInteractionListeners.add(listener);
+        return { dispose: () => this.perfInteractionListeners.delete(listener) };
+    }
+
+    requestPerfInteraction(action: QsPerfInteractionAction): QsPerfInteractionParams {
+        const params = { requestId: ++this.perfInteractionRequestId, action };
+        for (const listener of [...this.perfInteractionListeners]) {
+            try {
+                listener(params);
+            } catch {
+                /* listener isolation */
+            }
+        }
+        return params;
     }
 
     get backingDocument(): vscode.TextDocument {

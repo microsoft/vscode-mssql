@@ -8,6 +8,7 @@
 import {
     QsActivatableTab,
     QsActivateTabRequest,
+    QsPerfInteractionAction,
     QsVectorPerfAction,
 } from "../sharedInterfaces/queryStudio";
 import { VECTOR_SEARCH_MAX_K, VECTOR_SEARCH_MIN_K } from "../sharedInterfaces/vectorSearch";
@@ -19,6 +20,15 @@ export interface NormalizedQueryStudioPerfActivateTabArgs {
 
 export type QueryStudioPerfActivateTabNormalization =
     | { readonly value: NormalizedQueryStudioPerfActivateTabArgs }
+    | { readonly error: string };
+
+export interface NormalizedQueryStudioPerfInteractionArgs {
+    readonly uri?: string;
+    readonly action: QsPerfInteractionAction;
+}
+
+export type QueryStudioPerfInteractionNormalization =
+    | { readonly value: NormalizedQueryStudioPerfInteractionArgs }
     | { readonly error: string };
 
 const ACTIVATABLE_TABS: ReadonlySet<string> = new Set([
@@ -128,6 +138,53 @@ export function normalizeQueryStudioPerfActivateTabArgs(
         value: {
             ...(rawUri ? { uri: rawUri as string } : {}),
             activation: { tab, ...(vector ? { vector } : {}) },
+        },
+    };
+}
+
+export function normalizeQueryStudioPerfInteractionArgs(
+    input: unknown,
+): QueryStudioPerfInteractionNormalization {
+    const args = record(input);
+    const action = record(args?.["action"]);
+    if (!args || !action) {
+        return { error: "Query Studio interaction arguments must include an action object." };
+    }
+    const rawUri = args["uri"];
+    if (rawUri !== undefined && (typeof rawUri !== "string" || rawUri.length === 0)) {
+        return { error: "Query Studio interaction URI must be a non-empty string." };
+    }
+    const target = action["target"];
+    if (target !== "start" && target !== "middle" && target !== "end") {
+        return { error: "Query Studio interaction requested an unsupported scroll target." };
+    }
+    let normalized: QsPerfInteractionAction;
+    if (action["kind"] === "scrollResultStack") {
+        normalized = { kind: "scrollResultStack", target };
+    } else if (action["kind"] === "scrollGrid") {
+        const resultSetIndex = action["resultSetIndex"];
+        const axis = action["axis"];
+        if (
+            !Number.isSafeInteger(resultSetIndex) ||
+            (resultSetIndex as number) < 0 ||
+            (resultSetIndex as number) > 10_000 ||
+            (axis !== "vertical" && axis !== "horizontal")
+        ) {
+            return { error: "Query Studio received an invalid grid scroll action." };
+        }
+        normalized = {
+            kind: "scrollGrid",
+            resultSetIndex: resultSetIndex as number,
+            axis,
+            target,
+        };
+    } else {
+        return { error: "Query Studio interaction requested an unsupported action." };
+    }
+    return {
+        value: {
+            ...(rawUri ? { uri: rawUri as string } : {}),
+            action: normalized,
         },
     };
 }

@@ -36,7 +36,10 @@ import {
 } from "./queryStudioHotExitBackup";
 import { LanguageServiceStatus } from "./queryStudioLanguageService";
 import { QueryStudioReplayController } from "./replay/queryStudioReplayController";
-import { normalizeQueryStudioPerfActivateTabArgs } from "./queryStudioPerfAction";
+import {
+    normalizeQueryStudioPerfActivateTabArgs,
+    normalizeQueryStudioPerfInteractionArgs,
+} from "./queryStudioPerfAction";
 
 export const QUERY_STUDIO_VIEW_TYPE = "mssql.queryStudio";
 
@@ -236,11 +239,27 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
                     error: `no live Query Studio model${uri ? ` for ${uri}` : ""}`,
                 };
             }
-            model.requestActivateTab(activation);
+            const request = model.requestActivateTab(activation);
             return {
                 requested: activation.tab,
+                requestId: request.requestId,
                 ...(activation.vector ? { vectorWorkspace: activation.vector.workspace } : {}),
             };
+        }),
+        vscode.commands.registerCommand("mssql.perf.queryStudioInteract", (args?: unknown) => {
+            const normalized = normalizeQueryStudioPerfInteractionArgs(args);
+            if ("error" in normalized) {
+                return { error: normalized.error };
+            }
+            const { uri, action } = normalized.value;
+            const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
+            if (!model) {
+                return {
+                    error: `no live Query Studio model${uri ? ` for ${uri}` : ""}`,
+                };
+            }
+            const request = model.requestPerfInteraction(action);
+            return { requested: action.kind, requestId: request.requestId };
         }),
         vscode.commands.registerCommand("mssql.perf.queryStudioState", (uri?: string) => {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;

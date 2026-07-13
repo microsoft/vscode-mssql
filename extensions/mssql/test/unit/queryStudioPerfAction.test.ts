@@ -4,8 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { normalizeQueryStudioPerfActivateTabArgs } from "../../src/queryStudio/queryStudioPerfAction";
+import {
+    normalizeQueryStudioPerfActivateTabArgs,
+    normalizeQueryStudioPerfInteractionArgs,
+} from "../../src/queryStudio/queryStudioPerfAction";
 import { resolveVectorPerfSearchTarget } from "../../src/webviews/pages/QueryStudio/vectorPerfAction";
+import { queryStudioPerfScrollOffset } from "../../src/webviews/pages/QueryStudio/queryStudioPerfInteraction";
 import type { QsVectorPerfSearchAction } from "../../src/sharedInterfaces/queryStudio";
 import type { VectorSearchTargetInfo } from "../../src/sharedInterfaces/vectorSearch";
 
@@ -130,5 +134,58 @@ suite("Query Studio PERF_MODE Vector actions", () => {
                 target({ keyColumn: undefined, keyIsUnique: false }),
             ]),
         ).to.have.property("error");
+    });
+});
+
+suite("Query Studio PERF_MODE result interactions", () => {
+    test("maps semantic targets to bounded scroll offsets", () => {
+        expect(queryStudioPerfScrollOffset(10_000, 1_000, "start")).to.equal(0);
+        expect(queryStudioPerfScrollOffset(10_000, 1_000, "middle")).to.equal(4_500);
+        expect(queryStudioPerfScrollOffset(10_000, 1_000, "end")).to.equal(9_000);
+        expect(queryStudioPerfScrollOffset(500, 1_000, "end")).to.equal(0);
+    });
+
+    test("normalizes relative scroll actions and drops unknown payload", () => {
+        expect(
+            normalizeQueryStudioPerfInteractionArgs({
+                uri: "file:///results.sql",
+                action: {
+                    kind: "scrollGrid",
+                    resultSetIndex: 2,
+                    axis: "vertical",
+                    target: "end",
+                    selector: "#arbitrary",
+                    sql: "SELECT secret",
+                },
+            }),
+        ).to.deep.equal({
+            value: {
+                uri: "file:///results.sql",
+                action: {
+                    kind: "scrollGrid",
+                    resultSetIndex: 2,
+                    axis: "vertical",
+                    target: "end",
+                },
+            },
+        });
+        expect(
+            normalizeQueryStudioPerfInteractionArgs({
+                action: { kind: "scrollResultStack", target: "middle", pixels: 42 },
+            }),
+        ).to.deep.equal({
+            value: { action: { kind: "scrollResultStack", target: "middle" } },
+        });
+    });
+
+    test("rejects arbitrary selectors, coordinates, and unsupported targets", () => {
+        for (const action of [
+            { kind: "scrollGrid", resultSetIndex: -1, axis: "vertical", target: "end" },
+            { kind: "scrollGrid", resultSetIndex: 0, axis: "diagonal", target: "end" },
+            { kind: "scrollGrid", resultSetIndex: 0, axis: "vertical", target: "42px" },
+            { kind: "click", selector: "#anything", target: "end" },
+        ]) {
+            expect(normalizeQueryStudioPerfInteractionArgs({ action })).to.have.property("error");
+        }
     });
 });

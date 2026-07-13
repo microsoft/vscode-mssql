@@ -338,6 +338,34 @@ export namespace QsActivateTabNotification {
     // actions exist only behind the PERF_MODE command that originates them.
     export const type = new NotificationType<QsActivateTabParams>("qs/activateTab");
 }
+
+export type QsPerfScrollTarget = "start" | "middle" | "end";
+
+/**
+ * PERF_MODE-only, composition-safe result-surface interactions. The action
+ * names an ordinal and a relative target; result values, SQL, schema names,
+ * pixels, and arbitrary selectors have no representation in the contract.
+ */
+export type QsPerfInteractionAction =
+    | {
+          readonly kind: "scrollGrid";
+          readonly resultSetIndex: number;
+          readonly axis: "vertical" | "horizontal";
+          readonly target: QsPerfScrollTarget;
+      }
+    | {
+          readonly kind: "scrollResultStack";
+          readonly target: QsPerfScrollTarget;
+      };
+
+export interface QsPerfInteractionParams {
+    readonly requestId: number;
+    readonly action: QsPerfInteractionAction;
+}
+
+export namespace QsPerfInteractionNotification {
+    export const type = new NotificationType<QsPerfInteractionParams>("qs/perfInteraction");
+}
 export namespace QsShowCommandPaletteRequest {
     // F1 inside the embedded Monaco must open the VS CODE palette (commands
     // route to the editor through VS Code), not Monaco's own quick-command.

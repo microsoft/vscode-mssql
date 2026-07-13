@@ -59,6 +59,7 @@ import {
     QsShowPlanXmlRequest,
     QsSyncAdoptRequest,
     QsActivateTabNotification,
+    QsPerfInteractionNotification,
     QsSyncEditsRequest,
     QsSyncInitNotification,
     QsSyncRemoteNotification,
@@ -332,6 +333,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.registerDisposable(
             this.model.onActivateTabRequest((request) => {
                 void this.sendNotification(QsActivateTabNotification.type, request);
+            }),
+        );
+        this.registerDisposable(
+            this.model.onPerfInteractionRequest((request) => {
+                void this.sendNotification(QsPerfInteractionNotification.type, request);
             }),
         );
 

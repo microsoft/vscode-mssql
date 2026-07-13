@@ -49,6 +49,8 @@ import {
     QsStateChangedNotification,
     QsActivateTabParams,
     QsActivateTabNotification,
+    QsPerfInteractionNotification,
+    QsPerfInteractionParams,
     QsRestoreEditorFocusNotification,
     QsRunStartedNotification,
     QsSyncEdits,
@@ -135,6 +137,7 @@ import {
 } from "./keybindings";
 import { executeParamsForSelection } from "./executionRequests";
 import { QueryStudioErrorBoundary } from "./queryStudioErrorBoundary";
+import { performQueryStudioPerfInteraction } from "./queryStudioPerfInteraction";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
@@ -234,9 +237,9 @@ export function QueryStudioApp() {
     const mountedTabsRef = useRef<ReadonlySet<QueryStudioTab>>(mountedTabs);
     mountedTabsRef.current = mountedTabs;
     const activateTab = useCallback(
-        (next: QueryStudioTab, source: QueryStudioTabActivationSource) => {
+        (next: QueryStudioTab, source: QueryStudioTabActivationSource, requestId?: number) => {
             const previous = activeTabRef.current;
-            if (previous === next) {
+            if (previous === next && requestId === undefined) {
                 return;
             }
             const attrs = {
@@ -244,10 +247,13 @@ export function QueryStudioApp() {
                 to: next,
                 source,
                 mountedBefore: mountedTabsRef.current.has(next),
+                ...(requestId !== undefined ? { requestId } : {}),
             };
             perfMark("mssql.queryStudio.tab.activation.begin", attrs);
-            activeTabRef.current = next;
-            setActiveTabState(next);
+            if (previous !== next) {
+                activeTabRef.current = next;
+                setActiveTabState(next);
+            }
             perfMarkAfterNextPaint("mssql.queryStudio.tab.activation.end", attrs);
         },
         [],
@@ -828,8 +834,30 @@ export function QueryStudioApp() {
                     p.tab === "vector" ||
                     p.tab === "spatial"
                 ) {
-                    activateTab(p.tab, "perf");
+                    activateTab(p.tab, "perf", p.requestId);
                 }
+            }),
+            rpc.onNotification(QsPerfInteractionNotification.type, (p: QsPerfInteractionParams) => {
+                const attrs = {
+                    requestId: p.requestId,
+                    action: p.action.kind,
+                    target: p.action.target,
+                    ...(p.action.kind === "scrollGrid"
+                        ? {
+                              axis: p.action.axis,
+                              resultSetIndex: p.action.resultSetIndex,
+                          }
+                        : {}),
+                };
+                perfMark("mssql.queryStudio.interaction.begin", attrs);
+                const outcome = performQueryStudioPerfInteraction(
+                    p.action,
+                    resultsPanelRef.current,
+                );
+                perfMarkAfterNextPaint("mssql.queryStudio.interaction.end", {
+                    ...attrs,
+                    outcome,
+                });
             }),
             rpc.onNotification(
                 QsMessagesAppendedNotification.type,
