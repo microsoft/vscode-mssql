@@ -2525,9 +2525,9 @@
                     "description": "%mssql.schemaDesigner.enableExpandCollapseButtons%",
                     "scope": "window"
                 },
-                "mssql.tracingLevel": {
+                "mssql.sqlToolsServiceLoggingLevel": {
                     "type": "string",
-                    "description": "%mssql.tracingLevel%",
+                    "description": "%mssql.sqlToolsServiceLoggingLevel%",
                     "default": "Critical",
                     "enum": [
                         "All",

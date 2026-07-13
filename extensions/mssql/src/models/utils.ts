@@ -20,7 +20,8 @@ const msInH = 3.6e6;
 const msInM = 60000;
 const msInS = 1000;
 
-const configTracingLevel = "tracingLevel";
+const configSqlToolsServiceLoggingLevel = "sqlToolsServiceLoggingLevel";
+const legacyConfigTracingLevel = "tracingLevel";
 const configPiiLogging = "piiLogging";
 const configLogRetentionMinutes = "logRetentionMinutes";
 const configLogFilesRemovalLimit = "logFilesRemovalLimit";
@@ -707,10 +708,12 @@ function getExtensionConfiguration(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
-export function getConfigTracingLevel(): string {
+export function getConfigSqlToolsServiceLoggingLevel(): string {
     let config = getExtensionConfiguration();
     if (config) {
-        return config.get(configTracingLevel);
+        return (
+            config.get(configSqlToolsServiceLoggingLevel) ?? config.get(legacyConfigTracingLevel)
+        );
     } else {
         return undefined;
     }
@@ -770,7 +773,7 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(
         `This process (ui Extension Host) for ${path.basename(executablePath)} is pid: ${process.pid}`,
     );
     launchArgs.push("--tracing-level");
-    launchArgs.push(getConfigTracingLevel());
+    launchArgs.push(getConfigSqlToolsServiceLoggingLevel());
     if (getConfigPiiLogging()) {
         launchArgs.push("--pii-logging");
     }

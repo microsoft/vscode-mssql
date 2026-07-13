@@ -247,7 +247,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 
 // Diagnostics & Logging
 {
-  "mssql.tracingLevel": "Critical",                        // Logging level: "All" | "Off" | "Critical" | "Error" | "Warning" | "Information" | "Verbose"
+  "mssql.sqlToolsServiceLoggingLevel": "Critical",         // Logging level: "All" | "Off" | "Critical" | "Error" | "Warning" | "Information" | "Verbose"
   "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
   "mssql.logRetentionMinutes": 10080,                      // Log retention period in minutes (10080 = 7 days)
   "mssql.logFilesRemovalLimit": 100                        // Maximum number of log files to keep before cleanup
