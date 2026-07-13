@@ -2443,6 +2443,12 @@
                     "default": false,
                     "scope": "window"
                 },
+                "mssql.format.enablePreviewFormatter": {
+                    "type": "boolean",
+                    "description": "%mssql.format.enablePreviewFormatter%",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.format.datatypeCasing": {
                     "type": "string",
                     "description": "%mssql.format.datatypeCasing%",
