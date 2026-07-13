@@ -181,6 +181,7 @@ export interface FakeRegistryBundle {
     readonly staticAnalysis: FakeValidator<ValidationType.StaticAnalysis>;
     readonly unitTests: FakeValidator<ValidationType.UnitTests>;
     readonly workloadPlayback: FakeValidator<ValidationType.WorkloadPlayback>;
+    readonly workloadSimulation: FakeValidator<ValidationType.WorkloadSimulation>;
 }
 
 export function makeFakeRegistry(): FakeRegistryBundle {
@@ -188,15 +189,24 @@ export function makeFakeRegistry(): FakeRegistryBundle {
     const staticAnalysis = new FakeValidator(ValidationType.StaticAnalysis);
     const unitTests = new FakeValidator(ValidationType.UnitTests);
     const workloadPlayback = new FakeValidator(ValidationType.WorkloadPlayback);
+    const workloadSimulation = new FakeValidator(ValidationType.WorkloadSimulation);
 
     const registry = defineRegistry({
         [ValidationType.Connectivity]: connectivity,
         [ValidationType.StaticAnalysis]: staticAnalysis,
         [ValidationType.UnitTests]: unitTests,
         [ValidationType.WorkloadPlayback]: workloadPlayback,
+        [ValidationType.WorkloadSimulation]: workloadSimulation,
     });
 
-    return { registry, connectivity, staticAnalysis, unitTests, workloadPlayback };
+    return {
+        registry,
+        connectivity,
+        staticAnalysis,
+        unitTests,
+        workloadPlayback,
+        workloadSimulation,
+    };
 }
 
 // =============================================================================

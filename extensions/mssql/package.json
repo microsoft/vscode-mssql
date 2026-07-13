@@ -2295,6 +2295,18 @@
                     "description": "%mssql.enableConnectionPooling%",
                     "default": false
                 },
+                "mssql.cloudDeploy.workloadSimulation.sqlpysimPath": {
+                    "type": "string",
+                    "description": "%mssql.cloudDeploy.workloadSimulation.sqlpysimPath%",
+                    "default": "",
+                    "scope": "machine-overridable"
+                },
+                "mssql.cloudDeploy.workloadSimulation.pythonPath": {
+                    "type": "string",
+                    "description": "%mssql.cloudDeploy.workloadSimulation.pythonPath%",
+                    "default": "python",
+                    "scope": "machine-overridable"
+                },
                 "mssql.statusBar.enableConnectionColor": {
                     "type": "boolean",
                     "description": "%mssql.statusBar.enableConnectionColor%",

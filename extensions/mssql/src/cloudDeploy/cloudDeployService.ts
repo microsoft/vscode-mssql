@@ -41,7 +41,11 @@ import {
     type BaselineCandidate,
 } from "./runs";
 import { SchemaHasher } from "./runs/schemaHasher";
-import type { WorkloadObservedStep, WorkloadPlaybackPayload } from "./runs/types";
+import type {
+    WorkloadObservedStep,
+    WorkloadPlaybackPayload,
+    WorkloadSimulationPayload,
+} from "./runs/types";
 import {
     CloudDeployValidationApi,
     ConnectionEphemeralDatabaseProvider,
@@ -260,10 +264,26 @@ export class CloudDeployService implements vscode.Disposable {
             runsDirectory,
         };
 
+        const workloadSimEngine = (():
+            | { pythonCommand: string; sqlpysimPath: string }
+            | undefined => {
+            const cfg = vscode.workspace.getConfiguration("mssql");
+            const sqlpysimPath = cfg.get<string>("cloudDeploy.workloadSimulation.sqlpysimPath");
+            if (sqlpysimPath === undefined || sqlpysimPath.length === 0) {
+                return undefined;
+            }
+            const pythonCommand =
+                cfg.get<string>("cloudDeploy.workloadSimulation.pythonPath") ?? "python";
+            return { pythonCommand, sqlpysimPath };
+        })();
         const registry = createDefaultRegistry({
             process: new LiveProcessProvider(workspaceFolder?.uri.fsPath),
             artifact: new LiveArtifactProvider(fileProvider, workspaceFolder?.uri.fsPath),
             staticAnalysis: { systemDacpacsLocation: resolveSystemDacpacsLocation() },
+            ...(workloadSimEngine !== undefined ? { workloadSimulation: workloadSimEngine } : {}),
+            ...(workspaceFolder?.uri.fsPath !== undefined
+                ? { workspaceRoot: workspaceFolder.uri.fsPath }
+                : {}),
         });
 
         // Runtime dependencies the runner
@@ -506,11 +526,27 @@ function makeWorkloadBaselineLookup(
         if (record === undefined) {
             return undefined;
         }
-        const workload = record.validations.find(
+        // Merge the recorded workload steps from BOTH workload validators:
+        // playback steps carry the spec step ids, the simulation step carries id
+        // "workload". Each validator later selects its own steps by id, so a run
+        // that enabled both contributes a baseline for both.
+        const steps: WorkloadObservedStep[] = [];
+        const playback = record.validations.find(
             (v) => v.validationId === ValidationType.WorkloadPlayback,
         );
-        const payload = workload?.payload as WorkloadPlaybackPayload | undefined;
-        const observedSteps = payload?.observedSteps;
-        return observedSteps !== undefined && observedSteps.length > 0 ? observedSteps : undefined;
+        const playbackSteps = (playback?.payload as WorkloadPlaybackPayload | undefined)
+            ?.observedSteps;
+        if (playbackSteps !== undefined) {
+            steps.push(...playbackSteps);
+        }
+        const simulation = record.validations.find(
+            (v) => v.validationId === ValidationType.WorkloadSimulation,
+        );
+        const simulationSteps = (simulation?.payload as WorkloadSimulationPayload | undefined)
+            ?.observedSteps;
+        if (simulationSteps !== undefined) {
+            steps.push(...simulationSteps);
+        }
+        return steps.length > 0 ? steps : undefined;
     };
 }

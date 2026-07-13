@@ -1932,6 +1932,7 @@
     "Static Analysis": "Static Analysis",
     "Unit Tests": "Unit Tests",
     "Workload Playback": "Workload Playback",
+    "Workload Simulation": "Workload Simulation",
     "SQL project": "SQL project",
     "Dacpac (pre-built)": "Dacpac (pre-built)",
     "Live database": "Live database",

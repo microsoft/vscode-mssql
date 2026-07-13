@@ -61,6 +61,13 @@ export interface EphemeralDatabase {
     /** Name of the database created for this run (diagnostics / logging). */
     readonly databaseName: string;
     /**
+     * Connection string to the freshly-built database, for validators that
+     * drive an external engine (e.g. the workload simulator) which opens its
+     * own connection rather than reusing `connection`. Absent when the host
+     * cannot express one.
+     */
+    readonly connectionString?: string;
+    /**
      * Seeds the database by running a whole SQL script file on ONE session
      * (full `sqlcmd` semantics: `GO` batch separators, session-scoped temp
      * objects that span batches, etc.). Present only for hosts that can run a
@@ -279,9 +286,20 @@ export class DockerEphemeralDatabaseProvider implements EphemeralDatabaseProvide
                 signal,
             );
 
+            // ODBC keyword form (UID/PWD, TrustServerCertificate=yes): this
+            // string is consumed by the mssql-python driver behind the
+            // workload-simulation engine, which rejects the SqlClient spellings
+            // (User ID/Password) and the true/false value form. The separate
+            // provisionForDecompose() string stays SqlClient because sqlpackage
+            // consumes it.
+            const connectionString =
+                `Server=${HOST_LOOPBACK_ADDRESS},${hostPort};Database=${databaseName};` +
+                `UID=${SA_USER};PWD=${password};TrustServerCertificate=yes;`;
+
             return new DockerEphemeralDatabase(
                 connection,
                 databaseName,
+                connectionString,
                 () => this._removeContainer(dockerCommand, containerName),
                 (scriptPath, sig) =>
                     this._seedViaContainer(
@@ -572,6 +590,7 @@ class DockerEphemeralDatabase implements EphemeralDatabase {
     public constructor(
         public readonly connection: ConnectionHandle,
         public readonly databaseName: string,
+        public readonly connectionString: string,
         private readonly _removeContainer: () => Promise<void>,
         private readonly _seedScriptFile: (
             scriptPath: string,
@@ -619,6 +638,12 @@ export class FakeEphemeralDatabaseProvider implements EphemeralDatabaseProvider 
     public readonly invocations: FakeProvisionInvocation[] = [];
     public readonly databases: FakeEphemeralDatabase[] = [];
     public failWith?: Error;
+    /**
+     * When set, provisioned fake databases expose this connection string, which
+     * drives the workload-simulation gate in tests (the validator skips when it
+     * is absent).
+     */
+    public connectionString?: string;
 
     public constructor(private readonly _connection?: ConnectionHandle) {}
 
@@ -635,7 +660,10 @@ export class FakeEphemeralDatabaseProvider implements EphemeralDatabaseProvider 
         if (this.failWith) {
             throw this.failWith;
         }
-        const db = new FakeEphemeralDatabase(this._connection ?? new NoopConnectionHandle());
+        const db = new FakeEphemeralDatabase(
+            this._connection ?? new NoopConnectionHandle(),
+            this.connectionString,
+        );
         this.databases.push(db);
         return db;
     }
@@ -646,7 +674,10 @@ export class FakeEphemeralDatabase implements EphemeralDatabase {
     public disposed = false;
     public readonly databaseName = "FakeValidationDb";
 
-    public constructor(public readonly connection: ConnectionHandle) {}
+    public constructor(
+        public readonly connection: ConnectionHandle,
+        public readonly connectionString?: string,
+    ) {}
 
     public async dispose(): Promise<void> {
         this.disposed = true;

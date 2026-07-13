@@ -34,6 +34,7 @@ export enum ValidationType {
     StaticAnalysis = "static-analysis",
     UnitTests = "unit-tests",
     WorkloadPlayback = "workload-playback",
+    WorkloadSimulation = "workload-simulation",
 }
 
 // =============================================================================
@@ -175,6 +176,41 @@ export interface WorkloadPlaybackSettings {
 }
 
 /**
+ * Settings for the `workload-simulation` validation: replays a workload `.sql`
+ * concurrently against the per-run ephemeral database using the injected
+ * sqlsimtools engine (sqlpysim) and flags throughput / latency regressions.
+ * Distinct from `WorkloadPlaybackSettings` (the in-process, per-query gate).
+ */
+export interface WorkloadSimulationSettings {
+    /**
+     * Where to stand up the per-run ephemeral database the simulation runs
+     * against. When omitted, the runner's default host is used.
+     */
+    runtimeHost?: RuntimeHostConfig;
+    /**
+     * Path to the workload `.sql` file replayed concurrently against the
+     * ephemeral database. Absolute or workspace-relative (resolved by the host).
+     */
+    workloadUri?: string;
+    /** Concurrent threads the simulation replays with. Defaults applied by the validator. */
+    threads?: number;
+    /** Iterations per thread. Defaults applied by the validator. */
+    iterations?: number;
+    /** Measurement passes; the median is reported. Defaults applied by the validator. */
+    runs?: number;
+    /**
+     * Throughput-regression threshold as a fraction of the baseline (e.g. `0.25`
+     * warns when throughput drops more than 25 %). Defaults applied by the validator.
+     */
+    throughputRegressionThreshold?: number;
+    /**
+     * Latency-regression threshold as a fraction of the baseline (e.g. `0.25`
+     * warns when latency rises more than 25 %). Defaults applied by the validator.
+     */
+    latencyRegressionThreshold?: number;
+}
+
+/**
  * Per-env, per-validation configuration. Discriminated by `type` so each
  * validation's `settings` is correctly typed.
  */
@@ -186,6 +222,11 @@ export type ValidationConfig =
           type: ValidationType.WorkloadPlayback;
           enabled: boolean;
           settings: WorkloadPlaybackSettings;
+      }
+    | {
+          type: ValidationType.WorkloadSimulation;
+          enabled: boolean;
+          settings: WorkloadSimulationSettings;
       };
 
 // =============================================================================

@@ -24,6 +24,7 @@ import type {
     ValidationConfig,
     ValidationType,
     WorkloadPlaybackSettings,
+    WorkloadSimulationSettings,
 } from "../environments/types";
 import type { CancellationReason, ValidationResult, WorkloadObservedStep } from "../runs/types";
 import type { ConnectionHandle } from "./providers/connectionProvider";
@@ -52,6 +53,7 @@ type _SettingsExhaustivenessCheck =
         | StaticAnalysisSettings
         | UnitTestsSettings
         | WorkloadPlaybackSettings
+        | WorkloadSimulationSettings
         ? true
         : never;
 // Reference the alias so unused-type lint doesn't flag it; the check runs at
@@ -120,6 +122,13 @@ export interface ValidatorRunOptions {
      * own.
      */
     readonly ephemeralConnection?: ConnectionHandle;
+    /**
+     * Connection string to the per-run ephemeral database, when the runner
+     * provisioned one. Validators that drive an external engine (which opens
+     * its own connection, e.g. the workload simulator) read this; validators
+     * that use the in-process `ephemeralConnection` handle ignore it.
+     */
+    readonly ephemeralConnectionString?: string;
     /**
      * Per-step metrics from the run-based performance baseline: the measured
      * steps of the most-recent earlier run of this

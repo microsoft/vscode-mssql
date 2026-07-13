@@ -114,6 +114,13 @@ suite("CloudDeploy EphemeralDatabaseProvider", () => {
             expect(db.connection).to.equal(handle);
             expect(connector.lastParams?.user).to.equal("sa");
             expect(connector.lastParams?.database).to.equal("CloudDeployValidation");
+            // The workload-simulation engine (mssql-python / ODBC) consumes this
+            // string, so it must use ODBC keywords (UID/PWD, TrustServerCertificate=yes),
+            // not the SqlClient spellings that the driver rejects.
+            expect(db.connectionString).to.contain("UID=sa");
+            expect(db.connectionString).to.contain("TrustServerCertificate=yes");
+            expect(db.connectionString).to.not.contain("User ID=");
+            expect(db.connectionString).to.not.contain("TrustServerCertificate=true");
         });
 
         test("dispose() force-removes the container", async () => {

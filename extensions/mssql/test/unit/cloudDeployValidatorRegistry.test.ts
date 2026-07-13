@@ -61,6 +61,7 @@ suite("CloudDeploy Validator Registry", () => {
                 [ValidationType.StaticAnalysis]: replacement,
                 [ValidationType.UnitTests]: original.unitTests,
                 [ValidationType.WorkloadPlayback]: original.workloadPlayback,
+                [ValidationType.WorkloadSimulation]: original.workloadSimulation,
             });
 
             expect(swapped[ValidationType.StaticAnalysis]).to.equal(replacement);

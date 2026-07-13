@@ -356,6 +356,49 @@ suite("CloudDeploy CLI runGates", () => {
             expect(steps).to.deep.equal(BASELINE_STEPS);
         });
 
+        test("the lookup includes the simulation step recorded by the baseline run", async () => {
+            const SIM_STEP: WorkloadObservedStep = {
+                id: "workload",
+                latencyMs: 12,
+                throughputQps: 950,
+            };
+            let captured: WorkloadBaselineLookup | undefined;
+            const { io } = captureIo();
+            await runGates(
+                [...REQUIRED_ARGS, "--baseline", "main.cdrun.zip"],
+                makeDeps({
+                    loadRunArtifact: async () => ({
+                        ...makeRecord(RunStatus.Passed, {
+                            hash: "sha256:base",
+                            algorithm: "sha256",
+                        }),
+                        validations: [
+                            {
+                                validationId: "workload-simulation",
+                                displayName: "Workload Simulation",
+                                status: ValidationStatus.Passed,
+                                startedAtMs: 1,
+                                endedAtMs: 2,
+                                payload: {
+                                    validationType: ValidationType.WorkloadSimulation,
+                                    findings: [],
+                                    summary: { steps: 1, regressions: 0 },
+                                    observedSteps: [SIM_STEP],
+                                },
+                            },
+                        ],
+                    }),
+                    runValidation: async (_e, _b, _w, lookup) => {
+                        captured = lookup;
+                        return makeRecord(RunStatus.Passed);
+                    },
+                }),
+                io,
+            );
+            const steps = await captured!("dev", "sha256:candidate");
+            expect(steps).to.deep.equal([SIM_STEP]);
+        });
+
         test("the lookup returns undefined when the schema hash is unchanged", async () => {
             let captured: WorkloadBaselineLookup | undefined;
             const { io } = captureIo();

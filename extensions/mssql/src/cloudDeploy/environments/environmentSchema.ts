@@ -174,6 +174,13 @@ const ValidationConfigSchema = z.discriminatedUnion("type", [
             settings: RuntimeValidatorSettingsSchema.default({}),
         })
         .passthrough(),
+    z
+        .object({
+            type: z.literal(ValidationType.WorkloadSimulation),
+            enabled: z.boolean(),
+            settings: RuntimeValidatorSettingsSchema.default({}),
+        })
+        .passthrough(),
 ]);
 
 const EnvironmentSchema = z

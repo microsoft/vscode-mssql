@@ -25,6 +25,8 @@ export function validationTypeLabel(type: string | undefined): string {
             return strings.validationUnitTests;
         case "workload-playback":
             return strings.validationWorkloadPlayback;
+        case "workload-simulation":
+            return strings.validationWorkloadSimulation;
         default:
             return type ?? "";
     }

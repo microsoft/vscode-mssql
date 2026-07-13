@@ -235,7 +235,8 @@ export type ValidationPayload =
     | ConnectivityPayload
     | StaticAnalysisPayload
     | UnitTestsPayload
-    | WorkloadPlaybackPayload;
+    | WorkloadPlaybackPayload
+    | WorkloadSimulationPayload;
 
 export interface ConnectivityPayload {
     readonly validationType: ValidationType.Connectivity;
@@ -296,6 +297,24 @@ export interface WorkloadPlaybackPayload {
      * that are not findings. Informational only; the run status comes from
      * `findings`. Absent on first runs (no baseline) and pre-feature artifacts.
      */
+    readonly changes?: readonly WorkloadObservedChange[];
+}
+
+/**
+ * Workload-simulation payload. Same shape as the playback payload (findings,
+ * summary, observed steps, changes) so it flows through the run-diff and
+ * PR-comment machinery unchanged, but keyed to its own `validationType`. The
+ * observed steps carry aggregate throughput / latency from the sqlsimtools
+ * engine rather than per-query plan/IO.
+ */
+export interface WorkloadSimulationPayload {
+    readonly validationType: ValidationType.WorkloadSimulation;
+    readonly findings: readonly WorkloadRegressionFinding[];
+    readonly summary: {
+        readonly steps: number;
+        readonly regressions: number;
+    };
+    readonly observedSteps?: readonly WorkloadObservedStep[];
     readonly changes?: readonly WorkloadObservedChange[];
 }
 

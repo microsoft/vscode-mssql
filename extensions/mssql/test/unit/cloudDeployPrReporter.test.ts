@@ -274,5 +274,32 @@ suite("CloudDeploy PR reporter", () => {
             expect(body).to.contain("<details>");
             expect(body).to.contain("Full results");
         });
+
+        test("renders workload-simulation observed changes instead of 'No findings'", () => {
+            const sim: ValidationResult = {
+                validationId: "workload-simulation",
+                displayName: "Workload Simulation",
+                status: ValidationStatus.Passed,
+                startedAtMs: 0,
+                endedAtMs: 1,
+                payload: {
+                    validationType: ValidationType.WorkloadSimulation,
+                    findings: [],
+                    summary: { steps: 1, regressions: 0 },
+                    observedSteps: [{ id: "workload", latencyMs: 149, throughputQps: 53 }],
+                    changes: [
+                        {
+                            stepId: "workload",
+                            axis: "throughput",
+                            severity: "pass",
+                            delta: -0.11,
+                            message: "Throughput -11.0% (60 -> 53/s).",
+                        },
+                    ],
+                },
+            };
+            const body = buildPrReport(makeRecord(RunStatus.Passed, [sim])).commentBody;
+            expect(body).to.contain("Throughput -11.0% (60 -> 53/s).");
+        });
     });
 });

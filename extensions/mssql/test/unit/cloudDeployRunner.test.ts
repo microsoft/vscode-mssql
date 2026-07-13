@@ -499,6 +499,7 @@ suite("CloudDeploy Validation Runner", () => {
                 [ValidationType.StaticAnalysis]: fakes.staticAnalysis,
                 [ValidationType.UnitTests]: fakes.unitTests,
                 [ValidationType.WorkloadPlayback]: fakes.workloadPlayback,
+                [ValidationType.WorkloadSimulation]: fakes.workloadSimulation,
             });
         }
 

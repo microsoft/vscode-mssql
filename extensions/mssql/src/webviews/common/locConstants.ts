@@ -3053,6 +3053,7 @@ export class LocConstants {
             validationStaticAnalysis: l10n.t("Static Analysis"),
             validationUnitTests: l10n.t("Unit Tests"),
             validationWorkloadPlayback: l10n.t("Workload Playback"),
+            validationWorkloadSimulation: l10n.t("Workload Simulation"),
             sourceKindSqlProj: l10n.t("SQL project"),
             sourceKindDacpac: l10n.t("Dacpac (pre-built)"),
             sourceKindContainer: l10n.t("Live database"),

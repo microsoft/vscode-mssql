@@ -249,6 +249,7 @@ export class Runner {
                     signal,
                     ephemeral?.connection,
                     workloadBaseline,
+                    ephemeral?.connectionString,
                 );
                 results.push(result);
 
@@ -383,7 +384,10 @@ export class Runner {
             return undefined;
         }
         const workloadEnabled = dispatchOrder.some(
-            (c) => c.enabled && c.type === ValidationType.WorkloadPlayback,
+            (c) =>
+                c.enabled &&
+                (c.type === ValidationType.WorkloadPlayback ||
+                    c.type === ValidationType.WorkloadSimulation),
         );
         if (!workloadEnabled) {
             return undefined;
@@ -406,14 +410,19 @@ export class Runner {
         signal: AbortSignal,
         ephemeralConnection?: EphemeralDatabase["connection"],
         workloadBaseline?: readonly WorkloadObservedStep[],
+        ephemeralConnectionString?: string,
     ): Promise<ValidationResult> {
         const validator = this._registry[config.type];
+        const usesBaseline =
+            config.type === ValidationType.WorkloadPlayback ||
+            config.type === ValidationType.WorkloadSimulation;
         const opts: ValidatorRunOptions = {
             runId,
             signal,
             bus: this._bus,
             ephemeralConnection,
-            ...(config.type === ValidationType.WorkloadPlayback ? { workloadBaseline } : {}),
+            ...(ephemeralConnectionString !== undefined ? { ephemeralConnectionString } : {}),
+            ...(usesBaseline ? { workloadBaseline } : {}),
         };
         const startedAtMs = Date.now();
 
@@ -591,7 +600,11 @@ function isPass(status: ValidationStatus): boolean {
  * connectivity is the provision health-check / gate).
  */
 function isRuntimeValidator(type: ValidationType): boolean {
-    return type === ValidationType.UnitTests || type === ValidationType.WorkloadPlayback;
+    return (
+        type === ValidationType.UnitTests ||
+        type === ValidationType.WorkloadPlayback ||
+        type === ValidationType.WorkloadSimulation
+    );
 }
 
 /**

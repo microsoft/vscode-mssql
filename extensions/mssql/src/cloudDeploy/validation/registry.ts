@@ -16,11 +16,13 @@
 import { ValidationType } from "../environments/types";
 import type { ArtifactProvider } from "./providers/artifactProvider";
 import type { ProcessProvider } from "./providers/processProvider";
+import type { WorkloadSimulationEngineLocation } from "./providers/workloadSimulationEngine";
 import { defineRegistry, ValidatorRegistry } from "./types";
 import { ConnectivityValidator } from "./validators/connectivityValidator";
 import { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";
 import { UnitTestsValidator } from "./validators/unitTestsValidator";
 import { WorkloadPlaybackValidator } from "./validators/workloadPlaybackValidator";
+import { WorkloadSimulationValidator } from "./validators/workloadSimulationValidator";
 
 /**
  * Provider bundle injected into `createDefaultRegistry`: the process seam
@@ -41,6 +43,13 @@ export interface RegistryProviders {
         readonly dotnetCommand?: string;
         readonly systemDacpacsLocation?: string;
     };
+    /**
+     * Host-injected location of the sqlpysim engine for the workload-simulation
+     * gate. Omitted when the host has no engine configured; the gate then skips.
+     */
+    readonly workloadSimulation?: WorkloadSimulationEngineLocation;
+    /** Workspace root used to resolve a relative workload path for the simulation gate. */
+    readonly workspaceRoot?: string;
 }
 
 /**
@@ -59,5 +68,10 @@ export function createDefaultRegistry(providers: RegistryProviders): ValidatorRe
         ),
         [ValidationType.UnitTests]: new UnitTestsValidator(),
         [ValidationType.WorkloadPlayback]: new WorkloadPlaybackValidator(providers.artifact),
+        [ValidationType.WorkloadSimulation]: new WorkloadSimulationValidator(
+            providers.process,
+            providers.workloadSimulation,
+            providers.workspaceRoot,
+        ),
     });
 }

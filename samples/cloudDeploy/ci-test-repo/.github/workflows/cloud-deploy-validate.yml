@@ -51,10 +51,37 @@ jobs:
         with:
           node-version: "20"
 
+      # Workload-simulation gate (optional, advisory). sqlpysim is Bob Ward's
+      # MIT-licensed workload replay script; it drives the configured workload
+      # against the throwaway validation database to measure throughput and
+      # latency, then reports the before/after delta on the pull request. The gate
+      # never fails a run (Warning at most) and skips entirely unless
+      # MSSQL_CD_SQLPYSIM points at the script. To enable it, set the SQLPYSIM_URL
+      # repository variable (Settings > Secrets and variables > Actions >
+      # Variables) to a raw URL for a pinned sqlpysim release, and give the "ci"
+      # environment a database-backed runtime host plus a "workload-simulation"
+      # validation entry pointing at a workload file.
+      - name: Set up Python (workload simulation)
+        if: ${{ vars.SQLPYSIM_URL != '' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the workload-simulation driver
+        if: ${{ vars.SQLPYSIM_URL != '' }}
+        run: pip install mssql-python
+
+      - name: Fetch the pinned sqlpysim workload driver
+        if: ${{ vars.SQLPYSIM_URL != '' }}
+        run: curl -fsSL "${{ vars.SQLPYSIM_URL }}" -o tools/sqlpysim.py
+
       # Best-effort baseline: if the base branch fails to validate, we still
       # validate the candidate — the diff is simply skipped.
       - name: Validate the base branch (baseline run)
         continue-on-error: true
+        env:
+          MSSQL_CD_PYTHON: python
+          MSSQL_CD_SQLPYSIM: ${{ vars.SQLPYSIM_URL != '' && 'tools/sqlpysim.py' || '' }}
         run: >
           node tools/mssql-validate.cjs run-gates
           --env ci
@@ -63,6 +90,9 @@ jobs:
           --out main.cdrun.zip
 
       - name: Validate the merge candidate
+        env:
+          MSSQL_CD_PYTHON: python
+          MSSQL_CD_SQLPYSIM: ${{ vars.SQLPYSIM_URL != '' && 'tools/sqlpysim.py' || '' }}
         run: |
           BASELINE=()
           if [ -f main.cdrun.zip ]; then BASELINE=(--baseline main.cdrun.zip); fi

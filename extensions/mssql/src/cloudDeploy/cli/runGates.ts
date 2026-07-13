@@ -258,12 +258,22 @@ function compareAndPrintBaseline(
 function extractWorkloadObservedSteps(
     record: RunRecord,
 ): readonly WorkloadObservedStep[] | undefined {
+    // Collect the recorded steps from BOTH workload validators: playback steps
+    // carry the spec step ids, the simulation step carries id "workload". Each
+    // validator later selects its own steps by id.
+    const steps: WorkloadObservedStep[] = [];
     for (const validation of record.validations) {
-        if (validation.payload.validationType === ValidationType.WorkloadPlayback) {
-            return validation.payload.observedSteps;
+        if (
+            validation.payload.validationType === ValidationType.WorkloadPlayback ||
+            validation.payload.validationType === ValidationType.WorkloadSimulation
+        ) {
+            const observed = validation.payload.observedSteps;
+            if (observed !== undefined) {
+                steps.push(...observed);
+            }
         }
     }
-    return undefined;
+    return steps.length > 0 ? steps : undefined;
 }
 
 /**
@@ -324,7 +334,21 @@ function liveDeps(): RunGatesDeps {
         runValidation: (env, bus, workspaceRoot, workloadBaselineLookup) => {
             const processes = new LiveProcessProvider(workspaceRoot);
             const artifact = new LiveArtifactProvider(fileProvider, workspaceRoot);
-            const registry = createDefaultRegistry({ process: processes, artifact });
+            const engineFromEnv = (():
+                | { pythonCommand: string; sqlpysimPath: string }
+                | undefined => {
+                const sqlpysimPath = process.env.MSSQL_CD_SQLPYSIM;
+                if (sqlpysimPath === undefined || sqlpysimPath.length === 0) {
+                    return undefined;
+                }
+                return { pythonCommand: process.env.MSSQL_CD_PYTHON ?? "python", sqlpysimPath };
+            })();
+            const registry = createDefaultRegistry({
+                process: processes,
+                artifact,
+                ...(engineFromEnv !== undefined ? { workloadSimulation: engineFromEnv } : {}),
+                workspaceRoot,
+            });
             const ephemeralProvider = new DispatchingEphemeralDatabaseProvider({
                 docker: new DockerEphemeralDatabaseProvider(
                     processes,

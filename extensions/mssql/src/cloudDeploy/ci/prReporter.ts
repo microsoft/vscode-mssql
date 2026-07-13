@@ -333,7 +333,10 @@ function allFindingLines(v: ValidationResult): string[] {
  * pre-feature workload runs) so the caller falls back to findings.
  */
 function workloadChangeLines(v: ValidationResult): string[] | undefined {
-    if (v.payload.validationType !== ValidationType.WorkloadPlayback) {
+    if (
+        v.payload.validationType !== ValidationType.WorkloadPlayback &&
+        v.payload.validationType !== ValidationType.WorkloadSimulation
+    ) {
         return undefined;
     }
     const changes = v.payload.changes;

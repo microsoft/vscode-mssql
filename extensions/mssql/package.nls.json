@@ -123,6 +123,8 @@
     "mssql.connectionGroup.parentId": "The unique identifier for the parent connection group.",
     "mssql.connection.containerName": "[Optional] Indicates the name of local docker container the connection is on",
     "mssql.enableConnectionPooling": "Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.",
+    "mssql.cloudDeploy.workloadSimulation.sqlpysimPath": "Absolute path to the sqlpysim workload-simulation script. When set, the Cloud Deploy workload-simulation validation gate replays the configured workload against the ephemeral validation database to measure throughput and latency. Leave empty to disable the gate.",
+    "mssql.cloudDeploy.workloadSimulation.pythonPath": "Python interpreter used to run the sqlpysim workload-simulation script, for example 'python' or an absolute path to a virtual environment. Defaults to 'python'.",
     "mssql.statusBar.enableConnectionColor": "When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.",
     "mssql.shortcuts": "Shortcuts related to the results window",
     "mssql.messagesDefaultOpen": "True for the messages pane to be open by default; false for closed",

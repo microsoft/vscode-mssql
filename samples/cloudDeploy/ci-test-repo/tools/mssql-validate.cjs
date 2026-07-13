@@ -689,7 +689,7 @@ var require_yauzl = __commonJS({
     exports2.Entry = Entry;
     exports2.LocalFileHeader = LocalFileHeader;
     exports2.RandomAccessReader = RandomAccessReader;
-    function open2(path8, options2, callback) {
+    function open2(path9, options2, callback) {
       if (typeof options2 === "function") {
         callback = options2;
         options2 = null;
@@ -701,7 +701,7 @@ var require_yauzl = __commonJS({
       if (options2.validateEntrySizes == null) options2.validateEntrySizes = true;
       if (options2.strictFileNames == null) options2.strictFileNames = false;
       if (callback == null) callback = defaultCallback;
-      fs9.open(path8, "r", function(err, fd) {
+      fs9.open(path9, "r", function(err, fd) {
         if (err) return callback(err);
         fromFd(fd, options2, function(err2, zipfile) {
           if (err2) fs9.close(fd, defaultCallback);
@@ -2524,7 +2524,7 @@ function _supportsColor(haveStream, { streamIsTTY, sniffFlags = true } = {}) {
     if (["GITHUB_ACTIONS", "GITEA_ACTIONS", "CIRCLECI"].some((key) => key in env)) {
       return 3;
     }
-    if (["TRAVIS", "APPVEYOR", "GITLAB_CI", "BUILDKITE", "DRONE"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
+    if (["TRAVIS", "APPVEYOR", "GITLAB_CI", "BUILDKITE", "DRONE"].some((sign2) => sign2 in env) || env.CI_NAME === "codeship") {
       return 1;
     }
     return min;
@@ -3342,15 +3342,15 @@ var require_utils = __commonJS({
     exports2.tryPromise = tryPromise;
     var PromiseInspection_1 = require_PromiseInspection();
     function defer() {
-      let resolve7 = null;
+      let resolve8 = null;
       let reject = null;
       const promise = new Promise((resolver, rejecter) => {
-        resolve7 = resolver;
+        resolve8 = resolver;
         reject = rejecter;
       });
       return {
         promise,
-        resolve: resolve7,
+        resolve: resolve8,
         reject
       };
     }
@@ -3370,7 +3370,7 @@ var require_utils = __commonJS({
       return typeof time === "number" && time === Math.round(time) && time > 0;
     }
     function delay2(millis) {
-      return new Promise((resolve7) => setTimeout(resolve7, millis));
+      return new Promise((resolve8) => setTimeout(resolve8, millis));
     }
     function reflect(promise) {
       return promise.then((value) => {
@@ -3429,11 +3429,11 @@ var require_PendingOperation = __commonJS({
     };
     exports2.PendingOperation = PendingOperation;
     function timeout(promise, time) {
-      return new Promise((resolve7, reject) => {
+      return new Promise((resolve8, reject) => {
         const timeoutHandle = setTimeout(() => reject(new TimeoutError_1.TimeoutError()), time);
         promise.then((result) => {
           clearTimeout(timeoutHandle);
-          resolve7(result);
+          resolve8(result);
         }).catch((err) => {
           clearTimeout(timeoutHandle);
           reject(err);
@@ -3650,15 +3650,15 @@ var require_Pool = __commonJS({
         this.pendingRetryTimers.forEach((timer) => clearTimeout(timer));
         this.pendingRetryTimers = [];
         return (0, utils_1.reflect)(Promise.all(this.pendingCreates.map((create) => (0, utils_1.reflect)(create.promise))).then(() => {
-          return new Promise((resolve7, reject) => {
+          return new Promise((resolve8, reject) => {
             if (this.numPendingValidations() === 0) {
-              resolve7();
+              resolve8();
               return;
             }
             const interval = setInterval(() => {
               if (this.numPendingValidations() === 0) {
                 (0, timers_1.clearInterval)(interval);
-                resolve7();
+                resolve8();
               }
             }, 100);
           });
@@ -3893,17 +3893,17 @@ var require_Pool = __commonJS({
       }
     }
     function callbackOrPromise(func) {
-      return new Promise((resolve7, reject) => {
+      return new Promise((resolve8, reject) => {
         const callback = (err, resource) => {
           if (err) {
             reject(err);
           } else {
-            resolve7(resource);
+            resolve8(resource);
           }
         };
         (0, utils_1.tryPromise)(() => func(callback)).then((res) => {
           if (res) {
-            resolve7(res);
+            resolve8(res);
           }
         }).catch((err) => {
           reject(err);
@@ -4336,7 +4336,7 @@ var require_table = __commonJS({
       let cursor = -1;
       let buffer = "";
       let escaped = false;
-      const path8 = [];
+      const path9 = [];
       while (++cursor < length) {
         const char = name.charAt(cursor);
         if (char === "[") {
@@ -4355,7 +4355,7 @@ var require_table = __commonJS({
           if (escaped) {
             buffer += char;
           } else {
-            path8.push(buffer);
+            path9.push(buffer);
             buffer = "";
           }
         } else {
@@ -4363,26 +4363,26 @@ var require_table = __commonJS({
         }
       }
       if (buffer) {
-        path8.push(buffer);
+        path9.push(buffer);
       }
-      switch (path8.length) {
+      switch (path9.length) {
         case 1:
           return {
-            name: path8[0],
+            name: path9[0],
             schema: null,
             database: null
           };
         case 2:
           return {
-            name: path8[1],
-            schema: path8[0],
+            name: path9[1],
+            schema: path9[0],
             database: null
           };
         case 3:
           return {
-            name: path8[2],
-            schema: path8[1],
-            database: path8[0]
+            name: path9[2],
+            schema: path9[1],
+            database: path9[0]
           };
         default:
           throw new Error("Invalid table name.");
@@ -5166,10 +5166,10 @@ var require_connection_pool = __commonJS({
           this._connect(callback);
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           return this._connect((err) => {
             if (err) return reject(err);
-            resolve7(this);
+            resolve8(this);
           });
         });
       }
@@ -5250,10 +5250,10 @@ var require_connection_pool = __commonJS({
           this._close(callback);
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._close((err) => {
             if (err) return reject(err);
-            resolve7(this);
+            resolve8(this);
           });
         });
       }
@@ -5414,8 +5414,8 @@ var require_global_connection = __commonJS({
         setImmediate(callback);
         return null;
       }
-      return new shared.Promise((resolve7) => {
-        resolve7(globalConnection);
+      return new shared.Promise((resolve8) => {
+        resolve8(globalConnection);
       });
     }
     function on(event, handler) {
@@ -5626,10 +5626,10 @@ var require_prepared_statement = __commonJS({
           this._prepare(statement, callback);
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._prepare(statement, (err) => {
             if (err) return reject(err);
-            resolve7(this);
+            resolve8(this);
           });
         });
       }
@@ -5692,10 +5692,10 @@ var require_prepared_statement = __commonJS({
         if (this.stream || typeof callback === "function") {
           return this._execute(values, callback);
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._execute(values, (err, recordset) => {
             if (err) return reject(err);
-            resolve7(recordset);
+            resolve8(recordset);
           });
         });
       }
@@ -5741,10 +5741,10 @@ var require_prepared_statement = __commonJS({
           this._unprepare(callback);
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._unprepare((err) => {
             if (err) return reject(err);
-            resolve7();
+            resolve8();
           });
         });
       }
@@ -5988,7 +5988,7 @@ var require_request = __commonJS({
           const strings = values.shift();
           batch = this._template(strings, values);
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._batch(batch, (err, recordsets, output, rowsAffected) => {
             if (this.stream) {
               if (err) this.emit("error", err);
@@ -5999,7 +5999,7 @@ var require_request = __commonJS({
               });
             }
             if (err) return reject(err);
-            resolve7({
+            resolve8({
               recordsets,
               recordset: recordsets && recordsets[0],
               output,
@@ -6055,10 +6055,10 @@ var require_request = __commonJS({
           });
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._bulk(table, options2, (err, rowsAffected) => {
             if (err) return reject(err);
-            resolve7({
+            resolve8({
               rowsAffected
             });
           });
@@ -6159,7 +6159,7 @@ var require_request = __commonJS({
           const strings = values.shift();
           command = this._template(strings, values);
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._query(command, (err, recordsets, output, rowsAffected, columns) => {
             if (this.stream) {
               if (err) this.emit("error", err);
@@ -6177,7 +6177,7 @@ var require_request = __commonJS({
               rowsAffected
             };
             if (this.arrayRowMode) result.columns = columns;
-            resolve7(result);
+            resolve8(result);
           });
         });
       }
@@ -6231,7 +6231,7 @@ var require_request = __commonJS({
           });
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._execute(command, (err, recordsets, output, returnValue, rowsAffected, columns) => {
             if (this.stream) {
               if (err) this.emit("error", err);
@@ -6251,7 +6251,7 @@ var require_request = __commonJS({
               returnValue
             };
             if (this.arrayRowMode) result.columns = columns;
-            resolve7(result);
+            resolve8(result);
           });
         });
       }
@@ -6415,11 +6415,11 @@ var require_transaction = __commonJS({
           });
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._begin(isolationLevel, (err) => {
             if (err) return reject(err);
             this.emit("begin");
-            resolve7(this);
+            resolve8(this);
           });
         });
       }
@@ -6462,11 +6462,11 @@ var require_transaction = __commonJS({
           });
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           this._commit((err) => {
             if (err) return reject(err);
             this.emit("commit");
-            resolve7();
+            resolve8();
           });
         });
       }
@@ -6511,11 +6511,11 @@ var require_transaction = __commonJS({
           });
           return this;
         }
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           return this._rollback((err) => {
             if (err) return reject(err);
             this.emit("rollback", this._aborted);
-            resolve7();
+            resolve8();
           });
         });
       }
@@ -7756,11 +7756,11 @@ function __metadata(metadataKey, metadataValue) {
 }
 function __awaiter(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve7) {
-      resolve7(value);
+    return value instanceof P ? value : new P(function(resolve8) {
+      resolve8(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve7, reject) {
+  return new (P || (P = Promise))(function(resolve8, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -7776,7 +7776,7 @@ function __awaiter(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve7(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve8(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -7967,14 +7967,14 @@ function __asyncValues(o) {
   }, i);
   function verb(n) {
     i[n] = o[n] && function(v) {
-      return new Promise(function(resolve7, reject) {
-        v = o[n](v), settle(resolve7, reject, v.done, v.value);
+      return new Promise(function(resolve8, reject) {
+        v = o[n](v), settle(resolve8, reject, v.done, v.value);
       });
     };
   }
-  function settle(resolve7, reject, d, v) {
+  function settle(resolve8, reject, d, v) {
     Promise.resolve(v).then(function(v2) {
-      resolve7({ value: v2, done: d });
+      resolve8({ value: v2, done: d });
     }, reject);
   }
 }
@@ -8066,13 +8066,13 @@ function __disposeResources(env2) {
   }
   return next();
 }
-function __rewriteRelativeImportExtension(path8, preserveJsx) {
-  if (typeof path8 === "string" && /^\.\.?\//.test(path8)) {
-    return path8.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function(m, tsx, d, ext, cm) {
+function __rewriteRelativeImportExtension(path9, preserveJsx) {
+  if (typeof path9 === "string" && /^\.\.?\//.test(path9)) {
+    return path9.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function(m, tsx, d, ext, cm) {
       return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : d + ext + "." + cm.toLowerCase() + "js";
     });
   }
-  return path8;
+  return path9;
 }
 var extendStatics, __assign, __createBinding, __setModuleDefault, ownKeys, _SuppressedError, tslib_es6_default;
 var init_tslib_es6 = __esm({
@@ -8219,8 +8219,8 @@ var require_msalPlugins = __commonJS({
       }
     };
     exports2.msalNodeFlowVSCodeCredentialControl = {
-      setVSCodeAuthRecordPath(path8) {
-        exports2.vsCodeAuthRecordPath = path8;
+      setVSCodeAuthRecordPath(path9) {
+        exports2.vsCodeAuthRecordPath = path9;
       },
       setVSCodeBroker(broker) {
         exports2.vsCodeBrokerInfo = {
@@ -9977,7 +9977,7 @@ var require_jwa = __commonJS({
       return thing;
     }
     function createHmacSigner(bits) {
-      return function sign(thing, secret) {
+      return function sign2(thing, secret) {
         checkIsSecretKey(secret);
         thing = normalizeInput(thing);
         var hmac = crypto5.createHmac("sha" + bits, secret);
@@ -10004,7 +10004,7 @@ var require_jwa = __commonJS({
       };
     }
     function createKeySigner(bits) {
-      return function sign(thing, privateKey) {
+      return function sign2(thing, privateKey) {
         checkIsPrivateKey(privateKey);
         thing = normalizeInput(thing);
         var signer = crypto5.createSign("RSA-SHA" + bits);
@@ -10023,7 +10023,7 @@ var require_jwa = __commonJS({
       };
     }
     function createPSSKeySigner(bits) {
-      return function sign(thing, privateKey) {
+      return function sign2(thing, privateKey) {
         checkIsPrivateKey(privateKey);
         thing = normalizeInput(thing);
         var signer = crypto5.createSign("RSA-SHA" + bits);
@@ -10051,7 +10051,7 @@ var require_jwa = __commonJS({
     }
     function createECDSASigner(bits) {
       var inner = createKeySigner(bits);
-      return function sign() {
+      return function sign2() {
         var signature = inner.apply(null, arguments);
         signature = formatEcdsa.derToJose(signature, "ES" + bits);
         return signature;
@@ -10066,7 +10066,7 @@ var require_jwa = __commonJS({
       };
     }
     function createNoneSigner() {
-      return function sign() {
+      return function sign2() {
         return "";
       };
     }
@@ -10168,7 +10168,7 @@ var require_sign_stream = __commonJS({
       }.bind(this));
     }
     util2.inherits(SignStream, Stream);
-    SignStream.prototype.sign = function sign() {
+    SignStream.prototype.sign = function sign2() {
       try {
         var signature = jwsSign({
           header: this.header,
@@ -11058,8 +11058,8 @@ var require_compare = __commonJS({
   "node_modules/semver/functions/compare.js"(exports2, module2) {
     "use strict";
     var SemVer = require_semver();
-    var compare = (a, b, loose) => new SemVer(a, loose).compare(new SemVer(b, loose));
-    module2.exports = compare;
+    var compare2 = (a, b, loose) => new SemVer(a, loose).compare(new SemVer(b, loose));
+    module2.exports = compare2;
   }
 });
 
@@ -11067,8 +11067,8 @@ var require_compare = __commonJS({
 var require_rcompare = __commonJS({
   "node_modules/semver/functions/rcompare.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var rcompare = (a, b, loose) => compare(b, a, loose);
+    var compare2 = require_compare();
+    var rcompare = (a, b, loose) => compare2(b, a, loose);
     module2.exports = rcompare;
   }
 });
@@ -11077,8 +11077,8 @@ var require_rcompare = __commonJS({
 var require_compare_loose = __commonJS({
   "node_modules/semver/functions/compare-loose.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var compareLoose = (a, b) => compare(a, b, true);
+    var compare2 = require_compare();
+    var compareLoose = (a, b) => compare2(a, b, true);
     module2.exports = compareLoose;
   }
 });
@@ -11121,8 +11121,8 @@ var require_rsort = __commonJS({
 var require_gt = __commonJS({
   "node_modules/semver/functions/gt.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var gt = (a, b, loose) => compare(a, b, loose) > 0;
+    var compare2 = require_compare();
+    var gt = (a, b, loose) => compare2(a, b, loose) > 0;
     module2.exports = gt;
   }
 });
@@ -11131,8 +11131,8 @@ var require_gt = __commonJS({
 var require_lt = __commonJS({
   "node_modules/semver/functions/lt.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var lt = (a, b, loose) => compare(a, b, loose) < 0;
+    var compare2 = require_compare();
+    var lt = (a, b, loose) => compare2(a, b, loose) < 0;
     module2.exports = lt;
   }
 });
@@ -11141,8 +11141,8 @@ var require_lt = __commonJS({
 var require_eq = __commonJS({
   "node_modules/semver/functions/eq.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var eq = (a, b, loose) => compare(a, b, loose) === 0;
+    var compare2 = require_compare();
+    var eq = (a, b, loose) => compare2(a, b, loose) === 0;
     module2.exports = eq;
   }
 });
@@ -11151,8 +11151,8 @@ var require_eq = __commonJS({
 var require_neq = __commonJS({
   "node_modules/semver/functions/neq.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var neq = (a, b, loose) => compare(a, b, loose) !== 0;
+    var compare2 = require_compare();
+    var neq = (a, b, loose) => compare2(a, b, loose) !== 0;
     module2.exports = neq;
   }
 });
@@ -11161,8 +11161,8 @@ var require_neq = __commonJS({
 var require_gte = __commonJS({
   "node_modules/semver/functions/gte.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var gte = (a, b, loose) => compare(a, b, loose) >= 0;
+    var compare2 = require_compare();
+    var gte = (a, b, loose) => compare2(a, b, loose) >= 0;
     module2.exports = gte;
   }
 });
@@ -11171,8 +11171,8 @@ var require_gte = __commonJS({
 var require_lte = __commonJS({
   "node_modules/semver/functions/lte.js"(exports2, module2) {
     "use strict";
-    var compare = require_compare();
-    var lte = (a, b, loose) => compare(a, b, loose) <= 0;
+    var compare2 = require_compare();
+    var lte = (a, b, loose) => compare2(a, b, loose) <= 0;
     module2.exports = lte;
   }
 });
@@ -11266,8 +11266,8 @@ var require_coerce = __commonJS({
       const minor = match[3] || "0";
       const patch = match[4] || "0";
       const prerelease = options2.includePrerelease && match[5] ? `-${match[5]}` : "";
-      const build = options2.includePrerelease && match[6] ? `+${match[6]}` : "";
-      return parse2(`${major}.${minor}.${patch}${prerelease}${build}`, options2);
+      const build2 = options2.includePrerelease && match[6] ? `+${match[6]}` : "";
+      return parse2(`${major}.${minor}.${patch}${prerelease}${build2}`, options2);
     };
     module2.exports = coerce2;
   }
@@ -12069,12 +12069,12 @@ var require_simplify = __commonJS({
   "node_modules/semver/ranges/simplify.js"(exports2, module2) {
     "use strict";
     var satisfies = require_satisfies();
-    var compare = require_compare();
+    var compare2 = require_compare();
     module2.exports = (versions, range, options2) => {
       const set = [];
       let first = null;
       let prev = null;
-      const v = versions.sort((a, b) => compare(a, b, options2));
+      const v = versions.sort((a, b) => compare2(a, b, options2));
       for (const version2 of v) {
         const included = satisfies(version2, range, options2);
         if (included) {
@@ -12122,7 +12122,7 @@ var require_subset = __commonJS({
     var Comparator = require_comparator();
     var { ANY } = Comparator;
     var satisfies = require_satisfies();
-    var compare = require_compare();
+    var compare2 = require_compare();
     var subset = (sub, dom, options2 = {}) => {
       if (sub === dom) {
         return true;
@@ -12182,7 +12182,7 @@ var require_subset = __commonJS({
       }
       let gtltComp;
       if (gt && lt) {
-        gtltComp = compare(gt.semver, lt.semver, options2);
+        gtltComp = compare2(gt.semver, lt.semver, options2);
         if (gtltComp > 0) {
           return null;
         } else if (gtltComp === 0 && (gt.operator !== ">=" || lt.operator !== "<=")) {
@@ -12262,14 +12262,14 @@ var require_subset = __commonJS({
       if (!a) {
         return b;
       }
-      const comp = compare(a.semver, b.semver, options2);
+      const comp = compare2(a.semver, b.semver, options2);
       return comp > 0 ? a : comp < 0 ? b : b.operator === ">" && a.operator === ">=" ? b : a;
     };
     var lowerLT = (a, b, options2) => {
       if (!a) {
         return b;
       }
-      const comp = compare(a.semver, b.semver, options2);
+      const comp = compare2(a.semver, b.semver, options2);
       return comp < 0 ? a : comp > 0 ? b : b.operator === "<" && a.operator === "<=" ? b : a;
     };
     module2.exports = subset;
@@ -12293,7 +12293,7 @@ var require_semver2 = __commonJS({
     var minor = require_minor();
     var patch = require_patch();
     var prerelease = require_prerelease();
-    var compare = require_compare();
+    var compare2 = require_compare();
     var rcompare = require_rcompare();
     var compareLoose = require_compare_loose();
     var compareBuild = require_compare_build();
@@ -12331,7 +12331,7 @@ var require_semver2 = __commonJS({
       minor,
       patch,
       prerelease,
-      compare,
+      compare: compare2,
       rcompare,
       compareLoose,
       compareBuild,
@@ -12810,8 +12810,8 @@ var require_lodash = __commonJS({
       }
       value = toNumber(value);
       if (value === INFINITY || value === -INFINITY) {
-        var sign = value < 0 ? -1 : 1;
-        return sign * MAX_INTEGER;
+        var sign2 = value < 0 ? -1 : 1;
+        return sign2 * MAX_INTEGER;
       }
       return value === value ? value : 0;
     }
@@ -12896,8 +12896,8 @@ var require_lodash3 = __commonJS({
       }
       value = toNumber(value);
       if (value === INFINITY || value === -INFINITY) {
-        var sign = value < 0 ? -1 : 1;
-        return sign * MAX_INTEGER;
+        var sign2 = value < 0 ? -1 : 1;
+        return sign2 * MAX_INTEGER;
       }
       return value === value ? value : 0;
     }
@@ -13054,8 +13054,8 @@ var require_lodash7 = __commonJS({
       }
       value = toNumber(value);
       if (value === INFINITY || value === -INFINITY) {
-        var sign = value < 0 ? -1 : 1;
-        return sign * MAX_INTEGER;
+        var sign2 = value < 0 ? -1 : 1;
+        return sign2 * MAX_INTEGER;
       }
       return value === value ? value : 0;
     }
@@ -13333,7 +13333,7 @@ var require_msal_node = __commonJS({
     var jwt = require_jsonwebtoken();
     var http = require("http");
     var fs9 = require("fs");
-    var path8 = require("path");
+    var path9 = require("path");
     var Serializer = class {
       /**
        * serialize the JSON blob
@@ -16307,7 +16307,7 @@ var require_msal_node = __commonJS({
       return cachedAtSec > nowSeconds();
     }
     function delay2(t, value) {
-      return new Promise((resolve7) => setTimeout(() => resolve7(value), t));
+      return new Promise((resolve8) => setTimeout(() => resolve8(value), t));
     }
     var NetworkClientSendPostRequestAsync = "networkClientSendPostRequestAsync";
     var RefreshTokenClientExecutePostToTokenEndpoint = "refreshTokenClientExecutePostToTokenEndpoint";
@@ -20793,7 +20793,7 @@ Error Description: '${typedError.message}'`, this.correlationId);
         if (this.server) {
           throw NodeAuthError.createLoopbackServerAlreadyExistsError();
         }
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           this.server = http.createServer((req, res) => {
             const url = req.url;
             if (!url) {
@@ -20816,7 +20816,7 @@ Error Description: '${typedError.message}'`, this.correlationId);
             if (authCodeResponse.error) {
               res.end(errorTemplate || `Error occurred: ${authCodeResponse.error}`);
             }
-            resolve7(authCodeResponse);
+            resolve8(authCodeResponse);
           });
           this.server.listen(0, "127.0.0.1");
         });
@@ -21249,7 +21249,7 @@ Error Description: '${typedError.message}'`, this.correlationId);
        * @returns
        */
       async waitForRedirectUri(loopbackClient) {
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           let ticks = 0;
           const id = setInterval(() => {
             if (LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS / LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS < ticks) {
@@ -21260,7 +21260,7 @@ Error Description: '${typedError.message}'`, this.correlationId);
             try {
               const r = loopbackClient.getRedirectUri();
               clearInterval(id);
-              resolve7(r);
+              resolve8(r);
               return;
             } catch (e) {
               if (e instanceof AuthError && e.errorCode === NodeAuthErrorMessage.noLoopbackServerExists.code) {
@@ -22013,8 +22013,8 @@ Error Description: '${typedError.message}'`, this.correlationId);
         if (DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON.includes(httpStatusCode) && currentRetry < DEFAULT_MANAGED_IDENTITY_MAX_RETRIES) {
           const retryAfterDelay = this.linearRetryStrategy.calculateDelay(retryAfterHeader, _DefaultManagedIdentityRetryPolicy.DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS);
           logger.verbose(`Retrying request in ${retryAfterDelay}ms (retry attempt: ${currentRetry + 1})`, "");
-          await new Promise((resolve7) => {
-            return setTimeout(resolve7, retryAfterDelay);
+          await new Promise((resolve8) => {
+            return setTimeout(resolve8, retryAfterDelay);
           });
           return true;
         }
@@ -22273,7 +22273,7 @@ Error Description: '${typedError.message}'`, this.correlationId);
             throw createManagedIdentityError(platformNotSupported);
           }
           const expectedSecretFilePath = SUPPORTED_AZURE_ARC_PLATFORMS[process.platform];
-          const fileName = path8.basename(secretFilePath);
+          const fileName = path9.basename(secretFilePath);
           if (!fileName.endsWith(".key")) {
             throw createManagedIdentityError(invalidFileExtension);
           }
@@ -22468,8 +22468,8 @@ Error Description: '${typedError.message}'`, this.correlationId);
         if ((HTTP_STATUS_400_CODES_FOR_EXPONENTIAL_STRATEGY.includes(httpStatusCode) || httpStatusCode >= HTTP_SERVER_ERROR_RANGE_START && httpStatusCode <= HTTP_SERVER_ERROR_RANGE_END && currentRetry < this.maxRetries) && currentRetry < this.maxRetries) {
           const retryAfterDelay = httpStatusCode === HTTP_GONE ? _ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS : this.exponentialRetryStrategy.calculateDelay(currentRetry);
           logger.verbose(`Retrying request in ${retryAfterDelay}ms (retry attempt: ${currentRetry + 1})`, "");
-          await new Promise((resolve7) => {
-            return setTimeout(resolve7, retryAfterDelay);
+          await new Promise((resolve8) => {
+            return setTimeout(resolve8, retryAfterDelay);
           });
           return true;
         }
@@ -23528,7 +23528,7 @@ var require_createAbortablePromise = __commonJS({
     var abort_controller_1 = require_commonjs3();
     function createAbortablePromise(buildPromise, options2) {
       const { cleanupBeforeAbort, abortSignal, abortErrorMsg } = options2 ?? {};
-      return new Promise((resolve7, reject) => {
+      return new Promise((resolve8, reject) => {
         function rejectOnAbort() {
           reject(new abort_controller_1.AbortError(abortErrorMsg ?? "The operation was aborted."));
         }
@@ -23546,7 +23546,7 @@ var require_createAbortablePromise = __commonJS({
         try {
           buildPromise((x) => {
             removeListeners();
-            resolve7(x);
+            resolve8(x);
           }, (x) => {
             removeListeners();
             reject(x);
@@ -23573,8 +23573,8 @@ var require_delay2 = __commonJS({
     function delay2(timeInMs, options2) {
       let token;
       const { abortSignal, abortErrorMsg } = options2 ?? {};
-      return (0, createAbortablePromise_js_1.createAbortablePromise)((resolve7) => {
-        token = setTimeout(resolve7, timeInMs);
+      return (0, createAbortablePromise_js_1.createAbortablePromise)((resolve8) => {
+        token = setTimeout(resolve8, timeInMs);
       }, {
         cleanupBeforeAbort: () => clearTimeout(token),
         abortSignal,
@@ -25438,9 +25438,9 @@ var require_nodeHttpClient = __commonJS({
       if (stream.readable === false) {
         return Promise.resolve();
       }
-      return new Promise((resolve7) => {
+      return new Promise((resolve8) => {
         const handler = () => {
-          resolve7();
+          resolve8();
           stream.removeListener("close", handler);
           stream.removeListener("end", handler);
           stream.removeListener("error", handler);
@@ -25595,8 +25595,8 @@ var require_nodeHttpClient = __commonJS({
           headers: request.headers.toJSON({ preserveCase: true }),
           ...request.requestOverrides
         };
-        return new Promise((resolve7, reject) => {
-          const req = isInsecure ? import_node_http.default.request(options2, resolve7) : import_node_https.default.request(options2, resolve7);
+        return new Promise((resolve8, reject) => {
+          const req = isInsecure ? import_node_http.default.request(options2, resolve8) : import_node_https.default.request(options2, resolve8);
           req.once("error", (err) => {
             reject(
               new import_restError.RestError(err.message, { code: err.code ?? import_restError.RestError.REQUEST_SEND_ERROR, request })
@@ -25684,7 +25684,7 @@ var require_nodeHttpClient = __commonJS({
       return stream;
     }
     function streamToText(stream) {
-      return new Promise((resolve7, reject) => {
+      return new Promise((resolve8, reject) => {
         const buffer = [];
         stream.on("data", (chunk) => {
           if (Buffer.isBuffer(chunk)) {
@@ -25694,7 +25694,7 @@ var require_nodeHttpClient = __commonJS({
           }
         });
         stream.on("end", () => {
-          resolve7(Buffer.concat(buffer).toString("utf8"));
+          resolve8(Buffer.concat(buffer).toString("utf8"));
         });
         stream.on("error", (e) => {
           if (e && e?.name === "AbortError") {
@@ -26134,7 +26134,7 @@ var require_helpers = __commonJS({
     var import_AbortError = require_AbortError3();
     var StandardAbortMessage = "The operation was aborted.";
     function delay2(delayInMs, value, options2) {
-      return new Promise((resolve7, reject) => {
+      return new Promise((resolve8, reject) => {
         let timer = void 0;
         let onAborted = void 0;
         const rejectOnAbort = () => {
@@ -26159,7 +26159,7 @@ var require_helpers = __commonJS({
         }
         timer = setTimeout(() => {
           removeListeners();
-          resolve7(value);
+          resolve8(value);
         }, delayInMs);
         if (options2?.abortSignal) {
           options2.abortSignal.addEventListener("abort", onAborted);
@@ -26654,8 +26654,8 @@ var require_helpers2 = __commonJS({
     function req(url, opts = {}) {
       const href = typeof url === "string" ? url : url.href;
       const req2 = (href.startsWith("https:") ? https : http).request(url, opts);
-      const promise = new Promise((resolve7, reject) => {
-        req2.once("response", resolve7).once("error", reject).end();
+      const promise = new Promise((resolve8, reject) => {
+        req2.once("response", resolve8).once("error", reject).end();
       });
       req2.then = promise.then.bind(promise);
       return req2;
@@ -26832,7 +26832,7 @@ var require_parse_proxy_response = __commonJS({
     var debug_1 = __importDefault2(require_src());
     var debug = (0, debug_1.default)("https-proxy-agent:parse-proxy-response");
     function parseProxyResponse(socket) {
-      return new Promise((resolve7, reject) => {
+      return new Promise((resolve8, reject) => {
         let buffersLength = 0;
         const buffers = [];
         function read() {
@@ -26898,7 +26898,7 @@ var require_parse_proxy_response = __commonJS({
           }
           debug("got proxy server response: %o %o", firstLine, headers);
           cleanup();
-          resolve7({
+          resolve8({
             connect: {
               statusCode,
               statusText,
@@ -28692,8 +28692,8 @@ var require_getClient = __commonJS({
       }
       const { allowInsecureConnection, httpClient } = clientOptions;
       const endpointUrl = clientOptions.endpoint ?? endpoint;
-      const client = (path8, ...args) => {
-        const getUrl = (requestOptions) => (0, import_urlHelpers.buildRequestUrl)(endpointUrl, path8, args, { allowInsecureConnection, ...requestOptions });
+      const client = (path9, ...args) => {
+        const getUrl = (requestOptions) => (0, import_urlHelpers.buildRequestUrl)(endpointUrl, path9, args, { allowInsecureConnection, ...requestOptions });
         return {
           get: (requestOptions = {}) => {
             return buildOperation(
@@ -31598,15 +31598,15 @@ var require_urlHelpers2 = __commonJS({
       let isAbsolutePath = false;
       let requestUrl = replaceAll(baseUri, urlReplacements);
       if (operationSpec.path) {
-        let path8 = replaceAll(operationSpec.path, urlReplacements);
-        if (operationSpec.path === "/{nextLink}" && path8.startsWith("/")) {
-          path8 = path8.substring(1);
+        let path9 = replaceAll(operationSpec.path, urlReplacements);
+        if (operationSpec.path === "/{nextLink}" && path9.startsWith("/")) {
+          path9 = path9.substring(1);
         }
-        if (isAbsoluteUrl(path8)) {
-          requestUrl = path8;
+        if (isAbsoluteUrl(path9)) {
+          requestUrl = path9;
           isAbsolutePath = true;
         } else {
-          requestUrl = appendPath(requestUrl, path8);
+          requestUrl = appendPath(requestUrl, path9);
         }
       }
       const { queryParams, sequenceParams } = calculateQueryParameters(operationSpec, operationArguments, fallbackObject);
@@ -31652,9 +31652,9 @@ var require_urlHelpers2 = __commonJS({
       }
       const searchStart = pathToAppend.indexOf("?");
       if (searchStart !== -1) {
-        const path8 = pathToAppend.substring(0, searchStart);
+        const path9 = pathToAppend.substring(0, searchStart);
         const search = pathToAppend.substring(searchStart + 1);
-        newPath = newPath + path8;
+        newPath = newPath + path9;
         if (search) {
           parsedUrl.search = parsedUrl.search ? `${parsedUrl.search}&${search}` : search;
         }
@@ -33129,14 +33129,14 @@ var init_open = __esm({
       }
       const subprocess = import_node_child_process5.default.spawn(command, cliArguments, childProcessOptions);
       if (options2.wait) {
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           subprocess.once("error", reject);
           subprocess.once("close", (exitCode) => {
             if (!options2.allowNonzeroExitCode && exitCode > 0) {
               reject(new Error(`Exited with code ${exitCode}`));
               return;
             }
-            resolve7(subprocess);
+            resolve8(subprocess);
           });
         });
       }
@@ -34628,7 +34628,7 @@ var require_azureDeveloperCliCredential = __commonJS({
           const encodedClaims = btoa(claims);
           claimsSections = ["--claims", encodedClaims];
         }
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           try {
             const args = [
               "auth",
@@ -34645,7 +34645,7 @@ var require_azureDeveloperCliCredential = __commonJS({
               cwd: exports2.developerCliCredentialInternals.getSafeWorkingDir(),
               timeout
             }, (error, stdout, stderr) => {
-              resolve7({ stdout, stderr, error });
+              resolve8({ stdout, stderr, error });
             });
           } catch (err) {
             reject(err);
@@ -34814,7 +34814,7 @@ var require_azureCliCredential = __commonJS({
         if (subscription) {
           subscriptionSection = ["--subscription", `"${subscription}"`];
         }
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           try {
             const args = [
               "account",
@@ -34828,7 +34828,7 @@ var require_azureCliCredential = __commonJS({
             ];
             const command = ["az", ...args].join(" ");
             child_process_1.default.exec(command, { cwd: exports2.cliCredentialInternals.getSafeWorkingDir(), timeout }, (error, stdout, stderr) => {
-              resolve7({ stdout, stderr, error });
+              resolve8({ stdout, stderr, error });
             });
           } catch (err) {
             reject(err);
@@ -34978,7 +34978,7 @@ var require_processUtils = __commonJS({
        * @internal
        */
       execFile(file, params, options2) {
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           node_child_process_1.default.execFile(file, params, options2, (error, stdout, stderr) => {
             if (Buffer.isBuffer(stdout)) {
               stdout = stdout.toString("utf8");
@@ -34989,7 +34989,7 @@ var require_processUtils = __commonJS({
             if (stderr || error) {
               reject(stderr ? new Error(stderr) : error);
             } else {
-              resolve7(stdout);
+              resolve8(stdout);
             }
           });
         });
@@ -36694,7 +36694,7 @@ var require_sender = __commonJS({
       if (signal.aborted) {
         throw new _abortError.default();
       }
-      return await new Promise((resolve7, reject) => {
+      return await new Promise((resolve8, reject) => {
         const sockets = [];
         let errorCount = 0;
         const onError = (err) => {
@@ -36708,7 +36708,7 @@ var require_sender = __commonJS({
         const onMessage = (message) => {
           signal.removeEventListener("abort", onAbort);
           clearSockets();
-          resolve7(message);
+          resolve8(message);
         };
         const onAbort = () => {
           clearSockets();
@@ -36745,7 +36745,7 @@ var require_sender = __commonJS({
           family: _net.default.isIPv6(host) ? 6 : 4
         }];
       } else {
-        addresses = await new Promise((resolve7, reject) => {
+        addresses = await new Promise((resolve8, reject) => {
           const onAbort = () => {
             reject(new _abortError.default());
           };
@@ -36754,7 +36754,7 @@ var require_sender = __commonJS({
             all: true
           }, (err, addresses2) => {
             signal.removeEventListener("abort", onAbort);
-            err ? reject(err) : resolve7(addresses2);
+            err ? reject(err) : resolve8(addresses2);
           });
         });
       }
@@ -36964,7 +36964,7 @@ var require_sprintf = __commonJS({
         return sprintf.apply(null, [fmt].concat(argv || []));
       }
       function sprintf_format(parse_tree, argv) {
-        var cursor = 1, tree_length = parse_tree.length, arg, output = "", i, k, ph, pad, pad_character, pad_length, is_positive, sign;
+        var cursor = 1, tree_length = parse_tree.length, arg, output = "", i, k, ph, pad, pad_character, pad_length, is_positive, sign2;
         for (i = 0; i < tree_length; i++) {
           if (typeof parse_tree[i] === "string") {
             output += parse_tree[i];
@@ -37048,15 +37048,15 @@ var require_sprintf = __commonJS({
               output += arg;
             } else {
               if (re.number.test(ph.type) && (!is_positive || ph.sign)) {
-                sign = is_positive ? "+" : "-";
+                sign2 = is_positive ? "+" : "-";
                 arg = arg.toString().replace(re.sign, "");
               } else {
-                sign = "";
+                sign2 = "";
               }
               pad_character = ph.pad_char ? ph.pad_char === "0" ? "0" : ph.pad_char.charAt(1) : " ";
-              pad_length = ph.width - (sign + arg).length;
+              pad_length = ph.width - (sign2 + arg).length;
               pad = ph.width ? pad_length > 0 ? pad_character.repeat(pad_length) : "" : "";
-              output += ph.align ? sign + arg + pad : pad_character === "0" ? sign + pad + arg : pad + sign + arg;
+              output += ph.align ? sign2 + arg + pad : pad_character === "0" ? sign2 + pad + arg : pad + sign2 + arg;
             }
           }
         }
@@ -40269,25 +40269,25 @@ var require_util = __commonJS({
         };
       },
       createDeferredPromise: function() {
-        let resolve7;
+        let resolve8;
         let reject;
         const promise = new Promise((res, rej) => {
-          resolve7 = res;
+          resolve8 = res;
           reject = rej;
         });
         return {
           promise,
-          resolve: resolve7,
+          resolve: resolve8,
           reject
         };
       },
       promisify(fn) {
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           fn((err, ...args) => {
             if (err) {
               return reject(err);
             }
-            return resolve7(...args);
+            return resolve8(...args);
           });
         });
       },
@@ -41078,7 +41078,7 @@ var require_end_of_stream = __commonJS({
         validateBoolean(opts.cleanup, "cleanup");
         autoCleanup = opts.cleanup;
       }
-      return new Promise2((resolve7, reject) => {
+      return new Promise2((resolve8, reject) => {
         const cleanup = eos(stream, opts, (err) => {
           if (autoCleanup) {
             cleanup();
@@ -41086,7 +41086,7 @@ var require_end_of_stream = __commonJS({
           if (err) {
             reject(err);
           } else {
-            resolve7();
+            resolve8();
           }
         });
       });
@@ -42194,7 +42194,7 @@ var require_readable = __commonJS({
         error = this.readableEnded ? null : new AbortError2();
         this.destroy(error);
       }
-      return new Promise2((resolve7, reject) => eos(this, (err) => err && err !== error ? reject(err) : resolve7(null)));
+      return new Promise2((resolve8, reject) => eos(this, (err) => err && err !== error ? reject(err) : resolve8(null)));
     };
     Readable.prototype.push = function(chunk, encoding) {
       return readableAddChunk(this, chunk, encoding, false);
@@ -42738,12 +42738,12 @@ var require_readable = __commonJS({
     }
     async function* createAsyncIterator(stream, options2) {
       let callback = nop;
-      function next(resolve7) {
+      function next(resolve8) {
         if (this === stream) {
           callback();
           callback = nop;
         } else {
-          callback = resolve7;
+          callback = resolve8;
         }
       }
       stream.on("readable", next);
@@ -43795,7 +43795,7 @@ var require_duplexify = __commonJS({
       );
     };
     function fromAsyncGen(fn) {
-      let { promise, resolve: resolve7 } = createDeferredPromise();
+      let { promise, resolve: resolve8 } = createDeferredPromise();
       const ac = new AbortController2();
       const signal = ac.signal;
       const value = fn(
@@ -43810,7 +43810,7 @@ var require_duplexify = __commonJS({
               throw new AbortError2(void 0, {
                 cause: signal.reason
               });
-            ({ promise, resolve: resolve7 } = createDeferredPromise());
+            ({ promise, resolve: resolve8 } = createDeferredPromise());
             yield chunk;
           }
         })(),
@@ -43821,8 +43821,8 @@ var require_duplexify = __commonJS({
       return {
         value,
         write(chunk, encoding, cb) {
-          const _resolve = resolve7;
-          resolve7 = null;
+          const _resolve = resolve8;
+          resolve8 = null;
           _resolve({
             chunk,
             done: false,
@@ -43830,8 +43830,8 @@ var require_duplexify = __commonJS({
           });
         },
         final(cb) {
-          const _resolve = resolve7;
-          resolve7 = null;
+          const _resolve = resolve8;
+          resolve8 = null;
           _resolve({
             done: true,
             cb
@@ -44282,7 +44282,7 @@ var require_pipeline4 = __commonJS({
           callback();
         }
       };
-      const wait = () => new Promise2((resolve7, reject) => {
+      const wait = () => new Promise2((resolve8, reject) => {
         if (error) {
           reject(error);
         } else {
@@ -44290,7 +44290,7 @@ var require_pipeline4 = __commonJS({
             if (error) {
               reject(error);
             } else {
-              resolve7();
+              resolve8();
             }
           };
         }
@@ -44934,8 +44934,8 @@ var require_operators = __commonJS({
                 next = null;
               }
               if (!done && (queue.length >= highWaterMark || cnt >= concurrency)) {
-                await new Promise2((resolve7) => {
-                  resume = resolve7;
+                await new Promise2((resolve8) => {
+                  resume = resolve8;
                 });
               }
             }
@@ -44969,8 +44969,8 @@ var require_operators = __commonJS({
               queue.shift();
               maybeResume();
             }
-            await new Promise2((resolve7) => {
-              next = resolve7;
+            await new Promise2((resolve8) => {
+              next = resolve8;
             });
           }
         } finally {
@@ -45228,7 +45228,7 @@ var require_promises = __commonJS({
     var { finished } = require_end_of_stream();
     require_stream();
     function pipeline(...streams) {
-      return new Promise2((resolve7, reject) => {
+      return new Promise2((resolve8, reject) => {
         let signal;
         let end;
         const lastArg = streams[streams.length - 1];
@@ -45243,7 +45243,7 @@ var require_promises = __commonJS({
             if (err) {
               reject(err);
             } else {
-              resolve7(value);
+              resolve8(value);
             }
           },
           {
@@ -46115,7 +46115,7 @@ var require_message_io = __commonJS({
           credentialsDetails.maxVersion = "TLSv1.2";
         }
         const secureContext = tls.createSecureContext(credentialsDetails);
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           const duplexpair = new _nativeDuplexpair.default();
           const securePair = this.securePair = {
             cleartext: tls.connect({
@@ -46146,7 +46146,7 @@ var require_message_io = __commonJS({
             securePair.cleartext.pipe(this.incomingMessageStream);
             this.outgoingMessageStream.pipe(securePair.cleartext);
             this.tlsNegotiationComplete = true;
-            resolve7();
+            resolve8();
           };
           const onError = (err) => {
             securePair.encrypted.removeListener("readable", onReadable);
@@ -49641,7 +49641,7 @@ var require_js_joda = __commonJS({
           this.fieldValues.put(field, value);
           return this;
         };
-        _proto.resolve = function resolve7(resolverStyle, resolverFields) {
+        _proto.resolve = function resolve8(resolverStyle, resolverFields) {
           if (resolverFields != null) {
             this.fieldValues.retainAll(resolverFields);
           }
@@ -49891,7 +49891,7 @@ var require_js_joda = __commonJS({
             }
           }
         };
-        _proto.build = function build(type) {
+        _proto.build = function build2(type) {
           return type.queryFrom(this);
         };
         _proto.isSupported = function isSupported(field) {
@@ -50245,7 +50245,7 @@ var require_js_joda = __commonJS({
         _proto.displayName = function displayName() {
           return this.toString();
         };
-        _proto.resolve = function resolve7() {
+        _proto.resolve = function resolve8() {
           return null;
         };
         _proto.name = function name() {
@@ -50303,7 +50303,7 @@ var require_js_joda = __commonJS({
           this.range().checkValidValue(newValue, this);
           return temporal.with(ChronoField.DAY_OF_YEAR, temporal.getLong(ChronoField.DAY_OF_YEAR) + (newValue - curValue));
         };
-        _proto2.resolve = function resolve7(fieldValues, partialTemporal, resolverStyle) {
+        _proto2.resolve = function resolve8(fieldValues, partialTemporal, resolverStyle) {
           var yearLong = fieldValues.get(ChronoField.YEAR);
           var qoyLong = fieldValues.get(QUARTER_OF_YEAR);
           if (yearLong == null || qoyLong == null) {
@@ -50414,7 +50414,7 @@ var require_js_joda = __commonJS({
           this.range().checkValidValue(newValue, this);
           return temporal.plus(MathUtil.safeSubtract(newValue, this.getFrom(temporal)), ChronoUnit.WEEKS);
         };
-        _proto4.resolve = function resolve7(fieldValues, partialTemporal, resolverStyle) {
+        _proto4.resolve = function resolve8(fieldValues, partialTemporal, resolverStyle) {
           var wbyLong = fieldValues.get(WEEK_BASED_YEAR);
           var dowLong = fieldValues.get(ChronoField.DAY_OF_WEEK);
           if (wbyLong == null || dowLong == null) {
@@ -51040,16 +51040,16 @@ var require_js_joda = __commonJS({
             return ~position;
           }
           assert(position >= 0 && position < length);
-          var sign = text.charAt(position);
+          var sign2 = text.charAt(position);
           var negative = false;
           var positive = false;
-          if (sign === context.symbols().positiveSign()) {
+          if (sign2 === context.symbols().positiveSign()) {
             if (this._signStyle.parse(true, context.isStrict(), this._minWidth === this._maxWidth) === false) {
               return ~position;
             }
             positive = true;
             position++;
-          } else if (sign === context.symbols().negativeSign()) {
+          } else if (sign2 === context.symbols().negativeSign()) {
             if (this._signStyle.parse(false, context.isStrict(), this._minWidth === this._maxWidth) === false) {
               return ~position;
             }
@@ -51277,9 +51277,9 @@ var require_js_joda = __commonJS({
               return context.setParsedField(ChronoField.OFFSET_SECONDS, 0, position, position + noOffsetLen);
             }
           }
-          var sign = text[position];
-          if (sign === "+" || sign === "-") {
-            var negative = sign === "-" ? -1 : 1;
+          var sign2 = text[position];
+          if (sign2 === "+" || sign2 === "-") {
+            var negative = sign2 === "-" ? -1 : 1;
             var array = [0, 0, 0, 0];
             array[0] = position + 1;
             if ((this._parseNumber(array, 1, text, true) || this._parseNumber(array, 2, text, this.type >= 3) || this._parseNumber(array, 3, text, false)) === false) {
@@ -53928,11 +53928,11 @@ var require_js_joda = __commonJS({
           if (this._offset.equals(other._offset)) {
             return this._time.compareTo(other._time);
           }
-          var compare = MathUtil.compareNumbers(this._toEpochNano(), other._toEpochNano());
-          if (compare === 0) {
+          var compare2 = MathUtil.compareNumbers(this._toEpochNano(), other._toEpochNano());
+          if (compare2 === 0) {
             return this._time.compareTo(other._time);
           }
-          return compare;
+          return compare2;
         };
         _proto.equals = function equals(other) {
           if (this === other) {
@@ -55873,15 +55873,15 @@ var require_js_joda = __commonJS({
         _proto.minusNanos = function minusNanos(nanos) {
           return this._plusWithOverflow(this._date, 0, 0, 0, nanos, -1);
         };
-        _proto._plusWithOverflow = function _plusWithOverflow(newDate, hours, minutes, seconds, nanos, sign) {
+        _proto._plusWithOverflow = function _plusWithOverflow(newDate, hours, minutes, seconds, nanos, sign2) {
           if (hours === 0 && minutes === 0 && seconds === 0 && nanos === 0) {
             return this._withDateTime(newDate, this._time);
           }
           var totDays = MathUtil.intDiv(nanos, LocalTime.NANOS_PER_DAY) + MathUtil.intDiv(seconds, LocalTime.SECONDS_PER_DAY) + MathUtil.intDiv(minutes, LocalTime.MINUTES_PER_DAY) + MathUtil.intDiv(hours, LocalTime.HOURS_PER_DAY);
-          totDays *= sign;
+          totDays *= sign2;
           var totNanos = MathUtil.intMod(nanos, LocalTime.NANOS_PER_DAY) + MathUtil.intMod(seconds, LocalTime.SECONDS_PER_DAY) * LocalTime.NANOS_PER_SECOND + MathUtil.intMod(minutes, LocalTime.MINUTES_PER_DAY) * LocalTime.NANOS_PER_MINUTE + MathUtil.intMod(hours, LocalTime.HOURS_PER_DAY) * LocalTime.NANOS_PER_HOUR;
           var curNoD = this._time.toNanoOfDay();
-          totNanos = totNanos * sign + curNoD;
+          totNanos = totNanos * sign2 + curNoD;
           totDays += MathUtil.floorDiv(totNanos, LocalTime.NANOS_PER_DAY);
           var newNoD = MathUtil.floorMod(totNanos, LocalTime.NANOS_PER_DAY);
           var newTime = newNoD === curNoD ? this._time : LocalTime.ofNanoOfDay(newNoD);
@@ -57761,28 +57761,28 @@ var require_decimal = __commonJS({
         if (parameter.value == null) {
           return;
         }
-        const sign = parameter.value < 0 ? 0 : 1;
+        const sign2 = parameter.value < 0 ? 0 : 1;
         const value = Math.round(Math.abs(parameter.value * Math.pow(10, parameter.scale)));
         const precision = parameter.precision;
         if (precision <= 9) {
           const buffer = Buffer.alloc(5);
-          buffer.writeUInt8(sign, 0);
+          buffer.writeUInt8(sign2, 0);
           buffer.writeUInt32LE(value, 1);
           yield buffer;
         } else if (precision <= 19) {
           const buffer = new _writableTrackingBuffer.default(9);
-          buffer.writeUInt8(sign);
+          buffer.writeUInt8(sign2);
           buffer.writeUInt64LE(value);
           yield buffer.data;
         } else if (precision <= 28) {
           const buffer = new _writableTrackingBuffer.default(13);
-          buffer.writeUInt8(sign);
+          buffer.writeUInt8(sign2);
           buffer.writeUInt64LE(value);
           buffer.writeUInt32LE(0);
           yield buffer.data;
         } else {
           const buffer = new _writableTrackingBuffer.default(17);
-          buffer.writeUInt8(sign);
+          buffer.writeUInt8(sign2);
           buffer.writeUInt64LE(value);
           buffer.writeUInt32LE(0);
           buffer.writeUInt32LE(0);
@@ -57907,27 +57907,27 @@ var require_numeric = __commonJS({
         if (parameter.value == null) {
           return;
         }
-        const sign = parameter.value < 0 ? 0 : 1;
+        const sign2 = parameter.value < 0 ? 0 : 1;
         const value = Math.round(Math.abs(parameter.value * Math.pow(10, parameter.scale)));
         if (parameter.precision <= 9) {
           const buffer = Buffer.alloc(5);
-          buffer.writeUInt8(sign, 0);
+          buffer.writeUInt8(sign2, 0);
           buffer.writeUInt32LE(value, 1);
           yield buffer;
         } else if (parameter.precision <= 19) {
           const buffer = new _writableTrackingBuffer.default(10);
-          buffer.writeUInt8(sign);
+          buffer.writeUInt8(sign2);
           buffer.writeUInt64LE(value);
           yield buffer.data;
         } else if (parameter.precision <= 28) {
           const buffer = new _writableTrackingBuffer.default(14);
-          buffer.writeUInt8(sign);
+          buffer.writeUInt8(sign2);
           buffer.writeUInt64LE(value);
           buffer.writeUInt32LE(0);
           yield buffer.data;
         } else {
           const buffer = new _writableTrackingBuffer.default(18);
-          buffer.writeUInt8(sign);
+          buffer.writeUInt8(sign2);
           buffer.writeUInt64LE(value);
           buffer.writeUInt32LE(0);
           buffer.writeUInt32LE(0);
@@ -65110,12 +65110,12 @@ var require_value_parser = __commonJS({
       return new _helpers.Result(options2.lowerCaseGuids ? (0, _guidParser.bufferToLowerCaseGuid)(data) : (0, _guidParser.bufferToUpperCaseGuid)(data), offset);
     }
     function readNumeric(buf, offset, dataLength, _precision, scale) {
-      let sign;
+      let sign2;
       ({
         offset,
-        value: sign
+        value: sign2
       } = (0, _helpers.readUInt8)(buf, offset));
-      sign = sign === 1 ? 1 : -1;
+      sign2 = sign2 === 1 ? 1 : -1;
       let value;
       if (dataLength === 5) {
         ({
@@ -65140,7 +65140,7 @@ var require_value_parser = __commonJS({
       } else {
         throw new Error((0, _sprintfJs.sprintf)("Unsupported numeric dataLength %d", dataLength));
       }
-      return new _helpers.Result(value * sign / Math.pow(10, scale), offset);
+      return new _helpers.Result(value * sign2 / Math.pow(10, scale), offset);
     }
     function readVariant(buf, offset, options2, dataLength) {
       let baseType;
@@ -66358,7 +66358,7 @@ var require_connector = __commonJS({
         throw new _abortError.default();
       }
       const addresses = await lookupAllAddresses(options2.host, lookup, signal);
-      return await new Promise((resolve7, reject) => {
+      return await new Promise((resolve8, reject) => {
         const sockets = new Array(addresses.length);
         const errors = [];
         function onError(err) {
@@ -66382,7 +66382,7 @@ var require_connector = __commonJS({
             socket.removeListener("connect", onConnect);
             socket.destroy();
           }
-          resolve7(this);
+          resolve8(this);
         }
         const onAbort = () => {
           for (let j = 0; j < sockets.length; j++) {
@@ -66415,7 +66415,7 @@ var require_connector = __commonJS({
       const addresses = await lookupAllAddresses(options2.host, lookup, signal);
       for (const address of addresses) {
         try {
-          return await new Promise((resolve7, reject) => {
+          return await new Promise((resolve8, reject) => {
             const socket = _net.default.connect({
               ...options2,
               host: address.address,
@@ -66438,7 +66438,7 @@ var require_connector = __commonJS({
               signal.removeEventListener("abort", onAbort);
               socket.removeListener("error", onError);
               socket.removeListener("connect", onConnect);
-              resolve7(socket);
+              resolve8(socket);
             };
             signal.addEventListener("abort", onAbort, {
               once: true
@@ -66471,7 +66471,7 @@ var require_connector = __commonJS({
           family: 4
         }];
       } else {
-        return await new Promise((resolve7, reject) => {
+        return await new Promise((resolve8, reject) => {
           const onAbort = () => {
             reject(new _abortError.default());
           };
@@ -66481,7 +66481,7 @@ var require_connector = __commonJS({
             all: true
           }, (err, addresses) => {
             signal.removeEventListener("abort", onAbort);
-            err ? reject(err) : resolve7(addresses);
+            err ? reject(err) : resolve8(addresses);
           });
         });
       }
@@ -68149,7 +68149,7 @@ var require_connection = __commonJS({
       }
       wrapWithTls(socket, signal) {
         signal.throwIfAborted();
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve8, reject) => {
           const secureContext = tls.createSecureContext(this.secureContextOptions);
           const serverName = !net.isIP(this.config.server) ? this.config.server : "";
           const encryptOptions = {
@@ -68177,7 +68177,7 @@ var require_connection = __commonJS({
             signal.removeEventListener("abort", onAbort);
             encryptsocket.removeListener("error", onError);
             encryptsocket.removeListener("connect", onConnect);
-            resolve7(encryptsocket);
+            resolve8(encryptsocket);
           };
           signal.addEventListener("abort", onAbort, {
             once: true
@@ -68438,7 +68438,7 @@ var require_connection = __commonJS({
        * @private
        */
       sendPreLogin() {
-        const [, major, minor, build] = /^(\d+)\.(\d+)\.(\d+)/.exec(_package.version) ?? ["0.0.0", "0", "0", "0"];
+        const [, major, minor, build2] = /^(\d+)\.(\d+)\.(\d+)/.exec(_package.version) ?? ["0.0.0", "0", "0", "0"];
         const payload = new _preloginPayload.default({
           // If encrypt setting is set to 'strict', then we should have already done the encryption before calling
           // this function. Therefore, the encrypt will be set to false here.
@@ -68447,7 +68447,7 @@ var require_connection = __commonJS({
           version: {
             major: Number(major),
             minor: Number(minor),
-            build: Number(build),
+            build: Number(build2),
             subbuild: 0
           }
         });
@@ -69840,15 +69840,15 @@ var require_connection_pool2 = __commonJS({
         return cfg;
       }
       _poolCreate() {
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           const resolveOnce = (v) => {
-            resolve7(v);
-            resolve7 = reject = () => {
+            resolve8(v);
+            resolve8 = reject = () => {
             };
           };
           const rejectOnce = (e) => {
             reject(e);
-            resolve7 = reject = () => {
+            resolve8 = reject = () => {
             };
           };
           let tedious;
@@ -69892,9 +69892,9 @@ var require_connection_pool2 = __commonJS({
       }
       _poolValidate(tedious) {
         if (tedious && !tedious.closed && !tedious.hasError) {
-          return !this.config.validateConnection || new shared.Promise((resolve7) => {
+          return !this.config.validateConnection || new shared.Promise((resolve8) => {
             const req = new tds.Request("SELECT 1;", (err) => {
-              resolve7(!err);
+              resolve8(!err);
             });
             tedious.execSql(req);
           });
@@ -69902,19 +69902,19 @@ var require_connection_pool2 = __commonJS({
         return false;
       }
       _poolDestroy(tedious) {
-        return new shared.Promise((resolve7, reject) => {
+        return new shared.Promise((resolve8, reject) => {
           if (!tedious) {
-            resolve7();
+            resolve8();
             return;
           }
           debug("connection(%d): destroying", IDS.get(tedious));
           if (tedious.closed) {
             debug("connection(%d): already closed", IDS.get(tedious));
-            resolve7();
+            resolve8();
           } else {
             tedious.once("end", () => {
               debug("connection(%d): destroyed", IDS.get(tedious));
-              resolve7();
+              resolve8();
             });
             tedious.close();
           }
@@ -71165,7 +71165,10 @@ __export(runGates_exports, {
   stampSourceLabels: () => stampSourceLabels
 });
 module.exports = __toCommonJS(runGates_exports);
-var path7 = __toESM(require("path"));
+var path8 = __toESM(require("path"));
+
+// src/cloudDeploy/environments/types.ts
+var ENVIRONMENTS_FILE_SCHEMA_VERSION = 1;
 
 // src/cloudDeploy/runs/types.ts
 var RUN_RECORD_SCHEMA_VERSION = 1;
@@ -71214,29 +71217,63 @@ var STATUS_LABEL = {
   ["failed" /* Failed */]: "Fail",
   ["errored" /* Errored */]: "Error"
 };
+var STATUS_ICON = {
+  ["passed" /* Passed */]: "\u2705",
+  ["skipped" /* Skipped */]: "\u23ED\uFE0F",
+  ["cancelled" /* Cancelled */]: "\u23F9\uFE0F",
+  ["warning" /* Warning */]: "\u26A0\uFE0F",
+  ["failed" /* Failed */]: "\u274C",
+  ["errored" /* Errored */]: "\u274C"
+};
 var LATENCY_NOISE_FLOOR_MS = 1;
+var CHANGE_SEVERITY_ICON = {
+  pass: "\u2705",
+  warning: "\u26A0\uFE0F",
+  fail: "\u274C"
+};
 function buildPrReport(record, comparison) {
   const conclusion = conclusionForRun(record.status);
   const title = titleForRun(record.status);
   const summary = summaryForRun(record);
-  const lines = [
+  return { conclusion, title, summary, commentBody: renderComment(record, comparison) };
+}
+function renderComment(record, comparison) {
+  const sections = [
     PR_COMMENT_MARKER,
-    "### Cloud Deploy \u2014 schema validation",
+    `## ${runIcon(record.status)} Cloud Deploy \u2014 schema validation`,
     "",
-    `**Result: ${runStatusLabel(record.status)}** \u2014 ${describeSource(record)}`,
-    ""
+    ...headline(record, comparison),
+    "",
+    ...gatesSection(record, comparison)
   ];
-  if (comparison === void 0) {
-    lines.push(...renderResultTable(record.validations));
-  } else {
-    lines.push(...renderComparisonTable(comparison.validations));
-    const regressions = countRegressions(comparison.validations);
-    if (regressions > 0) {
-      lines.push("", `> ${regressions} regression(s) introduced by this change.`);
-    }
+  const changed = whatChangedSection(record, comparison);
+  if (changed.length > 0) {
+    sections.push("", ...changed);
   }
-  return { conclusion, title, summary, commentBody: `${lines.join("\n")}
-` };
+  sections.push("", ...fullDetailsSection(record));
+  sections.push(
+    "",
+    "_Download the run artifacts from the workflow run to open them in the Cloud Deploy dashboard._"
+  );
+  return `${sections.join("\n")}
+`;
+}
+function headline(record, comparison) {
+  const against = comparison !== void 0 ? " against `base`" : "";
+  const verdict = `**${runStatusLabel(record.status)}** \u2014 ${describeSource(record)}${against}.`;
+  return [verdict, "", summarySentence(record, comparison)];
+}
+function summarySentence(record, comparison) {
+  const total = record.validations.length;
+  if (comparison === void 0) {
+    const passed = record.validations.filter((v) => isPass(v.status)).length;
+    return `${passed} of ${total} gate(s) passed.`;
+  }
+  const regressions = countRegressions(comparison.validations);
+  if (regressions === 0) {
+    return `All ${total} gate(s) held \u2014 no regressions against \`base\`.`;
+  }
+  return `**${regressions} of ${total} gate(s) regressed** against \`base\`. See what changed below.`;
 }
 function conclusionForRun(status) {
   switch (status) {
@@ -71267,18 +71304,129 @@ function summaryForRun(record) {
   const passed = record.validations.filter((v) => v.status === "passed" /* Passed */).length;
   return `${passed}/${total} gate(s) passed \u2014 overall ${runStatusLabel(record.status)}.`;
 }
-function renderResultTable(validations) {
-  const rows = validations.map((v) => `| ${v.displayName} | ${STATUS_LABEL[v.status]} |`);
-  return ["| Gate | Result |", "|---|---|", ...rows];
-}
-function renderComparisonTable(deltas) {
-  const rows = deltas.map(
-    (d) => `| ${d.displayName} | ${statusCell(d.statusB)} | ${statusCell(d.statusA)} | ${deltaCell(d)} |`
+function gatesSection(record, comparison) {
+  if (comparison === void 0) {
+    const rows2 = record.validations.map(
+      (v) => `| ${v.displayName} | ${statusCell(v.status)} |`
+    );
+    return ["### Gates", "", "| Gate | Result |", "|---|---|", ...rows2];
+  }
+  const rows = comparison.validations.map(
+    (d) => `| ${d.displayName} | ${optionalStatusCell(d.statusB)} | ${optionalStatusCell(d.statusA)} | ${deltaCell(d)} |`
   );
-  return ["| Gate | This PR | base | \u0394 |", "|---|---|---|---|", ...rows];
+  return ["### Gates", "", "| Gate | This PR | base | \u0394 |", "|---|---|---|---|", ...rows];
 }
 function statusCell(status) {
-  return status === void 0 ? "\u2014" : STATUS_LABEL[status];
+  return `${STATUS_ICON[status]} ${STATUS_LABEL[status]}`;
+}
+function optionalStatusCell(status) {
+  return status === void 0 ? "\u2014" : statusCell(status);
+}
+function whatChangedSection(record, comparison) {
+  const baseStatuses = baseStatusById(comparison);
+  const problems = record.validations.filter((v) => !isPass(v.status) && !isSkip(v.status));
+  if (problems.length === 0) {
+    return [];
+  }
+  const lines = ["### What changed"];
+  for (const v of problems) {
+    const was = baseStatuses.get(v.validationId);
+    const wasNote = was !== void 0 && was !== v.status ? ` _(was ${STATUS_LABEL[was]})_` : "";
+    lines.push(
+      "",
+      `#### ${STATUS_ICON[v.status]} ${v.displayName} \u2014 ${STATUS_LABEL[v.status]}${wasNote}`
+    );
+    const details = detailLines(v);
+    lines.push(...details.length > 0 ? details : ["- No further detail reported."]);
+  }
+  return lines;
+}
+function detailLines(v) {
+  const lines = [];
+  if (v.errorMessage !== void 0 && v.errorMessage.length > 0) {
+    lines.push(`- ${v.errorMessage}`);
+  }
+  for (const finding of v.payload.findings) {
+    if (isProblemFinding(finding)) {
+      lines.push(`- ${renderFinding(finding)}`);
+    }
+  }
+  return lines;
+}
+function renderFinding(f) {
+  switch (f.kind) {
+    case "static-analysis": {
+      const line = f.location?.line !== void 0 ? `:${f.location.line}` : "";
+      const loc = f.location !== void 0 ? ` \`${f.location.file}${line}\`` : "";
+      return `\`${f.ruleId}\` \u2014 ${f.message}${loc}`;
+    }
+    case "unit-tests":
+      return `\`${f.testName}\` \u2014 ${f.message ?? f.outcome}`;
+    case "workload-playback":
+      return `\`${f.stepId}\` (${f.regression}) \u2014 ${f.message}`;
+    case "connectivity":
+      return f.message;
+  }
+}
+function isProblemFinding(f) {
+  switch (f.kind) {
+    case "connectivity":
+      return f.outcome !== "reachable";
+    case "unit-tests":
+      return f.outcome !== "passed";
+    case "static-analysis":
+    case "workload-playback":
+      return true;
+  }
+}
+function fullDetailsSection(record) {
+  const lines = ["<details>", "<summary>Full results \u2014 all gates</summary>", ""];
+  for (const v of record.validations) {
+    lines.push(`**${STATUS_ICON[v.status]} ${v.displayName} \u2014 ${STATUS_LABEL[v.status]}**`, "");
+    const bullets = allFindingLines(v);
+    lines.push(...bullets.length > 0 ? bullets : ["- No findings."], "");
+  }
+  lines.push("</details>");
+  return lines;
+}
+function allFindingLines(v) {
+  const lines = [];
+  if (v.errorMessage !== void 0 && v.errorMessage.length > 0) {
+    lines.push(`- ${v.errorMessage}`);
+  }
+  const changeLines = workloadChangeLines(v);
+  if (changeLines !== void 0) {
+    lines.push(...changeLines);
+    return lines;
+  }
+  for (const finding of v.payload.findings) {
+    lines.push(`- ${renderFinding(finding)}`);
+  }
+  return lines;
+}
+function workloadChangeLines(v) {
+  if (v.payload.validationType !== "workload-playback" /* WorkloadPlayback */ && v.payload.validationType !== "workload-simulation" /* WorkloadSimulation */) {
+    return void 0;
+  }
+  const changes = v.payload.changes;
+  if (changes === void 0 || changes.length === 0) {
+    return void 0;
+  }
+  return changes.map(renderChange);
+}
+function renderChange(c) {
+  return `- ${CHANGE_SEVERITY_ICON[c.severity]} \`${c.stepId}\` \u2014 ${c.message}`;
+}
+function baseStatusById(comparison) {
+  const map = /* @__PURE__ */ new Map();
+  if (comparison !== void 0) {
+    for (const d of comparison.validations) {
+      if (d.statusA !== void 0) {
+        map.set(d.validationId, d.statusA);
+      }
+    }
+  }
+  return map;
 }
 function deltaCell(delta) {
   if (delta.presence === "only-b") {
@@ -71322,6 +71470,15 @@ function shortCommit(commit) {
 }
 function runStatusLabel(status) {
   return STATUS_LABEL[status] ?? status;
+}
+function runIcon(status) {
+  return STATUS_ICON[status] ?? "";
+}
+function isPass(status) {
+  return status === "passed" /* Passed */;
+}
+function isSkip(status) {
+  return status === "skipped" /* Skipped */;
 }
 function signed(value) {
   return value > 0 ? `+${value}` : `${value}`;
@@ -71854,8 +72011,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path8, errorMaps, issueData } = params;
-  const fullPath = [...path8, ...issueData.path || []];
+  const { data, path: path9, errorMaps, issueData } = params;
+  const fullPath = [...path9, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -71971,11 +72128,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path8, key) {
+  constructor(parent, value, path9, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path8;
+    this._path = path9;
     this._key = key;
   }
   get path() {
@@ -75417,9 +75574,6 @@ var coerce = {
 };
 var NEVER = INVALID;
 
-// src/cloudDeploy/environments/types.ts
-var ENVIRONMENTS_FILE_SCHEMA_VERSION = 1;
-
 // src/cloudDeploy/environments/environmentSchema.ts
 var EnvironmentsFileParseError = class extends Error {
   constructor(filePath, message, cause) {
@@ -75445,19 +75599,28 @@ var RuntimeHostSchema = external_exports.discriminatedUnion("kind", [
 ]);
 var SettingsSchema = external_exports.object({}).passthrough();
 var RuntimeValidatorSettingsSchema = external_exports.object({ runtimeHost: RuntimeHostSchema.optional() }).passthrough();
+var SqlProjSourceSchema = external_exports.object({
+  kind: external_exports.literal("sqlproj" /* SqlProj */),
+  path: external_exports.string().min(1)
+}).passthrough();
+var DacpacSourceSchema = external_exports.object({
+  kind: external_exports.literal("dacpac" /* Dacpac */),
+  path: external_exports.string().min(1)
+}).passthrough();
+var ConnectionSourceSchema = external_exports.object({
+  kind: external_exports.literal("connection" /* Connection */),
+  connectionProfileId: external_exports.string().min(1)
+}).passthrough();
+var ShadowSourceSchema = external_exports.object({
+  kind: external_exports.literal("shadow" /* Shadow */),
+  source: external_exports.discriminatedUnion("kind", [ConnectionSourceSchema, DacpacSourceSchema]),
+  projectPath: external_exports.string().min(1).optional()
+}).passthrough();
 var SourceOfTruthSchema = external_exports.discriminatedUnion("kind", [
-  external_exports.object({
-    kind: external_exports.literal("sqlproj" /* SqlProj */),
-    path: external_exports.string().min(1)
-  }).passthrough(),
-  external_exports.object({
-    kind: external_exports.literal("dacpac" /* Dacpac */),
-    path: external_exports.string().min(1)
-  }).passthrough(),
-  external_exports.object({
-    kind: external_exports.literal("connection" /* Connection */),
-    connectionProfileId: external_exports.string().min(1)
-  }).passthrough()
+  SqlProjSourceSchema,
+  DacpacSourceSchema,
+  ConnectionSourceSchema,
+  ShadowSourceSchema
 ]);
 var ValidationConfigSchema = external_exports.discriminatedUnion("type", [
   external_exports.object({
@@ -75477,6 +75640,11 @@ var ValidationConfigSchema = external_exports.discriminatedUnion("type", [
   }).passthrough(),
   external_exports.object({
     type: external_exports.literal("workload-playback" /* WorkloadPlayback */),
+    enabled: external_exports.boolean(),
+    settings: RuntimeValidatorSettingsSchema.default({})
+  }).passthrough(),
+  external_exports.object({
+    type: external_exports.literal("workload-simulation" /* WorkloadSimulation */),
     enabled: external_exports.boolean(),
     settings: RuntimeValidatorSettingsSchema.default({})
   }).passthrough()
@@ -75532,9 +75700,9 @@ function mapZodErrorToIssues(error) {
     severity: "error"
   }));
 }
-function zodPathToJqPath(path8) {
+function zodPathToJqPath(path9) {
   let out = "$";
-  for (const segment of path8) {
+  for (const segment of path9) {
     if (typeof segment === "number") {
       out += `[${segment}]`;
     } else {
@@ -75740,7 +75908,14 @@ var UnitTestFindingSchema = external_exports.object({
 var WorkloadRegressionFindingSchema = external_exports.object({
   kind: external_exports.literal("workload-playback"),
   stepId: external_exports.string().min(1),
-  regression: external_exports.enum(["throughput", "latency", "error-rate", "plan-change"]),
+  regression: external_exports.enum([
+    "throughput",
+    "latency",
+    "error-rate",
+    "plan-change",
+    "logical-reads",
+    "cpu"
+  ]),
   delta: external_exports.number(),
   message: external_exports.string()
 }).passthrough();
@@ -75784,7 +75959,61 @@ var WorkloadPlaybackPayloadSchema = external_exports.object({
       id: external_exports.string().min(1),
       latencyMs: external_exports.number().optional(),
       throughputQps: external_exports.number().optional(),
-      errorRate: external_exports.number().optional()
+      errorRate: external_exports.number().optional(),
+      planHash: external_exports.string().optional(),
+      logicalReads: external_exports.number().optional(),
+      cpuMs: external_exports.number().optional()
+    }).passthrough()
+  ).optional(),
+  changes: external_exports.array(
+    external_exports.object({
+      stepId: external_exports.string().min(1),
+      axis: external_exports.enum([
+        "throughput",
+        "latency",
+        "error-rate",
+        "plan-change",
+        "logical-reads",
+        "cpu"
+      ]),
+      severity: external_exports.enum(["pass", "warning", "fail"]),
+      delta: external_exports.number(),
+      message: external_exports.string()
+    }).passthrough()
+  ).optional()
+}).passthrough();
+var WorkloadSimulationPayloadSchema = external_exports.object({
+  validationType: external_exports.literal("workload-simulation" /* WorkloadSimulation */),
+  findings: external_exports.array(WorkloadRegressionFindingSchema),
+  summary: external_exports.object({
+    steps: external_exports.number().int().nonnegative(),
+    regressions: external_exports.number().int().nonnegative()
+  }).passthrough(),
+  observedSteps: external_exports.array(
+    external_exports.object({
+      id: external_exports.string().min(1),
+      latencyMs: external_exports.number().optional(),
+      throughputQps: external_exports.number().optional(),
+      errorRate: external_exports.number().optional(),
+      planHash: external_exports.string().optional(),
+      logicalReads: external_exports.number().optional(),
+      cpuMs: external_exports.number().optional()
+    }).passthrough()
+  ).optional(),
+  changes: external_exports.array(
+    external_exports.object({
+      stepId: external_exports.string().min(1),
+      axis: external_exports.enum([
+        "throughput",
+        "latency",
+        "error-rate",
+        "plan-change",
+        "logical-reads",
+        "cpu"
+      ]),
+      severity: external_exports.enum(["pass", "warning", "fail"]),
+      delta: external_exports.number(),
+      message: external_exports.string()
     }).passthrough()
   ).optional()
 }).passthrough();
@@ -75792,7 +76021,8 @@ var ValidationPayloadSchema = external_exports.discriminatedUnion("validationTyp
   ConnectivityPayloadSchema,
   StaticAnalysisPayloadSchema,
   UnitTestsPayloadSchema,
-  WorkloadPlaybackPayloadSchema
+  WorkloadPlaybackPayloadSchema,
+  WorkloadSimulationPayloadSchema
 ]);
 var ValidationResultSchema = external_exports.object({
   validationId: external_exports.string().min(1),
@@ -75888,9 +76118,9 @@ function mapZodErrorToIssues2(error) {
     severity: "error"
   }));
 }
-function zodPathToJqPath2(path8) {
+function zodPathToJqPath2(path9) {
   let out = "$";
-  for (const segment of path8) {
+  for (const segment of path9) {
     if (typeof segment === "number") {
       out += `[${segment}]`;
     } else {
@@ -75968,9 +76198,9 @@ function buildZip(record, eventLines) {
     zip.addBuffer(eventsBuf, RUN_EVENTS_ENTRY);
   }
   zip.end();
-  return new Promise((resolve7, reject) => {
+  return new Promise((resolve8, reject) => {
     const chunks = [];
-    zip.outputStream.on("data", (chunk) => chunks.push(chunk)).on("end", () => resolve7(Buffer.concat(chunks))).on("error", reject);
+    zip.outputStream.on("data", (chunk) => chunks.push(chunk)).on("end", () => resolve8(Buffer.concat(chunks))).on("error", reject);
   });
 }
 function errorToMessage(err) {
@@ -76072,7 +76302,7 @@ var RunArtifactReader = class {
   }
 };
 function readZipEntries(buffer, artifactPath) {
-  return new Promise((resolve7, reject) => {
+  return new Promise((resolve8, reject) => {
     yauzl.fromBuffer(buffer, { lazyEntries: true }, (err, zipfile) => {
       if (err || !zipfile) {
         reject(
@@ -76101,7 +76331,7 @@ function readZipEntries(buffer, artifactPath) {
           )
         )
       );
-      zipfile.on("end", () => resolve7(entries));
+      zipfile.on("end", () => resolve8(entries));
       zipfile.on("entry", (entry) => {
         if (/\/$/.test(entry.fileName)) {
           zipfile.readEntry();
@@ -76251,6 +76481,7 @@ var SchemaHasher = class {
    * Computes the `SourceVersion` for `sourceOfTruth`:
    *   * `SqlProj` → list + hash the project's source files.
    *   * `Dacpac` → hash the artifact's bytes.
+   *   * `Shadow` (with a projectPath) → list + hash the synced project's files.
    */
   async hash(sourceOfTruth) {
     switch (sourceOfTruth.kind) {
@@ -76266,6 +76497,13 @@ var SchemaHasher = class {
       }
       case "connection" /* Connection */: {
         throw new SchemaHashUnsupportedError(sourceOfTruth.kind);
+      }
+      case "shadow" /* Shadow */: {
+        if (sourceOfTruth.projectPath === void 0) {
+          throw new SchemaHashUnsupportedError(sourceOfTruth.kind);
+        }
+        const files = await this._reader.listSqlProjFiles(sourceOfTruth.projectPath);
+        return hashSchemaFiles(files);
       }
       default: {
         const exhaustive = sourceOfTruth;
@@ -76412,8 +76650,427 @@ function buildFailedResult(startedAtMs, endedAtMs, err) {
   };
 }
 
-// src/cloudDeploy/validation/validators/staticAnalysisValidator.ts
+// src/cloudDeploy/validation/providers/schemaResolver.ts
+var import_crypto3 = require("crypto");
+var import_fs3 = require("fs");
+var os = __toESM(require("os"));
+var path3 = __toESM(require("path"));
+
+// src/cloudDeploy/validation/providers/processProvider.ts
+var import_child_process = require("child_process");
+var path2 = __toESM(require("path"));
+var DEFAULT_MAX_OUTPUT_BYTES = 5 * 1024 * 1024;
+var SIGKILL_GRACE_MS = 250;
+var LiveProcessProvider = class {
+  constructor(_defaultCwd) {
+    this._defaultCwd = _defaultCwd;
+  }
+  spawn(command, args, opts) {
+    return new Promise((resolve8, reject) => {
+      const max = opts.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES;
+      const stdoutBuf = new BoundedBuffer(max);
+      const stderrBuf = new BoundedBuffer(max);
+      let aborted = false;
+      let killTimer;
+      const cwd = opts.cwd ?? this._defaultCwd;
+      const resolvedCommand = resolveCommandPath(command, cwd);
+      const useShell = needsShell(resolvedCommand);
+      const spawnOpts = {
+        cwd,
+        env: opts.env,
+        shell: useShell,
+        windowsHide: true
+      };
+      let child;
+      try {
+        child = (0, import_child_process.spawn)(quoteForShell(resolvedCommand, useShell), [...args], spawnOpts);
+      } catch (err) {
+        reject(err);
+        return;
+      }
+      child.stdout?.on("data", (chunk) => stdoutBuf.append(chunk));
+      child.stderr?.on("data", (chunk) => stderrBuf.append(chunk));
+      const onAbort = () => {
+        aborted = true;
+        terminate(child);
+        killTimer = setTimeout(() => {
+          if (child.exitCode === null && child.signalCode === null) {
+            try {
+              child.kill("SIGKILL");
+            } catch {
+            }
+          }
+        }, SIGKILL_GRACE_MS);
+      };
+      if (opts.signal.aborted) {
+        onAbort();
+      } else {
+        opts.signal.addEventListener("abort", onAbort, { once: true });
+      }
+      if (opts.stdin !== void 0) {
+        child.stdin?.end(opts.stdin);
+      } else {
+        child.stdin?.end();
+      }
+      child.on("error", (err) => {
+        opts.signal.removeEventListener("abort", onAbort);
+        if (killTimer) {
+          clearTimeout(killTimer);
+        }
+        reject(err);
+      });
+      child.on("close", (code, signal) => {
+        opts.signal.removeEventListener("abort", onAbort);
+        if (killTimer) {
+          clearTimeout(killTimer);
+        }
+        resolve8({
+          exitCode: code,
+          stdout: stdoutBuf.toString(),
+          stderr: stderrBuf.toString(),
+          signal: signal ?? void 0,
+          aborted,
+          truncated: stdoutBuf.overflowed || stderrBuf.overflowed
+        });
+      });
+    });
+  }
+};
+var BoundedBuffer = class {
+  constructor(cap) {
+    this.cap = cap;
+  }
+  _chunks = [];
+  _size = 0;
+  _overflowed = false;
+  get overflowed() {
+    return this._overflowed;
+  }
+  append(chunk) {
+    if (this._size >= this.cap) {
+      this._overflowed = true;
+      return;
+    }
+    const room = this.cap - this._size;
+    if (chunk.length <= room) {
+      this._chunks.push(chunk);
+      this._size += chunk.length;
+      return;
+    }
+    this._chunks.push(chunk.subarray(0, room));
+    this._size = this.cap;
+    this._overflowed = true;
+  }
+  toString() {
+    const joined = Buffer.concat(this._chunks, this._size).toString("utf-8");
+    return this._overflowed ? joined + "\n[output truncated]" : joined;
+  }
+};
+function terminate(child) {
+  if (child.exitCode !== null || child.signalCode !== null) {
+    return;
+  }
+  try {
+    child.kill("SIGTERM");
+  } catch {
+  }
+}
+function needsShell(command) {
+  return process.platform === "win32" && /\.(bat|cmd)$/i.test(command);
+}
+function resolveCommandPath(command, base) {
+  if (!/[\\/]/.test(command) || path2.isAbsolute(command)) {
+    return command;
+  }
+  return path2.resolve(base ?? process.cwd(), command);
+}
+function quoteForShell(command, useShell) {
+  if (!useShell || !/\s/.test(command) || command.startsWith('"')) {
+    return command;
+  }
+  return `"${command}"`;
+}
+function describeProcessFailure(result) {
+  const stderr = result.stderr.trim();
+  const stdout = result.stdout.trim();
+  const detail = stderr.length > 0 ? stderr : stdout;
+  const exit = typeof result.exitCode === "number" ? `exit ${result.exitCode}` : `signal ${result.signal ?? "unknown"}`;
+  return detail.length > 0 ? `${exit}: ${detail}` : exit;
+}
+
+// src/cloudDeploy/validation/providers/schemaResolver.ts
 var DEFAULT_DOTNET_COMMAND = "dotnet";
+var DEFAULT_SQLPACKAGE_COMMAND = "sqlpackage";
+var SHADOW_PROJECT_NAME = "ShadowDb";
+var SHADOW_SQL_SDK_VERSION = "1.0.0";
+var SHADOW_TARGET_PLATFORM = "Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider";
+var SchemaResolutionError = class extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.cause = cause;
+    this.name = "SchemaResolutionError";
+  }
+};
+async function resolveSchemaToDacpac(sourceOfTruth, processes, options2, signal) {
+  switch (sourceOfTruth.kind) {
+    case "dacpac" /* Dacpac */:
+      return {
+        dacpacPath: resolveAgainstWorkspace(sourceOfTruth.path, options2.workspaceRoot),
+        dispose: async () => {
+        }
+      };
+    case "sqlproj" /* SqlProj */:
+      return buildSqlProj(sourceOfTruth.path, processes, options2, signal);
+    case "connection" /* Connection */:
+      return extractLiveDatabase(
+        sourceOfTruth.connectionProfileId,
+        processes,
+        options2,
+        signal
+      );
+    case "shadow" /* Shadow */:
+      return sourceOfTruth.projectPath !== void 0 ? buildSqlProj(
+        shadowProjectFilePath(sourceOfTruth.projectPath),
+        processes,
+        options2,
+        signal
+      ) : resolveShadowProject(sourceOfTruth.source, processes, options2, signal);
+    default: {
+      const exhaustive = sourceOfTruth;
+      throw new SchemaResolutionError(
+        `Unsupported source-of-truth kind: ${JSON.stringify(exhaustive)}`
+      );
+    }
+  }
+}
+async function buildSqlProj(projectRelativeOrAbsolutePath, processes, options2, signal) {
+  const dotnetCommand = options2.dotnetCommand ?? DEFAULT_DOTNET_COMMAND;
+  const projectPath = resolveAgainstWorkspace(
+    projectRelativeOrAbsolutePath,
+    options2.workspaceRoot
+  );
+  const usesTempDir = options2.buildOutputDirectory === void 0;
+  const buildRoot = options2.buildOutputDirectory ?? makeTempBuildDir();
+  const binDir = usesTempDir ? path3.join(buildRoot, "bin") : buildRoot;
+  const args = ["build", projectPath, "/nologo", "/p:NetCoreBuild=true", "-o", binDir];
+  if (usesTempDir) {
+    args.push(`/p:BaseIntermediateOutputPath=${path3.join(buildRoot, "obj")}${path3.sep}`);
+  }
+  try {
+    await runProcess(
+      processes,
+      dotnetCommand,
+      args,
+      signal,
+      "build the SQL project into a dacpac"
+    );
+  } catch (err) {
+    await removeDirIf(usesTempDir, buildRoot);
+    throw err;
+  }
+  return {
+    dacpacPath: dacpacPathFor(projectPath, binDir),
+    dispose: () => removeDirIf(usesTempDir, buildRoot)
+  };
+}
+async function extractLiveDatabase(connectionProfileId, processes, options2, signal) {
+  const resolver = options2.sourceConnectionStringResolver;
+  if (resolver === void 0) {
+    throw new SchemaResolutionError(
+      "A live-database source of truth requires a connection resolver, but none was wired."
+    );
+  }
+  const sqlpackageCommand = options2.sqlpackageCommand ?? DEFAULT_SQLPACKAGE_COMMAND;
+  let sourceConnectionString;
+  try {
+    sourceConnectionString = await resolver(connectionProfileId, signal);
+  } catch (err) {
+    throw new SchemaResolutionError(
+      `Failed to resolve the source database connection "${connectionProfileId}": ${errorText(err)}`,
+      err
+    );
+  }
+  const extractDir = makeTempBuildDir();
+  const dacpacPath = path3.join(extractDir, "extracted-source.dacpac");
+  try {
+    await import_fs3.promises.mkdir(extractDir, { recursive: true });
+    await runProcess(
+      processes,
+      sqlpackageCommand,
+      [
+        "/Action:Extract",
+        `/SourceConnectionString:${sourceConnectionString}`,
+        `/TargetFile:${dacpacPath}`,
+        "/p:ExtractAllTableData=false"
+      ],
+      signal,
+      "extract the live database schema"
+    );
+  } catch (err) {
+    await removeDir(extractDir);
+    throw err;
+  }
+  return {
+    dacpacPath,
+    dispose: () => removeDir(extractDir)
+  };
+}
+async function resolveShadowProject(source, processes, options2, signal) {
+  if (source.kind === "dacpac" /* Dacpac */) {
+    throw new SchemaResolutionError(
+      "Shadow decomposition of a dacpac is not supported yet; use a live connection source."
+    );
+  }
+  const resolver = options2.sourceConnectionStringResolver;
+  if (resolver === void 0) {
+    throw new SchemaResolutionError(
+      "A shadow (decomposed) source of truth requires a connection resolver, but none was wired."
+    );
+  }
+  const sqlpackageCommand = options2.sqlpackageCommand ?? DEFAULT_SQLPACKAGE_COMMAND;
+  let sourceConnectionString;
+  try {
+    sourceConnectionString = await resolver(source.connectionProfileId, signal);
+  } catch (err) {
+    throw new SchemaResolutionError(
+      `Failed to resolve the source database connection "${source.connectionProfileId}": ${errorText(err)}`,
+      err
+    );
+  }
+  const shadowRoot = makeTempBuildDir();
+  const projectDir = path3.join(shadowRoot, "proj");
+  let built;
+  try {
+    await decomposeConnectionToProject(
+      sourceConnectionString,
+      projectDir,
+      SHADOW_PROJECT_NAME,
+      processes,
+      sqlpackageCommand,
+      signal
+    );
+    built = await buildSqlProj(
+      path3.join(projectDir, `${SHADOW_PROJECT_NAME}.sqlproj`),
+      processes,
+      options2,
+      signal
+    );
+  } catch (err) {
+    await removeDir(shadowRoot);
+    throw err;
+  }
+  return {
+    dacpacPath: built.dacpacPath,
+    dispose: async () => {
+      await built.dispose();
+      await removeDir(shadowRoot);
+    }
+  };
+}
+function shadowProjectFile(projectName) {
+  return [
+    `<Project Sdk="Microsoft.Build.Sql/${SHADOW_SQL_SDK_VERSION}">`,
+    "    <PropertyGroup>",
+    `        <Name>${projectName}</Name>`,
+    `        <DSP>${SHADOW_TARGET_PLATFORM}</DSP>`,
+    "    </PropertyGroup>",
+    "</Project>",
+    ""
+  ].join("\n");
+}
+function shadowProjectName(projectPath) {
+  return path3.basename(projectPath);
+}
+function shadowProjectFilePath(projectPath) {
+  return path3.join(projectPath, `${shadowProjectName(projectPath)}.sqlproj`);
+}
+async function decomposeConnectionToProject(sourceConnectionString, targetProjectDir, projectName, processes, sqlpackageCommand, signal) {
+  await import_fs3.promises.mkdir(path3.dirname(targetProjectDir), { recursive: true });
+  await removeDir(targetProjectDir);
+  await runProcess(
+    processes,
+    sqlpackageCommand,
+    [
+      "/Action:Extract",
+      `/SourceConnectionString:${sourceConnectionString}`,
+      `/TargetFile:${targetProjectDir}`,
+      "/p:ExtractTarget=SchemaObjectType",
+      "/p:ExtractAllTableData=false"
+    ],
+    signal,
+    "decompose the database into a shadow project"
+  );
+  await import_fs3.promises.mkdir(targetProjectDir, { recursive: true });
+  await normalizeSqlTree(targetProjectDir);
+  await import_fs3.promises.writeFile(
+    path3.join(targetProjectDir, `${projectName}.sqlproj`),
+    shadowProjectFile(projectName),
+    "utf8"
+  );
+}
+async function normalizeSqlTree(dir) {
+  const entries = await import_fs3.promises.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path3.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await normalizeSqlTree(full);
+    } else if (entry.name.toLowerCase().endsWith(".sql")) {
+      const raw = await import_fs3.promises.readFile(full, "utf8");
+      await import_fs3.promises.writeFile(full, normalizeSqlText(raw), "utf8");
+    }
+  }
+}
+function normalizeSqlText(text) {
+  const lines = text.split(/\r\n|\r|\n/).map((line) => line.replace(/[ \t]+$/, ""));
+  while (lines.length > 0 && lines[lines.length - 1] === "") {
+    lines.pop();
+  }
+  return `${lines.join("\n")}
+`;
+}
+function resolveAgainstWorkspace(p, workspaceRoot) {
+  if (path3.isAbsolute(p) || workspaceRoot === void 0) {
+    return p;
+  }
+  return path3.resolve(workspaceRoot, p);
+}
+function makeTempBuildDir() {
+  return path3.join(os.tmpdir(), `cloud-deploy-build-${(0, import_crypto3.randomUUID)()}`);
+}
+function dacpacPathFor(sqlprojPath, outputDir) {
+  const base = path3.basename(sqlprojPath).replace(/\.sqlproj$/i, "");
+  return path3.join(outputDir, `${base}.dacpac`);
+}
+async function removeDirIf(when, dir) {
+  if (!when) {
+    return;
+  }
+  await removeDir(dir);
+}
+async function removeDir(dir) {
+  await import_fs3.promises.rm(dir, { recursive: true, force: true }).catch(() => void 0);
+}
+async function runProcess(processes, command, args, signal, action) {
+  let result;
+  try {
+    result = await processes.spawn(command, args, { signal });
+  } catch (err) {
+    throw new SchemaResolutionError(`Failed to ${action}: ${errorText(err)}`, err);
+  }
+  if (result.aborted) {
+    throw new SchemaResolutionError(`Cancelled while trying to ${action}.`);
+  }
+  if (result.exitCode !== 0) {
+    throw new SchemaResolutionError(`Failed to ${action}: ${describeProcessFailure(result)}`);
+  }
+  return result;
+}
+function errorText(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
+// src/cloudDeploy/validation/validators/staticAnalysisValidator.ts
+var DEFAULT_DOTNET_COMMAND2 = "dotnet";
 var MSBUILD_DIAGNOSTIC_LINE = /^(?:(.+?)\((\d+),(\d+)(?:,\d+,\d+)?\)\s*:\s*)?(?:[^:]*?\s+)?(warning|error)\s+((?:SQL|SR)\d+)\s*:\s*(.+)$/i;
 var MSBUILD_PROJECT_ANNOTATION = /\s*\[[^\]]*\.sqlproj\]\s*$/i;
 var OUTPUT_EXCERPT_BYTES = 1024;
@@ -76439,15 +77096,15 @@ var StaticAnalysisValidator = class {
         SKIPPED_DACPAC_PREBUILT_MESSAGE
       );
     }
-    if (sot.kind !== "sqlproj" /* SqlProj */) {
+    const projectPath = staticAnalysisProjectPath(sot);
+    if (projectPath === void 0) {
       return buildSkippedResult(
         startedAtMs,
         RULE_ID_SOURCE_UNSUPPORTED,
         SKIPPED_NEEDS_PROJECT_MESSAGE
       );
     }
-    const projectPath = sot.path;
-    const command = this._opts.dotnetCommand ?? DEFAULT_DOTNET_COMMAND;
+    const command = this._opts.dotnetCommand ?? DEFAULT_DOTNET_COMMAND2;
     const args = buildDotnetArgs(projectPath, this._opts.systemDacpacsLocation);
     let result;
     try {
@@ -76475,6 +77132,15 @@ var StaticAnalysisValidator = class {
     return buildFailedResult2([synthesizeFailureFinding(result)], startedAtMs);
   }
 };
+function staticAnalysisProjectPath(sot) {
+  if (sot.kind === "sqlproj" /* SqlProj */) {
+    return sot.path;
+  }
+  if (sot.kind === "shadow" /* Shadow */ && sot.projectPath !== void 0) {
+    return shadowProjectFilePath(sot.projectPath);
+  }
+  return void 0;
+}
 function buildDotnetArgs(projectPath, systemDacpacsLocation) {
   const args = [
     "build",
@@ -76776,7 +77442,7 @@ function buildSkippedConnectionFailure(startedAtMs, endedAtMs, err) {
 }
 
 // src/cloudDeploy/validation/providers/artifactProvider.ts
-var path2 = __toESM(require("path"));
+var path4 = __toESM(require("path"));
 var ArtifactNotFoundError = class extends Error {
   constructor(uri, message) {
     super(message ?? `Artifact not found: ${uri}`);
@@ -76808,10 +77474,10 @@ var LiveArtifactProvider = class {
    * and the no-base-dir case are returned unchanged.
    */
   _resolve(uri) {
-    if (this._baseDir === void 0 || path2.isAbsolute(uri)) {
+    if (this._baseDir === void 0 || path4.isAbsolute(uri)) {
       return uri;
     }
-    return path2.resolve(this._baseDir, uri);
+    return path4.resolve(this._baseDir, uri);
   }
 };
 function isEnoent2(err) {
@@ -76823,6 +77489,10 @@ var DISPLAY_NAME2 = "Workload Playback";
 var DEFAULT_LATENCY_THRESHOLD = 0.25;
 var DEFAULT_THROUGHPUT_THRESHOLD = 0.25;
 var DEFAULT_ERROR_RATE_THRESHOLD = 0.05;
+var DEFAULT_LOGICAL_READS_THRESHOLD = 0.25;
+var DEFAULT_CPU_THRESHOLD = 0.25;
+var NOTABLE_LATENCY_DRIFT = 0.1;
+var NOTABLE_CPU_DRIFT = 0.02;
 var SKIPPED_NEEDS_DATABASE_MESSAGE = "Workload playback needs a provisioned validation database; none was available for this run.";
 var SKIPPED_MISSING_WORKLOAD_URI_MESSAGE = "WorkloadPlaybackSettings.workloadUri is not configured.";
 var SKIPPED_EMPTY_SPEC_MESSAGE = "The workload spec declares no measurable steps.";
@@ -76877,10 +77547,11 @@ var WorkloadPlaybackValidator = class {
     }
     const observed = [];
     try {
-      for (const step of spec) {
+      for (let i = 0; i < spec.length; i++) {
+        const step = spec[i];
         throwIfCancelled(opts.signal);
-        const latencyMs = await measureStep(connection, step, opts.signal);
-        observed.push({ id: step.id, latencyMs });
+        const measured = await measureStep(connection, step, i, opts.signal);
+        observed.push({ id: step.id, ...measured });
       }
     } catch (err) {
       if (err instanceof CancellationError) {
@@ -76897,21 +77568,75 @@ var WorkloadPlaybackValidator = class {
       return buildFirstRunResult(observedSteps, startedAtMs);
     }
     const thresholds = resolveThresholds(config);
-    const findings = compareSteps(toWorkloadSteps(baseline), observed, thresholds);
-    return buildComparisonResult(findings, observedSteps, startedAtMs);
+    const baselineSteps = toWorkloadSteps(baseline);
+    const findings = compareSteps(baselineSteps, observed, thresholds);
+    const changes = computeChanges(baselineSteps, observed, thresholds);
+    return buildComparisonResult(findings, changes, observedSteps, startedAtMs);
   }
 };
-async function measureStep(connection, step, signal) {
+function planMarker(index) {
+  return `/* mssql-cd-wl-${index} */`;
+}
+async function measureStep(connection, step, index, signal) {
+  const markedQuery = `${planMarker(index)}
+${step.query}`;
   const samples = [];
   for (let i = 0; i < step.iterations; i++) {
     throwIfCancelled(signal);
     const started = Date.now();
-    await connection.execute(step.query, signal);
+    await connection.execute(markedQuery, signal);
     samples.push(Date.now() - started);
   }
-  samples.sort((a, b) => a - b);
-  const mid = Math.floor(samples.length / 2);
-  return samples.length % 2 === 0 ? (samples[mid - 1] + samples[mid]) / 2 : samples[mid];
+  const stats = await capturePlanAndIo(connection, planMarker(index), signal);
+  return { latencyMs: median(samples), ...stats };
+}
+function median(samples) {
+  const sorted = [...samples].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+async function capturePlanAndIo(connection, marker, signal) {
+  try {
+    const rows = await connection.execute(buildQueryStatsSql(marker), signal);
+    const first = rows[0];
+    if (!Array.isArray(first)) {
+      return {};
+    }
+    const planHash = typeof first[0] === "string" ? first[0] : void 0;
+    const workerTimeUs = toFiniteNumber(first[2]);
+    return {
+      planHash,
+      logicalReads: toFiniteNumber(first[1]),
+      cpuMs: workerTimeUs === void 0 ? void 0 : workerTimeUs / 1e3
+    };
+  } catch {
+    return {};
+  }
+}
+function buildQueryStatsSql(marker) {
+  return [
+    "SELECT TOP 1",
+    "CONVERT(VARCHAR(34), qs.query_plan_hash, 1) AS plan_hash,",
+    "qs.last_logical_reads AS logical_reads,",
+    "qs.last_worker_time AS worker_time_us",
+    "FROM sys.dm_exec_query_stats AS qs",
+    "CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS st",
+    `WHERE st.text LIKE '${marker}%' AND st.text NOT LIKE '%sys.dm_exec_query_stats%'`,
+    "ORDER BY qs.last_execution_time DESC;"
+  ].join(" ");
+}
+function toFiniteNumber(value) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : void 0;
+  }
+  if (typeof value === "bigint") {
+    return Number(value);
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : void 0;
+  }
+  return void 0;
 }
 var DEFAULT_STEP_ITERATIONS = 5;
 function parseWorkloadSpec(buf) {
@@ -76948,7 +77673,10 @@ function toObservedSteps(steps) {
     id: s.id,
     ...s.latencyMs !== void 0 ? { latencyMs: s.latencyMs } : {},
     ...s.throughputQps !== void 0 ? { throughputQps: s.throughputQps } : {},
-    ...s.errorRate !== void 0 ? { errorRate: s.errorRate } : {}
+    ...s.errorRate !== void 0 ? { errorRate: s.errorRate } : {},
+    ...s.planHash !== void 0 ? { planHash: s.planHash } : {},
+    ...s.logicalReads !== void 0 ? { logicalReads: s.logicalReads } : {},
+    ...s.cpuMs !== void 0 ? { cpuMs: s.cpuMs } : {}
   }));
 }
 function toWorkloadSteps(steps) {
@@ -76956,14 +77684,19 @@ function toWorkloadSteps(steps) {
     id: s.id,
     latencyMs: s.latencyMs,
     throughputQps: s.throughputQps,
-    errorRate: s.errorRate
+    errorRate: s.errorRate,
+    planHash: s.planHash,
+    logicalReads: s.logicalReads,
+    cpuMs: s.cpuMs
   }));
 }
 function resolveThresholds(config) {
   return {
     latency: config.latencyRegressionThreshold ?? DEFAULT_LATENCY_THRESHOLD,
     throughput: config.throughputRegressionThreshold ?? DEFAULT_THROUGHPUT_THRESHOLD,
-    errorRate: config.errorRateThreshold ?? DEFAULT_ERROR_RATE_THRESHOLD
+    errorRate: config.errorRateThreshold ?? DEFAULT_ERROR_RATE_THRESHOLD,
+    logicalReads: config.logicalReadsRegressionThreshold ?? DEFAULT_LOGICAL_READS_THRESHOLD,
+    cpu: DEFAULT_CPU_THRESHOLD
   };
 }
 function compareSteps(baseline, observed, thresholds) {
@@ -76992,6 +77725,14 @@ function compareSteps(baseline, observed, thresholds) {
     const planFinding = comparePlanHash(base, obs);
     if (planFinding !== void 0) {
       findings.push(planFinding);
+    }
+    const logicalReadsFinding = compareLogicalReads(base, obs, thresholds.logicalReads);
+    if (logicalReadsFinding !== void 0) {
+      findings.push(logicalReadsFinding);
+    }
+    const cpuFinding = compareCpu(base, obs, thresholds.cpu);
+    if (cpuFinding !== void 0) {
+      findings.push(cpuFinding);
     }
   }
   return findings;
@@ -77059,10 +77800,42 @@ function comparePlanHash(base, obs) {
     message: `Plan change: baseline ${base.planHash}, observed ${obs.planHash}.`
   };
 }
+function compareLogicalReads(base, obs, threshold) {
+  if (base.logicalReads === void 0 || obs.logicalReads === void 0 || base.logicalReads <= 0) {
+    return void 0;
+  }
+  const ratio = (obs.logicalReads - base.logicalReads) / base.logicalReads;
+  if (ratio <= threshold) {
+    return void 0;
+  }
+  return {
+    kind: "workload-playback",
+    stepId: base.id,
+    regression: "logical-reads",
+    delta: ratio,
+    message: `Logical-reads regression: ${formatPercent(ratio)} (baseline ${base.logicalReads} pages, observed ${obs.logicalReads} pages).`
+  };
+}
+function compareCpu(base, obs, threshold) {
+  if (base.cpuMs === void 0 || obs.cpuMs === void 0 || base.cpuMs <= 0) {
+    return void 0;
+  }
+  const ratio = (obs.cpuMs - base.cpuMs) / base.cpuMs;
+  if (ratio <= threshold) {
+    return void 0;
+  }
+  return {
+    kind: "workload-playback",
+    stepId: base.id,
+    regression: "cpu",
+    delta: ratio,
+    message: `CPU regression: ${formatPercent(ratio)} (baseline ${base.cpuMs.toFixed(1)} ms, observed ${obs.cpuMs.toFixed(1)} ms).`
+  };
+}
 function formatPercent(ratio) {
   return `${(ratio * 100).toFixed(1)}%`;
 }
-function buildComparisonResult(findings, observedSteps, startedAtMs) {
+function buildComparisonResult(findings, changes, observedSteps, startedAtMs) {
   const payload = {
     validationType: "workload-playback" /* WorkloadPlayback */,
     findings,
@@ -77070,16 +77843,127 @@ function buildComparisonResult(findings, observedSteps, startedAtMs) {
       steps: observedSteps.length,
       regressions: findings.length
     },
-    observedSteps
+    observedSteps,
+    ...changes.length > 0 ? { changes } : {}
   };
   return {
     validationId: "workload-playback" /* WorkloadPlayback */,
     displayName: DISPLAY_NAME2,
-    status: findings.length === 0 ? "passed" /* Passed */ : "warning" /* Warning */,
+    status: decideStatus(findings),
     startedAtMs,
     endedAtMs: Date.now(),
     payload
   };
+}
+function decideStatus(findings) {
+  if (findings.length === 0) {
+    return "passed" /* Passed */;
+  }
+  const hasHardSignal = findings.some(
+    (f) => f.regression === "logical-reads" || f.regression === "error-rate"
+  );
+  const latencyStepIds = new Set(
+    findings.filter((f) => f.regression === "latency").map((f) => f.stepId)
+  );
+  const planChangeWithCost = findings.some(
+    (f) => f.regression === "plan-change" && latencyStepIds.has(f.stepId)
+  );
+  return hasHardSignal || planChangeWithCost ? "failed" /* Failed */ : "warning" /* Warning */;
+}
+function computeChanges(baseline, observed, thresholds) {
+  const observedById = /* @__PURE__ */ new Map();
+  for (const step of observed) {
+    observedById.set(step.id, step);
+  }
+  const changes = [];
+  for (const base of baseline) {
+    const obs = observedById.get(base.id);
+    if (obs === void 0) {
+      continue;
+    }
+    const plan = planChangeDrift(base, obs);
+    if (plan !== void 0) {
+      changes.push(plan);
+    }
+    const reads = metricDrift(base.id, "logical-reads", base.logicalReads, obs.logicalReads, {
+      threshold: thresholds.logicalReads,
+      notable: 0,
+      overSeverity: "fail",
+      unit: "pages"
+    });
+    if (reads !== void 0) {
+      changes.push(reads);
+    }
+    const cpu = metricDrift(base.id, "cpu", base.cpuMs, obs.cpuMs, {
+      threshold: thresholds.cpu,
+      notable: NOTABLE_CPU_DRIFT,
+      overSeverity: "warning",
+      unit: "ms"
+    });
+    if (cpu !== void 0) {
+      changes.push(cpu);
+    }
+    const latency = metricDrift(base.id, "latency", base.latencyMs, obs.latencyMs, {
+      threshold: thresholds.latency,
+      notable: NOTABLE_LATENCY_DRIFT,
+      overSeverity: "warning",
+      unit: "ms"
+    });
+    if (latency !== void 0) {
+      changes.push(latency);
+    }
+  }
+  return changes;
+}
+function planChangeDrift(base, obs) {
+  if (base.planHash === void 0 || obs.planHash === void 0 || base.planHash === obs.planHash) {
+    return void 0;
+  }
+  return {
+    stepId: base.id,
+    axis: "plan-change",
+    severity: "warning",
+    delta: 0,
+    message: `Plan changed: ${base.planHash} \u2192 ${obs.planHash}.`
+  };
+}
+function metricDrift(stepId, axis, baseValue, obsValue, spec) {
+  if (baseValue === void 0 || obsValue === void 0 || baseValue <= 0) {
+    return void 0;
+  }
+  const ratio = (obsValue - baseValue) / baseValue;
+  const drifted = spec.notable === 0 ? obsValue !== baseValue : Math.abs(ratio) >= spec.notable;
+  if (!drifted) {
+    return void 0;
+  }
+  const severity = ratio > spec.threshold ? spec.overSeverity : "pass";
+  return {
+    stepId,
+    axis,
+    severity,
+    delta: ratio,
+    message: `${axisLabel(axis)} ${formatSignedPercent(ratio)} (${baseValue} \u2192 ${obsValue} ${spec.unit}).`
+  };
+}
+function axisLabel(axis) {
+  switch (axis) {
+    case "logical-reads":
+      return "Logical reads";
+    case "cpu":
+      return "CPU";
+    case "latency":
+      return "Latency";
+    case "throughput":
+      return "Throughput";
+    case "error-rate":
+      return "Error rate";
+    case "plan-change":
+      return "Plan";
+  }
+}
+function formatSignedPercent(ratio) {
+  const pct2 = (ratio * 100).toFixed(1);
+  return ratio >= 0 ? `+${pct2}%` : `${pct2}%`;
 }
 function buildFirstRunResult(observedSteps, startedAtMs) {
   const payload = {
@@ -77143,6 +78027,299 @@ function buildSkippedResult2(syntheticStepId, message, startedAtMs) {
   };
 }
 
+// src/cloudDeploy/validation/validators/workloadSimulationValidator.ts
+var import_fs4 = require("fs");
+var path5 = __toESM(require("path"));
+
+// src/cloudDeploy/validation/providers/workloadSimulationEngine.ts
+var WorkloadSimulationEngineError = class extends Error {
+  constructor(message, detail) {
+    super(message);
+    this.detail = detail;
+    this.name = "WorkloadSimulationEngineError";
+  }
+};
+async function measureWorkloadSimulation(engine, processes, options2, signal) {
+  const totalBatches = options2.threads * options2.iterations;
+  const runtimes = [];
+  const throughputs = [];
+  const latencies = [];
+  for (let pass = 0; pass < Math.max(1, options2.runs); pass++) {
+    const parsed = await runOnce(engine, processes, options2, signal);
+    const runtime = parsed.metrics?.total_runtime_seconds;
+    const execTime = parsed.metrics?.total_query_execution_time_seconds;
+    if (parsed.success !== true || typeof runtime !== "number" || runtime <= 0) {
+      const firstError = parsed.metrics?.errors?.list?.find(
+        (e) => e.message !== void 0 && e.message.length > 0
+      )?.message;
+      const detail = firstError !== void 0 ? ` First error: ${firstError}` : "";
+      throw new WorkloadSimulationEngineError(
+        `sqlpysim reported failure or an unusable runtime (success=${parsed.success}, runtime=${runtime}).${detail}`
+      );
+    }
+    const batches = parsed.configuration?.total_batches ?? totalBatches;
+    runtimes.push(runtime);
+    throughputs.push(batches / runtime);
+    latencies.push(
+      typeof execTime === "number" && batches > 0 ? execTime / batches * 1e3 : 0
+    );
+  }
+  return {
+    throughputPerSec: median2(throughputs),
+    avgLatencyMs: median2(latencies),
+    runtimeSeconds: median2(runtimes),
+    totalBatches
+  };
+}
+async function runOnce(engine, processes, options2, signal) {
+  const args = [
+    engine.sqlpysimPath,
+    "-c",
+    options2.connectionString,
+    "-i",
+    options2.workloadPath,
+    "-n",
+    String(options2.threads),
+    "-r",
+    String(options2.iterations),
+    "-json",
+    "-q"
+  ];
+  const result = await processes.spawn(engine.pythonCommand, args, { signal });
+  if (result.aborted) {
+    throw new WorkloadSimulationEngineError("sqlpysim run was aborted.");
+  }
+  return parseJson(result.stdout);
+}
+function parseJson(stdout) {
+  const start = stdout.indexOf("{");
+  if (start < 0) {
+    throw new WorkloadSimulationEngineError("sqlpysim produced no JSON output.");
+  }
+  try {
+    return JSON.parse(stdout.slice(start));
+  } catch (err) {
+    throw new WorkloadSimulationEngineError("Failed to parse sqlpysim JSON output.", err);
+  }
+}
+function median2(samples) {
+  const sorted = [...samples].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+// src/cloudDeploy/validation/validators/workloadSimulationValidator.ts
+var DISPLAY_NAME3 = "Workload Simulation";
+var OBSERVED_STEP_ID = "workload";
+var DEFAULT_THREADS = 8;
+var DEFAULT_ITERATIONS = 100;
+var DEFAULT_RUNS = 3;
+var DEFAULT_THROUGHPUT_THRESHOLD2 = 0.25;
+var DEFAULT_LATENCY_THRESHOLD2 = 0.25;
+var SKIPPED_NEEDS_DATABASE = "Workload simulation needs a provisioned validation database; none was available for this run.";
+var SKIPPED_ENGINE_NOT_CONFIGURED = "Workload simulation engine (sqlpysim) is not configured for this host.";
+var SKIPPED_MISSING_WORKLOAD_URI = "WorkloadSimulationSettings.workloadUri is not configured.";
+var skippedWorkloadFileMissing = (p) => `Workload file not found at ${p}.`;
+var WorkloadSimulationValidator = class {
+  constructor(_processes, _engine, _workspaceRoot) {
+    this._processes = _processes;
+    this._engine = _engine;
+    this._workspaceRoot = _workspaceRoot;
+  }
+  type = "workload-simulation" /* WorkloadSimulation */;
+  async run(_env, config, opts) {
+    const startedAtMs = Date.now();
+    throwIfCancelled(opts.signal);
+    const connectionString = opts.ephemeralConnectionString;
+    if (connectionString === void 0 || connectionString.length === 0) {
+      return build(
+        "skipped" /* Skipped */,
+        [],
+        [],
+        void 0,
+        startedAtMs,
+        SKIPPED_NEEDS_DATABASE
+      );
+    }
+    if (this._engine === void 0) {
+      return build(
+        "skipped" /* Skipped */,
+        [],
+        [],
+        void 0,
+        startedAtMs,
+        SKIPPED_ENGINE_NOT_CONFIGURED
+      );
+    }
+    const workloadUri = config.workloadUri;
+    if (workloadUri === void 0 || workloadUri.length === 0) {
+      return build(
+        "skipped" /* Skipped */,
+        [],
+        [],
+        void 0,
+        startedAtMs,
+        SKIPPED_MISSING_WORKLOAD_URI
+      );
+    }
+    const workloadPath = path5.isAbsolute(workloadUri) ? workloadUri : path5.resolve(this._workspaceRoot ?? process.cwd(), workloadUri);
+    if (!(0, import_fs4.existsSync)(workloadPath)) {
+      return build(
+        "skipped" /* Skipped */,
+        [],
+        [],
+        void 0,
+        startedAtMs,
+        skippedWorkloadFileMissing(workloadPath)
+      );
+    }
+    let metrics;
+    try {
+      metrics = await measureWorkloadSimulation(
+        this._engine,
+        this._processes,
+        {
+          connectionString,
+          workloadPath,
+          threads: config.threads ?? DEFAULT_THREADS,
+          iterations: config.iterations ?? DEFAULT_ITERATIONS,
+          runs: config.runs ?? DEFAULT_RUNS
+        },
+        opts.signal
+      );
+    } catch (err) {
+      if (err instanceof CancellationError) {
+        throw err;
+      }
+      if (opts.signal.aborted) {
+        throw new CancellationError("user");
+      }
+      const message = err instanceof WorkloadSimulationEngineError ? err.message : `Workload simulation failed: ${err instanceof Error ? err.message : String(err)}`;
+      return build("errored" /* Errored */, [], [], void 0, startedAtMs, message);
+    }
+    const observed = {
+      id: OBSERVED_STEP_ID,
+      latencyMs: metrics.avgLatencyMs,
+      throughputQps: metrics.throughputPerSec
+    };
+    const baseline = opts.workloadBaseline?.find((s) => s.id === OBSERVED_STEP_ID);
+    const thresholds = {
+      throughput: config.throughputRegressionThreshold ?? DEFAULT_THROUGHPUT_THRESHOLD2,
+      latency: config.latencyRegressionThreshold ?? DEFAULT_LATENCY_THRESHOLD2
+    };
+    const findings = baseline !== void 0 ? compare(baseline, observed, thresholds) : [];
+    const changes = describeChanges(baseline, observed, thresholds);
+    return build(
+      findings.length === 0 ? "passed" /* Passed */ : "warning" /* Warning */,
+      findings,
+      changes,
+      observed,
+      startedAtMs
+    );
+  }
+};
+function compare(base, obs, thresholds) {
+  const findings = [];
+  if (base.latencyMs !== void 0 && obs.latencyMs !== void 0 && base.latencyMs > 0) {
+    const ratio = (obs.latencyMs - base.latencyMs) / base.latencyMs;
+    if (ratio > thresholds.latency) {
+      findings.push({
+        kind: "workload-playback",
+        stepId: OBSERVED_STEP_ID,
+        regression: "latency",
+        delta: ratio,
+        message: `Latency regression: +${pct(ratio)} (baseline ${base.latencyMs.toFixed(2)} ms, observed ${obs.latencyMs.toFixed(2)} ms).`
+      });
+    }
+  }
+  if (base.throughputQps !== void 0 && obs.throughputQps !== void 0 && base.throughputQps > 0) {
+    const drop = (base.throughputQps - obs.throughputQps) / base.throughputQps;
+    if (drop > thresholds.throughput) {
+      findings.push({
+        kind: "workload-playback",
+        stepId: OBSERVED_STEP_ID,
+        regression: "throughput",
+        delta: drop,
+        message: `Throughput regression: -${pct(drop)} (baseline ${base.throughputQps.toFixed(0)}/s, observed ${obs.throughputQps.toFixed(0)}/s).`
+      });
+    }
+  }
+  return findings;
+}
+function describeChanges(base, obs, thresholds) {
+  const changes = [];
+  if (obs.throughputQps !== void 0) {
+    const baseQps = base?.throughputQps;
+    if (baseQps !== void 0 && baseQps > 0) {
+      const ratio = (obs.throughputQps - baseQps) / baseQps;
+      changes.push({
+        stepId: OBSERVED_STEP_ID,
+        axis: "throughput",
+        severity: -ratio > thresholds.throughput ? "warning" : "pass",
+        delta: ratio,
+        message: `Throughput ${sign(ratio)}${pct(ratio)} (${baseQps.toFixed(0)} -> ${obs.throughputQps.toFixed(0)}/s).`
+      });
+    } else {
+      changes.push({
+        stepId: OBSERVED_STEP_ID,
+        axis: "throughput",
+        severity: "pass",
+        delta: 0,
+        message: `Throughput ${obs.throughputQps.toFixed(0)}/s measured (no baseline yet).`
+      });
+    }
+  }
+  if (obs.latencyMs !== void 0) {
+    const baseMs = base?.latencyMs;
+    if (baseMs !== void 0 && baseMs > 0) {
+      const ratio = (obs.latencyMs - baseMs) / baseMs;
+      changes.push({
+        stepId: OBSERVED_STEP_ID,
+        axis: "latency",
+        severity: ratio > thresholds.latency ? "warning" : "pass",
+        delta: ratio,
+        message: `Latency ${sign(ratio)}${pct(ratio)} (${baseMs.toFixed(2)} -> ${obs.latencyMs.toFixed(2)} ms).`
+      });
+    } else {
+      changes.push({
+        stepId: OBSERVED_STEP_ID,
+        axis: "latency",
+        severity: "pass",
+        delta: 0,
+        message: `Avg latency ${obs.latencyMs.toFixed(2)} ms measured (no baseline yet).`
+      });
+    }
+  }
+  return changes;
+}
+function pct(ratio) {
+  return `${(Math.abs(ratio) * 100).toFixed(1)}%`;
+}
+function sign(ratio) {
+  return ratio >= 0 ? "+" : "-";
+}
+function build(status, findings, changes, observed, startedAtMs, errorMessage2) {
+  const payload = {
+    validationType: "workload-simulation" /* WorkloadSimulation */,
+    findings,
+    summary: {
+      steps: observed !== void 0 ? 1 : 0,
+      regressions: findings.length
+    },
+    ...observed !== void 0 ? { observedSteps: [observed] } : {},
+    ...changes.length > 0 ? { changes } : {}
+  };
+  return {
+    validationId: "workload-simulation" /* WorkloadSimulation */,
+    displayName: DISPLAY_NAME3,
+    status,
+    startedAtMs,
+    endedAtMs: Date.now(),
+    payload,
+    ...errorMessage2 !== void 0 ? { errorMessage: errorMessage2 } : {}
+  };
+}
+
 // src/cloudDeploy/validation/registry.ts
 function createDefaultRegistry(providers) {
   return defineRegistry({
@@ -77152,12 +78329,17 @@ function createDefaultRegistry(providers) {
       providers.staticAnalysis ?? {}
     ),
     ["unit-tests" /* UnitTests */]: new UnitTestsValidator(),
-    ["workload-playback" /* WorkloadPlayback */]: new WorkloadPlaybackValidator(providers.artifact)
+    ["workload-playback" /* WorkloadPlayback */]: new WorkloadPlaybackValidator(providers.artifact),
+    ["workload-simulation" /* WorkloadSimulation */]: new WorkloadSimulationValidator(
+      providers.process,
+      providers.workloadSimulation,
+      providers.workspaceRoot
+    )
   });
 }
 
 // src/cloudDeploy/validation/runner.ts
-var import_crypto3 = require("crypto");
+var import_crypto4 = require("crypto");
 var Runner = class {
   constructor(_registry, _bus, _runtime = {}) {
     this._registry = _registry;
@@ -77165,7 +78347,7 @@ var Runner = class {
     this._runtime = _runtime;
   }
   async run(env2, opts = {}) {
-    const runId = opts.runId ?? (0, import_crypto3.randomUUID)();
+    const runId = opts.runId ?? (0, import_crypto4.randomUUID)();
     const runner = opts.runner ?? DEFAULT_RUNNER_IDENTITY;
     const startedAtMs = Date.now();
     const { signal, dispose: disposeSignal } = buildEffectiveSignal(
@@ -77253,10 +78435,11 @@ var Runner = class {
           runId,
           signal,
           ephemeral?.connection,
-          workloadBaseline
+          workloadBaseline,
+          ephemeral?.connectionString
         );
         results.push(result);
-        if (config.type === "connectivity" /* Connectivity */ && !isPass(result.status)) {
+        if (config.type === "connectivity" /* Connectivity */ && !isPass2(result.status)) {
           connectivityFailed = true;
         }
         if (result.status === "cancelled" /* Cancelled */) {
@@ -77360,7 +78543,7 @@ var Runner = class {
       return void 0;
     }
     const workloadEnabled = dispatchOrder.some(
-      (c) => c.enabled && c.type === "workload-playback" /* WorkloadPlayback */
+      (c) => c.enabled && (c.type === "workload-playback" /* WorkloadPlayback */ || c.type === "workload-simulation" /* WorkloadSimulation */)
     );
     if (!workloadEnabled) {
       return void 0;
@@ -77374,14 +78557,16 @@ var Runner = class {
   // -------------------------------------------------------------------------
   // Internals
   // -------------------------------------------------------------------------
-  async _dispatchOne(env2, config, runId, signal, ephemeralConnection, workloadBaseline) {
+  async _dispatchOne(env2, config, runId, signal, ephemeralConnection, workloadBaseline, ephemeralConnectionString) {
     const validator = this._registry[config.type];
+    const usesBaseline = config.type === "workload-playback" /* WorkloadPlayback */ || config.type === "workload-simulation" /* WorkloadSimulation */;
     const opts = {
       runId,
       signal,
       bus: this._bus,
       ephemeralConnection,
-      ...config.type === "workload-playback" /* WorkloadPlayback */ ? { workloadBaseline } : {}
+      ...ephemeralConnectionString !== void 0 ? { ephemeralConnectionString } : {},
+      ...usesBaseline ? { workloadBaseline } : {}
     };
     const startedAtMs = Date.now();
     this._emitValidationStarted(runId, config.type);
@@ -77497,11 +78682,11 @@ function rollupRunStatus(results) {
   }
   return worst;
 }
-function isPass(status) {
+function isPass2(status) {
   return status === "passed" /* Passed */;
 }
 function isRuntimeValidator(type) {
-  return type === "unit-tests" /* UnitTests */ || type === "workload-playback" /* WorkloadPlayback */;
+  return type === "unit-tests" /* UnitTests */ || type === "workload-playback" /* WorkloadPlayback */ || type === "workload-simulation" /* WorkloadSimulation */;
 }
 function usesEphemeralConnection(type) {
   return type === "connectivity" /* Connectivity */ || isRuntimeValidator(type);
@@ -77708,303 +78893,7 @@ var DEFAULT_RUNNER_IDENTITY = Object.freeze({
 
 // src/cloudDeploy/validation/providers/ephemeralDatabaseProvider.ts
 var import_crypto5 = require("crypto");
-var path5 = __toESM(require("path"));
-
-// src/cloudDeploy/validation/providers/processProvider.ts
-var import_child_process = require("child_process");
-var path3 = __toESM(require("path"));
-var DEFAULT_MAX_OUTPUT_BYTES = 5 * 1024 * 1024;
-var SIGKILL_GRACE_MS = 250;
-var LiveProcessProvider = class {
-  constructor(_defaultCwd) {
-    this._defaultCwd = _defaultCwd;
-  }
-  spawn(command, args, opts) {
-    return new Promise((resolve7, reject) => {
-      const max = opts.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES;
-      const stdoutBuf = new BoundedBuffer(max);
-      const stderrBuf = new BoundedBuffer(max);
-      let aborted = false;
-      let killTimer;
-      const cwd = opts.cwd ?? this._defaultCwd;
-      const resolvedCommand = resolveCommandPath(command, cwd);
-      const useShell = needsShell(resolvedCommand);
-      const spawnOpts = {
-        cwd,
-        env: opts.env,
-        shell: useShell,
-        windowsHide: true
-      };
-      let child;
-      try {
-        child = (0, import_child_process.spawn)(quoteForShell(resolvedCommand, useShell), [...args], spawnOpts);
-      } catch (err) {
-        reject(err);
-        return;
-      }
-      child.stdout?.on("data", (chunk) => stdoutBuf.append(chunk));
-      child.stderr?.on("data", (chunk) => stderrBuf.append(chunk));
-      const onAbort = () => {
-        aborted = true;
-        terminate(child);
-        killTimer = setTimeout(() => {
-          if (child.exitCode === null && child.signalCode === null) {
-            try {
-              child.kill("SIGKILL");
-            } catch {
-            }
-          }
-        }, SIGKILL_GRACE_MS);
-      };
-      if (opts.signal.aborted) {
-        onAbort();
-      } else {
-        opts.signal.addEventListener("abort", onAbort, { once: true });
-      }
-      if (opts.stdin !== void 0) {
-        child.stdin?.end(opts.stdin);
-      } else {
-        child.stdin?.end();
-      }
-      child.on("error", (err) => {
-        opts.signal.removeEventListener("abort", onAbort);
-        if (killTimer) {
-          clearTimeout(killTimer);
-        }
-        reject(err);
-      });
-      child.on("close", (code, signal) => {
-        opts.signal.removeEventListener("abort", onAbort);
-        if (killTimer) {
-          clearTimeout(killTimer);
-        }
-        resolve7({
-          exitCode: code,
-          stdout: stdoutBuf.toString(),
-          stderr: stderrBuf.toString(),
-          signal: signal ?? void 0,
-          aborted,
-          truncated: stdoutBuf.overflowed || stderrBuf.overflowed
-        });
-      });
-    });
-  }
-};
-var BoundedBuffer = class {
-  constructor(cap) {
-    this.cap = cap;
-  }
-  _chunks = [];
-  _size = 0;
-  _overflowed = false;
-  get overflowed() {
-    return this._overflowed;
-  }
-  append(chunk) {
-    if (this._size >= this.cap) {
-      this._overflowed = true;
-      return;
-    }
-    const room = this.cap - this._size;
-    if (chunk.length <= room) {
-      this._chunks.push(chunk);
-      this._size += chunk.length;
-      return;
-    }
-    this._chunks.push(chunk.subarray(0, room));
-    this._size = this.cap;
-    this._overflowed = true;
-  }
-  toString() {
-    const joined = Buffer.concat(this._chunks, this._size).toString("utf-8");
-    return this._overflowed ? joined + "\n[output truncated]" : joined;
-  }
-};
-function terminate(child) {
-  if (child.exitCode !== null || child.signalCode !== null) {
-    return;
-  }
-  try {
-    child.kill("SIGTERM");
-  } catch {
-  }
-}
-function needsShell(command) {
-  return process.platform === "win32" && /\.(bat|cmd)$/i.test(command);
-}
-function resolveCommandPath(command, base) {
-  if (!/[\\/]/.test(command) || path3.isAbsolute(command)) {
-    return command;
-  }
-  return path3.resolve(base ?? process.cwd(), command);
-}
-function quoteForShell(command, useShell) {
-  if (!useShell || !/\s/.test(command) || command.startsWith('"')) {
-    return command;
-  }
-  return `"${command}"`;
-}
-function describeProcessFailure(result) {
-  const stderr = result.stderr.trim();
-  const stdout = result.stdout.trim();
-  const detail = stderr.length > 0 ? stderr : stdout;
-  const exit = typeof result.exitCode === "number" ? `exit ${result.exitCode}` : `signal ${result.signal ?? "unknown"}`;
-  return detail.length > 0 ? `${exit}: ${detail}` : exit;
-}
-
-// src/cloudDeploy/validation/providers/schemaResolver.ts
-var import_crypto4 = require("crypto");
-var import_fs3 = require("fs");
-var os = __toESM(require("os"));
-var path4 = __toESM(require("path"));
-var DEFAULT_DOTNET_COMMAND2 = "dotnet";
-var DEFAULT_SQLPACKAGE_COMMAND = "sqlpackage";
-var SchemaResolutionError = class extends Error {
-  constructor(message, cause) {
-    super(message);
-    this.cause = cause;
-    this.name = "SchemaResolutionError";
-  }
-};
-async function resolveSchemaToDacpac(sourceOfTruth, processes, options2, signal) {
-  switch (sourceOfTruth.kind) {
-    case "dacpac" /* Dacpac */:
-      return {
-        dacpacPath: resolveAgainstWorkspace(sourceOfTruth.path, options2.workspaceRoot),
-        dispose: async () => {
-        }
-      };
-    case "sqlproj" /* SqlProj */:
-      return buildSqlProj(sourceOfTruth.path, processes, options2, signal);
-    case "connection" /* Connection */:
-      return extractLiveDatabase(
-        sourceOfTruth.connectionProfileId,
-        processes,
-        options2,
-        signal
-      );
-    default: {
-      const exhaustive = sourceOfTruth;
-      throw new SchemaResolutionError(
-        `Unsupported source-of-truth kind: ${JSON.stringify(exhaustive)}`
-      );
-    }
-  }
-}
-async function buildSqlProj(projectRelativeOrAbsolutePath, processes, options2, signal) {
-  const dotnetCommand = options2.dotnetCommand ?? DEFAULT_DOTNET_COMMAND2;
-  const projectPath = resolveAgainstWorkspace(
-    projectRelativeOrAbsolutePath,
-    options2.workspaceRoot
-  );
-  const usesTempDir = options2.buildOutputDirectory === void 0;
-  const buildRoot = options2.buildOutputDirectory ?? makeTempBuildDir();
-  const binDir = usesTempDir ? path4.join(buildRoot, "bin") : buildRoot;
-  const args = ["build", projectPath, "/nologo", "/p:NetCoreBuild=true", "-o", binDir];
-  if (usesTempDir) {
-    args.push(`/p:BaseIntermediateOutputPath=${path4.join(buildRoot, "obj")}${path4.sep}`);
-  }
-  try {
-    await runProcess(
-      processes,
-      dotnetCommand,
-      args,
-      signal,
-      "build the SQL project into a dacpac"
-    );
-  } catch (err) {
-    await removeDirIf(usesTempDir, buildRoot);
-    throw err;
-  }
-  return {
-    dacpacPath: dacpacPathFor(projectPath, binDir),
-    dispose: () => removeDirIf(usesTempDir, buildRoot)
-  };
-}
-async function extractLiveDatabase(connectionProfileId, processes, options2, signal) {
-  const resolver = options2.sourceConnectionStringResolver;
-  if (resolver === void 0) {
-    throw new SchemaResolutionError(
-      "A live-database source of truth requires a connection resolver, but none was wired."
-    );
-  }
-  const sqlpackageCommand = options2.sqlpackageCommand ?? DEFAULT_SQLPACKAGE_COMMAND;
-  let sourceConnectionString;
-  try {
-    sourceConnectionString = await resolver(connectionProfileId, signal);
-  } catch (err) {
-    throw new SchemaResolutionError(
-      `Failed to resolve the source database connection "${connectionProfileId}": ${errorText(err)}`,
-      err
-    );
-  }
-  const extractDir = makeTempBuildDir();
-  const dacpacPath = path4.join(extractDir, "extracted-source.dacpac");
-  try {
-    await import_fs3.promises.mkdir(extractDir, { recursive: true });
-    await runProcess(
-      processes,
-      sqlpackageCommand,
-      [
-        "/Action:Extract",
-        `/SourceConnectionString:${sourceConnectionString}`,
-        `/TargetFile:${dacpacPath}`,
-        "/p:ExtractAllTableData=false"
-      ],
-      signal,
-      "extract the live database schema"
-    );
-  } catch (err) {
-    await removeDir(extractDir);
-    throw err;
-  }
-  return {
-    dacpacPath,
-    dispose: () => removeDir(extractDir)
-  };
-}
-function resolveAgainstWorkspace(p, workspaceRoot) {
-  if (path4.isAbsolute(p) || workspaceRoot === void 0) {
-    return p;
-  }
-  return path4.resolve(workspaceRoot, p);
-}
-function makeTempBuildDir() {
-  return path4.join(os.tmpdir(), `cloud-deploy-build-${(0, import_crypto4.randomUUID)()}`);
-}
-function dacpacPathFor(sqlprojPath, outputDir) {
-  const base = path4.basename(sqlprojPath).replace(/\.sqlproj$/i, "");
-  return path4.join(outputDir, `${base}.dacpac`);
-}
-async function removeDirIf(when, dir) {
-  if (!when) {
-    return;
-  }
-  await removeDir(dir);
-}
-async function removeDir(dir) {
-  await import_fs3.promises.rm(dir, { recursive: true, force: true }).catch(() => void 0);
-}
-async function runProcess(processes, command, args, signal, action) {
-  let result;
-  try {
-    result = await processes.spawn(command, args, { signal });
-  } catch (err) {
-    throw new SchemaResolutionError(`Failed to ${action}: ${errorText(err)}`, err);
-  }
-  if (result.aborted) {
-    throw new SchemaResolutionError(`Cancelled while trying to ${action}.`);
-  }
-  if (result.exitCode !== 0) {
-    throw new SchemaResolutionError(`Failed to ${action}: ${describeProcessFailure(result)}`);
-  }
-  return result;
-}
-function errorText(err) {
-  return err instanceof Error ? err.message : String(err);
-}
-
-// src/cloudDeploy/validation/providers/ephemeralDatabaseProvider.ts
+var path6 = __toESM(require("path"));
 var EphemeralProvisionError = class extends Error {
   constructor(message, cause) {
     super(message);
@@ -78019,6 +78908,7 @@ var DEFAULT_HOST_PORT = 11433;
 var DEFAULT_READINESS_TIMEOUT_MS = 6e4;
 var DEFAULT_READINESS_INTERVAL_MS = 1e3;
 var CONTAINER_SQL_PORT = 1433;
+var HOST_LOOPBACK_ADDRESS = "127.0.0.1";
 var SA_USER = "sa";
 var READINESS_PROBE_SQL = "SELECT 1";
 var IN_CONTAINER_SQLCMD = "/opt/mssql-tools18/bin/sqlcmd";
@@ -78085,7 +78975,7 @@ var DockerEphemeralDatabaseProvider = class {
       }
       const connection = await this._connector.connect(
         {
-          host: "localhost",
+          host: HOST_LOOPBACK_ADDRESS,
           port: hostPort,
           user: SA_USER,
           password,
@@ -78094,9 +78984,11 @@ var DockerEphemeralDatabaseProvider = class {
         },
         signal
       );
+      const connectionString = `Server=${HOST_LOOPBACK_ADDRESS},${hostPort};Database=${databaseName};UID=${SA_USER};PWD=${password};TrustServerCertificate=yes;`;
       return new DockerEphemeralDatabase(
         connection,
         databaseName,
+        connectionString,
         () => this._removeContainer(dockerCommand, containerName),
         (scriptPath, sig) => this._seedViaContainer(
           dockerCommand,
@@ -78116,6 +79008,71 @@ var DockerEphemeralDatabaseProvider = class {
       }
       throw new EphemeralProvisionError(
         `Failed to provision the ephemeral database: ${errorMessage(err)}`,
+        err
+      );
+    }
+  }
+  /**
+   * Provisions a throwaway container, publishes `dacpacPath` into a fresh
+   * database, and returns a connection string for it plus a `dispose` that
+   * removes the container. Used to decompose a dacpac into a project tree: a
+   * dacpac cannot be extracted directly, so publish it here, then run
+   * `sqlpackage /Action:Extract` against the returned connection string. Reuses
+   * the same container / readiness / publish machinery as `provision`.
+   */
+  async provisionForDecompose(dacpacPath, signal) {
+    throwIfAborted(signal);
+    const dockerCommand = this._opts.dockerCommand ?? DEFAULT_DOCKER_COMMAND;
+    const image = this._opts.image ?? DEFAULT_IMAGE;
+    const hostPort = this._opts.hostPort ?? DEFAULT_HOST_PORT;
+    const containerName = `cloud-deploy-decompose-${(0, import_crypto5.randomUUID)()}`;
+    const password = generatePassword();
+    const databaseName = "CloudDeployDecompose";
+    let containerStarted = false;
+    try {
+      await this._run(
+        dockerCommand,
+        [
+          "run",
+          "-d",
+          "--name",
+          containerName,
+          "-e",
+          "ACCEPT_EULA=Y",
+          "-e",
+          `MSSQL_SA_PASSWORD=${password}`,
+          "-p",
+          `${hostPort}:${CONTAINER_SQL_PORT}`,
+          image
+        ],
+        signal,
+        "start the SQL Server container"
+      );
+      containerStarted = true;
+      await this._waitForReady(dockerCommand, containerName, password, signal);
+      await this._execInContainer(
+        dockerCommand,
+        containerName,
+        password,
+        `CREATE DATABASE [${databaseName}]`,
+        signal,
+        "create the decomposition database"
+      );
+      await this._publishDacpac(dacpacPath, hostPort, password, databaseName, signal);
+      const connectionString = `Server=${HOST_LOOPBACK_ADDRESS},${hostPort};Database=${databaseName};User ID=${SA_USER};Password=${password};TrustServerCertificate=true;`;
+      return {
+        connectionString,
+        dispose: () => this._removeContainer(dockerCommand, containerName)
+      };
+    } catch (err) {
+      if (containerStarted) {
+        await this._removeContainer(dockerCommand, containerName).catch(() => void 0);
+      }
+      if (err instanceof EphemeralProvisionError) {
+        throw err;
+      }
+      throw new EphemeralProvisionError(
+        `Failed to provision the decomposition database: ${errorMessage(err)}`,
         err
       );
     }
@@ -78212,10 +79169,10 @@ var DockerEphemeralDatabaseProvider = class {
   /** Resolves a (possibly workspace-relative) path to absolute when a
    * workspace root is configured; leaves already-absolute paths untouched. */
   _resolveAgainstWorkspace(p) {
-    if (path5.isAbsolute(p) || this._opts.workspaceRoot === void 0) {
+    if (path6.isAbsolute(p) || this._opts.workspaceRoot === void 0) {
       return p;
     }
-    return path5.resolve(this._opts.workspaceRoot, p);
+    return path6.resolve(this._opts.workspaceRoot, p);
   }
   /** Publishes a dacpac into the container's database via sqlpackage. */
   async _publishDacpac(dacpacPath, hostPort, password, databaseName, signal) {
@@ -78225,7 +79182,7 @@ var DockerEphemeralDatabaseProvider = class {
       [
         "/Action:Publish",
         `/SourceFile:${dacpacPath}`,
-        `/TargetServerName:localhost,${hostPort}`,
+        `/TargetServerName:${HOST_LOOPBACK_ADDRESS},${hostPort}`,
         `/TargetDatabaseName:${databaseName}`,
         `/TargetUser:${SA_USER}`,
         `/TargetPassword:${password}`,
@@ -78260,9 +79217,10 @@ var DockerEphemeralDatabaseProvider = class {
   }
 };
 var DockerEphemeralDatabase = class {
-  constructor(connection, databaseName, _removeContainer, _seedScriptFile) {
+  constructor(connection, databaseName, connectionString, _removeContainer, _seedScriptFile) {
     this.connection = connection;
     this.databaseName = databaseName;
+    this.connectionString = connectionString;
     this._removeContainer = _removeContainer;
     this._seedScriptFile = _seedScriptFile;
   }
@@ -78323,10 +79281,10 @@ function throwIfAborted(signal) {
   }
 }
 function delay(ms, signal) {
-  return new Promise((resolve7, reject) => {
+  return new Promise((resolve8, reject) => {
     const timer = setTimeout(() => {
       signal.removeEventListener("abort", onAbort);
-      resolve7();
+      resolve8();
     }, ms);
     const onAbort = () => {
       clearTimeout(timer);
@@ -78668,22 +79626,28 @@ ${USAGE}
     throw err;
   }
   try {
-    const configPath = path7.resolve(args.configPath);
+    const configPath = path8.resolve(args.configPath);
     const workspaceRoot = args.workspaceRoot ?? deriveWorkspaceRoot(configPath);
     const file = await deps.loadEnvironments(configPath);
     const env2 = resolveEnvironment(file, args.envId);
     const bus = new NodeDiagnosticEventBus();
     bus.on((event) => printProgress(event, io.err));
+    const baseline = await loadBaselineBestEffort(args.baselinePath, deps);
     const record = stampSourceLabels(
-      await deps.runValidation(env2, bus, workspaceRoot),
+      await deps.runValidation(
+        env2,
+        bus,
+        workspaceRoot,
+        baseline !== void 0 ? makeCliWorkloadBaselineLookup(baseline) : void 0
+      ),
       args.sourceCommit,
       args.sourceRef
     );
-    const outPath = path7.resolve(args.outPath);
+    const outPath = path8.resolve(args.outPath);
     const writer = new RunArtifactWriter(deps.fileProvider, bus);
     const { sizeBytes } = await writer.write(record, toAsyncIterable(bus.drain()), outPath);
     printSummary(record, outPath, sizeBytes, io.out);
-    const comparison = await maybeCompareBaseline(args.baselinePath, record, deps, io.out);
+    const comparison = baseline !== void 0 ? compareAndPrintBaseline(baseline, record, io.out) : void 0;
     await maybeWriteReport(args.reportOut, record, comparison, deps, io.out);
     return exitCodeFor(record.status);
   } catch (err) {
@@ -78721,21 +79685,48 @@ function stampSourceLabels(record, commitId, ref) {
     }
   };
 }
-async function maybeCompareBaseline(baselinePath, record, deps, out) {
+async function loadBaselineBestEffort(baselinePath, deps) {
   if (baselinePath === void 0) {
     return void 0;
   }
-  const baseline = await deps.loadRunArtifact(path7.resolve(baselinePath));
+  try {
+    return await deps.loadRunArtifact(path8.resolve(baselinePath));
+  } catch {
+    return void 0;
+  }
+}
+function compareAndPrintBaseline(baseline, record, out) {
   const comparison = compareRuns(baseline, record);
   printComparison(comparison, out);
   return comparison;
+}
+function extractWorkloadObservedSteps(record) {
+  const steps = [];
+  for (const validation of record.validations) {
+    if (validation.payload.validationType === "workload-playback" /* WorkloadPlayback */ || validation.payload.validationType === "workload-simulation" /* WorkloadSimulation */) {
+      const observed = validation.payload.observedSteps;
+      if (observed !== void 0) {
+        steps.push(...observed);
+      }
+    }
+  }
+  return steps.length > 0 ? steps : void 0;
+}
+function makeCliWorkloadBaselineLookup(baseline) {
+  return (_envId, currentSourceVersionHash) => {
+    const baselineHash = baseline.sourceVersion?.hash;
+    if (baselineHash === void 0 || currentSourceVersionHash === void 0 || baselineHash === currentSourceVersionHash) {
+      return Promise.resolve(void 0);
+    }
+    return Promise.resolve(extractWorkloadObservedSteps(baseline));
+  };
 }
 async function maybeWriteReport(reportOut, record, comparison, deps, out) {
   if (reportOut === void 0) {
     return;
   }
   const report = buildPrReport(record, comparison);
-  const reportPath = path7.resolve(reportOut);
+  const reportPath = path8.resolve(reportOut);
   await deps.fileProvider.writeFileAtomic(reportPath, Buffer.from(report.commentBody, "utf8"));
   out.write(`Report: ${reportPath}
 `);
@@ -78746,10 +79737,22 @@ function liveDeps() {
     fileProvider,
     loadEnvironments: loadEnvironmentsFromPath,
     loadRunArtifact: (absPath) => new RunArtifactReader(fileProvider).read(absPath),
-    runValidation: (env2, bus, workspaceRoot) => {
+    runValidation: (env2, bus, workspaceRoot, workloadBaselineLookup) => {
       const processes = new LiveProcessProvider(workspaceRoot);
       const artifact = new LiveArtifactProvider(fileProvider, workspaceRoot);
-      const registry = createDefaultRegistry({ process: processes, artifact });
+      const engineFromEnv = (() => {
+        const sqlpysimPath = process.env.MSSQL_CD_SQLPYSIM;
+        if (sqlpysimPath === void 0 || sqlpysimPath.length === 0) {
+          return void 0;
+        }
+        return { pythonCommand: process.env.MSSQL_CD_PYTHON ?? "python", sqlpysimPath };
+      })();
+      const registry = createDefaultRegistry({
+        process: processes,
+        artifact,
+        ...engineFromEnv !== void 0 ? { workloadSimulation: engineFromEnv } : {},
+        workspaceRoot
+      });
       const ephemeralProvider = new DispatchingEphemeralDatabaseProvider({
         docker: new DockerEphemeralDatabaseProvider(
           processes,
@@ -78760,21 +79763,22 @@ function liveDeps() {
       const runner = new Runner(registry, bus, {
         ephemeralProvider,
         dataGenerator: new LiveDataGenerator(artifact),
-        schemaHasher: new SchemaHasher(new LocalSchemaSourceReader(workspaceRoot))
+        schemaHasher: new SchemaHasher(new LocalSchemaSourceReader(workspaceRoot)),
+        ...workloadBaselineLookup !== void 0 ? { workloadBaselineLookup } : {}
       });
       return runner.run(env2, { runner: CLI_RUNNER_IDENTITY });
     }
   };
 }
 function deriveWorkspaceRoot(configPath) {
-  return path7.dirname(path7.dirname(configPath));
+  return path8.dirname(path8.dirname(configPath));
 }
 function printProgress(event, err) {
   err.write(`  \xB7 ${event.type}
 `);
 }
 function printSummary(record, outPath, sizeBytes, out) {
-  const lines = record.validations.map((v) => `  ${v.displayName}: ${v.status}`).join("\n");
+  const lines = record.validations.map(formatValidationSummary).join("\n");
   const sizeKb = (sizeBytes / 1024).toFixed(1);
   out.write(
     `
@@ -78782,6 +79786,24 @@ Run ${record.status} \u2014 ${record.validations.length} validation(s)
 ${lines}${lines.length > 0 ? "\n" : ""}Artifact: ${outPath} (${sizeKb} KB)
 `
   );
+}
+function formatValidationSummary(v) {
+  let line = `  ${v.displayName}: ${v.status}`;
+  if (v.status === "passed" /* Passed */ || v.status === "skipped" /* Skipped */) {
+    return line;
+  }
+  if (v.errorMessage !== void 0) {
+    line += `
+      ${v.errorMessage}`;
+  }
+  for (const finding of v.payload.findings) {
+    const message = finding.message;
+    if (typeof message === "string") {
+      line += `
+      ${message}`;
+    }
+  }
+  return line;
 }
 function printComparison(comparison, out) {
   out.write(`

@@ -8014,6 +8014,9 @@
     <trans-unit id="++CODE++0e14e48dda16f20d1551a391c68a23717dcc93fe8dad4a07976504c9be27dfb0">
       <source xml:lang="en">Workload Playback</source>
     </trans-unit>
+    <trans-unit id="++CODE++5b7807be7dd2c17a35f9ff54c276e2b68e1c6ddb9707bfa703713887a5cd319c">
+      <source xml:lang="en">Workload Simulation</source>
+    </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
     </trans-unit>
@@ -8573,6 +8576,9 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
+    <trans-unit id="mssql.cloudDeploy.workloadSimulation.sqlpysimPath">
+      <source xml:lang="en">Absolute path to the sqlpysim workload-simulation script. When set, the Cloud Deploy workload-simulation validation gate replays the configured workload against the ephemeral validation database to measure throughput and latency. Leave empty to disable the gate.</source>
+    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -9055,6 +9061,9 @@
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
+    </trans-unit>
+    <trans-unit id="mssql.cloudDeploy.workloadSimulation.pythonPath">
+      <source xml:lang="en">Python interpreter used to run the sqlpysim workload-simulation script, for example &apos;python&apos; or an absolute path to a virtual environment. Defaults to &apos;python&apos;.</source>
     </trans-unit>
     <trans-unit id="extension.queryHistory">
       <source xml:lang="en">Query History</source>

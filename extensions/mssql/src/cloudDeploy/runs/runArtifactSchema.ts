@@ -273,11 +273,60 @@ const WorkloadPlaybackPayloadSchema = z
     })
     .passthrough();
 
+const WorkloadSimulationPayloadSchema = z
+    .object({
+        validationType: z.literal(ValidationType.WorkloadSimulation),
+        findings: z.array(WorkloadRegressionFindingSchema),
+        summary: z
+            .object({
+                steps: z.number().int().nonnegative(),
+                regressions: z.number().int().nonnegative(),
+            })
+            .passthrough(),
+        observedSteps: z
+            .array(
+                z
+                    .object({
+                        id: z.string().min(1),
+                        latencyMs: z.number().optional(),
+                        throughputQps: z.number().optional(),
+                        errorRate: z.number().optional(),
+                        planHash: z.string().optional(),
+                        logicalReads: z.number().optional(),
+                        cpuMs: z.number().optional(),
+                    })
+                    .passthrough(),
+            )
+            .optional(),
+        changes: z
+            .array(
+                z
+                    .object({
+                        stepId: z.string().min(1),
+                        axis: z.enum([
+                            "throughput",
+                            "latency",
+                            "error-rate",
+                            "plan-change",
+                            "logical-reads",
+                            "cpu",
+                        ]),
+                        severity: z.enum(["pass", "warning", "fail"]),
+                        delta: z.number(),
+                        message: z.string(),
+                    })
+                    .passthrough(),
+            )
+            .optional(),
+    })
+    .passthrough();
+
 const ValidationPayloadSchema = z.discriminatedUnion("validationType", [
     ConnectivityPayloadSchema,
     StaticAnalysisPayloadSchema,
     UnitTestsPayloadSchema,
     WorkloadPlaybackPayloadSchema,
+    WorkloadSimulationPayloadSchema,
 ]);
 
 // -----------------------------------------------------------------------------

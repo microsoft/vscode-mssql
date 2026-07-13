@@ -32,6 +32,16 @@ export type {
 export { StaticAnalysisValidator } from "./validators/staticAnalysisValidator";
 export { UnitTestsValidator } from "./validators/unitTestsValidator";
 export { WorkloadPlaybackValidator } from "./validators/workloadPlaybackValidator";
+export { WorkloadSimulationValidator } from "./validators/workloadSimulationValidator";
+export {
+    measureWorkloadSimulation,
+    WorkloadSimulationEngineError,
+} from "./providers/workloadSimulationEngine";
+export type {
+    WorkloadSimulationEngineLocation,
+    WorkloadSimulationMetrics,
+    WorkloadSimulationRunOptions,
+} from "./providers/workloadSimulationEngine";
 export {
     ArtifactNotFoundError,
     FakeArtifactProvider,

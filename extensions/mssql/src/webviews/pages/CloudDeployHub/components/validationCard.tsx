@@ -309,7 +309,8 @@ export const ValidationCard: React.FC<ValidationCardProps> = ({ validation }) =>
     const classes = useStyles();
     const findings = validation.payload?.findings ?? [];
     const workloadChanges =
-        validation.payload?.validationType === "workload-playback"
+        validation.payload?.validationType === "workload-playback" ||
+        validation.payload?.validationType === "workload-simulation"
             ? (validation.payload?.changes ?? [])
             : [];
     const [expanded, setExpanded] = React.useState(shouldExpandByDefault(validation.status));
@@ -387,6 +388,7 @@ function noFindingsText(validationType: string | undefined): string {
         case "unit-tests":
             return strings.findingsNoneUnitTests;
         case "workload-playback":
+        case "workload-simulation":
             return strings.findingsNoneWorkload;
         default:
             return strings.findingsNone;
@@ -435,7 +437,8 @@ const SummaryRow: React.FC<{ validation: ValidationLike }> = ({ validation }) =>
             chips.push({ label: strings.summaryTotal, value: s.total ?? 0 });
             break;
         }
-        case "workload-playback": {
+        case "workload-playback":
+        case "workload-simulation": {
             const s = summary as { steps?: number; regressions?: number };
             chips.push({ label: strings.summarySteps, value: s.steps ?? 0 });
             chips.push({ label: strings.summaryRegressions, value: s.regressions ?? 0 });
