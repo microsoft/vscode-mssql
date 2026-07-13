@@ -499,7 +499,14 @@ export namespace QsShowPlanQueryRequest {
 export namespace QsGetMessagesRequest {
     export const type = new RequestType<
         { afterIndex?: number },
-        { messages: QsMessageRow[] },
+        {
+            startIndex: number;
+            nextIndex: number;
+            totalCount: number;
+            textCharacters: number;
+            hasMore: boolean;
+            messages: QsMessageRow[];
+        },
         void
     >("qs/getMessages");
 }

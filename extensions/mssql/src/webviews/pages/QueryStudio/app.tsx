@@ -85,6 +85,7 @@ import {
     resolveQueryStudioVisibleTab,
     shouldResetQueryStudioRunView,
 } from "../../../sharedInterfaces/queryStudioViewState";
+import { appendPositionedQueryStudioMessages } from "../../../sharedInterfaces/queryStudioMessageWindows";
 import {
     QsLangCompletionItemKind,
     QsLangCompletionRequest,
@@ -568,7 +569,15 @@ export function QueryStudioApp() {
             if (fetchMessageSnapshot) {
                 void rpc
                     .sendRequest(QsGetMessagesRequest.type, {})
-                    .then((result) => setMessages(result.messages));
+                    .then((result) =>
+                        setMessages((current) =>
+                            appendPositionedQueryStudioMessages(
+                                current,
+                                result.startIndex,
+                                result.messages,
+                            ),
+                        ),
+                    );
             }
             planTabFocusRef.current = {
                 ...(planRunArmedRef.current ? { runId } : {}),
@@ -899,17 +908,9 @@ export function QueryStudioApp() {
                     // Position-addressed (QO-7): coalesced batches can
                     // interleave with the catch-up fetch — dedupe by the
                     // host's absolute index, never double-append.
-                    setMessages((current) => {
-                        if (p.startIndex === current.length) {
-                            return [...current, ...p.messages];
-                        }
-                        if (p.startIndex > current.length) {
-                            // Gap: the messageCount catch-up effect fills it.
-                            return current;
-                        }
-                        const fresh = p.messages.slice(current.length - p.startIndex);
-                        return fresh.length > 0 ? [...current, ...fresh] : current;
-                    });
+                    setMessages((current) =>
+                        appendPositionedQueryStudioMessages(current, p.startIndex, p.messages),
+                    );
                 },
             ),
             rpc.onNotification(
@@ -1065,11 +1066,9 @@ export function QueryStudioApp() {
             if (canceled || result.messages.length === 0) {
                 return;
             }
-            setMessages((current) => {
-                const alreadyAppended = Math.max(0, current.length - afterIndex);
-                const missing = result.messages.slice(alreadyAppended);
-                return missing.length > 0 ? [...current, ...missing] : current;
-            });
+            setMessages((current) =>
+                appendPositionedQueryStudioMessages(current, result.startIndex, result.messages),
+            );
         });
         return () => {
             canceled = true;

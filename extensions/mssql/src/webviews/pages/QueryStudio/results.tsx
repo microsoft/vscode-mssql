@@ -34,7 +34,8 @@ import {
     MESSAGE_SEPARATOR,
     MESSAGE_TIME_COLUMN_WIDTH,
     formatMessageForDisplay,
-    messageLineCount,
+    updateQueryStudioMessageOffsetIndex,
+    type QueryStudioMessageOffsetIndex,
 } from "../../../sharedInterfaces/queryStudioMessages";
 import type { QsGridSizing } from "../../../sharedInterfaces/queryStudioResultsLayout";
 import type {
@@ -357,15 +358,18 @@ function MessagesViewImpl(props: {
     const { rpc, messages, active = true, initialViewState, onViewStateChange } = props;
     // Virtualized pane (QO-7): only visible rows are prepared and mounted —
     // a 10k-PRINT flood keeps a bounded DOM and O(visible) format work.
-    // Heights are line-count exact (multi-line server errors included), via
-    // prefix sums rebuilt O(n) per append batch, never per scroll.
-    const offsets = useMemo(() => {
-        const arr = new Float64Array(messages.length + 1);
-        for (let i = 0; i < messages.length; i++) {
-            arr[i + 1] = arr[i] + messageLineCount(messages[i]) * MESSAGE_LINE_HEIGHT_PX;
-        }
-        return arr;
-    }, [messages]);
+    // Heights are line-count exact (multi-line server errors included). The
+    // append-only index extends in O(new messages); a new run rebuilds once.
+    const offsetIndexRef = useRef<QueryStudioMessageOffsetIndex>({
+        messages: [],
+        offsets: [0],
+    });
+    offsetIndexRef.current = updateQueryStudioMessageOffsetIndex(
+        offsetIndexRef.current,
+        messages,
+        MESSAGE_LINE_HEIGHT_PX,
+    );
+    const offsets = offsetIndexRef.current.offsets;
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const selectionRef = useRef(initialViewState?.selection);
     const restoredInitialScrollRef = useRef(false);
@@ -604,7 +608,7 @@ function domPointForMessageOffset(
 }
 
 /** First index in the prefix-sum array with offsets[i] > value. */
-function lowerBound(offsets: Float64Array, value: number): number {
+function lowerBound(offsets: readonly number[], value: number): number {
     let low = 0;
     let high = offsets.length;
     while (low < high) {

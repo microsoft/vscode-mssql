@@ -25,6 +25,10 @@ import { RetainedRowStore } from "../queryResults/resultStoreLease";
 import { resolveQueryResultsParams } from "../queryResults/queryResultsParams";
 import { ensureSpillSessionLock, runSpillDirName } from "../queryResults/spillHygiene";
 import { FeatureReplayTags } from "../sharedInterfaces/featureReplay";
+import {
+    QueryStudioMessageWindow,
+    queryStudioMessageWindow,
+} from "../sharedInterfaces/queryStudioMessageWindows";
 import { QueryTuningOverrides, QueryTuningSnapshot } from "../sharedInterfaces/queryTuning";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { ExecutionOrchestrator, RunResult } from "./executionOrchestrator";
@@ -48,7 +52,12 @@ export class ExecutionHost {
     private orchestrator: ExecutionOrchestrator | undefined;
     private messages: QsMessageRow[] = [];
     private summaries = new Map<string, QsResultSetSummary>();
-    private summaryOrder: string[] = [];
+    /** Stable ordered index; appended only when result-set metadata grows. */
+    private orderedSummaries: QsResultSetSummary[] = [];
+    private totalResultRows = 0;
+    private totalResultColumns = 0;
+    private errorMessageCount = 0;
+    private planResultCount = 0;
     private listeners = new Set<ExecutionHostEvents>();
     private runCounter = 0;
     private startedEpochMs: number | undefined;
@@ -225,7 +234,11 @@ export class ExecutionHost {
         });
         this.messages = [];
         this.summaries.clear();
-        this.summaryOrder = [];
+        this.orderedSummaries = [];
+        this.totalResultRows = 0;
+        this.totalResultColumns = 0;
+        this.errorMessageCount = 0;
+        this.planResultCount = 0;
         this.lastResult = undefined;
         this.startedEpochMs = Date.now();
         this.lastRunText = text;
@@ -268,13 +281,18 @@ export class ExecutionHost {
                     ...(started.isPlanResult ? { isPlanResult: true } : {}),
                 };
                 host.summaries.set(started.resultSetId, summary);
-                host.summaryOrder.push(started.resultSetId);
+                host.orderedSummaries.push(summary);
+                host.totalResultColumns += summary.columnNames.length;
+                if (summary.isPlanResult) {
+                    host.planResultCount++;
+                }
                 host.fan((l) => l.onResultSetStarted(summary));
             },
             onRowsAppended(resultSetId, newRowCount, complete) {
                 const summary = host.summaries.get(resultSetId);
                 if (summary) {
                     summary.rowCount += newRowCount;
+                    host.totalResultRows += newRowCount;
                 }
                 host.fan((l) => l.onRowsAppended(resultSetId, newRowCount, complete));
             },
@@ -291,7 +309,7 @@ export class ExecutionHost {
                 );
             },
             onMessages(rows) {
-                host.messages.push(...rows);
+                host.appendMessages(rows);
                 host.fan((l) => l.onMessages(rows));
             },
             onPhase(phase) {
@@ -358,7 +376,7 @@ export class ExecutionHost {
                         text: error instanceof Error ? error.message : String(error),
                         epochMs: Date.now(),
                     };
-                    this.messages.push(row);
+                    this.appendMessages([row]);
                     this.fan((l) => l.onMessages([row]));
                     this.finishRun({
                         status: "failed",
@@ -445,6 +463,19 @@ export class ExecutionHost {
         return { messages: this.messages.slice(afterIndex ?? 0) };
     }
 
+    getMessagesWindow(afterIndex?: number): QueryStudioMessageWindow {
+        return queryStudioMessageWindow(this.messages, afterIndex);
+    }
+
+    private appendMessages(rows: readonly QsMessageRow[]): void {
+        this.messages.push(...rows);
+        for (const row of rows) {
+            if (row.kind === "error") {
+                this.errorMessageCount++;
+            }
+        }
+    }
+
     get lastRunResult(): RunResult | undefined {
         return this.lastResult;
     }
@@ -454,18 +485,19 @@ export class ExecutionHost {
         return this.rowStore?.stats;
     }
 
+    get resultColumnCount(): number {
+        return this.totalResultColumns;
+    }
+
     resultsState(): QsResultsState {
-        const resultSets = this.summaryOrder
-            .map((id) => this.summaries.get(id))
-            .filter((s): s is QsResultSetSummary => s !== undefined);
         return {
             present: this.runCounter > 0,
-            resultSets,
-            totalRows: resultSets.reduce((total, s) => total + s.rowCount, 0),
+            resultSets: this.orderedSummaries,
+            totalRows: this.totalResultRows,
             streaming: this.executionState.kind === "executing",
             messageCount: this.messages.length,
-            errorCount: this.messages.filter((m) => m.kind === "error").length,
-            planCount: resultSets.filter((s) => s.isPlanResult).length,
+            errorCount: this.errorMessageCount,
+            planCount: this.planResultCount,
         };
     }
 
