@@ -573,7 +573,7 @@ export function useFluentResultGridController({
         return true;
     }, []);
 
-    const selectAll = useCallback((): boolean => {
+    const selectAll = useCallback((): "selected" | "alreadySelected" | false => {
         const grid = reactGridRef.current?.slickGrid;
         if (!grid || grid.getDataLength() <= 0) {
             return false;
@@ -592,7 +592,7 @@ export function useFluentResultGridController({
         if (alreadySelected && current) {
             void onSelectionSummaryChange?.(getFluentResultGridDataSelectionsFromRanges([current]));
         }
-        return true;
+        return alreadySelected ? "alreadySelected" : "selected";
     }, [commandController.selectAllCells, onSelectionSummaryChange]);
 
     const scrollToColumn = useCallback((columnIndex: number): boolean => {

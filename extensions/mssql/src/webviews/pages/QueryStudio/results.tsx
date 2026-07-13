@@ -19,7 +19,16 @@
  * many-result-set runs on viewport proximity.
  */
 
-import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    memo,
+    ReactNode,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type RefObject,
+} from "react";
 import {
     QsMessageRow,
     QsGetMessagesTextRequest,
@@ -140,6 +149,8 @@ interface GridProps extends GridSizingProps {
     /** Panel-local state restored when this result surface is recreated. */
     initialGridState?: FluentResultGridState;
     onGridStateChange?: (state: FluentResultGridState) => void;
+    /** Stable observation target shared by the live grid and placeholder. */
+    blockRef?: RefObject<HTMLDivElement | null>;
 }
 
 /** One FluentResultGrid over a single result set (caption + sized body). */
@@ -170,7 +181,7 @@ export function ResultGrid(props: GridProps) {
         (fill ? " qs-grid-fill" : "") +
         (hidden ? " qs-grid-hidden" : "");
     return (
-        <div className={blockClass}>
+        <div className={blockClass} ref={props.blockRef}>
             <GridCaption
                 rpc={rpc}
                 summary={summary}
@@ -208,28 +219,47 @@ export function ResultGrid(props: GridProps) {
  * Lazy-mount wrapper for many-result-sets runs: the caption always renders,
  * but the grid body only mounts once the block comes within ~1.5 viewports
  * of the results scroll container (IntersectionObserver, rootMargin
- * "150% 0px") — and never unmounts again. The placeholder reserves the same
- * height as the mounted body so scroll geometry stays stable.
+ * "150% 0px"). Blocks outside that warm band return to equal-height
+ * placeholders; the latest grid state is retained locally for reconstruction.
  */
 export function ResultGridBlock(props: GridProps) {
     const { rpc, summary, rowCount, hidden, maximized, onToggleMaximize } = props;
     const [mounted, setMounted] = useState(false);
-    const placeholderRef = useRef<HTMLDivElement | null>(null);
+    const blockRef = useRef<HTMLDivElement | null>(null);
+    const mountedRef = useRef(false);
+    const latestGridStateRef = useRef(props.initialGridState);
     // Fill mode (single set / maximized) always mounts — it IS the pane.
     const fill = props.sizing.kind === "fill";
 
+    const handleGridStateChange = useCallback(
+        (state: FluentResultGridState) => {
+            latestGridStateRef.current = state;
+            props.onGridStateChange?.(state);
+        },
+        [props.onGridStateChange],
+    );
+
     useEffect(() => {
-        if (mounted || fill) {
+        if (fill) {
+            mountedRef.current = true;
+            setMounted(true);
             return;
         }
-        const el = placeholderRef.current;
+        const el = blockRef.current;
         if (!el) {
             return;
         }
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries.some((entry) => entry.isIntersecting)) {
-                    setMounted(true); // never unmounts once mounted
+                const nextMounted = entries.some((entry) => entry.isIntersecting);
+                if (mountedRef.current !== nextMounted) {
+                    mountedRef.current = nextMounted;
+                    perfMark("mssql.queryStudio.results.block.visibility", {
+                        resultSetId: summary.resultSetId,
+                        mounted: nextMounted,
+                        reason: "viewport",
+                    });
+                    setMounted(nextMounted);
                 }
             },
             {
@@ -239,20 +269,21 @@ export function ResultGridBlock(props: GridProps) {
         );
         observer.observe(el);
         return () => observer.disconnect();
-    }, [mounted, fill]);
-    // A grid that ever filled the pane stays mounted after restore.
-    useEffect(() => {
-        if (fill) {
-            setMounted(true);
-        }
-    }, [fill]);
+    }, [fill, mounted, summary.resultSetId]);
 
     if (mounted || fill) {
-        return <ResultGrid {...props} />;
+        return (
+            <ResultGrid
+                {...props}
+                blockRef={blockRef}
+                initialGridState={latestGridStateRef.current}
+                onGridStateChange={handleGridStateChange}
+            />
+        );
     }
     const height = props.sizing.kind === "height" ? props.sizing.bodyPx : 0;
     return (
-        <div className={`qs-grid-block${hidden ? " qs-grid-hidden" : ""}`} ref={placeholderRef}>
+        <div className={`qs-grid-block${hidden ? " qs-grid-hidden" : ""}`} ref={blockRef}>
             <GridCaption
                 rpc={rpc}
                 summary={summary}

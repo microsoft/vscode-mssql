@@ -48,7 +48,7 @@ export interface FluentResultGridControllerResult {
     dataViewKey: number;
     displayedRowCount: number;
     focusGrid: () => void;
-    selectAll: () => boolean;
+    selectAll: () => "selected" | "alreadySelected" | false;
     scrollToRow: (rowIndex: number) => boolean;
     scrollToColumn: (columnIndex: number) => boolean;
     gridOptions: GridOption;

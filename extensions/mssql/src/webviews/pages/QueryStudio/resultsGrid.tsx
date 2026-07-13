@@ -668,7 +668,8 @@ export function QsResultGridSurface(props: {
                         settle = resolve;
                     });
                     perfSelectionSettledRef.current = settle;
-                    if (!gridRef.current?.selectAll()) {
+                    const selectOutcome = gridRef.current?.selectAll();
+                    if (!selectOutcome) {
                         if (perfSelectionSettledRef.current === settle) {
                             perfSelectionSettledRef.current = undefined;
                         }
@@ -676,7 +677,7 @@ export function QsResultGridSurface(props: {
                         return "selectionUnavailable";
                     }
                     await settled;
-                    return "applied";
+                    return selectOutcome === "alreadySelected" ? "alreadySelected" : "applied";
                 },
                 copyAll: async (includeHeaders) => {
                     const currentSummary = {

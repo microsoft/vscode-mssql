@@ -359,6 +359,11 @@ export type QsPerfInteractionAction =
           readonly target: QsPerfScrollTarget;
       }
     | {
+          /** Visit the full result stack in evenly spaced, paint-settled steps. */
+          readonly kind: "sweepResultStack";
+          readonly steps: number;
+      }
+    | {
           readonly kind: "selectGrid";
           readonly resultSetIndex: number;
           readonly selection: "all";

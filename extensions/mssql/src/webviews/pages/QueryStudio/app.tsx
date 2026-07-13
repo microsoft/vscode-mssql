@@ -885,6 +885,7 @@ export function QueryStudioApp() {
                         : p.action.kind === "selectGrid" || p.action.kind === "copyGrid"
                           ? { resultSetIndex: p.action.resultSetIndex }
                           : {}),
+                    ...(p.action.kind === "sweepResultStack" ? { steps: p.action.steps } : {}),
                     ...(p.action.kind === "copyGrid"
                         ? { includeHeaders: p.action.includeHeaders }
                         : {}),
