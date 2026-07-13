@@ -35,7 +35,7 @@ import { Deferred } from "../protocol";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionProfile } from "../models/connectionProfile";
 
-const FLAT_FILE_IMPORT_VIEW_ID = "flatFileImport";
+const FLAT_FILE_IMPORT_VIEW_ID = "FlatFileImport";
 
 /**
  * Controller for the Flat File Import dialog

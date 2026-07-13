@@ -87,7 +87,7 @@ import {
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
-const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
+const CONNECTION_DIALOG_VIEW_ID = "ConnectionDialog";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,

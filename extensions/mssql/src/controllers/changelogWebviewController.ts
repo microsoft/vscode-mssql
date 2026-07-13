@@ -21,6 +21,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";
+const CHANGELOG_VIEW_ID = "Changelog";
 
 export class ChangelogWebviewController extends WebviewPanelController<
     ChangelogWebviewState,
@@ -31,7 +32,7 @@ export class ChangelogWebviewController extends WebviewPanelController<
         context: vscode.ExtensionContext,
         initialState: ChangelogWebviewState = changelogConfig,
     ) {
-        super(context, "changelog", "changelog", initialState, {
+        super(context, CHANGELOG_VIEW_ID, CHANGELOG_VIEW_ID, initialState, {
             title: Changelog.ChangelogDocumentTitle,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {

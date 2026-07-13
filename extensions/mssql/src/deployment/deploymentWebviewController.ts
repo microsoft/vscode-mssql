@@ -32,7 +32,7 @@ import {
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../sharedInterfaces/azureSqlDatabase";
 
-export const DEPLOYMENT_VIEW_ID = "deployment";
+export const DEPLOYMENT_VIEW_ID = "Deployment";
 
 /**
  * Overarching controller for the deployment webview.

@@ -54,7 +54,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
                 light: "createDatabase_light.svg",
                 dark: "createDatabase_dark.svg",
             },
-            "createDatabaseDialog",
+            "CreateDatabaseDialog",
             connectionUri,
             serverName,
             databaseName,

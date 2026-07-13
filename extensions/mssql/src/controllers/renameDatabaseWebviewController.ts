@@ -45,7 +45,7 @@ export class RenameDatabaseWebviewController extends ObjectManagementWebviewCont
                 light: "renameDatabase_light.svg",
                 dark: "renameDatabase_dark.svg",
             },
-            "renameDatabaseDialog",
+            "RenameDatabaseDialog",
             connectionUri,
             serverName,
             databaseName,

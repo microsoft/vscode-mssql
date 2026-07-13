@@ -14,6 +14,8 @@ import { WebviewPanelController } from "./webviewPanelController";
 import * as LocConstants from "../constants/locConstants";
 import { ChangePasswordService as ChangePasswordService } from "../services/changePasswordService";
 
+const CHANGE_PASSWORD_VIEW_ID = "ChangePassword";
+
 export class ChangePasswordWebviewController extends WebviewPanelController<
     ChangePasswordWebviewState,
     void,
@@ -26,8 +28,8 @@ export class ChangePasswordWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            "changePassword",
-            "changePassword",
+            CHANGE_PASSWORD_VIEW_ID,
+            CHANGE_PASSWORD_VIEW_ID,
             {
                 server: credentials.server,
                 userName: credentials.user,

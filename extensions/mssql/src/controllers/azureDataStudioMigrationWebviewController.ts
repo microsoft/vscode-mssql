@@ -49,7 +49,7 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
     dialog: undefined,
 };
 
-const AZURE_DATA_STUDIO_MIGRATION_VIEW_ID = "azureDataStudioMigration";
+const AZURE_DATA_STUDIO_MIGRATION_VIEW_ID = "AzureDataStudioMigration";
 const KEYMAP_EXTENSION_ID = "ms-mssql.mssql-database-management-keymap";
 
 const EXCLUDED_SETTINGS = new Set<string>([

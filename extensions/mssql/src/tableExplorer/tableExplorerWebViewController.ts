@@ -26,6 +26,8 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
+const TABLE_EXPLORER_VIEW_ID = "TableExplorer";
+
 export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerWebViewState,
     TableExplorerReducers
@@ -47,8 +49,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
         super(
             context,
-            "tableExplorer",
-            "tableExplorer",
+            TABLE_EXPLORER_VIEW_ID,
+            TABLE_EXPLORER_VIEW_ID,
             {
                 tableName: tableName,
                 databaseName: databaseName,

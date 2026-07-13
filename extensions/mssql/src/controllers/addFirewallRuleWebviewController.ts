@@ -19,6 +19,7 @@ import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureau
 import { getLogger } from "../models/logger";
 
 const logger = getLogger("AddFirewallRule");
+const ADD_FIREWALL_RULE_VIEW_ID = "AddFirewallRule";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -40,8 +41,8 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            "AddFirewallRule",
-            "addFirewallRule",
+            ADD_FIREWALL_RULE_VIEW_ID,
+            ADD_FIREWALL_RULE_VIEW_ID,
             {
                 serverName: initializationProps.serverName,
                 message: initializationProps.errorMessage,

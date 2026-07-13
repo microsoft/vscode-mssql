@@ -16,6 +16,8 @@ import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "../telemetry/telemetry";
 
+const OBJECT_EXPLORER_FILTER_VIEW_ID = "ObjectExplorerFilter";
+
 export class ObjectExplorerFilterWebviewController extends WebviewPanelController<
     ObjectExplorerFilterState,
     ObjectExplorerReducers
@@ -31,8 +33,8 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
     constructor(context: vscode.ExtensionContext, data?: ObjectExplorerFilterState) {
         super(
             context,
-            "objectExplorerFilter",
-            "objectExplorerFilter",
+            OBJECT_EXPLORER_FILTER_VIEW_ID,
+            OBJECT_EXPLORER_FILTER_VIEW_ID,
             data ?? {
                 filterProperties: [],
                 existingFilters: [],

@@ -61,7 +61,7 @@ export class FabricHelper {
     constructor() {}
 
     static getFabricLogger(): ILogger {
-        return logger.withPrefix("Fabric Requests");
+        return logger.withPrefix("FabricRequests");
     }
 
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {

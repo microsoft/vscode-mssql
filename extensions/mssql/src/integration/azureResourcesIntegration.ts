@@ -29,7 +29,7 @@ export class AzureResourcesExtensionIntegration {
     private _logger: ILogger;
 
     constructor(private protocolHandler: MssqlProtocolHandler) {
-        this._logger = getLogger("Azure Resources");
+        this._logger = getLogger("AzureResources");
     }
 
     public registerOpenInMssqlCommand(): vscode.Disposable {

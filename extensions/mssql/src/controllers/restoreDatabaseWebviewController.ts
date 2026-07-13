@@ -84,7 +84,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 light: "restore_light.svg",
                 dark: "restore_dark.svg",
             },
-            "restoreDatabaseDialog",
+            "RestoreDatabaseDialog",
             ownerUri,
             profile.server || "",
             databaseName || profile.database || "",

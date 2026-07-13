@@ -32,6 +32,8 @@ import {
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { WebviewPanelController } from "./webviewPanelController";
 
+const SHORTCUTS_CONFIGURATION_VIEW_ID = "ShortcutsConfiguration";
+
 export class ShortcutsConfigurationWebviewController extends WebviewPanelController<
     ShortcutsConfigurationWebviewState,
     ShortcutsConfigurationReducers,
@@ -42,8 +44,8 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
     constructor(context: vscode.ExtensionContext, focusedQuickQuerySlot?: number) {
         super(
             context,
-            "shortcutsConfiguration",
-            "shortcutsConfiguration",
+            SHORTCUTS_CONFIGURATION_VIEW_ID,
+            SHORTCUTS_CONFIGURATION_VIEW_ID,
             {
                 focusedQuickQuerySlot,
                 focusNonce: focusedQuickQuerySlot ? 1 : undefined,

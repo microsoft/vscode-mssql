@@ -20,7 +20,7 @@ import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
 
-const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
+const TABLE_DESIGNER_VIEW_ID = "TableDesigner";
 
 export class TableDesignerWebviewController extends WebviewPanelController<
     designer.TableDesignerWebviewState,

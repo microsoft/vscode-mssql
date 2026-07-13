@@ -92,7 +92,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 light: "backup_light.svg",
                 dark: "backup_dark.svg",
             },
-            "backupDatabaseDialog",
+            "BackupDatabaseDialog",
             ownerUri,
             profile.server || "",
             databaseName,

@@ -53,7 +53,7 @@ import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
 
-const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
+const SCHEMA_COMPARE_VIEW_ID = "SchemaCompare";
 
 export class SchemaCompareWebViewController extends WebviewPanelController<
     SchemaCompareWebViewState,

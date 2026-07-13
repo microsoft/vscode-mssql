@@ -20,6 +20,8 @@ import { IConnectionGroup } from "../models/interfaces";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import ConnectionManager from "./connectionManager";
 
+const CONNECTION_GROUP_VIEW_ID = "ConnectionGroup";
+
 /**
  * Controller for the Add Firewall Rule dialog
  */
@@ -37,8 +39,8 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            "ConnectionGroup",
-            "ConnectionGroup",
+            CONNECTION_GROUP_VIEW_ID,
+            CONNECTION_GROUP_VIEW_ID,
             {
                 existingGroupName: connectionGroupToEdit?.name,
                 name: connectionGroupToEdit?.name || "",

@@ -39,7 +39,7 @@ export class MssqlProtocolHandler {
         private mainController: MainController,
         private client: SqlToolsServiceClient,
     ) {
-        this._logger = logger.withPrefix("Protocol Handler");
+        this._logger = logger.withPrefix("ProtocolHandler");
     }
 
     /**

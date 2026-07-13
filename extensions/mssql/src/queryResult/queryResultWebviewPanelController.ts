@@ -10,6 +10,8 @@ import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import { registerCommonRequestHandlers } from "./utils";
 
+const QUERY_RESULT_VIEW_ID = "QueryResult";
+
 export class QueryResultWebviewPanelController extends WebviewPanelController<
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
@@ -25,8 +27,8 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
     ) {
         super(
             context,
-            "queryResult",
-            "queryResult",
+            QUERY_RESULT_VIEW_ID,
+            QUERY_RESULT_VIEW_ID,
             {
                 resultSetSummaries: {},
                 messages: [],

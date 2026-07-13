@@ -17,7 +17,8 @@ import { previewService } from "../previews/previewService";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
-const logger = getLogger("UserSurvey");
+const USER_SURVEY_VIEW_ID = "UserSurvey";
+const logger = getLogger(USER_SURVEY_VIEW_ID);
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
 export const SELECTION_PROBABILITY = 0.15;
@@ -292,7 +293,7 @@ export class UserSurveyWebviewController extends WebviewPanelController<
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
     constructor(context: vscode.ExtensionContext, state?: UserSurveyState) {
-        super(context, "userSurvey", "userSurvey", state, {
+        super(context, USER_SURVEY_VIEW_ID, USER_SURVEY_VIEW_ID, state, {
             title: Loc.UserSurvey.mssqlFeedback,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {

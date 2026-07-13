@@ -49,7 +49,7 @@ import MainController from "../controllers/mainController";
 import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
-const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
+const SQLPROJ_PUBLISH_VIEW_ID = "PublishProject";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -84,8 +84,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
     ) {
         super(
             context,
-            "publishProject",
-            "publishProject",
+            SQLPROJ_PUBLISH_VIEW_ID,
+            SQLPROJ_PUBLISH_VIEW_ID,
             {
                 formState: {
                     publishProfilePath: "",

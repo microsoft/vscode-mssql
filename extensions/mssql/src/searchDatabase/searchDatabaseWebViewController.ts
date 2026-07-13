@@ -29,6 +29,8 @@ import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
+const SEARCH_DATABASE_VIEW_ID = "SearchDatabase";
+
 export class SearchDatabaseWebViewController extends WebviewPanelController<
     SearchDatabaseWebViewState,
     SearchDatabaseReducers
@@ -60,8 +62,8 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
         super(
             context,
-            "searchDatabase",
-            "searchDatabase",
+            SEARCH_DATABASE_VIEW_ID,
+            SEARCH_DATABASE_VIEW_ID,
             {
                 serverName: serverName,
                 connectionUri: "",

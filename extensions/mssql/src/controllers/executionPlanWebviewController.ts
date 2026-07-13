@@ -17,6 +17,8 @@ import {
 } from "./sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
 
+const EXECUTION_PLAN_VIEW_ID = "ExecutionPlan";
+
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
     ep.ExecutionPlanReducers
@@ -32,8 +34,8 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            "executionPlan",
-            "executionPlan",
+            EXECUTION_PLAN_VIEW_ID,
+            EXECUTION_PLAN_VIEW_ID,
             {
                 executionPlanState: {
                     loadState: ApiStatus.Loading,

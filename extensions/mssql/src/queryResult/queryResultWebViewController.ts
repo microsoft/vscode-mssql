@@ -27,7 +27,7 @@ import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 
-const QUERY_RESULT_VIEW_ID = "queryResult";
+const QUERY_RESULT_VIEW_ID = "QueryResult";
 
 export class QueryResultWebviewController extends WebviewViewController<
     qr.QueryResultWebviewState,

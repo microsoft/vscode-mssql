@@ -71,7 +71,7 @@ import { IConnectionInfo } from "vscode-mssql";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
-const azureHelperLogger = logger.withPrefix("Azure Helpers");
+const azureHelperLogger = logger.withPrefix("AzureHelpers");
 const azureSqlServerSuffix = ".database.";
 
 //#region VS Code integration

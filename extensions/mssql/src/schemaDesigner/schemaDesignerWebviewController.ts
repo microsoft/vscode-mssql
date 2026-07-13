@@ -36,7 +36,7 @@ function isCopilotChatInstalled(): boolean {
     return !!vscode.extensions.getExtension("github.copilot-chat");
 }
 
-const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
+const SCHEMA_DESIGNER_VIEW_ID = "SchemaDesigner";
 const DAB_CONFIG_FILE_EXTENSION = "json";
 const DEFINITION_FILE_EXTENSION_BY_KIND: Record<SchemaDesigner.DefinitionKind, string> = {
     [SchemaDesigner.DefinitionKind.Sql]: "sql",

@@ -61,6 +61,8 @@ export interface ProfilerWebviewEvents {
 /**
  * Controller for the profiler webview that displays profiler events
  */
+const PROFILER_VIEW_ID = "Profiler";
+
 export class ProfilerWebviewController extends WebviewPanelController<
     ProfilerWebviewState,
     ProfilerReducers
@@ -116,8 +118,8 @@ export class ProfilerWebviewController extends WebviewPanelController<
 
         super(
             context,
-            "profiler",
-            "profiler",
+            PROFILER_VIEW_ID,
+            PROFILER_VIEW_ID,
             {
                 totalRowCount: 0,
                 filteredRowCount: 0,

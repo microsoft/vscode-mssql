@@ -187,7 +187,7 @@ export default class ConnectionManager {
             this._logger = logger.withPrefix("ConnectionManager");
         }
 
-        this._entraLogger = logger.withPrefix("Entra Auth");
+        this._entraLogger = logger.withPrefix("EntraAuth");
 
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore(context);
