@@ -79,6 +79,7 @@ import {
     type QueryStudioGridCopyInterval,
 } from "../../../sharedInterfaces/queryStudioGridCopy";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
+import { writeQueryStudioClipboard } from "./queryStudioClipboard";
 import { countFluentResultGridSelectedRows } from "../../common/FluentResultGrid/internal/fluentResultGridSelection";
 import {
     queryStudioPerfScrollOffset,
@@ -244,6 +245,8 @@ export async function copySelectionAsTsv(
     let fetchDecodeMs = 0;
     let formatMs = 0;
     let clipboardMs = 0;
+    let clipboardAttempts = 0;
+    let clipboardMode: "webview" | "hostFallback" = "webview";
     let windowRows = 0;
     const finish = (
         outcome: "copied" | "tooLarge" | "empty" | "error",
@@ -258,6 +261,8 @@ export async function copySelectionAsTsv(
             fetchDecodeMs,
             formatMs,
             clipboardMs,
+            clipboardAttempts,
+            clipboardMode,
             windowRows,
             durationMs: Math.max(0, performance.now() - started),
             ...details,
@@ -391,7 +396,9 @@ export async function copySelectionAsTsv(
         formatMs += Math.max(0, performance.now() - finalFormatStarted);
         const clipboardStarted = performance.now();
         try {
-            await navigator.clipboard.writeText(text);
+            const result = await writeQueryStudioClipboard(rpc, text);
+            clipboardAttempts = result.attempts;
+            clipboardMode = result.mode;
         } finally {
             clipboardMs += Math.max(0, performance.now() - clipboardStarted);
         }

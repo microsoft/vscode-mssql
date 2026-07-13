@@ -35,6 +35,7 @@ import {
     QsGetMessagesTextRequest,
     QsGetPlanStateRequest,
     QsGetRowsRequest,
+    QsWriteClipboardRequest,
     QsGridStyle,
     QsMessageRow,
     QsOpenCellDocumentRequest,
@@ -1049,6 +1050,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     ? { start: params.columnStart, count: params.columnCount }
                     : undefined,
             );
+        });
+        this.onRequest(QsWriteClipboardRequest.type, async ({ text }) => {
+            await vscode.env.clipboard.writeText(text);
+            return { written: true };
         });
         this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
             const summary = this.model.executionHost

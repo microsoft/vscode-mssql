@@ -455,6 +455,12 @@ export namespace QsListDatabasesRequest {
 export namespace QsGetRowsRequest {
     export const type = new RequestType<QsGetRowsParams, QsCellWindow, void>("qs/getRows");
 }
+/** Rare fallback when the webview Clipboard API loses focus/permission after an async copy. */
+export namespace QsWriteClipboardRequest {
+    export const type = new RequestType<{ text: string }, { written: true }, void>(
+        "qs/writeClipboard",
+    );
+}
 export namespace QsSaveResultRequest {
     export const type = new RequestType<
         {

@@ -58,7 +58,10 @@ suite("Query Studio RowStore", () => {
                     rowCount: 10,
                     approxBytes: 512,
                     compact: {
-                        values: Array.from({ length: 10 }, (_, r) => [`row-${i * 10 + r}`]),
+                        values: Array.from({ length: 10 }, (_, r) => [
+                            i === 0 && r === 0 ? undefined : `row-${i * 10 + r}`,
+                        ]),
+                        ...(i === 0 ? { nullBitmap: "AQ==" } : {}),
                     },
                 });
             }
@@ -71,14 +74,18 @@ suite("Query Studio RowStore", () => {
             const window = await store.getRows("r0", 0, 5);
             expect(window.rowCount).to.equal(5);
             expect(window.values).to.deep.equal([
-                ["row-0"],
+                [undefined],
                 ["row-1"],
                 ["row-2"],
                 ["row-3"],
                 ["row-4"],
             ]);
             expect(store.stats.spillReads).to.be.greaterThan(0);
+            expect(store.stats.spillEncoding).to.equal("v8-v1");
             expect(store.stats.spillWriteMsTotal).to.be.at.least(0);
+            expect(store.stats.spillSerializeMsTotal).to.be.at.least(0);
+            expect(store.stats.spillWriteIoMsTotal).to.be.at.least(0);
+            expect(store.stats.spillDeserializeMsTotal).to.be.at.least(0);
             expect(store.stats.materializeMsTotal).to.be.greaterThan(0);
         } finally {
             store.dispose();

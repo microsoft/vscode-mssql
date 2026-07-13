@@ -7,7 +7,7 @@
  * RowStore (doc 04 §13.1–13.3, QO-6): per-execution result storage. Appends
  * compact pages from the sink, keeps a bounded memory cache split into
  * PROTECTED (viewport-fetched) and PROBATIONARY (appended/scanned) segments,
- * spills the remainder to length-prefixed JSON frames through a bounded
+ * spills the remainder to length-prefixed V8 structured-clone frames through a bounded
  * ASYNC write queue (the extension host hot path never blocks on spill I/O;
  * queue saturation back-pressures appendPage, which holds the STS2 ack),
  * and serves random cell windows with a small served-window cache.
@@ -26,6 +26,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { deserialize, serialize } from "v8";
 import { Perf } from "../perf/perfTelemetry";
 import { CompactPage } from "../services/sqlDataPlane/api";
 import { QsCellWindow, QsResultColumn } from "../sharedInterfaces/queryStudio";
@@ -171,8 +172,11 @@ export class RowStore {
     private appendMsTotal = 0;
     private spillWrites = 0;
     private spillWriteMsTotal = 0;
+    private spillSerializeMsTotal = 0;
+    private spillWriteIoMsTotal = 0;
     private spillReads = 0;
     private spillReadMsTotal = 0;
+    private spillDeserializeMsTotal = 0;
     private materializeMsTotal = 0;
     private windowCacheHits = 0;
     private windowCacheMisses = 0;
@@ -334,9 +338,13 @@ export class RowStore {
         maxRowsPerResultSet: number;
         spillWrites: number;
         spillReads: number;
+        spillEncoding: "json-v1" | "v8-v1";
         appendMsTotal: number;
         spillWriteMsTotal: number;
+        spillSerializeMsTotal: number;
+        spillWriteIoMsTotal: number;
         spillReadMsTotal: number;
+        spillDeserializeMsTotal: number;
         materializeMsTotal: number;
         pendingSpillBytes: number;
         pendingSpillBytesPeak: number;
@@ -364,9 +372,13 @@ export class RowStore {
             maxRowsPerResultSet: this.limits.maxRowsPerResultSet,
             spillWrites: this.spillWrites,
             spillReads: this.spillReads,
+            spillEncoding: "v8-v1",
             appendMsTotal: roundMs(this.appendMsTotal),
             spillWriteMsTotal: roundMs(this.spillWriteMsTotal),
+            spillSerializeMsTotal: roundMs(this.spillSerializeMsTotal),
+            spillWriteIoMsTotal: roundMs(this.spillWriteIoMsTotal),
             spillReadMsTotal: roundMs(this.spillReadMsTotal),
+            spillDeserializeMsTotal: roundMs(this.spillDeserializeMsTotal),
             materializeMsTotal: roundMs(this.materializeMsTotal),
             pendingSpillBytes: this.pendingSpillBytes,
             pendingSpillBytesPeak: this.pendingSpillBytesPeak,
@@ -825,9 +837,11 @@ export class RowStore {
                 return;
             }
             const startedAt = performance.now();
-            // Serialization happens HERE, off the append call stack (QO-5
-            // will hand the store pre-encoded frames and delete this step).
-            const frame = Buffer.from(JSON.stringify(page.compact), "utf8");
+            // Session-local spill never crosses a process/runtime boundary, so
+            // V8 structured clone avoids JSON's full UTF-16 stringify/parse copy.
+            const serializeStartedAt = performance.now();
+            const frame = serialize(page.compact);
+            const serializeMs = performance.now() - serializeStartedAt;
             if (this.spillBytes + frame.length + 4 > this.limits.maxSpillBytes) {
                 this.spillFailed = true;
                 return;
@@ -835,8 +849,9 @@ export class RowStore {
             const header = Buffer.alloc(4);
             header.writeUInt32LE(frame.length, 0);
             const offset = this.spillBytes;
-            await writeAt(fd, header, offset);
-            await writeAt(fd, frame, offset + 4);
+            const ioStartedAt = performance.now();
+            await writeBuffersAt(fd, [header, frame], offset);
+            const ioMs = performance.now() - ioStartedAt;
             page.spillOffset = offset;
             page.spillLength = frame.length;
             page.compact = undefined;
@@ -845,11 +860,16 @@ export class RowStore {
             const elapsed = performance.now() - startedAt;
             this.spillWrites++;
             this.spillWriteMsTotal += elapsed;
+            this.spillSerializeMsTotal += serializeMs;
+            this.spillWriteIoMsTotal += ioMs;
             if (this.verbose) {
                 Perf.marker("mssql.queryStudio.rows.spill.write", "instant", {
                     resultSetId: set.resultSetId,
                     bytes: frame.length,
                     ms: roundMs(elapsed),
+                    serializeMs: roundMs(serializeMs),
+                    ioMs: roundMs(ioMs),
+                    encoding: "v8-v1",
                 });
             }
         } catch {
@@ -920,7 +940,9 @@ export class RowStore {
             const frame = Buffer.alloc(page.spillLength!);
             await readAt(this.spillFd, frame, page.spillOffset + 4);
             const readMs = performance.now() - startedAt;
-            const compact = JSON.parse(frame.toString("utf8")) as CompactPage;
+            const deserializeStartedAt = performance.now();
+            const compact = deserialize(frame) as CompactPage;
+            const deserializeMs = performance.now() - deserializeStartedAt;
             if (admit && !this.disposed) {
                 // Re-admit to memory (read pages are likely re-read).
                 page.compact = compact;
@@ -932,12 +954,16 @@ export class RowStore {
             const elapsed = performance.now() - startedAt;
             this.spillReads++;
             this.spillReadMsTotal += readMs;
+            this.spillDeserializeMsTotal += deserializeMs;
             this.materializeMsTotal += elapsed;
             if (this.verbose) {
                 Perf.marker("mssql.queryStudio.rows.spill.read", "instant", {
                     resultSetId: set.resultSetId,
                     bytes: page.spillLength ?? 0,
                     ms: roundMs(elapsed),
+                    ioMs: roundMs(readMs),
+                    deserializeMs: roundMs(deserializeMs),
+                    encoding: "v8-v1",
                 });
             }
             return compact;
@@ -1114,11 +1140,36 @@ function retainedStringBytes(value: string): number {
     return 24 + value.length * 2;
 }
 
-function writeAt(fd: number, buffer: Buffer, position: number): Promise<void> {
+function writeBuffersAt(fd: number, buffers: readonly Buffer[], position: number): Promise<void> {
     return new Promise((resolve, reject) => {
-        fs.write(fd, buffer, 0, buffer.length, position, (error) =>
-            error ? reject(error) : resolve(),
-        );
+        const pending = buffers.filter((buffer) => buffer.length > 0).slice();
+        const writeNext = (): void => {
+            if (pending.length === 0) {
+                resolve();
+                return;
+            }
+            fs.writev(fd, pending, position, (error, bytesWritten) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                if (bytesWritten <= 0) {
+                    reject(new Error("Spill write made no forward progress"));
+                    return;
+                }
+                position += bytesWritten;
+                let consumed = bytesWritten;
+                while (pending.length > 0 && consumed >= pending[0].length) {
+                    consumed -= pending[0].length;
+                    pending.shift();
+                }
+                if (consumed > 0 && pending.length > 0) {
+                    pending[0] = pending[0].subarray(consumed);
+                }
+                writeNext();
+            });
+        };
+        writeNext();
     });
 }
 
