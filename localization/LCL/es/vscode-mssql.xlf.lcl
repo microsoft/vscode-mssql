@@ -21079,6 +21079,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cree y administre métodos abreviados de teclado para consultas usadas con frecuencia, así como para el editor de consultas y las acciones de cuadrícula de resultados, para detectar los comandos disponibles y ejecutarlos de forma más eficaz.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e003a6ddd41b59eec63e1e129d92668798116d9cf37d1d07d9b64c94fe2e872e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show all Quick Query shortcuts in VS Code Keyboard Shortcuts]]></Val>
@@ -25818,15 +25827,6 @@
           <Val><![CDATA[Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Habilita la experiencia de cuadrícula de vista previa de los resultados de la consulta con una administración de estado mejorada y más opciones de personalización de columnas, como mostrar, ocultar y inmovilizar columnas.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.preview.shortcutsConfiguration.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enables the keyboard shortcuts configuration editor and Quick Queries commands.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Habilita el editor de configuración de métodos abreviados de teclado y los comandos de Quick Query.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

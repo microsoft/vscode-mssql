@@ -21079,6 +21079,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[頻繁に使用されるクエリ、およびクエリ エディターと結果グリッド アクションのキーボード ショートカットを作成と管理して、使用可能なコマンドを検出し、より効率的に実行します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e003a6ddd41b59eec63e1e129d92668798116d9cf37d1d07d9b64c94fe2e872e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show all Quick Query shortcuts in VS Code Keyboard Shortcuts]]></Val>
@@ -25818,15 +25827,6 @@
           <Val><![CDATA[Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[状態管理が向上し、列の表示、非表示、固定などの列カスタマイズ オプションを使用して、クエリ結果グリッドのプレビュー エクスペリエンスを有効にします。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.preview.shortcutsConfiguration.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enables the keyboard shortcuts configuration editor and Quick Queries commands.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[キーボード ショートカットの構成エディターとクイック クエリ コマンドを有効にします。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

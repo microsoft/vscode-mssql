@@ -21079,6 +21079,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建和管理常用查询以及查询编辑器和结果网格操作的键盘快捷方式，以发现可用命令并更高效地执行它们。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e003a6ddd41b59eec63e1e129d92668798116d9cf37d1d07d9b64c94fe2e872e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show all Quick Query shortcuts in VS Code Keyboard Shortcuts]]></Val>
@@ -25818,15 +25827,6 @@
           <Val><![CDATA[Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[通过改进的状态管理和更多列自定义选项(包括显示、隐藏和冻结列)启用预览查询结果网格体验。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.preview.shortcutsConfiguration.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enables the keyboard shortcuts configuration editor and Quick Queries commands.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启用键盘快捷方式配置编辑器和快速查询命令。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
