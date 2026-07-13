@@ -264,6 +264,26 @@ test("getServerTypes", () => {
             input: "test.crm.dynamics.com",
             expected: [ServerType.Dynamics, ServerType.Sql],
         },
+        {
+            input: "test.jas772hsiz.us-east-2.rds.amazonaws.com,1433",
+            expected: [ServerType.AmazonWebServices, ServerType.Sql],
+        },
+        {
+            input: "test-with-dot.sql.goog.",
+            expected: [ServerType.GoogleCloudPlatform, ServerType.Sql],
+        },
+        {
+            input: "test-without-dot.sql.goog",
+            expected: [ServerType.GoogleCloudPlatform, ServerType.Sql],
+        },
+        {
+            input: "test.sql-psa.goog",
+            expected: [ServerType.GoogleCloudPlatform, ServerType.Sql],
+        },
+        {
+            input: "test.oraclevcn.com",
+            expected: [ServerType.OracleCloudInfrastructure, ServerType.Sql],
+        },
 
         { input: "localhost", expected: [ServerType.Local, ServerType.Sql] },
         { input: "localhost,1234", expected: [ServerType.Local, ServerType.Sql] },
@@ -279,4 +299,80 @@ test("getServerTypes", () => {
             `'${input}' should return ${expected.join(", ")}, but was ${result.join(", ")}`,
         ).to.deep.equal(expected);
     }
+});
+
+suite("canCheckDatabasePauseStatus", () => {
+    const azureServer = "test.database.windows.net";
+
+    const makeConnection = (overrides: Partial<IConnectionInfo> = {}): IConnectionInfo =>
+        ({
+            server: azureServer,
+            database: "userDb",
+            authenticationType: Constants.azureMfa,
+            ...overrides,
+        }) as IConnectionInfo;
+
+    test("returns false when the connection is undefined", () => {
+        expect(ConnectionInfo.canCheckDatabasePauseStatus(undefined as unknown as IConnectionInfo))
+            .to.be.false;
+    });
+
+    test("returns false when authentication is not Entra MFA", () => {
+        expect(
+            ConnectionInfo.canCheckDatabasePauseStatus(
+                makeConnection({ authenticationType: Constants.sqlAuthentication }),
+            ),
+        ).to.be.false;
+    });
+
+    test("returns false for a non-Azure SQL server", () => {
+        expect(ConnectionInfo.canCheckDatabasePauseStatus(makeConnection({ server: "localhost" })))
+            .to.be.false;
+    });
+
+    test("returns false when no database is specified", () => {
+        expect(ConnectionInfo.canCheckDatabasePauseStatus(makeConnection({ database: undefined })))
+            .to.be.false;
+        expect(ConnectionInfo.canCheckDatabasePauseStatus(makeConnection({ database: "" }))).to.be
+            .false;
+    });
+
+    test("returns false when the database is the default database label", () => {
+        expect(
+            ConnectionInfo.canCheckDatabasePauseStatus(
+                makeConnection({ database: LocalizedConstants.defaultDatabaseLabel }),
+            ),
+        ).to.be.false;
+    });
+
+    test("returns false for system databases (case-insensitive)", () => {
+        for (const db of ["master", "MASTER", "tempdb", "model", "msdb"]) {
+            expect(
+                ConnectionInfo.canCheckDatabasePauseStatus(makeConnection({ database: db })),
+                `database '${db}' should not be checkable`,
+            ).to.be.false;
+        }
+    });
+
+    test("returns true for an Azure SQL user database with Entra MFA", () => {
+        expect(ConnectionInfo.canCheckDatabasePauseStatus(makeConnection())).to.be.true;
+    });
+
+    test("uses the databaseName override when provided", () => {
+        // Connection targets master, but the override points at a user database -> checkable.
+        expect(
+            ConnectionInfo.canCheckDatabasePauseStatus(
+                makeConnection({ database: "master" }),
+                "userDb",
+            ),
+        ).to.be.true;
+
+        // Override points at a system database -> not checkable even though the connection db is a user db.
+        expect(
+            ConnectionInfo.canCheckDatabasePauseStatus(
+                makeConnection({ database: "userDb" }),
+                "master",
+            ),
+        ).to.be.false;
+    });
 });

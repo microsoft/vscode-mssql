@@ -13,6 +13,23 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
+                title: locConstants.Changelog.shortcutsConfigurationTitle,
+                description: locConstants.Changelog.shortcutsConfigurationDescription,
+                isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdOpenShortcutsConfiguration,
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-shortcuts-configuration",
+                    },
+                ],
+            },
+            {
                 title: locConstants.Changelog.azureSqlProvisioningTitle,
                 description: locConstants.Changelog.azureSqlProvisioningDescription,
                 isPreview: true,

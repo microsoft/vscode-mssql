@@ -137,6 +137,7 @@ import {
     normalizeQuickQueries,
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
+import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
 
 /**
  * The main controller class that initializes the extension
@@ -185,6 +186,8 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    public protocolHandler: MssqlProtocolHandler;
+    public azureResourcesIntegration: AzureResourcesExtensionIntegration;
 
     /**
      * The main controller constructor
@@ -293,9 +296,6 @@ export default class MainController implements vscode.Disposable {
                 const commandId = getQuickQueryCommandId(slotNumber);
                 this.registerCommand(commandId);
                 this._event.on(commandId, () => {
-                    if (!this.isShortcutsConfigurationEnabled()) {
-                        return;
-                    }
                     void this.runAndLogErrors(quickQueryService.run(slotNumber));
                 });
             }
@@ -759,18 +759,23 @@ export default class MainController implements vscode.Disposable {
                 xelProviderInstance,
             );
 
-            const self = this;
-            const uriHandler: vscode.UriHandler = {
-                async handleUri(uri: vscode.Uri): Promise<void> {
-                    const mssqlProtocolHandler = new MssqlProtocolHandler(
-                        self,
-                        self._connectionMgr.client,
-                    );
+            this.protocolHandler = new MssqlProtocolHandler(this, this._connectionMgr.client);
 
-                    await mssqlProtocolHandler.handleUri(uri);
+            const uriHandler: vscode.UriHandler = {
+                handleUri: async (uri: vscode.Uri) => {
+                    await this.protocolHandler.handleUri(uri);
                 },
             };
+
             vscode.window.registerUriHandler(uriHandler);
+
+            this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
+                this.protocolHandler,
+            );
+
+            this._context.subscriptions.push(
+                this.azureResourcesIntegration.registerOpenInMssqlCommand(),
+            );
 
             // Register a virtual document provider once during extension activation
             vscode.workspace.registerTextDocumentContentProvider("query-result-link", {
@@ -2611,6 +2616,23 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Opens the connection dialog prepopulated with the given connection info, in "create new connection" mode
+     * (as opposed to "edit existing connection" mode). Used when an external source (e.g. protocol handler)
+     * provides connection parameters that don't match any existing saved profile.
+     */
+    public openConnectionDialogForNewProfile(connectionInfo?: IConnectionInfo): void {
+        const connDialog = new ConnectionDialogWebviewController(
+            this._context,
+            this,
+            this._objectExplorerProvider,
+            connectionInfo,
+            undefined,
+            true, // openAsNewDraft
+        );
+        connDialog.revealToForeground();
+    }
+
+    /**
      * Let users pick from a list of connections
      */
     public async promptToConnect(): Promise<boolean> {
@@ -2904,9 +2926,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     public openShortcutsConfiguration(focusedQuickQuerySlot?: number): void {
-        if (!this.isShortcutsConfigurationEnabled()) {
-            return;
-        }
         if (
             this._shortcutsConfigurationController &&
             !this._shortcutsConfigurationController.isDisposed
@@ -2927,10 +2946,6 @@ export default class MainController implements vscode.Disposable {
         });
         this._shortcutsConfigurationController = controller;
         controller.revealToForeground();
-    }
-
-    private isShortcutsConfigurationEnabled(): boolean {
-        return previewService.isFeatureEnabled(PreviewFeature.ShortcutsConfiguration);
     }
 
     private configureQuickQueryService(): void {

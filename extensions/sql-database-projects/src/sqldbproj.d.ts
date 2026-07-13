@@ -59,15 +59,6 @@ declare module "sqldbproj" {
         getProjectDatabaseSchemaProvider(projectFilePath: string): Promise<string>;
 
         /**
-         * Generate project from OpenAPI specification file
-         * @param options Options to use when generating a project from an OpenAPI spec
-         * @returns the generated sql project
-         */
-        generateProjectFromOpenApiSpec(
-            options?: GenerateProjectFromOpenApiSpecOptions,
-        ): Promise<ISqlProject | undefined>;
-
-        /**
          * Prompts the user to add a new item to the specified project
          * @param project The project to add the item to
          * @param relativeFilePath The relative path in the project where the item should be added
@@ -114,33 +105,6 @@ declare module "sqldbproj" {
         databaseTrigger = "databaseTrigger",
         sequence = "sequence",
     }
-
-    /**
-     * Options to use when generating a project from an OpenAPI spec
-     */
-    export type GenerateProjectFromOpenApiSpecOptions = {
-        /**
-         * The OpenAPI spec file to use instead of having the user select it
-         */
-        openApiSpecFile?: vscode.Uri;
-        /**
-         * The default name to give the generated project in the name input prompt
-         */
-        defaultProjectName?: string;
-        /**
-         * The default location to show when the user is selecting the output location of the project
-         */
-        defaultOutputLocation?: vscode.Uri;
-        /**
-         * If true then the project will not be opened in the workspace after being created
-         */
-        doNotOpenInWorkspace?: boolean;
-
-        /**
-         * Create SQL Project SDK style or non SDK style. The default is non SDK style.
-         */
-        isSDKStyle?: boolean;
-    };
 
     export interface ISqlProject {
         /**

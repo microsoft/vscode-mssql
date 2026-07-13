@@ -11,7 +11,11 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
-import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import {
+    azureStatusesToRetry,
+    AzureSqlDatabaseStatus,
+    VsCodeAzureHelper,
+} from "../connectionconfig/azureHelpers";
 import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
@@ -34,7 +38,12 @@ import {
 import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
-import { AuthenticationTypes, EncryptOptions, IConnectionProfile } from "../models/interfaces";
+import {
+    AuthenticationTypes,
+    EncryptOptions,
+    IConnectionGroup,
+    IConnectionProfile,
+} from "../models/interfaces";
 import { PlatformInformation } from "../models/platform";
 import * as Utils from "../models/utils";
 import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
@@ -54,11 +63,17 @@ import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewContro
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import { getServerTypes } from "../models/connectionInfo";
+import { getServerTypes, canCheckDatabasePauseStatus } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
+
+/**
+ * Maximum number of connection retries when a target serverless Azure SQL database is
+ * not online.
+ */
+export const serverlessWakeMaxRetryAttempts = 2;
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -239,7 +254,7 @@ export default class ConnectionManager {
 
     private async initialize(): Promise<void> {
         await this.connectionStore.initialized;
-        await this.migrateLegacyConnectionProfiles();
+        await this.performConnectionStartupChecks();
 
         this.initialized.resolve();
     }
@@ -1391,9 +1406,14 @@ export default class ConnectionManager {
         options: {
             shouldHandleErrors?: boolean;
             connectionSource?: string;
+            serverlessWakeFailedAttempts?: number;
         } = {},
     ): Promise<boolean> {
-        const { shouldHandleErrors = true, connectionSource = "" } = options;
+        const {
+            shouldHandleErrors = true,
+            connectionSource = "",
+            serverlessWakeFailedAttempts = 0,
+        } = options;
 
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
@@ -1416,6 +1436,15 @@ export default class ConnectionManager {
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
 
+        // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
+        const isPauseAwareConnection =
+            shouldHandleErrors && canCheckDatabasePauseStatus(credentials);
+
+        // If the connection can be checked, start the serverless status check in parallel with the connection attempt.
+        // The result determines silent retry if the connection attempt times out.
+        const serverlessStatusPromise: Promise<AzureSqlDatabaseStatus> = isPauseAwareConnection
+            ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(credentials, undefined, "direct connect")
+            : Promise.resolve("UnableToCheck");
         // Add the connection to the active connections list
         let connectionInfo: ConnectionInfo = new ConnectionInfo();
         connectionInfo.credentials = credentials;
@@ -1527,6 +1556,28 @@ export default class ConnectionManager {
             return true;
         } else {
             let errorType = "";
+
+            // If the connection is pause-aware and the timeout is retryable, attempt a silent retry.
+            if (isPauseAwareConnection && this.isServerlessWakeRetryableTimeout(result)) {
+                const failedAttempts = serverlessWakeFailedAttempts + 1;
+                if (
+                    await this.shouldRetryForPausedServerlessDatabase(
+                        connectionInfo.credentials,
+                        failedAttempts,
+                        serverlessStatusPromise,
+                    )
+                ) {
+                    connectionActivity.update({ retryConnection: "true" });
+                    connectionActivity.end(ActivityStatus.Retrying);
+
+                    return await this.connect(fileUri, connectionInfo.credentials, {
+                        shouldHandleErrors,
+                        connectionSource,
+                        serverlessWakeFailedAttempts: failedAttempts,
+                    });
+                }
+            }
+
             if (shouldHandleErrors) {
                 const errorHandlingResult = await this.handleConnectionErrors(
                     result,
@@ -1574,6 +1625,81 @@ export default class ConnectionManager {
             );
             return false;
         }
+    }
+
+    /**
+     * Determines whether a failed connection/expand result represents a timeout that could
+     * be caused by a paused/resuming serverless database.
+     */
+    public isServerlessWakeRetryableTimeout(error: SqlConnectionError): boolean {
+        if (!error) {
+            return false;
+        }
+
+        if (
+            error.errorCode &&
+            Constants.serverlessWakeTimeoutErrorCodes.includes(error.errorCode)
+        ) {
+            return true;
+        }
+
+        if (error.errorNumber === Constants.errorConnectionTimeout) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines whether a timed-out connection/expand attempt should be silently retried.
+     *
+     * The connection/expand attempt has already timed out by the time this is called, so we only
+     * consult the pause-state check if it has ALREADY resolved. If it's still in flight we do NOT
+     * wait for it (which could take much longer than the connection timeout for users with many
+     * subscriptions) — we surface the timeout error immediately instead.
+     *
+     * @param credentials the connection being attempted.
+     * @param failedAttempts number of connection attempts that have already failed (including initial attempt).
+     * @param statusPromise In-flight status check promise. Resolves to an
+     *   {@link AzureSqlDatabaseStatus} (never `undefined`); `undefined` from the race below means
+     *   the check hadn't resolved yet.
+     * @param databaseName optional database name override for the status check.
+     */
+    public async shouldRetryForPausedServerlessDatabase(
+        credentials: IConnectionInfo,
+        failedAttempts: number,
+        statusPromise: Promise<AzureSqlDatabaseStatus>,
+        databaseName?: string,
+    ): Promise<boolean> {
+        if (
+            failedAttempts >= serverlessWakeMaxRetryAttempts + 1 ||
+            !canCheckDatabasePauseStatus(credentials, databaseName)
+        ) {
+            return false;
+        }
+
+        // Peek at the status check without waiting: race it against an already-resolved `undefined`.
+        // Since the status check never resolves to `undefined`, a resulting `undefined` unambiguously
+        // means "the check hasn't finished yet" -> don't retry, surface the timeout now.
+        const status = await Promise.race([statusPromise, Promise.resolve(undefined)]);
+
+        if (status === undefined) {
+            this._logger.info(
+                `Serverless pause-aware retry: pause-state check for database "${databaseName ?? credentials.database}" on "${credentials.server}" did not finish before the connection timeout; surfacing the error without retrying.`,
+            );
+            return false;
+        }
+
+        if (!azureStatusesToRetry.includes(status)) {
+            return false;
+        }
+
+        this._logger.info(
+            `Serverless pause-aware retry: database "${databaseName ?? credentials.database}" on "${credentials.server}" is ${status}; suppressing the connection timeout and retrying silently (attempt ${
+                failedAttempts + 1
+            }/${serverlessWakeMaxRetryAttempts + 1}).`,
+        );
+        return true;
     }
 
     /**
@@ -2093,39 +2219,65 @@ export default class ConnectionManager {
         vscode.window.showInformationMessage(LocalizedConstants.Accounts.clearedEntraTokenCache);
     }
 
-    private async migrateLegacyConnectionProfiles(): Promise<void> {
-        this._logger.debug("Beginning migration of legacy connections");
+    /**
+     * Perform startup checks for connections:
+     * - migrates legacy connection strings
+     * - emits basic connection stats
+     */
+    private async performConnectionStartupChecks(): Promise<void> {
+        this._logger.trace("Beginning connection startup checks");
 
         const connections: IConnectionProfile[] =
             await this.connectionStore.readAllConnections(false);
-        const tally = {
+        const connectionGroups: IConnectionGroup[] =
+            await this.connectionStore.readAllConnectionGroups();
+
+        const migrationTally = {
             migrated: 0,
             notNeeded: 0,
             error: 0,
         };
 
+        const orderingTally = {
+            orderedConnections: 0,
+            orderedGroups: 0,
+        };
+
         for (const connection of connections) {
             const result = await this.migrateLegacyConnection(connection);
 
-            tally[result] = (tally[result] || 0) + 1;
+            migrationTally[result] = (migrationTally[result] || 0) + 1;
+
+            if (connection.order !== undefined) {
+                orderingTally.orderedConnections++;
+            }
         }
 
-        if (tally.migrated > 0) {
-            this._logger.debug(
-                `Completed migration of legacy Connection String connections. (${tally.migrated} migrated, ${tally.notNeeded} not needed, ${tally.error} errored)`,
+        for (const group of connectionGroups) {
+            if (group.order !== undefined) {
+                orderingTally.orderedGroups++;
+            }
+        }
+
+        if (migrationTally.migrated > 0) {
+            this._logger.info(
+                `Completed migration of legacy Connection String connections. (${migrationTally.migrated} migrated, ${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
             );
         } else {
-            this._logger.debug(
-                `No legacy Connection String connections found to migrate. (${tally.notNeeded} not needed, ${tally.error} errored)`,
+            this._logger.info(
+                `No legacy Connection String connections found to migrate. (${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
             );
         }
 
         sendActionEvent(
-            TelemetryViews.General,
-            TelemetryActions.MigrateLegacyConnections,
+            TelemetryViews.Connection,
+            TelemetryActions.Stats,
             {}, // properties
             {
-                ...tally,
+                connectionCount: connections.length,
+                connectionGroupCount: connectionGroups.length,
+                ...migrationTally,
+                ...orderingTally,
             },
         );
     }
@@ -2484,6 +2636,7 @@ export interface SqlConnectionError {
     message?: string;
     errorNumber?: number;
     errorMessage?: string;
+    errorCode?: string;
 }
 
 export enum SqlConnectionErrorType {
