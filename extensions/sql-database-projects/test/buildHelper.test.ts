@@ -74,12 +74,10 @@ suite("BuildHelper: Build Helper tests", function (): void {
         }
     });
 
-    test("Should get correct build folder", async function (): Promise<void> {
-        const testContext: TestContext = createContext();
+    test("Should get correct build folder", function (): void {
         const buildHelper = new BuildHelper();
-        await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
-        // get expected path for build
+        // extensionBuildDirPath is set in the constructor — no network calls needed.
         const extensionPath =
             vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
         expect(buildHelper.extensionBuildDirPath).to.equal(
@@ -126,17 +124,23 @@ suite("BuildHelper: Build Helper tests", function (): void {
     });
 
     test("Should have all required DLLs in build directory", async function (): Promise<void> {
+        // Treat all files as present and fail the test if a network download is attempted.
+        sandbox.stub(utils, "exists").resolves(true);
+        sandbox
+            .stub(HttpClient.prototype, "download")
+            .throws(new Error("download should not be called"));
+
         const testContext: TestContext = createContext();
         const buildHelper = new BuildHelper();
         const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
-        // Verify that the build directory was created successfully
-        expect(success, "Build directory creation should succeed").to.be.true;
+        expect(success, "Build directory creation should succeed when all files are present").to.be
+            .true;
 
         const buildDirPath = buildHelper.extensionBuildDirPath;
 
-        // List of required DLLs from Microsoft.Build.Sql package
-        const requiredDacFxFiles: string[] = [
+        // List of required DLLs — all sourced from the Microsoft.Build.Sql package (tools/net8.0/)
+        const allRequiredFiles: string[] = [
             "Microsoft.Build.Sql.dll",
             "Microsoft.Data.SqlClient.dll",
             "Microsoft.Data.Tools.Schema.Sql.dll",
@@ -149,13 +153,9 @@ suite("BuildHelper: Build Helper tests", function (): void {
             "System.IO.Packaging.dll",
             "Microsoft.Data.Tools.Schema.SqlTasks.targets",
             "Microsoft.SqlServer.Server.dll",
+            "Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+            "Microsoft.Data.Tools.Sql.DesignServices.dll",
         ];
-
-        // List of required DLLs from ScriptDom package
-        const requiredScriptDomFiles: string[] = ["Microsoft.SqlServer.TransactSql.ScriptDom.dll"];
-
-        // Combine all required files
-        const allRequiredFiles = [...requiredDacFxFiles, ...requiredScriptDomFiles];
 
         // Verify each required file exists in the build directory
         for (const fileName of allRequiredFiles) {

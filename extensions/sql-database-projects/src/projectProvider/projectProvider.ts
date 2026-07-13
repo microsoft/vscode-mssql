@@ -205,10 +205,4 @@ export class SqlDatabaseProjectProvider
     public getProjectDatabaseSchemaProvider(projectFilePath: string): Promise<string> {
         return this.projectController.getProjectDatabaseSchemaProvider(projectFilePath);
     }
-
-    public generateProjectFromOpenApiSpec(
-        options?: sqldbproj.GenerateProjectFromOpenApiSpecOptions,
-    ): Promise<sqldbproj.ISqlProject | undefined> {
-        return this.projectController.generateProjectFromOpenApiSpec(options);
-    }
 }

@@ -41,7 +41,7 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
-export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Preview)");
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({
@@ -992,6 +992,7 @@ export class ObjectExplorer {
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit connection profile");
     public static FailedOEConnectionErrorSignIn = l10n.t("Sign in and retry");
     public static Connecting = l10n.t("Connecting...");
+    public static ResumingDatabase = l10n.t("Resuming database");
     public static NodeDeletionConfirmation(nodeLabel: string) {
         return l10n.t({
             message: "Are you sure you want to remove {0}?",
@@ -1824,6 +1825,9 @@ export class LocalContainers {
     );
     public static linuxDockerPermissionsError = l10n.t(
         "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
+    );
+    public static dockerSocketPermissionError = l10n.t(
+        "Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.",
     );
     public static dockerFailedToStartWithinTimeout = l10n.t(
         "Docker failed to start within the timeout period. Please manually start Docker and try again.",
@@ -3405,6 +3409,10 @@ export class Changelog {
     public static schemaDesignerCopilotTitle = l10n.t("Schema Designer with GitHub Copilot");
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
+    );
+    public static shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+    public static shortcutsConfigurationDescription = l10n.t(
+        "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.",
     );
     public static azureSqlProvisioningTitle = l10n.t("Azure SQL databases provisioning");
     public static azureSqlProvisioningDescription = l10n.t(
