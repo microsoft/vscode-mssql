@@ -19,7 +19,12 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import type * as monacoNs from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
+import {
+    perfMark,
+    perfMarkAfterNextPaint,
+    perfMarkAfterNextPaintComputed,
+    perfMarksEnabled,
+} from "../../common/perfMarks";
 import { locConstants } from "../../common/locConstants";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
@@ -138,6 +143,10 @@ import {
 import { executeParamsForSelection } from "./executionRequests";
 import { QueryStudioErrorBoundary } from "./queryStudioErrorBoundary";
 import { performQueryStudioPerfInteraction } from "./queryStudioPerfInteraction";
+import {
+    queryStudioWebviewHealthAttrs,
+    resetQueryStudioWebviewHealth,
+} from "./queryStudioWebviewHealth";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
@@ -255,6 +264,11 @@ export function QueryStudioApp() {
                 setActiveTabState(next);
             }
             perfMarkAfterNextPaint("mssql.queryStudio.tab.activation.end", attrs);
+            if (perfMarksEnabled()) {
+                perfMarkAfterNextPaintComputed("mssql.queryStudio.webview.health", () =>
+                    queryStudioWebviewHealthAttrs("tabPaint", mountedTabsRef.current.size),
+                );
+            }
         },
         [],
     );
@@ -548,6 +562,9 @@ export function QueryStudioApp() {
             setMaximizedGridId(undefined);
             setMessages([]);
             setQueryPlanTabState(undefined);
+            if (perfMarksEnabled()) {
+                resetQueryStudioWebviewHealth();
+            }
             if (fetchMessageSnapshot) {
                 void rpc
                     .sendRequest(QsGetMessagesRequest.type, {})
@@ -858,6 +875,14 @@ export function QueryStudioApp() {
                     ...attrs,
                     outcome,
                 });
+                if (perfMarksEnabled()) {
+                    perfMarkAfterNextPaintComputed("mssql.queryStudio.webview.health", () =>
+                        queryStudioWebviewHealthAttrs(
+                            "interactionPaint",
+                            mountedTabsRef.current.size,
+                        ),
+                    );
+                }
             }),
             rpc.onNotification(
                 QsMessagesAppendedNotification.type,
@@ -980,12 +1005,18 @@ export function QueryStudioApp() {
                 rows: state?.results.totalRows ?? 0,
                 resultSets: state?.results.resultSets.length ?? 0,
             };
-            if ((state?.results.resultSets.length ?? 0) > 0 && !gridStackLoaded()) {
-                void whenGridStackLoaded().then(() =>
-                    perfMarkAfterNextPaint("mssql.queryStudio.resultsRendered", attrs),
-                );
-            } else {
+            const markTerminalPaint = () => {
                 perfMarkAfterNextPaint("mssql.queryStudio.resultsRendered", attrs);
+                if (perfMarksEnabled()) {
+                    perfMarkAfterNextPaintComputed("mssql.queryStudio.webview.health", () =>
+                        queryStudioWebviewHealthAttrs("terminalPaint", mountedTabsRef.current.size),
+                    );
+                }
+            };
+            if ((state?.results.resultSets.length ?? 0) > 0 && !gridStackLoaded()) {
+                void whenGridStackLoaded().then(markTerminalPaint);
+            } else {
+                markTerminalPaint();
             }
             // Error terminal states: land the user on Messages even when the
             // run also produced result sets, so the failure text is visible.
