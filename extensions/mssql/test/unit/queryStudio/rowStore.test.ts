@@ -263,6 +263,41 @@ suite("Query Studio RowStore", () => {
         }
     });
 
+    test("served-window cache reports retained bytes, peaks, and evictions", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(spillDir, undefined, "minimal", {
+            maxPendingSpillBytes: 32 * 1024 * 1024,
+            protectedCacheRatio: 0.5,
+            windowCacheEntries: 1,
+        });
+        try {
+            store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+            await store.appendPage("r0", {
+                rowOffset: 0,
+                rowCount: 4,
+                approxBytes: 128,
+                compact: { values: [["alpha"], ["beta"], ["gamma"], ["delta"]] },
+            });
+
+            await store.getRows("r0", 0, 2, "grid");
+            const first = store.stats;
+            expect(first.windowCacheEntries).to.equal(1);
+            expect(first.windowCacheBytes).to.be.greaterThan(0);
+            expect(first.windowCachePeakBytes).to.equal(first.windowCacheBytes);
+
+            await store.getRows("r0", 2, 2, "grid");
+            expect(store.stats.windowCacheEntries).to.equal(1);
+            expect(store.stats.windowCacheEvictions).to.equal(1);
+            expect(store.stats.windowCachePeakBytes).to.be.at.least(store.stats.windowCacheBytes);
+
+            store.markCorrupt("r0");
+            expect(store.stats.windowCacheEntries).to.equal(0);
+            expect(store.stats.windowCacheBytes).to.equal(0);
+        } finally {
+            store.dispose();
+        }
+    });
+
     test("spill cap rejects with spillLimit and the run truncates honestly (QO-6)", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir, {

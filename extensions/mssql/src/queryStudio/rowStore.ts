@@ -120,6 +120,12 @@ interface SpillJob {
     page: StoredPage;
 }
 
+interface CachedWindow {
+    window: QsCellWindow;
+    /** Approximate retained JS heap, not wire bytes. */
+    approxBytes: number;
+}
+
 export class RowStore {
     private resultSets = new Map<string, ResultSetStore>();
     private memoryBytes = 0;
@@ -140,7 +146,12 @@ export class RowStore {
     /** Retained-store demotion (C2D): shrunken memory ceiling when set. */
     private memoryCapOverride: number | undefined;
     /** Served-window cache (immutable values ⇒ complete windows cache safely). */
-    private windowCache = new Map<string, QsCellWindow>();
+    private windowCache = new Map<string, CachedWindow>();
+    private windowCacheBytes = 0;
+    private windowCachePeakBytes = 0;
+    private windowCacheEvictions = 0;
+    private memoryBytesPeak = 0;
+    private pendingSpillBytesPeak = 0;
     // Row-pipeline attribution accumulators (QO-2): cheap adds on the hot
     // path, emitted as aggregates on query.complete via `stats`.
     private appendMsTotal = 0;
@@ -212,6 +223,7 @@ export class RowStore {
         set.pages.push(stored);
         set.rowCount += page.rowCount;
         this.memoryBytes += page.approxBytes;
+        this.memoryBytesPeak = Math.max(this.memoryBytesPeak, this.memoryBytes);
         this.probationary.push({ set, page: stored });
         this.evictIfNeeded();
         const elapsed = performance.now() - startedAt;
@@ -273,7 +285,7 @@ export class RowStore {
         // Served windows for a corrupt set may be short — drop them.
         for (const key of [...this.windowCache.keys()]) {
             if (key.startsWith(resultSetId + ":")) {
-                this.windowCache.delete(key);
+                this.deleteCachedWindow(key, false);
             }
         }
     }
@@ -313,9 +325,15 @@ export class RowStore {
         spillReadMsTotal: number;
         materializeMsTotal: number;
         pendingSpillBytes: number;
+        pendingSpillBytesPeak: number;
         appendBackpressureMsTotal: number;
         windowCacheHits: number;
         windowCacheMisses: number;
+        windowCacheBytes: number;
+        windowCachePeakBytes: number;
+        windowCacheEntries: number;
+        windowCacheEvictions: number;
+        memoryBytesPeak: number;
         protectedPages: number;
     } {
         return {
@@ -334,10 +352,26 @@ export class RowStore {
             spillReadMsTotal: roundMs(this.spillReadMsTotal),
             materializeMsTotal: roundMs(this.materializeMsTotal),
             pendingSpillBytes: this.pendingSpillBytes,
+            pendingSpillBytesPeak: this.pendingSpillBytesPeak,
             appendBackpressureMsTotal: roundMs(this.appendBackpressureMsTotal),
             windowCacheHits: this.windowCacheHits,
             windowCacheMisses: this.windowCacheMisses,
+            windowCacheBytes: this.windowCacheBytes,
+            windowCachePeakBytes: this.windowCachePeakBytes,
+            windowCacheEntries: this.windowCache.size,
+            windowCacheEvictions: this.windowCacheEvictions,
+            memoryBytesPeak: this.memoryBytesPeak,
             protectedPages: this.protectedPages.length,
+        };
+    }
+
+    private get cachePerfAttrs(): Record<string, number> {
+        return {
+            residentPageBytes: this.memoryBytes,
+            pendingSpillBytes: this.pendingSpillBytes,
+            windowCacheBytes: this.windowCacheBytes,
+            windowCacheEntries: this.windowCache.size,
+            windowCacheEvictions: this.windowCacheEvictions,
         };
     }
 
@@ -395,6 +429,7 @@ export class RowStore {
                 pagesMissing: 0,
                 shortWindow: false,
                 ms: Date.now() - startedAt,
+                ...this.cachePerfAttrs,
             });
             return empty;
         }
@@ -430,7 +465,7 @@ export class RowStore {
                     resultSetId,
                     start,
                     count,
-                    rows: cached.rowCount,
+                    rows: cached.window.rowCount,
                     fromSpill: false,
                     cacheHit: true,
                     windowCache: true,
@@ -442,8 +477,9 @@ export class RowStore {
                     pagesMissing: 0,
                     shortWindow: false,
                     ms: Date.now() - startedAt,
+                    ...this.cachePerfAttrs,
                 });
-                return cached;
+                return cached.window;
             }
             this.windowCacheMisses++;
         }
@@ -524,31 +560,6 @@ export class RowStore {
                 }
             }
         }
-        Perf.marker("mssql.queryStudio.rows.windowFetch.end", "end", {
-            resultSetId,
-            start,
-            count,
-            rows: values.length,
-            fromSpill,
-            cacheHit: !fromSpill && pagesMissing === 0,
-            columnCount: set.columns.length,
-            pageCount: set.pages.length,
-            firstPageIndex,
-            availableRows: set.rowCount,
-            pagesVisited,
-            materializedPages: pagesMaterialized,
-            pagesMissing,
-            shortWindow: values.length < end - start,
-            ms: Date.now() - startedAt,
-            ...(countCells
-                ? {
-                      cellSlots: values.length * set.columns.length,
-                      nullCells,
-                      nonNullCells,
-                      nonEmptyCells,
-                  }
-                : {}),
-        });
         const window: QsCellWindow = {
             resultSetId,
             start,
@@ -569,16 +580,62 @@ export class RowStore {
         // Only complete, full-height windows cache (values are immutable, so
         // a fully-populated window stays valid as the set keeps streaming).
         if (cacheable && values.length === count && pagesMissing === 0) {
-            this.windowCache.set(cacheKey, window);
+            this.setCachedWindow(cacheKey, window);
             while (this.windowCache.size > this.tuning.windowCacheEntries) {
                 const oldest = this.windowCache.keys().next().value;
                 if (oldest === undefined) {
                     break;
                 }
-                this.windowCache.delete(oldest);
+                this.deleteCachedWindow(oldest, true);
             }
         }
+        Perf.marker("mssql.queryStudio.rows.windowFetch.end", "end", {
+            resultSetId,
+            start,
+            count,
+            rows: values.length,
+            fromSpill,
+            cacheHit: !fromSpill && pagesMissing === 0,
+            columnCount: set.columns.length,
+            pageCount: set.pages.length,
+            firstPageIndex,
+            availableRows: set.rowCount,
+            pagesVisited,
+            materializedPages: pagesMaterialized,
+            pagesMissing,
+            shortWindow: values.length < end - start,
+            ms: Date.now() - startedAt,
+            ...this.cachePerfAttrs,
+            ...(countCells
+                ? {
+                      cellSlots: values.length * set.columns.length,
+                      nullCells,
+                      nonNullCells,
+                      nonEmptyCells,
+                  }
+                : {}),
+        });
         return window;
+    }
+
+    private setCachedWindow(key: string, window: QsCellWindow): void {
+        this.deleteCachedWindow(key, false);
+        const cached = { window, approxBytes: estimateWindowRetainedBytes(window) };
+        this.windowCache.set(key, cached);
+        this.windowCacheBytes += cached.approxBytes;
+        this.windowCachePeakBytes = Math.max(this.windowCachePeakBytes, this.windowCacheBytes);
+    }
+
+    private deleteCachedWindow(key: string, eviction: boolean): void {
+        const cached = this.windowCache.get(key);
+        if (!cached) {
+            return;
+        }
+        this.windowCache.delete(key);
+        this.windowCacheBytes = Math.max(0, this.windowCacheBytes - cached.approxBytes);
+        if (eviction) {
+            this.windowCacheEvictions++;
+        }
     }
 
     // --- cache segments --------------------------------------------------------
@@ -661,6 +718,7 @@ export class RowStore {
     private queueSpill(set: ResultSetStore, page: StoredPage): void {
         page.spillPending = true;
         this.pendingSpillBytes += page.approxBytes;
+        this.pendingSpillBytesPeak = Math.max(this.pendingSpillBytesPeak, this.pendingSpillBytes);
         const job: SpillJob = { set, page };
         this.spillChain = this.spillChain.then(() => this.writeSpillJob(job));
     }
@@ -777,6 +835,7 @@ export class RowStore {
                 // Re-admit to memory (read pages are likely re-read).
                 page.compact = compact;
                 this.memoryBytes += page.approxBytes;
+                this.memoryBytesPeak = Math.max(this.memoryBytesPeak, this.memoryBytes);
                 this.probationary.push({ set, page });
                 this.evictIfNeeded();
             }
@@ -807,6 +866,7 @@ export class RowStore {
         this.probationary = [];
         this.protectedPages = [];
         this.windowCache.clear();
+        this.windowCacheBytes = 0;
         const waiters = this.spillWaiters;
         this.spillWaiters = [];
         for (const release of waiters) {
@@ -839,6 +899,88 @@ export class RowStore {
     async flushSpill(): Promise<void> {
         await this.spillChain;
     }
+}
+
+/**
+ * Cheap retained-heap estimate for decoded served windows. This deliberately
+ * models JS strings as UTF-16 and includes array/object slot overhead; it is
+ * a memory-budget signal, not a serialized payload measurement.
+ */
+function estimateWindowRetainedBytes(window: QsCellWindow): number {
+    const seen = new Set<object>();
+    let bytes = 160;
+    bytes += retainedStringBytes(window.resultSetId);
+    bytes += window.nullBitmap ? retainedStringBytes(window.nullBitmap) : 0;
+    bytes += window.columns.length * 16;
+    for (const column of window.columns) {
+        bytes += estimateRetainedValue(column, seen, 0);
+    }
+    bytes += window.values.length * 16;
+    for (const row of window.values) {
+        bytes += 24 + row.length * 8;
+        for (const value of row) {
+            bytes += estimateRetainedValue(value, seen, 0);
+        }
+    }
+    if (window.typeHints) {
+        bytes += window.typeHints.length * 8;
+        for (const hint of window.typeHints) {
+            bytes += retainedStringBytes(hint);
+        }
+    }
+    return bytes;
+}
+
+function estimateRetainedValue(value: unknown, seen: Set<object>, depth: number): number {
+    if (value === null || value === undefined) {
+        return 0;
+    }
+    switch (typeof value) {
+        case "string":
+            return retainedStringBytes(value);
+        case "number":
+        case "bigint":
+            return 8;
+        case "boolean":
+            return 4;
+        case "object": {
+            if (seen.has(value)) {
+                return 0;
+            }
+            seen.add(value);
+            if (Buffer.isBuffer(value)) {
+                return 40 + value.byteLength;
+            }
+            if (ArrayBuffer.isView(value)) {
+                return 40 + value.byteLength;
+            }
+            if (depth >= 3) {
+                return 64;
+            }
+            if (Array.isArray(value)) {
+                return (
+                    24 +
+                    value.length * 8 +
+                    value.reduce(
+                        (total, item) => total + estimateRetainedValue(item, seen, depth + 1),
+                        0,
+                    )
+                );
+            }
+            let bytes = 48;
+            for (const [key, item] of Object.entries(value)) {
+                bytes += retainedStringBytes(key) + 8;
+                bytes += estimateRetainedValue(item, seen, depth + 1);
+            }
+            return bytes;
+        }
+        default:
+            return 0;
+    }
+}
+
+function retainedStringBytes(value: string): number {
+    return 24 + value.length * 2;
 }
 
 function writeAt(fd: number, buffer: Buffer, position: number): Promise<void> {

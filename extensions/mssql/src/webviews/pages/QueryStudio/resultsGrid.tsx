@@ -606,6 +606,9 @@ export function QsResultGridSurface(props: {
     // First REAL rows painted for this grid (QO-2): the user-perceived
     // "results are here" moment, tighter than the terminal resultsRendered.
     const firstRowsPaintedRef = useRef(false);
+    const pendingRenderedWindowRef = useRef<{ receivedAt: number; rows: number } | undefined>(
+        undefined,
+    );
 
     const dataSource = useMemo(
         () => ({
@@ -636,20 +639,50 @@ export function QsResultGridSurface(props: {
                         count,
                         ms: Math.round((performance.now() - requestedAt) * 100) / 100,
                     });
-                    if (!firstRowsPaintedRef.current && window.rowCount > 0) {
-                        firstRowsPaintedRef.current = true;
-                        perfMarkAfterNextPaint("mssql.queryStudio.grid.firstVisibleRowsPainted", {
-                            resultSetId: summary.resultSetId,
-                            rows: window.rowCount,
-                            columns: columnCount,
-                        });
-                    }
+                    pendingRenderedWindowRef.current = {
+                        receivedAt: performance.now(),
+                        rows: window.rowCount,
+                    };
                 }
                 return windowToGridRows(window, columnCount);
             },
         }),
         [rpc, summary.resultSetId, columnCount, rowCount],
     );
+
+    const handleGridCreated = useCallback(() => {
+        perfMark("mssql.queryStudio.grid.instance.created", {
+            resultSetId: summary.resultSetId,
+            rows: rowCount,
+            columns: columnCount,
+        });
+    }, [columnCount, rowCount, summary.resultSetId]);
+    const handleGridDisposed = useCallback(() => {
+        perfMark("mssql.queryStudio.grid.instance.disposed", {
+            resultSetId: summary.resultSetId,
+        });
+    }, [summary.resultSetId]);
+    const handleGridRendered = useCallback(() => {
+        const pending = pendingRenderedWindowRef.current;
+        if (!pending) {
+            return;
+        }
+        pendingRenderedWindowRef.current = undefined;
+        perfMark("mssql.queryStudio.grid.render.complete", {
+            resultSetId: summary.resultSetId,
+            rows: pending.rows,
+            columns: columnCount,
+            msFromWindowReceived: Math.round((performance.now() - pending.receivedAt) * 100) / 100,
+        });
+        if (!firstRowsPaintedRef.current && pending.rows > 0) {
+            firstRowsPaintedRef.current = true;
+            perfMarkAfterNextPaint("mssql.queryStudio.grid.firstVisibleRowsPainted", {
+                resultSetId: summary.resultSetId,
+                rows: pending.rows,
+                columns: columnCount,
+            });
+        }
+    }, [columnCount, summary.resultSetId]);
 
     const gridSettings = useMemo<GridSettings>(
         () => ({
@@ -857,6 +890,9 @@ export function QsResultGridSurface(props: {
                 viewMode="grid"
                 canToggleViewMode
                 onCommand={handleCommand}
+                onGridCreated={handleGridCreated}
+                onGridDisposed={handleGridDisposed}
+                onGridRendered={handleGridRendered}
                 onStateChange={props.onStateChange}
                 onSelectionSummaryChange={handleSelectionSummaryChange}
                 onInMemoryDataProcessingThresholdExceeded={handleThresholdExceeded}

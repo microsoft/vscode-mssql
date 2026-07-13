@@ -139,6 +139,14 @@ import { QueryStudioErrorBoundary } from "./queryStudioErrorBoundary";
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
 type QueryStudioTab = QueryStudioTabId;
+type QueryStudioTabActivationSource =
+    | "restore"
+    | "runReset"
+    | "perf"
+    | "terminalError"
+    | "planRun"
+    | "eligibility"
+    | "user";
 
 interface QueryPlanTabState {
     readonly key: string;
@@ -217,10 +225,32 @@ export function QueryStudioApp() {
     // rows never ride notifications). The coarse state's summary rowCount is
     // debounced (≤10/s); the max of the two keeps grids growing smoothly.
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
-    const [activeTab, setActiveTab] = useState<QueryStudioTab>("results");
+    const [activeTab, setActiveTabState] = useState<QueryStudioTab>("results");
     const [vectorPerfAction, setVectorPerfAction] = useState<QsActivateTabParams | undefined>();
     const [mountedTabs, setMountedTabs] = useState<ReadonlySet<QueryStudioTab>>(
         () => new Set(["results"]),
+    );
+    const activeTabRef = useRef<QueryStudioTab>("results");
+    const mountedTabsRef = useRef<ReadonlySet<QueryStudioTab>>(mountedTabs);
+    mountedTabsRef.current = mountedTabs;
+    const activateTab = useCallback(
+        (next: QueryStudioTab, source: QueryStudioTabActivationSource) => {
+            const previous = activeTabRef.current;
+            if (previous === next) {
+                return;
+            }
+            const attrs = {
+                from: previous,
+                to: next,
+                source,
+                mountedBefore: mountedTabsRef.current.has(next),
+            };
+            perfMark("mssql.queryStudio.tab.activation.begin", attrs);
+            activeTabRef.current = next;
+            setActiveTabState(next);
+            perfMarkAfterNextPaint("mssql.queryStudio.tab.activation.end", attrs);
+        },
+        [],
     );
     const [queryPlanTabState, setQueryPlanTabState] = useState<QueryPlanTabState | undefined>(
         undefined,
@@ -269,6 +299,7 @@ export function QueryStudioApp() {
     const expectedEchoGroupsRef = useRef<Set<string>>(new Set());
     const expectedEchoTextsRef = useRef<Map<string, string>>(new Map());
     const renderedRunRef = useRef<number | undefined>(undefined);
+    const observedRunRef = useRef<number | undefined>(undefined);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const dbWrapRef = useRef<HTMLSpanElement | null>(null);
     const dbListRequestRef = useRef(0);
@@ -430,7 +461,7 @@ export function QueryStudioApp() {
                 }
                 panelViewStateRef.current = saved;
                 panelViewStateReadyRef.current = true;
-                setActiveTab(saved.shell.activeTab);
+                activateTab(saved.shell.activeTab, "restore");
                 setMountedTabs(new Set([saved.shell.activeTab]));
                 splitAdjustedRef.current = true;
                 setResultsHeightPct(saved.shell.resultsHeightPct);
@@ -459,7 +490,7 @@ export function QueryStudioApp() {
             window.removeEventListener("pagehide", flushAfterPageHideListeners);
             flushPanelViewState();
         };
-    }, [flushPanelViewState, rpc]);
+    }, [activateTab, flushPanelViewState, rpc]);
 
     const captureEditorFocusBookmark = useCallback(() => {
         const editor = editorRef.current;
@@ -505,7 +536,7 @@ export function QueryStudioApp() {
             setPanelViewStateReady(true);
             setActionHint(undefined);
             setLiveRowCounts({});
-            setActiveTab("results");
+            activateTab("results", "runReset");
             setMountedTabs(new Set(["results"]));
             setResultsCollapsed(false);
             setMaximizedGridId(undefined);
@@ -522,7 +553,7 @@ export function QueryStudioApp() {
             };
             planRunArmedRef.current = false;
         },
-        [rpc],
+        [activateTab, rpc],
     );
 
     // --- sync: webview → host --------------------------------------------
@@ -797,7 +828,7 @@ export function QueryStudioApp() {
                     p.tab === "vector" ||
                     p.tab === "spatial"
                 ) {
-                    setActiveTab(p.tab);
+                    activateTab(p.tab, "perf");
                 }
             }),
             rpc.onNotification(
@@ -835,7 +866,7 @@ export function QueryStudioApp() {
         ];
         // Signal readiness → host ends the open marker.
         void rpc.sendRequest(QsGetDiagnosticsSummaryRequest.type, undefined);
-    }, [rpc, applyRemoteText, flushEdits, resetRunViewForStart, restoreEditorFocus]);
+    }, [rpc, activateTab, applyRemoteText, flushEdits, resetRunViewForStart, restoreEditorFocus]);
 
     useEffect(() => {
         const onFocus = () => {
@@ -879,6 +910,16 @@ export function QueryStudioApp() {
         actualPlanEnabledRef.current = state?.toggles.actualPlan ?? false;
     }, [state]);
     useEffect(() => {
+        if (runId !== undefined && observedRunRef.current !== runId) {
+            perfMark("mssql.queryStudio.run.observed", {
+                executionKind,
+                generationChanged: observedRunRef.current !== undefined,
+                terminal: TERMINAL_KINDS.has(executionKind),
+                resultSets: state?.results.resultSets.length ?? 0,
+                rows: state?.results.totalRows ?? 0,
+            });
+            observedRunRef.current = runId;
+        }
         // Per-run webview reset: ONCE per run (startedRunRef), never per
         // state push — the old `renderedRunRef` guard stayed unequal for the
         // whole run, so EVERY executing-kind push wiped `messages` again and
@@ -928,7 +969,7 @@ export function QueryStudioApp() {
                 hasMessagesOrErrors &&
                 (terminalHasErrors || (state?.results.resultSets.length ?? 0) === 0)
             ) {
-                setActiveTab("messages");
+                activateTab("messages", "terminalError");
             }
         }
         // Plan-mode runs land on the embedded Query Plan tab once the
@@ -942,9 +983,9 @@ export function QueryStudioApp() {
             (state?.results.planCount ?? 0) > 0
         ) {
             planTabFocusRef.current.focused = true;
-            setActiveTab("queryPlan");
+            activateTab("queryPlan", "planRun");
         }
-    }, [executionKind, runId, state, rpc, resetRunViewForStart]);
+    }, [activateTab, executionKind, runId, state, rpc, resetRunViewForStart]);
     const messageCount = state?.results.messageCount ?? 0;
     useEffect(() => {
         if (messageCount <= messages.length) {
@@ -1763,9 +1804,9 @@ export function QueryStudioApp() {
     );
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {
-            setActiveTab(visibleActiveTab);
+            activateTab(visibleActiveTab, "eligibility");
         }
-    }, [activeTab, visibleActiveTab]);
+    }, [activateTab, activeTab, visibleActiveTab]);
     const dataTotalRows = resultSetSummaries.reduce(
         (total, summary) => total + effectiveRowCount(summary),
         0,
@@ -1897,9 +1938,9 @@ export function QueryStudioApp() {
     ]);
     useEffect(() => {
         if (activeTab === "queryPlan" && planResultSetSummaries.length === 0) {
-            setActiveTab(gridResultSetSummaries.length > 0 ? "results" : "messages");
+            activateTab(gridResultSetSummaries.length > 0 ? "results" : "messages", "eligibility");
         }
-    }, [activeTab, gridResultSetSummaries.length, planResultSetSummaries.length]);
+    }, [activateTab, activeTab, gridResultSetSummaries.length, planResultSetSummaries.length]);
 
     // Live elapsed ticker (SSMS parity): while executing, derive elapsed
     // locally from startedEpochMs so the clock counts even when no row or
@@ -2126,7 +2167,7 @@ export function QueryStudioApp() {
                                     aria-controls={`qs-results-panel-${tab}`}
                                     aria-selected={visibleActiveTab === tab}
                                     className={`qs-tab ${visibleActiveTab === tab ? "active" : ""} ${tab === "messages" && errorCount > 0 ? "has-errors" : ""}`}
-                                    onClick={() => setActiveTab(tab)}>
+                                    onClick={() => activateTab(tab, "user")}>
                                     {tabLabel(tab)}
                                 </button>
                             ))}

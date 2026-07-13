@@ -56,6 +56,12 @@ export interface FluentResultGridCallbackProps {
     onStateChange?: (state: FluentResultGridState) => void;
     onSelectionSummaryChange?: (selection: readonly ISlickRange[]) => MaybePromise<void>;
     onInMemoryDataProcessingThresholdExceeded?: () => MaybePromise<void>;
+    /** Called after SlickGrid has created and initialized its live grid instance. */
+    onGridCreated?: () => void;
+    /** Called for SlickGrid's post-render event. */
+    onGridRendered?: () => void;
+    /** Called when a previously created live grid instance is released. */
+    onGridDisposed?: () => void;
 }
 
 export interface FluentResultGridProps

@@ -74,6 +74,7 @@ import { getQueryResultContextService } from "../queryResults/queryResultContext
 import { pinSourceResults } from "../queryResults/pinCommands";
 import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
+import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
 import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
 import { SpatialSessionManager } from "../queryResults/spatial/spatialSessionManager";
 import {
@@ -159,7 +160,6 @@ import {
     resetQueryStudioPanelViewState,
 } from "../sharedInterfaces/queryStudioViewState";
 
-const STATE_PUSH_MIN_INTERVAL_MS = 100; // ≤10/s per doc 04 §9.1
 /** Scan-and-detect: idle beat after the webview is ready (plan §3.4). */
 const OPEN_SCAN_DELAY_MS = 1_500;
 
@@ -178,6 +178,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private pendingMessages: QsMessageRow[] = [];
     private messagesFlushTimer: NodeJS.Timeout | undefined;
     private messagesNotifyIntervalMs = 0;
+    private statePushMinIntervalMs = QUERY_TUNING_DEFAULTS.statePushMinIntervalMs;
     /** Absolute index of the next message row to notify (reset per run). */
     private messagesSentCount = 0;
     /** Parsed plan graphs for the current run's plan XML (QO-8). */
@@ -348,6 +349,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 const tuning = this.model.executionHost.currentTuning;
                 this.rowsNotifyIntervalMs = tuning?.params.rowsNotifyIntervalMs ?? 0;
                 this.messagesNotifyIntervalMs = tuning?.params.messagesNotifyIntervalMs ?? 0;
+                this.statePushMinIntervalMs =
+                    tuning?.params.statePushMinIntervalMs ??
+                    QUERY_TUNING_DEFAULTS.statePushMinIntervalMs;
                 this.messagesSentCount = 0;
                 this.pendingMessages = [];
                 this.pendingRows.clear();
@@ -738,7 +742,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
 
     private queueStatePush(): void {
         const now = Date.now();
-        const wait = Math.max(0, STATE_PUSH_MIN_INTERVAL_MS - (now - this.lastStatePush));
+        const wait = Math.max(0, this.statePushMinIntervalMs - (now - this.lastStatePush));
         if (this.statePushTimer) {
             return;
         }
@@ -748,8 +752,30 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 return;
             }
             this.lastStatePush = Date.now();
+            const buildStartedAt = performance.now();
             const next = this.currentState();
+            const buildMs = performance.now() - buildStartedAt;
             this.state = next;
+            const resultSets = next.results.resultSets;
+            let payloadChars: number | undefined;
+            if (Perf.enabled) {
+                try {
+                    payloadChars = JSON.stringify(next).length;
+                } catch {
+                    // State serialization errors still surface through the
+                    // real RPC path; diagnostics must not change behavior.
+                }
+            }
+            Perf.marker("mssql.queryStudio.state.push", "instant", {
+                executionKind: next.execution.kind,
+                intervalMs: this.statePushMinIntervalMs,
+                buildMs: Math.round(buildMs * 100) / 100,
+                resultSets: resultSets.length,
+                columns: resultSets.reduce((total, set) => total + set.columnNames.length, 0),
+                rows: next.results.totalRows,
+                messages: next.results.messageCount,
+                ...(payloadChars !== undefined ? { payloadChars } : {}),
+            });
             void this.sendNotification(QsStateChangedNotification.type, next);
         }, wait);
         this.statePushTimer.unref?.();
