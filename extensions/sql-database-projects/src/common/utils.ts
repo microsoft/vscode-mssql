@@ -11,7 +11,7 @@ import { glob } from "glob";
 import * as dataworkspace from "dataworkspace";
 import * as vscodeMssql from "vscode-mssql";
 import * as fse from "fs-extra";
-import which from "which";
+import which = require("which");
 import { promises as fs } from "fs";
 import { ISqlProject, SqlTargetPlatform } from "../sqldbproj";
 import { SystemDatabase } from "./typeHelper";

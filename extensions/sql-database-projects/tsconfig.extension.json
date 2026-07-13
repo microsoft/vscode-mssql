@@ -1,8 +1,5 @@
 {
     "extends": "../tsconfig.base.json",
-    "compilerOptions": {
-        "esModuleInterop": true
-    },
     "include": ["src", "test", "typings"],
     "exclude": ["node_modules"]
 }

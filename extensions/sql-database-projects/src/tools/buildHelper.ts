@@ -8,7 +8,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 import * as utils from "../common/utils";
 import * as sqldbproj from "../sqldbproj";
-import extractZip from "extract-zip";
+import extractZip = require("extract-zip");
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
