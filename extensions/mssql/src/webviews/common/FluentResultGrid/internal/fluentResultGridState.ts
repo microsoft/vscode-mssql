@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { Column, SlickGrid } from "slickgrid-react";
+import type { Column, GridOption, SlickGrid } from "slickgrid-react";
 import type {
     GridViewState,
     IDbColumn,
@@ -19,6 +19,43 @@ import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
 import { getFluentResultGridDataSelectionsFromRanges } from "./fluentResultGridSelection";
 
 export const FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX = 0;
+
+export function applyFluentResultGridColumnWidths(
+    columns: Column<FluentResultGridDataRow>[],
+    widths: readonly number[],
+): { changed: boolean; rerender: boolean } {
+    let changed = false;
+    let rerender = false;
+    for (let index = 0; index < columns.length; index++) {
+        const column = columns[index];
+        const width = widths[index];
+        if (!column || typeof width !== "number" || column.width === width) {
+            continue;
+        }
+        changed = true;
+        rerender ||= column.rerenderOnResize === true;
+        column.width = width;
+    }
+    return { changed, rerender };
+}
+
+export function shouldApplyFluentResultGridFrozenOptions(
+    options: Pick<
+        GridOption,
+        | "alwaysShowVerticalScroll"
+        | "enableMouseWheelScrollHandler"
+        | "frozenColumn"
+        | "skipFreezeColumnValidation"
+    >,
+    columnIndex: number,
+): boolean {
+    return (
+        options.alwaysShowVerticalScroll !== false ||
+        options.enableMouseWheelScrollHandler !== true ||
+        (options.frozenColumn ?? -1) !== columnIndex ||
+        options.skipFreezeColumnValidation !== true
+    );
+}
 
 export function normalizeFluentResultGridRowPadding(rowPadding: number | null | undefined): number {
     return typeof rowPadding === "number" && Number.isFinite(rowPadding)

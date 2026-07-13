@@ -16,8 +16,10 @@ import {
     normalizeFluentResultGridSelectedFilterValues,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridTransforms";
 import {
+    applyFluentResultGridColumnWidths,
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
     normalizeFluentResultGridFrozenColumnIndex,
+    shouldApplyFluentResultGridFrozenOptions,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
 import {
@@ -141,6 +143,49 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("state helpers", () => {
+        test("applies autosize widths without replacing column identities", () => {
+            const columns = [
+                { id: "0", width: 100 },
+                { id: "1", width: 100, rerenderOnResize: true },
+                { id: "2", width: 80 },
+            ] as unknown as Parameters<typeof applyFluentResultGridColumnWidths>[0];
+
+            expect(applyFluentResultGridColumnWidths(columns, [100, 140, 90])).to.deep.equal({
+                changed: true,
+                rerender: true,
+            });
+            expect(columns.map((column) => column.width)).to.deep.equal([100, 140, 90]);
+            expect(applyFluentResultGridColumnWidths(columns, [100, 140, 90])).to.deep.equal({
+                changed: false,
+                rerender: false,
+            });
+        });
+
+        test("skips an already-applied initial frozen-column configuration", () => {
+            expect(
+                shouldApplyFluentResultGridFrozenOptions(
+                    {
+                        alwaysShowVerticalScroll: false,
+                        enableMouseWheelScrollHandler: true,
+                        frozenColumn: -1,
+                        skipFreezeColumnValidation: true,
+                    },
+                    -1,
+                ),
+            ).to.equal(false);
+            expect(
+                shouldApplyFluentResultGridFrozenOptions(
+                    {
+                        alwaysShowVerticalScroll: false,
+                        enableMouseWheelScrollHandler: true,
+                        frozenColumn: -1,
+                        skipFreezeColumnValidation: true,
+                    },
+                    4,
+                ),
+            ).to.equal(true);
+        });
+
         test("clamps frozen column index to the valid column range", () => {
             expect(normalizeFluentResultGridFrozenColumnIndex(undefined, 5)).to.equal(
                 FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,

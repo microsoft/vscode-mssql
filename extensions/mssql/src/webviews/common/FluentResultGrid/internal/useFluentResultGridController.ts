@@ -384,7 +384,12 @@ export function useFluentResultGridController({
                     });
                 }
 
-                updateHeaderButtonStates(grid);
+                if (
+                    dataController.hasActiveSort() ||
+                    hasActiveFluentResultGridFilters(dataController.filterStateRef.current)
+                ) {
+                    updateHeaderButtonStates(grid);
+                }
                 grid.invalidate();
                 if (shouldAutoSizeColumns) {
                     layoutController.scheduleAutoSizeColumns();

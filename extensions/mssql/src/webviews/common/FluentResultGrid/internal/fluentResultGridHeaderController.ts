@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, type MutableRefObject } from "react";
+import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 import { SlickRange } from "@slickgrid-universal/common";
 import type { Column, SlickGrid } from "slickgrid-react";
 import type {
@@ -68,6 +68,22 @@ export function updateFluentResultGridHeaderButtonState({
 }): void {
     const filterButton = headerNode.querySelector<HTMLButtonElement>(".slick-header-filterbutton");
     const sortButton = headerNode.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
+    applyFluentResultGridHeaderButtonState({ filterButton, sortButton, columnId, filters, sort });
+}
+
+function applyFluentResultGridHeaderButtonState({
+    filterButton,
+    sortButton,
+    columnId,
+    filters,
+    sort,
+}: {
+    filterButton: HTMLButtonElement | null;
+    sortButton: HTMLButtonElement | null;
+    columnId: string;
+    filters: ColumnFilterMap;
+    sort: { columnId: string; direction: SortProperties } | undefined;
+}): void {
     filterButton?.classList.toggle("filtered", (filters[columnId]?.filterValues?.length ?? 0) > 0);
 
     sortButton?.classList.remove("sorted-asc", "sorted-desc");
@@ -133,6 +149,165 @@ export function useFluentResultGridHeaderController({
         column: Column<FluentResultGridDataRow>,
     ) => Promise<void>;
 }): FluentResultGridHeaderController {
+    const headerActionCallbacksRef = useRef({ openFilterMenuForColumn, toggleSortForColumn });
+    headerActionCallbacksRef.current = { openFilterMenuForColumn, toggleSortForColumn };
+    const delegatedHeaderContainersRef = useRef(new WeakSet<HTMLElement>());
+    const ensureDelegatedHeaderActions = useCallback((grid: SlickGrid) => {
+        const container = grid.getContainerNode();
+        if (delegatedHeaderContainersRef.current.has(container)) {
+            return;
+        }
+        delegatedHeaderContainersRef.current.add(container);
+
+        const actionButton = (event: Event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) {
+                return undefined;
+            }
+            return target.closest<HTMLButtonElement>("button[data-fluent-header-action]");
+        };
+        container.addEventListener(
+            "mousedown",
+            (event) => {
+                if (!actionButton(event)) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+            },
+            true,
+        );
+        container.addEventListener(
+            "click",
+            (event) => {
+                const button = actionButton(event);
+                const columnId = button?.dataset.columnId;
+                if (!button || !columnId) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                const columnIndex = grid.getColumnIndex(columnId);
+                const column = grid.getColumns()[columnIndex];
+                if (!column) {
+                    return;
+                }
+                if (button.dataset.fluentHeaderAction === "sort") {
+                    void headerActionCallbacksRef.current.toggleSortForColumn(grid, column);
+                } else if (button.dataset.fluentHeaderAction === "filter") {
+                    void headerActionCallbacksRef.current.openFilterMenuForColumn(grid, column);
+                }
+            },
+            true,
+        );
+    }, []);
+
+    const materializeHeaderButtons = useCallback(
+        (node: HTMLElement, column: Column<FluentResultGridDataRow>) => {
+            const columnId = column.id.toString();
+            const existingFilter = node.querySelector<HTMLButtonElement>(
+                ".slick-header-filterbutton",
+            );
+            const existingSort = node.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
+            if (existingFilter && existingSort) {
+                applyFluentResultGridHeaderButtonState({
+                    filterButton: existingFilter,
+                    sortButton: existingSort,
+                    columnId,
+                    filters: filterStateRef.current,
+                    sort: sortStateRef.current,
+                });
+                return;
+            }
+
+            const sortTitle =
+                strings.commands[FluentResultGridCommand.ToggleSort]?.tooltip ??
+                strings.commands[FluentResultGridCommand.ToggleSort]?.label ??
+                "";
+            const sortButton = document.createElement("button");
+            sortButton.type = "button";
+            sortButton.className = "slick-header-sortbutton";
+            sortButton.tabIndex = -1;
+            sortButton.setAttribute("aria-label", sortTitle);
+            sortButton.title = sortTitle;
+            sortButton.dataset.fluentHeaderAction = "sort";
+            sortButton.dataset.columnId = columnId;
+
+            const filterTitle =
+                strings.commands[FluentResultGridCommand.OpenFilter]?.tooltip ??
+                strings.commands[FluentResultGridCommand.OpenFilter]?.label ??
+                "";
+            const filterButton = document.createElement("button");
+            filterButton.type = "button";
+            filterButton.className = "slick-header-filterbutton";
+            filterButton.tabIndex = -1;
+            filterButton.setAttribute("aria-label", filterTitle);
+            filterButton.title = filterTitle;
+            filterButton.dataset.fluentHeaderAction = "filter";
+            filterButton.dataset.columnId = columnId;
+
+            const resizableHandle = node.querySelector(".slick-resizable-handle");
+            node.insertBefore(sortButton, resizableHandle);
+            node.insertBefore(filterButton, resizableHandle);
+            applyFluentResultGridHeaderButtonState({
+                filterButton,
+                sortButton,
+                columnId,
+                filters: filterStateRef.current,
+                sort: sortStateRef.current,
+            });
+        },
+        [filterStateRef, sortStateRef, strings.commands],
+    );
+    const removeHeaderButtons = useCallback((node: HTMLElement) => {
+        node.querySelector(".slick-header-sortbutton")?.remove();
+        node.querySelector(".slick-header-filterbutton")?.remove();
+    }, []);
+    const headerObserversRef = useRef(new WeakMap<SlickGrid, IntersectionObserver>());
+    const liveHeaderObserversRef = useRef(new Set<IntersectionObserver>());
+    const observeHeaderVisibility = useCallback(
+        (grid: SlickGrid, node: HTMLElement, column: Column<FluentResultGridDataRow>) => {
+            node.dataset.fluentColumnId = column.id.toString();
+            if (typeof IntersectionObserver === "undefined") {
+                materializeHeaderButtons(node, column);
+                return;
+            }
+
+            let observer = headerObserversRef.current.get(grid);
+            if (!observer) {
+                observer = new IntersectionObserver(
+                    (entries) => {
+                        for (const entry of entries) {
+                            const header = entry.target as HTMLElement;
+                            const columnId = header.dataset.fluentColumnId;
+                            const columnIndex = columnId ? grid.getColumnIndex(columnId) : -1;
+                            const observedColumn = grid.getColumns()[columnIndex];
+                            if (entry.isIntersecting && observedColumn) {
+                                materializeHeaderButtons(header, observedColumn);
+                            } else {
+                                removeHeaderButtons(header);
+                            }
+                        }
+                    },
+                    { root: grid.getContainerNode(), threshold: 0 },
+                );
+                headerObserversRef.current.set(grid, observer);
+                liveHeaderObserversRef.current.add(observer);
+            }
+            observer.observe(node);
+        },
+        [materializeHeaderButtons, removeHeaderButtons],
+    );
+    useEffect(
+        () => () => {
+            for (const observer of liveHeaderObserversRef.current) {
+                observer.disconnect();
+            }
+            liveHeaderObserversRef.current.clear();
+        },
+        [],
+    );
+
     const openHeaderContextMenuForColumn = useCallback(
         (grid: SlickGrid, column: Column<FluentResultGridDataRow>, x: number, y: number) => {
             const columnId = column.id?.toString();
@@ -229,93 +404,35 @@ export function useFluentResultGridHeaderController({
                 return;
             }
 
+            ensureDelegatedHeaderActions(grid);
             node.tabIndex = -1;
-            if (node.classList.contains("slick-header-with-filter")) {
-                node.classList.remove("slick-header-sortable", "slick-header-column-sorted");
-                node.querySelector(".slick-sort-indicator")?.remove();
-                node.querySelector(".slick-sort-indicator-numbered")?.remove();
-                updateFluentResultGridHeaderButtonState({
-                    headerNode: node,
-                    columnId: column.id.toString(),
-                    filters: filterStateRef.current,
-                    sort: sortStateRef.current,
-                });
-                return;
-            }
-
             node.classList.add("slick-header-with-filter");
             node.classList.remove("slick-header-sortable", "slick-header-column-sorted");
             node.querySelector(".slick-sort-indicator")?.remove();
             node.querySelector(".slick-sort-indicator-numbered")?.remove();
-
-            const sortTitle =
-                strings.commands[FluentResultGridCommand.ToggleSort]?.tooltip ??
-                strings.commands[FluentResultGridCommand.ToggleSort]?.label ??
-                "";
-            const sortButton = document.createElement("button");
-            sortButton.type = "button";
-            sortButton.className = "slick-header-sortbutton";
-            sortButton.tabIndex = -1;
-            sortButton.setAttribute("aria-label", sortTitle);
-            sortButton.title = sortTitle;
-            sortButton.addEventListener("mousedown", (mouseEvent) => {
-                mouseEvent.preventDefault();
-                mouseEvent.stopPropagation();
-            });
-            sortButton.addEventListener("click", async (clickEvent) => {
-                clickEvent.preventDefault();
-                clickEvent.stopPropagation();
-                await toggleSortForColumn(grid, column);
-            });
-            const resizableHandle = node.querySelector(".slick-resizable-handle");
-            node.insertBefore(sortButton, resizableHandle);
-
-            const filterTitle =
-                strings.commands[FluentResultGridCommand.OpenFilter]?.tooltip ??
-                strings.commands[FluentResultGridCommand.OpenFilter]?.label ??
-                "";
-            const filterButton = document.createElement("button");
-            filterButton.type = "button";
-            filterButton.className = "slick-header-filterbutton";
-            filterButton.tabIndex = -1;
-            filterButton.setAttribute("aria-label", filterTitle);
-            filterButton.title = filterTitle;
-            filterButton.addEventListener("mousedown", (mouseEvent) => {
-                mouseEvent.preventDefault();
-                mouseEvent.stopPropagation();
-            });
-            filterButton.addEventListener("click", async (clickEvent) => {
-                clickEvent.preventDefault();
-                clickEvent.stopPropagation();
-                await openFilterMenuForColumn(grid, column);
-            });
-            node.insertBefore(filterButton, resizableHandle);
-            updateFluentResultGridHeaderButtonState({
-                headerNode: node,
-                columnId: column.id.toString(),
-                filters: filterStateRef.current,
-                sort: sortStateRef.current,
-            });
+            observeHeaderVisibility(grid, node, column);
         },
-        [
-            filterStateRef,
-            openFilterMenuForColumn,
-            sortStateRef,
-            strings.commands,
-            toggleSortForColumn,
-        ],
+        [ensureDelegatedHeaderActions, observeHeaderVisibility],
     );
 
-    const handleBeforeHeaderCellDestroy = useCallback((event: CustomEvent) => {
-        const node = event.detail?.args?.node as HTMLElement | undefined;
-        if (!node) {
-            return;
-        }
+    const handleBeforeHeaderCellDestroy = useCallback(
+        (event: CustomEvent) => {
+            const args = event.detail?.args;
+            const grid = args?.grid as SlickGrid | undefined;
+            const node = args?.node as HTMLElement | undefined;
+            if (!node) {
+                return;
+            }
 
-        node.querySelector(".slick-header-sortbutton")?.remove();
-        node.querySelector(".slick-header-filterbutton")?.remove();
-        node.classList.remove("slick-header-with-filter");
-    }, []);
+            if (grid) {
+                headerObserversRef.current.get(grid)?.unobserve(node);
+            }
+            removeHeaderButtons(node);
+            delete node.dataset.fluentColumnId;
+            node.classList.remove("slick-header-with-filter");
+        },
+        [removeHeaderButtons],
+    );
 
     const handleHeaderClick = useCallback(
         (event: CustomEvent) => {

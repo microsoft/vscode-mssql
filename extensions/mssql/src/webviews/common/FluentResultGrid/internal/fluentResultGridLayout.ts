@@ -18,6 +18,10 @@ import {
 import type { ReactGridInstanceWithSharedService } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataView, FluentResultGridDataRow } from "./fluentResultGridDataView";
 import { getFluentResultGridAutoSizeCellText } from "./fluentResultGridFormatters";
+import {
+    applyFluentResultGridColumnWidths,
+    shouldApplyFluentResultGridFrozenOptions,
+} from "./fluentResultGridState";
 
 const initialAutoSizeRetryDelaysMs = [50, 100, 250, 500, 1000];
 
@@ -100,14 +104,18 @@ export function useFluentResultGridLayout({
 
     const applyFrozenColumnIndex = useCallback(
         (grid: SlickGrid, columnIndex: number) => {
-            grid.setOptions({
-                alwaysShowVerticalScroll: false,
-                enableMouseWheelScrollHandler: true,
-                frozenColumn: columnIndex,
-                skipFreezeColumnValidation: true,
-            });
+            if (shouldApplyFluentResultGridFrozenOptions(grid.getOptions(), columnIndex)) {
+                grid.setOptions({
+                    alwaysShowVerticalScroll: false,
+                    enableMouseWheelScrollHandler: true,
+                    frozenColumn: columnIndex,
+                    skipFreezeColumnValidation: true,
+                });
+                syncFrozenColumnState(grid, columnIndex);
+                refreshFrozenColumnLayout(grid);
+                return;
+            }
             syncFrozenColumnState(grid, columnIndex);
-            refreshFrozenColumnLayout(grid);
         },
         [refreshFrozenColumnLayout, syncFrozenColumnState],
     );
@@ -219,9 +227,10 @@ export function useFluentResultGridLayout({
             const fontFamily = computedStyle?.fontFamily ?? "monospace";
             canvasContext.font = `${fontSize}px ${fontFamily}`;
 
-            const resizedColumns = grid.getColumns().map((column, columnIndex) => {
+            const currentColumns = grid.getColumns();
+            const resizedWidths = currentColumns.map((column, columnIndex) => {
                 if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID || columnIndex === 0) {
-                    return column;
+                    return column.width ?? FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH;
                 }
 
                 const headerWidth = includeHeaders
@@ -243,24 +252,27 @@ export function useFluentResultGridLayout({
                       }, 0)
                     : 0;
 
-                return {
-                    ...column,
-                    width: Math.max(
-                        FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
-                        Math.min(
-                            autosizeMaxColumnWidth ?? FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
-                            Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
-                        ),
+                return Math.max(
+                    FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
+                    Math.min(
+                        autosizeMaxColumnWidth ?? FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
+                        Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
                     ),
-                };
+                );
             });
 
             if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
                 return true;
             }
 
-            grid.setColumns(resizedColumns);
-            grid.invalidate();
+            const applied = applyFluentResultGridColumnWidths(currentColumns, resizedWidths);
+            if (applied.changed) {
+                // Width-only autosize must not destroy/recreate every header.
+                // SlickGrid's supported reRenderColumns path updates header
+                // widths, canvas CSS, and rerenders cells only when a column
+                // explicitly declares rerenderOnResize.
+                grid.reRenderColumns(applied.rerender);
+            }
             return true;
         },
         [
