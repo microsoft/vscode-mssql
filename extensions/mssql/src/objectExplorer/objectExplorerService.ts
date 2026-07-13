@@ -60,7 +60,7 @@ import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
-import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { PreviewFeature, previewService } from "../previews/previewService";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
 
@@ -235,7 +235,7 @@ export class ObjectExplorerService {
                           databaseName,
                           "OE expand",
                       )
-                    : undefined;
+                    : Promise.resolve<AzureSqlDatabaseStatus>("UnableToCheck");
 
                 this.showResumingDatabaseLabelWhenWaking(
                     () => node,
@@ -656,7 +656,7 @@ export class ObjectExplorerService {
      */
     private showResumingDatabaseLabelWhenWaking(
         resolveNode: () => TreeNodeInfo | undefined,
-        statusPromise: Promise<string | undefined> | undefined,
+        statusPromise: Promise<AzureSqlDatabaseStatus> | undefined,
         isStillLoading: () => boolean,
     ): void {
         if (!statusPromise) {
@@ -719,14 +719,13 @@ export class ObjectExplorerService {
                     this.cleanNodeChildren(element);
                     await this.setLoadingUiForNode(element);
                     void this.getOrCreateNodeChildrenWithSession(element);
-                    return;
+                } else {
+                    element.shouldRefresh = false;
+                    this._logger.trace(
+                        `getOrCreateNodeChildrenWithSession end: ${getNodeDescriptor(element)} - refresh callback follows`,
+                    );
+                    this._refreshCallback(element);
                 }
-
-                element.shouldRefresh = false;
-                this._logger.trace(
-                    `getOrCreateNodeChildrenWithSession end: ${getNodeDescriptor(element)} — refresh callback follows`,
-                );
-                this._refreshCallback(element);
             }
         })();
 
@@ -837,13 +836,14 @@ export class ObjectExplorerService {
         // Retry loop for paused Azure serverless databases
         const maxAttempts = serverlessWakeMaxRetryAttempts + 1;
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const serverlessStatusPromise = canCheckDatabasePauseStatus(connectionProfile)
-                ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(
-                      connectionProfile,
-                      undefined,
-                      "OE session",
-                  )
-                : undefined;
+            const serverlessStatusPromise: Promise<AzureSqlDatabaseStatus> =
+                canCheckDatabasePauseStatus(connectionProfile)
+                    ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(
+                          connectionProfile,
+                          undefined,
+                          "OE session",
+                      )
+                    : Promise.resolve("UnableToCheck");
 
             this.showResumingDatabaseLabelWhenWaking(
                 () => this.getConnectionNodeFromProfile(connectionProfile),
