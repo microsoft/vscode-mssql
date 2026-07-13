@@ -31,7 +31,9 @@ export const workspaceTargets = [
         dependencies: {
             build: ["extension-toolkit"],
             watch: ["extension-toolkit"],
+            test: [{ target: "extension-toolkit", action: "build" }],
             lint: ["extension-toolkit"],
+            package: [{ target: "extension-toolkit", action: "build" }],
         },
     },
     {
@@ -44,7 +46,9 @@ export const workspaceTargets = [
         dependencies: {
             build: ["extension-toolkit"],
             watch: ["extension-toolkit"],
+            test: [{ target: "extension-toolkit", action: "build" }],
             lint: ["extension-toolkit"],
+            package: [{ target: "extension-toolkit", action: "build" }],
         },
     },
     {
