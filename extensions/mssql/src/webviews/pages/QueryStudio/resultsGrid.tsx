@@ -176,6 +176,7 @@ async function fetchCopyRowsWindow(
             resultSetId: string;
             start: number;
             count: number;
+            purpose: "copy";
             columnStart: number;
             columnCount: number;
         },
@@ -184,6 +185,7 @@ async function fetchCopyRowsWindow(
         resultSetId,
         start,
         count,
+        purpose: "copy",
         columnStart: columns.start,
         columnCount: columns.count,
     });
@@ -759,6 +761,7 @@ export function QsResultGridSurface(props: {
                         resultSetId: summary.resultSetId,
                         start: offset,
                         count,
+                        purpose: "grid",
                         columnStart: columnWindow?.start ?? 0,
                         columnCount: requestedColumns,
                         totalColumns: columnCount,
@@ -791,6 +794,7 @@ export function QsResultGridSurface(props: {
                         returnedRows: window.rowCount,
                         returnedColumns: window.columns.length,
                         returnedCells: window.rowCount * window.columns.length,
+                        valueMode: window.valueMode ?? "raw",
                         projected,
                         ms: Math.round((performance.now() - requestedAt) * 100) / 100,
                     });
@@ -801,10 +805,16 @@ export function QsResultGridSurface(props: {
                         projected,
                     };
                 }
-                return queryStudioWindowToGridRows(window, columnCount, columnWindow?.start ?? 0);
+                return queryStudioWindowToGridRows(
+                    window,
+                    columnCount,
+                    columnWindow?.start ?? 0,
+                    true,
+                    gridStyle?.displayCellClamp,
+                );
             },
         }),
-        [rpc, summary.resultSetId, columnCount, rowCount],
+        [rpc, summary.resultSetId, columnCount, rowCount, gridStyle?.displayCellClamp],
     );
 
     const handleGridCreated = useCallback(() => {

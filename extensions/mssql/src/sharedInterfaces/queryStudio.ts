@@ -182,6 +182,8 @@ export interface QsGridStyle {
     autosizeSampleRows?: number;
     /** Autosize column-width ceiling in px (UX density pass). */
     gridMaxColumnWidthPx?: number;
+    /** Maximum display characters transported/rendered for one grid cell. */
+    displayCellClamp?: number;
     /** Default editor/results split — results pane height as % (SSMS ~50). */
     resultsPaneHeightPct?: number;
 }
@@ -220,6 +222,11 @@ export interface QsGetRowsParams {
     resultSetId: string;
     start: number;
     count: number;
+    /**
+     * Consumer fidelity contract. Grid reads carry bounded display previews;
+     * copy/text reads preserve exact values. Absent defaults to grid.
+     */
+    purpose?: "grid" | "copy" | "text";
     /**
      * Horizontal projection (QO-7b): return only this column span. Absent =
      * all columns. Wide-grid viewport and copy reads use bounded spans;
@@ -268,6 +275,10 @@ export interface QsCellWindow {
     rowCount: number;
     columns: QsResultColumn[];
     values: unknown[][];
+    /** Values are already bounded display text rather than raw cell payloads. */
+    valueMode?: "gridPreview";
+    /** Flattened row-major cell document classification for preview values. */
+    documentLanguages?: Array<"xml" | "json" | null>;
     nullBitmap?: string;
     typeHints?: string[];
     truncatedBitmap?: string;

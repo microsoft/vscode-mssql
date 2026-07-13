@@ -615,5 +615,7 @@ function rowStoreTuningFrom(tuning: QueryTuningSnapshot): RowStoreTuning {
         maxPendingSpillBytes: tuning.params.maxPendingSpillBytes,
         protectedCacheRatio: tuning.params.protectedCacheRatio,
         windowCacheEntries: tuning.params.windowCacheEntries,
+        windowCacheMaxBytes: tuning.params.windowCacheMaxBytes,
+        displayCellClamp: tuning.params.displayCellClamp,
     };
 }

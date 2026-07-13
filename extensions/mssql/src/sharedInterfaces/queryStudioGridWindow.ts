@@ -43,6 +43,7 @@ export function queryStudioWindowToGridRows(
     totalColumnCount: number,
     columnStart = 0,
     clamp = true,
+    displayCellClamp = QS_CELL_DISPLAY_CLAMP,
 ): DbCellValue[][] {
     const isNull = queryStudioWindowNullFlags(window);
     return window.values.map((row, rowIndex) => {
@@ -56,20 +57,28 @@ export function queryStudioWindowToGridRows(
             const value = row[projectedColumn];
             const text = nulled
                 ? ""
-                : clamp
-                  ? cellDisplayText(value)
-                  : cellTextForPurpose(value, "copy");
+                : window.valueMode === "gridPreview" && typeof value === "string"
+                  ? value
+                  : clamp
+                    ? cellDisplayText(value)
+                    : cellTextForPurpose(value, "copy");
             const metadata = window.columns[projectedColumn];
+            const suppliedLanguage =
+                window.documentLanguages?.[rowIndex * window.columns.length + projectedColumn];
             const languageId = nulled
                 ? undefined
-                : cellDocumentLanguage(value, {
-                      sqlType: metadata?.sqlType,
-                      typeHint: window.typeHints?.[projectedColumn],
-                      isXml: metadata?.isXml,
-                      isJson: metadata?.isJson,
-                  });
+                : suppliedLanguage === null
+                  ? undefined
+                  : suppliedLanguage !== undefined
+                    ? suppliedLanguage
+                    : cellDocumentLanguage(value, {
+                          sqlType: metadata?.sqlType,
+                          typeHint: window.typeHints?.[projectedColumn],
+                          isXml: metadata?.isXml,
+                          isJson: metadata?.isJson,
+                      });
             cells[sourceColumn] = {
-                displayValue: clamp ? clampDisplay(text, QS_CELL_DISPLAY_CLAMP) : text,
+                displayValue: clamp ? clampDisplay(text, displayCellClamp) : text,
                 isNull: nulled,
                 rowId: window.start + rowIndex,
                 ...(languageId ? { languageId } : {}),

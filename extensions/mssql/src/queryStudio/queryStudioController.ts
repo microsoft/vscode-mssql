@@ -680,6 +680,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             textViewSampleRows: tuning.textViewSampleRows,
             autosizeSampleRows: tuning.autosizeSampleRows,
             gridMaxColumnWidthPx: tuning.gridMaxColumnWidthPx,
+            displayCellClamp: tuning.displayCellClamp,
         };
         state.statusMessage = QueryStudioController.statusFor(state);
         return state;
@@ -1032,17 +1033,23 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this._languageDatabasesCache = databases;
             return { databases };
         });
-        this.onRequest(QsGetRowsRequest.type, async (params) =>
-            this.model.executionHost.getRows(
+        this.onRequest(QsGetRowsRequest.type, async (params) => {
+            const reason =
+                params.purpose === "copy"
+                    ? "copy"
+                    : params.purpose === "text"
+                      ? "text"
+                      : "gridPreview";
+            return this.model.executionHost.getRows(
                 params.resultSetId,
                 params.start,
                 params.count,
-                "grid",
+                reason,
                 params.columnStart !== undefined && params.columnCount !== undefined
                     ? { start: params.columnStart, count: params.columnCount }
                     : undefined,
-            ),
-        );
+            );
+        });
         this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
             const summary = this.model.executionHost
                 .resultsState()

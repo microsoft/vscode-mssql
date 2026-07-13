@@ -34,7 +34,10 @@ import {
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelection";
 import { SlickEvent, SlickRange, type SlickGrid } from "@slickgrid-universal/common";
 import { resolveFluentResultGridColumnWindow } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridColumnWindow";
-import { createFluentResultGridDataView } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridDataView";
+import {
+    createFluentResultGridDataRow,
+    createFluentResultGridDataView,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridDataView";
 
 function cell(value: string | null): DbCellValue {
     return {
@@ -58,6 +61,15 @@ function keyboardEvent(
 }
 
 suite("Fluent Result Grid", () => {
+    test("preserves host document language metadata in materialized cells", () => {
+        const row = createFluentResultGridDataRow(
+            [{ displayValue: "{ preview…", isNull: false, languageId: "json" }],
+            7,
+            1,
+        );
+        expect(row["0"]).to.include({ rowId: 7, languageId: "json" });
+    });
+
     suite("column windows", () => {
         const wideColumns = [
             { field: "_row", width: 48 },
@@ -217,6 +229,70 @@ suite("Fluent Result Grid", () => {
             } else {
                 delete testGlobal.cancelAnimationFrame;
             }
+        });
+
+        test("fetches only the appended suffix when a streaming viewport grows", async () => {
+            const requests: Array<{ offset: number; count: number }> = [];
+            const dataView = createFluentResultGridDataView({
+                columnCount: 1,
+                windowSize: 50,
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 1,
+                    getRows: (offset, count) => {
+                        requests.push({ offset, count });
+                        return Array.from({ length: count }, (_value, index) => [
+                            cell(`row-${offset + index}`),
+                        ]);
+                    },
+                },
+            });
+
+            dataView.refresh(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests).to.deep.equal([{ offset: 0, count: 1 }]);
+
+            dataView.setLength(2);
+            dataView.getItem(1);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests).to.deep.equal([
+                { offset: 0, count: 1 },
+                { offset: 1, count: 1 },
+            ]);
+            expect(dataView.getLoadedRange(0, 2).map((row) => row.id)).to.deep.equal([0, 1]);
+
+            // A real identity reset still invalidates and reloads the full
+            // current window; suffix reuse is only for immutable growth.
+            dataView.setLength(2, true);
+            dataView.refresh(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests.at(-1)).to.deep.equal({ offset: 0, count: 2 });
+            dataView.dispose();
+        });
+
+        test("retries an incomplete window instead of treating placeholders as loaded", async () => {
+            let requests = 0;
+            const dataView = createFluentResultGridDataView({
+                columnCount: 1,
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 1,
+                    getRows: () => {
+                        requests++;
+                        return requests === 1 ? [] : [[cell("recovered")]];
+                    },
+                },
+            });
+
+            dataView.refresh(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(dataView.getLoadedRange(0, 1)).to.deep.equal([]);
+
+            dataView.getItem(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests).to.equal(2);
+            expect(dataView.getLoadedRange(0, 1)).to.have.length(1);
+            dataView.dispose();
         });
     });
 

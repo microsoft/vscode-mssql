@@ -106,6 +106,7 @@ function createDefaultCellValue(cell: DbCellValue | undefined, absoluteRowIndex:
         // can resolve the original row after sort/filter reorders display
         // rows; fall back to the absolute display index.
         rowId: cell?.rowId ?? absoluteRowIndex,
+        ...(cell?.languageId ? { languageId: cell.languageId } : {}),
     } satisfies FluentResultGridCellValue;
 }
 
@@ -236,6 +237,8 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
     private length = 0;
     private offset = -1;
     private requestId = 0;
+    private loading = false;
+    private complete = false;
 
     constructor(
         private readonly loadRows: (offset: number, count: number) => MaybePromise<T[]>,
@@ -267,38 +270,124 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
         return this.rows[index - this.offset];
     }
 
+    public invalidate(): void {
+        this.rows = undefined;
+        this.loading = false;
+        this.complete = false;
+        this.requestId++;
+    }
+
     public positionWindow(offset: number, length: number, totalItems: number): void {
         const totalLength = toNonNegativeInteger(totalItems);
         const nextOffset = clamp(toNonNegativeInteger(offset), 0, totalLength);
         const nextLength = clamp(toNonNegativeInteger(length), 0, totalLength - nextOffset);
 
-        this.offset = nextOffset;
-        this.length = nextLength;
-        this.rows = undefined;
-
-        const currentRequestId = ++this.requestId;
-        if (nextLength === 0) {
+        if (
+            nextOffset === this.offset &&
+            nextLength === this.length &&
+            (this.complete || this.loading || nextLength === 0)
+        ) {
             return;
         }
 
+        const previousOffset = this.offset;
+        const previousLength = this.length;
+        const previousRows = this.rows;
+
+        // Streaming result sets commonly grow inside the same viewport
+        // window. Preserve the immutable prefix and request only the newly
+        // appended suffix instead of retransferring 1, 2, ... N rows.
+        if (
+            nextOffset === previousOffset &&
+            nextLength > previousLength &&
+            previousRows !== undefined &&
+            this.complete
+        ) {
+            this.offset = nextOffset;
+            this.length = nextLength;
+            const suffixOffset = previousOffset + previousLength;
+            const suffixLength = nextLength - previousLength;
+            const retainedRows = previousRows.slice(0, previousLength);
+            const currentRequestId = ++this.requestId;
+            this.loading = true;
+            this.complete = false;
+            Promise.resolve(this.loadRows(suffixOffset, suffixLength)).then(
+                (rows) => {
+                    if (currentRequestId !== this.requestId || !Array.isArray(rows)) {
+                        return;
+                    }
+                    this.loading = false;
+                    const merged = new Array<T>(nextLength);
+                    for (let index = 0; index < retainedRows.length; index++) {
+                        merged[index] = retainedRows[index];
+                    }
+                    for (let index = 0; index < rows.length && index < suffixLength; index++) {
+                        merged[previousLength + index] = rows[index];
+                    }
+                    this.rows = merged;
+                    this.complete = rows.length >= suffixLength;
+                    this.loadCompleteCallback(suffixOffset, suffixOffset + suffixLength);
+                },
+                () => {
+                    if (currentRequestId === this.requestId) {
+                        this.loading = false;
+                    }
+                },
+            );
+            return;
+        }
+
+        if (
+            nextOffset === previousOffset &&
+            nextLength < previousLength &&
+            previousRows !== undefined &&
+            this.complete
+        ) {
+            this.offset = nextOffset;
+            this.length = nextLength;
+            this.rows = previousRows.slice(0, nextLength);
+            this.loading = false;
+            this.complete = true;
+            this.requestId++;
+            return;
+        }
+
+        this.offset = nextOffset;
+        this.length = nextLength;
+        this.rows = undefined;
+        this.complete = false;
+
+        const currentRequestId = ++this.requestId;
+        if (nextLength === 0) {
+            this.loading = false;
+            this.complete = true;
+            return;
+        }
+
+        this.loading = true;
         Promise.resolve(this.loadRows(nextOffset, nextLength)).then(
             (rows) => {
                 if (currentRequestId !== this.requestId || !Array.isArray(rows)) {
                     return;
                 }
 
+                this.loading = false;
                 this.rows = rows;
+                this.complete = rows.length >= this.length;
                 this.loadCompleteCallback(this.offset, this.offset + this.length);
             },
-            () => undefined,
+            () => {
+                if (currentRequestId === this.requestId) {
+                    this.loading = false;
+                }
+            },
         );
     }
 
     public dispose(): void {
-        this.rows = undefined;
+        this.invalidate();
         this.length = 0;
         this.offset = -1;
-        this.requestId++;
     }
 }
 
@@ -362,6 +451,7 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             return false;
         }
         this.columnWindow = columnWindow;
+        this.invalidateWindows();
         this.lengthChanged = true;
         return true;
     }
@@ -379,8 +469,17 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
     public setLength(length: number, resetData = true): void {
         const nextLength = toNonNegativeInteger(length);
         const shouldResetWindows = resetData || nextLength < this.length;
+        if (shouldResetWindows) {
+            this.invalidateWindows();
+        }
         this.lengthChanged = this.lengthChanged || shouldResetWindows;
         this.length = nextLength;
+    }
+
+    private invalidateWindows(): void {
+        this.bufferWindowBefore.invalidate();
+        this.window.invalidate();
+        this.bufferWindowAfter.invalidate();
     }
 
     public at(index: number): T {

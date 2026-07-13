@@ -271,8 +271,14 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         this.onRequest(QsSpatialCloseRequest.type, async ({ handle }) => {
             this.spatialService?.close(handle);
         });
-        this.onRequest(QsGetRowsRequest.type, async (params) =>
-            service.getWindow({
+        this.onRequest(QsGetRowsRequest.type, async (params) => {
+            const reason =
+                params.purpose === "copy"
+                    ? "copy"
+                    : params.purpose === "text"
+                      ? "text"
+                      : "gridPreview";
+            return service.getWindow({
                 snapshotId: this.snapshotId,
                 resultSetId: params.resultSetId,
                 rowStart: params.start,
@@ -280,9 +286,9 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                 ...(params.columnStart !== undefined && params.columnCount !== undefined
                     ? { columnStart: params.columnStart, columnCount: params.columnCount }
                     : {}),
-                reason: "grid",
-            }),
-        );
+                reason,
+            });
+        });
         this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
             const summary = this.summaryFor(resultSetId);
             if (!summary) {

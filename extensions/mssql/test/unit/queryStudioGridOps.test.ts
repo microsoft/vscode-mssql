@@ -93,6 +93,28 @@ suite("Query Studio grid client ops", () => {
             expect(rows[0][0]).to.equal(undefined);
             expect(rows[0][4]).to.equal(undefined);
         });
+
+        test("uses host-classified document links for bounded grid previews", () => {
+            const window: QsCellWindow = {
+                resultSetId: "rs",
+                start: 0,
+                rowCount: 1,
+                columns: [
+                    { name: "json", displayName: "json" },
+                    { name: "plain", displayName: "plain" },
+                ],
+                values: [["{ truncated preview…", "plain"]],
+                valueMode: "gridPreview",
+                documentLanguages: ["json", null],
+            };
+
+            const rows = queryStudioWindowToGridRows(window, 2);
+            expect(rows[0][0]).to.include({
+                displayValue: "{ truncated preview…",
+                languageId: "json",
+            });
+            expect(rows[0][1]).to.not.have.property("languageId");
+        });
     });
 
     suite("compareCells", () => {
