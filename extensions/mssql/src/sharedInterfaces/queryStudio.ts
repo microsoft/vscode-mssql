@@ -356,6 +356,11 @@ export type QsPerfInteractionAction =
     | {
           readonly kind: "scrollResultStack";
           readonly target: QsPerfScrollTarget;
+      }
+    | {
+          readonly kind: "selectGrid";
+          readonly resultSetIndex: number;
+          readonly selection: "all";
       };
 
 export interface QsPerfInteractionParams {

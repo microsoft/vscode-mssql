@@ -28,6 +28,11 @@ import {
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboard";
 import type { SourceRow } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridControllerTypes";
 import { updateFluentResultGridHeaderButtonState } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
+import {
+    countFluentResultGridSelectedRows,
+    isFluentResultGridAllCellsSelected,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelection";
+import { SlickRange } from "@slickgrid-universal/common";
 
 function cell(value: string | null): DbCellValue {
     return {
@@ -143,6 +148,28 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("state helpers", () => {
+        test("counts large overlapping row selections without row expansion", () => {
+            expect(
+                countFluentResultGridSelectedRows([
+                    { fromRow: 0, toRow: 99_999_999, fromCell: 0, toCell: 0 },
+                    { fromRow: 25, toRow: 50, fromCell: 3, toCell: 5 },
+                    { fromRow: 100_000_001, toRow: 100_000_005, fromCell: 1, toCell: 1 },
+                    { fromRow: 100_000_000, toRow: 100_000_000, fromCell: 2, toCell: 2 },
+                    { fromRow: 9, toRow: 8, fromCell: 0, toCell: 0 },
+                ]),
+            ).to.equal(100_000_006);
+        });
+
+        test("recognizes an already-restored full-grid selection", () => {
+            expect(
+                isFluentResultGridAllCellsSelected([new SlickRange(0, 1, 99_999, 4)], 100_000, 5),
+            ).to.equal(true);
+            expect(
+                isFluentResultGridAllCellsSelected([new SlickRange(0, 1, 99_998, 4)], 100_000, 5),
+            ).to.equal(false);
+            expect(isFluentResultGridAllCellsSelected([], 100_000, 5)).to.equal(false);
+        });
+
         test("applies autosize widths without replacing column identities", () => {
             const columns = [
                 { id: "0", width: 100 },

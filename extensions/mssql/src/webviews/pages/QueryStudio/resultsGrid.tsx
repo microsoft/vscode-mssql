@@ -75,6 +75,7 @@ import {
     clampDisplay,
 } from "../../../sharedInterfaces/queryStudioGridOps";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
+import { countFluentResultGridSelectedRows } from "../../common/FluentResultGrid/internal/fluentResultGridSelection";
 import {
     queryStudioPerfScrollOffset,
     registerQueryStudioPerfGridController,
@@ -584,6 +585,7 @@ export function QsResultGridSurface(props: {
     const { rpc, summary, rowCount, gridStyle, notify } = props;
     const shellRef = useRef<HTMLDivElement | null>(null);
     const gridRef = useRef<FluentResultGridHandle | null>(null);
+    const perfSelectionSettledRef = useRef<(() => void) | undefined>(undefined);
     const rowCountRef = useRef(rowCount);
     rowCountRef.current = rowCount;
     const columnCount = summary.columnNames.length;
@@ -602,6 +604,23 @@ export function QsResultGridSurface(props: {
                             ? gridRef.current?.scrollToRow(itemIndex)
                             : gridRef.current?.scrollToColumn(itemIndex);
                     return applied ? "applied" : "viewportUnavailable";
+                },
+                selectAll: async () => {
+                    perfSelectionSettledRef.current?.();
+                    let settle!: () => void;
+                    const settled = new Promise<void>((resolve) => {
+                        settle = resolve;
+                    });
+                    perfSelectionSettledRef.current = settle;
+                    if (!gridRef.current?.selectAll()) {
+                        if (perfSelectionSettledRef.current === settle) {
+                            perfSelectionSettledRef.current = undefined;
+                        }
+                        settle();
+                        return "selectionUnavailable";
+                    }
+                    await settled;
+                    return "applied";
                 },
             }),
         [columnCount, summary.resultSetId],
@@ -741,15 +760,11 @@ export function QsResultGridSurface(props: {
             selectionUpdateTimer.current = setTimeout(() => {
                 const capped = selection.slice(0, 64);
                 let cells = 0;
-                const rows = new Set<number>();
                 for (const range of selection) {
                     cells +=
                         (range.toRow - range.fromRow + 1) * (range.toCell - range.fromCell + 1);
-                    for (let row = range.fromRow; row <= range.toRow; row++) {
-                        rows.add(row);
-                    }
                 }
-                void rpc.sendRequest(QsUpdateGridSelectionRequest.type, {
+                const request = rpc.sendRequest(QsUpdateGridSelectionRequest.type, {
                     resultSetId: summary.resultSetId,
                     ranges: capped.map((range) => ({
                         fromRow: range.fromRow,
@@ -758,10 +773,29 @@ export function QsResultGridSurface(props: {
                         toCell: range.toCell,
                     })),
                     selectedCellCount: cells,
-                    selectedRowCount: rows.size,
+                    selectedRowCount: countFluentResultGridSelectedRows(selection),
                     displayedRowCount: rowCount,
                     reason: "selection",
                 });
+                const settle = perfSelectionSettledRef.current;
+                if (settle) {
+                    void request.then(
+                        () => {
+                            if (perfSelectionSettledRef.current === settle) {
+                                perfSelectionSettledRef.current = undefined;
+                            }
+                            settle();
+                        },
+                        () => {
+                            if (perfSelectionSettledRef.current === settle) {
+                                perfSelectionSettledRef.current = undefined;
+                            }
+                            settle();
+                        },
+                    );
+                } else {
+                    void request;
+                }
             }, 200);
         },
         [rpc, summary.resultSetId, rowCount],
@@ -771,6 +805,8 @@ export function QsResultGridSurface(props: {
             if (selectionUpdateTimer.current) {
                 clearTimeout(selectionUpdateTimer.current);
             }
+            perfSelectionSettledRef.current?.();
+            perfSelectionSettledRef.current = undefined;
         },
         [],
     );

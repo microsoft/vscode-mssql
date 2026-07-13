@@ -77,6 +77,8 @@ export interface FluentResultGridProps
 
 export interface FluentResultGridHandle {
     focusGrid: () => void;
+    /** Select every data cell; returns false before grid creation. */
+    selectAll: () => boolean;
     /** Scroll a source row to the top; returns false before grid creation. */
     scrollToRow: (rowIndex: number) => boolean;
     /** Reveal a zero-based data column; returns false before grid creation. */

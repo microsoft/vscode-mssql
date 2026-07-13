@@ -154,21 +154,38 @@ export function normalizeQueryStudioPerfInteractionArgs(
     if (rawUri !== undefined && (typeof rawUri !== "string" || rawUri.length === 0)) {
         return { error: "Query Studio interaction URI must be a non-empty string." };
     }
-    const target = action["target"];
-    if (target !== "start" && target !== "middle" && target !== "end") {
-        return { error: "Query Studio interaction requested an unsupported scroll target." };
-    }
     let normalized: QsPerfInteractionAction;
-    if (action["kind"] === "scrollResultStack") {
-        normalized = { kind: "scrollResultStack", target };
-    } else if (action["kind"] === "scrollGrid") {
+    if (action["kind"] === "selectGrid") {
         const resultSetIndex = action["resultSetIndex"];
-        const axis = action["axis"];
         if (
             !Number.isSafeInteger(resultSetIndex) ||
             (resultSetIndex as number) < 0 ||
             (resultSetIndex as number) > 10_000 ||
-            (axis !== "vertical" && axis !== "horizontal")
+            action["selection"] !== "all"
+        ) {
+            return { error: "Query Studio received an invalid grid selection action." };
+        }
+        normalized = {
+            kind: "selectGrid",
+            resultSetIndex: resultSetIndex as number,
+            selection: "all",
+        };
+    } else if (action["kind"] === "scrollResultStack") {
+        const target = action["target"];
+        if (target !== "start" && target !== "middle" && target !== "end") {
+            return { error: "Query Studio interaction requested an unsupported scroll target." };
+        }
+        normalized = { kind: "scrollResultStack", target };
+    } else if (action["kind"] === "scrollGrid") {
+        const resultSetIndex = action["resultSetIndex"];
+        const axis = action["axis"];
+        const target = action["target"];
+        if (
+            !Number.isSafeInteger(resultSetIndex) ||
+            (resultSetIndex as number) < 0 ||
+            (resultSetIndex as number) > 10_000 ||
+            (axis !== "vertical" && axis !== "horizontal") ||
+            (target !== "start" && target !== "middle" && target !== "end")
         ) {
             return { error: "Query Studio received an invalid grid scroll action." };
         }

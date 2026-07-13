@@ -13,6 +13,7 @@ export type QueryStudioPerfInteractionOutcome =
     | "resultStackUnavailable"
     | "gridUnavailable"
     | "viewportUnavailable"
+    | "selectionUnavailable"
     | "notScrollable";
 
 interface QueryStudioPerfGridController {
@@ -20,6 +21,7 @@ interface QueryStudioPerfGridController {
         axis: "vertical" | "horizontal",
         target: QsPerfScrollTarget,
     ) => QueryStudioPerfInteractionOutcome;
+    selectAll?: () => Promise<QueryStudioPerfInteractionOutcome>;
 }
 
 const gridControllers = new Map<string, QueryStudioPerfGridController>();
@@ -49,6 +51,14 @@ export function performRegisteredQueryStudioPerfGridScroll(
     return gridControllers.get(resultSetId)?.scroll(axis, target) ?? "viewportUnavailable";
 }
 
+export function performRegisteredQueryStudioPerfGridSelection(
+    resultSetId: string,
+): Promise<QueryStudioPerfInteractionOutcome> {
+    return (
+        gridControllers.get(resultSetId)?.selectAll?.() ?? Promise.resolve("selectionUnavailable")
+    );
+}
+
 export function queryStudioPerfScrollOffset(
     scrollSize: number,
     clientSize: number,
@@ -70,10 +80,10 @@ export function queryStudioPerfScrollOffset(
  * or caller-provided selectors. The notification contract is PERF_MODE-only;
  * this renderer helper still accepts only its closed action union.
  */
-export function performQueryStudioPerfInteraction(
+export async function performQueryStudioPerfInteraction(
     action: QsPerfInteractionAction,
     resultStack: HTMLElement | null,
-): QueryStudioPerfInteractionOutcome {
+): Promise<QueryStudioPerfInteractionOutcome> {
     if (action.kind === "scrollResultStack") {
         if (!resultStack) {
             return "resultStackUnavailable";
@@ -105,5 +115,7 @@ export function performQueryStudioPerfInteraction(
     if (!gridId) {
         return "viewportUnavailable";
     }
-    return performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
+    return action.kind === "selectGrid"
+        ? performRegisteredQueryStudioPerfGridSelection(gridId)
+        : performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
 }

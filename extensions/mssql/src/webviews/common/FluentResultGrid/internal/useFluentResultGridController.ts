@@ -59,7 +59,9 @@ import { useFluentResultGridSlickLifecycle } from "./fluentResultGridSlickLifecy
 import {
     getFirstVisibleCellInFluentResultGridRange,
     getDisplayedFluentResultGridSelectionForCopy,
+    getFluentResultGridDataSelectionsFromRanges,
     getFluentResultGridSlickRangesFromDataSelections,
+    isFluentResultGridAllCellsSelected,
 } from "./fluentResultGridSelection";
 import { hasActiveFluentResultGridFilters } from "./fluentResultGridTransforms";
 
@@ -571,6 +573,28 @@ export function useFluentResultGridController({
         return true;
     }, []);
 
+    const selectAll = useCallback((): boolean => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid || grid.getDataLength() <= 0) {
+            return false;
+        }
+        const selected = grid.getSelectionModel()?.getSelectedRanges() ?? [];
+        const current = selected.length === 1 ? selected[0] : undefined;
+        const alreadySelected = isFluentResultGridAllCellsSelected(
+            selected,
+            grid.getDataLength(),
+            grid.getColumns().length,
+        );
+        commandController.selectAllCells(grid);
+        // SlickGrid suppresses its change event when the same full range was
+        // restored from view state. Imperative callers still need the same
+        // selection-summary contract as a user-initiated change.
+        if (alreadySelected && current) {
+            void onSelectionSummaryChange?.(getFluentResultGridDataSelectionsFromRanges([current]));
+        }
+        return true;
+    }, [commandController.selectAllCells, onSelectionSummaryChange]);
+
     const scrollToColumn = useCallback((columnIndex: number): boolean => {
         const grid = reactGridRef.current?.slickGrid;
         if (!grid || grid.getDataLength() <= 0) {
@@ -592,6 +616,7 @@ export function useFluentResultGridController({
         dataViewKey: dataController.dataViewKey,
         displayedRowCount: dataController.displayedRowCount,
         focusGrid: keyboardController.focusGrid,
+        selectAll,
         scrollToRow,
         scrollToColumn,
         gridOptions,

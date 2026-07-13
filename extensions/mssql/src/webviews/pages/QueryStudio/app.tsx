@@ -858,31 +858,35 @@ export function QueryStudioApp() {
                 const attrs = {
                     requestId: p.requestId,
                     action: p.action.kind,
-                    target: p.action.target,
+                    ...(p.action.kind !== "selectGrid" ? { target: p.action.target } : {}),
                     ...(p.action.kind === "scrollGrid"
                         ? {
                               axis: p.action.axis,
                               resultSetIndex: p.action.resultSetIndex,
                           }
-                        : {}),
+                        : p.action.kind === "selectGrid"
+                          ? { resultSetIndex: p.action.resultSetIndex }
+                          : {}),
                 };
                 perfMark("mssql.queryStudio.interaction.begin", attrs);
-                const outcome = performQueryStudioPerfInteraction(
-                    p.action,
-                    resultsPanelRef.current,
+                const complete = (outcome: string) => {
+                    perfMarkAfterNextPaint("mssql.queryStudio.interaction.end", {
+                        ...attrs,
+                        outcome,
+                    });
+                    if (perfMarksEnabled()) {
+                        perfMarkAfterNextPaintComputed("mssql.queryStudio.webview.health", () =>
+                            queryStudioWebviewHealthAttrs(
+                                "interactionPaint",
+                                mountedTabsRef.current.size,
+                            ),
+                        );
+                    }
+                };
+                void performQueryStudioPerfInteraction(p.action, resultsPanelRef.current).then(
+                    complete,
+                    () => complete("selectionUnavailable"),
                 );
-                perfMarkAfterNextPaint("mssql.queryStudio.interaction.end", {
-                    ...attrs,
-                    outcome,
-                });
-                if (perfMarksEnabled()) {
-                    perfMarkAfterNextPaintComputed("mssql.queryStudio.webview.health", () =>
-                        queryStudioWebviewHealthAttrs(
-                            "interactionPaint",
-                            mountedTabsRef.current.size,
-                        ),
-                    );
-                }
             }),
             rpc.onNotification(
                 QsMessagesAppendedNotification.type,

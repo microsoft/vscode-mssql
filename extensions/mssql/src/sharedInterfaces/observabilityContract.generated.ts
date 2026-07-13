@@ -1245,7 +1245,7 @@ export const OBS_CONTRACT: Registry = {
                 resultSetIndex: "structuralMetadata",
             },
             attrsComplete: false,
-            notes: "A PERF_MODE-only semantic Query Studio interaction began. The contract permits relative scrolling and result-set ordinals only; pixels, selectors, SQL, identifiers, and cell values are unrepresentable.",
+            notes: "A PERF_MODE-only semantic Query Studio interaction began. The contract permits relative scrolling or select-all against a result-set ordinal; pixels, selectors, SQL, identifiers, and cell values are unrepresentable.",
         },
         {
             name: "mssql.queryStudio.interaction.end",
@@ -1266,7 +1266,7 @@ export const OBS_CONTRACT: Registry = {
                 rafThrottled: "structuralMetadata",
             },
             attrsComplete: false,
-            notes: "The semantic interaction reached the following paint. Grid-scroll scenarios additionally wait for a fresh grid.render.complete marker; result-stack sweeps wait for grid.instance.created.",
+            notes: "The semantic interaction settled through the following paint. Select-all first waits for the host selection-summary update; grid-scroll scenarios additionally wait for a fresh grid.render.complete marker; result-stack sweeps wait for grid.instance.created.",
         },
         {
             name: "mssql.queryStudio.webview.health",

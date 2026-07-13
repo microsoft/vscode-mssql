@@ -11,6 +11,7 @@ import {
 import { resolveVectorPerfSearchTarget } from "../../src/webviews/pages/QueryStudio/vectorPerfAction";
 import {
     performRegisteredQueryStudioPerfGridScroll,
+    performRegisteredQueryStudioPerfGridSelection,
     queryStudioPerfScrollOffset,
     registerQueryStudioPerfGridController,
 } from "../../src/webviews/pages/QueryStudio/queryStudioPerfInteraction";
@@ -176,6 +177,37 @@ suite("Query Studio PERF_MODE result interactions", () => {
         );
     });
 
+    test("waits for the product selection summary before settling select-all", async () => {
+        let settle!: () => void;
+        const selectionSettled = new Promise<void>((resolve) => {
+            settle = resolve;
+        });
+        const dispose = registerQueryStudioPerfGridController("selection-grid", {
+            scroll: () => "applied",
+            selectAll: async () => {
+                await selectionSettled;
+                return "applied";
+            },
+        });
+
+        let completed = false;
+        const pending = performRegisteredQueryStudioPerfGridSelection("selection-grid").then(
+            (outcome) => {
+                completed = true;
+                return outcome;
+            },
+        );
+        await Promise.resolve();
+        expect(completed).to.equal(false);
+        settle();
+        expect(await pending).to.equal("applied");
+
+        dispose();
+        expect(await performRegisteredQueryStudioPerfGridSelection("selection-grid")).to.equal(
+            "selectionUnavailable",
+        );
+    });
+
     test("normalizes relative scroll actions and drops unknown payload", () => {
         expect(
             normalizeQueryStudioPerfInteractionArgs({
@@ -207,6 +239,20 @@ suite("Query Studio PERF_MODE result interactions", () => {
         ).to.deep.equal({
             value: { action: { kind: "scrollResultStack", target: "middle" } },
         });
+        expect(
+            normalizeQueryStudioPerfInteractionArgs({
+                action: {
+                    kind: "selectGrid",
+                    resultSetIndex: 3,
+                    selection: "all",
+                    selector: "#arbitrary",
+                },
+            }),
+        ).to.deep.equal({
+            value: {
+                action: { kind: "selectGrid", resultSetIndex: 3, selection: "all" },
+            },
+        });
     });
 
     test("rejects arbitrary selectors, coordinates, and unsupported targets", () => {
@@ -214,6 +260,7 @@ suite("Query Studio PERF_MODE result interactions", () => {
             { kind: "scrollGrid", resultSetIndex: -1, axis: "vertical", target: "end" },
             { kind: "scrollGrid", resultSetIndex: 0, axis: "diagonal", target: "end" },
             { kind: "scrollGrid", resultSetIndex: 0, axis: "vertical", target: "42px" },
+            { kind: "selectGrid", resultSetIndex: 0, selection: "rectangle" },
             { kind: "click", selector: "#anything", target: "end" },
         ]) {
             expect(normalizeQueryStudioPerfInteractionArgs({ action })).to.have.property("error");

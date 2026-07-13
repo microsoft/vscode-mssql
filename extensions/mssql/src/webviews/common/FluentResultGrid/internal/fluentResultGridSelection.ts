@@ -46,6 +46,52 @@ export function getFluentResultGridDataSelectionsFromRanges(
         .filter((selection): selection is ISlickRange => selection !== undefined);
 }
 
+/**
+ * Count distinct selected rows from inclusive ranges without expanding a
+ * potentially million-row selection. Adjacent and overlapping intervals are
+ * merged in O(R log R) time and O(R) memory, where R is the range count.
+ */
+export function countFluentResultGridSelectedRows(selections: readonly ISlickRange[]): number {
+    const intervals = selections
+        .filter((selection) => selection.toRow >= selection.fromRow)
+        .map((selection) => ({ from: selection.fromRow, to: selection.toRow }))
+        .sort((left, right) => left.from - right.from || left.to - right.to);
+    if (intervals.length === 0) {
+        return 0;
+    }
+
+    let count = 0;
+    let currentFrom = intervals[0].from;
+    let currentTo = intervals[0].to;
+    for (let index = 1; index < intervals.length; index++) {
+        const interval = intervals[index];
+        if (interval.from <= currentTo + 1) {
+            currentTo = Math.max(currentTo, interval.to);
+            continue;
+        }
+        count += currentTo - currentFrom + 1;
+        currentFrom = interval.from;
+        currentTo = interval.to;
+    }
+    return count + currentTo - currentFrom + 1;
+}
+
+export function isFluentResultGridAllCellsSelected(
+    selectedRanges: readonly SlickRange[],
+    rowCount: number,
+    columnCount: number,
+): boolean {
+    const range = selectedRanges.length === 1 ? selectedRanges[0] : undefined;
+    return (
+        rowCount > 0 &&
+        columnCount > FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX &&
+        range?.fromRow === 0 &&
+        range.toRow === rowCount - 1 &&
+        range.fromCell === FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX &&
+        range.toCell === columnCount - 1
+    );
+}
+
 export function getFluentResultGridSlickRangesFromDataSelections(
     selections: readonly ISlickRange[] | undefined,
     rowCount: number,
