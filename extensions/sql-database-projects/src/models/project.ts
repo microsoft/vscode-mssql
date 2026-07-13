@@ -458,8 +458,9 @@ export class Project implements ISqlProject {
             // empty array from SqlToolsService is deserialized as null
             for (var folderPath of result.folders) {
                 // Don't include folders that aren't supported:
-                // 1. Don't add Properties folder since it isn't supported in ADS.In SSDT, it isn't a physical folder, but it's specified in legacy sql projects
-                // to display the Properties node in the project tree.
+                // 1. Don't add the Properties folder because it isn't supported by this extension. In SSDT,
+                // it isn't a physical folder, but legacy SQL projects specify it to display the Properties
+                // node in the project tree.
                 // 2. Don't add external folders (relative path starts with "..")
                 if (
                     folderPath === constants.Properties ||

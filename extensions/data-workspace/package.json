@@ -10,8 +10,7 @@
     "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
     "homepage": "https://github.com/microsoft/vscode-mssql/blob/main/extensions/data-workspace/README.md",
     "engines": {
-        "vscode": "^1.98.0",
-        "azdata": ">=1.47.0"
+        "vscode": "^1.98.0"
     },
     "activationEvents": [
         "onView:dataworkspace.views.main",
@@ -103,10 +102,6 @@
             {
                 "command": "projects.removeProject",
                 "title": "%remove-project-command%"
-            },
-            {
-                "command": "projects.manageProject",
-                "title": "%manage-project-command%"
             }
         ],
         "menus": {
@@ -150,18 +145,9 @@
                 },
                 {
                     "command": "projects.openExisting"
-                },
-                {
-                    "command": "projects.manageProject",
-                    "when": "false"
                 }
             ],
             "view/item/context": [
-                {
-                    "command": "projects.manageProject",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && azdataAvailable",
-                    "group": "0_projectsFirst@1"
-                },
                 {
                     "command": "projects.removeProject",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",

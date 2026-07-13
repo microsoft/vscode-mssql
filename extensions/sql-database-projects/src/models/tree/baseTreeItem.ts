@@ -8,7 +8,7 @@ import * as path from "path";
 import { DatabaseProjectItemType } from "../../common/constants";
 
 /**
- * Base class for an item that appears in the ADS project tree
+ * Base class for an item that appears in the Database Projects tree
  */
 export abstract class BaseProjectTreeItem {
     /**

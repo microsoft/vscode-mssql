@@ -1728,9 +1728,9 @@ export class ProjectsController {
     ): Promise<void> {
         const profile = this.getConnectionProfileFromContext(context);
         if (context) {
-            // The profile we get from VS Code is for the overall server connection and isn't updated based on the database node
-            // the command was launched from like it is in ADS. So get the actual database name from the MSSQL extension and
-            // update the connection info here.
+            // The profile we get from VS Code is for the overall server connection and isn't updated based
+            // on the database node the command was launched from. Get the actual database name from the
+            // MSSQL extension and update the connection info here.
             const treeNodeContext = context as mssqlVscode.ITreeNodeInfo;
             const databaseName = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(
                 treeNodeContext,
@@ -1907,9 +1907,8 @@ export class ProjectsController {
         let projectFilePath: string | undefined;
         if (context) {
             // VS Code's connection/profile may only represent the server-level connection and won't reflect
-            // the database selected in the MSSQL tree node that the user invoked the command from.
-            // In ADS the context can include the database info, but in VS Code we need to ask the MSSQL
-            // extension for the actual database name for this tree node and then update the connection object.
+            // the database selected in the MSSQL tree node that the user invoked the command from. Ask the
+            // MSSQL extension for the actual database name and then update the connection object.
             if (connection !== undefined) {
                 const treeNodeContext = context as mssqlVscode.ITreeNodeInfo;
                 const databaseName = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(
