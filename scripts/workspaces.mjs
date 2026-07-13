@@ -91,7 +91,7 @@ function resolveTargets(action, targetValue) {
 
     if (!targetValue) {
         return {
-            targets: expandTargetsWithDependencies(action, availableTargets),
+            tasks: expandTargetsWithDependencies(action, availableTargets),
             requestedTargets: availableTargets,
         };
     }
@@ -124,7 +124,7 @@ function resolveTargets(action, targetValue) {
     ];
 
     return {
-        targets: expandTargetsWithDependencies(action, requestedTargets),
+        tasks: expandTargetsWithDependencies(action, requestedTargets),
         requestedTargets,
     };
 }
@@ -136,48 +136,54 @@ function findTarget(name) {
 }
 
 function getTargetDependencies(target, action) {
-    return target.dependencies?.[action] ?? [];
+    return (target.dependencies?.[action] ?? []).map((dependency) =>
+        typeof dependency === "string" ? { target: dependency, action } : dependency,
+    );
 }
 
 function expandTargetsWithDependencies(action, targets) {
     const expanded = new Map();
     const visiting = new Set();
 
-    function visit(target) {
-        if (expanded.has(target.target)) {
+    function visit(target, targetAction) {
+        const taskKey = `${targetAction}:${target.target}`;
+
+        if (expanded.has(taskKey)) {
             return;
         }
 
-        if (visiting.has(target.target)) {
-            throw new Error(`Cyclic target dependency involving "${target.target}".`);
+        if (visiting.has(taskKey)) {
+            throw new Error(
+                `Cyclic target dependency involving "${target.target}" for action "${targetAction}".`,
+            );
         }
 
-        visiting.add(target.target);
+        visiting.add(taskKey);
 
-        for (const dependencyName of getTargetDependencies(target, action)) {
-            const dependency = findTarget(dependencyName);
+        for (const dependencyConfig of getTargetDependencies(target, targetAction)) {
+            const dependency = findTarget(dependencyConfig.target);
 
             if (!dependency) {
                 throw new Error(
-                    `Target "${target.target}" depends on unknown target "${dependencyName}".`,
+                    `Target "${target.target}" depends on unknown target "${dependencyConfig.target}".`,
                 );
             }
 
-            if (!dependency.scripts.includes(action)) {
+            if (!dependency.scripts.includes(dependencyConfig.action)) {
                 throw new Error(
-                    `Target "${target.target}" depends on "${dependency.target}", but "${dependency.target}" does not support "${action}".`,
+                    `Target "${target.target}" depends on "${dependency.target}", but "${dependency.target}" does not support "${dependencyConfig.action}".`,
                 );
             }
 
-            visit(dependency);
+            visit(dependency, dependencyConfig.action);
         }
 
-        visiting.delete(target.target);
-        expanded.set(target.target, target);
+        visiting.delete(taskKey);
+        expanded.set(taskKey, { target, action: targetAction });
     }
 
     for (const target of targets) {
-        visit(target);
+        visit(target, action);
     }
 
     return [...expanded.values()];
@@ -324,7 +330,11 @@ function main() {
         );
     }
 
-    const { targets, requestedTargets } = resolveTargets(action, targetValue);
+    if (prod && action !== "build") {
+        throw new Error(`The --prod flag is only supported for the "build" action.`);
+    }
+
+    const { tasks, requestedTargets } = resolveTargets(action, targetValue);
     const requestedTargetNames = new Set(requestedTargets.map((target) => target.target));
     ensureProdBuildSupport(requestedTargets, prod);
 
@@ -343,13 +353,17 @@ function main() {
     };
 
     if (action === "watch") {
-        const watchableTargets = pruneRedundantWatchTargets(targets);
+        const watchableTargets = pruneRedundantWatchTargets(tasks.map((task) => task.target));
         watchTargets(watchableTargets, forwardedArgs);
         return;
     }
 
-    for (const target of targets) {
-        runWorkspaceScript(target, action, getActionArgs(target));
+    for (const task of tasks) {
+        const taskArgs =
+            task.action === action && requestedTargetNames.has(task.target.target)
+                ? getActionArgs(task.target)
+                : [];
+        runWorkspaceScript(task.target, task.action, taskArgs);
     }
 }
 
