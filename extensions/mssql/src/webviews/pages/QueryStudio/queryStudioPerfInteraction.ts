@@ -15,6 +15,40 @@ export type QueryStudioPerfInteractionOutcome =
     | "viewportUnavailable"
     | "notScrollable";
 
+interface QueryStudioPerfGridController {
+    scroll: (
+        axis: "vertical" | "horizontal",
+        target: QsPerfScrollTarget,
+    ) => QueryStudioPerfInteractionOutcome;
+}
+
+const gridControllers = new Map<string, QueryStudioPerfGridController>();
+
+/**
+ * Register the product-owned controller for one mounted Query Studio grid.
+ * The identity check in the disposer makes this safe under React strict-mode
+ * mount/unmount cycles and result-set replacement.
+ */
+export function registerQueryStudioPerfGridController(
+    resultSetId: string,
+    controller: QueryStudioPerfGridController,
+): () => void {
+    gridControllers.set(resultSetId, controller);
+    return () => {
+        if (gridControllers.get(resultSetId) === controller) {
+            gridControllers.delete(resultSetId);
+        }
+    };
+}
+
+export function performRegisteredQueryStudioPerfGridScroll(
+    resultSetId: string,
+    axis: "vertical" | "horizontal",
+    target: QsPerfScrollTarget,
+): QueryStudioPerfInteractionOutcome {
+    return gridControllers.get(resultSetId)?.scroll(axis, target) ?? "viewportUnavailable";
+}
+
 export function queryStudioPerfScrollOffset(
     scrollSize: number,
     clientSize: number,
@@ -67,33 +101,9 @@ export function performQueryStudioPerfInteraction(
     if (!grid) {
         return "gridUnavailable";
     }
-    const viewports = [...grid.querySelectorAll<HTMLElement>(".slick-viewport")];
-    if (viewports.length === 0) {
+    const gridId = grid.dataset.gridId;
+    if (!gridId) {
         return "viewportUnavailable";
     }
-    const range = (viewport: HTMLElement) =>
-        action.axis === "vertical"
-            ? viewport.scrollHeight - viewport.clientHeight
-            : viewport.scrollWidth - viewport.clientWidth;
-    const viewport = viewports.reduce((best, candidate) =>
-        range(candidate) > range(best) ? candidate : best,
-    );
-    if (range(viewport) <= 0) {
-        return "notScrollable";
-    }
-    if (action.axis === "vertical") {
-        viewport.scrollTop = queryStudioPerfScrollOffset(
-            viewport.scrollHeight,
-            viewport.clientHeight,
-            action.target,
-        );
-    } else {
-        viewport.scrollLeft = queryStudioPerfScrollOffset(
-            viewport.scrollWidth,
-            viewport.clientWidth,
-            action.target,
-        );
-    }
-    viewport.dispatchEvent(new Event("scroll", { bubbles: true }));
-    return "applied";
+    return performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
 }

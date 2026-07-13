@@ -557,6 +557,29 @@ export function useFluentResultGridController({
         shouldSuppressSelectionSummaryChange: () => isRestoringInitialStateRef.current,
     });
 
+    const scrollToRow = useCallback((rowIndex: number): boolean => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid || grid.getDataLength() <= 0) {
+            return false;
+        }
+        grid.scrollRowToTop(Math.max(0, Math.min(Math.trunc(rowIndex), grid.getDataLength() - 1)));
+        return true;
+    }, []);
+
+    const scrollToColumn = useCallback((columnIndex: number): boolean => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid || grid.getDataLength() <= 0) {
+            return false;
+        }
+        const target = Math.max(0, Math.trunc(columnIndex));
+        const cell = grid.getColumns().findIndex((column) => Number(column.field) === target);
+        if (cell < 0) {
+            return false;
+        }
+        grid.scrollCellIntoView(Math.max(0, grid.getViewport().top), cell, false);
+        return true;
+    }, []);
+
     return {
         columns,
         commandContext,
@@ -564,6 +587,8 @@ export function useFluentResultGridController({
         dataViewKey: dataController.dataViewKey,
         displayedRowCount: dataController.displayedRowCount,
         focusGrid: keyboardController.focusGrid,
+        scrollToRow,
+        scrollToColumn,
         gridOptions,
         handleBeforeHeaderCellDestroy: headerController.handleBeforeHeaderCellDestroy,
         handleClick: commandController.handleClick,

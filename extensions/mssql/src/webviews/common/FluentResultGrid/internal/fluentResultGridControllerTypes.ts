@@ -48,6 +48,8 @@ export interface FluentResultGridControllerResult {
     dataViewKey: number;
     displayedRowCount: number;
     focusGrid: () => void;
+    scrollToRow: (rowIndex: number) => boolean;
+    scrollToColumn: (columnIndex: number) => boolean;
     gridOptions: GridOption;
     handleBeforeHeaderCellDestroy: (event: CustomEvent) => void;
     handleClick: (event: CustomEvent) => void;

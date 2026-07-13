@@ -9,7 +9,11 @@ import {
     normalizeQueryStudioPerfInteractionArgs,
 } from "../../src/queryStudio/queryStudioPerfAction";
 import { resolveVectorPerfSearchTarget } from "../../src/webviews/pages/QueryStudio/vectorPerfAction";
-import { queryStudioPerfScrollOffset } from "../../src/webviews/pages/QueryStudio/queryStudioPerfInteraction";
+import {
+    performRegisteredQueryStudioPerfGridScroll,
+    queryStudioPerfScrollOffset,
+    registerQueryStudioPerfGridController,
+} from "../../src/webviews/pages/QueryStudio/queryStudioPerfInteraction";
 import type { QsVectorPerfSearchAction } from "../../src/sharedInterfaces/queryStudio";
 import type { VectorSearchTargetInfo } from "../../src/sharedInterfaces/vectorSearch";
 
@@ -143,6 +147,33 @@ suite("Query Studio PERF_MODE result interactions", () => {
         expect(queryStudioPerfScrollOffset(10_000, 1_000, "middle")).to.equal(4_500);
         expect(queryStudioPerfScrollOffset(10_000, 1_000, "end")).to.equal(9_000);
         expect(queryStudioPerfScrollOffset(500, 1_000, "end")).to.equal(0);
+    });
+
+    test("routes grid scrolls through the current product controller", () => {
+        const calls: string[] = [];
+        const disposeOld = registerQueryStudioPerfGridController("b0r0s0", {
+            scroll: (axis, target) => {
+                calls.push(`old:${axis}:${target}`);
+                return "applied";
+            },
+        });
+        const disposeCurrent = registerQueryStudioPerfGridController("b0r0s0", {
+            scroll: (axis, target) => {
+                calls.push(`current:${axis}:${target}`);
+                return "applied";
+            },
+        });
+
+        disposeOld();
+        expect(performRegisteredQueryStudioPerfGridScroll("b0r0s0", "vertical", "middle")).to.equal(
+            "applied",
+        );
+        expect(calls).to.deep.equal(["current:vertical:middle"]);
+
+        disposeCurrent();
+        expect(performRegisteredQueryStudioPerfGridScroll("b0r0s0", "horizontal", "end")).to.equal(
+            "viewportUnavailable",
+        );
     });
 
     test("normalizes relative scroll actions and drops unknown payload", () => {

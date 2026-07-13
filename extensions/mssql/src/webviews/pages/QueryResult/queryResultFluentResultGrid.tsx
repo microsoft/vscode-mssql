@@ -3,7 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useContext,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import {
     FluentResultGrid,
     FluentResultGridCommand,
@@ -12,6 +21,7 @@ import {
     type FluentResultGridCommandConfiguration,
     type FluentResultGridCommandEvent,
     type FluentResultGridKeyBindingMap,
+    type FluentResultGridHandle,
     type FluentResultGridState,
     type FluentResultGridStrings,
     type FluentResultGridTheme,
@@ -486,6 +496,14 @@ function areResultSetSummariesEquivalent(
 }
 
 const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props, ref) => {
+    const fluentGridRef = useRef<FluentResultGridHandle | null>(null);
+    useImperativeHandle(
+        ref,
+        () => ({
+            focusGrid: () => fluentGridRef.current?.focusGrid(),
+        }),
+        [],
+    );
     const context = useContext(QueryResultCommandsContext);
     const uri = useQueryResultSelector((state) => state.uri);
     const fontSettings = useQueryResultSelector((state) => state.fontSettings);
@@ -812,7 +830,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
 
     return (
         <FluentResultGrid
-            ref={ref}
+            ref={fluentGridRef}
             gridId={props.gridId}
             resultSetSummary={resultSetSummary}
             dataSource={dataSource}

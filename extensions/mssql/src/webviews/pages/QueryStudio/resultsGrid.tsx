@@ -34,6 +34,7 @@ import {
     type FluentResultGridCommandConfiguration,
     type FluentResultGridCommandEvent,
     type FluentResultGridKeyBindingMap,
+    type FluentResultGridHandle,
     type FluentResultGridStrings,
     type FluentResultGridState,
     type FluentResultGridTheme,
@@ -74,6 +75,10 @@ import {
     clampDisplay,
 } from "../../../sharedInterfaces/queryStudioGridOps";
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
+import {
+    queryStudioPerfScrollOffset,
+    registerQueryStudioPerfGridController,
+} from "./queryStudioPerfInteraction";
 
 // BOOT-2: light shell-facing pieces live in resultsGridShared (the entry
 // chunk must never pull this module's slickgrid stack); re-exported here so
@@ -578,7 +583,29 @@ export function QsResultGridSurface(props: {
 }) {
     const { rpc, summary, rowCount, gridStyle, notify } = props;
     const shellRef = useRef<HTMLDivElement | null>(null);
+    const gridRef = useRef<FluentResultGridHandle | null>(null);
+    const rowCountRef = useRef(rowCount);
+    rowCountRef.current = rowCount;
     const columnCount = summary.columnNames.length;
+
+    useEffect(
+        () =>
+            registerQueryStudioPerfGridController(summary.resultSetId, {
+                scroll: (axis, target) => {
+                    const itemCount = axis === "vertical" ? rowCountRef.current : columnCount;
+                    if (itemCount <= 1) {
+                        return "notScrollable";
+                    }
+                    const itemIndex = queryStudioPerfScrollOffset(itemCount, 1, target);
+                    const applied =
+                        axis === "vertical"
+                            ? gridRef.current?.scrollToRow(itemIndex)
+                            : gridRef.current?.scrollToColumn(itemIndex);
+                    return applied ? "applied" : "viewportUnavailable";
+                },
+            }),
+        [columnCount, summary.resultSetId],
+    );
 
     // Column identity must stay STABLE across the coarse state pushes while
     // rows stream (each push rebuilds columnNames) — otherwise the grid
@@ -872,6 +899,7 @@ export function QsResultGridSurface(props: {
             className="qs-grid-surface"
             onPointerDownCapture={handlePointerDownCapture}>
             <FluentResultGrid
+                ref={gridRef}
                 gridId={summary.resultSetId}
                 resultSetSummary={classicSummary}
                 dataSource={dataSource}
