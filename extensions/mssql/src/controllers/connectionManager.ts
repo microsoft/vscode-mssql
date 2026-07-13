@@ -11,7 +11,11 @@ import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
-import { azureStatusesToRetry, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import {
+    azureStatusesToRetry,
+    AzureSqlDatabaseStatus,
+    VsCodeAzureHelper,
+} from "../connectionconfig/azureHelpers";
 import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
@@ -1438,9 +1442,9 @@ export default class ConnectionManager {
 
         // If the connection can be checked, start the serverless status check in parallel with the connection attempt.
         // The result determines silent retry if the connection attempt times out.
-        const serverlessStatusPromise = isPauseAwareConnection
+        const serverlessStatusPromise: Promise<AzureSqlDatabaseStatus> = isPauseAwareConnection
             ? VsCodeAzureHelper.getAzureSqlDatabaseStatus(credentials, undefined, "direct connect")
-            : undefined;
+            : Promise.resolve("UnableToCheck");
         // Add the connection to the active connections list
         let connectionInfo: ConnectionInfo = new ConnectionInfo();
         connectionInfo.credentials = credentials;
@@ -1649,15 +1653,22 @@ export default class ConnectionManager {
     /**
      * Determines whether a timed-out connection/expand attempt should be silently retried.
      *
+     * The connection/expand attempt has already timed out by the time this is called, so we only
+     * consult the pause-state check if it has ALREADY resolved. If it's still in flight we do NOT
+     * wait for it (which could take much longer than the connection timeout for users with many
+     * subscriptions) — we surface the timeout error immediately instead.
+     *
      * @param credentials the connection being attempted.
      * @param failedAttempts number of connection attempts that have already failed (including initial attempt).
-     * @param statusPromise In-flight status check promise
+     * @param statusPromise In-flight status check promise. Resolves to an
+     *   {@link AzureSqlDatabaseStatus} (never `undefined`); `undefined` from the race below means
+     *   the check hadn't resolved yet.
      * @param databaseName optional database name override for the status check.
      */
     public async shouldRetryForPausedServerlessDatabase(
         credentials: IConnectionInfo,
         failedAttempts: number,
-        statusPromise: Promise<string | undefined>,
+        statusPromise: Promise<AzureSqlDatabaseStatus>,
         databaseName?: string,
     ): Promise<boolean> {
         if (
@@ -1667,9 +1678,19 @@ export default class ConnectionManager {
             return false;
         }
 
-        const status = await statusPromise;
+        // Peek at the status check without waiting: race it against an already-resolved `undefined`.
+        // Since the status check never resolves to `undefined`, a resulting `undefined` unambiguously
+        // means "the check hasn't finished yet" -> don't retry, surface the timeout now.
+        const status = await Promise.race([statusPromise, Promise.resolve(undefined)]);
 
-        if (!status || !azureStatusesToRetry.includes(status)) {
+        if (status === undefined) {
+            this._logger.info(
+                `Serverless pause-aware retry: pause-state check for database "${databaseName ?? credentials.database}" on "${credentials.server}" did not finish before the connection timeout; surfacing the error without retrying.`,
+            );
+            return false;
+        }
+
+        if (!azureStatusesToRetry.includes(status)) {
             return false;
         }
 

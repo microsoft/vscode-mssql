@@ -1248,11 +1248,33 @@ suite("ConnectionManager Tests", () => {
                 expect(result).to.be.false;
             });
 
-            test("returns false when the status check can't determine a status", async () => {
+            test("returns false when the status check reports UnableToCheck", async () => {
                 const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
                     azureMfaUserDbConnection(),
                     1,
-                    Promise.resolve(undefined as unknown as string),
+                    Promise.resolve("UnableToCheck"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false when the database is online (not a waking status)", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    Promise.resolve("Online"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false immediately when the status check hasn't resolved before the timeout", async () => {
+                // A never-resolving promise simulates an ARM check still in flight when the
+                // connection attempt has already timed out. The method must not wait for it.
+                const neverResolves = new Promise<azureHelpers.AzureSqlDatabaseStatus>(() => {});
+
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    neverResolves,
                 );
                 expect(result).to.be.false;
             });
