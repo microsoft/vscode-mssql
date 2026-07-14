@@ -612,6 +612,25 @@ export class SqlDataPlaneService {
         }));
     }
 
+    /**
+     * Passive per-backend detail for status surfaces: running services'
+     * own diagnostic snapshots (ts-native `snapshot()`, STS2 `status()`).
+     * Reads state only — never constructs or connects.
+     */
+    entryDetails(): Record<string, unknown> {
+        const details: Record<string, unknown> = {};
+        for (const entry of this.entries.values()) {
+            const service = entry.service as
+                | { snapshot?: () => unknown; status?: () => unknown }
+                | undefined;
+            const detail = service?.snapshot?.() ?? service?.status?.();
+            if (detail !== undefined) {
+                details[entry.factory.kind] = detail;
+            }
+        }
+        return details;
+    }
+
     /** Safe, PASSIVE status dump (never constructs a backend — D5). */
     statusSummary(): Record<string, unknown> {
         const rawKind = this.config.get<string>(SETTING_BACKEND, "sts2-local");
@@ -622,6 +641,7 @@ export class SqlDataPlaneService {
             availability: this.availability(),
             activeSessions: this.sessions.size,
             entries: this.entrySnapshots(),
+            details: this.entryDetails(),
         };
     }
 

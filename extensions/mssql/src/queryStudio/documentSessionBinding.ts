@@ -382,7 +382,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
         user?: string;
         password?: string;
     }): Promise<ISqlSession> {
-        const service = await SqlDataPlaneService.get().service();
+        const service = await SqlDataPlaneService.get().service(
+            this.backendOverride ? { backendKind: this.backendOverride } : undefined,
+        );
         const base = this.lastStoredProfile;
         const stored: StoredProfile = {
             server: target.server,
@@ -433,7 +435,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
         // Follow the CURRENT database (post-USE), not the profile default.
         const database = this.session?.info?.database;
         try {
-            const service = await SqlDataPlaneService.get().service();
+            const service = await SqlDataPlaneService.get().service(
+                this.backendOverride ? { backendKind: this.backendOverride } : undefined,
+            );
             const session = await service.openSession({
                 profile: profileRef,
                 ...(database ? { database } : {}),
@@ -500,7 +504,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
             return cached.names;
         }
         try {
-            const service = await SqlDataPlaneService.get().service();
+            const service = await SqlDataPlaneService.get().service(
+                this.backendOverride ? { backendKind: this.backendOverride } : undefined,
+            );
             const session = await service.openSession({
                 profile: profileRef,
                 database: "master",

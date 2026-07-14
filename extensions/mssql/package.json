@@ -1191,6 +1191,10 @@
                     "when": "config.mssql.sqlDataPlane.enabled"
                 },
                 {
+                    "command": "mssql.sqlDataPlane.pickDocumentBackend",
+                    "when": "config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+                },
+                {
                     "command": "mssql.objectExplorerV2.showStatus",
                     "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
                 },
@@ -2200,6 +2204,11 @@
             {
                 "command": "mssql.sqlDataPlane.showStatus",
                 "title": "Show SQL Data-Plane Status",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlDataPlane.pickDocumentBackend",
+                "title": "Query Studio: Select SQL Provider for This Document",
                 "category": "MS SQL"
             },
             {
