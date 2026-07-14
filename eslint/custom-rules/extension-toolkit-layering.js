@@ -7,9 +7,9 @@ module.exports = {
         schema: [],
         messages: {
             baseCannotImportVscode:
-                "extension-toolkit base code cannot import VS Code-specific code.",
+                "extension-toolkit/base must remain VS Code-independent. Move shared VS Code-dependent code to extension-toolkit/vscode.",
             productionCannotImportTesting:
-                "extension-toolkit production code cannot import vscode/testing helpers.",
+                "extension-toolkit production code cannot import vscode/testing helpers because they contain test fakes.",
         },
     },
     create(context) {
@@ -52,6 +52,10 @@ module.exports = {
             return filename.includes("/packages/extension-toolkit/src/vscode/testing/");
         }
 
+        // Keep the dependency direction base <- vscode: base contains portable
+        // primitives and must not depend on the VS Code extension host. Shared
+        // helpers that use the VS Code API or VS Code-dependent libraries (for
+        // example, extension telemetry) are supported in the vscode layer.
         function isVscodeImport(source, resolvedSource) {
             return (
                 source === "vscode" ||
@@ -61,6 +65,9 @@ module.exports = {
             );
         }
 
+        // Testing helpers may depend on either production layer, but production
+        // code must not depend on testing because that would make test fakes part
+        // of the shipped extension runtime.
         function isTestingImport(source, resolvedSource) {
             return (
                 source.startsWith("extension-toolkit/vscode/testing") ||
