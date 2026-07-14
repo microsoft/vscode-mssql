@@ -25,6 +25,12 @@ import {
     ISqlSession,
     SqlConnectionProfileRef,
 } from "../services/sqlDataPlane/api";
+import { SqlBackendKind } from "../services/sqlDataPlane/backendFactory";
+import {
+    CAPABILITY_FALLBACK_SETTING,
+    CapabilityFallbackPolicy,
+    resolveCapabilityFallback,
+} from "../services/sqlDataPlane/providerSuggestions";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { MetadataStatus, runMetadataQuery } from "../services/metadata/metadataService";
 import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
@@ -257,6 +263,28 @@ export class DocumentSessionBinding implements vscode.Disposable {
             this.stateKind = "connected";
             this.fireChange();
         }
+    }
+
+    /**
+     * Per-document provider override (TSQ2 §3.5): resolution order is
+     * explicit override > setting default. Applies at the NEXT connect for
+     * this document; a live session keeps the provider it was bound to
+     * (nothing pretends — session.info.backendKind is the truth).
+     */
+    private backendOverride: SqlBackendKind | undefined;
+
+    get documentBackendOverride(): SqlBackendKind | undefined {
+        return this.backendOverride;
+    }
+
+    /** The provider the LIVE session is actually bound to, if connected. */
+    get activeBackendKind(): string | undefined {
+        return this.session?.info.backendKind;
+    }
+
+    setDocumentBackendOverride(kind: SqlBackendKind | undefined): void {
+        this.backendOverride = kind;
+        this.fireChange();
     }
 
     /** Connect flow (doc 04 §11.2). Returns false on cancel/failure. */
@@ -555,13 +583,48 @@ export class DocumentSessionBinding implements vscode.Disposable {
             // background (accent + production flag); absence is simply "off".
             this.groupAccent = undefined;
             void this.resolveGroupAccent(stored, store);
-            const service = await SqlDataPlaneService.get().service();
-            const session = await service.openSession({
+            const dataPlane = SqlDataPlaneService.get();
+            const params = {
                 profile: profileRef,
                 applicationName: "vscode-mssql-querystudio",
                 // Password exists only inside the provider closure.
                 auth: prepared.auth,
-            });
+            };
+            // Capability-routed open (TSQ2 §8.2): requirements are evaluated
+            // BEFORE any credential resolution; a provider that cannot open
+            // this profile triggers the fallback policy (prompt/auto/off).
+            let backendKind = this.backendOverride;
+            const check = await dataPlane.canOpen(
+                params,
+                backendKind ? { backendKind } : undefined,
+            );
+            if (!check.ok) {
+                const policy = vscode.workspace
+                    .getConfiguration()
+                    .get<CapabilityFallbackPolicy>(CAPABILITY_FALLBACK_SETTING, "prompt");
+                const decision = await resolveCapabilityFallback({
+                    check,
+                    policy,
+                    currentKind: backendKind ?? dataPlane.defaultBackendKind(),
+                    displayNameFor: (kind) => dataPlane.displayNameFor(kind),
+                    interaction: {
+                        prompt: (message, actions) =>
+                            Promise.resolve(vscode.window.showWarningMessage(message, ...actions)),
+                        notify: (message) => void vscode.window.showInformationMessage(message),
+                    },
+                });
+                if (decision.kind !== "useAlternative" || !decision.alternative) {
+                    throw new Error(
+                        check.reason ??
+                            "the selected SQL data plane provider cannot open this profile",
+                    );
+                }
+                backendKind = decision.alternative;
+            }
+            const session = await dataPlane.openSession(
+                params,
+                backendKind ? { backendKind } : undefined,
+            );
             this.session = session;
             session.onDidChangeState((change) => {
                 if (change.current === "lost") {

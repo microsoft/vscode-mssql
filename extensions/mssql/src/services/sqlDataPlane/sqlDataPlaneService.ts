@@ -579,6 +579,11 @@ export class SqlDataPlaneService {
         return entry?.service?.availability ?? { state: "unknown" };
     }
 
+    /** Display name for UX (fallback prompts, status, suggestions). */
+    displayNameFor(kind: SqlBackendKind): string {
+        return this.entries.get(kind)?.factory.displayName ?? kind;
+    }
+
     entrySnapshots(): BackendEntrySnapshot[] {
         return [...this.entries.values()].map((entry) => ({
             kind: entry.factory.kind,

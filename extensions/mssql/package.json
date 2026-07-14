@@ -4022,6 +4022,22 @@
                     "markdownDescription": "Default SQL data plane provider for **future** sessions; open documents keep the provider their session was bound to. `sts2-remote` is reserved for the hosted backend.",
                     "scope": "application"
                 },
+                "mssql.sqlDataPlane.capabilityFallback": {
+                    "type": "string",
+                    "default": "prompt",
+                    "enum": [
+                        "prompt",
+                        "auto",
+                        "off"
+                    ],
+                    "enumDescriptions": [
+                        "Ask before opening the connection with a provider that supports the missing capability.",
+                        "Route to a capable provider automatically (a notification names the provider actually used).",
+                        "Fail with the capability error; never switch providers."
+                    ],
+                    "markdownDescription": "What to do when the selected SQL data plane provider cannot open a profile (for example Windows integrated authentication on the Native TypeScript provider). Evaluated before any credential is resolved; the fallback is always visible and never re-runs SQL.",
+                    "scope": "application"
+                },
                 "mssql.metadataCache.enabled": {
                     "type": "boolean",
                     "default": false,
