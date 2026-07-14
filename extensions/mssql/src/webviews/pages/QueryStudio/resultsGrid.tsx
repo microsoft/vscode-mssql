@@ -85,6 +85,7 @@ import {
     queryStudioPerfScrollOffset,
     registerQueryStudioPerfGridController,
 } from "./queryStudioPerfInteraction";
+import { FrameThrottledEmitter } from "./frameThrottledEmitter";
 
 // BOOT-2: light shell-facing pieces live in resultsGridShared (the entry
 // chunk must never pull this module's slickgrid stack); re-exported here so
@@ -99,6 +100,7 @@ const COPY_TARGET_DECODED_CELLS_PER_WINDOW = 8_192;
 /** Approx. 16 MiB UTF-16 payload, before the browser clipboard's own copy. */
 const COPY_MAX_TSV_CHARACTERS = 8_000_000;
 const DEFAULT_FONT_SIZE = 12;
+const SELECTION_UPDATE_MIN_INTERVAL_MS = 200;
 const GRID_COLUMN_WINDOWING = {
     minimumColumnCount: 64,
     overscanColumnCount: 8,
@@ -880,63 +882,63 @@ export function QsResultGridSurface(props: {
         notify(summary.complete ? PROCESSING_DISABLED_NOTICE : PROCESSING_STREAMING_NOTICE);
     }, [notify, summary.complete]);
 
-    // Active-result context (C2D-4): selection SHAPE rides to the host,
-    // throttled (trailing edge) so drag-selects do not flood the RPC channel.
+    // Active-result context (C2D-4): selection SHAPE rides to the host. A
+    // leading/trailing paint-clock throttle retains only the latest drag
+    // selection and caps sustained updates without background-timer clamping.
     // Values never leave the grid on this path.
-    const selectionUpdateTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const handleSelectionSummaryChange = useCallback(
-        (selection: readonly ISlickRange[]) => {
-            if (selectionUpdateTimer.current) {
-                clearTimeout(selectionUpdateTimer.current);
+    const selectionUpdateContextRef = useRef({ rpc, resultSetId: summary.resultSetId, rowCount });
+    selectionUpdateContextRef.current = { rpc, resultSetId: summary.resultSetId, rowCount };
+    const selectionUpdateSchedulerRef = useRef<
+        FrameThrottledEmitter<readonly ISlickRange[]> | undefined
+    >(undefined);
+    if (!selectionUpdateSchedulerRef.current) {
+        selectionUpdateSchedulerRef.current = new FrameThrottledEmitter((selection) => {
+            const current = selectionUpdateContextRef.current;
+            const capped = selection.slice(0, 64);
+            let cells = 0;
+            for (const range of selection) {
+                cells += (range.toRow - range.fromRow + 1) * (range.toCell - range.fromCell + 1);
             }
-            selectionUpdateTimer.current = setTimeout(() => {
-                const capped = selection.slice(0, 64);
-                let cells = 0;
-                for (const range of selection) {
-                    cells +=
-                        (range.toRow - range.fromRow + 1) * (range.toCell - range.fromCell + 1);
-                }
-                const request = rpc.sendRequest(QsUpdateGridSelectionRequest.type, {
-                    resultSetId: summary.resultSetId,
-                    ranges: capped.map((range) => ({
-                        fromRow: range.fromRow,
-                        toRow: range.toRow,
-                        fromCell: range.fromCell,
-                        toCell: range.toCell,
-                    })),
-                    selectedCellCount: cells,
-                    selectedRowCount: countFluentResultGridSelectedRows(selection),
-                    displayedRowCount: rowCount,
-                    reason: "selection",
-                });
-                const settle = perfSelectionSettledRef.current;
-                if (settle) {
-                    void request.then(
-                        () => {
-                            if (perfSelectionSettledRef.current === settle) {
-                                perfSelectionSettledRef.current = undefined;
-                            }
-                            settle();
-                        },
-                        () => {
-                            if (perfSelectionSettledRef.current === settle) {
-                                perfSelectionSettledRef.current = undefined;
-                            }
-                            settle();
-                        },
-                    );
-                } else {
-                    void request;
-                }
-            }, 200);
-        },
-        [rpc, summary.resultSetId, rowCount],
-    );
+            const request = current.rpc.sendRequest(QsUpdateGridSelectionRequest.type, {
+                resultSetId: current.resultSetId,
+                ranges: capped.map((range) => ({
+                    fromRow: range.fromRow,
+                    toRow: range.toRow,
+                    fromCell: range.fromCell,
+                    toCell: range.toCell,
+                })),
+                selectedCellCount: cells,
+                selectedRowCount: countFluentResultGridSelectedRows(selection),
+                displayedRowCount: current.rowCount,
+                reason: "selection",
+            });
+            const settle = perfSelectionSettledRef.current;
+            if (settle) {
+                void request.then(
+                    () => {
+                        if (perfSelectionSettledRef.current === settle) {
+                            perfSelectionSettledRef.current = undefined;
+                        }
+                        settle();
+                    },
+                    () => {
+                        if (perfSelectionSettledRef.current === settle) {
+                            perfSelectionSettledRef.current = undefined;
+                        }
+                        settle();
+                    },
+                );
+            } else {
+                void request;
+            }
+        }, SELECTION_UPDATE_MIN_INTERVAL_MS);
+    }
+    const handleSelectionSummaryChange = useCallback((selection: readonly ISlickRange[]) => {
+        selectionUpdateSchedulerRef.current?.update(selection);
+    }, []);
     useEffect(
         () => () => {
-            if (selectionUpdateTimer.current) {
-                clearTimeout(selectionUpdateTimer.current);
-            }
+            selectionUpdateSchedulerRef.current?.clear();
             perfSelectionSettledRef.current?.();
             perfSelectionSettledRef.current = undefined;
         },
