@@ -81,6 +81,12 @@ export interface HoverComputation {
     readonly result: HoverResult | undefined;
     /** Symbol kind for telemetry (never identifier text). */
     readonly symbolKind: HoverSymbolKind;
+    /**
+     * Catalog objects whose not-yet-hydrated columns limited the content.
+     * The host fires the de-duped lazy-columns kick for each (mirroring the
+     * diagnostics self-heal) so a re-hover serves the loaded columns.
+     */
+    readonly hydrationKicks?: readonly LangObjectRef[];
 }
 
 const NONE: HoverComputation = { result: undefined, symbolKind: "none" };
@@ -449,21 +455,33 @@ function starHover(
         return NONE;
     }
 
+    // One unclaimable source must not hide the claimable ones: list the known
+    // columns and mark the rest unavailable EXPLICITLY (never silently omit a
+    // source — the star includes its columns too).
     const lines = ["**columns for `*`**"];
+    const hydrationKicks: LangObjectRef[] = [];
+    let claimed = 0;
     for (const source of sources) {
+        let suppressed = false;
         if (source.resolution.kind === "catalog") {
             if (catalogSuppressed) {
-                return NONE;
-            }
-            const info = input.pinned.getObject(source.resolution.ref);
-            if (info !== undefined && isSystemSchemaName(info.schema)) {
-                return NONE;
+                suppressed = true;
+            } else {
+                const info = input.pinned.getObject(source.resolution.ref);
+                if (info !== undefined && isSystemSchemaName(info.schema)) {
+                    suppressed = true; // curated subset — the full list is unclaimable
+                }
             }
         }
-        const columns = input.binding.columnsOf(source);
+        const columns = suppressed ? undefined : input.binding.columnsOf(source);
         if (columns === undefined) {
-            return NONE;
+            if (suppressed === false && source.resolution.kind === "catalog") {
+                hydrationKicks.push(source.resolution.ref);
+            }
+            lines.push("- `" + source.label + ".*` - columns unavailable");
+            continue;
         }
+        claimed++;
         const qualify = sources.length > 1 || source.source.alias !== undefined;
         for (const column of columns) {
             lines.push(
@@ -474,10 +492,11 @@ function starHover(
             );
         }
     }
-    if (lines.length === 1) {
-        return NONE;
+    const kicks = hydrationKicks.length > 0 ? hydrationKicks : undefined;
+    if (claimed === 0) {
+        return { result: undefined, symbolKind: "star", hydrationKicks: kicks };
     }
-    return hover("star", lines.join("  \n"), tokenSpan);
+    return { ...hover("star", lines.join("  \n"), tokenSpan), hydrationKicks: kicks };
 }
 
 function starColumnHoverLine(label: string, column: BoundColumn): string {

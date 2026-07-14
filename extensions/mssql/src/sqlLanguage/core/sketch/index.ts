@@ -430,6 +430,41 @@ function parseFromSources(
     return j;
 }
 
+/**
+ * Skip the SELECT list-head modifiers — [ALL|DISTINCT] [TOP <n|(expr)>
+ * [PERCENT] [WITH TIES]] — so the first item's shape is judged on the item
+ * tokens themselves: `TOP 10 *` must still detect the star, and `TOP 10 col`
+ * must not read `col` as an alias of a `TOP 10` expression.
+ */
+function skipSelectListHeadModifiers(b: SketchBuilder, i: number, endExclusive: number): number {
+    let j = b.next(i, endExclusive);
+    const quantifier = b.word(j);
+    if (quantifier === "ALL" || quantifier === "DISTINCT") {
+        j = b.next(j + 1, endExclusive);
+    }
+    if (b.word(j) !== "TOP") {
+        return j;
+    }
+    const count = b.next(j + 1, endExclusive);
+    if (b.punct(count) === "(") {
+        j = b.next(b.skipBalanced(count, endExclusive), endExclusive);
+    } else if (b.tok(count)?.kind === TokenKind.NumberLiteral) {
+        j = b.next(count + 1, endExclusive);
+    } else {
+        return j; // not a TOP row-count shape — leave the tokens to the item
+    }
+    if (b.word(j) === "PERCENT") {
+        j = b.next(j + 1, endExclusive);
+    }
+    if (b.word(j) === "WITH") {
+        const ties = b.next(j + 1, endExclusive);
+        if (b.word(ties) === "TIES") {
+            j = b.next(ties + 1, endExclusive);
+        }
+    }
+    return j;
+}
+
 /** Split the SELECT list into items on top-level commas. */
 function parseSelectList(
     b: SketchBuilder,
@@ -440,7 +475,12 @@ function parseSelectList(
 ): void {
     let itemStart = -1;
     let lastSig = -1;
-    let j = i;
+    const start = b.next(i, endExclusive);
+    let j = skipSelectListHeadModifiers(b, i, endExclusive);
+    if (j > start) {
+        // TOP (expr) may hold a subquery — the head is outside every item span.
+        scanForSubqueries(b, scopeId, start, j, depthGuard);
+    }
     const flush = (endTok: number): void => {
         if (itemStart < 0 || endTok < itemStart) {
             return;

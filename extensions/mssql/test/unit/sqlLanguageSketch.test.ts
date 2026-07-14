@@ -145,6 +145,36 @@ suite("sqlLanguage sketch parser", () => {
         expect(one).to.not.equal(undefined);
     });
 
+    test("list-head modifiers do not swallow the star item", () => {
+        const heads = [
+            "TOP 10",
+            "TOP (10)",
+            "DISTINCT",
+            "ALL",
+            "TOP 5 PERCENT",
+            "DISTINCT TOP (1) WITH TIES",
+        ];
+        for (const head of heads) {
+            const s = sketch(`SELECT ${head} * FROM Sales.Orders`);
+            expect(
+                s.selectItems.find((it) => it.isStar),
+                head,
+            ).to.not.equal(undefined);
+        }
+    });
+
+    test("qualified star behind TOP keeps its qualifier", () => {
+        const s = sketch("SELECT TOP 10 o.* FROM Sales.Orders o");
+        expect(s.selectItems.find((it) => it.isStar)?.starQualifier).to.equal("o");
+    });
+
+    test("TOP row count is not an expression head: no phantom alias", () => {
+        const s = sketch("SELECT TOP 10 OrderID FROM Sales.Orders");
+        expect(s.selectItems).to.have.length(1);
+        expect(s.selectItems[0].alias).to.equal(undefined);
+        expect(s.selectItems[0].isStar).to.equal(undefined);
+    });
+
     test("TVF source with alias", () => {
         const s = sketch("SELECT f.OrderID FROM dbo.OrdersByCustomer(42) AS f");
         const tvf = s.sources.find((src) => src.kind === "tvf");

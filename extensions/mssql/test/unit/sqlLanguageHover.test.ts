@@ -225,6 +225,44 @@ suite("sqlLanguage native hover: columns", () => {
         expect(content).to.not.contain("`c.CustomerName`");
     });
 
+    test("select-star hover works behind list-head modifiers (TOP/DISTINCT)", async () => {
+        for (const head of ["TOP 10", "TOP (10)", "DISTINCT", "TOP 10 PERCENT"]) {
+            const content = await md(`SELECT ${head} /*caret*/* FROM Sales.Orders`);
+            expect(content, head).to.contain("**columns for `*`**");
+            expect(content, head).to.contain("`OrderID`");
+            expect(content, head).to.contain("`Comments`");
+        }
+    });
+
+    test("select-star hover lists known sources and marks unresolvable ones", async () => {
+        const content = await md(
+            "SELECT /*caret*/* FROM Sales.Orders o JOIN NoSuchTable n ON 1 = 1",
+        );
+        expect(content).to.contain("`o.OrderID`");
+        expect(content).to.contain("`n.*` - columns unavailable");
+    });
+
+    test("select-star hover with no resolvable source stays suppressed", async () => {
+        expect(await hover("SELECT /*caret*/* FROM NoSuchTable n")).to.equal(undefined);
+    });
+
+    test("select-star hover kicks lazy columns and serves on re-hover", async () => {
+        const lazyProvider = new FixtureLanguageMetadataProvider({
+            ...STANDARD_FIXTURE_CATALOG,
+            objects: STANDARD_FIXTURE_CATALOG.objects.map((o) =>
+                o.schema === "Sales" && o.name === "Orders" ? { ...o, columnsLazy: true } : o,
+            ),
+        });
+        expect(await hover("SELECT /*caret*/* FROM Sales.Orders", lazyProvider)).to.equal(
+            undefined,
+        );
+        expect(
+            lazyProvider.hydrationRequests.some((request) => request.kind === "columns"),
+        ).to.equal(true);
+        const content = await md("SELECT /*caret*/* FROM Sales.Orders", lazyProvider);
+        expect(content).to.contain("`OrderID`");
+    });
+
     test("alias-qualified column: type and NOT NULL", async () => {
         const content = await md("SELECT o./*caret*/OrderID FROM Sales.Orders o");
         expect(content).to.contain("**column** `o.OrderID`");

@@ -478,6 +478,17 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 effectiveDatabase: databaseContext.effectiveDatabaseAt(target.ordinal),
                 positionAt: (o) => analysis.snapshot.positionAt(o),
             });
+            if (computation.hydrationKicks !== undefined) {
+                // Same self-heal as settleMemberAccess: the provider de-dupes
+                // in-flight kicks; a re-hover then serves the loaded columns.
+                for (const ref of computation.hydrationKicks) {
+                    this.provider.requestHydration?.({
+                        kind: "columns",
+                        object: ref,
+                        priority: "interactiveFollowup",
+                    });
+                }
+            }
             span.end("ok", {
                 symbolKind: { raw: computation.symbolKind, cls: "diagnostic.metadata" },
                 served: { raw: computation.result !== undefined, cls: "diagnostic.metadata" },
