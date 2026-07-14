@@ -16,6 +16,7 @@ import { productionClock } from "./driver/tdsDriver";
 import { TediousDriver, TEDIOUS_DRIVER_VERSION } from "./driver/tediousDriver";
 import { TsNativeBackend, TsNativeDeadlines } from "./tsNativeBackend";
 import { EngineObserver, EngineSlicePolicy } from "./queryEngine";
+import { createDiagEngineObserver } from "./observability";
 
 export interface TsNativeProviderOptions {
     deadlines?: Partial<TsNativeDeadlines>;
@@ -41,7 +42,9 @@ export function createBackend(options?: TsNativeProviderOptions): ISqlConnection
         },
         ...(options?.deadlines ? { deadlines: options.deadlines } : {}),
         ...(options?.slice ? { slice: options.slice } : {}),
-        ...(options?.observer ? { observer: options.observer } : {}),
+        // Diag substrate wiring is the production default (no-op with zero
+        // sinks); tests inject their own recorders.
+        observer: options?.observer ?? createDiagEngineObserver(),
         ...(options?.lossyPreview !== undefined ? { lossyPreview: options.lossyPreview } : {}),
         probeOnOpen: true,
     });
