@@ -47,4 +47,18 @@ suite("ts-native bounded string cell encoding", () => {
             v: "abcde",
         });
     });
+
+    test("retains only a detached bounded prefix for a MAX string", () => {
+        const raw = "x".repeat(1024 * 1024);
+        const encoded = encodeCell({ value: raw }, NVARCHAR, POLICY);
+        expect(encoded.value).to.include({
+            $t: "truncated",
+            of: "string",
+            bytes: 1024 * 1024,
+            v: "xxxxx",
+        });
+        // The contract stays bounded even when the driver materializes a
+        // multi-megabyte source string. The encoder copies only this prefix.
+        expect(Buffer.byteLength((encoded.value as { v: string }).v, "utf8")).to.equal(5);
+    });
 });

@@ -303,9 +303,11 @@ function encodeBinaryCell(raw: Buffer, policy: EncodePolicy): EncodedCell {
  * The old `Buffer.from(text).subarray(0, maxBytes)` path allocated the
  * COMPLETE encoded value before discarding all but the prefix. That is a
  * major transient allocation for already-materialized MAX strings. Walk the
- * UTF-16 source instead, so the normal well-formed path returns one bounded
- * substring. Lone surrogates deliberately normalize to U+FFFD, matching
- * Node's UTF-8 Buffer conversion rather than changing wire semantics.
+ * UTF-16 source instead, then detach only the bounded prefix. A V8 substring
+ * can retain the complete driver MAX string (and its two-byte backing store),
+ * which defeats RowStore spill/reclamation for truncated cells. Lone
+ * surrogates deliberately normalize to U+FFFD, matching Node's UTF-8 Buffer
+ * conversion rather than changing wire semantics.
  */
 export function utf8SafePrefix(text: string, maxBytes: number, knownByteLength?: number): string {
     if ((knownByteLength ?? Buffer.byteLength(text, "utf8")) <= maxBytes) {
@@ -358,12 +360,21 @@ export function utf8SafePrefix(text: string, maxBytes: number, knownByteLength?:
         offset += codeUnits;
     }
     if (!parts) {
-        return text.slice(0, offset);
+        return detachUtf8Prefix(text.slice(0, offset));
     }
     if (segmentStart < offset) {
         parts.push(text.slice(segmentStart, offset));
     }
-    return parts.join("");
+    return detachUtf8Prefix(parts.join(""));
+}
+
+/**
+ * Copy at most the already-bounded UTF-8 prefix into an independent string.
+ * This avoids retaining a multi-megabyte driver string through a `slice`
+ * parent while never allocating a buffer for the original value.
+ */
+function detachUtf8Prefix(prefix: string): string {
+    return Buffer.from(prefix, "utf8").toString("utf8");
 }
 
 function formatInvariantNumber(value: number, column: TdsColumn): string {
