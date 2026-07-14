@@ -3086,6 +3086,11 @@ export const OBS_CONTRACT: Registry = {
             derivedFrom: ["mssql.queryStudio.query.submit", "mssql.queryStudio.resultsRendered"],
         },
         {
+            name: "mssql.queryStudio.grid.copy",
+            feature: "queryStudio",
+            derivedFrom: ["mssql.queryStudio.grid.copy.begin", "mssql.queryStudio.grid.copy.end"],
+        },
+        {
             name: "sqlDataPlane.tsNative.query.duration",
             feature: "sqlDataPlane",
             derivedFrom: ["sqlDataPlane.tsNative.query.terminal"],
