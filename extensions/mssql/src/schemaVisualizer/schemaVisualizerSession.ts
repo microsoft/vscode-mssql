@@ -163,6 +163,27 @@ export class SchemaVisualizerSession {
         return this.getModel(filter);
     }
 
+    /**
+     * Forced live refresh returning the FULL model (never the search-first
+     * subset) — the §6.5/§6.7 publish-baseline input. `complete` mirrors
+     * the fingerprint coverage: preview MUST refuse false.
+     */
+    async refreshLiveFull(): Promise<{
+        model: SchemaVisualizerCatalogModel;
+        complete: boolean;
+    }> {
+        const lease = await this.ensureLease();
+        await lease.refresh();
+        const snapshot = lease.current();
+        if (snapshot === undefined) {
+            throw new SchemaVisualizerUnavailableError(this.lastFreshness);
+        }
+        const full = this.fullModelOf(snapshot);
+        const fingerprint = computeVisualizerFingerprint(full);
+        this.lastServedFingerprint = fingerprint.hash;
+        return { model: full, complete: fingerprint.complete };
+    }
+
     private serve(
         snapshot: CatalogSnapshot,
         filter?: { objectIds?: number[] },

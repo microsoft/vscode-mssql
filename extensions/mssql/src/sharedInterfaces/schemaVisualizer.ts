@@ -17,6 +17,8 @@ import {
     SchemaVisualizerCatalogModel,
     VisualizerCapabilities,
 } from "../schemaVisualizer/model/schemaVisualizerModel";
+import { SchemaVisualizerEditOp } from "../schemaVisualizer/model/schemaVisualizerEdit";
+import { SchemaDesigner } from "./schemaDesigner";
 
 export namespace SchemaVisualizer {
     /**
@@ -125,6 +127,52 @@ export namespace SchemaVisualizer {
 
     export namespace ModelChangedNotification {
         export const type = new NotificationType<ModelChangedParams>("sv/modelChanged");
+    }
+
+    // -- publish handoff (SV-R8b) — serializable mirrors of the machine
+    // types (the handoff module itself is node-typed and webview-unsafe).
+
+    export interface PreviewToken {
+        sessionId: string;
+        editRevision: number;
+        normalizedOperationsHash: string;
+        catalogFingerprint: string;
+        report: SchemaDesigner.GetReportResponse;
+    }
+
+    export interface PreviewChangesParams {
+        operations: SchemaVisualizerEditOp[];
+    }
+
+    export type PreviewChangesResult =
+        | { ok: true; token: PreviewToken }
+        | { ok: false; code: string; message: string };
+
+    export interface PublishParams {
+        token: PreviewToken;
+    }
+
+    export type PublishResult =
+        | { ok: true; refreshFailed?: boolean }
+        | { ok: false; code: string; message: string };
+
+    export namespace PreviewChangesRequest {
+        export const type = new RequestType<PreviewChangesParams, PreviewChangesResult, void>(
+            "sv/previewChanges",
+        );
+    }
+
+    export namespace PublishRequest {
+        export const type = new RequestType<PublishParams, PublishResult, void>("sv/publish");
+    }
+
+    export namespace CancelPreviewRequest {
+        export const type = new RequestType<Record<string, never>, void, void>("sv/cancelPreview");
+    }
+
+    /** Webview → host: the local edit log changed (revision bump). */
+    export namespace EditedNotification {
+        export const type = new NotificationType<Record<string, never>>("sv/edited");
     }
 
     // Convenience re-exports for the webview side.

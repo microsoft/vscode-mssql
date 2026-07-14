@@ -1411,9 +1411,14 @@ export default class MainController implements vscode.Disposable {
         // Schema Visualizer (preview, SV-R4): read-only diagram served by
         // MetadataStore leases over the data plane. Zero v1 traffic on the
         // read path (tripwire-enforced); legacy Schema Designer untouched.
+        // Publish crosses to v1 ONLY through the explicit handoff seams.
         activateSchemaVisualizer(this._context, {
             profiles: this._connectionMgr.connectionStore,
             tokens: vscodeSqlTokenSource,
+            publish: {
+                service: this.schemaDesignerService,
+                connections: this._connectionMgr,
+            },
         });
 
         // H-3 poll governance host facts (CACHE-5): window focus gates the

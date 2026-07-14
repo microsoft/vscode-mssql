@@ -29,10 +29,23 @@ import {
     readProfileTree,
 } from "../objectExplorer/v2/sessions/oeV2ProfileAdapter";
 import { SchemaVisualizerWebviewController } from "./schemaVisualizerController";
+import {
+    ClassicConnectionSeam,
+    confirmClassicHandoff,
+    createClassicPublishResolver,
+    legacyPortOverService,
+} from "./handoff/classicPublishResolver";
+import { IConnectionProfile } from "../models/interfaces";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 
 export interface SchemaVisualizerActivationDeps {
     readonly profiles: ConnectionProfileSource & ProfileSecretSource;
     readonly tokens: ProfileTokenSource;
+    /** Publish handoff seams (§8.1); absent = read-only preview host. */
+    readonly publish?: {
+        readonly service: SchemaDesigner.ISchemaDesignerService;
+        readonly connections: ClassicConnectionSeam;
+    };
 }
 
 export function schemaVisualizerEnabled(): boolean {
@@ -75,6 +88,18 @@ export function activateSchemaVisualizer(
             prepared,
             database,
             displayName: record.displayName,
+            ...(deps.publish !== undefined
+                ? {
+                      publish: {
+                          resolver: createClassicPublishResolver({
+                              connections: deps.publish.connections,
+                              storedProfile: record.stored as IConnectionProfile,
+                              confirm: confirmClassicHandoff,
+                          }),
+                          legacy: legacyPortOverService(deps.publish.service),
+                      },
+                  }
+                : {}),
         });
         panels.set(key, controller);
         controller.onDisposed(() => panels.delete(key));

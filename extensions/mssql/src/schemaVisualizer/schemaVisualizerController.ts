@@ -31,12 +31,26 @@ import {
     SchemaVisualizerUnavailableError,
     VisualizerModelResult,
 } from "./schemaVisualizerSession";
+import { randomUUID } from "crypto";
+import {
+    LegacySchemaDesignerPort,
+    SchemaVisualizerClassicPublishResolver,
+    SchemaVisualizerHandoff,
+} from "./handoff/schemaVisualizerHandoff";
 
 export interface SchemaVisualizerControllerDeps {
     store: MetadataStore;
     prepared: PreparedConnection;
     database: string;
     displayName: string;
+    /**
+     * Publish handoff seams (§8.1) — absent means publish is unavailable
+     * (read-only host) and sv/previewChanges answers with a typed error.
+     */
+    publish?: {
+        resolver: SchemaVisualizerClassicPublishResolver;
+        legacy: LegacySchemaDesignerPort;
+    };
 }
 
 /** Counts-only marker attrs (§13.4 — never identifiers). */
@@ -62,6 +76,7 @@ export class SchemaVisualizerWebviewController extends WebviewPanelController<
 > {
     private readonly session: SchemaVisualizerSession;
     private readonly changeSubscription: { dispose(): void };
+    private handoff: SchemaVisualizerHandoff | undefined;
 
     constructor(context: vscode.ExtensionContext, deps: SchemaVisualizerControllerDeps) {
         super(
@@ -96,6 +111,17 @@ export class SchemaVisualizerWebviewController extends WebviewPanelController<
             prepared: deps.prepared,
             database: deps.database,
         });
+        if (deps.publish !== undefined) {
+            this.handoff = new SchemaVisualizerHandoff({
+                resolver: deps.publish.resolver,
+                legacy: deps.publish.legacy,
+                baseline: {
+                    refreshLive: () => this.session.refreshLiveFull(),
+                },
+                database: deps.database,
+                newId: () => randomUUID(),
+            });
+        }
         this.changeSubscription = this.session.onDidChange((event) => {
             if (event.fingerprintChanged) {
                 Perf.marker("mssql.schemaVisualizer.driftDetected", "instant", { dirty: false });
@@ -105,6 +131,8 @@ export class SchemaVisualizerWebviewController extends WebviewPanelController<
                     type: "schemaVisualizer.drift",
                     fields: { fingerprint: { raw: event.fingerprint, cls: "diagnostic.metadata" } },
                 });
+                // A held preview is invalidated by drift (§8.5).
+                void this.handoff?.notifyDrift();
             }
             void this.sendNotification(SchemaVisualizer.ModelChangedNotification.type, {
                 fingerprintChanged: event.fingerprintChanged,
@@ -211,10 +239,67 @@ export class SchemaVisualizerWebviewController extends WebviewPanelController<
         this.onRequest(SchemaVisualizer.FkNeighborhoodRequest.type, async (params) => ({
             objectIds: await this.session.fkNeighborhood(params.objectIds),
         }));
+
+        // -- publish handoff (SV-R8b): the ONLY door to STS v1 (§3.3).
+        this.onRequest(SchemaVisualizer.PreviewChangesRequest.type, async (params) => {
+            if (this.handoff === undefined) {
+                return {
+                    ok: false as const,
+                    code: "classicHandoffUnavailable",
+                    message: "Publishing is not available for this connection.",
+                };
+            }
+            Perf.marker("mssql.schemaVisualizer.commit.handoff.begin", "begin");
+            const outcome = await this.handoff.previewChanges(params.operations);
+            if (outcome.ok === false) {
+                Perf.marker("mssql.schemaVisualizer.commit.handoff.end", "end", {
+                    outcome: outcome.code,
+                    operationCount: params.operations.length,
+                    dataLoss: false,
+                });
+                return { ok: false as const, code: outcome.code, message: outcome.message };
+            }
+            Perf.marker("mssql.schemaVisualizer.commit.handoff.end", "end", {
+                outcome: "ok",
+                operationCount: params.operations.length,
+                dataLoss: outcome.token.report.dacReport?.possibleDataLoss ?? false,
+            });
+            return { ok: true as const, token: outcome.token };
+        });
+        this.onRequest(SchemaVisualizer.PublishRequest.type, async (params) => {
+            if (this.handoff === undefined) {
+                return {
+                    ok: false as const,
+                    code: "classicHandoffUnavailable",
+                    message: "Publishing is not available for this connection.",
+                };
+            }
+            Perf.marker("mssql.schemaVisualizer.publish.begin", "begin");
+            const outcome = await this.handoff.publish(params.token);
+            if (outcome.ok === false) {
+                Perf.marker("mssql.schemaVisualizer.publish.end", "end", {
+                    outcome: outcome.code,
+                });
+                return { ok: false as const, code: outcome.code, message: outcome.message };
+            }
+            Perf.marker("mssql.schemaVisualizer.publish.end", "end", { outcome: "ok" });
+            return {
+                ok: true as const,
+                ...(outcome.refreshFailed === true ? { refreshFailed: true } : {}),
+            };
+        });
+        this.onRequest(SchemaVisualizer.CancelPreviewRequest.type, async () => {
+            await this.handoff?.cancelPreview();
+        });
+        this.onNotification(SchemaVisualizer.EditedNotification.type, () => {
+            void this.handoff?.notifyEdited();
+        });
     }
 
     public override dispose(): void {
         this.changeSubscription.dispose();
+        // Panel close disposes any held v1 session (§8.5).
+        void this.handoff?.dispose();
         this.session.dispose();
         super.dispose();
     }

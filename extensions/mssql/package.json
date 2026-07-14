@@ -4097,6 +4097,12 @@
                     "markdownDescription": "Enable the Schema Visualizer preview: a read-only schema diagram served entirely by the SQL Data Plane and MetadataStore (no SQL Tools Service v1 traffic on the read path). Requires `mssql.sqlDataPlane.enabled`.",
                     "scope": "application"
                 },
+                "mssql.schemaVisualizer.confirmLegacyHandoff": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Ask before the Schema Visualizer creates a legacy (SQL Tools Service v1) connection to preview or publish schema changes through DacFx.",
+                    "scope": "application"
+                },
                 "mssql.objectExplorer.viewMode": {
                     "type": "string",
                     "default": "classic",
