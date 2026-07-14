@@ -20,8 +20,13 @@
  */
 
 import { diag } from "../../diagnostics/diagnosticsCore";
-import { QueryCompleteSummary } from "../sqlDataPlane/api";
-import { EngineAggregates, EngineObserver } from "./queryEngine";
+// Type-only: this module is imported from the ACTIVATION bundle
+// (sqlDataPlaneService) so the observer is built against the real diag
+// singleton — its sinks live in the activation bundle, not the lazy provider
+// chunk (which bundles its own sink-less diag copy). Keeping the engine/api
+// imports type-only guarantees no engine runtime leaks into activation.
+import type { QueryCompleteSummary } from "../sqlDataPlane/api";
+import type { EngineAggregates, EngineObserver } from "./queryEngine";
 
 export interface TsNativeObservabilityCounters {
     terminals: number;

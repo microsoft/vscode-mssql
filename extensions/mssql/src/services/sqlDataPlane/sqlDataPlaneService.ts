@@ -65,6 +65,15 @@ import {
     TsNativeOverrides,
     parseTsNativeOverrides,
 } from "../tsNative/overrides";
+// Observability lives in the ACTIVATION bundle, not the lazy provider chunk:
+// the chunk bundles its own sink-less copy of diagnosticsCore, so an observer
+// built inside it emits into a dead diag singleton (no session-journal
+// events). Building the observer here binds it to the real diag substrate and
+// injecting it into the chunk restores every sqlDataPlane.tsNative.* event.
+// observability.ts keeps its engine/api imports type-only, so this pulls NO
+// tedious (and no engine runtime) into activation — packaging tests enforce it.
+import { createDiagEngineObserver } from "../tsNative/observability";
+import type { EngineObserver } from "../tsNative/queryEngine";
 
 // ---------------------------------------------------------------------------
 // Settings
@@ -313,6 +322,9 @@ function tsNativeFactory(providerVersion: string): SqlBackendFactory {
             );
             const provider = loadTsNativeProvider();
             return provider.createBackend({
+                // Bound to the activation-bundle diag singleton (the one with
+                // registered sinks) — see the import note above.
+                observer: createDiagEngineObserver(),
                 deadlines: {
                     openMs: context.config.get<number>(
                         "mssql.sqlDataPlane.timeouts.openMs",
@@ -341,6 +353,7 @@ interface TsNativeProviderExports {
     createBackend(options?: {
         deadlines?: Partial<Record<string, number>>;
         overrides?: TsNativeOverrides;
+        observer?: EngineObserver;
     }): ISqlConnectionService;
     driverVersion: string;
 }
