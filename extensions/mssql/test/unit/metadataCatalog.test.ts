@@ -338,6 +338,7 @@ suite("Metadata catalog (B5)", () => {
                 fromObjectId: 101,
                 toObjectId: 102,
                 name: "FK_Orders_Customers",
+                constraintObjectId: 900,
                 columns: [{ fromColumn: "CustomerId", toColumn: "CustomerId" }],
             },
         ]);
@@ -373,6 +374,8 @@ suite("Metadata catalog (B5)", () => {
             typeDisplay: "int",
             nullable: false,
             isIdentity: true,
+            // SV-R1: column_id is retained (fixture H3 rows carry it).
+            columnId: 1,
         });
         expect(orders[1]).to.not.have.property("isIdentity");
         expect(orders[1]).to.not.have.property("isComputed");

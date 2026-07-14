@@ -62,6 +62,8 @@ export function featureFor(name: string): string {
     if (name.startsWith("mssql.query")) return "query";
     if (name.startsWith("mssql.resultsGrid")) return "resultsGrid";
     if (name.startsWith("mssql.oe")) return "objectExplorer";
+    if (name.startsWith("mssql.schemaVisualizer")) return "schemaVisualizer";
+    if (name.startsWith("mssql.schemaDesigner")) return "schemaDesigner";
     if (name.startsWith("mssql.activate") || name.startsWith("mssql.extension")) return "system";
     if (name.startsWith("mssql.command")) return "command";
     if (name.startsWith("driver.")) return "harness";

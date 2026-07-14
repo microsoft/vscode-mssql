@@ -75,13 +75,56 @@ function buildFixture(options?: { caseSensitive?: boolean; generation?: number }
         b.addObject(104, 1, "orders", "table", "2026-01-05T11:00:00");
         b.addColumn(104, "id", "int", false);
     }
-    b.addColumn(101, "OrderId", "int", false, true, false);
-    b.addColumn(101, "CustomerId", "int", true);
-    b.addColumn(101, "Total", "decimal(10,2)", true, false, true);
+    // First column carries the full cm2 exact-detail block (identity as
+    // exact TEXT beyond Number.MAX_SAFE_INTEGER — §5.3 losslessness rides
+    // the round-trip proof).
+    b.addColumn(101, "OrderId", "int", false, true, false, 1, {
+        typeName: "int",
+        typeSchema: "sys",
+        baseTypeName: "int",
+        systemTypeId: 56,
+        userTypeId: 56,
+        isUserDefined: false,
+        isAssemblyType: false,
+        maxLengthBytes: 4,
+        precision: 10,
+        scale: 0,
+        identitySeedText: "9223372036854775807",
+        identityIncrementText: "1",
+    });
+    b.addColumn(101, "CustomerId", "int", true, false, false, 2);
+    b.addColumn(101, "Total", "decimal(10,2)", true, false, true, 3, {
+        typeName: "decimal",
+        typeSchema: "sys",
+        baseTypeName: "decimal",
+        systemTypeId: 106,
+        userTypeId: 106,
+        isUserDefined: false,
+        isAssemblyType: false,
+        maxLengthBytes: 9,
+        precision: 10,
+        scale: 2,
+        defaultName: "DF_Orders_Total",
+        defaultDefinition: "((0))",
+        computedDefinition: "([Qty]*[Price])",
+        computedPersisted: true,
+    });
     b.addColumn(102, "Id", "int", false, true);
     b.addColumn(102, "OrderId", "int", false);
     b.addColumn(103, "CustomerId", "int", false, true);
-    b.addColumn(103, "Name", "nvarchar(50)", false);
+    b.addColumn(103, "Name", "nvarchar(50)", false, false, false, 2, {
+        typeName: "nvarchar",
+        typeSchema: "sys",
+        baseTypeName: "nvarchar",
+        systemTypeId: 231,
+        userTypeId: 231,
+        isUserDefined: false,
+        isAssemblyType: false,
+        maxLengthBytes: 100,
+        precision: 0,
+        scale: 0,
+        collationName: "SQL_Latin1_General_CP1_CI_AS",
+    });
     b.addColumn(110, "OrderId", "int", false);
     b.markPrimaryKeyColumn(101, "OrderId");
     b.markPrimaryKeyColumn(103, "CustomerId");
@@ -89,9 +132,9 @@ function buildFixture(options?: { caseSensitive?: boolean; generation?: number }
     b.addKeyConstraintColumn(103, "PK_Customers", "primaryKey", "CustomerId");
     b.addKeyConstraintColumn(103, "UQ_Customers_Name", "uniqueConstraint", "Name");
     b.addKeyConstraintColumn(103, "UQ_Customers_Name", "uniqueConstraint", "CustomerId");
-    b.addForeignKey(102, 101, "FK_OrderDetails_Orders", 9001);
+    b.addForeignKey(102, 101, "FK_OrderDetails_Orders", 9001, "CASCADE", "NO_ACTION");
     b.addForeignKey(101, 103, "FK_Orders_Customers", 9002);
-    b.addForeignKeyColumn(9001, "OrderId", "OrderId");
+    b.addForeignKeyColumn(9001, "OrderId", "OrderId", 1, 2, 1);
     b.addForeignKeyColumn(9002, "CustomerId", "CustomerId");
     b.addParameter(120, 1, "@from", "datetime2(7)", false);
     b.addParameter(120, 2, "@count", "int", true);
@@ -281,7 +324,7 @@ suite("Metadata cache codec (CACHE-1): contentHash (T-A7)", () => {
     test("hash shape is csh_<22 b64url chars>; canonical JSON key order is the frozen tuple", () => {
         const payload = serializeSnapshot(buildFixture(), { includeDescriptions: true });
         expect(computeContentHash(payload)).to.match(/^csh_[A-Za-z0-9_-]{22}$/);
-        expect(CATALOG_MODEL_VERSION).to.equal("cm1");
+        expect(CATALOG_MODEL_VERSION).to.equal("cm2");
         const keys = Object.keys(JSON.parse(canonicalPayloadJson(payload)));
         expect(keys).to.deep.equal([...CANONICAL_PAYLOAD_FIELDS]);
         // Default policy: the three description fields are absent, the rest
@@ -538,7 +581,9 @@ suite("Metadata cache codec (CACHE-1): manifest validation", () => {
             [
                 "modelVersion",
                 (m) => {
-                    (m["producer"] as Record<string, unknown>)["catalogModelVersion"] = "cm2";
+                    // cm1 is a REAL prior version — the exact stale-cache
+                    // case the cm2 bump must treat as a clean miss.
+                    (m["producer"] as Record<string, unknown>)["catalogModelVersion"] = "cm1";
                 },
             ],
         ];

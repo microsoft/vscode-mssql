@@ -40,6 +40,9 @@ suite("Observability Contract conformance", () => {
     test("query-results markers retain their registry feature bucket", () => {
         expect(featureFor("mssql.queryResults.vector.search.end")).to.equal("queryResults");
         expect(featureFor("mssql.query.execute.begin")).to.equal("query");
+        // Designer families bucket to their registry features (SV-R9).
+        expect(featureFor("mssql.schemaVisualizer.open.begin")).to.equal("schemaVisualizer");
+        expect(featureFor("mssql.schemaDesigner.ready")).to.equal("schemaDesigner");
     });
 
     test("every Perf marker literal emitted by src/ is registered", function () {

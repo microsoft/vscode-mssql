@@ -7,6 +7,7 @@ import { createContext, useEffect, useRef, useState, useCallback } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs, getErrorMessage } from "../../common/utils";
+import { perfMarkAfterNextPaintComputed } from "../../common/perfMarks";
 import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
@@ -316,6 +317,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             isInitializedRef.current = true;
             setInitializationProgressMessages([]);
             initializationGate.resolve(true);
+
+            // Rendered-ready mark (schema-visualizer addendum §13.6/§14.2):
+            // first painted frame after initialization commits — the fair
+            // rendered-phase counterpart of mssql.schemaVisualizer.ready.
+            // Behavior-free: calibrated webview mark only.
+            perfMarkAfterNextPaintComputed("mssql.schemaDesigner.ready", () => ({
+                tableCount: model.schema.tables.length,
+            }));
 
             setTimeout(() => {
                 stateStack.setInitialState(

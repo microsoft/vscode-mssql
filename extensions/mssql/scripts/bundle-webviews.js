@@ -36,6 +36,7 @@ const config = {
         editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",
         userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
         schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
+        schemaVisualizer: "src/webviews/pages/SchemaVisualizer/index.tsx",
         schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",
         changePassword: "src/webviews/pages/ChangePassword/index.tsx",
         createDatabaseDialog: "src/webviews/pages/ObjectManagement/createDatabaseIndex.tsx",
