@@ -37,6 +37,7 @@ import {
     ISqlConnectionService,
     ISqlSession,
     OpenSessionParams,
+    QueryAcceptance,
     QueryCompleteSummary,
     QueryCompletionStatus,
     QueryHandle,
@@ -715,6 +716,8 @@ export class Sts2Query {
 
     private completionResolve!: (s: QueryCompleteSummary) => void;
     private backendIdResolve!: (s: string) => void;
+    private acceptedResolve!: (a: QueryAcceptance) => void;
+    private acceptedSettled = false;
     private terminalSent = false;
     private cancelRequested = false;
     /** True when THIS query executes with the typed vector encoding (D-0019). */
@@ -753,9 +756,13 @@ export class Sts2Query {
         const backendQueryId = new Promise<string>((resolve) => {
             this.backendIdResolve = resolve;
         });
+        const accepted = new Promise<QueryAcceptance>((resolve) => {
+            this.acceptedResolve = resolve;
+        });
         this.handle = {
             clientQueryId: this.clientQueryId,
             backendQueryId,
+            accepted,
             completion,
             cancel: () => this.cancel(),
             dispose: () => this.disposeQuery(),
@@ -847,6 +854,12 @@ export class Sts2Query {
             );
             this.backendId = result.queryId;
             this.backendIdResolve(result.queryId);
+            this.settleAccepted({
+                status: "accepted",
+                clientQueryId: this.clientQueryId,
+                backendQueryId: result.queryId,
+                acceptedEpochMs: Date.now(),
+            });
             this.backend.registerQuery(this);
             this.enqueue(() =>
                 this.sink.onAccepted?.({
@@ -857,12 +870,30 @@ export class Sts2Query {
         } catch (error) {
             const code = sts2ErrorCode(error);
             this.errors++;
+            this.settleAccepted({
+                status: "rejected",
+                clientQueryId: this.clientQueryId,
+                error: {
+                    code: code ?? DataPlaneErrorCodes.unavailable,
+                    message: "execute rejected",
+                    retryable: false,
+                },
+            });
             this.synthesizeTerminal(
                 "failed",
                 `execute rejected: ${code ?? (error instanceof Error ? error.message : String(error))}`,
                 false,
             );
         }
+    }
+
+    /** Acceptance settles exactly once (web addendum §3.4 invariant 1). */
+    private settleAccepted(acceptance: QueryAcceptance): void {
+        if (this.acceptedSettled) {
+            return;
+        }
+        this.acceptedSettled = true;
+        this.acceptedResolve(acceptance);
     }
 
     // --- wire deliveries (engine demux calls these) -------------------------
@@ -1176,6 +1207,13 @@ export class Sts2Query {
                 },
             });
         }
+        // Acceptance always settles (TSQ2 §3.3): a query synthesized to a
+        // terminal before the execute response was accepted is `aborted`.
+        this.settleAccepted({
+            status: "aborted",
+            clientQueryId: this.clientQueryId,
+            reason: "transport",
+        });
         this.finishTerminal({
             clientQueryId: this.clientQueryId,
             status,
@@ -1184,6 +1222,10 @@ export class Sts2Query {
             errorCount: this.errors,
             durationMs: Date.now() - this.startMs,
             synthesized: true,
+            // A synthesized terminal means we never saw a trustworthy provider
+            // terminal: database side effects may have occurred (web §3.4).
+            outcomeCertainty: "unknown",
+            outcomeReason: status === "connectionLost" ? "transportLost" : "cancelUncertain",
             error: {
                 code:
                     status === "connectionLost"

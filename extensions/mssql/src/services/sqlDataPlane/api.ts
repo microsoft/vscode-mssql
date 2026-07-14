@@ -111,10 +111,98 @@ export interface BackendInfo {
     version?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Canonical capability model (web-backend addendum §3.3 / TSQ2 addendum §3.2).
+// One versioned registry; the boolean SqlBackendCapabilities struct above is a
+// derived projection (see capabilityRegistry.ts). IDs are add-only.
+// ---------------------------------------------------------------------------
+
+export type SqlCapabilityId =
+    // auth
+    | "auth.sqlLogin"
+    | "auth.entraToken"
+    | "auth.integrated"
+    | "auth.hostDelegated"
+    // connectivity
+    | "connect.tcp"
+    | "connect.routeAlias"
+    | "connect.localdb"
+    | "connect.tds8Strict"
+    // execution
+    | "exec.streamingRows"
+    | "exec.multipleResultSets"
+    | "exec.oneActiveQuery"
+    | "exec.cancel"
+    | "exec.dispose"
+    | "exec.queryTimeout"
+    | "exec.compactRows"
+    | "exec.maxCellBytes"
+    | "exec.pageRows"
+    | "exec.pageBytes"
+    | "exec.windowPages"
+    // types / fidelity
+    | "types.typedCells"
+    | "types.vectorBinaryV1"
+    | "types.spatialWkbV1"
+    | "types.decimalExact"
+    | "types.datetimeOffsetOriginal"
+    | "types.largeValueStreaming"
+    | "types.jsonNative"
+    // messages
+    | "messages.verbatim"
+    | "messages.rowsAffectedStructured"
+    // plans (provider-side execution semantics only; graph parsing is a host capability)
+    | "plan.xmlResult"
+    | "plan.estimated"
+    | "plan.actual"
+    // metadata
+    | "metadata.catalogSql"
+    | "metadata.endpoints"
+    // diagnostics
+    | "diag.supportCapsule"
+    | "diag.captureControl"
+    | "diag.replayDescriptor"
+    | "diag.resumeAfterDisconnect";
+
+export type SqlCapabilitySupport = "supported" | "unsupported" | "conditional" | "degraded";
+
+export type SqlCapabilityFidelity = "exact" | "normalized" | "lossy" | "notApplicable";
+
+export interface SqlCapabilityValue {
+    readonly support: SqlCapabilitySupport;
+    readonly fidelity?: SqlCapabilityFidelity;
+    readonly limit?: number;
+    readonly unit?: "bytes" | "rows" | "pages" | "milliseconds" | "count";
+    /** Stable, safe reason id (e.g. "driver.noIntegratedAuth"); never raw driver text. */
+    readonly reasonCode?: string;
+    readonly source: "static" | "handshake" | "route" | "session" | "probe";
+}
+
+export interface SqlCapabilitySet {
+    readonly schemaVersion: 1;
+    readonly values: Readonly<Partial<Record<SqlCapabilityId, SqlCapabilityValue>>>;
+}
+
+export type SqlCapabilityRequirement =
+    | { readonly id: SqlCapabilityId; readonly require: "supported" }
+    | { readonly id: SqlCapabilityId; readonly fidelityAtLeast: "exact" | "normalized" }
+    | { readonly id: SqlCapabilityId; readonly minimum: number };
+
+/** One unmet requirement, with the honest actual state and safe reason. */
+export interface MissingCapability {
+    readonly id: SqlCapabilityId;
+    readonly actual?: SqlCapabilityValue;
+    readonly reasonCode?: string;
+}
+
 export interface CapabilityCheck {
     ok: boolean;
     missing?: string[];
+    /** Structured detail for the string ids in `missing` (additive; same order). */
+    missingDetail?: readonly MissingCapability[];
     reason?: string;
+    /** Backend kinds whose static statement satisfies the missing requirements. */
+    alternatives?: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -126,7 +214,14 @@ export interface OpenSessionParams {
     database?: string;
     applicationName: string;
     openTimeoutMs?: number;
+    /** @deprecated Ignored — use `requiredCapabilities`. Removed after migration. */
     requestedCapabilities?: Partial<SqlBackendCapabilities>;
+    /**
+     * Hard requirements evaluated by canOpen/openSession BEFORE any credential
+     * provider is invoked (TSQ2 §3.2). Absent = no extra requirement; every
+     * listed requirement is mandatory.
+     */
+    requiredCapabilities?: readonly SqlCapabilityRequirement[];
     auth?: AuthProviderBundle;
 }
 
@@ -243,6 +338,13 @@ export interface QueryCompleteSummary {
     durationMs?: number;
     /** True when the adapter fabricated this terminal to preserve liveness. */
     synthesized?: boolean;
+    /**
+     * "unknown" when the provider lost its transport/driver before a
+     * trustworthy terminal (TSQ2 §3.3): database side effects may have
+     * occurred; consumers must never auto-retry the SQL.
+     */
+    outcomeCertainty?: "known" | "unknown";
+    outcomeReason?: "transportLost" | "cancelUncertain" | "providerAborted";
     error?: SqlDataPlaneErrorInfo;
 }
 
@@ -251,9 +353,27 @@ export interface QueryAccepted {
     backendQueryId?: string;
 }
 
+/** Always-settled acceptance result (web addendum §3.4). */
+export type QueryAcceptance =
+    | {
+          status: "accepted";
+          clientQueryId: string;
+          backendQueryId?: string;
+          acceptedEpochMs: number;
+      }
+    | { status: "rejected"; clientQueryId: string; error: SqlDataPlaneErrorInfo }
+    | { status: "aborted"; clientQueryId: string; reason: "caller" | "deadline" | "transport" };
+
 export interface QueryHandle {
     readonly clientQueryId: string;
+    /** @deprecated Compatibility during migration; prefer `accepted`. */
     readonly backendQueryId?: Promise<string>;
+    /**
+     * ALWAYS settles, exactly once: accepted, rejected (no stream events), or
+     * aborted before submission. Providers settle this only after the driver
+     * or wire accepts ownership of the request.
+     */
+    readonly accepted: Promise<QueryAcceptance>;
     /** ALWAYS settles — the feature-level liveness floor. */
     readonly completion: Promise<QueryCompleteSummary>;
 
@@ -469,9 +589,16 @@ export const DataPlaneErrorCodes = {
     busy: "SqlDataPlane.Busy",
     unavailable: "SqlDataPlane.Unavailable",
     auth: "SqlDataPlane.Auth",
+    capabilityUnsupported: "SqlDataPlane.CapabilityUnsupported",
+    policyDenied: "SqlDataPlane.PolicyDenied",
+    resourceLimit: "SqlDataPlane.ResourceLimit",
+    clientAborted: "SqlDataPlane.Client.Aborted",
     clientTimeout: "SqlDataPlane.Client.Timeout",
     protocolViolation: "SqlDataPlane.Client.ProtocolViolation",
     sinkError: "SqlDataPlane.Client.SinkError",
+    transportClosed: "SqlDataPlane.Transport.Closed",
+    transportBackpressure: "SqlDataPlane.Transport.Backpressure",
+    providerInternal: "SqlDataPlane.Provider.Internal",
 } as const;
 
 // ---------------------------------------------------------------------------

@@ -29,6 +29,7 @@ import {
     ISqlConnectionService,
     ISqlSession,
     OpenSessionParams,
+    QueryAcceptance,
     QueryCompleteSummary,
     QueryCompletionStatus,
     QueryHandle,
@@ -110,7 +111,7 @@ export interface FakeBackendOptions {
     spid?: number;
 }
 
-const FAKE_CAPABILITIES: SqlBackendCapabilities = {
+export const FAKE_CAPABILITIES: SqlBackendCapabilities = {
     protocolVersion: "fake/1",
     streamingRows: true,
     creditBackpressure: true,
@@ -266,6 +267,8 @@ class FakeQuery {
     readonly handle: QueryHandle;
     private completeResolve!: (s: QueryCompleteSummary) => void;
     private backendIdResolve!: (s: string) => void;
+    private acceptedResolve!: (a: QueryAcceptance) => void;
+    private acceptedSettled = false;
     private cancelRequested = false;
     private terminalSent = false;
     private lost: string | undefined;
@@ -286,9 +289,13 @@ class FakeQuery {
         const backendQueryId = new Promise<string>((resolve) => {
             this.backendIdResolve = resolve;
         });
+        const accepted = new Promise<QueryAcceptance>((resolve) => {
+            this.acceptedResolve = resolve;
+        });
         this.handle = {
             clientQueryId: this.clientQueryId,
             backendQueryId,
+            accepted,
             completion,
             cancel: async (): Promise<CancelAck> => {
                 this.cancelRequested = true;
@@ -308,9 +315,24 @@ class FakeQuery {
         void this.terminal("connectionLost");
     }
 
+    /** Acceptance settles exactly once, even on loss-before-run. */
+    private settleAccepted(acceptance: QueryAcceptance): void {
+        if (this.acceptedSettled) {
+            return;
+        }
+        this.acceptedSettled = true;
+        this.acceptedResolve(acceptance);
+    }
+
     async run(): Promise<void> {
         const backendId = nextId("fbq");
         this.backendIdResolve(backendId);
+        this.settleAccepted({
+            status: "accepted",
+            clientQueryId: this.clientQueryId,
+            backendQueryId: backendId,
+            acceptedEpochMs: Date.now(),
+        });
         if (!this.script) {
             await this.deliver(() =>
                 this.sink.onMessage({
@@ -516,6 +538,13 @@ class FakeQuery {
             return;
         }
         this.terminalSent = true;
+        // Terminal before run() started (loss/dispose race): acceptance still
+        // settles, honestly, as aborted.
+        this.settleAccepted({
+            status: "aborted",
+            clientQueryId: this.clientQueryId,
+            reason: "transport",
+        });
         const summary: QueryCompleteSummary = {
             clientQueryId: this.clientQueryId,
             status,

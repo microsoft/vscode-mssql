@@ -77,9 +77,16 @@ const SAFE_ERROR_CODES = new Set([
     "SqlDataPlane.Busy",
     "SqlDataPlane.Unavailable",
     "SqlDataPlane.Auth",
+    "SqlDataPlane.CapabilityUnsupported",
+    "SqlDataPlane.PolicyDenied",
+    "SqlDataPlane.ResourceLimit",
+    "SqlDataPlane.Client.Aborted",
     "SqlDataPlane.Client.Timeout",
     "SqlDataPlane.Client.ProtocolViolation",
     "SqlDataPlane.Client.SinkError",
+    "SqlDataPlane.Transport.Closed",
+    "SqlDataPlane.Transport.Backpressure",
+    "SqlDataPlane.Provider.Internal",
 ]);
 
 const SAFE_ERROR_NAMES = new Set([

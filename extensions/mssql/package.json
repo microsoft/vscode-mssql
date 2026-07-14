@@ -180,6 +180,7 @@
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
         "tar": "^7.5.16",
+        "tedious": "20.0.0",
         "tmp": "^0.2.7",
         "tunnel": "0.0.6",
         "vscode-jsonrpc": "^9.0.0",
@@ -4005,12 +4006,20 @@
                 },
                 "mssql.sqlDataPlane.backend": {
                     "type": "string",
-                    "default": "sts2-jsonrpc",
+                    "default": "sts2-local",
                     "enum": [
-                        "sts2-jsonrpc",
-                        "fake"
+                        "sts2-local",
+                        "ts-native",
+                        "fake",
+                        "sts2-jsonrpc"
                     ],
-                    "description": "SQL data plane backend binding. sts2-http and hosted-rest are reserved for later.",
+                    "enumDescriptions": [
+                        "SQL Tools Service (STS v2) over the local stdio JSON-RPC lane.",
+                        "Native TypeScript provider (tedious) running in the extension host. Preview.",
+                        "Scripted fake provider for tests.",
+                        "Deprecated alias for sts2-local."
+                    ],
+                    "markdownDescription": "Default SQL data plane provider for **future** sessions; open documents keep the provider their session was bound to. `sts2-remote` is reserved for the hosted backend.",
                     "scope": "application"
                 },
                 "mssql.metadataCache.enabled": {
