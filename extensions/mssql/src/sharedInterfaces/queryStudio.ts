@@ -387,6 +387,10 @@ export type QsPerfInteractionAction =
           readonly resultSetIndex: number;
           readonly selection: "all";
           readonly includeHeaders: boolean;
+      }
+    | {
+          /** Host-direct, bounded Copy All for the virtualized Messages pane. */
+          readonly kind: "copyMessages";
       };
 
 export interface QsPerfInteractionParams {
@@ -564,10 +568,19 @@ export namespace QsGetMessagesRequest {
         void
     >("qs/getMessages");
 }
-export namespace QsGetMessagesTextRequest {
-    /** Host-built Copy All payload (QO-7) - the webview never joins 10k rows. */
-    export const type = new RequestType<Record<string, never>, { text: string }, void>(
-        "qs/getMessagesText",
+export interface QsCopyMessagesResult {
+    outcome: "copied" | "tooLarge" | "empty";
+    messages: number;
+    characters: number;
+    buildMs: number;
+    clipboardMs: number;
+    reason?: "messages" | "characters";
+}
+
+export namespace QsCopyMessagesToClipboardRequest {
+    /** Bounded host-direct Messages Copy All; raw text never returns to the webview. */
+    export const type = new RequestType<Record<string, never>, QsCopyMessagesResult, void>(
+        "qs/copyMessagesToClipboard",
     );
 }
 export namespace QsNavigateToLineRequest {

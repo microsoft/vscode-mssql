@@ -31,7 +31,8 @@ import {
 } from "react";
 import {
     QsMessageRow,
-    QsGetMessagesTextRequest,
+    QsCopyMessagesToClipboardRequest,
+    type QsCopyMessagesResult,
     QsGridStyle,
     QsNavigateToLineRequest,
     QsOpenPlanRequest,
@@ -54,6 +55,10 @@ import type {
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 import { QsResultGridSurface, Rpc } from "./resultsGrid";
 import type { FluentResultGridState } from "../../common/FluentResultGrid";
+import {
+    registerQueryStudioPerfMessagesController,
+    type QueryStudioPerfInteractionOutcome,
+} from "./queryStudioPerfInteraction";
 
 const NOTICE_DISMISS_MS = 6000;
 
@@ -404,6 +409,25 @@ function MessagesViewImpl(props: {
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const selectionRef = useRef(initialViewState?.selection);
     const restoredInitialScrollRef = useRef(false);
+    const [copyInProgress, setCopyInProgress] = useState(false);
+    const copyInProgressRef = useRef(false);
+    const [copyNotice, setCopyNotice] = useState<string | undefined>(undefined);
+    const copyNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const notifyCopy = useCallback((text: string) => {
+        setCopyNotice(text);
+        if (copyNoticeTimerRef.current) {
+            clearTimeout(copyNoticeTimerRef.current);
+        }
+        copyNoticeTimerRef.current = setTimeout(() => setCopyNotice(undefined), NOTICE_DISMISS_MS);
+    }, []);
+    useEffect(
+        () => () => {
+            if (copyNoticeTimerRef.current) {
+                clearTimeout(copyNoticeTimerRef.current);
+            }
+        },
+        [],
+    );
     const restoreSelectionPendingRef = useRef(active);
     const previousActiveRef = useRef(active);
     const [range, setRange] = useState({ start: 0, end: 80 });
@@ -473,12 +497,67 @@ function MessagesViewImpl(props: {
         },
         [rpc],
     );
-    const copyAllMessages = useCallback(() => {
-        // Host-built text (QO-7): identical formatting, no webview-side join.
-        void rpc
-            .sendRequest<Record<string, never>, { text: string }>(QsGetMessagesTextRequest.type, {})
-            .then((result) => navigator.clipboard.writeText(result.text));
-    }, [rpc]);
+    const copyAllMessages = useCallback(async (): Promise<QueryStudioPerfInteractionOutcome> => {
+        if (copyInProgressRef.current) {
+            return "alreadySelected";
+        }
+        copyInProgressRef.current = true;
+        const started = performance.now();
+        perfMark("mssql.queryStudio.messages.copy.begin", { visibleMessages: messages.length });
+        setCopyInProgress(true);
+        try {
+            // The host builds and writes the bounded exact payload. Only its
+            // aggregate result crosses the webview boundary, so a message flood
+            // never duplicates the complete text in renderer memory.
+            const result = await rpc.sendRequest<Record<string, never>, QsCopyMessagesResult>(
+                QsCopyMessagesToClipboardRequest.type,
+                {},
+            );
+            const outcome: QueryStudioPerfInteractionOutcome =
+                result.outcome === "copied"
+                    ? "applied"
+                    : result.outcome === "tooLarge"
+                      ? "copyTooLarge"
+                      : "copyEmpty";
+            if (result.outcome === "tooLarge") {
+                notifyCopy(
+                    result.reason === "messages"
+                        ? "Too many messages to copy at once."
+                        : "Messages are too large to copy at once.",
+                );
+            }
+            perfMark("mssql.queryStudio.messages.copy.end", {
+                outcome: result.outcome,
+                messages: result.messages,
+                characters: result.characters,
+                buildMs: result.buildMs,
+                clipboardMs: result.clipboardMs,
+                copyRoute: "hostDirect",
+                ...(result.reason ? { reason: result.reason } : {}),
+                durationMs: Math.max(0, performance.now() - started),
+            });
+            return outcome;
+        } catch {
+            notifyCopy("Couldn't copy messages. Please try again.");
+            perfMark("mssql.queryStudio.messages.copy.end", {
+                outcome: "error",
+                messages: messages.length,
+                characters: 0,
+                buildMs: 0,
+                clipboardMs: 0,
+                copyRoute: "hostDirect",
+                durationMs: Math.max(0, performance.now() - started),
+            });
+            return "copyFailed";
+        } finally {
+            copyInProgressRef.current = false;
+            setCopyInProgress(false);
+        }
+    }, [messages.length, notifyCopy, rpc]);
+    useEffect(
+        () => registerQueryStudioPerfMessagesController({ copyAll: copyAllMessages }),
+        [copyAllMessages],
+    );
     const totalHeight = offsets[messages.length] ?? 0;
     const topPad = offsets[Math.min(range.start, messages.length)] ?? 0;
     const emitViewState = useCallback(() => {
@@ -571,12 +650,17 @@ function MessagesViewImpl(props: {
                     className="qs-btn qs-messages-copy"
                     title="Copy all messages"
                     aria-label="Copy all messages"
-                    disabled={messages.length === 0}
-                    onClick={copyAllMessages}>
+                    disabled={messages.length === 0 || copyInProgress}
+                    onClick={() => void copyAllMessages()}>
                     <span className="codicon codicon-copy" aria-hidden="true" />
                     <span>Copy All</span>
                 </button>
             </div>
+            {copyNotice ? (
+                <div className="qs-grid-notice" role="alert">
+                    {copyNotice}
+                </div>
+            ) : null}
             <div className="qs-messages" role="log" ref={scrollRef} onScroll={onScroll}>
                 <div style={{ height: totalHeight, position: "relative" }}>
                     <div style={{ position: "absolute", top: topPad, left: 0, right: 0 }}>

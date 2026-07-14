@@ -13,6 +13,8 @@ import {
     performRegisteredQueryStudioPerfGridScroll,
     performRegisteredQueryStudioPerfGridCopy,
     performRegisteredQueryStudioPerfGridSelection,
+    performRegisteredQueryStudioPerfMessagesCopy,
+    registerQueryStudioPerfMessagesController,
     queryStudioPerfScrollOffset,
     queryStudioPerfSweepOffsets,
     registerQueryStudioPerfGridController,
@@ -260,6 +262,13 @@ suite("Query Studio PERF_MODE result interactions", () => {
         });
         expect(
             normalizeQueryStudioPerfInteractionArgs({
+                action: { kind: "copyMessages", extra: true },
+            }),
+        ).to.deep.equal({
+            value: { action: { kind: "copyMessages" } },
+        });
+        expect(
+            normalizeQueryStudioPerfInteractionArgs({
                 action: { kind: "scrollResultStack", target: "middle", pixels: 42 },
             }),
         ).to.deep.equal({
@@ -321,5 +330,16 @@ suite("Query Studio PERF_MODE result interactions", () => {
         ]) {
             expect(normalizeQueryStudioPerfInteractionArgs({ action })).to.have.property("error");
         }
+    });
+
+    test("routes a closed Messages Copy All action through its mounted controller", async () => {
+        const dispose = registerQueryStudioPerfMessagesController({
+            copyAll: async () => "applied",
+        });
+        expect(await performRegisteredQueryStudioPerfMessagesCopy()).to.equal("applied");
+        dispose();
+        expect(await performRegisteredQueryStudioPerfMessagesCopy()).to.equal(
+            "messagesUnavailable",
+        );
     });
 });

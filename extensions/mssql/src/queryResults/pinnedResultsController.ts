@@ -16,8 +16,8 @@
 import * as vscode from "vscode";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
+    QsCopyMessagesToClipboardRequest,
     QsGetMessagesRequest,
-    QsGetMessagesTextRequest,
     QsGetRowsRequest,
     QsNavigateToLineRequest,
     QsOpenCellDocumentRequest,
@@ -27,7 +27,10 @@ import {
     QsSetViewModeRequest,
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
-import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
+import {
+    buildBoundedMessagesText,
+    QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS,
+} from "../sharedInterfaces/queryStudioMessages";
 import { PinnedResultsState } from "../sharedInterfaces/queryResultsSnapshot";
 import { readGridStyle } from "../queryStudio/gridStyle";
 import { cellDocumentText, prettyPrintCellText } from "../queryStudio/cellDocument";
@@ -394,13 +397,44 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             );
             return window;
         });
-        this.onRequest(QsGetMessagesTextRequest.type, async () => {
+        this.onRequest(QsCopyMessagesToClipboardRequest.type, async () => {
+            if (this.state.messageCount > QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS) {
+                return {
+                    outcome: "tooLarge" as const,
+                    messages: this.state.messageCount,
+                    characters: 0,
+                    buildMs: 0,
+                    clipboardMs: 0,
+                    reason: "messages" as const,
+                };
+            }
+            const builtAt = performance.now();
             const window = await service.getSnapshotMessages(
                 this.snapshotId,
                 0,
                 this.state.messageCount,
             );
-            return { text: buildMessagesText(window.messages) };
+            const built = buildBoundedMessagesText(window.messages);
+            const buildMs = Math.max(0, performance.now() - builtAt);
+            if (built.kind !== "copied") {
+                return {
+                    outcome: built.kind,
+                    messages: built.messages,
+                    characters: built.characters,
+                    buildMs,
+                    clipboardMs: 0,
+                    ...(built.kind === "tooLarge" ? { reason: built.reason } : {}),
+                };
+            }
+            const clipboardStarted = performance.now();
+            await vscode.env.clipboard.writeText(built.text);
+            return {
+                outcome: "copied" as const,
+                messages: built.messages,
+                characters: built.characters,
+                buildMs,
+                clipboardMs: Math.max(0, performance.now() - clipboardStarted),
+            };
         });
         this.onRequest(QsUpdateGridSelectionRequest.type, async (update) => {
             getQueryResultContextService().updateFromPinnedDocument(this.snapshotId, {

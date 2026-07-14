@@ -33,7 +33,7 @@ import {
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
-    QsGetMessagesTextRequest,
+    QsCopyMessagesToClipboardRequest,
     QsGetPlanStateRequest,
     QsGetRowsRequest,
     QsWriteClipboardRequest,
@@ -75,7 +75,7 @@ import {
 } from "../sharedInterfaces/queryStudio";
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { pinSourceResults } from "../queryResults/pinCommands";
-import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
+import { buildBoundedMessagesText } from "../sharedInterfaces/queryStudioMessages";
 import {
     buildQueryStudioGridCopyText,
     planQueryStudioGridCopy,
@@ -1445,9 +1445,30 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             });
             return window;
         });
-        this.onRequest(QsGetMessagesTextRequest.type, async () => ({
-            text: buildMessagesText(this.model.executionHost.getMessages().messages),
-        }));
+        this.onRequest(QsCopyMessagesToClipboardRequest.type, async () => {
+            const builtAt = performance.now();
+            const built = buildBoundedMessagesText(this.model.executionHost.getMessages().messages);
+            const buildMs = Math.max(0, performance.now() - builtAt);
+            if (built.kind !== "copied") {
+                return {
+                    outcome: built.kind,
+                    messages: built.messages,
+                    characters: built.characters,
+                    buildMs,
+                    clipboardMs: 0,
+                    ...(built.kind === "tooLarge" ? { reason: built.reason } : {}),
+                };
+            }
+            const clipboardStarted = performance.now();
+            await vscode.env.clipboard.writeText(built.text);
+            return {
+                outcome: "copied" as const,
+                messages: built.messages,
+                characters: built.characters,
+                buildMs,
+                clipboardMs: Math.max(0, performance.now() - clipboardStarted),
+            };
+        });
         this.onRequest(QsNavigateToLineRequest.type, async ({ line, column }) => {
             // The editor lives in the webview: bounce a reveal notification.
             void this.sendNotification(QsRevealPositionNotification.type, {
