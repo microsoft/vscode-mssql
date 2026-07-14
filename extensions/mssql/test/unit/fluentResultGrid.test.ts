@@ -22,6 +22,7 @@ import {
     shouldApplyFluentResultGridFrozenOptions,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
+import { isFluentResultGridPointerInitiatedFocus } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboardController";
 import {
     getFluentResultGridKeyboardAction,
     type FluentResultGridKeyboardShortcutEvent,
@@ -525,6 +526,17 @@ suite("Fluent Result Grid", () => {
                 kind: "command",
                 commandId: FluentResultGridCommand.ExpandSelectionRight,
             });
+        });
+
+        test("pointer-initiated container focus never re-activates (no scroll yank)", () => {
+            // Grabbing the grid scrollbar focuses the container (Chromium);
+            // gotoCell on that focus scrolled the ACTIVE cell back into view
+            // mid-drag — backward jumps and a synchronous full render.
+            expect(isFluentResultGridPointerInitiatedFocus(1000, 1005)).to.equal(true);
+            expect(isFluentResultGridPointerInitiatedFocus(1000, 1199)).to.equal(true);
+            // Keyboard entry (Tab) keeps the reveal-active-cell behavior.
+            expect(isFluentResultGridPointerInitiatedFocus(undefined, 1005)).to.equal(false);
+            expect(isFluentResultGridPointerInitiatedFocus(1000, 1200)).to.equal(false);
         });
 
         test("maps column-menu and focus traversal actions", () => {

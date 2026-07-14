@@ -98,6 +98,7 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                 data-row-count={controller.displayedRowCount}
                 onFocus={controller.handleGridContainerFocus}
                 onBlur={controller.handleGridContainerBlur}
+                onPointerDownCapture={controller.handleGridPointerDownCapture}
                 onKeyDownCapture={controller.handleGridKeyDownCapture}>
                 <div
                     id={`fluent-result-grid-body-${props.gridId}`}

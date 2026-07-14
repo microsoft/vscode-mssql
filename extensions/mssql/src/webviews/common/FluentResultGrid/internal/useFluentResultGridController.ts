@@ -626,6 +626,7 @@ export function useFluentResultGridController({
         handleContextMenu: commandController.handleContextMenu,
         handleGridContainerBlur: keyboardController.handleGridContainerBlur,
         handleGridContainerFocus: keyboardController.handleGridContainerFocus,
+        handleGridPointerDownCapture: keyboardController.handleGridPointerDownCapture,
         handleGridKeyDownCapture: keyboardController.handleGridKeyDownCapture,
         handleHeaderCellRendered: headerController.handleHeaderCellRendered,
         handleHeaderClick: headerController.handleHeaderClick,
