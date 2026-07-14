@@ -9,7 +9,6 @@ import { BaseProjectTreeItem } from "./baseTreeItem";
 import * as fileTree from "./fileFolderTreeItem";
 import { Project } from "../project";
 import * as utils from "../../common/utils";
-import * as vscodeMssql from "vscode-mssql";
 import { DatabaseReferencesTreeItem } from "./databaseReferencesTreeItem";
 import {
     DatabaseProjectItemType,
@@ -24,6 +23,7 @@ import { FileProjectEntry } from "../projectEntry";
 import { EntryType } from "../../sqldbproj";
 import { DBProjectConfigurationKey } from "../../tools/netcoreTool";
 import { SqlCmdVariablesTreeItem } from "./sqlcmdVariableTreeItem";
+import { ProjectType } from "../../common/enums";
 
 /**
  * TreeNode root that represents an entire project
@@ -83,7 +83,7 @@ export class ProjectRootTreeItem extends BaseProjectTreeItem {
 
     public get type(): DatabaseProjectItemType {
         const projectType =
-            this.project.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle
+            this.project.sqlProjStyle === ProjectType.SdkStyle
                 ? DatabaseProjectItemType.project
                 : DatabaseProjectItemType.legacyProject;
         return projectType;

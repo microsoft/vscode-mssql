@@ -3,15 +3,5 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as mssqlVscode from "vscode-mssql";
-
-export interface UpdateProjectDataModel {
-    sourceEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo;
-    targetEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo;
-    action: UpdateProjectAction;
-}
-
-export const enum UpdateProjectAction {
-    Compare = 0,
-    Update = 1,
-}
+export const dataWorkspaceExtensionId = "ms-mssql.data-workspace-vscode";
+export const mssqlExtensionId = "ms-mssql.mssql";

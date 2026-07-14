@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as vscodeMssql from "vscode-mssql";
+import type * as vscodeMssql from "vscode-mssql";
 import * as templates from "../templates/templates";
 import * as path from "path";
 
@@ -17,7 +17,7 @@ import {
     NetCoreTool,
 } from "../tools/netcoreTool";
 import { IconPathHelper } from "../common/iconHelper";
-import { WorkspaceTreeItem } from "dataworkspace";
+import type { WorkspaceTreeItem } from "dataworkspace";
 import * as constants from "../common/constants";
 import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
 import { ItemType } from "../sqldbproj";

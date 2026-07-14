@@ -8,14 +8,14 @@ import * as os from "os";
 import * as constants from "./constants";
 import * as path from "path";
 import { glob } from "glob";
-import * as dataworkspace from "dataworkspace";
-import * as vscodeMssql from "vscode-mssql";
+import type * as dataworkspace from "dataworkspace";
+import type * as vscodeMssql from "vscode-mssql";
 import * as fse from "fs-extra";
 import which = require("which");
 import { promises as fs } from "fs";
 import { ISqlProject, SqlTargetPlatform } from "../sqldbproj";
-import { SystemDatabase } from "./typeHelper";
-import { DeploymentScenario } from "./enums";
+import { DatabaseEngineEdition, DeploymentScenario, SystemDatabase } from "./enums";
+import { dataWorkspaceExtensionId, mssqlExtensionId } from "./extensionIds";
 
 /**
  * Consolidates on the error message string
@@ -194,7 +194,7 @@ export function convertSlashesForSqlProj(filePath: string): string {
  * @returns
  */
 export function systemDatabaseToString(systemDb: SystemDatabase): string {
-    if (systemDb === vscodeMssql.SystemDatabase.Master) {
+    if (systemDb === SystemDatabase.Master) {
         return constants.master;
     } else {
         return constants.msdb;
@@ -202,9 +202,7 @@ export function systemDatabaseToString(systemDb: SystemDatabase): string {
 }
 
 export function getSystemDatabase(name: string): SystemDatabase {
-    return name === constants.master
-        ? vscodeMssql.SystemDatabase.Master
-        : vscodeMssql.SystemDatabase.MSDB;
+    return name === constants.master ? SystemDatabase.Master : SystemDatabase.MSDB;
 }
 
 /**
@@ -296,7 +294,7 @@ export function getSqlProjectsInWorkspace(): Promise<vscode.Uri[]> {
 }
 
 export function getDataWorkspaceExtensionApi(): dataworkspace.IExtension {
-    const extension = vscode.extensions.getExtension(dataworkspace.extension.vscodeName)!;
+    const extension = vscode.extensions.getExtension(dataWorkspaceExtensionId)!;
     return extension.exports;
 }
 
@@ -321,7 +319,7 @@ export async function getSqlProjectsService(): Promise<ISqlProjectsService> {
 
 export async function getVscodeMssqlApi(): Promise<vscodeMssql.IExtension> {
     const ext = vscode.extensions.getExtension(
-        vscodeMssql.extension.name,
+        mssqlExtensionId,
     ) as vscode.Extension<vscodeMssql.IExtension>;
     return ext.activate();
 }
@@ -559,16 +557,16 @@ export async function getTargetPlatformFromServerVersion(
         const engineEdition = serverInfo.engineEditionId;
         if (isSqlDwUnifiedServer(serverUrl)) {
             targetPlatform = SqlTargetPlatform.sqlDwUnified;
-        } else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlOnDemand) {
+        } else if (engineEdition === DatabaseEngineEdition.SqlOnDemand) {
             targetPlatform = SqlTargetPlatform.sqlDwServerless;
-        } else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDbFabric) {
+        } else if (engineEdition === DatabaseEngineEdition.SqlDbFabric) {
             targetPlatform = SqlTargetPlatform.sqlDbFabric;
-        } else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDataWarehouse) {
+        } else if (engineEdition === DatabaseEngineEdition.SqlDataWarehouse) {
             targetPlatform = SqlTargetPlatform.sqlDW;
         } else {
             targetPlatform = SqlTargetPlatform.sqlAzure;
         }
-    } else if (serverInfo.engineEditionId === vscodeMssql.DatabaseEngineEdition.SqlDbFabric) {
+    } else if (serverInfo.engineEditionId === DatabaseEngineEdition.SqlDbFabric) {
         // Temporary workaround for https://github.com/microsoft/azuredatastudio/issues/26260
         // SqlDbFabric is not grouped into isCloud properly, remove this condition when it is fixed in SqlToolsService
         targetPlatform = SqlTargetPlatform.sqlDbFabric;

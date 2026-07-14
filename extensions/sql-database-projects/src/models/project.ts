@@ -7,7 +7,7 @@ import * as path from "path";
 import * as constants from "../common/constants";
 import * as utils from "../common/utils";
 import * as vscode from "vscode";
-import * as vscodeMssql from "vscode-mssql";
+import type * as vscodeMssql from "vscode-mssql";
 import { randomUUID } from "crypto";
 
 import { promises as fs } from "fs";
@@ -38,7 +38,8 @@ import {
     PublishProfileNode,
     SqlObjectFileNode,
 } from "./tree/fileFolderTreeItem";
-import { ProjectType, GetScriptsResult, GetFoldersResult } from "../common/typeHelper";
+import { GetScriptsResult, GetFoldersResult } from "../common/typeHelper";
+import { ProjectType, SystemDatabase } from "../common/enums";
 
 /**
  * Represents the configuration based on the Configuration property in the sqlproj
@@ -143,7 +144,7 @@ export class Project implements ISqlProject {
     }
 
     public get sqlProjStyleName(): string {
-        return this.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle
+        return this.sqlProjStyle === ProjectType.SdkStyle
             ? constants.sdkStyleProjectStyleName
             : constants.legacyStyleProjectStyleName;
     }
@@ -169,7 +170,7 @@ export class Project implements ISqlProject {
     constructor(projectFilePath: string) {
         this._projectFilePath = projectFilePath;
         this._projectFileName = path.basename(projectFilePath, ".sqlproj");
-        this._sqlProjStyle = vscodeMssql.ProjectType.SdkStyle;
+        this._sqlProjStyle = ProjectType.SdkStyle;
     }
 
     /**
@@ -602,7 +603,7 @@ export class Project implements ISqlProject {
 
         for (const systemDbReference of databaseReferencesResult.systemDatabaseReferences) {
             const systemDb =
-                systemDbReference.systemDb === vscodeMssql.SystemDatabase.Master
+                systemDbReference.systemDb === SystemDatabase.Master
                     ? constants.master
                     : constants.msdb;
             this._databaseReferences.push(

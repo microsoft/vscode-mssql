@@ -9,8 +9,8 @@ import * as utils from "../common/utils";
 import * as UUID from "vscode-languageclient/lib/utils/uuid";
 import * as templates from "../templates/templates";
 import * as vscode from "vscode";
-import * as dataworkspace from "dataworkspace";
-import * as mssqlVscode from "vscode-mssql";
+import type * as dataworkspace from "dataworkspace";
+import type * as mssqlVscode from "vscode-mssql";
 
 import { promises as fs } from "fs";
 import { Project } from "../models/project";
@@ -45,7 +45,7 @@ import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQu
 import { FileProjectEntry, SqlProjectReferenceProjectEntry } from "../models/projectEntry";
 import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updateProject";
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
-import { DeploymentScenario, ExtractTarget, TaskExecutionMode } from "../common/enums";
+import { DeploymentScenario, ExtractTarget, ProjectType, TaskExecutionMode } from "../common/enums";
 
 export type AddDatabaseReferenceSettings =
     | ISystemDatabaseReferenceSettings
@@ -136,8 +136,8 @@ export class ProjectsController {
         const sqlProjectsService = await utils.getSqlProjectsService();
         const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion();
         const projectStyle = creationParams.sdkStyle
-            ? mssqlVscode.ProjectType.SdkStyle
-            : mssqlVscode.ProjectType.LegacyStyle;
+            ? ProjectType.SdkStyle
+            : ProjectType.LegacyStyle;
         const result = await (sqlProjectsService as mssqlVscode.ISqlProjectsService).createProject(
             newProjFilePath,
             projectStyle,
@@ -445,7 +445,7 @@ export class ProjectsController {
         const startTime = new Date();
 
         // get dlls and targets file needed for building for legacy style projects
-        if (project.sqlProjStyle === mssqlVscode.ProjectType.LegacyStyle) {
+        if (project.sqlProjStyle === ProjectType.LegacyStyle) {
             const result = await this.buildHelper.createBuildDirFolder(this._outputChannel);
 
             if (!result) {

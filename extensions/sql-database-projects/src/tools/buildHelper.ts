@@ -12,8 +12,7 @@ import extractZip = require("extract-zip");
 import * as constants from "../common/constants";
 import { HttpClient } from "../http/httpClient";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
-import { ProjectType } from "../common/typeHelper";
-import * as vscodeMssql from "vscode-mssql";
+import { ProjectType } from "../common/enums";
 
 const buildDirectory = "BuildDirectory";
 
@@ -232,7 +231,7 @@ export class BuildHelper {
         ];
 
         // Adding NETCoreTargetsPath only for non-SDK style projects
-        const isSdkStyle = sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
+        const isSdkStyle = sqlProjStyle === ProjectType.SdkStyle;
 
         if (!isSdkStyle) {
             args.push(`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`);
