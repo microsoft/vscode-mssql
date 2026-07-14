@@ -743,13 +743,18 @@ export class TsNativeQuery {
         this.cancelCause ??= cause;
         this.cancelRequested = true;
         void this.lease.cancel(cause === "sessionClose" ? "sessionClose" : "user");
+        let ackTimer: EngineDisposable | undefined;
         const ackDeadline = new Promise<"deadline">((resolve) => {
-            this.deps.clock.setTimeout(() => resolve("deadline"), this.deps.deadlines.cancelAckMs);
+            ackTimer = this.deps.clock.setTimeout(
+                () => resolve("deadline"),
+                this.deps.deadlines.cancelAckMs,
+            );
         });
         const outcome = await Promise.race([
             this.handle.completion.then(() => "completed" as const),
             ackDeadline,
         ]);
+        ackTimer?.dispose(); // leak discipline (N-I10): losers of the race die
         if (outcome === "completed") {
             return { acknowledged: true };
         }
@@ -792,8 +797,9 @@ export class TsNativeQuery {
         this.cancelCause ??= "dispose";
         this.lane.stop(); // stop future sink delivery immediately
         void this.lease.cancel("dispose");
+        let drainTimer: EngineDisposable | undefined;
         const drainDeadline = new Promise<"deadline">((resolve) => {
-            this.deps.clock.setTimeout(
+            drainTimer = this.deps.clock.setTimeout(
                 () => resolve("deadline"),
                 this.deps.deadlines.disposeDrainMs,
             );
@@ -802,6 +808,7 @@ export class TsNativeQuery {
             this.handle.completion.then(() => "completed" as const),
             drainDeadline,
         ]);
+        drainTimer?.dispose(); // leak discipline (N-I10)
         if (outcome === "deadline" && !this.terminalSent) {
             this.deps.forceAbort("dispose drain deadline expired");
             this.emitTerminal("disposed", undefined, true, "unknown", "providerAborted");

@@ -167,8 +167,9 @@ export class TsNativeBackend implements ISqlConnectionService {
         }
         const openTimeoutMs = params.openTimeoutMs ?? this.deadlines.openMs;
         let abandoned = false;
+        let openTimer: { dispose(): void } | undefined;
         const timer = new Promise<never>((_resolve, reject) => {
-            this.deps.clock.setTimeout(() => {
+            openTimer = this.deps.clock.setTimeout(() => {
                 abandoned = true;
                 reject(
                     new SqlDataPlaneError(
@@ -180,7 +181,11 @@ export class TsNativeBackend implements ISqlConnectionService {
                 );
             }, openTimeoutMs);
         });
-        return Promise.race([this.openInner(params, () => abandoned), timer]);
+        try {
+            return await Promise.race([this.openInner(params, () => abandoned), timer]);
+        } finally {
+            openTimer?.dispose(); // leak discipline (N-I10)
+        }
     }
 
     private async openInner(

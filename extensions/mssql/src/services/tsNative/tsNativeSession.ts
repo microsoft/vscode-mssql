@@ -220,15 +220,17 @@ export class TsNativeSession implements ISqlSession {
             this.activeQuery = undefined;
         }
         const timeoutMs = opts?.timeoutMs ?? this.deps.deadlines.closeMs;
+        let closeTimer: { dispose(): void } | undefined;
         await Promise.race([
             this.connection.close({ operationId: this.deps.ids.next("op") }).catch(() => undefined),
-            new Promise<void>((resolve) =>
-                this.deps.clock.setTimeout(() => {
+            new Promise<void>((resolve) => {
+                closeTimer = this.deps.clock.setTimeout(() => {
                     this.connection.destroy("close deadline expired");
                     resolve();
-                }, timeoutMs),
-            ),
+                }, timeoutMs);
+            }),
         ]);
+        closeTimer?.dispose(); // leak discipline (N-I10)
         this.transition("closed", "closed");
         this.finalize();
     }
