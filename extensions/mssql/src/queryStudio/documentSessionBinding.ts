@@ -26,11 +26,7 @@ import {
     SqlConnectionProfileRef,
 } from "../services/sqlDataPlane/api";
 import { SqlBackendKind } from "../services/sqlDataPlane/backendFactory";
-import {
-    CAPABILITY_FALLBACK_SETTING,
-    CapabilityFallbackPolicy,
-    resolveCapabilityFallback,
-} from "../services/sqlDataPlane/providerSuggestions";
+import { vscodeFallbackInteraction } from "../services/sqlDataPlane/vscodeFallbackInteraction";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { MetadataStatus, runMetadataQuery } from "../services/metadata/metadataService";
 import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
@@ -435,9 +431,13 @@ export class DocumentSessionBinding implements vscode.Disposable {
         // Follow the CURRENT database (post-USE), not the profile default.
         const database = this.session?.info?.database;
         try {
-            const service = await SqlDataPlaneService.get().service(
-                this.backendOverride ? { backendKind: this.backendOverride } : undefined,
-            );
+            // Mirror the user session's backend: honor an explicit per-document
+            // override, else the profile's remembered fallback (so a Windows-auth
+            // document that fell back to sts2-local opens its auxiliary sessions
+            // on sts2-local too, not the ts-native default).
+            const service = this.backendOverride
+                ? await SqlDataPlaneService.get().service({ backendKind: this.backendOverride })
+                : await SqlDataPlaneService.get().serviceForProfile(profileRef.profileFingerprint);
             const session = await service.openSession({
                 profile: profileRef,
                 ...(database ? { database } : {}),
@@ -504,9 +504,12 @@ export class DocumentSessionBinding implements vscode.Disposable {
             return cached.names;
         }
         try {
-            const service = await SqlDataPlaneService.get().service(
-                this.backendOverride ? { backendKind: this.backendOverride } : undefined,
-            );
+            // Same backend as the user session (override, else remembered
+            // fallback) so the master probe lands on the provider that can
+            // actually open this profile.
+            const service = this.backendOverride
+                ? await SqlDataPlaneService.get().service({ backendKind: this.backendOverride })
+                : await SqlDataPlaneService.get().serviceForProfile(profileRef.profileFingerprint);
             const session = await service.openSession({
                 profile: profileRef,
                 database: "master",
@@ -598,38 +601,14 @@ export class DocumentSessionBinding implements vscode.Disposable {
             };
             // Capability-routed open (TSQ2 §8.2): requirements are evaluated
             // BEFORE any credential resolution; a provider that cannot open
-            // this profile triggers the fallback policy (prompt/auto/off).
-            let backendKind = this.backendOverride;
-            const check = await dataPlane.canOpen(
+            // this profile triggers the shared fallback policy (prompt/auto/
+            // off) — the SAME path Object Explorer and every other consumer
+            // uses, so the Windows-auth → SQL Tools Service experience is
+            // identical everywhere.
+            const { session } = await dataPlane.openSessionWithFallback(
                 params,
-                backendKind ? { backendKind } : undefined,
-            );
-            if (!check.ok) {
-                const policy = vscode.workspace
-                    .getConfiguration()
-                    .get<CapabilityFallbackPolicy>(CAPABILITY_FALLBACK_SETTING, "prompt");
-                const decision = await resolveCapabilityFallback({
-                    check,
-                    policy,
-                    currentKind: backendKind ?? dataPlane.defaultBackendKind(),
-                    displayNameFor: (kind) => dataPlane.displayNameFor(kind),
-                    interaction: {
-                        prompt: (message, actions) =>
-                            Promise.resolve(vscode.window.showWarningMessage(message, ...actions)),
-                        notify: (message) => void vscode.window.showInformationMessage(message),
-                    },
-                });
-                if (decision.kind !== "useAlternative" || !decision.alternative) {
-                    throw new Error(
-                        check.reason ??
-                            "the selected SQL data plane provider cannot open this profile",
-                    );
-                }
-                backendKind = decision.alternative;
-            }
-            const session = await dataPlane.openSession(
-                params,
-                backendKind ? { backendKind } : undefined,
+                this.backendOverride ? { backendKind: this.backendOverride } : undefined,
+                vscodeFallbackInteraction(),
             );
             this.session = session;
             session.onDidChangeState((change) => {

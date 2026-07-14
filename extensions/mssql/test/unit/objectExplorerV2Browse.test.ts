@@ -329,7 +329,9 @@ function harness(overrides?: {
         overrides?.beforeOpen,
     );
     const store = new MetadataStore(async () => service, { pollSeconds: 0 });
-    const registry = new OeV2SessionRegistry(async () => service);
+    const registry = new OeV2SessionRegistry(async (params) => ({
+        session: await service.openSession(params),
+    }));
     const settings = { groupBySchema: false, showSystemDatabases: true };
     const controller = new OeV2TreeController({
         profiles: {
@@ -475,7 +477,9 @@ suite("Object Explorer v2 browse (B18)", () => {
         // rebuild harness with a failing fallback
         const service = new RoutingService({}, failing);
         const store = new MetadataStore(async () => service, { pollSeconds: 0 });
-        const registry = new OeV2SessionRegistry(async () => service);
+        const registry = new OeV2SessionRegistry(async (params) => ({
+            session: await service.openSession(params),
+        }));
         const controller = new OeV2TreeController({
             profiles: {
                 readAllConnectionGroups: async () => [{ id: "ROOT", name: "ROOT" }],

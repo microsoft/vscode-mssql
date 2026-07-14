@@ -217,7 +217,10 @@ export class MetadataStore {
     }
 
     constructor(
-        private readonly service: () => Promise<ISqlConnectionService>,
+        // profileFingerprint lets the resolver honor a remembered capability
+        // fallback (TSQ2 §8.2) so metadata sessions land on the same backend the
+        // primary connection resolved to (e.g. Windows-auth → sts2-local).
+        private readonly service: (profileFingerprint?: string) => Promise<ISqlConnectionService>,
         private readonly options: MetadataStoreOptions = {},
     ) {}
 
@@ -230,7 +233,7 @@ export class MetadataStore {
         let entry = this.servers.get(id);
         const cacheHit = entry !== undefined;
         if (!entry) {
-            const connection = await this.service();
+            const connection = await this.service(prepared.profileRef.profileFingerprint);
             // Server-scoped session: profile default database (server facts
             // and sys.databases are database-agnostic).
             const source = new DataPlaneMetadataSessionSource(connection, {
@@ -371,7 +374,7 @@ export class MetadataStore {
         let entry = this.databases.get(id);
         const cacheHit = entry !== undefined;
         if (!entry) {
-            const connection = await this.service();
+            const connection = await this.service(prepared.profileRef.profileFingerprint);
             // KEY-CORRECT by construction: the dedicated session opens IN the
             // requested database (preview-safe strategy, design §6.1). An
             // empty database means "profile default" — no explicit context,

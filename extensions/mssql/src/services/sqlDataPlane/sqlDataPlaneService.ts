@@ -32,6 +32,7 @@ import {
     SqlCapabilityId,
     SqlCapabilityRequirement,
     SqlCapabilitySet,
+    SqlCapabilityValue,
     SqlDataPlaneError,
     DataPlaneErrorCodes,
     SqlDataPlaneErrorInfo,
@@ -57,6 +58,13 @@ import {
     supported,
     unsupported,
 } from "./capabilityRegistry";
+import {
+    CapabilityFallbackPolicy,
+    CAPABILITY_FALLBACK_SETTING,
+    FallbackDecision,
+    FallbackInteraction,
+    resolveCapabilityFallback,
+} from "./providerSuggestions";
 import { FakeBackend, FAKE_CAPABILITIES } from "./fakeBackend";
 import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/sts2Backend";
 // Pure parsing module (driver-port types only — no tedious in this graph).
@@ -423,6 +431,15 @@ export class SqlDataPlaneService {
     private readonly sessions = new Map<string, SessionRecord>();
     private readonly disposables: { dispose(): void }[] = [];
     private disposed = false;
+    /**
+     * Per-profile fallback memory (TSQ2 §8.2 UX): once a profile has been
+     * routed to an alternative backend (e.g. a Windows-auth profile that
+     * ts-native can't open falls back to sts2-local), remember it so reconnects
+     * to the SAME profile don't re-prompt. In-memory / session-scoped and
+     * cleared on any sqlDataPlane config change; an explicit per-document
+     * override always wins over the remembered choice.
+     */
+    private readonly rememberedFallback = new Map<string, SqlBackendKind>();
 
     constructor(
         private readonly config: DataPlaneConfigReader = vscodeConfigReader(),
@@ -492,6 +509,21 @@ export class SqlDataPlaneService {
      * The returned service is the registry view: sessions it opens are
      * registered/finalized for lifecycle accounting and identity stamping.
      */
+    /**
+     * Resolve the service for a profile, honoring a remembered fallback route
+     * (TSQ2 §8.2). Background/dedicated consumers that can't prompt — metadata
+     * hydration above all — call this so a Windows-auth profile whose primary
+     * connection already fell back to sts2-local opens ITS metadata sessions on
+     * sts2-local too (silently), instead of failing on the ts-native default.
+     * Falls back to the configured default when nothing is remembered.
+     */
+    async serviceForProfile(profileFingerprint?: string): Promise<ISqlConnectionService> {
+        const backendKind = profileFingerprint
+            ? this.rememberedFallback.get(profileFingerprint)
+            : undefined;
+        return this.service(backendKind ? { backendKind } : undefined);
+    }
+
     async service(opts?: OpenSessionOptions): Promise<ISqlConnectionService> {
         this.assertNotDisposed();
         const kind = opts?.backendKind ?? this.defaultBackendKind();
@@ -598,6 +630,69 @@ export class SqlDataPlaneService {
         return service.openSession(params);
     }
 
+    /**
+     * Open a session, applying the capability-fallback policy (TSQ2 §8.2) when
+     * the resolved backend can't open the profile — the single place every
+     * consumer (Query Studio, Object Explorer v2, …) routes through so the
+     * Windows-auth → SQL Tools Service experience is identical everywhere.
+     *
+     * Resolution order for the backend:
+     *   1. explicit per-document override (opts.backendKind) — always wins;
+     *   2. a remembered fallback for this profile (no re-prompt on reconnect);
+     *   3. the configured default.
+     * If canOpen still fails, resolveCapabilityFallback decides (prompt/auto/
+     * off). A chosen alternative is remembered per profile (unless the caller
+     * pinned an override). Every route is attributable via session.info.
+     */
+    async openSessionWithFallback(
+        params: OpenSessionParams,
+        opts: OpenSessionOptions | undefined,
+        interaction: FallbackInteraction,
+    ): Promise<{ session: ISqlSession; decision?: FallbackDecision }> {
+        const fingerprint = params.profile.profileFingerprint;
+        const pinned = opts?.backendKind;
+        let backendKind = pinned ?? this.rememberedFallback.get(fingerprint);
+        const check = await this.canOpen(params, backendKind ? { backendKind } : undefined);
+        let decision: FallbackDecision | undefined;
+        if (!check.ok) {
+            const policy = this.config.get<CapabilityFallbackPolicy>(
+                CAPABILITY_FALLBACK_SETTING,
+                "prompt",
+            );
+            decision = await resolveCapabilityFallback({
+                check,
+                policy,
+                currentKind: backendKind ?? this.defaultBackendKind(),
+                displayNameFor: (kind) => this.displayNameFor(kind),
+                interaction,
+            });
+            if (decision.kind !== "useAlternative" || !decision.alternative) {
+                throw new SqlDataPlaneError(
+                    DataPlaneErrorCodes.capabilityUnsupported,
+                    check.reason ?? "the selected SQL data plane provider cannot open this profile",
+                    false,
+                    { backend: { kind: backendKind ?? this.defaultBackendKind() } },
+                );
+            }
+            backendKind = decision.alternative;
+            // Remember only a policy-resolved route, and only when the caller
+            // didn't pin an override — an override is the caller's own choice.
+            if (!pinned) {
+                this.rememberedFallback.set(fingerprint, backendKind);
+            }
+        }
+        const session = await this.openSession(params, backendKind ? { backendKind } : undefined);
+        return { session, ...(decision ? { decision } : {}) };
+    }
+
+    /** Remembered per-profile fallback routes (for status / Debug Console). */
+    rememberedFallbacks(): Array<{ profileFingerprint: string; backendKind: SqlBackendKind }> {
+        return [...this.rememberedFallback.entries()].map(([profileFingerprint, backendKind]) => ({
+            profileFingerprint,
+            backendKind,
+        }));
+    }
+
     // -----------------------------------------------------------------------
     // Status (passive: reads state only)
     // -----------------------------------------------------------------------
@@ -658,6 +753,23 @@ export class SqlDataPlaneService {
         };
     }
 
+    /**
+     * Per-backend capability values (static, merged with negotiated facts once
+     * a backend is running) for the Debug Console capability matrix. Passive;
+     * every field is safe protocol metadata (support/fidelity/limit/reasonCode/
+     * source — reasonCode is a stable id, never raw driver text).
+     */
+    capabilitySnapshot(): Record<string, Record<string, SqlCapabilityValue>> {
+        const out: Record<string, Record<string, SqlCapabilityValue>> = {};
+        for (const entry of this.entries.values()) {
+            out[entry.factory.kind] = { ...this.effectiveSet(entry).values } as Record<
+                string,
+                SqlCapabilityValue
+            >;
+        }
+        return out;
+    }
+
     // -----------------------------------------------------------------------
     // Configuration changes: drain only the affected entry
     // -----------------------------------------------------------------------
@@ -675,6 +787,9 @@ export class SqlDataPlaneService {
 
     /** Re-fingerprint every entry; drain/recompose only what changed. */
     handleConfigurationChanged(): void {
+        // The default backend or fallback policy may have changed — forget
+        // remembered routes so the new policy is honored on the next connect.
+        this.rememberedFallback.clear();
         for (const entry of this.entries.values()) {
             if (!entry.service && !entry.startup) {
                 // idle entries just refresh their fingerprint
