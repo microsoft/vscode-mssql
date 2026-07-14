@@ -77,8 +77,11 @@ export interface FluentResultGridProps
 
 export interface FluentResultGridHandle {
     focusGrid: () => void;
-    /** Select every data cell; returns false before grid creation. */
-    selectAll: () => boolean;
+    /**
+     * Select every data cell, or report that restored view state already has
+     * the full range selected. Returns false before grid creation.
+     */
+    selectAll: () => "selected" | "alreadySelected" | false;
     /** Scroll a source row to the top; returns false before grid creation. */
     scrollToRow: (rowIndex: number) => boolean;
     /** Reveal a zero-based data column; returns false before grid creation. */

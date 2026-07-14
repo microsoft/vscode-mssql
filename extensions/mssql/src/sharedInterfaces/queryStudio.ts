@@ -182,6 +182,8 @@ export interface QsGridStyle {
     autosizeSampleRows?: number;
     /** Autosize column-width ceiling in px (UX density pass). */
     gridMaxColumnWidthPx?: number;
+    /** Maximum display characters transported/rendered for one grid cell. */
+    displayCellClamp?: number;
     /** Default editor/results split — results pane height as % (SSMS ~50). */
     resultsPaneHeightPct?: number;
 }
@@ -221,8 +223,14 @@ export interface QsGetRowsParams {
     start: number;
     count: number;
     /**
+     * Consumer fidelity contract. Grid reads carry bounded display previews;
+     * copy/text reads preserve exact values. Absent defaults to grid.
+     */
+    purpose?: "grid" | "copy" | "text";
+    /**
      * Horizontal projection (QO-7b): return only this column span. Absent =
-     * all columns. Wide-grid copy uses it today; viewport fetches later.
+     * all columns. Wide-grid viewport and copy reads use bounded spans;
+     * transforms, export, and other full-row operations omit the projection.
      */
     columnStart?: number;
     columnCount?: number;
@@ -267,6 +275,10 @@ export interface QsCellWindow {
     rowCount: number;
     columns: QsResultColumn[];
     values: unknown[][];
+    /** Values are already bounded display text rather than raw cell payloads. */
+    valueMode?: "gridPreview";
+    /** Flattened row-major cell document classification for preview values. */
+    documentLanguages?: Array<"xml" | "json" | null>;
     nullBitmap?: string;
     typeHints?: string[];
     truncatedBitmap?: string;
@@ -358,6 +370,11 @@ export type QsPerfInteractionAction =
           readonly target: QsPerfScrollTarget;
       }
     | {
+          /** Visit the full result stack in evenly spaced, paint-settled steps. */
+          readonly kind: "sweepResultStack";
+          readonly steps: number;
+      }
+    | {
           readonly kind: "selectGrid";
           readonly resultSetIndex: number;
           readonly selection: "all";
@@ -438,6 +455,12 @@ export namespace QsListDatabasesRequest {
 export namespace QsGetRowsRequest {
     export const type = new RequestType<QsGetRowsParams, QsCellWindow, void>("qs/getRows");
 }
+/** Rare fallback when the webview Clipboard API loses focus/permission after an async copy. */
+export namespace QsWriteClipboardRequest {
+    export const type = new RequestType<{ text: string }, { written: true }, void>(
+        "qs/writeClipboard",
+    );
+}
 export namespace QsSaveResultRequest {
     export const type = new RequestType<
         {
@@ -499,7 +522,14 @@ export namespace QsShowPlanQueryRequest {
 export namespace QsGetMessagesRequest {
     export const type = new RequestType<
         { afterIndex?: number },
-        { messages: QsMessageRow[] },
+        {
+            startIndex: number;
+            nextIndex: number;
+            totalCount: number;
+            textCharacters: number;
+            hasMore: boolean;
+            messages: QsMessageRow[];
+        },
         void
     >("qs/getMessages");
 }

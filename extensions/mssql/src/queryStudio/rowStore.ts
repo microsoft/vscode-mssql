@@ -7,7 +7,7 @@
  * RowStore (doc 04 §13.1–13.3, QO-6): per-execution result storage. Appends
  * compact pages from the sink, keeps a bounded memory cache split into
  * PROTECTED (viewport-fetched) and PROBATIONARY (appended/scanned) segments,
- * spills the remainder to length-prefixed JSON frames through a bounded
+ * spills the remainder to length-prefixed V8 structured-clone frames through a bounded
  * ASYNC write queue (the extension host hot path never blocks on spill I/O;
  * queue saturation back-pressures appendPage, which holds the STS2 ack),
  * and serves random cell windows with a small served-window cache.
@@ -26,9 +26,15 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { deserialize, serialize } from "v8";
 import { Perf } from "../perf/perfTelemetry";
 import { CompactPage } from "../services/sqlDataPlane/api";
 import { QsCellWindow, QsResultColumn } from "../sharedInterfaces/queryStudio";
+import {
+    cellDisplayText,
+    cellDocumentLanguage,
+    clampDisplay,
+} from "../sharedInterfaces/queryStudioGridOps";
 import {
     QUERY_TUNING_DEFAULTS,
     QueryTuningDiagnosticsLevel,
@@ -56,12 +62,18 @@ export interface RowStoreTuning {
     protectedCacheRatio: number;
     /** Served-window cache entries (0 disables). */
     windowCacheEntries: number;
+    /** Approximate retained-heap ceiling for served windows (0 disables). */
+    windowCacheMaxBytes: number;
+    /** Maximum display characters transported for one grid cell. */
+    displayCellClamp: number;
 }
 
 export const DEFAULT_ROW_STORE_TUNING: RowStoreTuning = {
     maxPendingSpillBytes: QUERY_TUNING_DEFAULTS.maxPendingSpillBytes,
     protectedCacheRatio: QUERY_TUNING_DEFAULTS.protectedCacheRatio,
     windowCacheEntries: QUERY_TUNING_DEFAULTS.windowCacheEntries,
+    windowCacheMaxBytes: QUERY_TUNING_DEFAULTS.windowCacheMaxBytes,
+    displayCellClamp: QUERY_TUNING_DEFAULTS.displayCellClamp,
 };
 
 /**
@@ -72,6 +84,7 @@ export const DEFAULT_ROW_STORE_TUNING: RowStoreTuning = {
  */
 export type RowReadReason =
     | "grid"
+    | "gridPreview"
     | "copy"
     | "export"
     | "text"
@@ -150,6 +163,8 @@ export class RowStore {
     private windowCacheBytes = 0;
     private windowCachePeakBytes = 0;
     private windowCacheEvictions = 0;
+    private windowCacheBypasses = 0;
+    private windowCacheOversizeSkips = 0;
     private memoryBytesPeak = 0;
     private pendingSpillBytesPeak = 0;
     // Row-pipeline attribution accumulators (QO-2): cheap adds on the hot
@@ -157,8 +172,11 @@ export class RowStore {
     private appendMsTotal = 0;
     private spillWrites = 0;
     private spillWriteMsTotal = 0;
+    private spillSerializeMsTotal = 0;
+    private spillWriteIoMsTotal = 0;
     private spillReads = 0;
     private spillReadMsTotal = 0;
+    private spillDeserializeMsTotal = 0;
     private materializeMsTotal = 0;
     private windowCacheHits = 0;
     private windowCacheMisses = 0;
@@ -320,9 +338,13 @@ export class RowStore {
         maxRowsPerResultSet: number;
         spillWrites: number;
         spillReads: number;
+        spillEncoding: "json-v1" | "v8-v1";
         appendMsTotal: number;
         spillWriteMsTotal: number;
+        spillSerializeMsTotal: number;
+        spillWriteIoMsTotal: number;
         spillReadMsTotal: number;
+        spillDeserializeMsTotal: number;
         materializeMsTotal: number;
         pendingSpillBytes: number;
         pendingSpillBytesPeak: number;
@@ -333,6 +355,9 @@ export class RowStore {
         windowCachePeakBytes: number;
         windowCacheEntries: number;
         windowCacheEvictions: number;
+        windowCacheBypasses: number;
+        windowCacheOversizeSkips: number;
+        windowCacheMaxBytes: number;
         memoryBytesPeak: number;
         protectedPages: number;
     } {
@@ -347,9 +372,13 @@ export class RowStore {
             maxRowsPerResultSet: this.limits.maxRowsPerResultSet,
             spillWrites: this.spillWrites,
             spillReads: this.spillReads,
+            spillEncoding: "v8-v1",
             appendMsTotal: roundMs(this.appendMsTotal),
             spillWriteMsTotal: roundMs(this.spillWriteMsTotal),
+            spillSerializeMsTotal: roundMs(this.spillSerializeMsTotal),
+            spillWriteIoMsTotal: roundMs(this.spillWriteIoMsTotal),
             spillReadMsTotal: roundMs(this.spillReadMsTotal),
+            spillDeserializeMsTotal: roundMs(this.spillDeserializeMsTotal),
             materializeMsTotal: roundMs(this.materializeMsTotal),
             pendingSpillBytes: this.pendingSpillBytes,
             pendingSpillBytesPeak: this.pendingSpillBytesPeak,
@@ -360,6 +389,9 @@ export class RowStore {
             windowCachePeakBytes: this.windowCachePeakBytes,
             windowCacheEntries: this.windowCache.size,
             windowCacheEvictions: this.windowCacheEvictions,
+            windowCacheBypasses: this.windowCacheBypasses,
+            windowCacheOversizeSkips: this.windowCacheOversizeSkips,
+            windowCacheMaxBytes: this.tuning.windowCacheMaxBytes,
             memoryBytesPeak: this.memoryBytesPeak,
             protectedPages: this.protectedPages.length,
         };
@@ -372,6 +404,9 @@ export class RowStore {
             windowCacheBytes: this.windowCacheBytes,
             windowCacheEntries: this.windowCache.size,
             windowCacheEvictions: this.windowCacheEvictions,
+            windowCacheBypasses: this.windowCacheBypasses,
+            windowCacheOversizeSkips: this.windowCacheOversizeSkips,
+            windowCacheMaxBytes: this.tuning.windowCacheMaxBytes,
         };
     }
 
@@ -450,10 +485,22 @@ export class RowStore {
         const projected =
             ordinals !== undefined || columnStart !== 0 || columnSpan !== totalColumns;
 
+        const gridPreview = reason === "gridPreview";
+        const interactiveGrid = gridPreview || reason === "grid";
         const cacheKey = ordinals
-            ? `${resultSetId}:${start}:${count}:o:${ordinals.join(",")}`
-            : `${resultSetId}:${start}:${count}:${columnStart}:${columnSpan}`;
-        const cacheable = this.tuning.windowCacheEntries > 0 && reason === "grid";
+            ? `${resultSetId}:${gridPreview ? "p" : "r"}:${start}:${count}:o:${ordinals.join(",")}`
+            : `${resultSetId}:${gridPreview ? "p" : "r"}:${start}:${count}:${columnStart}:${columnSpan}`;
+        const cacheEnabled =
+            interactiveGrid &&
+            this.tuning.windowCacheEntries > 0 &&
+            this.tuning.windowCacheMaxBytes > 0;
+        // Growing prefixes have a new key on every row and cannot hit again;
+        // admitting them only retains stale cumulative windows. Start caching
+        // once the result set is terminal and its window identities stabilize.
+        const cacheable = cacheEnabled && set.complete;
+        if (interactiveGrid && !cacheable) {
+            this.windowCacheBypasses++;
+        }
         if (cacheable) {
             const cached = this.windowCache.get(cacheKey);
             if (cached) {
@@ -476,6 +523,8 @@ export class RowStore {
                     materializedPages: 0,
                     pagesMissing: 0,
                     shortWindow: false,
+                    gridPreview,
+                    returnedValueCharacters: countWindowValueCharacters(cached.window),
                     ms: Date.now() - startedAt,
                     ...this.cachePerfAttrs,
                 });
@@ -491,6 +540,11 @@ export class RowStore {
             ordinals ?? Array.from({ length: columnSpan }, (_, i) => columnStart + i);
         const values: unknown[][] = [];
         const nullBits: boolean[] = [];
+        const documentLanguages: Array<"xml" | "json" | null> | undefined = gridPreview
+            ? []
+            : undefined;
+        let sourceValueCharacters = 0;
+        let returnedValueCharacters = 0;
         let fromSpill = false;
         let pagesVisited = 0;
         let pagesMaterialized = 0;
@@ -505,6 +559,7 @@ export class RowStore {
         // only interactive read reasons re-admit pages to memory.
         const admit =
             reason === "grid" ||
+            reason === "gridPreview" ||
             reason === "copy" ||
             reason === "cellDocument" ||
             reason === "diagnostic";
@@ -525,7 +580,7 @@ export class RowStore {
                 continue; // spill read failure surfaces as short window
             }
             pagesMaterialized++;
-            if (admit && reason === "grid" && page.compact) {
+            if (admit && interactiveGrid && page.compact) {
                 this.promoteToProtected(set, page);
             }
             const from = Math.max(0, start - page.rowOffset);
@@ -536,16 +591,43 @@ export class RowStore {
                 : undefined;
             for (let row = from; row < to; row++) {
                 const sourceRow = compact.values[row] ?? [];
-                values.push(
-                    ordinals
-                        ? ordinals.map((o) => sourceRow[o])
-                        : projected
-                          ? sourceRow.slice(columnStart, columnStart + columnSpan)
-                          : sourceRow,
-                );
+                const targetRow: unknown[] = gridPreview
+                    ? new Array(projectedOrdinals.length)
+                    : ordinals
+                      ? ordinals.map((o) => sourceRow[o])
+                      : projected
+                        ? sourceRow.slice(columnStart, columnStart + columnSpan)
+                        : sourceRow;
+                values.push(targetRow);
+                let targetColumn = 0;
                 for (const col of projectedOrdinals) {
                     const nulled = hasNull(compact, row, col, columnCount, nullBitmap);
                     nullBits.push(nulled);
+                    if (gridPreview) {
+                        const sourceValue = sourceRow[col];
+                        if (nulled) {
+                            targetRow[targetColumn] = undefined;
+                            documentLanguages!.push(null);
+                        } else {
+                            sourceValueCharacters += retainedCellPayloadCharacters(sourceValue);
+                            const preview = clampDisplay(
+                                cellDisplayText(sourceValue),
+                                this.tuning.displayCellClamp,
+                            );
+                            targetRow[targetColumn] = preview;
+                            returnedValueCharacters += preview.length;
+                            const metadata = set.columns[col];
+                            documentLanguages!.push(
+                                cellDocumentLanguage(sourceValue, {
+                                    sqlType: metadata?.sqlType,
+                                    typeHint: set.typeHints?.[col],
+                                    isXml: metadata?.isXml,
+                                    isJson: metadata?.isJson,
+                                }) ?? null,
+                            );
+                        }
+                        targetColumn++;
+                    }
                     if (!countCells) {
                         continue;
                     }
@@ -564,30 +646,33 @@ export class RowStore {
             resultSetId,
             start,
             rowCount: values.length,
-            columns: projected
-                ? set.columns.slice(columnStart, columnStart + columnSpan)
-                : set.columns,
+            columns: ordinals
+                ? ordinals.map((ordinal) => set.columns[ordinal])
+                : projected
+                  ? set.columns.slice(columnStart, columnStart + columnSpan)
+                  : set.columns,
             values,
             nullBitmap: packBits(nullBits),
+            ...(gridPreview
+                ? {
+                      valueMode: "gridPreview" as const,
+                      documentLanguages,
+                  }
+                : {}),
             ...(set.typeHints
                 ? {
-                      typeHints: projected
-                          ? set.typeHints.slice(columnStart, columnStart + columnSpan)
-                          : set.typeHints,
+                      typeHints: ordinals
+                          ? ordinals.map((ordinal) => set.typeHints![ordinal])
+                          : projected
+                            ? set.typeHints.slice(columnStart, columnStart + columnSpan)
+                            : set.typeHints,
                   }
                 : {}),
         };
-        // Only complete, full-height windows cache (values are immutable, so
-        // a fully-populated window stays valid as the set keeps streaming).
+        // Only complete, full-height terminal windows cache. Values are
+        // immutable, and both entry and retained-byte budgets bound the LRU.
         if (cacheable && values.length === count && pagesMissing === 0) {
             this.setCachedWindow(cacheKey, window);
-            while (this.windowCache.size > this.tuning.windowCacheEntries) {
-                const oldest = this.windowCache.keys().next().value;
-                if (oldest === undefined) {
-                    break;
-                }
-                this.deleteCachedWindow(oldest, true);
-            }
         }
         Perf.marker("mssql.queryStudio.rows.windowFetch.end", "end", {
             resultSetId,
@@ -604,6 +689,9 @@ export class RowStore {
             materializedPages: pagesMaterialized,
             pagesMissing,
             shortWindow: values.length < end - start,
+            gridPreview,
+            sourceValueCharacters,
+            returnedValueCharacters,
             ms: Date.now() - startedAt,
             ...this.cachePerfAttrs,
             ...(countCells
@@ -621,6 +709,20 @@ export class RowStore {
     private setCachedWindow(key: string, window: QsCellWindow): void {
         this.deleteCachedWindow(key, false);
         const cached = { window, approxBytes: estimateWindowRetainedBytes(window) };
+        if (cached.approxBytes > this.tuning.windowCacheMaxBytes) {
+            this.windowCacheOversizeSkips++;
+            return;
+        }
+        while (
+            this.windowCache.size >= this.tuning.windowCacheEntries ||
+            this.windowCacheBytes + cached.approxBytes > this.tuning.windowCacheMaxBytes
+        ) {
+            const oldest = this.windowCache.keys().next().value;
+            if (oldest === undefined) {
+                break;
+            }
+            this.deleteCachedWindow(oldest, true);
+        }
         this.windowCache.set(key, cached);
         this.windowCacheBytes += cached.approxBytes;
         this.windowCachePeakBytes = Math.max(this.windowCachePeakBytes, this.windowCacheBytes);
@@ -735,9 +837,11 @@ export class RowStore {
                 return;
             }
             const startedAt = performance.now();
-            // Serialization happens HERE, off the append call stack (QO-5
-            // will hand the store pre-encoded frames and delete this step).
-            const frame = Buffer.from(JSON.stringify(page.compact), "utf8");
+            // Session-local spill never crosses a process/runtime boundary, so
+            // V8 structured clone avoids JSON's full UTF-16 stringify/parse copy.
+            const serializeStartedAt = performance.now();
+            const frame = serialize(page.compact);
+            const serializeMs = performance.now() - serializeStartedAt;
             if (this.spillBytes + frame.length + 4 > this.limits.maxSpillBytes) {
                 this.spillFailed = true;
                 return;
@@ -745,8 +849,9 @@ export class RowStore {
             const header = Buffer.alloc(4);
             header.writeUInt32LE(frame.length, 0);
             const offset = this.spillBytes;
-            await writeAt(fd, header, offset);
-            await writeAt(fd, frame, offset + 4);
+            const ioStartedAt = performance.now();
+            await writeBuffersAt(fd, [header, frame], offset);
+            const ioMs = performance.now() - ioStartedAt;
             page.spillOffset = offset;
             page.spillLength = frame.length;
             page.compact = undefined;
@@ -755,11 +860,16 @@ export class RowStore {
             const elapsed = performance.now() - startedAt;
             this.spillWrites++;
             this.spillWriteMsTotal += elapsed;
+            this.spillSerializeMsTotal += serializeMs;
+            this.spillWriteIoMsTotal += ioMs;
             if (this.verbose) {
                 Perf.marker("mssql.queryStudio.rows.spill.write", "instant", {
                     resultSetId: set.resultSetId,
                     bytes: frame.length,
                     ms: roundMs(elapsed),
+                    serializeMs: roundMs(serializeMs),
+                    ioMs: roundMs(ioMs),
+                    encoding: "v8-v1",
                 });
             }
         } catch {
@@ -830,7 +940,9 @@ export class RowStore {
             const frame = Buffer.alloc(page.spillLength!);
             await readAt(this.spillFd, frame, page.spillOffset + 4);
             const readMs = performance.now() - startedAt;
-            const compact = JSON.parse(frame.toString("utf8")) as CompactPage;
+            const deserializeStartedAt = performance.now();
+            const compact = deserialize(frame) as CompactPage;
+            const deserializeMs = performance.now() - deserializeStartedAt;
             if (admit && !this.disposed) {
                 // Re-admit to memory (read pages are likely re-read).
                 page.compact = compact;
@@ -842,12 +954,16 @@ export class RowStore {
             const elapsed = performance.now() - startedAt;
             this.spillReads++;
             this.spillReadMsTotal += readMs;
+            this.spillDeserializeMsTotal += deserializeMs;
             this.materializeMsTotal += elapsed;
             if (this.verbose) {
                 Perf.marker("mssql.queryStudio.rows.spill.read", "instant", {
                     resultSetId: set.resultSetId,
                     bytes: page.spillLength ?? 0,
                     ms: roundMs(elapsed),
+                    ioMs: roundMs(readMs),
+                    deserializeMs: roundMs(deserializeMs),
+                    encoding: "v8-v1",
                 });
             }
             return compact;
@@ -928,7 +1044,48 @@ function estimateWindowRetainedBytes(window: QsCellWindow): number {
             bytes += retainedStringBytes(hint);
         }
     }
+    if (window.valueMode) {
+        bytes += retainedStringBytes(window.valueMode);
+    }
+    if (window.documentLanguages) {
+        bytes += window.documentLanguages.length * 8;
+        for (const language of window.documentLanguages) {
+            if (language) {
+                bytes += retainedStringBytes(language);
+            }
+        }
+    }
     return bytes;
+}
+
+function countWindowValueCharacters(window: QsCellWindow): number {
+    let characters = 0;
+    for (const row of window.values) {
+        for (const value of row) {
+            characters += retainedCellPayloadCharacters(value);
+        }
+    }
+    return characters;
+}
+
+/** Cheap aggregate size signal for common scalar and typed-wire payloads. */
+function retainedCellPayloadCharacters(value: unknown): number {
+    if (typeof value === "string") {
+        return value.length;
+    }
+    if (typeof value === "number" || typeof value === "bigint" || typeof value === "boolean") {
+        return String(value).length;
+    }
+    if (value === null || value === undefined || typeof value !== "object") {
+        return 0;
+    }
+    const record = value as Record<string, unknown>;
+    for (const key of ["v", "data", "wkb"] as const) {
+        if (typeof record[key] === "string") {
+            return record[key].length;
+        }
+    }
+    return 0;
 }
 
 function estimateRetainedValue(value: unknown, seen: Set<object>, depth: number): number {
@@ -983,11 +1140,36 @@ function retainedStringBytes(value: string): number {
     return 24 + value.length * 2;
 }
 
-function writeAt(fd: number, buffer: Buffer, position: number): Promise<void> {
+function writeBuffersAt(fd: number, buffers: readonly Buffer[], position: number): Promise<void> {
     return new Promise((resolve, reject) => {
-        fs.write(fd, buffer, 0, buffer.length, position, (error) =>
-            error ? reject(error) : resolve(),
-        );
+        const pending = buffers.filter((buffer) => buffer.length > 0).slice();
+        const writeNext = (): void => {
+            if (pending.length === 0) {
+                resolve();
+                return;
+            }
+            fs.writev(fd, pending, position, (error, bytesWritten) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                if (bytesWritten <= 0) {
+                    reject(new Error("Spill write made no forward progress"));
+                    return;
+                }
+                position += bytesWritten;
+                let consumed = bytesWritten;
+                while (pending.length > 0 && consumed >= pending[0].length) {
+                    consumed -= pending[0].length;
+                    pending.shift();
+                }
+                if (consumed > 0 && pending.length > 0) {
+                    pending[0] = pending[0].subarray(consumed);
+                }
+                writeNext();
+            });
+        };
+        writeNext();
     });
 }
 

@@ -85,6 +85,7 @@ import {
     resolveQueryStudioVisibleTab,
     shouldResetQueryStudioRunView,
 } from "../../../sharedInterfaces/queryStudioViewState";
+import { appendPositionedQueryStudioMessages } from "../../../sharedInterfaces/queryStudioMessageWindows";
 import {
     QsLangCompletionItemKind,
     QsLangCompletionRequest,
@@ -568,7 +569,15 @@ export function QueryStudioApp() {
             if (fetchMessageSnapshot) {
                 void rpc
                     .sendRequest(QsGetMessagesRequest.type, {})
-                    .then((result) => setMessages(result.messages));
+                    .then((result) =>
+                        setMessages((current) =>
+                            appendPositionedQueryStudioMessages(
+                                current,
+                                result.startIndex,
+                                result.messages,
+                            ),
+                        ),
+                    );
             }
             planTabFocusRef.current = {
                 ...(planRunArmedRef.current ? { runId } : {}),
@@ -869,6 +878,7 @@ export function QueryStudioApp() {
                         : p.action.kind === "selectGrid" || p.action.kind === "copyGrid"
                           ? { resultSetIndex: p.action.resultSetIndex }
                           : {}),
+                    ...(p.action.kind === "sweepResultStack" ? { steps: p.action.steps } : {}),
                     ...(p.action.kind === "copyGrid"
                         ? { includeHeaders: p.action.includeHeaders }
                         : {}),
@@ -899,17 +909,9 @@ export function QueryStudioApp() {
                     // Position-addressed (QO-7): coalesced batches can
                     // interleave with the catch-up fetch — dedupe by the
                     // host's absolute index, never double-append.
-                    setMessages((current) => {
-                        if (p.startIndex === current.length) {
-                            return [...current, ...p.messages];
-                        }
-                        if (p.startIndex > current.length) {
-                            // Gap: the messageCount catch-up effect fills it.
-                            return current;
-                        }
-                        const fresh = p.messages.slice(current.length - p.startIndex);
-                        return fresh.length > 0 ? [...current, ...fresh] : current;
-                    });
+                    setMessages((current) =>
+                        appendPositionedQueryStudioMessages(current, p.startIndex, p.messages),
+                    );
                 },
             ),
             rpc.onNotification(
@@ -1015,7 +1017,10 @@ export function QueryStudioApp() {
                 resultSets: state?.results.resultSets.length ?? 0,
             };
             const markTerminalPaint = () => {
-                perfMarkAfterNextPaint("mssql.queryStudio.resultsRendered", attrs);
+                perfMarkAfterNextPaintComputed("mssql.queryStudio.resultsRendered", () => ({
+                    ...attrs,
+                    activeTab: activeTabRef.current,
+                }));
                 if (perfMarksEnabled()) {
                     perfMarkAfterNextPaintComputed("mssql.queryStudio.webview.health", () =>
                         queryStudioWebviewHealthAttrs("terminalPaint", mountedTabsRef.current.size),
@@ -1065,11 +1070,9 @@ export function QueryStudioApp() {
             if (canceled || result.messages.length === 0) {
                 return;
             }
-            setMessages((current) => {
-                const alreadyAppended = Math.max(0, current.length - afterIndex);
-                const missing = result.messages.slice(alreadyAppended);
-                return missing.length > 0 ? [...current, ...missing] : current;
-            });
+            setMessages((current) =>
+                appendPositionedQueryStudioMessages(current, result.startIndex, result.messages),
+            );
         });
         return () => {
             canceled = true;
@@ -1860,6 +1863,12 @@ export function QueryStudioApp() {
         }
         return byResult;
     }, [resultSetSummaries]);
+    // Results is home and never auto-redirects to Messages: the terminal-state
+    // handler above is the SINGLE authority that moves a completed no-data or
+    // errored run to Messages (from one coherent snapshot, once per run). This
+    // supersedes the run-start-pending execution guard the merge brought in —
+    // that guard only narrows the redirect window; keeping Results sticky closes
+    // it entirely, which is what a fast SELECT (data present at settle) needs.
     const visibleActiveTab = resolveQueryStudioVisibleTab(activeTab, {
         results: hasDataResults,
         queryPlan: hasPlanResults,

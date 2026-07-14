@@ -7,8 +7,8 @@ import { expect } from "chai";
 import {
     createQueryStudioPanelViewState,
     isQueryStudioPanelViewState,
-    isVectorTabEligible,
     isSpatialTabEligible,
+    isVectorTabEligible,
     normalizeQueryStudioPanelViewState,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,

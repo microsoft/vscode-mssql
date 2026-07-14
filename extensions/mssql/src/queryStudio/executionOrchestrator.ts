@@ -391,9 +391,13 @@ export class ExecutionOrchestrator {
             pages: storeStats.pages,
             spillWrites: storeStats.spillWrites,
             spillReads: storeStats.spillReads,
+            spillEncoding: storeStats.spillEncoding,
             appendMsTotal: storeStats.appendMsTotal,
             spillWriteMsTotal: storeStats.spillWriteMsTotal,
+            spillSerializeMsTotal: storeStats.spillSerializeMsTotal,
+            spillWriteIoMsTotal: storeStats.spillWriteIoMsTotal,
             spillReadMsTotal: storeStats.spillReadMsTotal,
+            spillDeserializeMsTotal: storeStats.spillDeserializeMsTotal,
             materializeMsTotal: storeStats.materializeMsTotal,
             windowCacheHits: storeStats.windowCacheHits,
             windowCacheMisses: storeStats.windowCacheMisses,
@@ -403,6 +407,9 @@ export class ExecutionOrchestrator {
             windowCacheBytes: storeStats.windowCacheBytes,
             windowCachePeakBytes: storeStats.windowCachePeakBytes,
             windowCacheEvictions: storeStats.windowCacheEvictions,
+            windowCacheBypasses: storeStats.windowCacheBypasses,
+            windowCacheOversizeSkips: storeStats.windowCacheOversizeSkips,
+            windowCacheMaxBytes: storeStats.windowCacheMaxBytes,
         });
         if (this.cancelRequestedAt !== undefined) {
             Perf.marker("mssql.queryStudio.cancel", "instant", {

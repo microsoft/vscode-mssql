@@ -44,6 +44,45 @@ export function messageLineCount(message: QsMessageRow): number {
     return lines;
 }
 
+export interface QueryStudioMessageOffsetIndex {
+    messages: readonly QsMessageRow[];
+    offsets: number[];
+}
+
+/**
+ * Extend the virtualized message-height index in O(new messages). Query
+ * Studio's message state is append-only inside a run and resets by replacing
+ * the array; endpoint identity checks distinguish those two operations.
+ */
+export function updateQueryStudioMessageOffsetIndex(
+    previous: QueryStudioMessageOffsetIndex,
+    messages: readonly QsMessageRow[],
+    lineHeight: number,
+): QueryStudioMessageOffsetIndex {
+    if (previous.messages === messages) {
+        return previous;
+    }
+    const previousLength = previous.messages.length;
+    const appendOnly =
+        previous.offsets.length === previousLength + 1 &&
+        previousLength <= messages.length &&
+        (previousLength === 0 ||
+            (previous.messages[0] === messages[0] &&
+                previous.messages[previousLength - 1] === messages[previousLength - 1]));
+    const index: QueryStudioMessageOffsetIndex = appendOnly
+        ? previous
+        : { messages: [], offsets: [0] };
+    const start = appendOnly ? previousLength : 0;
+    for (let messageIndex = start; messageIndex < messages.length; messageIndex++) {
+        index.offsets.push(
+            index.offsets[index.offsets.length - 1] +
+                messageLineCount(messages[messageIndex]) * lineHeight,
+        );
+    }
+    index.messages = messages;
+    return index;
+}
+
 /** The Copy All payload — one formatted row per line, pane-identical. */
 export function buildMessagesText(messages: readonly QsMessageRow[]): string {
     return messages.map(formatMessageForDisplay).join("\n");

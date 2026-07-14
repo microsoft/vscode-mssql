@@ -17,10 +17,13 @@ import {
 } from "@slickgrid-universal/common";
 import type { DbCellValue } from "../../../../sharedInterfaces/queryResult";
 import type {
+    FluentResultGridColumnWindow,
+    FluentResultGridColumnWindowingOptions,
     FluentResultGridDataSource,
     FluentResultGridRow,
 } from "../types/fluentResultGridDataSource";
 import type { MaybePromise } from "../types/fluentResultGridPrimitives";
+import { resolveFluentResultGridColumnWindow } from "./fluentResultGridColumnWindow";
 
 export const FLUENT_RESULT_GRID_ROW_NUMBER_FIELD = "_fluentResultGridRowNumber";
 
@@ -46,6 +49,7 @@ export interface FluentResultGridRowStore<T extends Slick.SlickData> {
     setLength(length: number, resetData?: boolean): void;
     setRows?: (rows: FluentResultGridRow[], length?: number) => number;
     resetAroundIndex?: (index: number) => void;
+    setColumnWindow?: (columnWindow: FluentResultGridColumnWindow | undefined) => boolean;
     getItems(): T[];
     dispose(): void;
 }
@@ -102,6 +106,7 @@ function createDefaultCellValue(cell: DbCellValue | undefined, absoluteRowIndex:
         // can resolve the original row after sort/filter reorders display
         // rows; fall back to the absolute display index.
         rowId: cell?.rowId ?? absoluteRowIndex,
+        ...(cell?.languageId ? { languageId: cell.languageId } : {}),
     } satisfies FluentResultGridCellValue;
 }
 
@@ -232,6 +237,8 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
     private length = 0;
     private offset = -1;
     private requestId = 0;
+    private loading = false;
+    private complete = false;
 
     constructor(
         private readonly loadRows: (offset: number, count: number) => MaybePromise<T[]>,
@@ -263,38 +270,124 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
         return this.rows[index - this.offset];
     }
 
+    public invalidate(): void {
+        this.rows = undefined;
+        this.loading = false;
+        this.complete = false;
+        this.requestId++;
+    }
+
     public positionWindow(offset: number, length: number, totalItems: number): void {
         const totalLength = toNonNegativeInteger(totalItems);
         const nextOffset = clamp(toNonNegativeInteger(offset), 0, totalLength);
         const nextLength = clamp(toNonNegativeInteger(length), 0, totalLength - nextOffset);
 
-        this.offset = nextOffset;
-        this.length = nextLength;
-        this.rows = undefined;
-
-        const currentRequestId = ++this.requestId;
-        if (nextLength === 0) {
+        if (
+            nextOffset === this.offset &&
+            nextLength === this.length &&
+            (this.complete || this.loading || nextLength === 0)
+        ) {
             return;
         }
 
+        const previousOffset = this.offset;
+        const previousLength = this.length;
+        const previousRows = this.rows;
+
+        // Streaming result sets commonly grow inside the same viewport
+        // window. Preserve the immutable prefix and request only the newly
+        // appended suffix instead of retransferring 1, 2, ... N rows.
+        if (
+            nextOffset === previousOffset &&
+            nextLength > previousLength &&
+            previousRows !== undefined &&
+            this.complete
+        ) {
+            this.offset = nextOffset;
+            this.length = nextLength;
+            const suffixOffset = previousOffset + previousLength;
+            const suffixLength = nextLength - previousLength;
+            const retainedRows = previousRows.slice(0, previousLength);
+            const currentRequestId = ++this.requestId;
+            this.loading = true;
+            this.complete = false;
+            Promise.resolve(this.loadRows(suffixOffset, suffixLength)).then(
+                (rows) => {
+                    if (currentRequestId !== this.requestId || !Array.isArray(rows)) {
+                        return;
+                    }
+                    this.loading = false;
+                    const merged = new Array<T>(nextLength);
+                    for (let index = 0; index < retainedRows.length; index++) {
+                        merged[index] = retainedRows[index];
+                    }
+                    for (let index = 0; index < rows.length && index < suffixLength; index++) {
+                        merged[previousLength + index] = rows[index];
+                    }
+                    this.rows = merged;
+                    this.complete = rows.length >= suffixLength;
+                    this.loadCompleteCallback(suffixOffset, suffixOffset + suffixLength);
+                },
+                () => {
+                    if (currentRequestId === this.requestId) {
+                        this.loading = false;
+                    }
+                },
+            );
+            return;
+        }
+
+        if (
+            nextOffset === previousOffset &&
+            nextLength < previousLength &&
+            previousRows !== undefined &&
+            this.complete
+        ) {
+            this.offset = nextOffset;
+            this.length = nextLength;
+            this.rows = previousRows.slice(0, nextLength);
+            this.loading = false;
+            this.complete = true;
+            this.requestId++;
+            return;
+        }
+
+        this.offset = nextOffset;
+        this.length = nextLength;
+        this.rows = undefined;
+        this.complete = false;
+
+        const currentRequestId = ++this.requestId;
+        if (nextLength === 0) {
+            this.loading = false;
+            this.complete = true;
+            return;
+        }
+
+        this.loading = true;
         Promise.resolve(this.loadRows(nextOffset, nextLength)).then(
             (rows) => {
                 if (currentRequestId !== this.requestId || !Array.isArray(rows)) {
                     return;
                 }
 
+                this.loading = false;
                 this.rows = rows;
+                this.complete = rows.length >= this.length;
                 this.loadCompleteCallback(this.offset, this.offset + this.length);
             },
-            () => undefined,
+            () => {
+                if (currentRequestId === this.requestId) {
+                    this.loading = false;
+                }
+            },
         );
     }
 
     public dispose(): void {
-        this.rows = undefined;
+        this.invalidate();
         this.length = 0;
         this.offset = -1;
-        this.requestId++;
     }
 }
 
@@ -314,7 +407,12 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         windowSize: number,
         private readonly createPlaceholderRow: (index: number) => T,
         private length: number,
-        private readonly loadRows: (offset: number, count: number) => MaybePromise<T[]>,
+        private readonly loadRows: (
+            offset: number,
+            count: number,
+            columnWindow?: FluentResultGridColumnWindow,
+        ) => MaybePromise<T[]>,
+        private readonly columnWindowingEnabled: boolean,
     ) {
         this.windowSize = toPositiveInteger(windowSize, 1);
 
@@ -334,10 +432,28 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         loadCompleteCallback: (start: number, end: number) => void,
     ): FluentResultGridDataWindow<T> {
         return new FluentResultGridDataWindow(
-            this.loadRows,
+            (offset, count) => this.loadRows(offset, count, this.columnWindow),
             this.createPlaceholderRow,
             loadCompleteCallback,
         );
+    }
+
+    private columnWindow: FluentResultGridColumnWindow | undefined;
+
+    public setColumnWindow(columnWindow: FluentResultGridColumnWindow | undefined): boolean {
+        if (!this.columnWindowingEnabled) {
+            return false;
+        }
+        if (
+            this.columnWindow?.start === columnWindow?.start &&
+            this.columnWindow?.count === columnWindow?.count
+        ) {
+            return false;
+        }
+        this.columnWindow = columnWindow;
+        this.invalidateWindows();
+        this.lengthChanged = true;
+        return true;
     }
 
     public getLength(): number {
@@ -353,8 +469,17 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
     public setLength(length: number, resetData = true): void {
         const nextLength = toNonNegativeInteger(length);
         const shouldResetWindows = resetData || nextLength < this.length;
+        if (shouldResetWindows) {
+            this.invalidateWindows();
+        }
         this.lengthChanged = this.lengthChanged || shouldResetWindows;
         this.length = nextLength;
+    }
+
+    private invalidateWindows(): void {
+        this.bufferWindowBefore.invalidate();
+        this.window.invalidate();
+        this.bufferWindowAfter.invalidate();
     }
 
     public at(index: number): T {
@@ -432,13 +557,17 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             return [];
         }
 
-        const loadedRows = this.getLoadedRangeFromCurrentWindows(range.start, range.end);
-        if (loadedRows) {
-            return loadedRows;
+        // A projected viewport row is deliberately sparse. Explicit async
+        // reads (autosize/commands) retain the historical full-row contract.
+        if (!this.columnWindowingEnabled) {
+            const loadedRows = this.getLoadedRangeFromCurrentWindows(range.start, range.end);
+            if (loadedRows) {
+                return loadedRows;
+            }
         }
 
         const rows = await Promise.resolve(
-            this.loadRows(range.start, range.end - range.start),
+            this.loadRows(range.start, range.end - range.start, undefined),
         ).catch(() => []);
         return Array.from(
             { length: range.end - range.start },
@@ -548,8 +677,13 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
     private gridEventHandler = new SlickEventHandler();
     private disposed = false;
     private pendingAnimationFrame: number | undefined;
+    private columnWindow: FluentResultGridColumnWindow | undefined;
 
-    constructor(private readonly rowStore: FluentResultGridRowStore<T>) {
+    constructor(
+        private readonly rowStore: FluentResultGridRowStore<T>,
+        private readonly columnWindowing?: FluentResultGridColumnWindowingOptions,
+        private readonly sourceColumnCount = 0,
+    ) {
         this.rowStore.setCollectionChangedCallback((startIndex, count) => {
             if (this.disposed) {
                 return;
@@ -571,11 +705,17 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
         return this.rowStore.isFullyInMemory;
     }
 
+    public get hasColumnWindowing(): boolean {
+        return this.columnWindowing !== undefined;
+    }
+
     public setGrid(grid: SlickGrid): void {
         this.gridEventHandler.unsubscribeAll();
         this.grid = grid;
         this.gridEventHandler.subscribe(grid.onViewportChanged, () => this.ensureViewportLoaded());
         this.gridEventHandler.subscribe(grid.onScroll, () => this.ensureViewportLoaded());
+        this.gridEventHandler.subscribe(grid.onColumnsResized, () => this.ensureViewportLoaded());
+        this.gridEventHandler.subscribe(grid.onColumnsReordered, () => this.ensureViewportLoaded());
         this.ensureViewportLoaded();
         requestAnimationFrame(() => this.ensureViewportLoaded());
     }
@@ -680,6 +820,21 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
     }
 
     public refresh(startIndex = 0): void {
+        // On first mount the grid owns the authoritative horizontal viewport.
+        // Defer the initial window read until setGrid() can project it.
+        if (this.columnWindowing) {
+            if (!this.grid) {
+                return;
+            }
+            // setLength(..., true) has already invalidated the row store.
+            // Resolve the live column band before getRange performs that
+            // reset; resetting here would issue one unprojected generation.
+            this.grid.invalidateAllRows();
+            this.grid.updateRowCount();
+            this.scheduleRender();
+            this.ensureViewportLoaded();
+            return;
+        }
         this.rowStore.resetAroundIndex?.(toNonNegativeInteger(startIndex));
 
         this.grid?.invalidateAllRows();
@@ -701,6 +856,22 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
 
         const start = Math.max(0, viewport.top);
         const end = Math.min(length, Math.max(start + 1, viewport.bottom + 1));
+        if (this.columnWindowing) {
+            const nextColumnWindow = resolveFluentResultGridColumnWindow({
+                columns: this.grid.getColumns(),
+                sourceColumnCount: this.sourceColumnCount,
+                viewport,
+                frozenColumnIndex: this.grid.getOptions().frozenColumn,
+                activeCellIndex: this.grid.getActiveCell()?.cell,
+                options: this.columnWindowing,
+                currentWindow: this.columnWindow,
+            });
+            if (this.rowStore.setColumnWindow?.(nextColumnWindow)) {
+                this.columnWindow = nextColumnWindow;
+                this.grid.invalidateAllRows();
+                this.scheduleRender();
+            }
+        }
         this.rowStore.getRange(start, end);
     }
 
@@ -766,13 +937,16 @@ export function createFluentResultGridDataView<T extends Slick.SlickData = Fluen
             options.windowSize ?? defaultWindowSize,
             (index) => rowFactory.createPlaceholderRow(index, columnCount),
             dataSource.rowCount,
-            async (offset, count) => {
-                const rows = await dataSource.getRows(offset, count);
+            async (offset, count, columnWindow) => {
+                const rows = await dataSource.getRows(offset, count, columnWindow);
                 return rows.map((row, rowOffset) =>
                     rowFactory.createRow(row, offset + rowOffset, columnCount),
                 );
             },
+            dataSource.columnWindowing !== undefined,
         ),
+        dataSource.columnWindowing,
+        columnCount,
     );
 }
 

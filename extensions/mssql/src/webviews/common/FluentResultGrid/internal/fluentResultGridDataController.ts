@@ -19,7 +19,10 @@ import type {
     DbCellValue,
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
-import type { FluentResultGridDataSource } from "../types/fluentResultGridDataSource";
+import type {
+    FluentResultGridColumnWindow,
+    FluentResultGridDataSource,
+} from "../types/fluentResultGridDataSource";
 import type { MaybePromise } from "../types/fluentResultGridPrimitives";
 import type { FluentResultGridState } from "../types/fluentResultGridState";
 import { FLUENT_RESULT_GRID_WINDOW_SIZE } from "./fluentResultGridConstants";
@@ -46,7 +49,11 @@ export interface FluentResultGridDataController {
     dataViewRef: MutableRefObject<FluentResultGridDataView<FluentResultGridDataRow> | undefined>;
     displayedRowCount: number;
     ensureAllRowsLoaded: () => Promise<SourceRow[] | undefined>;
-    fetchRowsFromSource: (offset: number, count: number) => Promise<SourceRow[]>;
+    fetchRowsFromSource: (
+        offset: number,
+        count: number,
+        columnWindow?: FluentResultGridColumnWindow,
+    ) => Promise<SourceRow[]>;
     filterStateRef: MutableRefObject<ColumnFilterMap>;
     hasActiveSort: () => boolean;
     hasActiveTransforms: () => boolean;
@@ -92,12 +99,16 @@ export function useFluentResultGridDataController({
     const rowsDataSource = dataSource.kind === "rows" ? dataSource : undefined;
 
     const fetchRowsFromSource = useCallback(
-        async (offset: number, count: number): Promise<SourceRow[]> => {
+        async (
+            offset: number,
+            count: number,
+            columnWindow?: FluentResultGridColumnWindow,
+        ): Promise<SourceRow[]> => {
             const currentDataSource = dataSourceRef.current;
             const rows =
                 currentDataSource.kind === "rows"
                     ? currentDataSource.rows.slice(offset, offset + count)
-                    : await currentDataSource.getRows(offset, count);
+                    : await currentDataSource.getRows(offset, count, columnWindow);
 
             return rows.map((cells, rowOffset) => ({
                 rowId: offset + rowOffset,
@@ -108,13 +119,17 @@ export function useFluentResultGridDataController({
     );
 
     const fetchRows = useCallback(
-        async (offset: number, count: number): Promise<DbCellValue[][]> => {
+        async (
+            offset: number,
+            count: number,
+            columnWindow?: FluentResultGridColumnWindow,
+        ): Promise<DbCellValue[][]> => {
             const transformedRows = transformedRowsRef.current;
             if (transformedRows) {
                 return transformedRows.slice(offset, offset + count).map((row) => row.cells);
             }
 
-            return (await fetchRowsFromSource(offset, count)).map((row) => row.cells);
+            return (await fetchRowsFromSource(offset, count, columnWindow)).map((row) => row.cells);
         },
         [fetchRowsFromSource],
     );
@@ -129,6 +144,10 @@ export function useFluentResultGridDataController({
                         dataSourceRef.current.kind === "windowed"
                             ? dataSourceRef.current.rowCount
                             : 0,
+                    columnWindowing:
+                        dataSourceRef.current.kind === "windowed"
+                            ? dataSourceRef.current.columnWindowing
+                            : undefined,
                     getRows: fetchRows,
                 } as const),
             columnCount: resultSetSummary.columnInfo.length,

@@ -185,6 +185,12 @@ export function normalizeQueryStudioPerfInteractionArgs(
             return { error: "Query Studio interaction requested an unsupported scroll target." };
         }
         normalized = { kind: "scrollResultStack", target };
+    } else if (action["kind"] === "sweepResultStack") {
+        const steps = action["steps"];
+        if (!Number.isSafeInteger(steps) || (steps as number) < 2 || (steps as number) > 64) {
+            return { error: "Query Studio received an invalid result-stack sweep action." };
+        }
+        normalized = { kind: "sweepResultStack", steps: steps as number };
     } else if (action["kind"] === "scrollGrid") {
         const resultSetIndex = action["resultSetIndex"];
         const axis = action["axis"];

@@ -10,6 +10,7 @@ import type {
 
 export type QueryStudioPerfInteractionOutcome =
     | "applied"
+    | "alreadySelected"
     | "resultStackUnavailable"
     | "gridUnavailable"
     | "viewportUnavailable"
@@ -88,6 +89,24 @@ export function queryStudioPerfScrollOffset(
     }
 }
 
+export function queryStudioPerfSweepOffsets(
+    scrollSize: number,
+    clientSize: number,
+    steps: number,
+): number[] {
+    const maximum = Math.max(0, scrollSize - clientSize);
+    const boundedSteps = Math.max(2, Math.min(64, Math.floor(steps)));
+    return Array.from({ length: boundedSteps }, (_value, index) =>
+        Math.round((maximum * (index + 1)) / boundedSteps),
+    );
+}
+
+function waitForQueryStudioPerfPaint(): Promise<void> {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+}
+
 /**
  * Drive relative, product-owned result scrolling without screen coordinates
  * or caller-provided selectors. The notification contract is PERF_MODE-only;
@@ -97,6 +116,28 @@ export async function performQueryStudioPerfInteraction(
     action: QsPerfInteractionAction,
     resultStack: HTMLElement | null,
 ): Promise<QueryStudioPerfInteractionOutcome> {
+    if (action.kind === "sweepResultStack") {
+        if (!resultStack) {
+            return "resultStackUnavailable";
+        }
+        const offsets = queryStudioPerfSweepOffsets(
+            resultStack.scrollHeight,
+            resultStack.clientHeight,
+            action.steps,
+        );
+        if (offsets.at(-1) === 0) {
+            return "notScrollable";
+        }
+        for (const offset of offsets) {
+            resultStack.scrollTop = offset;
+            resultStack.dispatchEvent(new Event("scroll", { bubbles: true }));
+            // IntersectionObserver/grid mount work settles between paints;
+            // this PERF_MODE-only sweep must visit each region, not teleport.
+            await waitForQueryStudioPerfPaint();
+        }
+        return "applied";
+    }
+
     if (action.kind === "scrollResultStack") {
         if (!resultStack) {
             return "resultStackUnavailable";

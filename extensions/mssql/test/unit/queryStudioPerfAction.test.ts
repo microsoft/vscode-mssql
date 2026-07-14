@@ -14,6 +14,7 @@ import {
     performRegisteredQueryStudioPerfGridCopy,
     performRegisteredQueryStudioPerfGridSelection,
     queryStudioPerfScrollOffset,
+    queryStudioPerfSweepOffsets,
     registerQueryStudioPerfGridController,
 } from "../../src/webviews/pages/QueryStudio/queryStudioPerfInteraction";
 import type { QsVectorPerfSearchAction } from "../../src/sharedInterfaces/queryStudio";
@@ -149,6 +150,10 @@ suite("Query Studio PERF_MODE result interactions", () => {
         expect(queryStudioPerfScrollOffset(10_000, 1_000, "middle")).to.equal(4_500);
         expect(queryStudioPerfScrollOffset(10_000, 1_000, "end")).to.equal(9_000);
         expect(queryStudioPerfScrollOffset(500, 1_000, "end")).to.equal(0);
+        expect(queryStudioPerfSweepOffsets(10_000, 1_000, 4)).to.deep.equal([
+            2_250, 4_500, 6_750, 9_000,
+        ]);
+        expect(queryStudioPerfSweepOffsets(500, 1_000, 4)).to.deep.equal([0, 0, 0, 0]);
     });
 
     test("routes grid scrolls through the current product controller", () => {
@@ -262,6 +267,13 @@ suite("Query Studio PERF_MODE result interactions", () => {
         });
         expect(
             normalizeQueryStudioPerfInteractionArgs({
+                action: { kind: "sweepResultStack", steps: 32, selector: "#arbitrary" },
+            }),
+        ).to.deep.equal({
+            value: { action: { kind: "sweepResultStack", steps: 32 } },
+        });
+        expect(
+            normalizeQueryStudioPerfInteractionArgs({
                 action: {
                     kind: "selectGrid",
                     resultSetIndex: 3,
@@ -303,6 +315,8 @@ suite("Query Studio PERF_MODE result interactions", () => {
             { kind: "scrollGrid", resultSetIndex: 0, axis: "vertical", target: "42px" },
             { kind: "selectGrid", resultSetIndex: 0, selection: "rectangle" },
             { kind: "copyGrid", resultSetIndex: 0, selection: "all" },
+            { kind: "sweepResultStack", steps: 1 },
+            { kind: "sweepResultStack", steps: 65 },
             { kind: "click", selector: "#anything", target: "end" },
         ]) {
             expect(normalizeQueryStudioPerfInteractionArgs({ action })).to.have.property("error");

@@ -226,12 +226,13 @@ async function fetchTextRows(
     for (let start = 0; start < rowCount; start += TEXT_VIEW_CHUNK) {
         const count = Math.min(TEXT_VIEW_CHUNK, rowCount - start);
         const window = await rpc.sendRequest<
-            { resultSetId: string; start: number; count: number },
+            { resultSetId: string; start: number; count: number; purpose: "text" },
             QsCellWindow
         >(QsGetRowsRequest.type, {
             resultSetId: summary.resultSetId,
             start,
             count,
+            purpose: "text",
         });
         const isNull = windowNullFlags(window);
         for (let row = 0; row < window.values.length; row++) {

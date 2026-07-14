@@ -58,7 +58,10 @@ suite("Query Studio RowStore", () => {
                     rowCount: 10,
                     approxBytes: 512,
                     compact: {
-                        values: Array.from({ length: 10 }, (_, r) => [`row-${i * 10 + r}`]),
+                        values: Array.from({ length: 10 }, (_, r) => [
+                            i === 0 && r === 0 ? undefined : `row-${i * 10 + r}`,
+                        ]),
+                        ...(i === 0 ? { nullBitmap: "AQ==" } : {}),
                     },
                 });
             }
@@ -71,14 +74,18 @@ suite("Query Studio RowStore", () => {
             const window = await store.getRows("r0", 0, 5);
             expect(window.rowCount).to.equal(5);
             expect(window.values).to.deep.equal([
-                ["row-0"],
+                [undefined],
                 ["row-1"],
                 ["row-2"],
                 ["row-3"],
                 ["row-4"],
             ]);
             expect(store.stats.spillReads).to.be.greaterThan(0);
+            expect(store.stats.spillEncoding).to.equal("v8-v1");
             expect(store.stats.spillWriteMsTotal).to.be.at.least(0);
+            expect(store.stats.spillSerializeMsTotal).to.be.at.least(0);
+            expect(store.stats.spillWriteIoMsTotal).to.be.at.least(0);
+            expect(store.stats.spillDeserializeMsTotal).to.be.at.least(0);
             expect(store.stats.materializeMsTotal).to.be.greaterThan(0);
         } finally {
             store.dispose();
@@ -173,6 +180,8 @@ suite("Query Studio RowStore", () => {
                 maxPendingSpillBytes: 32 * 1024 * 1024,
                 protectedCacheRatio: 0.5,
                 windowCacheEntries: 8,
+                windowCacheMaxBytes: 16 * 1024 * 1024,
+                displayCellClamp: 2048,
             },
         );
         try {
@@ -188,6 +197,7 @@ suite("Query Studio RowStore", () => {
                 });
             }
             await store.flushSpill();
+            store.endResultSet("r0");
             // Pin a viewport window (grid reason promotes to protected).
             const viewport = await store.getRows("r0", 990, 10, "grid");
             expect(viewport.rowCount).to.equal(10);
@@ -269,6 +279,8 @@ suite("Query Studio RowStore", () => {
             maxPendingSpillBytes: 32 * 1024 * 1024,
             protectedCacheRatio: 0.5,
             windowCacheEntries: 1,
+            windowCacheMaxBytes: 16 * 1024 * 1024,
+            displayCellClamp: 2048,
         });
         try {
             store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
@@ -278,6 +290,7 @@ suite("Query Studio RowStore", () => {
                 approxBytes: 128,
                 compact: { values: [["alpha"], ["beta"], ["gamma"], ["delta"]] },
             });
+            store.endResultSet("r0");
 
             await store.getRows("r0", 0, 2, "grid");
             const first = store.stats;
@@ -293,6 +306,71 @@ suite("Query Studio RowStore", () => {
             store.markCorrupt("r0");
             expect(store.stats.windowCacheEntries).to.equal(0);
             expect(store.stats.windowCacheBytes).to.equal(0);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("grid windows carry bounded previews while fidelity reads retain exact values", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(spillDir, undefined, "minimal", {
+            maxPendingSpillBytes: 32 * 1024 * 1024,
+            protectedCacheRatio: 0.5,
+            windowCacheEntries: 8,
+            windowCacheMaxBytes: 16 * 1024 * 1024,
+            displayCellClamp: 16,
+        });
+        try {
+            const raw = `{"data":"${"x".repeat(100)}"}`;
+            store.beginResultSet("r0", [{ name: "payload", displayName: "payload", isJson: true }]);
+            await store.appendPage("r0", {
+                rowOffset: 0,
+                rowCount: 1,
+                approxBytes: raw.length * 2,
+                compact: { values: [[raw]] },
+            });
+
+            const preview = await store.getRows("r0", 0, 1, "gridPreview");
+            expect(preview.valueMode).to.equal("gridPreview");
+            expect(preview.values[0][0]).to.equal(raw.slice(0, 16) + "…");
+            expect(preview.documentLanguages).to.deep.equal(["json"]);
+
+            const copy = await store.getRows("r0", 0, 1, "copy");
+            expect(copy.valueMode).to.equal(undefined);
+            expect(copy.values[0][0]).to.equal(raw);
+        } finally {
+            store.dispose();
+        }
+    });
+
+    test("served-window cache skips streaming prefixes and enforces its byte ceiling", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(spillDir, undefined, "minimal", {
+            maxPendingSpillBytes: 32 * 1024 * 1024,
+            protectedCacheRatio: 0.5,
+            windowCacheEntries: 8,
+            windowCacheMaxBytes: 1,
+            displayCellClamp: 64,
+        });
+        try {
+            store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+            await store.appendPage("r0", {
+                rowOffset: 0,
+                rowCount: 1,
+                approxBytes: 1024,
+                compact: { values: [["x".repeat(512)]] },
+            });
+
+            await store.getRows("r0", 0, 1, "grid");
+            expect(store.stats.windowCacheEntries).to.equal(0);
+            expect(store.stats.windowCacheBypasses).to.equal(1);
+
+            store.endResultSet("r0");
+            await store.getRows("r0", 0, 1, "grid");
+            expect(store.stats.windowCacheEntries).to.equal(0);
+            expect(store.stats.windowCacheBytes).to.equal(0);
+            expect(store.stats.windowCachePeakBytes).to.equal(0);
+            expect(store.stats.windowCacheOversizeSkips).to.equal(1);
         } finally {
             store.dispose();
         }

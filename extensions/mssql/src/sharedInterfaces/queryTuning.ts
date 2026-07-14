@@ -52,6 +52,8 @@ export interface QueryTuningParams {
     protectedCacheRatio: number;
     /** Served-window cache entries above the page cache (QO-6). */
     windowCacheEntries: number;
+    /** Approximate retained-heap ceiling for served grid windows (QO-6). */
+    windowCacheMaxBytes: number;
 
     // --- notify: host→webview notification pacing ---
     /** 0 = per-page (current behavior); >0 = coalesce rows-appended pushes (QO-7). */
@@ -168,6 +170,7 @@ export const QUERY_TUNING_SPEC: Record<keyof QueryTuningParams, QueryTuningValue
     maxPendingSpillBytes: int(1 * MiB, 1024 * MiB),
     protectedCacheRatio: ratio,
     windowCacheEntries: int(0, 256),
+    windowCacheMaxBytes: int(0, 1024 * MiB),
     rowsNotifyIntervalMs: int(0, 1000),
     messagesNotifyIntervalMs: int(0, 1000),
     statePushMinIntervalMs: int(0, 1000),
@@ -222,6 +225,7 @@ export const QUERY_TUNING_DEFAULTS: QueryTuningParams = {
     maxPendingSpillBytes: 32 * MiB,
     protectedCacheRatio: 0.5,
     windowCacheEntries: 8,
+    windowCacheMaxBytes: 16 * MiB,
     rowsNotifyIntervalMs: 0,
     // 50 ms message coalescing: measured on the 10k-PRINT shape (QO-7) —
     // per-message pushes flood the webview; batches preserve final counts
@@ -282,6 +286,7 @@ export const QUERY_TUNING_PROFILES: Record<
         maxCellBytes: 256 * 1024,
         storeMemoryBytes: 16 * MiB,
         storeSpillBytes: 512 * MiB,
+        windowCacheMaxBytes: 4 * MiB,
         displayCellClamp: 1024,
         vectorSampleRows: 2000,
         vectorComponentBudget: 2_000_000,
