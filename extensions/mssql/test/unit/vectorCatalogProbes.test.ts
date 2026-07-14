@@ -744,6 +744,9 @@ suite("DocumentSessionBinding auxiliary sessions (VEC-7)", () => {
         };
         sandbox.stub(SqlDataPlaneService, "get").returns({
             service: async () => connectionService,
+            // Auxiliary/master sessions resolve the backend via the profile's
+            // remembered fallback; with nothing remembered this mirrors service().
+            serviceForProfile: async () => connectionService,
         } as unknown as SqlDataPlaneService);
     });
 

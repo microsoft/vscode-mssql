@@ -99,7 +99,7 @@ suite("PerfModeSink diagnostic span forwarding", () => {
         expect(s.queuedCount).to.equal(1);
     });
 
-    test("rpc/webview/sts/token span events forward additively with diag provenance", () => {
+    test("rpc/webview/sts/token/native-terminal events forward with diag provenance", () => {
         const s = sink();
         s.tryWrite(makeEvent({ type: "rpc.query/executeString.begin", kind: "span" }));
         s.tryWrite(
@@ -134,7 +134,22 @@ suite("PerfModeSink diagnostic span forwarding", () => {
                 },
             }),
         );
-        expect(s.queuedCount).to.equal(6);
+        s.tryWrite(
+            makeEvent({
+                type: "sqlDataPlane.tsNative.query.terminal",
+                kind: "event",
+                durationMs: 31,
+                payload: {
+                    queryStatus: {
+                        v: "succeeded",
+                        cls: "diagnostic.metadata",
+                        handling: "plain",
+                    },
+                    rows: { v: 10000, cls: "diagnostic.metadata", handling: "plain" },
+                },
+            }),
+        );
+        expect(s.queuedCount).to.equal(7);
         const queued = (s as unknown as { queue: Array<Record<string, unknown>> }).queue;
         expect(queued[4]).to.deep.include({
             name: "sqlDataPlane.auth.token.begin",
@@ -150,6 +165,16 @@ suite("PerfModeSink diagnostic span forwarding", () => {
             result: "acquired",
             diag: true,
             durationMs: 25,
+        });
+        expect(queued[6]).to.deep.include({
+            name: "sqlDataPlane.tsNative.query.terminal",
+            phase: "instant",
+        });
+        expect(queued[6]["attrs"]).to.deep.equal({
+            queryStatus: "succeeded",
+            rows: 10000,
+            diag: true,
+            durationMs: 31,
         });
     });
 

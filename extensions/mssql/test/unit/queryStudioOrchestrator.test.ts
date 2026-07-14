@@ -16,6 +16,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
+import { Perf } from "../../src/perf/perfTelemetry";
 import { ExecutionOrchestrator, RunEvents } from "../../src/queryStudio/executionOrchestrator";
 import { DEFAULT_LIMITS, RowStore } from "../../src/queryStudio/rowStore";
 import { QsMessageRow, QsResultColumn } from "../../src/sharedInterfaces/queryStudio";
@@ -137,6 +138,66 @@ suite("Query Studio execution orchestrator", () => {
         rowStore.dispose();
     });
 
+    test("query markers stamp backend, first accepted page, and truthful terminal status", async () => {
+        const backend = new FakeBackend({
+            scripts: [
+                {
+                    match: () => true,
+                    events: [
+                        { type: "resultSet", columns: ["a"], rows: [[1], [2]] },
+                        { type: "complete", status: "succeeded" },
+                    ],
+                },
+            ],
+        });
+        const session = await sessionFor(backend);
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const markers: Array<{
+            name: string;
+            phase?: string;
+            attrs?: Record<string, string | number | boolean | null>;
+        }> = [];
+        const originalMarker = Perf.marker;
+        Perf.marker = ((name, phase, attrs) => {
+            markers.push({ name, phase, attrs });
+        }) as typeof Perf.marker;
+        try {
+            const result = await orchestrator.run("select 1", {
+                selectionStartLine: 1,
+                stopOnError: false,
+                scope: "document",
+            });
+            expect(result.status).to.equal("succeeded");
+        } finally {
+            Perf.marker = originalMarker;
+            rowStore.dispose();
+        }
+
+        expect(
+            markers.find((marker) => marker.name === "mssql.queryStudio.query.submit")?.attrs,
+        ).to.include({ backend: "fake" });
+        const firstPage = markers.find(
+            (marker) => marker.name === "mssql.queryStudio.query.firstPage",
+        );
+        expect(firstPage?.attrs).to.include({ backend: "fake", pageRows: 2 });
+        expect(firstPage?.attrs?.["msFromSubmit"]).to.be.a("number");
+        expect(
+            markers.find((marker) => marker.name === "mssql.queryStudio.query.firstResult")?.attrs,
+        ).to.deep.equal(firstPage?.attrs);
+        const complete = markers.find(
+            (marker) => marker.name === "mssql.queryStudio.query.complete",
+        );
+        expect(complete?.attrs).to.include({
+            backend: "fake",
+            status: "succeeded",
+            errors: 0,
+            rows: 2,
+        });
+        expect(complete?.attrs?.["durationMs"]).to.be.a("number");
+    });
+
     test("continue-on-error (SSMS default): failed batch doesn't stop the run; summary says completedWithErrors", async () => {
         const backend = new FakeBackend({
             scripts: [
@@ -237,12 +298,14 @@ suite("Query Studio execution orchestrator", () => {
         rowStore.dispose();
     });
 
-    test("terminal summary error is surfaced in Messages when no error message arrived", async () => {
+    test("provider terminal error is surfaced and counted when no error message arrived", async () => {
         const session = scriptedSession(async () => ({
             status: "failed",
             resultSetCount: 0,
             totalRows: 0,
-            errorCount: 1,
+            // Provider admission/capability failures can occur before any
+            // stream message and historically arrived with this zero.
+            errorCount: 0,
             error: {
                 code: "208",
                 message: "Invalid object name 'sys'.",

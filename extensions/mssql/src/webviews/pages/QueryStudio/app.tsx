@@ -78,7 +78,6 @@ import {
     QsGetPanelViewStateRequest,
     QsUpdatePanelViewStateNotification,
     createQueryStudioPanelViewState,
-    isQueryStudioRunStartPending,
     isSpatialTabEligible,
     isVectorTabEligible,
     orderedQueryStudioTabs,
@@ -240,11 +239,6 @@ export function QueryStudioApp() {
     // debounced (≤10/s); the max of the two keeps grids growing smoothly.
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
     const [activeTab, setActiveTabState] = useState<QueryStudioTab>("results");
-    // QsRunStarted is deliberately lower-latency than the debounced coarse
-    // state. Preserve Results during that notification -> state gap so the
-    // stale previous/idle snapshot cannot immediately fail eligibility and
-    // select Messages before result metadata arrives.
-    const [pendingRunStart, setPendingRunStart] = useState<number | undefined>(undefined);
     const [vectorPerfAction, setVectorPerfAction] = useState<QsActivateTabParams | undefined>();
     const [mountedTabs, setMountedTabs] = useState<ReadonlySet<QueryStudioTab>>(
         () => new Set(["results"]),
@@ -553,7 +547,6 @@ export function QueryStudioApp() {
     const resetRunViewForStart = useCallback(
         (runId: number, fetchMessageSnapshot: boolean) => {
             startedRunRef.current = runId;
-            setPendingRunStart(runId);
             panelViewStateBootstrapEpochRef.current++;
             gridStateHandlersRef.current.clear();
             panelViewStateRef.current = resetQueryStudioPanelViewState(
@@ -1870,16 +1863,18 @@ export function QueryStudioApp() {
         }
         return byResult;
     }, [resultSetSummaries]);
-    const visibleActiveTab = resolveQueryStudioVisibleTab(
-        activeTab,
-        {
-            results: hasDataResults,
-            queryPlan: hasPlanResults,
-            vector: hasVectorResults,
-            spatial: hasSpatialResults,
-        },
-        executing || isQueryStudioRunStartPending(pendingRunStart, runId),
-    );
+    // Results is home and never auto-redirects to Messages: the terminal-state
+    // handler above is the SINGLE authority that moves a completed no-data or
+    // errored run to Messages (from one coherent snapshot, once per run). This
+    // supersedes the run-start-pending execution guard the merge brought in —
+    // that guard only narrows the redirect window; keeping Results sticky closes
+    // it entirely, which is what a fast SELECT (data present at settle) needs.
+    const visibleActiveTab = resolveQueryStudioVisibleTab(activeTab, {
+        results: hasDataResults,
+        queryPlan: hasPlanResults,
+        vector: hasVectorResults,
+        spatial: hasSpatialResults,
+    });
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {
             activateTab(visibleActiveTab, "eligibility");

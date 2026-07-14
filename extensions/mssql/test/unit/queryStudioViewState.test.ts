@@ -7,7 +7,6 @@ import { expect } from "chai";
 import {
     createQueryStudioPanelViewState,
     isQueryStudioPanelViewState,
-    isQueryStudioRunStartPending,
     isSpatialTabEligible,
     isVectorTabEligible,
     normalizeQueryStudioPanelViewState,
@@ -18,13 +17,38 @@ import {
 } from "../../src/sharedInterfaces/queryStudioViewState";
 
 suite("Query Studio panel view state", () => {
-    test("a running query keeps Results selected while result metadata is transiently empty", () => {
+    test("Results is never stickily redirected to Messages when result metadata is empty", () => {
         const empty = { results: false, vector: false, spatial: false, queryPlan: false };
-        expect(resolveQueryStudioVisibleTab("results", empty, true)).to.equal("results");
-        expect(
-            resolveQueryStudioVisibleTab("results", { ...empty, results: true }, false),
-        ).to.equal("results");
-        expect(resolveQueryStudioVisibleTab("results", empty, false)).to.equal("messages");
+        // Results is a core, always-present tab and the user's home surface. It
+        // stays selected through EVERY transient empty-metadata window — while
+        // executing, between back-to-back runs, and when a fast query is first
+        // observed already terminal. The terminal-state handler (app.tsx), not
+        // this resolver, is what moves a completed no-data/errored run to
+        // Messages. Redirecting here is sticky (the eligibility effect writes
+        // the resolved tab back into activeTab), which stranded `SELECT 100`
+        // and other fast, result-bearing queries on Messages.
+        expect(resolveQueryStudioVisibleTab("results", empty)).to.equal("results");
+        expect(resolveQueryStudioVisibleTab("results", { ...empty, results: true })).to.equal(
+            "results",
+        );
+        expect(resolveQueryStudioVisibleTab("messages", empty)).to.equal("messages");
+    });
+
+    test("a contributed tab that lost eligibility falls back to Results, then Messages", () => {
+        const base = { results: true, vector: false, spatial: false, queryPlan: false };
+        // Vector/Spatial/QueryPlan are conditional: when a rerun no longer
+        // produces that shape, drop to Results (or Messages if even Results is
+        // empty). Unlike Results, these are not the user's home surface.
+        expect(resolveQueryStudioVisibleTab("vector", base)).to.equal("results");
+        expect(resolveQueryStudioVisibleTab("spatial", base)).to.equal("results");
+        expect(resolveQueryStudioVisibleTab("queryPlan", base)).to.equal("results");
+        expect(resolveQueryStudioVisibleTab("vector", { ...base, results: false })).to.equal(
+            "messages",
+        );
+        // An eligible contributed tab is honored.
+        expect(resolveQueryStudioVisibleTab("vector", { ...base, vector: true })).to.equal(
+            "vector",
+        );
     });
 
     test("a fast terminal-only state push still resets a genuinely new run", () => {
@@ -37,18 +61,6 @@ suite("Query Studio panel view state", () => {
         expect(shouldResetQueryStudioRunView(runId, undefined, String(runId))).to.equal(false);
         expect(shouldResetQueryStudioRunView(runId, runId, "idle")).to.equal(false);
         expect(shouldResetQueryStudioRunView(undefined, undefined, "idle")).to.equal(false);
-    });
-
-    test("run-start notification protects Results until coarse state catches up", () => {
-        expect(isQueryStudioRunStartPending(42, undefined)).to.equal(true);
-        expect(isQueryStudioRunStartPending(42, 41)).to.equal(true);
-        expect(isQueryStudioRunStartPending(42, 42)).to.equal(false);
-        expect(isQueryStudioRunStartPending(undefined, 42)).to.equal(false);
-
-        const empty = { results: false, vector: false, spatial: false, queryPlan: false };
-        expect(
-            resolveQueryStudioVisibleTab("results", empty, isQueryStudioRunStartPending(42, 41)),
-        ).to.equal("results");
     });
 
     test("orders every contributed tab after Messages", () => {

@@ -14,6 +14,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
+import { SqlBackendKind } from "../services/sqlDataPlane/backendFactory";
+import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { registerDefinitionContentProvider } from "./definitionContentProvider";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
@@ -524,6 +526,58 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 replayController = undefined;
             });
         }),
+        // Per-document provider picker (TSQ2-9/§3.5): binds the NEXT connect
+        // of this document; the live session keeps the provider it opened
+        // with — status shows the truth (activeBackendKind).
+        vscode.commands.registerCommand(
+            "mssql.sqlDataPlane.pickDocumentBackend",
+            async (args?: { uri?: string }) => {
+                const model = args?.uri
+                    ? liveModels.get(args.uri)
+                    : liveModels.values().next().value;
+                if (!model) {
+                    void vscode.window.showInformationMessage(
+                        "No Query Studio document is open — open one to pick its SQL provider.",
+                    );
+                    return;
+                }
+                const registry = SqlDataPlaneService.get();
+                const binding = model.sessionBinding;
+                const current = binding.documentBackendOverride ?? registry.defaultBackendKind();
+                type BackendPick = vscode.QuickPickItem & {
+                    backendKind: SqlBackendKind | undefined;
+                };
+                const picks: BackendPick[] = registry
+                    .entrySnapshots()
+                    .filter((entry) => entry.realmClass !== "test")
+                    .map((entry) => ({
+                        label: (entry.kind === current ? "$(check) " : "") + entry.displayName,
+                        description:
+                            entry.kind +
+                            (binding.activeBackendKind === entry.kind ? " · current session" : ""),
+                        backendKind: entry.kind,
+                    }));
+                picks.push({
+                    label: "Use workspace default",
+                    description: `clear the per-document override (${registry.defaultBackendKind()})`,
+                    backendKind: undefined,
+                });
+                const picked = await vscode.window.showQuickPick(picks, {
+                    title: "Query Studio: SQL provider for this document (next connect)",
+                });
+                if (!picked) {
+                    return;
+                }
+                binding.setDocumentBackendOverride(picked.backendKind);
+                const effective = picked.backendKind ?? registry.defaultBackendKind();
+                if (binding.activeBackendKind && binding.activeBackendKind !== effective) {
+                    void vscode.window.showInformationMessage(
+                        `This document will use ${registry.displayNameFor(effective)} on its next connect. ` +
+                            `The current session stays on ${binding.activeBackendKind} until you reconnect.`,
+                    );
+                }
+            },
+        ),
         { dispose: () => replayController?.dispose() },
     );
 }

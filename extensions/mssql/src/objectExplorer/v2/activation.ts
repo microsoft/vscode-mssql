@@ -21,6 +21,7 @@ import {
     ProfileTokenSource,
 } from "../../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneService";
+import { vscodeFallbackInteraction } from "../../services/sqlDataPlane/vscodeFallbackInteraction";
 import { ObjectExplorerV2Provider } from "./objectExplorerV2Provider";
 import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
 import { oeV2Settings, oeViewMode } from "./settings";
@@ -61,7 +62,13 @@ export function activateObjectExplorerV2(
         if (registration) {
             return;
         }
-        registry = new OeV2SessionRegistry(() => SqlDataPlaneService.get().service());
+        registry = new OeV2SessionRegistry((params) =>
+            SqlDataPlaneService.get().openSessionWithFallback(
+                params,
+                undefined,
+                vscodeFallbackInteraction(),
+            ),
+        );
         controller = new OeV2TreeController({
             profiles: deps.profiles,
             secrets: deps.profiles,

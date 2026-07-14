@@ -24,15 +24,33 @@ export type QueryStudioTabId = "results" | "messages" | "vector" | "spatial" | "
 export function resolveQueryStudioVisibleTab(
     requested: QueryStudioTabId,
     available: Readonly<Record<Exclude<QueryStudioTabId, "messages">, boolean>>,
-    executionInProgress: boolean,
 ): QueryStudioTabId {
     if (requested === "messages") return requested;
-    if (requested === "results" && executionInProgress) {
-        // A new run clears result metadata before the first result-set event.
-        // Preserve Results through that transient gap; otherwise the normal
-        // eligibility fallback permanently selects the empty Messages tab.
+    if (requested === "results") {
+        // Results and Messages are core, always-present tabs; Results is the
+        // user's home surface. NEVER silently redirect Results -> Messages
+        // just because result metadata is momentarily empty. That redirect is
+        // STICKY: the eligibility effect writes the resolved tab back into
+        // activeTab, so once it flips to Messages, Messages keeps winning the
+        // resolve and the user is stranded there.
+        //
+        // Result metadata is transiently empty on many non-error paths, not
+        // just while executing: a new run clears summaries before its first
+        // result-set event, a fast query is first OBSERVED already in its
+        // terminal state (debounced pushes coalesce), and back-to-back runs
+        // briefly report a completed kind with summaries already cleared. The
+        // earlier `executionInProgress` guard only covered the first of these,
+        // so e.g. `SELECT 100` could still land on Messages.
+        //
+        // The terminal-state handler in app.tsx is the SINGLE authority that
+        // moves a COMPLETED no-data or errored run to Messages (it inspects
+        // one coherent terminal snapshot, once per run). Keeping Results here
+        // defers to it and removes the stranding entirely.
         return "results";
     }
+    // Contributed tabs (vector/spatial/queryPlan): if they lost eligibility
+    // (a rerun no longer produces that shape), fall back to Results, then
+    // Messages.
     if (available[requested]) return requested;
     return available.results ? "results" : "messages";
 }
@@ -51,18 +69,6 @@ export function shouldResetQueryStudioRunView(
     panelGeneration: string,
 ): boolean {
     return runId !== undefined && startedRunId !== runId && panelGeneration !== String(runId);
-}
-
-/**
- * The run-start notification intentionally precedes debounced coarse state.
- * Treat the renderer as executing until that state observes the same run so
- * stale idle/terminal eligibility cannot move Results to Messages.
- */
-export function isQueryStudioRunStartPending(
-    notifiedRunId: number | undefined,
-    observedRunId: number | undefined,
-): boolean {
-    return notifiedRunId !== undefined && notifiedRunId !== observedRunId;
 }
 
 /** Results is the only tab allowed before Messages; contributed tabs follow it. */

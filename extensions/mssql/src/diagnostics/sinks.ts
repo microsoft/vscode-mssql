@@ -55,7 +55,8 @@ interface LegacyPerfMarker {
  * (the normalizer tolerates unknown markers; importPerfRep pairs
  * *.begin/*.end into bars).
  */
-const FORWARDED_SPAN_TYPES = /^(rpc\.|webview\.|sts\.|sqlDataPlane\.auth\.token(?:\.|$))/;
+const FORWARDED_SPAN_TYPES =
+    /^(rpc\.|webview\.|sts\.|sqlDataPlane\.auth\.token(?:\.|$)|sqlDataPlane\.tsNative\.query\.terminal$)/;
 
 /**
  * Forwards marker-tagged diagnostics to the perf orchestrator's HTTP sink.

@@ -25,6 +25,8 @@ import {
     ISqlSession,
     SqlConnectionProfileRef,
 } from "../services/sqlDataPlane/api";
+import { SqlBackendKind } from "../services/sqlDataPlane/backendFactory";
+import { vscodeFallbackInteraction } from "../services/sqlDataPlane/vscodeFallbackInteraction";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { MetadataStatus, runMetadataQuery } from "../services/metadata/metadataService";
 import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
@@ -259,6 +261,28 @@ export class DocumentSessionBinding implements vscode.Disposable {
         }
     }
 
+    /**
+     * Per-document provider override (TSQ2 §3.5): resolution order is
+     * explicit override > setting default. Applies at the NEXT connect for
+     * this document; a live session keeps the provider it was bound to
+     * (nothing pretends — session.info.backendKind is the truth).
+     */
+    private backendOverride: SqlBackendKind | undefined;
+
+    get documentBackendOverride(): SqlBackendKind | undefined {
+        return this.backendOverride;
+    }
+
+    /** The provider the LIVE session is actually bound to, if connected. */
+    get activeBackendKind(): string | undefined {
+        return this.session?.info.backendKind;
+    }
+
+    setDocumentBackendOverride(kind: SqlBackendKind | undefined): void {
+        this.backendOverride = kind;
+        this.fireChange();
+    }
+
     /** Connect flow (doc 04 §11.2). Returns false on cancel/failure. */
     async connect(): Promise<boolean> {
         const dataPlane = SqlDataPlaneService.get();
@@ -354,7 +378,9 @@ export class DocumentSessionBinding implements vscode.Disposable {
         user?: string;
         password?: string;
     }): Promise<ISqlSession> {
-        const service = await SqlDataPlaneService.get().service();
+        const service = await SqlDataPlaneService.get().service(
+            this.backendOverride ? { backendKind: this.backendOverride } : undefined,
+        );
         const base = this.lastStoredProfile;
         const stored: StoredProfile = {
             server: target.server,
@@ -405,7 +431,13 @@ export class DocumentSessionBinding implements vscode.Disposable {
         // Follow the CURRENT database (post-USE), not the profile default.
         const database = this.session?.info?.database;
         try {
-            const service = await SqlDataPlaneService.get().service();
+            // Mirror the user session's backend: honor an explicit per-document
+            // override, else the profile's remembered fallback (so a Windows-auth
+            // document that fell back to sts2-local opens its auxiliary sessions
+            // on sts2-local too, not the ts-native default).
+            const service = this.backendOverride
+                ? await SqlDataPlaneService.get().service({ backendKind: this.backendOverride })
+                : await SqlDataPlaneService.get().serviceForProfile(profileRef.profileFingerprint);
             const session = await service.openSession({
                 profile: profileRef,
                 ...(database ? { database } : {}),
@@ -472,7 +504,12 @@ export class DocumentSessionBinding implements vscode.Disposable {
             return cached.names;
         }
         try {
-            const service = await SqlDataPlaneService.get().service();
+            // Same backend as the user session (override, else remembered
+            // fallback) so the master probe lands on the provider that can
+            // actually open this profile.
+            const service = this.backendOverride
+                ? await SqlDataPlaneService.get().service({ backendKind: this.backendOverride })
+                : await SqlDataPlaneService.get().serviceForProfile(profileRef.profileFingerprint);
             const session = await service.openSession({
                 profile: profileRef,
                 database: "master",
@@ -555,13 +592,24 @@ export class DocumentSessionBinding implements vscode.Disposable {
             // background (accent + production flag); absence is simply "off".
             this.groupAccent = undefined;
             void this.resolveGroupAccent(stored, store);
-            const service = await SqlDataPlaneService.get().service();
-            const session = await service.openSession({
+            const dataPlane = SqlDataPlaneService.get();
+            const params = {
                 profile: profileRef,
                 applicationName: "vscode-mssql-querystudio",
                 // Password exists only inside the provider closure.
                 auth: prepared.auth,
-            });
+            };
+            // Capability-routed open (TSQ2 §8.2): requirements are evaluated
+            // BEFORE any credential resolution; a provider that cannot open
+            // this profile triggers the shared fallback policy (prompt/auto/
+            // off) — the SAME path Object Explorer and every other consumer
+            // uses, so the Windows-auth → SQL Tools Service experience is
+            // identical everywhere.
+            const { session } = await dataPlane.openSessionWithFallback(
+                params,
+                this.backendOverride ? { backendKind: this.backendOverride } : undefined,
+                vscodeFallbackInteraction(),
+            );
             this.session = session;
             session.onDidChangeState((change) => {
                 if (change.current === "lost") {

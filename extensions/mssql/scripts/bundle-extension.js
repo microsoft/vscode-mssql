@@ -19,6 +19,10 @@ const config = {
         // Vector Workbench analysis worker (VEC-4): its own node bundle so the
         // service can spawn worker_threads on dist/vectorAnalysisWorker.js.
         vectorAnalysisWorker: "src/queryResults/vector/vectorAnalysisWorker.ts",
+        // ts-native SQL provider (TSQ2 D6): dedicated lazy chunk bundling
+        // tedious; loaded via computed-path require on first backend
+        // selection — never from the activation graph.
+        tsNativeProvider: "src/services/tsNative/providerEntry.ts",
     },
     bundle: true,
     outdir: "dist",

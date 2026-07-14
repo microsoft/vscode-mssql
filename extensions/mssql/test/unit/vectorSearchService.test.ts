@@ -167,6 +167,11 @@ class ScriptedSession implements ISqlSession {
         })();
         return {
             clientQueryId: "q1",
+            accepted: Promise.resolve({
+                status: "accepted" as const,
+                clientQueryId: "q1",
+                acceptedEpochMs: 0,
+            }),
             completion,
             cancel: async () => {
                 this.cancelCount++;

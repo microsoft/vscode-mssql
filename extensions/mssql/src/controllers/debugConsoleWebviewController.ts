@@ -26,6 +26,8 @@ import {
     DcGetOverviewRequest,
     DcGetPerfSummaryRequest,
     DcGetSqlActivityRequest,
+    DcGetSqlDataPlaneStatusRequest,
+    DcSqlDataPlaneStatus,
     DcGetWaterfallRequest,
     DcImportPerfRunRequest,
     DcListSourcesRequest,
@@ -86,6 +88,8 @@ import {
     UploadPolicyId,
 } from "../sharedInterfaces/centralContract";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import { projectSqlDataPlaneStatus } from "../services/sqlDataPlane/debugConsoleStatus";
+import { tsNativeObservabilityCounters } from "../services/tsNative/observability";
 import {
     disableAiCompletions,
     enableAiCompletions,
@@ -323,6 +327,52 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         return this.diagnostics.store.eventsForSource(sourceId, this.liveArchive);
     }
 
+    /**
+     * Passive live snapshot of the SQL Data Plane registry for the Debug
+     * Console page. statusSummary() is documented as safe/passive (never
+     * constructs a backend); we only reshape it into the typed contract and
+     * append ts-native aggregate counters. All fields are protocol metadata.
+     */
+    private sqlDataPlaneStatus(): DcSqlDataPlaneStatus {
+        const svc = SqlDataPlaneService.get();
+        const cfg = vscode.workspace.getConfiguration();
+        const settingKeys = [
+            "mssql.sqlDataPlane.enabled",
+            "mssql.sqlDataPlane.backend",
+            "mssql.sqlDataPlane.capabilityFallback",
+            "mssql.sqlDataPlane.tsNative.overrides",
+            "mssql.sqlDataPlane.timeouts.openMs",
+            "mssql.sqlDataPlane.timeouts.cancelAckMs",
+            "mssql.sqlDataPlane.timeouts.closeMs",
+            "mssql.sqlDataPlane.timeouts.disposeDrainMs",
+        ];
+        const settings: Record<string, unknown> = {};
+        for (const key of settingKeys) {
+            const value = cfg.get<unknown>(key);
+            if (value !== undefined) {
+                settings[key] = value;
+            }
+        }
+        return projectSqlDataPlaneStatus({
+            summary: svc.statusSummary(),
+            nowEpochMs: Date.now(),
+            observability: tsNativeObservabilityCounters(),
+            fallbackPolicy: cfg.get<string>("mssql.sqlDataPlane.capabilityFallback", "prompt"),
+            environment: {
+                node: process.versions.node,
+                platform: process.platform,
+                arch: process.arch,
+                extensionVersion:
+                    (vscode.extensions.getExtension("ms-mssql.mssql")?.packageJSON?.version as
+                        | string
+                        | undefined) ?? "unknown",
+                settings,
+            },
+            rememberedFallbacks: svc.rememberedFallbacks(),
+            capabilities: svc.capabilitySnapshot(),
+        });
+    }
+
     private gapsFor(sourceId: string): GapRecord[] {
         return sourceId === this.liveSourceId ? this.liveGaps : [];
     }
@@ -376,6 +426,8 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         this.onRequest(DcGetSqlActivityRequest.type, async ({ sourceId }) =>
             sqlActivityRows(this.eventsFor(sourceId)),
         );
+
+        this.onRequest(DcGetSqlDataPlaneStatusRequest.type, async () => this.sqlDataPlaneStatus());
 
         this.onRequest(DcSubscribeLiveRequest.type, async () => {
             this.subscribed = true;

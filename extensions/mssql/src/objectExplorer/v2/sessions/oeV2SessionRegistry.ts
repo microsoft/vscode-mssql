@@ -15,7 +15,18 @@
 
 import { diag, diagnosticErrorClass } from "../../../diagnostics/diagnosticsCore";
 import { PreparedConnection } from "../../../services/metadata/profileAuthAdapter";
-import { ISqlConnectionService, ISqlSession } from "../../../services/sqlDataPlane/api";
+import { ISqlSession, OpenSessionParams } from "../../../services/sqlDataPlane/api";
+import { FallbackDecision } from "../../../services/sqlDataPlane/providerSuggestions";
+
+/**
+ * Opens a data-plane session applying the shared capability-fallback policy
+ * (TSQ2 §8.2) — e.g. a Windows-auth profile that ts-native can't open prompts
+ * and falls back to SQL Tools Service. Injected so this module stays free of
+ * the registry singleton (the activation edge owns it).
+ */
+export type OeV2SessionOpener = (
+    params: OpenSessionParams,
+) => Promise<{ session: ISqlSession; decision?: FallbackDecision }>;
 
 export type OeV2ConnectionState =
     | "disconnected"
@@ -51,7 +62,7 @@ export class OeV2SessionRegistry {
     private entries = new Map<string, Entry>();
     private listeners = new Set<(connectionId: string) => void>();
 
-    constructor(private readonly service: () => Promise<ISqlConnectionService>) {}
+    constructor(private readonly openSession: OeV2SessionOpener) {}
 
     onDidChange(listener: (connectionId: string) => void): { dispose(): void } {
         this.listeners.add(listener);
@@ -119,14 +130,17 @@ export class OeV2SessionRegistry {
             },
         });
         try {
-            const service = await this.service();
             if (this.entries.get(connectionId) !== entry || entry.state !== "connecting") {
                 span.end("info", {
                     result: { raw: "superseded", cls: "diagnostic.metadata" },
                 });
                 return snapshotOf(this.entries.get(connectionId) ?? entry);
             }
-            const session = await service.openSession({
+            // Capability-routed open: a profile the default backend can't handle
+            // (e.g. Windows integrated auth on ts-native) prompts and falls back
+            // to SQL Tools Service via the shared policy — same UX as Query
+            // Studio. session.info.backendKind carries the actual provider.
+            const { session } = await this.openSession({
                 profile: prepared.profileRef,
                 applicationName: "vscode-mssql-oe-v2",
                 auth: prepared.auth,

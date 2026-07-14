@@ -94,18 +94,25 @@ export class MetadataStoreService {
                     ...(init.producer ? { producer: init.producer } : {}),
                 });
             }
-            this.storeInstance = new MetadataStore(() => SqlDataPlaneService.get().service(), {
-                ...(this.hostInit?.pollSeconds ? { pollSeconds: this.hostInit.pollSeconds() } : {}),
-                ...(this.hostInit?.isActive ? { isActive: this.hostInit.isActive } : {}),
-                ...(this.coordinator
-                    ? {
-                          cache: {
-                              coordinator: this.coordinator,
-                              offlineMode: () => this.cacheInit?.settings().offlineMode === true,
-                          },
-                      }
-                    : {}),
-            });
+            this.storeInstance = new MetadataStore(
+                (profileFingerprint) =>
+                    SqlDataPlaneService.get().serviceForProfile(profileFingerprint),
+                {
+                    ...(this.hostInit?.pollSeconds
+                        ? { pollSeconds: this.hostInit.pollSeconds() }
+                        : {}),
+                    ...(this.hostInit?.isActive ? { isActive: this.hostInit.isActive } : {}),
+                    ...(this.coordinator
+                        ? {
+                              cache: {
+                                  coordinator: this.coordinator,
+                                  offlineMode: () =>
+                                      this.cacheInit?.settings().offlineMode === true,
+                              },
+                          }
+                        : {}),
+                },
+            );
         }
         return this.storeInstance;
     }
