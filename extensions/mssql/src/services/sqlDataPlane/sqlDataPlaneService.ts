@@ -226,6 +226,138 @@ function fakeFactory(providerVersion: string): SqlBackendFactory {
     };
 }
 
+const TS_NATIVE_MIN_NODE_MAJOR = 22; // tedious 20 engines
+
+/**
+ * ts-native factory (TSQ2 §4.2, D6): the provider ships as the dedicated
+ * lazy chunk dist/tsNativeProvider.js (tedious inside). Loading happens on
+ * FIRST create(), via a computed-path require so esbuild never inlines the
+ * chunk into the activation bundle. Unit tests exercise the compiled
+ * out/-tree sibling instead.
+ */
+function tsNativeFactory(providerVersion: string): SqlBackendFactory {
+    return {
+        kind: "ts-native",
+        displayName: "Native TypeScript (tedious)",
+        realmClass: "local",
+        identity: {
+            kind: "ts-native",
+            implementation: "ts-native",
+            transport: "inprocess",
+            driver: "tedious",
+            deployment: "extension-local",
+            realmId: "local",
+            providerVersion,
+        },
+        // Conservative honest statement (TSQ2 §8.1): never optimistic; the
+        // gaps are the capability catalog, not a surprise list.
+        staticCapabilities: capabilitySet({
+            "auth.sqlLogin": supported("static"),
+            "auth.entraToken": supported("static"),
+            "auth.integrated": unsupported("static", "driver.noIntegratedAuth"),
+            "auth.hostDelegated": unsupported("static", "localDeployment"),
+            "connect.tcp": supported("static"),
+            "connect.routeAlias": unsupported("static", "localDeployment"),
+            "connect.localdb": unsupported("static", "driver.tcpOnly"),
+            "connect.tds8Strict": conditional("static", "strictModeUnvalidated"),
+            "exec.streamingRows": supported("static"),
+            "exec.multipleResultSets": supported("static"),
+            "exec.oneActiveQuery": supported("static"),
+            "exec.cancel": supported("static"),
+            "exec.dispose": supported("static"),
+            "exec.queryTimeout": supported("static"),
+            "exec.compactRows": supported("static"),
+            "exec.maxCellBytes": supported("static"),
+            "exec.pageRows": supported("static"),
+            "exec.pageBytes": supported("static"),
+            "exec.windowPages": supported("static", "exact", { limit: 4, unit: "pages" }),
+            "types.typedCells": supported("static"),
+            "types.vectorBinaryV1": conditional("static", "transcoderNotLanded"),
+            "types.spatialWkbV1": conditional("static", "transcoderNotLanded"),
+            "types.decimalExact": unsupported("static", "driver.decimalToDouble"),
+            "types.datetimeOffsetOriginal": unsupported("static", "driver.offsetDiscarded"),
+            "types.largeValueStreaming": unsupported("static", "driver.plpBuffering"),
+            "types.jsonNative": unsupported("static", "driver.noJsonType"),
+            "messages.verbatim": supported("static"),
+            "messages.rowsAffectedStructured": supported("static"),
+            "plan.xmlResult": unsupported("static", "notExposed"),
+            "plan.estimated": supported("static"),
+            "plan.actual": supported("static"),
+            "metadata.catalogSql": supported("static"),
+            "metadata.endpoints": unsupported("static", "notImplemented"),
+            "diag.supportCapsule": unsupported("static", "notImplemented"),
+            "diag.captureControl": unsupported("static", "notImplemented"),
+            "diag.replayDescriptor": supported("static"),
+            "diag.resumeAfterDisconnect": unsupported("static", "notSupported"),
+        }),
+        fingerprintSettings: [...TIMEOUT_SETTINGS],
+        create: async (context: SqlBackendFactoryContext): Promise<ISqlConnectionService> => {
+            const nodeMajor = Number(process.versions.node.split(".")[0]);
+            if (!Number.isInteger(nodeMajor) || nodeMajor < TS_NATIVE_MIN_NODE_MAJOR) {
+                throw new SqlDataPlaneError(
+                    DataPlaneErrorCodes.unavailable,
+                    `ts-native requires Node >= ${TS_NATIVE_MIN_NODE_MAJOR} (host has ${process.versions.node})`,
+                    false,
+                );
+            }
+            const provider = loadTsNativeProvider();
+            return provider.createBackend({
+                deadlines: {
+                    openMs: context.config.get<number>(
+                        "mssql.sqlDataPlane.timeouts.openMs",
+                        30_000,
+                    ),
+                    cancelAckMs: context.config.get<number>(
+                        "mssql.sqlDataPlane.timeouts.cancelAckMs",
+                        10_000,
+                    ),
+                    closeMs: context.config.get<number>(
+                        "mssql.sqlDataPlane.timeouts.closeMs",
+                        15_000,
+                    ),
+                    disposeDrainMs: context.config.get<number>(
+                        "mssql.sqlDataPlane.timeouts.disposeDrainMs",
+                        10_000,
+                    ),
+                },
+            });
+        },
+    };
+}
+
+interface TsNativeProviderExports {
+    createBackend(options?: { deadlines?: Partial<Record<string, number>> }): ISqlConnectionService;
+    driverVersion: string;
+}
+
+function loadTsNativeProvider(): TsNativeProviderExports {
+    // Computed paths: esbuild must NOT statically resolve these (the chunk
+    // stays out of the activation bundle). Runtime layouts:
+    //  - bundled: __dirname = <ext>/dist            → dist/tsNativeProvider.js
+    //  - tsc/out: __dirname = out/src/services/sqlDataPlane
+    //             → out/src/services/tsNative/providerEntry.js
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const path = require("path") as typeof import("path");
+    const candidates = [
+        path.join(__dirname, "tsNativeProvider.js"),
+        path.join(__dirname, "..", "tsNative", "providerEntry.js"),
+    ];
+    let lastError: unknown;
+    for (const candidate of candidates) {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            return require(candidate) as TsNativeProviderExports;
+        } catch (error) {
+            lastError = error;
+        }
+    }
+    throw new SqlDataPlaneError(
+        DataPlaneErrorCodes.unavailable,
+        `ts-native provider bundle not found (${lastError instanceof Error ? lastError.message : "unknown"})`,
+        false,
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Registry
 // ---------------------------------------------------------------------------
@@ -271,6 +403,7 @@ export class SqlDataPlaneService {
     ) {
         for (const factory of factories ?? [
             sts2LocalFactory(providerVersion),
+            tsNativeFactory(providerVersion),
             fakeFactory(providerVersion),
         ]) {
             this.registerFactory(factory);
