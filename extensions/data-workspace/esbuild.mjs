@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import esbuildUtils from "../../scripts/esbuild-utils.js";
 
-const extensionDirectory = import.meta.dirname;
+const extensionDirectory = path.dirname(fileURLToPath(import.meta.url));
 const { createNodeExtensionConfig, disallowUnresolvedModulesPlugin, run } = esbuildUtils;
 const outputFile = path.join(extensionDirectory, "dist/main.js");
 
@@ -28,19 +29,19 @@ const extensionManifestPlugin = {
 };
 
 await run(
-    () =>
+    ({ isProd }) =>
         createNodeExtensionConfig({
             entryPoints: {
                 main: path.join(extensionDirectory, "src/main.ts"),
             },
             external: ["azdata"],
             outdir: path.join(extensionDirectory, "dist"),
-            minify: true,
+            minify: isProd,
             plugins: [
                 extensionManifestPlugin,
                 disallowUnresolvedModulesPlugin(outputFile, ["dataworkspace", "vscode-mssql"]),
             ],
-            sourcemap: true,
+            sourcemap: !isProd,
             tsconfig: path.join(extensionDirectory, "tsconfig.json"),
         }),
     "Data Workspace extension",

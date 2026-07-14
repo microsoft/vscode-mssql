@@ -51,7 +51,11 @@ function disallowUnresolvedModulesPlugin(outputFile, moduleNames) {
 
                 const output = await fs.readFile(outputFile, "utf8");
                 for (const moduleName of moduleNames) {
-                    if (output.includes(`require("${moduleName}")`)) {
+                    const escapedModuleName = moduleName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                    const runtimeRequire = new RegExp(
+                        `\\b(?:require|__require\\d*)\\s*\\(\\s*(["'])${escapedModuleName}\\1\\s*\\)`,
+                    );
+                    if (runtimeRequire.test(output)) {
                         result.errors.push({
                             text: `Bundle contains unresolved runtime module '${moduleName}'`,
                         });
@@ -100,18 +104,28 @@ function esbuildProblemMatcherPlugin(processName) {
     };
 }
 
-async function build(config, isProd) {
+function getMetafileOutputPath(processName) {
+    const filename = processName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+    return `./${filename}-metafile.json`;
+}
+
+async function build(config, isProd, processName) {
+    let context;
+
     try {
         logger.info(`Building in ${isProd ? "production" : "development"} mode...`);
-        const context = await esbuild.context(config);
+        context = await esbuild.context(config);
         const result = await context.rebuild();
 
         if (result.metafile) {
-            await fs.writeFile("./webviews-metafile.json", JSON.stringify(result.metafile));
-            logger.success("Metafile saved: webviews-metafile.json");
+            const metafileOutputPath = getMetafileOutputPath(processName);
+            await fs.writeFile(metafileOutputPath, JSON.stringify(result.metafile));
+            logger.success(`Metafile saved: ${metafileOutputPath}`);
         }
 
-        await context.dispose();
         const success = result.errors.length === 0;
         if (success) {
             logger.success("Build completed!");
@@ -120,12 +134,16 @@ async function build(config, isProd) {
     } catch (error) {
         logger.error(`Build failed: ${error.message}`);
         return false;
+    } finally {
+        await context?.dispose();
     }
 }
 
 async function watch(config) {
+    let context;
+
     try {
-        const context = await esbuild.context(config);
+        context = await esbuild.context(config);
         await context.watch();
         logger.success("Watching for changes... (Ctrl+C to stop)");
 
@@ -135,6 +153,7 @@ async function watch(config) {
             process.exit(0);
         });
     } catch (error) {
+        await context?.dispose();
         logger.error(`Watch failed: ${error.message}`);
         process.exitCode = 1;
     }
@@ -154,7 +173,7 @@ async function run(createConfig, processName, args = process.argv.slice(2)) {
     }
 
     logger.header(`Building ${processName}`);
-    const success = await build(config, isProd);
+    const success = await build(config, isProd, processName);
     if (!success) {
         process.exitCode = 1;
     }

@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import esbuildUtils from "../../scripts/esbuild-utils.js";
 
-const extensionDirectory = import.meta.dirname;
+const extensionDirectory = path.dirname(fileURLToPath(import.meta.url));
 const { createNodeExtensionConfig, disallowUnresolvedModulesPlugin, run } = esbuildUtils;
 const outputFile = path.join(extensionDirectory, "dist/extension.js");
 
@@ -19,14 +20,14 @@ const outputFile = path.join(extensionDirectory, "dist/extension.js");
  * accidentally emitted as a runtime import.
  */
 await run(
-    () =>
+    ({ isProd }) =>
         createNodeExtensionConfig({
             entryPoints: {
                 extension: path.join(extensionDirectory, "src/extension.ts"),
             },
             external: ["azdata"],
             outdir: path.join(extensionDirectory, "dist"),
-            minify: true,
+            minify: isProd,
             plugins: [
                 disallowUnresolvedModulesPlugin(outputFile, [
                     "dataworkspace",
@@ -34,7 +35,7 @@ await run(
                     "vscode-mssql",
                 ]),
             ],
-            sourcemap: true,
+            sourcemap: !isProd,
             tsconfig: path.join(extensionDirectory, "tsconfig.extension.json"),
         }),
     "SQL Database Projects extension",
