@@ -155,7 +155,9 @@ export function normalizeQueryStudioPerfInteractionArgs(
         return { error: "Query Studio interaction URI must be a non-empty string." };
     }
     let normalized: QsPerfInteractionAction;
-    if (action["kind"] === "selectGrid" || action["kind"] === "copyGrid") {
+    if (action["kind"] === "copyMessages") {
+        normalized = { kind: "copyMessages" };
+    } else if (action["kind"] === "selectGrid" || action["kind"] === "copyGrid") {
         const resultSetIndex = action["resultSetIndex"];
         if (
             !Number.isSafeInteger(resultSetIndex) ||

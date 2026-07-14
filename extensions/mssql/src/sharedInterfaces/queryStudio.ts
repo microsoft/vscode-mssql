@@ -12,6 +12,7 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { ExecutionPlanState } from "./executionPlan";
+import type { QueryStudioGridCopyRange } from "./queryStudioGridCopy";
 
 export const QS_SCHEMA_VERSION = 1;
 
@@ -132,6 +133,8 @@ export interface QsResultSetSummary {
     columnNames: string[];
     columns?: QsResultColumn[];
     rowCount: number;
+    /** Logical compact-page bytes accepted for this result set (not JS heap). */
+    approxBytes?: number;
     complete: boolean;
     truncatedReason?: string;
     corrupt?: boolean;
@@ -384,6 +387,10 @@ export type QsPerfInteractionAction =
           readonly resultSetIndex: number;
           readonly selection: "all";
           readonly includeHeaders: boolean;
+      }
+    | {
+          /** Host-direct, bounded Copy All for the virtualized Messages pane. */
+          readonly kind: "copyMessages";
       };
 
 export interface QsPerfInteractionParams {
@@ -454,6 +461,34 @@ export namespace QsListDatabasesRequest {
 }
 export namespace QsGetRowsRequest {
     export const type = new RequestType<QsGetRowsParams, QsCellWindow, void>("qs/getRows");
+}
+/**
+ * Host-direct exact grid copy. Large values never make an avoidable
+ * RowStore → webview → host round trip before reaching the OS clipboard.
+ */
+export interface QsCopySelectionResult {
+    outcome: "copied" | "tooLarge" | "empty";
+    characters: number;
+    fetchCount: number;
+    fetchMs: number;
+    formatMs: number;
+    clipboardMs: number;
+    windowRows: number;
+    rows?: number;
+    columns?: number;
+    cells?: number;
+    reason?: "ranges" | "rows" | "cells" | "characters";
+}
+export namespace QsCopySelectionToClipboardRequest {
+    export const type = new RequestType<
+        {
+            resultSetId: string;
+            selection: QueryStudioGridCopyRange[];
+            includeHeaders: boolean;
+        },
+        QsCopySelectionResult,
+        void
+    >("qs/copySelectionToClipboard");
 }
 /** Rare fallback when the webview Clipboard API loses focus/permission after an async copy. */
 export namespace QsWriteClipboardRequest {
@@ -533,10 +568,19 @@ export namespace QsGetMessagesRequest {
         void
     >("qs/getMessages");
 }
-export namespace QsGetMessagesTextRequest {
-    /** Host-built Copy All payload (QO-7) - the webview never joins 10k rows. */
-    export const type = new RequestType<Record<string, never>, { text: string }, void>(
-        "qs/getMessagesText",
+export interface QsCopyMessagesResult {
+    outcome: "copied" | "tooLarge" | "empty";
+    messages: number;
+    characters: number;
+    buildMs: number;
+    clipboardMs: number;
+    reason?: "messages" | "characters";
+}
+
+export namespace QsCopyMessagesToClipboardRequest {
+    /** Bounded host-direct Messages Copy All; raw text never returns to the webview. */
+    export const type = new RequestType<Record<string, never>, QsCopyMessagesResult, void>(
+        "qs/copyMessagesToClipboard",
     );
 }
 export namespace QsNavigateToLineRequest {

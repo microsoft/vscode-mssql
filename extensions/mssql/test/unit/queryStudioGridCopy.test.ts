@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import {
+    buildQueryStudioGridCopyText,
     mergeQueryStudioGridCopyIntervals,
     planQueryStudioGridCopy,
     queryStudioGridCopyColumnRuns,
@@ -159,5 +160,95 @@ suite("Query Studio grid copy planning", () => {
                 10,
             ),
         ).to.deep.equal([{ from: 2, to: 6 }]);
+    });
+
+    test("builds identical exact TSV from projected raw windows without a decoded matrix", async () => {
+        const planned = planQueryStudioGridCopy(
+            [
+                { fromRow: 0, toRow: 1, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ],
+            3,
+            3,
+        );
+        expect(planned.kind).to.equal("ok");
+        if (planned.kind !== "ok") {
+            return;
+        }
+        const source = [
+            ["A0", "B0", "C0"],
+            ["A1", undefined, "C1"],
+            ["A2", "B2", "C2"],
+        ];
+        const requests: Array<{
+            start: number;
+            count: number;
+            columns: { start: number; count: number };
+        }> = [];
+        const result = await buildQueryStudioGridCopyText({
+            plan: planned.plan,
+            columnNames: ["left", "middle", "right"],
+            includeHeaders: true,
+            getRows: async (start, count, columns) => {
+                requests.push({ start, count, columns });
+                const values = source
+                    .slice(start, start + count)
+                    .map((row) => row.slice(columns.start, columns.start + columns.count));
+                return {
+                    resultSetId: "s0",
+                    start,
+                    rowCount: values.length,
+                    columns: Array.from({ length: columns.count }, (_, index) => ({
+                        name: `c${columns.start + index}`,
+                        displayName: `c${columns.start + index}`,
+                    })),
+                    values,
+                };
+            },
+        });
+
+        expect(result.kind).to.equal("copied");
+        if (result.kind !== "copied") {
+            return;
+        }
+        expect(result.text).to.equal("left\tright\nA0\t\nA1\tC1\n\tC2");
+        expect(result.characters).to.equal(result.text.length);
+        expect(result.fetchCount).to.equal(2);
+        expect(requests).to.deep.equal([
+            { start: 0, count: 3, columns: { start: 0, count: 1 } },
+            { start: 0, count: 3, columns: { start: 2, count: 1 } },
+        ]);
+    });
+
+    test("preserves SQL NULL text while host and webview share the raw formatter", async () => {
+        const planned = planQueryStudioGridCopy(
+            [{ fromRow: 0, toRow: 0, fromCell: 0, toCell: 2 }],
+            1,
+            3,
+        );
+        expect(planned.kind).to.equal("ok");
+        if (planned.kind !== "ok") {
+            return;
+        }
+        const result = await buildQueryStudioGridCopyText({
+            plan: planned.plan,
+            columnNames: ["left", "nullable", "right"],
+            includeHeaders: true,
+            getRows: async () => ({
+                resultSetId: "s0",
+                start: 0,
+                rowCount: 1,
+                columns: [
+                    { name: "left", displayName: "left" },
+                    { name: "nullable", displayName: "nullable" },
+                    { name: "right", displayName: "right" },
+                ],
+                values: [["A", undefined, "C"]],
+            }),
+        });
+        expect(result).to.include({ kind: "copied" });
+        if (result.kind === "copied") {
+            expect(result.text).to.equal("left\tnullable\tright\nA\tNULL\tC");
+        }
     });
 });

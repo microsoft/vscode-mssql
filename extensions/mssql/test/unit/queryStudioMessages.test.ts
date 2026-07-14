@@ -6,6 +6,10 @@
 import { expect } from "chai";
 import type { QsMessageRow } from "../../src/sharedInterfaces/queryStudio";
 import {
+    buildBoundedMessagesText,
+    buildMessagesText,
+    QUERY_STUDIO_MESSAGES_COPY_MAX_CHARACTERS,
+    QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS,
     updateQueryStudioMessageOffsetIndex,
     type QueryStudioMessageOffsetIndex,
 } from "../../src/sharedInterfaces/queryStudioMessages";
@@ -102,5 +106,38 @@ suite("Query Studio message windows and offsets", () => {
         expect(rebuilt).not.to.equal(initial);
         expect(rebuilt.offsets).to.deep.equal([0, 30]);
         expect(initial.offsets).to.deep.equal([0, 10, 30]);
+    });
+
+    test("builds pane-identical Copy All text only inside the bounded envelope", () => {
+        const messages = [
+            message("first"),
+            message("(1 row affected)"),
+            message("third\ncontinued"),
+        ];
+        const built = buildBoundedMessagesText(messages);
+        expect(built).to.include({ kind: "copied", messages: 3 });
+        if (built.kind === "copied") {
+            expect(built.text).to.equal(buildMessagesText(messages));
+            expect(built.characters).to.equal(built.text.length);
+        }
+    });
+
+    test("rejects message floods before formatting every row", () => {
+        const messages = Array.from({ length: QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS + 1 }, () =>
+            message("x"),
+        );
+        expect(buildBoundedMessagesText(messages)).to.deep.include({
+            kind: "tooLarge",
+            reason: "messages",
+            messages: QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS + 1,
+            characters: 0,
+        });
+    });
+
+    test("rejects an oversized formatted message without allocating a clipboard payload", () => {
+        const result = buildBoundedMessagesText([
+            message("x".repeat(QUERY_STUDIO_MESSAGES_COPY_MAX_CHARACTERS)),
+        ]);
+        expect(result).to.include({ kind: "tooLarge", reason: "characters", messages: 1 });
     });
 });

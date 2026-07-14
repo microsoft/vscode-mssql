@@ -44,7 +44,12 @@ export interface RunEvents {
         columns?: QsResultColumn[];
         isPlanResult?: boolean;
     }): void;
-    onRowsAppended(resultSetId: string, newRowCount: number, complete: boolean): void;
+    onRowsAppended(
+        resultSetId: string,
+        newRowCount: number,
+        acceptedApproxBytes: number,
+        complete: boolean,
+    ): void;
     onResultSetEnded(resultSetId: string, rowCount: number, truncatedReason?: string): void;
     onMessages(messages: QsMessageRow[]): void;
     onPhase(phase: "executing" | "cancelRequested" | RunStatus): void;
@@ -696,7 +701,7 @@ export class ExecutionOrchestrator {
                         page.resultSetId,
                         (rowCounts.get(page.resultSetId) ?? 0) + page.rowCount,
                     );
-                    events.onRowsAppended(storeId, page.rowCount, false);
+                    events.onRowsAppended(storeId, page.rowCount, page.approxBytes, false);
                     return;
                 }
                 const storeSummary = rowStore.summary(storeId);

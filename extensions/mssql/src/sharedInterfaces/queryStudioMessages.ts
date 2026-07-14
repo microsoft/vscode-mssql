@@ -24,6 +24,15 @@ export function messageGetsTimestamp(message: QsMessageRow): boolean {
 export const MESSAGE_TIME_COLUMN_WIDTH = 12;
 export const MESSAGE_SEPARATOR = "  ";
 
+/**
+ * Copy All needs one contiguous clipboard string, so keep its worst-case
+ * allocation in the same envelope as a bounded grid copy.  The row limit
+ * also prevents a million tiny status lines from becoming a CPU-only denial
+ * of service while still admitting the documented 100k-message workload.
+ */
+export const QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS = 100_000;
+export const QUERY_STUDIO_MESSAGES_COPY_MAX_CHARACTERS = 8_000_000;
+
 export function formatMessageForDisplay(message: QsMessageRow): string {
     const time = messageGetsTimestamp(message)
         ? messageTimeLabel(message.epochMs).padEnd(MESSAGE_TIME_COLUMN_WIDTH, " ")
@@ -86,4 +95,62 @@ export function updateQueryStudioMessageOffsetIndex(
 /** The Copy All payload — one formatted row per line, pane-identical. */
 export function buildMessagesText(messages: readonly QsMessageRow[]): string {
     return messages.map(formatMessageForDisplay).join("\n");
+}
+
+export type QueryStudioMessagesCopyTextResult =
+    | {
+          kind: "copied";
+          text: string;
+          messages: number;
+          characters: number;
+      }
+    | {
+          kind: "empty";
+          messages: 0;
+          characters: 0;
+      }
+    | {
+          kind: "tooLarge";
+          reason: "messages" | "characters";
+          messages: number;
+          characters: number;
+      };
+
+/**
+ * Build the pane-identical Copy All payload only after proving it fits the
+ * bounded clipboard envelope.  The guard runs before retaining a result-wide
+ * display matrix; only the unavoidable final clipboard text is materialized.
+ */
+export function buildBoundedMessagesText(
+    messages: readonly QsMessageRow[],
+): QueryStudioMessagesCopyTextResult {
+    if (messages.length === 0) {
+        return { kind: "empty", messages: 0, characters: 0 };
+    }
+    if (messages.length > QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS) {
+        return {
+            kind: "tooLarge",
+            reason: "messages",
+            messages: messages.length,
+            characters: 0,
+        };
+    }
+
+    let characters = 0;
+    const lines: string[] = [];
+    for (const message of messages) {
+        const line = formatMessageForDisplay(message);
+        const nextCharacters = characters + line.length + (lines.length === 0 ? 0 : 1);
+        if (nextCharacters > QUERY_STUDIO_MESSAGES_COPY_MAX_CHARACTERS) {
+            return {
+                kind: "tooLarge",
+                reason: "characters",
+                messages: messages.length,
+                characters: nextCharacters,
+            };
+        }
+        lines.push(line);
+        characters = nextCharacters;
+    }
+    return { kind: "copied", text: lines.join("\n"), messages: messages.length, characters };
 }

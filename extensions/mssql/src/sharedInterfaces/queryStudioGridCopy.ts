@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { QsCellWindow } from "./queryStudio";
+import { cellTextForPurpose } from "./queryStudioGridOps";
+import { queryStudioWindowNullFlags } from "./queryStudioGridWindow";
+
 /**
  * Pure planning for Query Studio grid copies. The planner intentionally works
  * with inclusive intervals instead of materializing every selected row/cell:
@@ -58,6 +62,44 @@ export const QUERY_STUDIO_GRID_COPY_DEFAULT_LIMITS: QueryStudioGridCopyLimits = 
     // field-array work independently of the eventual character-size guard.
     maxOutputCells: 1_000_000,
 };
+
+/** Large narrow copies amortize fetch overhead but never retain more rows. */
+export const QUERY_STUDIO_COPY_MAX_ROWS_PER_WINDOW = 8_192;
+/** Responsive raw-value working set for one copy window. */
+export const QUERY_STUDIO_COPY_TARGET_DECODED_CELLS_PER_WINDOW = 8_192;
+/** Approx. 16 MiB UTF-16 payload, before the clipboard's own copy. */
+export const QUERY_STUDIO_COPY_MAX_TSV_CHARACTERS = 8_000_000;
+
+export interface QueryStudioGridCopyTextOptions {
+    readonly plan: QueryStudioGridCopyPlan;
+    readonly columnNames: readonly string[];
+    readonly includeHeaders: boolean;
+    /** Fetches raw, horizontally-projected values; no display-clamped window may be used. */
+    readonly getRows: (
+        start: number,
+        count: number,
+        columns: { start: number; count: number },
+    ) => Promise<QsCellWindow>;
+}
+
+export type QueryStudioGridCopyTextResult =
+    | {
+          kind: "copied";
+          text: string;
+          characters: number;
+          fetchCount: number;
+          fetchMs: number;
+          formatMs: number;
+          windowRows: number;
+      }
+    | {
+          kind: "tooLarge" | "empty";
+          characters: number;
+          fetchCount: number;
+          fetchMs: number;
+          formatMs: number;
+          windowRows: number;
+      };
 
 export type QueryStudioGridCopyPlanResult =
     | { kind: "ok"; plan: QueryStudioGridCopyPlan }
@@ -262,4 +304,152 @@ export function planQueryStudioGridCopy(
             outputCellCount: rowCount * columnCount,
         },
     };
+}
+
+/**
+ * Assemble one exact TSV payload from an already bounded copy plan. This is
+ * deliberately shared by the webview and extension host: large-result copy
+ * can keep raw cells host-side, while ordinary copies retain the direct
+ * webview clipboard path without two subtly different formatters.
+ */
+export async function buildQueryStudioGridCopyText(
+    options: QueryStudioGridCopyTextOptions,
+): Promise<QueryStudioGridCopyTextResult> {
+    const { plan, columnNames, includeHeaders, getRows } = options;
+    let fetchCount = 0;
+    let fetchMs = 0;
+    let formatMs = 0;
+    let characters = 0;
+    const windowRows = Math.max(
+        1,
+        Math.min(
+            QUERY_STUDIO_COPY_MAX_ROWS_PER_WINDOW,
+            Math.floor(QUERY_STUDIO_COPY_TARGET_DECODED_CELLS_PER_WINDOW / plan.columnCount),
+        ),
+    );
+    const textSegments: string[] = [];
+    let lineCount = 0;
+    const appendLine = (line: string): boolean => {
+        const added = line.length + (lineCount > 0 ? 1 : 0);
+        if (characters + added > QUERY_STUDIO_COPY_MAX_TSV_CHARACTERS) {
+            return false;
+        }
+        if (lineCount > 0) {
+            textSegments.push("\n");
+        }
+        textSegments.push(line);
+        characters += added;
+        lineCount++;
+        return true;
+    };
+
+    if (includeHeaders) {
+        const headerStarted = performance.now();
+        const headers: string[] = [];
+        for (const run of plan.columnRuns) {
+            for (let column = run.from; column <= run.to; column++) {
+                headers.push(columnNames[column] ?? "");
+            }
+        }
+        const appended = appendLine(headers.join("\t"));
+        formatMs += Math.max(0, performance.now() - headerStarted);
+        if (!appended) {
+            return { kind: "tooLarge", characters, fetchCount, fetchMs, formatMs, windowRows };
+        }
+    }
+
+    let rowBandIndex = 0;
+    for (const rowRun of plan.rowRuns) {
+        let start = rowRun.from;
+        while (start <= rowRun.to) {
+            const requestedRows = Math.min(windowRows, rowRun.to - start + 1);
+            const fetchedRuns: Array<{
+                window: QsCellWindow;
+                isNull: (row: number, column: number) => boolean;
+            }> = [];
+            let returnedRows = requestedRows;
+            for (const run of plan.columnRuns) {
+                const fetchStarted = performance.now();
+                const window = await getRows(start, requestedRows, {
+                    start: run.from,
+                    count: run.to - run.from + 1,
+                });
+                fetchMs += Math.max(0, performance.now() - fetchStarted);
+                fetchCount++;
+                fetchedRuns.push({ window, isNull: queryStudioWindowNullFlags(window) });
+                returnedRows = Math.min(returnedRows, window.rowCount);
+            }
+            if (returnedRows === 0) {
+                break;
+            }
+
+            const formatStarted = performance.now();
+            for (let rowOffset = 0; rowOffset < returnedRows; rowOffset++) {
+                const sourceRow = start + rowOffset;
+                while (
+                    rowBandIndex + 1 < plan.rowBands.length &&
+                    plan.rowBands[rowBandIndex].toRow < sourceRow
+                ) {
+                    rowBandIndex++;
+                }
+                const selectedColumns = plan.rowBands[rowBandIndex]?.columnRuns ?? [];
+                let selectedRunIndex = 0;
+                const fields: string[] = [];
+                let prospectiveCharacters = characters + (lineCount > 0 ? 1 : 0);
+                for (let runIndex = 0; runIndex < plan.columnRuns.length; runIndex++) {
+                    const run = plan.columnRuns[runIndex];
+                    const fetched = fetchedRuns[runIndex];
+                    const rowValues = fetched?.window.values[rowOffset];
+                    for (let column = run.from; column <= run.to; column++) {
+                        while (
+                            selectedRunIndex < selectedColumns.length &&
+                            selectedColumns[selectedRunIndex].to < column
+                        ) {
+                            selectedRunIndex++;
+                        }
+                        const selected =
+                            selectedRunIndex < selectedColumns.length &&
+                            selectedColumns[selectedRunIndex].from <= column;
+                        const projectedColumn = column - run.from;
+                        const value = !selected
+                            ? ""
+                            : fetched.isNull(rowOffset, projectedColumn)
+                              ? "NULL"
+                              : cellTextForPurpose(rowValues?.[projectedColumn], "copy");
+                        prospectiveCharacters += value.length + (fields.length > 0 ? 1 : 0);
+                        if (prospectiveCharacters > QUERY_STUDIO_COPY_MAX_TSV_CHARACTERS) {
+                            formatMs += Math.max(0, performance.now() - formatStarted);
+                            return {
+                                kind: "tooLarge",
+                                characters,
+                                fetchCount,
+                                fetchMs,
+                                formatMs,
+                                windowRows,
+                            };
+                        }
+                        fields.push(value);
+                    }
+                }
+                if (!appendLine(fields.join("\t"))) {
+                    formatMs += Math.max(0, performance.now() - formatStarted);
+                    return {
+                        kind: "tooLarge",
+                        characters,
+                        fetchCount,
+                        fetchMs,
+                        formatMs,
+                        windowRows,
+                    };
+                }
+            }
+            formatMs += Math.max(0, performance.now() - formatStarted);
+            start += returnedRows;
+        }
+    }
+
+    const joinStarted = performance.now();
+    const text = textSegments.join("");
+    formatMs += Math.max(0, performance.now() - joinStarted);
+    return { kind: "copied", text, characters, fetchCount, fetchMs, formatMs, windowRows };
 }

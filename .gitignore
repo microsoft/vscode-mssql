@@ -42,8 +42,7 @@ examples
 sqltoolsservice
 sqltools-mcp
 flatfileservice
-webviews-metafile.json
-extension-metafile.json
+*-metafile.json
 
 # Generated localization files (keep source bundle.l10n.json files)
 extensions/*/l10n/bundle.l10n.*.json

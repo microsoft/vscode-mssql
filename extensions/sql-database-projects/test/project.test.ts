@@ -26,7 +26,7 @@ import {
     IProjectReferenceSettings,
     ISystemDatabaseReferenceSettings,
 } from "../src/models/IDatabaseReferenceSettings";
-import { ItemType } from "sqldbproj";
+import { ItemType } from "../src/sqldbproj";
 import {
     SystemDatabaseReferenceProjectEntry,
     SqlProjectReferenceProjectEntry,
@@ -78,7 +78,8 @@ suite("Project: sqlproj content operations", function (): void {
         expect(project.sqlCmdVariables.get("BackupDatabaseName")).to.equal("MyBackupDatabase");
 
         // Database references
-        // should only have one database reference even though there are two master.dacpac references (1 for ADS and 1 for SSDT)
+        // Should only have one database reference even though there are two master.dacpac references
+        // (one for cross-platform builds and one for SSDT).
         expect(project.databaseReferences.length).to.equal(1);
         expect(project.databaseReferences[0].referenceName).to.contain(constants.master);
         expect(
@@ -132,7 +133,8 @@ suite("Project: sqlproj content operations", function (): void {
         const project: Project = await Project.openProject(projFilePath);
 
         // Database references
-        // should only have two database references even though there are two master.dacpac references (1 for ADS and 1 for SSDT)
+        // Should only have two database references even though there are two master.dacpac references
+        // (one for cross-platform builds and one for SSDT).
         expect(project.databaseReferences.length).to.equal(2);
         expect(project.databaseReferences[0].referenceName).to.contain("ReferencedTestProject");
         expect(project.databaseReferences[0] instanceof SqlProjectReferenceProjectEntry).to.be.true;
@@ -1949,7 +1951,7 @@ suite("Project: round trip updates", function (): void {
         await testUtils.deleteGeneratedTestFolder();
     });
 
-    test("Should update SSDT project to work in ADS", async function (): Promise<void> {
+    test("Should update SSDT project for cross-platform builds", async function (): Promise<void> {
         await testUpdateInRoundTrip(this.test, baselines.SSDTProjectFileBaseline);
     });
 
@@ -1957,7 +1959,7 @@ suite("Project: round trip updates", function (): void {
         await testUpdateInRoundTrip(this.test, baselines.SSDTUpdatedProjectBaseline);
     });
 
-    test("Should update SSDT project to work in ADS handling pre-existing targets", async function (): Promise<void> {
+    test("Should update SSDT project while preserving pre-existing targets", async function (): Promise<void> {
         await testUpdateInRoundTrip(this.test, baselines.SSDTProjectBaselineWithBeforeBuildTarget);
     });
 

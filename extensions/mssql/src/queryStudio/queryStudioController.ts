@@ -21,6 +21,7 @@ import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
     QS_SCHEMA_VERSION,
     QsCancelRequest,
+    QsCopySelectionToClipboardRequest,
     QsExecuteParams,
     QsMessagesAppendedNotification,
     QsResultSetEndedNotification,
@@ -32,7 +33,7 @@ import {
     QsExecuteRequest,
     QsGetDiagnosticsSummaryRequest,
     QsGetMessagesRequest,
-    QsGetMessagesTextRequest,
+    QsCopyMessagesToClipboardRequest,
     QsGetPlanStateRequest,
     QsGetRowsRequest,
     QsWriteClipboardRequest,
@@ -74,7 +75,11 @@ import {
 } from "../sharedInterfaces/queryStudio";
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { pinSourceResults } from "../queryResults/pinCommands";
-import { buildMessagesText } from "../sharedInterfaces/queryStudioMessages";
+import { buildBoundedMessagesText } from "../sharedInterfaces/queryStudioMessages";
+import {
+    buildQueryStudioGridCopyText,
+    planQueryStudioGridCopy,
+} from "../sharedInterfaces/queryStudioGridCopy";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
 import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
@@ -1051,6 +1056,88 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     : undefined,
             );
         });
+        this.onRequest(
+            QsCopySelectionToClipboardRequest.type,
+            async ({ resultSetId, selection, includeHeaders }) => {
+                const summary = this.model.executionHost
+                    .resultsState()
+                    .resultSets.find((set) => set.resultSetId === resultSetId);
+                if (!summary) {
+                    return {
+                        outcome: "empty" as const,
+                        characters: 0,
+                        fetchCount: 0,
+                        fetchMs: 0,
+                        formatMs: 0,
+                        clipboardMs: 0,
+                        windowRows: 0,
+                    };
+                }
+                // Re-plan against host-authoritative cardinality. A stale
+                // webview command therefore cannot fetch outside the current
+                // run or bypass the grid copy bounds.
+                const planned = planQueryStudioGridCopy(
+                    selection,
+                    summary.rowCount,
+                    summary.columnNames.length,
+                );
+                if (planned.kind !== "ok") {
+                    return {
+                        outcome: planned.kind,
+                        characters: 0,
+                        fetchCount: 0,
+                        fetchMs: 0,
+                        formatMs: 0,
+                        clipboardMs: 0,
+                        windowRows: 0,
+                        ...(planned.kind === "tooLarge" ? { reason: planned.reason } : {}),
+                    };
+                }
+                const built = await buildQueryStudioGridCopyText({
+                    plan: planned.plan,
+                    columnNames: summary.columnNames,
+                    includeHeaders,
+                    getRows: (start, count, columns) =>
+                        this.model.executionHost.getRows(
+                            resultSetId,
+                            start,
+                            count,
+                            "copy",
+                            columns,
+                        ),
+                });
+                const details = {
+                    rows: planned.plan.rowCount,
+                    columns: planned.plan.columnCount,
+                    cells: planned.plan.outputCellCount,
+                };
+                if (built.kind !== "copied") {
+                    return {
+                        outcome: built.kind,
+                        characters: built.characters,
+                        fetchCount: built.fetchCount,
+                        fetchMs: built.fetchMs,
+                        formatMs: built.formatMs,
+                        clipboardMs: 0,
+                        windowRows: built.windowRows,
+                        ...details,
+                        ...(built.kind === "tooLarge" ? { reason: "characters" as const } : {}),
+                    };
+                }
+                const clipboardStarted = performance.now();
+                await vscode.env.clipboard.writeText(built.text);
+                return {
+                    outcome: "copied" as const,
+                    characters: built.characters,
+                    fetchCount: built.fetchCount,
+                    fetchMs: built.fetchMs,
+                    formatMs: built.formatMs,
+                    clipboardMs: Math.max(0, performance.now() - clipboardStarted),
+                    windowRows: built.windowRows,
+                    ...details,
+                };
+            },
+        );
         this.onRequest(QsWriteClipboardRequest.type, async ({ text }) => {
             await vscode.env.clipboard.writeText(text);
             return { written: true };
@@ -1358,9 +1445,30 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             });
             return window;
         });
-        this.onRequest(QsGetMessagesTextRequest.type, async () => ({
-            text: buildMessagesText(this.model.executionHost.getMessages().messages),
-        }));
+        this.onRequest(QsCopyMessagesToClipboardRequest.type, async () => {
+            const builtAt = performance.now();
+            const built = buildBoundedMessagesText(this.model.executionHost.getMessages().messages);
+            const buildMs = Math.max(0, performance.now() - builtAt);
+            if (built.kind !== "copied") {
+                return {
+                    outcome: built.kind,
+                    messages: built.messages,
+                    characters: built.characters,
+                    buildMs,
+                    clipboardMs: 0,
+                    ...(built.kind === "tooLarge" ? { reason: built.reason } : {}),
+                };
+            }
+            const clipboardStarted = performance.now();
+            await vscode.env.clipboard.writeText(built.text);
+            return {
+                outcome: "copied" as const,
+                messages: built.messages,
+                characters: built.characters,
+                buildMs,
+                clipboardMs: Math.max(0, performance.now() - clipboardStarted),
+            };
+        });
         this.onRequest(QsNavigateToLineRequest.type, async ({ line, column }) => {
             // The editor lives in the webview: bounce a reveal notification.
             void this.sendNotification(QsRevealPositionNotification.type, {

@@ -21,7 +21,7 @@ import {
 } from "../models/IDatabaseReferenceSettings";
 import { Project } from "../models/project";
 import { TelemetryActions, TelemetryReporter, TelemetryViews } from "../common/telemetry";
-import { ProjectType, SystemDbReferenceType } from "vscode-mssql";
+import { ProjectType, SystemDbReferenceType } from "../common/enums";
 
 /**
  * Create flow for adding a database reference using only VS Code-native APIs such as QuickPick

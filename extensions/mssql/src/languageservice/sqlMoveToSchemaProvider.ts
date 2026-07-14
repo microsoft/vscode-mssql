@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { SqlMoveToSchema as loc } from "../constants/locConstants";
+import { SqlMoveToSchema as loc, msgYes } from "../constants/locConstants";
 import { cmdMoveToSchema } from "../constants/constants";
 import SqlToolsServerClient from "./serviceclient";
 import {
@@ -185,6 +185,18 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         if (!response || !response.changes || Object.keys(response.changes).length === 0) {
             void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
             return;
+        }
+
+        // Warn if an object with the same name already exists in the target schema.
+        if (response.message && response.isWarning) {
+            const choice = await vscode.window.showWarningMessage(
+                response.message,
+                { modal: true },
+                msgYes,
+            );
+            if (choice !== msgYes) {
+                return; // user declined — do nothing silently
+            }
         }
 
         const changes = response.changes as Record<string, SqlSymbolRenameTextEdit[]>;

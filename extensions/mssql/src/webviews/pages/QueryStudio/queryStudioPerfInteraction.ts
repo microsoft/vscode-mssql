@@ -15,8 +15,10 @@ export type QueryStudioPerfInteractionOutcome =
     | "gridUnavailable"
     | "viewportUnavailable"
     | "selectionUnavailable"
+    | "messagesUnavailable"
     | "copyTooLarge"
     | "copyEmpty"
+    | "copyFailed"
     | "notScrollable";
 
 interface QueryStudioPerfGridController {
@@ -29,6 +31,28 @@ interface QueryStudioPerfGridController {
 }
 
 const gridControllers = new Map<string, QueryStudioPerfGridController>();
+
+interface QueryStudioPerfMessagesController {
+    copyAll: () => Promise<QueryStudioPerfInteractionOutcome>;
+}
+
+let messagesController: QueryStudioPerfMessagesController | undefined;
+
+/** Register the mounted Messages pane's host-direct Copy All callback. */
+export function registerQueryStudioPerfMessagesController(
+    controller: QueryStudioPerfMessagesController,
+): () => void {
+    messagesController = controller;
+    return () => {
+        if (messagesController === controller) {
+            messagesController = undefined;
+        }
+    };
+}
+
+export function performRegisteredQueryStudioPerfMessagesCopy(): Promise<QueryStudioPerfInteractionOutcome> {
+    return messagesController?.copyAll() ?? Promise.resolve("messagesUnavailable");
+}
 
 /**
  * Register the product-owned controller for one mounted Query Studio grid.
@@ -156,6 +180,10 @@ export async function performQueryStudioPerfInteraction(
         resultStack.scrollTop = target;
         resultStack.dispatchEvent(new Event("scroll", { bubbles: true }));
         return "applied";
+    }
+
+    if (action.kind === "copyMessages") {
+        return performRegisteredQueryStudioPerfMessagesCopy();
     }
 
     const grids = document.querySelectorAll<HTMLElement>(

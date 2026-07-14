@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssqlVscode from "vscode-mssql";
+import type * as mssqlVscode from "vscode-mssql";
 
 export interface UpdateProjectDataModel {
     sourceEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo;

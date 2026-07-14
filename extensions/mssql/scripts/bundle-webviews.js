@@ -1,105 +1,128 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const logger = require("../../../scripts/terminal-logger");
-const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
+const fs = require("fs").promises;
+const path = require("path");
+const { createBrowserConfig, run } = require("../../../scripts/esbuild-utils");
 
-// Parse arguments
-const args = process.argv.slice(2);
-const isProd = args.includes("--prod") || args.includes("-p");
-const isWatch = args.includes("--watch") || args.includes("-w");
-
-// Build configuration
-const config = {
-    entryPoints: {
-        addFirewallRule: "src/webviews/pages/AddFirewallRule/index.tsx",
-        backupDatabaseDialog:
-            "src/webviews/pages/ObjectManagement/BackupDatabase/backupDatabaseIndex.tsx",
-        restoreDatabaseDialog:
-            "src/webviews/pages/ObjectManagement/RestoreDatabase/restoreDatabaseIndex.tsx",
-        connectionDialog: "src/webviews/pages/ConnectionDialog/index.tsx",
-        connectionGroup: "src/webviews/pages/ConnectionGroup/index.tsx",
-        debugConsole: "src/webviews/pages/DebugConsole/index.tsx",
-        DacpacDialog: "src/webviews/pages/DacpacDialog/index.tsx",
-        deployment: "src/webviews/pages/Deployment/index.tsx",
-        executionPlan: "src/webviews/pages/ExecutionPlan/index.tsx",
-        flatFileImport: "src/webviews/pages/FlatFileImport/index.tsx",
-        tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
-        objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
-        queryResult: "src/webviews/pages/QueryResult/index.tsx",
-        queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
-        queryStudioReplay: "src/webviews/pages/QueryStudioReplay/index.tsx",
-        queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",
-        inlineCompletionDebug: "src/webviews/pages/InlineCompletionDebug/index.tsx",
-        editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",
-        userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
-        schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
-        schemaVisualizer: "src/webviews/pages/SchemaVisualizer/index.tsx",
-        schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",
-        changePassword: "src/webviews/pages/ChangePassword/index.tsx",
-        createDatabaseDialog: "src/webviews/pages/ObjectManagement/createDatabaseIndex.tsx",
-        dropDatabaseDialog: "src/webviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
-        renameDatabaseDialog: "src/webviews/pages/ObjectManagement/renameDatabaseIndex.tsx",
-        publishProject: "src/webviews/pages/PublishProject/index.tsx",
-        codeAnalysis: "src/webviews/pages/CodeAnalysis/index.tsx",
-        tableExplorer: "src/webviews/pages/TableExplorer/index.tsx",
-        searchDatabase: "src/webviews/pages/SearchDatabase/index.tsx",
-        changelog: "src/webviews/pages/Changelog/index.tsx",
-        profiler: "src/webviews/pages/Profiler/index.tsx",
-        azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
-        shortcutsConfiguration: "src/webviews/pages/ShortcutsConfiguration/index.tsx",
-    },
-    bundle: true,
-    outdir: "dist/views",
-    platform: "browser",
-    loader: {
-        ".tsx": "tsx",
-        ".ts": "ts",
-        ".css": "css",
-        ".svg": "file",
-        ".js": "js",
-        ".png": "file",
-        ".ttf": "file",
-        ".gif": "file",
-    },
-    tsconfig: "./tsconfig.webviews.json",
-    plugins: [esbuildProblemMatcherPlugin("webviews")],
-    // BOOT-2: linked (external) maps in dev — inline maps made the webview fetch ~6x the code bytes on every open (maps load only in devtools).
-    sourcemap: isProd ? false : "linked",
-    // Always emit: the bundle-budget test reads the metafile to FAIL the suite when a heavy dependency re-enters the entry static closure.
-    metafile: true,
-    minify: isProd,
-    format: "esm",
-    splitting: true,
-};
-
-// Blob-backed web workers cannot resolve relative ESM imports from blob:.
-// Build the Spatial decoder as one self-contained module while keeping it
-// outside the Query Studio bootstrap graph.
-const spatialWorkerConfig = {
-    ...config,
-    entryPoints: {
-        spatialDecodeWorker: "src/webviews/pages/QueryStudio/spatial/spatialDecodeWorker.ts",
-    },
-    splitting: false,
-    metafile: false,
-};
-
-// Main execution
-async function main() {
-    if (isWatch) {
-        logger.header("Building webviews (watch mode)");
-        await Promise.all([watch(config), watch(spatialWorkerConfig)]);
-    } else {
-        logger.header(`Building webviews`);
-        const success = (await build(config, isProd)) && (await build(spatialWorkerConfig, isProd));
-        process.exit(success ? 0 : 1);
-    }
+/**
+ * Emit the static ESM closure for each entry bundle. Query Studio uses this
+ * manifest to preload a view's chunks in one fetch wave rather than waiting
+ * for the import waterfall after the webview becomes visible.
+ */
+function preloadManifestPlugin() {
+    return {
+        name: "webview-preload-manifest",
+        setup(build) {
+            build.onEnd(async (result) => {
+                if (result.errors.length > 0 || !result.metafile) {
+                    return;
+                }
+                const outputs = result.metafile.outputs;
+                const manifest = {};
+                for (const [file, output] of Object.entries(outputs)) {
+                    if (!output.entryPoint || !file.endsWith(".js")) {
+                        continue;
+                    }
+                    const seen = new Set();
+                    const visit = (current) => {
+                        if (seen.has(current) || !outputs[current]) {
+                            return;
+                        }
+                        seen.add(current);
+                        for (const imported of outputs[current].imports ?? []) {
+                            if (imported.kind === "import-statement") {
+                                visit(imported.path);
+                            }
+                        }
+                    };
+                    visit(file);
+                    seen.delete(file);
+                    manifest[path.basename(file, ".js")] = [...seen].map((current) =>
+                        path.basename(current),
+                    );
+                }
+                await fs.writeFile("./dist/views/preload-manifest.json", JSON.stringify(manifest));
+            });
+        },
+    };
 }
 
-// Run if called directly
-if (require.main === module) {
-    main();
+function createConfigs({ isProd }) {
+    const webviews = createBrowserConfig({
+        entryPoints: {
+            addFirewallRule: "src/webviews/pages/AddFirewallRule/index.tsx",
+            backupDatabaseDialog:
+                "src/webviews/pages/ObjectManagement/BackupDatabase/backupDatabaseIndex.tsx",
+            restoreDatabaseDialog:
+                "src/webviews/pages/ObjectManagement/RestoreDatabase/restoreDatabaseIndex.tsx",
+            connectionDialog: "src/webviews/pages/ConnectionDialog/index.tsx",
+            connectionGroup: "src/webviews/pages/ConnectionGroup/index.tsx",
+            debugConsole: "src/webviews/pages/DebugConsole/index.tsx",
+            DacpacDialog: "src/webviews/pages/DacpacDialog/index.tsx",
+            deployment: "src/webviews/pages/Deployment/index.tsx",
+            executionPlan: "src/webviews/pages/ExecutionPlan/index.tsx",
+            flatFileImport: "src/webviews/pages/FlatFileImport/index.tsx",
+            tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
+            objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
+            queryResult: "src/webviews/pages/QueryResult/index.tsx",
+            queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
+            queryStudioReplay: "src/webviews/pages/QueryStudioReplay/index.tsx",
+            queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",
+            inlineCompletionDebug: "src/webviews/pages/InlineCompletionDebug/index.tsx",
+            editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",
+            userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
+            schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
+            schemaVisualizer: "src/webviews/pages/SchemaVisualizer/index.tsx",
+            schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",
+            changePassword: "src/webviews/pages/ChangePassword/index.tsx",
+            createDatabaseDialog: "src/webviews/pages/ObjectManagement/createDatabaseIndex.tsx",
+            dropDatabaseDialog: "src/webviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
+            renameDatabaseDialog: "src/webviews/pages/ObjectManagement/renameDatabaseIndex.tsx",
+            publishProject: "src/webviews/pages/PublishProject/index.tsx",
+            codeAnalysis: "src/webviews/pages/CodeAnalysis/index.tsx",
+            tableExplorer: "src/webviews/pages/TableExplorer/index.tsx",
+            searchDatabase: "src/webviews/pages/SearchDatabase/index.tsx",
+            changelog: "src/webviews/pages/Changelog/index.tsx",
+            profiler: "src/webviews/pages/Profiler/index.tsx",
+            azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
+            shortcutsConfiguration: "src/webviews/pages/ShortcutsConfiguration/index.tsx",
+        },
+        loader: {
+            ".tsx": "tsx",
+            ".ts": "ts",
+            ".css": "css",
+            ".svg": "file",
+            ".js": "js",
+            ".png": "file",
+            ".ttf": "file",
+            ".gif": "file",
+        },
+        metafile: true,
+        minify: isProd,
+        outdir: "dist/views",
+        plugins: [preloadManifestPlugin()],
+        // Linked maps in development avoid loading multi-megabyte inline maps
+        // during normal webview startup; the maps remain available in devtools.
+        sourcemap: isProd ? false : "linked",
+        splitting: true,
+        tsconfig: "./tsconfig.webviews.json",
+    });
+
+    // Blob-backed web workers cannot resolve relative ESM imports from blob:.
+    // Keep the spatial decoder self-contained and out of Query Studio startup.
+    const spatialWorker = {
+        ...webviews,
+        entryPoints: {
+            spatialDecodeWorker: "src/webviews/pages/QueryStudio/spatial/spatialDecodeWorker.ts",
+        },
+        metafile: false,
+        plugins: [],
+        splitting: false,
+    };
+
+    return [webviews, spatialWorker];
 }
+
+void run(createConfigs, "webviews");

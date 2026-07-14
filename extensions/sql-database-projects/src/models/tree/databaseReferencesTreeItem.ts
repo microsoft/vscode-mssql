@@ -9,7 +9,7 @@ import * as constants from "../../common/constants";
 
 import { BaseProjectTreeItem } from "./baseTreeItem";
 import { IconPathHelper } from "../../common/iconHelper";
-import { IDatabaseReferenceProjectEntry } from "sqldbproj";
+import { IDatabaseReferenceProjectEntry } from "../../sqldbproj";
 import { SqlProjectReferenceProjectEntry } from "../projectEntry";
 
 /**
