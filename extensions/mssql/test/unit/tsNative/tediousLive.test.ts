@@ -310,6 +310,50 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
         }
     });
 
+    test("spatial WKB opt-in: transcoded cells match server STAsBinary() (TSQ2-11)", async () => {
+        const { session } = await openLive();
+        try {
+            const polygon = "POLYGON((0 0, 10 0, 10 10, 0 10, 0 0),(2 2, 3 2, 3 3, 2 3, 2 2))";
+            const { sink, summary } = await run(
+                session,
+                `SELECT geometry::STGeomFromText('${polygon}', 4326) AS g,` +
+                    ` geometry::STGeomFromText('${polygon}', 4326).STAsBinary() AS g_wkb,` +
+                    ` geography::STGeomFromText('LINESTRING(-122.36 47.65, -122.34 47.60)', 4326) AS gg,` +
+                    ` geography::STGeomFromText('LINESTRING(-122.36 47.65, -122.34 47.60)', 4326).STAsBinary() AS gg_wkb`,
+                { spatialEncoding: "wkb-v1" },
+            );
+            expect(summary.status).to.equal("succeeded");
+            const columns = sink.resultSets[0].columns;
+            expect(columns[0].spatial).to.deep.equal({ kind: "geometry", encoding: "wkb-v1" });
+            expect(columns[2].spatial).to.deep.equal({ kind: "geography", encoding: "wkb-v1" });
+            const values = sink.pages[0].compact.values[0];
+            const hints = sink.pages[0].compact.typeHints ?? [];
+            expect(hints[0]).to.equal("spatial:wkb:v1");
+
+            const checkPair = (cellIndex: number, wkbIndex: number, kind: string) => {
+                const cell = values[cellIndex] as {
+                    $t: string;
+                    status: string;
+                    kind: string;
+                    srid: number;
+                    wkb: string;
+                };
+                expect(cell.$t).to.equal("spatial");
+                expect(cell.status).to.equal("ok", `${kind} transcode`);
+                expect(cell.kind).to.equal(kind);
+                expect(cell.srid).to.equal(4326);
+                // The varbinary STAsBinary() column arrives as a 0x-hex string.
+                const serverHex = String(values[wkbIndex]).replace(/^0x/i, "").toLowerCase();
+                const transcodedHex = Buffer.from(cell.wkb, "base64").toString("hex");
+                expect(transcodedHex).to.equal(serverHex, `${kind} WKB byte parity`);
+            };
+            checkPair(0, 1, "geometry");
+            checkPair(2, 3, "geography");
+        } finally {
+            await session.close();
+        }
+    });
+
     test("bad password maps to SqlDataPlane.Auth (non-retryable)", async () => {
         const target = TARGET!;
         let n = 0;

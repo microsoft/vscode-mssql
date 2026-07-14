@@ -192,6 +192,7 @@ export class TsNativeSession implements ISqlSession {
                           ),
                       }
                     : {}),
+                sessionCapabilities: this.capabilities,
                 forceAbort: (reason) => this.connection.destroy(reason),
                 onDatabaseChanged: (database) => this.handleDatabaseChanged(database),
                 onTerminal: () => {

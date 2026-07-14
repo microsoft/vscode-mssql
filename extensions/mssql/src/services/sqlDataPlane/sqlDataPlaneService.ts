@@ -278,8 +278,10 @@ function tsNativeFactory(providerVersion: string): SqlBackendFactory {
             "exec.pageBytes": supported("static"),
             "exec.windowPages": supported("static", "exact", { limit: 4, unit: "pages" }),
             "types.typedCells": supported("static"),
-            "types.vectorBinaryV1": conditional("static", "transcoderNotLanded"),
-            "types.spatialWkbV1": conditional("static", "transcoderNotLanded"),
+            // TDS 7.4 down-converts vector to identity-less varchar — the
+            // provider never guesses from text shape (§6.8).
+            "types.vectorBinaryV1": unsupported("static", "driver.noWireTypeIdentity"),
+            "types.spatialWkbV1": supported("static"),
             "types.decimalExact": unsupported("static", "driver.decimalToDouble"),
             "types.datetimeOffsetOriginal": unsupported("static", "driver.offsetDiscarded"),
             "types.largeValueStreaming": unsupported("static", "driver.plpBuffering"),

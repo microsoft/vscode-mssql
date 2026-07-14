@@ -62,8 +62,13 @@ export const TS_NATIVE_CAPABILITIES: SqlBackendCapabilities = {
     pageBytesHonored: true,
     queryTimeoutHonored: true,
     compactRows: true,
+    // Vector: tedious/TDS 7.4 down-converts to identity-less varchar
+    // (empirical probe) — §6.8 forbids guessing, so NOT advertised. The
+    // transcoder exists and lights up when a driver exposes the identity.
     vectorBinaryV1: false,
-    spatialWkbV1: false,
+    // Spatial: UDT identity IS reliable (udtInfo.typeName) and the CLR→WKB
+    // transcoder is live-fixture proven (§6.9 gate).
+    spatialWkbV1: true,
     captureControl: false,
     replayDescriptors: true,
     resumeAfterDisconnect: false,

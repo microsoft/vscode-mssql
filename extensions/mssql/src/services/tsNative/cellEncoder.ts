@@ -21,7 +21,10 @@
 
 import { createHash } from "crypto";
 import { TruncatedCellEncoding, SqlCapabilityId } from "../sqlDataPlane/api";
+import { SPATIAL_MAX_WKB_BYTES } from "../../sharedInterfaces/queryResultCellCodec";
 import { TdsCell, TdsColumn } from "./driver/tdsDriver";
+import { transcodeSpatial, SpatialKind } from "./spatialTranscoder";
+import { transcodeVectorText } from "./vectorTranscoder";
 
 // ---------------------------------------------------------------------------
 // Type hints (STS2 SerializeTypeHints lockstep — sts2Backend.typeHintFor)
@@ -120,6 +123,20 @@ export interface EncodePolicy {
     truncatedPrefixBytes: number;
     /** TSQ2 §6.4: lossy preview marks instead of failing (debug-only). */
     lossyPreview: boolean;
+    /** Per-query typed spatial WKB opt-in (negotiated AND requested). */
+    spatialWkb: boolean;
+    /** Per-query typed vector opt-in (negotiated AND requested). */
+    vectorBinary: boolean;
+}
+
+/** True for a UDT column the spatial transcoder owns under opt-in. */
+export function isSpatialColumn(column: TdsColumn): column is TdsColumn & {
+    udtName: "geometry" | "geography";
+} {
+    return (
+        column.typeName === "udt" &&
+        (column.udtName === "geometry" || column.udtName === "geography")
+    );
 }
 
 export interface EncodedCell {
@@ -137,6 +154,16 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
         return { value: undefined, isNull: true, approxBytes: NULL_BYTES };
     }
     const type = column.typeName.toLowerCase();
+
+    // Typed spatial WKB (D-0020): opt-in only; per-cell honesty on failure.
+    if (policy.spatialWkb && isSpatialColumn(column) && Buffer.isBuffer(raw)) {
+        return encodeSpatialCell(raw, column.udtName);
+    }
+    // Typed vector (D-0019): identity-keyed only (§6.8 — never varchar
+    // guessing); vectors are never truncated.
+    if (policy.vectorBinary && type === "vector" && typeof raw === "string") {
+        return encodeVectorCell(raw);
+    }
 
     if (typeof raw === "boolean") {
         return { value: raw, isNull: false, approxBytes: 5 };
@@ -171,6 +198,64 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
     // Unmappable driver value: invariant-string fallback, never a throw.
     const fallback = String(raw);
     return { value: fallback, isNull: false, approxBytes: fallback.length + 2 };
+}
+
+/** D-0020 typed spatial cell — EXACT STS2 wire field names. */
+function encodeSpatialCell(raw: Buffer, kind: SpatialKind): EncodedCell {
+    const result = transcodeSpatial(raw, kind);
+    if (result.status === "ok" && result.wkb.byteLength <= SPATIAL_MAX_WKB_BYTES) {
+        const wkbBase64 = result.wkb.toString("base64");
+        return {
+            value: {
+                $t: "spatial",
+                version: 1,
+                status: "ok",
+                kind,
+                encoding: "wkb",
+                srid: result.srid,
+                wkbBytes: result.wkb.byteLength,
+                wkb: wkbBase64,
+            },
+            isNull: false,
+            approxBytes: wkbBase64.length + 96,
+        };
+    }
+    const reason =
+        result.status === "ok"
+            ? "maxCellBytes" // over the pinned STS2 spatial ceiling
+            : result.reason;
+    return {
+        value: { $t: "spatial", version: 1, status: "unrenderable", kind, reason },
+        isNull: false,
+        approxBytes: 96,
+    };
+}
+
+/** D-0019 typed vector cell — payload field is `data`, NEVER `v`. */
+function encodeVectorCell(raw: string): EncodedCell {
+    const result = transcodeVectorText(raw);
+    if (result.status === "ok") {
+        const dataBase64 = result.data.toString("base64");
+        return {
+            value: {
+                $t: "vector",
+                version: 1,
+                status: "ok",
+                dimensions: result.dimensions,
+                baseType: "float32",
+                encoding: "f32le",
+                byteLength: result.dimensions * 4,
+                data: dataBase64,
+            },
+            isNull: false,
+            approxBytes: dataBase64.length + 112,
+        };
+    }
+    return {
+        value: { $t: "vector", version: 1, status: "unavailable", reason: result.reason },
+        isNull: false,
+        approxBytes: 96,
+    };
 }
 
 function encodeStringCell(raw: string, type: string, policy: EncodePolicy): EncodedCell {

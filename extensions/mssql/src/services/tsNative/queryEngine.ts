@@ -39,8 +39,18 @@ import {
     TdsQueryEvent,
     TdsQueryObserver,
 } from "./driver/tdsDriver";
+import {
+    SPATIAL_TYPE_HINT_V1,
+    VECTOR_TYPE_HINT_V1,
+} from "../../sharedInterfaces/queryResultCellCodec";
 import { BoundedEventLane } from "./boundedEventLane";
-import { EncodePolicy, encodeCell, fidelityViolation, typeHintForColumn } from "./cellEncoder";
+import {
+    EncodePolicy,
+    encodeCell,
+    fidelityViolation,
+    isSpatialColumn,
+    typeHintForColumn,
+} from "./cellEncoder";
 import { PageBuilder, TS_NATIVE_PAGE_DEFAULTS, clampPageLimit } from "./pageBuilder";
 import { ResultSetLedger } from "./resultSetLedger";
 
@@ -107,6 +117,8 @@ export interface QueryEngineDeps {
     lossyPreview?: boolean;
     /** §5.13 memory breaker — off unless configured (zero default overhead). */
     memoryBreaker?: import("./memoryBudget").MemoryBreaker;
+    /** Session-negotiated struct; gates per-query typed-encoding opt-ins. */
+    sessionCapabilities?: import("../sqlDataPlane/api").SqlBackendCapabilities;
     /** Forced physical teardown (dispose/cancel deadline path). */
     forceAbort: (reason: string) => void;
     onDatabaseChanged?: (database: string) => void;
@@ -186,6 +198,9 @@ export class TsNativeQuery {
             opts.maxCellBytes,
             TS_NATIVE_PAGE_DEFAULTS.maxCellBytes,
         );
+        // Typed encodings engage only when the CALLER opted in AND the
+        // session negotiated the capability (opt-in literals, STS2 parity).
+        const caps = deps.sessionCapabilities;
         this.policy = {
             maxCellBytes,
             truncatedPrefixBytes: Math.min(
@@ -193,6 +208,8 @@ export class TsNativeQuery {
                 maxCellBytes,
             ),
             lossyPreview: deps.lossyPreview === true,
+            spatialWkb: opts.spatialEncoding === "wkb-v1" && caps?.spatialWkbV1 === true,
+            vectorBinary: opts.vectorEncoding === "binary-v1" && caps?.vectorBinaryV1 === true,
         };
         this.windowPages = TS_NATIVE_PAGE_DEFAULTS.windowPages;
         this.laneMaxItems = this.windowPages * 4; // pages + interleaved messages/ends
@@ -322,7 +339,7 @@ export class TsNativeQuery {
             this.flushSetEnd(closed.id, closed.rowCount, false);
         }
         this.currentColumns = columns;
-        this.currentTypeHints = columns.map((column) => typeHintForColumn(column));
+        this.currentTypeHints = columns.map((column) => this.hintFor(column));
         this.builder = new PageBuilder(opened.id, this.currentTypeHints, this.pageLimits);
         this.aggregates.resultSets++;
         const meta: ResultSetMetadata = {
@@ -795,6 +812,17 @@ export class TsNativeQuery {
     // Helpers
     // -----------------------------------------------------------------------
 
+    /** Per-column hint with typed-encoding overrides (STS2 lockstep). */
+    private hintFor(column: TdsColumn): string {
+        if (this.policy.spatialWkb && isSpatialColumn(column)) {
+            return SPATIAL_TYPE_HINT_V1;
+        }
+        if (this.policy.vectorBinary && column.typeName === "vector") {
+            return VECTOR_TYPE_HINT_V1;
+        }
+        return typeHintForColumn(column);
+    }
+
     private toColumnMetadata(column: TdsColumn, ordinal: number): ColumnMetadata {
         const type = column.typeName.toLowerCase();
         return {
@@ -802,11 +830,21 @@ export class TsNativeQuery {
             name: column.name,
             displayName: column.name,
             sqlType: type,
+            // Raw provider/UDT identity for capability-aware UX (TSQ2-9):
+            // "geometry column present but provider can't render it" needs
+            // the type name even when no typed cell is emitted.
+            ...(column.udtName !== undefined ? { providerType: column.udtName } : {}),
             ...(column.precision !== undefined ? { precision: column.precision } : {}),
             ...(column.scale !== undefined ? { scale: column.scale } : {}),
             ...(column.maxLength !== undefined ? { maxLength: column.maxLength } : {}),
             ...(column.nullable !== undefined ? { allowNull: column.nullable } : {}),
             ...(type === "xml" ? { isXml: true } : {}),
+            ...(this.policy.spatialWkb && isSpatialColumn(column)
+                ? { spatial: { kind: column.udtName, encoding: "wkb-v1" as const } }
+                : {}),
+            ...(this.policy.vectorBinary && type === "vector"
+                ? { vector: { transport: "binary-v1" as const } }
+                : {}),
         };
     }
 
