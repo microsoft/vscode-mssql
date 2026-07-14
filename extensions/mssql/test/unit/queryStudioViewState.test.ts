@@ -13,6 +13,7 @@ import {
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
     resolveQueryStudioVisibleTab,
+    resolveQueryStudioTerminalAutoTab,
     shouldResetQueryStudioRunView,
 } from "../../src/sharedInterfaces/queryStudioViewState";
 
@@ -61,6 +62,18 @@ suite("Query Studio panel view state", () => {
         expect(shouldResetQueryStudioRunView(runId, undefined, String(runId))).to.equal(false);
         expect(shouldResetQueryStudioRunView(runId, runId, "idle")).to.equal(false);
         expect(shouldResetQueryStudioRunView(undefined, undefined, "idle")).to.equal(false);
+    });
+
+    test("upgrades a provisional terminal Messages selection when result metadata arrives late", () => {
+        const provisional = resolveQueryStudioTerminalAutoTab(0, false, true);
+        expect(provisional).to.equal("messages");
+        expect(resolveQueryStudioTerminalAutoTab(1, false, true, provisional)).to.equal("results");
+        // A stale zero-summary update must not strand a result-bearing run on Messages again.
+        expect(resolveQueryStudioTerminalAutoTab(0, false, true, "results")).to.equal("results");
+        // Errors keep their deliberate Messages focus even if a batch also produced data.
+        expect(resolveQueryStudioTerminalAutoTab(1, true, true, "results")).to.equal("messages");
+        // A silent no-data terminal state keeps the pre-run Results selection.
+        expect(resolveQueryStudioTerminalAutoTab(0, false, false)).to.equal(undefined);
     });
 
     test("orders every contributed tab after Messages", () => {

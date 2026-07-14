@@ -71,6 +71,28 @@ export function shouldResetQueryStudioRunView(
     return runId !== undefined && startedRunId !== runId && panelGeneration !== String(runId);
 }
 
+/**
+ * Choose the automatic terminal tab for one run. A fast terminal state can
+ * arrive before its result-set summary, so a provisional Messages decision
+ * must be upgraded when a later state update proves data exists. Once Results
+ * has won for that run, a stale zero-summary update cannot send the user back
+ * to Messages.
+ */
+export function resolveQueryStudioTerminalAutoTab(
+    resultSetCount: number,
+    terminalHasErrors: boolean,
+    hasMessagesOrErrors: boolean,
+    previous?: "results" | "messages",
+): "results" | "messages" | undefined {
+    if (terminalHasErrors && hasMessagesOrErrors) {
+        return "messages";
+    }
+    if (resultSetCount > 0) {
+        return "results";
+    }
+    return hasMessagesOrErrors ? (previous ?? "messages") : previous;
+}
+
 /** Results is the only tab allowed before Messages; contributed tabs follow it. */
 export const QUERY_STUDIO_TAB_ORDER: readonly QueryStudioTabId[] = [
     "results",

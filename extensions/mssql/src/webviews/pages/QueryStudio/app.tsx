@@ -83,6 +83,7 @@ import {
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
     resolveQueryStudioVisibleTab,
+    resolveQueryStudioTerminalAutoTab,
     shouldResetQueryStudioRunView,
 } from "../../../sharedInterfaces/queryStudioViewState";
 import { appendPositionedQueryStudioMessages } from "../../../sharedInterfaces/queryStudioMessageWindows";
@@ -157,6 +158,7 @@ type QueryStudioTabActivationSource =
     | "runReset"
     | "perf"
     | "terminalError"
+    | "terminalResult"
     | "planRun"
     | "eligibility"
     | "user";
@@ -334,6 +336,10 @@ export function QueryStudioApp() {
     const planRunArmedRef = useRef(false);
     const startedRunRef = useRef<number | undefined>(undefined);
     const planTabFocusRef = useRef<{ runId?: number; focused: boolean }>({ focused: false });
+    const terminalAutoTabRef = useRef<{
+        runId?: number;
+        tab?: "results" | "messages";
+    }>({});
 
     const flushPanelViewState = useCallback(() => {
         if (panelViewStateTimerRef.current) {
@@ -583,6 +589,7 @@ export function QueryStudioApp() {
                 ...(planRunArmedRef.current ? { runId } : {}),
                 focused: false,
             };
+            terminalAutoTabRef.current = { runId };
             planRunArmedRef.current = false;
         },
         [activateTab, rpc],
@@ -1032,17 +1039,31 @@ export function QueryStudioApp() {
             } else {
                 markTerminalPaint();
             }
-            // Error terminal states: land the user on Messages even when the
-            // run also produced result sets, so the failure text is visible.
+        }
+        if (TERMINAL_KINDS.has(executionKind) && runId) {
+            // Error terminal states land on Messages even when result sets
+            // exist. A successful fast query may first publish a terminal
+            // state before its result-set summary; retain the provisional
+            // Messages choice only until a later terminal update proves data
+            // exists, then promote Results exactly once for this run.
             const terminalHasErrors =
                 executionKind === "completedWithErrors" || executionKind === "failed";
-            const hasMessagesOrErrors =
-                (state?.results.messageCount ?? 0) > 0 || (state?.results.errorCount ?? 0) > 0;
-            if (
-                hasMessagesOrErrors &&
-                (terminalHasErrors || (state?.results.resultSets.length ?? 0) === 0)
-            ) {
-                activateTab("messages", "terminalError");
+            const previousAutoTab =
+                terminalAutoTabRef.current.runId === runId
+                    ? terminalAutoTabRef.current.tab
+                    : undefined;
+            const nextAutoTab = resolveQueryStudioTerminalAutoTab(
+                state?.results.resultSets.length ?? 0,
+                terminalHasErrors,
+                (state?.results.messageCount ?? 0) > 0 || (state?.results.errorCount ?? 0) > 0,
+                previousAutoTab,
+            );
+            if (nextAutoTab !== undefined && nextAutoTab !== previousAutoTab) {
+                terminalAutoTabRef.current = { runId, tab: nextAutoTab };
+                activateTab(
+                    nextAutoTab,
+                    nextAutoTab === "results" ? "terminalResult" : "terminalError",
+                );
             }
         }
         // Plan-mode runs land on the embedded Query Plan tab once the
