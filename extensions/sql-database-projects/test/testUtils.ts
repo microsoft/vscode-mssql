@@ -8,7 +8,7 @@ import * as os from "os";
 import * as constants from "../src/common/constants";
 import * as templates from "../src/templates/templates";
 import * as vscode from "vscode";
-import * as sqldbproj from "sqldbproj";
+import * as sqldbproj from "../src/sqldbproj";
 
 import { promises as fs } from "fs";
 import { expect } from "chai";
@@ -44,7 +44,7 @@ export async function shouldThrowSpecificError(
 }
 
 export function getExtensionResourcePath(...segments: string[]): string {
-    const extName = sqldbproj.extension.vsCodeName;
+    const extName = sqldbproj.extensionId;
     const extensionPath = vscode.extensions.getExtension(extName)?.extensionPath ?? "";
     return path.join(extensionPath, ...segments);
 }

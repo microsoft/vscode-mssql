@@ -13,7 +13,7 @@ import { BuildHelper, NugetExtractionError } from "../src/tools/buildHelper";
 import { HttpClient } from "../src/http/httpClient";
 import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
-import * as sqldbproj from "sqldbproj";
+import * as sqldbproj from "../src/sqldbproj";
 import * as constants from "../src/common/constants";
 import * as utils from "../src/common/utils";
 
@@ -79,7 +79,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
 
         // extensionBuildDirPath is set in the constructor — no network calls needed.
         const extensionPath =
-            vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
+            vscode.extensions.getExtension(sqldbproj.extensionId)?.extensionPath ?? "";
         expect(buildHelper.extensionBuildDirPath).to.equal(
             path.join(extensionPath, "BuildDirectory"),
         );
@@ -88,7 +88,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
     test("Should have all required SystemDacpacs files for supported target platforms", async function (): Promise<void> {
         // Get the extension's build directory path
         const extensionPath =
-            vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
+            vscode.extensions.getExtension(sqldbproj.extensionId)?.extensionPath ?? "";
         const systemDacpacsPath = path.join(extensionPath, "BuildDirectory", "SystemDacpacs");
 
         // Verify SystemDacpacs folder exists

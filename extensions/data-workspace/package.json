@@ -10,15 +10,14 @@
     "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
     "homepage": "https://github.com/microsoft/vscode-mssql/blob/main/extensions/data-workspace/README.md",
     "engines": {
-        "vscode": "^1.98.0",
-        "azdata": ">=1.47.0"
+        "vscode": "^1.98.0"
     },
     "activationEvents": [
         "onView:dataworkspace.views.main",
         "onCommand:projects.openExisting",
         "onCommand:projects.new"
     ],
-    "main": "./out/src/main.js",
+    "main": "./dist/main.js",
     "l10n": "./l10n",
     "repository": {
         "type": "git",
@@ -33,17 +32,20 @@
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js data-workspace .",
         "build:extension": "tsc -p tsconfig.json",
+        "build:extension-bundle": "node esbuild.mjs",
         "build:prepare": "npm run build:runtime-localization",
-        "build": "npm run build:prepare && npm run build:extension",
+        "build": "npm run build:prepare && npm run build:extension && npm run build:extension-bundle",
+        "build:prod": "npm run build:prepare && npm run build:extension && npm run build:extension-bundle -- --prod",
         "compile": "npm run build",
         "watch:extension": "tsc -watch -p tsconfig.json --preserveWatchOutput",
-        "watch": "npm run build:prepare && run-p -l watch:extension",
+        "watch:extension-bundle": "node esbuild.mjs --watch",
+        "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle",
         "lint": "eslint ./src ./test",
         "localization:extract": "node ../../scripts/localization-extract.js data-workspace",
         "localization:generate": "node ../../scripts/localization-generate.js data-workspace .",
         "localization": "npm run localization:extract",
         "test": "npm run build && vscode-test --coverage",
-        "package": "npm run build && vsce package"
+        "package": "npm run build:prod && vsce package --no-dependencies"
     },
     "capabilities": {
         "virtualWorkspaces": false,
@@ -101,10 +103,6 @@
             {
                 "command": "projects.removeProject",
                 "title": "%remove-project-command%"
-            },
-            {
-                "command": "projects.manageProject",
-                "title": "%manage-project-command%"
             }
         ],
         "menus": {
@@ -148,18 +146,9 @@
                 },
                 {
                     "command": "projects.openExisting"
-                },
-                {
-                    "command": "projects.manageProject",
-                    "when": "false"
                 }
             ],
             "view/item/context": [
-                {
-                    "command": "projects.manageProject",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && azdataAvailable",
-                    "group": "0_projectsFirst@1"
-                },
                 {
                     "command": "projects.removeProject",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
@@ -202,13 +191,12 @@
     "dependencies": {
         "@microsoft/ads-extension-telemetry": "^3.0.1",
         "extension-toolkit": "file:../../packages/extension-toolkit",
-        "fast-glob": "^3.2.7",
+        "glob": "^13.0.6",
         "vscode-nls": "^4.0.0"
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@types/chai": "^5.2.2",
-        "@types/glob": "^8.1.0",
         "@types/mocha": "^5.2.7",
         "@types/node": "^22.13.14",
         "@types/sinon": "^10.0.12",
@@ -219,7 +207,7 @@
         "@vscode/test-electron": "^3.0.0",
         "@vscode/vsce": "^3.9.1",
         "chai": "^5.3.3",
-        "glob": "^13.0.6",
+        "esbuild": "^0.28.1",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
         "npm-run-all": "^4.1.5",

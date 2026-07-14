@@ -143,6 +143,7 @@
     "mssql.splitPaneSelection": "[Optional] Configuration options for which column new result panes should open in",
     "mssql.preventAutoExecuteScript": "Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.",
     "mssql.format.alignColumnDefinitionsInColumns": "Should column definitions be aligned?",
+    "mssql.format.enablePreviewFormatter": "Use the preview SQL formatter.",
     "mssql.format.datatypeCasing": "Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)",
     "mssql.format.keywordCasing": "Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)",
     "mssql.format.placeCommasBeforeNextStatement": "should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'",
