@@ -88,6 +88,7 @@ interface ConnectionManagerSeam {
         options?: { shouldHandleErrors?: boolean; connectionSource?: string },
     ): Promise<boolean>;
     disconnect(fileUri: string): Promise<boolean>;
+    isConnected?(fileUri: string): boolean;
 }
 
 async function connectionManagerSeam(): Promise<ConnectionManagerSeam | undefined> {
@@ -137,6 +138,8 @@ export class QueryStudioLanguageService implements vscode.Disposable {
     private shadowState: "none" | "connected" | "invalidated" = "none";
     private shadowConnecting: Promise<boolean> | undefined;
     private shadowDatabase: string | undefined;
+    /** Definition-target URIs this service connected, by database applied. */
+    private readonly adoptedDefinitionDatabases = new Map<string, string | undefined>();
 
     private readonly diagnosticsScheduler: SlicedDiagnosticsScheduler;
     private diagnosticsSuppressionCounts: Readonly<Record<string, number>> = {};
@@ -449,6 +452,7 @@ export class QueryStudioLanguageService implements vscode.Disposable {
             this.bridge = new Sts2BridgeEngine({
                 backingDocument: () => this.host.backingDocument(),
                 ensureShadowConnection: () => this.ensureShadowConnection(),
+                adoptDefinitionDocument: (uri) => this.adoptDefinitionDocumentConnection(uri),
             });
         }
         return this.bridge;
@@ -465,6 +469,50 @@ export class QueryStudioLanguageService implements vscode.Disposable {
             this.shadowConnecting = undefined;
         });
         return this.shadowConnecting;
+    }
+
+    /**
+     * Connect a definition-target document to the SOURCE editor's classic
+     * context — shadow profile + the session's CURRENT database — so a
+     * go-to-definition editor never rides an unrelated ambient profile (the
+     * generic auto-connect skips mssql-def documents entirely). Without a
+     * classic-mappable profile the target stays honestly disconnected.
+     */
+    async adoptDefinitionDocumentConnection(target: vscode.Uri): Promise<boolean> {
+        const profile = this.binding()?.shadowConnectionProfile;
+        if (profile === undefined) {
+            return false;
+        }
+        const manager = await connectionManagerSeam();
+        if (manager === undefined) {
+            return false;
+        }
+        const database = this.binding()?.connectionState.database;
+        const uri = target.toString();
+        if (
+            this.adoptedDefinitionDatabases.has(uri) &&
+            this.adoptedDefinitionDatabases.get(uri) === database &&
+            manager.isConnected?.(uri) === true
+        ) {
+            return true; // cached script re-opened in the same database context
+        }
+        const credentials = {
+            ...(profile as unknown as IConnectionInfo),
+            ...(database !== undefined ? { database } : {}),
+        };
+        await manager.disconnect(uri).catch(() => undefined);
+        const ok = await manager
+            .connect(uri, credentials, {
+                shouldHandleErrors: false,
+                connectionSource: "queryStudioDefinition",
+            })
+            .catch(() => false);
+        if (ok) {
+            this.adoptedDefinitionDatabases.set(uri, database);
+        } else {
+            this.adoptedDefinitionDatabases.delete(uri);
+        }
+        return ok;
     }
 
     private async connectShadow(): Promise<boolean> {

@@ -1506,10 +1506,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             // Scripted target (LS-4): open the generated script BESIDE as a
             // read-only mssql-def: document at the anchor (design §13.5);
             // the webview keeps its in-editor navigation for ranges only.
+            // The definition document then joins THIS editor's connection
+            // context (profile + current database) — never an ambient one.
             if (result?.virtualContent !== undefined) {
                 const provider = definitionContentProvider();
                 if (provider !== undefined) {
-                    await openScriptedDefinition(provider, result.virtualContent);
+                    const uri = await openScriptedDefinition(provider, result.virtualContent);
+                    await this.languageService.adoptDefinitionDocumentConnection(uri);
                 }
             }
             return null;

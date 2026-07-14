@@ -49,6 +49,12 @@ export interface BridgeEngineHost {
      * (keyword completions still work through the STS v1 client).
      */
     ensureShadowConnection(): Promise<boolean>;
+    /**
+     * Connect a definition-target document this engine opened to the SOURCE
+     * editor's connection context (shadow profile + current database) — the
+     * new editor must never inherit an unrelated ambient profile.
+     */
+    adoptDefinitionDocument?(uri: vscode.Uri): Promise<boolean>;
 }
 
 export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
@@ -181,6 +187,7 @@ export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
                 selection: targetRange,
                 preview: true,
             });
+            await this.host.adoptDefinitionDocument?.(doc.uri);
             return {};
         });
     }

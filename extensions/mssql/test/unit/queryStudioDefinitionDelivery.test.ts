@@ -11,11 +11,13 @@
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as vscode from "vscode";
 import {
     DEFINITION_SCHEME,
     DefinitionContentProvider,
 } from "../../src/queryStudio/definitionContentProvider";
+import { QueryStudioLanguageService } from "../../src/queryStudio/queryStudioLanguageService";
 
 suite("queryStudio language definition delivery (B12)", () => {
     test("stored scripts are served by their cacheKey-addressed URI", () => {
@@ -69,5 +71,105 @@ suite("queryStudio language definition delivery (B12)", () => {
         }
         expect(provider.size).to.equal(32);
         expect(provider.provideTextDocumentContent(first)).to.contain("expired");
+    });
+});
+
+/**
+ * Definition documents join the SOURCE editor's connection context (profile +
+ * CURRENT database) — never an ambient default/last-active profile, which is
+ * how a go-to-definition editor used to land on the OE node's database.
+ */
+suite("queryStudio definition connection adoption", () => {
+    let sandbox: sinon.SinonSandbox;
+    const targetUri = vscode.Uri.parse("mssql-def:/dbo.GetOrders.sql?cacheKey");
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    function makeService(binding: unknown): {
+        service: QueryStudioLanguageService;
+        manager: {
+            connect: sinon.SinonStub;
+            disconnect: sinon.SinonStub;
+            isConnected: sinon.SinonStub;
+        };
+    } {
+        const manager = {
+            connect: sandbox.stub().resolves(true),
+            disconnect: sandbox.stub().resolves(true),
+            isConnected: sandbox.stub().returns(false),
+        };
+        sandbox
+            .stub(vscode.commands, "executeCommand")
+            .callsFake(async (command: string) =>
+                command === "mssql.getControllerForTests"
+                    ? ({ connectionManager: manager } as unknown)
+                    : undefined,
+            );
+        const service = new QueryStudioLanguageService({
+            backingDocument: () => undefined,
+            sessionBinding: () => binding as never,
+            databases: () => undefined,
+        });
+        return { service, manager };
+    }
+
+    test("adopts the source profile with its CURRENT database, not the profile default", async () => {
+        const { service, manager } = makeService({
+            shadowConnectionProfile: { server: "localhost", database: "master" },
+            connectionState: { database: "userdb" },
+            onDidChange: () => ({ dispose: () => undefined }),
+        });
+        const ok = await service.adoptDefinitionDocumentConnection(targetUri);
+        expect(ok).to.equal(true);
+        expect(manager.connect).to.have.been.calledOnce;
+        const [uri, credentials, options] = manager.connect.firstCall.args;
+        expect(uri).to.equal(targetUri.toString());
+        expect(credentials.server).to.equal("localhost");
+        expect(credentials.database).to.equal("userdb");
+        expect(options.connectionSource).to.equal("queryStudioDefinition");
+        service.dispose();
+    });
+
+    test("without a classic-mappable profile the target stays disconnected", async () => {
+        const { service, manager } = makeService(undefined);
+        const ok = await service.adoptDefinitionDocumentConnection(targetUri);
+        expect(ok).to.equal(false);
+        expect(manager.connect).to.not.have.been.called;
+        service.dispose();
+    });
+
+    test("re-adoption in the same database context is a no-op while connected", async () => {
+        const { service, manager } = makeService({
+            shadowConnectionProfile: { server: "localhost" },
+            connectionState: { database: "userdb" },
+            onDidChange: () => ({ dispose: () => undefined }),
+        });
+        await service.adoptDefinitionDocumentConnection(targetUri);
+        manager.isConnected.returns(true);
+        await service.adoptDefinitionDocumentConnection(targetUri);
+        expect(manager.connect).to.have.been.calledOnce;
+        service.dispose();
+    });
+
+    test("a database change on the source editor reconnects the definition document", async () => {
+        const connectionState = { database: "userdb" };
+        const { service, manager } = makeService({
+            shadowConnectionProfile: { server: "localhost" },
+            connectionState,
+            onDidChange: () => ({ dispose: () => undefined }),
+        });
+        await service.adoptDefinitionDocumentConnection(targetUri);
+        manager.isConnected.returns(true);
+        connectionState.database = "otherdb";
+        await service.adoptDefinitionDocumentConnection(targetUri);
+        expect(manager.connect).to.have.been.calledTwice;
+        expect(manager.disconnect).to.have.been.calledTwice;
+        expect(manager.connect.secondCall.args[1].database).to.equal("otherdb");
+        service.dispose();
     });
 });

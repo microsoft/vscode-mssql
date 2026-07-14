@@ -21,6 +21,7 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
 import { logger } from "../models/logger";
+import { DEFINITION_SCHEME } from "../queryStudio/definitionContentProvider";
 
 /**
  * Time to wait after opening a document to check if it's the
@@ -350,6 +351,13 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // set encoding to false
         this._statusview?.languageFlavorChanged(docUri, Constants.mssqlProviderName);
+
+        // Generated definition previews (mssql-def:) join the SOURCE editor's
+        // connection in the Query Studio delivery — the ambient auto-connect
+        // must never claim them for an unrelated profile.
+        if (doc.uri.scheme === DEFINITION_SCHEME) {
+            return;
+        }
 
         /**
          * Since there is no reliable way to detect if this open is a result of

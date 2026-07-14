@@ -94,12 +94,13 @@ export function definitionContentProvider(): DefinitionContentProvider | undefin
 /**
  * Open a scripted definition BESIDE the Query Studio panel as a read-only
  * document, positioned at the anchor. Mode "peek" (default) opens a
- * transient preview tab; "open" pins a real tab.
+ * transient preview tab; "open" pins a real tab. Returns the document URI
+ * so the caller can attach the SOURCE editor's connection context to it.
  */
 export async function openScriptedDefinition(
     provider: DefinitionContentProvider,
     content: ScriptedDefinitionContent,
-): Promise<void> {
+): Promise<vscode.Uri> {
     const uri = provider.store(content);
     const document = await vscode.workspace.openTextDocument(uri);
     const anchor = content.anchor ?? { line: 0, character: 0 };
@@ -111,4 +112,5 @@ export async function openScriptedDefinition(
         preserveFocus: false,
         selection: new vscode.Range(position, position),
     });
+    return document.uri;
 }

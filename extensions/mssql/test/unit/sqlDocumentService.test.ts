@@ -640,6 +640,22 @@ suite("SqlDocumentService Tests", () => {
         expect(connectStub).to.not.have.been.called;
     });
 
+    test("generated definition previews (mssql-def:) are never auto-connected", async () => {
+        const source = mockTextDocument("script_1.sql");
+        const editor: vscode.TextEditor = { document: source } as unknown as vscode.TextEditor;
+        (connectionManager.getConnectionInfo as any).callsFake((uri: string) =>
+            uri === source.uri.toString()
+                ? ({ connectionId: "conn1", credentials: { server: "localhost" } } as any)
+                : undefined,
+        );
+        // A last-active connection exists — it must still not be applied.
+        await sqlDocumentService.onDidChangeActiveTextEditor(editor);
+
+        const definitionDoc = mockTextDocument("mssql-def:/dbo.GetOrders.sql?cacheKey");
+        await sqlDocumentService.onDidOpenTextDocument(definitionDoc);
+        expect(connectionManager.connect).to.not.have.been.called;
+    });
+
     test("onDidOpenTextDocument should wait for ongoing creates for file SQL documents", async () => {
         const fileDoc = mockTextDocument("file:///test.sql");
         const waitStub = sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
