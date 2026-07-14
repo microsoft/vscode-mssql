@@ -264,7 +264,11 @@ function encodeStringCell(raw: string, type: string, policy: EncodePolicy): Enco
         return { value: raw, isNull: false, approxBytes: byteLength + 2 };
     }
     const prefixBytes = Math.min(policy.truncatedPrefixBytes, policy.maxCellBytes);
-    const prefix = utf8SafePrefix(raw, prefixBytes);
+    // The byte count has already scanned the complete driver string. Thread
+    // it through so a truncated 1 MiB MAX value does not pay a second full
+    // scan, then avoid constructing a second full UTF-8 Buffer merely to
+    // retain the protocol's bounded prefix.
+    const prefix = utf8SafePrefix(raw, prefixBytes, byteLength);
     const marker: TruncatedCellEncoding = {
         $t: "truncated",
         of: "string",
@@ -293,21 +297,73 @@ function encodeBinaryCell(raw: Buffer, policy: EncodePolicy): EncodedCell {
     return { value: marker, isNull: false, approxBytes: Math.ceil((prefixBytes * 4) / 3) + 96 };
 }
 
-/** UTF-8 prefix that never splits a code point (STS2 truncation rule). */
-export function utf8SafePrefix(text: string, maxBytes: number): string {
-    if (Buffer.byteLength(text, "utf8") <= maxBytes) {
+/**
+ * UTF-8 prefix that never splits a code point (STS2 truncation rule).
+ *
+ * The old `Buffer.from(text).subarray(0, maxBytes)` path allocated the
+ * COMPLETE encoded value before discarding all but the prefix. That is a
+ * major transient allocation for already-materialized MAX strings. Walk the
+ * UTF-16 source instead, so the normal well-formed path returns one bounded
+ * substring. Lone surrogates deliberately normalize to U+FFFD, matching
+ * Node's UTF-8 Buffer conversion rather than changing wire semantics.
+ */
+export function utf8SafePrefix(text: string, maxBytes: number, knownByteLength?: number): string {
+    if ((knownByteLength ?? Buffer.byteLength(text, "utf8")) <= maxBytes) {
         return text;
     }
-    const bytes = Buffer.from(text, "utf8").subarray(0, maxBytes);
-    let end = bytes.length;
-    // Back off continuation bytes (0b10xxxxxx) and a split lead byte.
-    while (end > 0 && (bytes[end - 1] & 0xc0) === 0x80) {
-        end--;
+    if (maxBytes <= 0 || text.length === 0) {
+        return "";
     }
-    if (end > 0 && (bytes[end - 1] & 0xc0) === 0xc0) {
-        end--;
+
+    let offset = 0;
+    let encodedBytes = 0;
+    let segmentStart = 0;
+    let parts: string[] | undefined;
+    while (offset < text.length) {
+        const first = text.charCodeAt(offset);
+        let codeUnits = 1;
+        let codePointBytes: number;
+        let loneSurrogate = false;
+        if (first <= 0x7f) {
+            codePointBytes = 1;
+        } else if (first <= 0x7ff) {
+            codePointBytes = 2;
+        } else if (first >= 0xd800 && first <= 0xdbff) {
+            const second = text.charCodeAt(offset + 1);
+            if (second >= 0xdc00 && second <= 0xdfff) {
+                codeUnits = 2;
+                codePointBytes = 4;
+            } else {
+                codePointBytes = 3; // U+FFFD, exactly like Buffer UTF-8 encoding.
+                loneSurrogate = true;
+            }
+        } else if (first >= 0xdc00 && first <= 0xdfff) {
+            codePointBytes = 3; // U+FFFD, exactly like Buffer UTF-8 encoding.
+            loneSurrogate = true;
+        } else {
+            codePointBytes = 3;
+        }
+        if (encodedBytes + codePointBytes > maxBytes) {
+            break;
+        }
+        if (loneSurrogate) {
+            parts ??= [];
+            if (segmentStart < offset) {
+                parts.push(text.slice(segmentStart, offset));
+            }
+            parts.push("\uFFFD");
+            segmentStart = offset + 1;
+        }
+        encodedBytes += codePointBytes;
+        offset += codeUnits;
     }
-    return bytes.subarray(0, end).toString("utf8");
+    if (!parts) {
+        return text.slice(0, offset);
+    }
+    if (segmentStart < offset) {
+        parts.push(text.slice(segmentStart, offset));
+    }
+    return parts.join("");
 }
 
 function formatInvariantNumber(value: number, column: TdsColumn): string {
