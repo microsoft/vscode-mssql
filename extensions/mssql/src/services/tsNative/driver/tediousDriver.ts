@@ -469,14 +469,56 @@ function scrubAuth(config: ConnectionConfiguration): void {
     }
 }
 
+/** PLP/"max" wire sentinel for (var)char/binary declared lengths. */
+const MAX_LENGTH_SENTINEL = 65_535;
+
+/**
+ * tedious reports internal TDS type names for nullable wire variants
+ * (empirically verified against SQL Server 2025: IntN/BitN/DecimalN/MoneyN/
+ * FloatN; dataLength disambiguates the family member). The engine and cell
+ * encoder speak CANONICAL engine type names only.
+ */
+function canonicalTypeName(rawName: string, dataLength: number | undefined): string {
+    const lower = rawName.toLowerCase();
+    switch (lower) {
+        case "intn":
+            return dataLength === 8
+                ? "bigint"
+                : dataLength === 2
+                  ? "smallint"
+                  : dataLength === 1
+                    ? "tinyint"
+                    : "int";
+        case "bitn":
+            return "bit";
+        case "decimaln":
+            return "decimal";
+        case "numericn":
+            return "numeric";
+        case "moneyn":
+            return dataLength === 4 ? "smallmoney" : "money";
+        case "floatn":
+            return dataLength === 4 ? "real" : "float";
+        case "datetimn":
+            return dataLength === 4 ? "smalldatetime" : "datetime";
+        case "uniqueidentifiern":
+            return "uniqueidentifier";
+        default:
+            return lower;
+    }
+}
+
 function normalizeColumn(column: TediousColumnMeta): TdsColumn {
+    const typeName = canonicalTypeName(column.type?.name ?? "unknown", column.dataLength);
     return {
         name: column.colName,
-        typeName: (column.type?.name ?? "unknown").toLowerCase(),
+        typeName,
         ...(column.udtInfo?.typeName ? { udtName: column.udtInfo.typeName.toLowerCase() } : {}),
         ...(column.precision !== undefined ? { precision: column.precision } : {}),
         ...(column.scale !== undefined ? { scale: column.scale } : {}),
-        ...(typeof column.dataLength === "number" && column.dataLength > 0
+        ...(typeof column.dataLength === "number" &&
+        column.dataLength > 0 &&
+        column.dataLength < MAX_LENGTH_SENTINEL
             ? { maxLength: column.dataLength }
             : {}),
     };

@@ -59,6 +59,12 @@ import {
 } from "./capabilityRegistry";
 import { FakeBackend, FAKE_CAPABILITIES } from "./fakeBackend";
 import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/sts2Backend";
+// Pure parsing module (driver-port types only — no tedious in this graph).
+import {
+    TS_NATIVE_OVERRIDES_SETTING,
+    TsNativeOverrides,
+    parseTsNativeOverrides,
+} from "../tsNative/overrides";
 
 // ---------------------------------------------------------------------------
 // Settings
@@ -290,7 +296,7 @@ function tsNativeFactory(providerVersion: string): SqlBackendFactory {
             "diag.replayDescriptor": supported("static"),
             "diag.resumeAfterDisconnect": unsupported("static", "notSupported"),
         }),
-        fingerprintSettings: [...TIMEOUT_SETTINGS],
+        fingerprintSettings: [...TIMEOUT_SETTINGS, TS_NATIVE_OVERRIDES_SETTING],
         create: async (context: SqlBackendFactoryContext): Promise<ISqlConnectionService> => {
             const nodeMajor = Number(process.versions.node.split(".")[0]);
             if (!Number.isInteger(nodeMajor) || nodeMajor < TS_NATIVE_MIN_NODE_MAJOR) {
@@ -300,6 +306,9 @@ function tsNativeFactory(providerVersion: string): SqlBackendFactory {
                     false,
                 );
             }
+            const overrides = parseTsNativeOverrides(
+                context.config.get<unknown>(TS_NATIVE_OVERRIDES_SETTING, undefined),
+            );
             const provider = loadTsNativeProvider();
             return provider.createBackend({
                 deadlines: {
@@ -320,13 +329,17 @@ function tsNativeFactory(providerVersion: string): SqlBackendFactory {
                         10_000,
                     ),
                 },
+                overrides,
             });
         },
     };
 }
 
 interface TsNativeProviderExports {
-    createBackend(options?: { deadlines?: Partial<Record<string, number>> }): ISqlConnectionService;
+    createBackend(options?: {
+        deadlines?: Partial<Record<string, number>>;
+        overrides?: TsNativeOverrides;
+    }): ISqlConnectionService;
     driverVersion: string;
 }
 

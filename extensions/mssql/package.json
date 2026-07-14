@@ -4022,6 +4022,12 @@
                     "markdownDescription": "Default SQL data plane provider for **future** sessions; open documents keep the provider their session was bound to. `sts2-remote` is reserved for the hosted backend.",
                     "scope": "application"
                 },
+                "mssql.sqlDataPlane.tsNative.overrides": {
+                    "type": "object",
+                    "default": {},
+                    "markdownDescription": "Debug overrides for the Native TypeScript provider (applies to future sessions). Keys: `pageRows`, `pageBytes`, `maxCellBytes` (lower-only), `memoryBudgetMiB`, `lossyPreview`, `capabilityMask` (force capabilities OFF, never on), `faults` (deterministic fault profile; forbidden in official perf runs). Unknown keys and out-of-range values are ignored.",
+                    "scope": "application"
+                },
                 "mssql.sqlDataPlane.capabilityFallback": {
                     "type": "string",
                     "default": "prompt",

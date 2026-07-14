@@ -80,6 +80,16 @@ export interface TsNativeBackendDeps {
     lossyPreview?: boolean;
     /** Server-facts/@@SPID probes on open (tedious adapter turns on). */
     probeOnOpen?: boolean;
+    /** Advertised struct (capability masks apply at composition; masks only
+     *  ever turn support OFF — TSQ2 §11). */
+    capabilities?: SqlBackendCapabilities;
+    /** Debug default execute options (lower-only; engine clamps enforce). */
+    defaultExecuteOptions?: { pageRows?: number; pageBytes?: number; maxCellBytes?: number };
+    /** §5.13 memory breaker inputs; off when absent. */
+    memoryBudget?: import("./memoryBudget").MemoryBudgetConfig;
+    memoryReader?: import("./memoryBudget").MemoryReader;
+    /** Status-surface summary of active debug overrides (safe fields only). */
+    overridesSummary?: Record<string, unknown>;
 }
 
 export interface TsNativeDeadlines {
@@ -114,13 +124,16 @@ export class TsNativeBackend implements ISqlConnectionService {
     private readonly deadlines: TsNativeDeadlines;
     private readonly sessions = new Map<string, TsNativeSession>();
 
+    private readonly effectiveCapabilities: SqlBackendCapabilities;
+
     constructor(private readonly deps: TsNativeBackendDeps) {
         this.deadlines = { ...TS_NATIVE_DEFAULT_DEADLINES, ...deps.deadlines };
         this.backendInfo.version = deps.driver.version;
+        this.effectiveCapabilities = deps.capabilities ?? TS_NATIVE_CAPABILITIES;
         this.availability = {
             state: "available",
             backend: "ts-native",
-            capabilities: TS_NATIVE_CAPABILITIES,
+            capabilities: this.effectiveCapabilities,
         };
     }
 
@@ -211,7 +224,7 @@ export class TsNativeBackend implements ISqlConnectionService {
                 : {}),
             encrypted: request.encrypt !== false,
         };
-        session = new TsNativeSession(connection, info, TS_NATIVE_CAPABILITIES, {
+        session = new TsNativeSession(connection, info, this.effectiveCapabilities, {
             clock: this.deps.clock,
             ids: this.deps.ids,
             deadlines: {
@@ -225,6 +238,12 @@ export class TsNativeBackend implements ISqlConnectionService {
             ...(this.deps.observer ? { observer: this.deps.observer } : {}),
             ...(this.deps.lossyPreview !== undefined
                 ? { lossyPreview: this.deps.lossyPreview }
+                : {}),
+            ...(this.deps.defaultExecuteOptions
+                ? { defaultExecuteOptions: this.deps.defaultExecuteOptions }
+                : {}),
+            ...(this.deps.memoryBudget && this.deps.memoryReader
+                ? { memoryBudget: this.deps.memoryBudget, memoryReader: this.deps.memoryReader }
                 : {}),
             onFinalized: (sessionId) => this.sessions.delete(sessionId),
         });
@@ -295,6 +314,7 @@ export class TsNativeBackend implements ISqlConnectionService {
         return {
             backend: "ts-native",
             driver: { name: this.deps.driver.name, version: this.deps.driver.version },
+            ...(this.deps.overridesSummary ? { overrides: this.deps.overridesSummary } : {}),
             sessions: [...this.sessions.values()].map((session) => session.snapshot()),
         };
     }

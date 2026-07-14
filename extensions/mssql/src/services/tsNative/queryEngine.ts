@@ -105,6 +105,8 @@ export interface QueryEngineDeps {
     observer?: EngineObserver;
     /** TSQ2 §6.4 lossy preview (debug-only): mark instead of fail-closed. */
     lossyPreview?: boolean;
+    /** §5.13 memory breaker — off unless configured (zero default overhead). */
+    memoryBreaker?: import("./memoryBudget").MemoryBreaker;
     /** Forced physical teardown (dispose/cancel deadline path). */
     forceAbort: (reason: string) => void;
     onDatabaseChanged?: (database: string) => void;
@@ -434,6 +436,23 @@ export class TsNativeQuery {
     }
 
     private enqueuePage(page: RowsPage): void {
+        // §5.13 last-resort guard: bounded-interval sampling at page points.
+        const verdict = this.deps.memoryBreaker?.check();
+        if (verdict?.pressure && !this.terminalSent) {
+            this.cancelCause ??= "dispose";
+            void this.lease.cancel("dispose");
+            this.emitTerminal(
+                "failed",
+                {
+                    code: DataPlaneErrorCodes.resourceLimit,
+                    message: `memory budget exceeded (heap+external ${verdict.snapshot ? Math.round((verdict.snapshot.heapUsedBytes + verdict.snapshot.externalBytes) / 1048576) : "?"} MiB)`,
+                    retryable: false,
+                },
+                true,
+                "known",
+            );
+            return;
+        }
         this.aggregates.pages++;
         if (this.aggregates.firstPageProducedMs === undefined) {
             this.aggregates.firstPageProducedMs = this.deps.clock.now() - this.startedMs;

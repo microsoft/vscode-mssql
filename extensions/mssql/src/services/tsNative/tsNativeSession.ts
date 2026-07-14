@@ -41,6 +41,7 @@ import {
     EngineSlicePolicy,
     TsNativeQuery,
 } from "./queryEngine";
+import { MemoryBreaker } from "./memoryBudget";
 
 // --- tiny local emitter (no vscode dependency) ------------------------------
 
@@ -67,6 +68,11 @@ export interface TsNativeSessionDeps {
     slice?: EngineSlicePolicy;
     observer?: EngineObserver;
     lossyPreview?: boolean;
+    /** Debug default execute options (lower-only; engine clamps enforce). */
+    defaultExecuteOptions?: { pageRows?: number; pageBytes?: number; maxCellBytes?: number };
+    /** §5.13 breaker inputs; a fresh breaker per query when configured. */
+    memoryBudget?: import("./memoryBudget").MemoryBudgetConfig;
+    memoryReader?: import("./memoryBudget").MemoryReader;
     /** Called when the session leaves the live pool (closed or lost). */
     onFinalized?: (sessionId: string) => void;
 }
@@ -149,13 +155,24 @@ export class TsNativeSession implements ISqlSession {
                 true,
             );
         }
+        const defaults = this.deps.defaultExecuteOptions;
+        const effectiveOpts: ExecuteOptions = defaults
+            ? {
+                  ...(defaults.pageRows !== undefined ? { pageRows: defaults.pageRows } : {}),
+                  ...(defaults.pageBytes !== undefined ? { pageBytes: defaults.pageBytes } : {}),
+                  ...(defaults.maxCellBytes !== undefined
+                      ? { maxCellBytes: defaults.maxCellBytes }
+                      : {}),
+                  ...opts, // caller-provided values win over debug defaults
+              }
+            : opts;
         const query = new TsNativeQuery(
             (observer) =>
                 this.connection.execute({ batchText: text }, observer, {
                     operationId: this.deps.ids.next("op"),
                 }),
             text,
-            opts,
+            effectiveOpts,
             sink,
             {
                 clock: this.deps.clock,
@@ -165,6 +182,15 @@ export class TsNativeSession implements ISqlSession {
                 ...(this.deps.observer ? { observer: this.deps.observer } : {}),
                 ...(this.deps.lossyPreview !== undefined
                     ? { lossyPreview: this.deps.lossyPreview }
+                    : {}),
+                ...(this.deps.memoryBudget && this.deps.memoryReader
+                    ? {
+                          memoryBreaker: new MemoryBreaker(
+                              this.deps.memoryReader,
+                              this.deps.memoryBudget,
+                              () => this.deps.clock.now(),
+                          ),
+                      }
                     : {}),
                 forceAbort: (reason) => this.connection.destroy(reason),
                 onDatabaseChanged: (database) => this.handleDatabaseChanged(database),

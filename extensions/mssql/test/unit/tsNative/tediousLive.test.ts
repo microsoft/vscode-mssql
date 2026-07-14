@@ -85,7 +85,9 @@ function parseConnString(raw: string | undefined): LiveTarget | undefined {
     return target;
 }
 
-const TARGET = parseConnString(process.env.STS2_SQLSERVER_CONNSTRING);
+const TARGET = parseConnString(
+    process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING ?? process.env.STS2_SQLSERVER_CONNSTRING,
+);
 
 function liveProfile(target: LiveTarget): SqlConnectionProfileRef {
     return {
