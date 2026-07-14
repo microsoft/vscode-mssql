@@ -27,6 +27,7 @@ import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTree
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
+import { activateSchemaVisualizer } from "../schemaVisualizer/schemaVisualizerActivation";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
@@ -1405,6 +1406,14 @@ export default class MainController implements vscode.Disposable {
             legacyConnections: this._connectionMgr,
             // B26 (K5): group CRUD/move/DnD share the classic storage.
             groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
+        });
+
+        // Schema Visualizer (preview, SV-R4): read-only diagram served by
+        // MetadataStore leases over the data plane. Zero v1 traffic on the
+        // read path (tripwire-enforced); legacy Schema Designer untouched.
+        activateSchemaVisualizer(this._context, {
+            profiles: this._connectionMgr.connectionStore,
+            tokens: vscodeSqlTokenSource,
         });
 
         // H-3 poll governance host facts (CACHE-5): window focus gates the

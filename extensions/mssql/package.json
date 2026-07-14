@@ -716,6 +716,11 @@
                     "group": "2_oe2_query@0"
                 },
                 {
+                    "command": "mssql.schemaVisualizer.open",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=database\\b/ && config.mssql.schemaVisualizer.enabled",
+                    "group": "2_oe2_query@3"
+                },
+                {
                     "command": "mssql.objectExplorerV2.selectTop",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSelectTop\\b/",
                     "group": "2_oe2_query@1"
@@ -2265,6 +2270,11 @@
             {
                 "command": "mssql.objectExplorerV2.newQuery",
                 "title": "New Query (Query Studio)",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.schemaVisualizer.open",
+                "title": "Visualize Schema (Preview)",
                 "category": "MS SQL"
             },
             {
@@ -4079,6 +4089,12 @@
                     "type": "number",
                     "default": 1572864,
                     "markdownDescription": "Per-execute batch text budget for central uploads (encoder budget; addendum C-11). Internal tuning knob for dogfood.",
+                    "scope": "application"
+                },
+                "mssql.schemaVisualizer.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Enable the Schema Visualizer preview: a read-only schema diagram served entirely by the SQL Data Plane and MetadataStore (no SQL Tools Service v1 traffic on the read path). Requires `mssql.sqlDataPlane.enabled`.",
                     "scope": "application"
                 },
                 "mssql.objectExplorer.viewMode": {
