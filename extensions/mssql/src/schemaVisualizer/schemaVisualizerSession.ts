@@ -265,7 +265,11 @@ export class SchemaVisualizerSession {
 /** Typed honest failure: no snapshot AND hydrate failed (§15). */
 export class SchemaVisualizerUnavailableError extends Error {
     constructor(public readonly freshness: VisualizerFreshnessFacts) {
-        super("metadataUnavailable");
+        // Facts ride the MESSAGE (safe enums only) so host logs are
+        // diagnosable from run artifacts without a debugger.
+        super(
+            `metadataUnavailable(source=${freshness.source},freshness=${freshness.freshness},validation=${freshness.validation})`,
+        );
         this.name = "SchemaVisualizerUnavailableError";
         Object.setPrototypeOf(this, SchemaVisualizerUnavailableError.prototype);
     }

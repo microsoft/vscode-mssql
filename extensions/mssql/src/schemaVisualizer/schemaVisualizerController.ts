@@ -115,6 +115,50 @@ export class SchemaVisualizerWebviewController extends WebviewPanelController<
         this.registerRpcHandlers();
     }
 
+    /**
+     * Open with a bounded startup grace: right after window load the SQL
+     * Data Plane (STS spawn + sts2 initialize) may still be starting and a
+     * first hydration can fail transiently. Retry with backoff inside the
+     * open window instead of surfacing a hard error for a race the user
+     * did not cause. Bounded — a genuinely down data plane still errors.
+     */
+    private async getModelWithStartupGrace(
+        filter: { objectIds?: number[] } | undefined,
+    ): Promise<VisualizerModelResult> {
+        const deadline = Date.now() + 30_000;
+        let attempt = 0;
+        for (;;) {
+            try {
+                return attempt === 0
+                    ? await this.session.getModel(filter)
+                    : await this.session.refresh(filter);
+            } catch (error) {
+                if (
+                    !(error instanceof SchemaVisualizerUnavailableError) ||
+                    Date.now() >= deadline
+                ) {
+                    throw error;
+                }
+                diag.emit({
+                    feature: "schemaVisualizer",
+                    kind: "event",
+                    type: "schemaVisualizer.open.retry",
+                    fields: {
+                        attempt: { raw: String(attempt), cls: "diagnostic.metadata" },
+                        freshness: {
+                            raw: JSON.stringify(this.session.freshnessFacts()),
+                            cls: "diagnostic.metadata",
+                        },
+                    },
+                });
+                await new Promise((resolve) =>
+                    setTimeout(resolve, Math.min(500 * 2 ** attempt, 5_000)),
+                );
+                attempt++;
+            }
+        }
+    }
+
     private registerRpcHandlers(): void {
         this.onRequest(SchemaVisualizer.GetModelRequest.type, async (params) => {
             Perf.marker("mssql.schemaVisualizer.open.begin", "begin");
@@ -124,7 +168,7 @@ export class SchemaVisualizerWebviewController extends WebviewPanelController<
                 type: "schemaVisualizer.getModel",
             });
             try {
-                const result = await this.session.getModel(
+                const result = await this.getModelWithStartupGrace(
                     params.objectIds !== undefined ? { objectIds: params.objectIds } : undefined,
                 );
                 this.updateState({ ...this.state, status: "ready" });
