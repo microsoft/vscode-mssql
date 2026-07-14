@@ -310,6 +310,107 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
         }
     });
 
+    test("golden type matrix: exact carriers, sub-ms datetimes, unicode, hex, guid casing (TSQ2-6)", async () => {
+        const { session } = await openLive();
+        try {
+            const { sink, summary } = await run(
+                session,
+                "SELECT CAST(9007199254740993 AS bigint) bi," + // > 2^53: exactness is the point
+                    " CAST(1 AS tinyint) ti, CAST(-2 AS smallint) si, CAST(1.25 AS real) r," +
+                    " CAST('2025-06-30T12:34:56.1234567' AS datetime2(7)) dt2," +
+                    " CAST('12:34:56.7654321' AS time(7)) tt," +
+                    " CAST('2025-06-30' AS date) dd," +
+                    " CAST('abc' AS char(5)) ch," +
+                    " CAST(N'héllo你好' AS nvarchar(20)) uni," +
+                    " CAST(0x0102FE AS varbinary(10)) vb," +
+                    " CAST('<a b=\"1\"/>' AS xml) x," +
+                    " CAST('11111111-2222-3333-4444-555555555555' AS uniqueidentifier) g",
+            );
+            expect(summary.status).to.equal("succeeded");
+            const hints = sink.pages[0].compact.typeHints ?? [];
+            expect(hints).to.deep.equal([
+                "number:approx", // bigint: exact STRING carrier
+                "number",
+                "number",
+                "number",
+                "datetime",
+                "datetime",
+                "datetime",
+                "string",
+                "string",
+                "binary",
+                "xml",
+                "string",
+            ]);
+            const cellText = (col: number) => {
+                const cell = sink.cell(0, 0, col);
+                return "value" in cell ? String(cell.value) : JSON.stringify(cell);
+            };
+            expect(cellText(0)).to.equal("9007199254740993", "bigint beyond 2^53 stays exact");
+            expect(sink.cell(0, 0, 1)).to.deep.include({ kind: "number", value: 1 });
+            expect(sink.cell(0, 0, 2)).to.deep.include({ kind: "number", value: -2 });
+            expect(sink.cell(0, 0, 3)).to.deep.include({ kind: "number", value: 1.25 });
+            const dt2 = sink.cell(0, 0, 4);
+            expect(dt2.kind).to.equal("datetime");
+            if (dt2.kind === "datetime") {
+                expect(dt2.display).to.contain("12:34:56.1234567", "datetime2(7) sub-ms");
+            }
+            const tt = sink.cell(0, 0, 5);
+            if (tt.kind === "datetime") {
+                expect(tt.display).to.equal("12:34:56.7654321", "time(7) full scale");
+            }
+            const dd = sink.cell(0, 0, 6);
+            if (dd.kind === "datetime") {
+                expect(dd.display).to.equal("2025-06-30");
+            }
+            expect(cellText(7)).to.equal("abc  ", "char(5) padding preserved");
+            expect(cellText(8)).to.equal("héllo你好", "unicode round-trip");
+            const vb = sink.cell(0, 0, 9);
+            expect(vb.kind).to.equal("binary");
+            if (vb.kind === "binary") {
+                expect(vb.hexPrefix).to.equal("0x0102FE");
+            }
+            expect(cellText(10)).to.contain('b="1"');
+            expect(cellText(11)).to.equal(
+                "11111111-2222-3333-4444-555555555555",
+                "guid lowercase (STS2 invariant D parity)",
+            );
+        } finally {
+            await session.close();
+        }
+    });
+
+    test("privacy canary: password material never reaches errors, status, or diagnostics (TSQ2-7)", async () => {
+        const canary = "CANARY-pw-tsq2-9x8y7z!";
+        const target = TARGET!;
+        let n = 0;
+        const backend = new TsNativeBackend({
+            driver: new TediousDriver(),
+            clock: productionClock(),
+            ids: { next: (p) => `${p}-canary-${++n}` },
+        });
+        let caught: unknown;
+        await backend
+            .openSession({
+                profile: liveProfile(target),
+                applicationName: "tsn-canary",
+                openTimeoutMs: 20_000,
+                auth: { passwordProvider: async () => canary },
+            })
+            .catch((error) => (caught = error));
+        expect(caught, "canary password must fail login").to.not.equal(undefined);
+        const surfaces = [
+            JSON.stringify({
+                message: (caught as Error).message,
+                ...(caught as object),
+            }),
+            JSON.stringify(backend.snapshot()),
+        ];
+        for (const surface of surfaces) {
+            expect(surface.includes(canary)).to.equal(false, "canary leaked");
+        }
+    });
+
     test("spatial WKB opt-in: transcoded cells match server STAsBinary() (TSQ2-11)", async () => {
         const { session } = await openLive();
         try {
@@ -373,5 +474,72 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
             .catch((e) => (error = e as SqlDataPlaneError));
         expect(error?.code).to.equal(DataPlaneErrorCodes.auth);
         expect(error?.retryable).to.equal(false);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Azure SQL Database lane (sqlauth) — TSQ2-7. Skip-not-fail.
+// ---------------------------------------------------------------------------
+
+const AZURE_TARGET = parseConnString(process.env.STS2_AZURESQLSERVER_CONNSTRING);
+
+suite("ts-native live engine (Azure SQL sqlauth lane)", function () {
+    this.timeout(120_000);
+
+    suiteSetup(function () {
+        if (!AZURE_TARGET) {
+            this.skip();
+        }
+    });
+
+    async function openAzure(): Promise<ISqlSession> {
+        const target = AZURE_TARGET!;
+        let n = 0;
+        const backend = new TsNativeBackend({
+            driver: new TediousDriver(),
+            clock: productionClock(),
+            ids: { next: (p) => `${p}-az-${++n}` },
+        });
+        return backend.openSession({
+            profile: liveProfile(target),
+            applicationName: "vscode-mssql-tsn-azure-tests",
+            openTimeoutMs: 60_000,
+            auth: { passwordProvider: async () => target.password },
+        });
+    }
+
+    test("TLS open + SELECT against Azure SQL Database", async () => {
+        const session = await openAzure();
+        try {
+            const { sink, summary } = await run(
+                session,
+                "SELECT 42 AS answer, DB_NAME() AS db, CAST(SERVERPROPERTY('EngineEdition') AS int) AS edition",
+            );
+            expect(summary.status).to.equal("succeeded");
+            expect(sink.cell(0, 0, 0)).to.deep.include({ kind: "number", value: 42 });
+            expect(sink.cell(0, 0, 2)).to.deep.include(
+                { kind: "number", value: 5 },
+                "Azure SQL DB",
+            );
+        } finally {
+            await session.close();
+        }
+    });
+
+    test("attention cancel works over WAN; session stays reusable", async () => {
+        const session = await openAzure();
+        try {
+            const sink = new CollectingSink();
+            const handle = session.execute("WAITFOR DELAY '00:00:20'", {}, sink);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const ack = await handle.cancel();
+            expect(ack.acknowledged).to.equal(true);
+            const summary = await handle.completion;
+            expect(summary.status).to.equal("canceled");
+            const again = await run(session, "SELECT 7 AS seven");
+            expect(again.summary.status).to.equal("succeeded");
+        } finally {
+            await session.close();
+        }
     });
 });

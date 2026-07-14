@@ -455,6 +455,8 @@ function buildConfig(request: TdsOpenRequest): ConnectionConfiguration {
             rowCollectionOnRequestCompletion: false,
             useColumnNames: false,
             useUTC: true,
+            // STS2 golden parity: Guid invariant "D" format is lowercase.
+            lowerCaseGuids: true,
             // Never let tedious log payloads/tokens in any product mode.
             debug: { data: false, packet: false, payload: false, token: false },
         },
