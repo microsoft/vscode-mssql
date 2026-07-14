@@ -1997,6 +1997,12 @@ function DiagnosticsTab(props: {
     const heapSeries = rich.snapshots
         .map((s) => s.metrics["heapUsedMB"])
         .filter((v): v is number => typeof v === "number");
+    const externalSeries = rich.snapshots
+        .map((s) => s.metrics["externalMB"])
+        .filter((v): v is number => typeof v === "number");
+    const arrayBufferSeries = rich.snapshots
+        .map((s) => s.metrics["arrayBuffersMB"])
+        .filter((v): v is number => typeof v === "number");
     const loopSeries = rich.snapshots
         .map((s) => s.metrics["eventLoopP95Ms"])
         .filter((v): v is number => typeof v === "number");
@@ -2018,8 +2024,15 @@ function DiagnosticsTab(props: {
                     official
                 </span>
             </div>
-            <div className="dc-kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0,1fr))" }}>
-                {["heapUsedMB", "rssMB", "eventLoopP95Ms", "cpuUserMs"].map((key) => (
+            <div className="dc-kpis" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
+                {[
+                    "heapUsedMB",
+                    "rssMB",
+                    "externalMB",
+                    "arrayBuffersMB",
+                    "eventLoopP95Ms",
+                    "cpuUserMs",
+                ].map((key) => (
                     <Kpi
                         key={key}
                         label={key}
@@ -2028,6 +2041,44 @@ function DiagnosticsTab(props: {
                 ))}
             </div>
             <div className="dc-two-col">
+                <div className="dc-card">
+                    <div className="dc-card-title">
+                        External memory (MB) over the rep
+                        <span className="right">{externalSeries.length} samples</span>
+                    </div>
+                    {externalSeries.length >= 2 ? (
+                        <TrendChart
+                            height={130}
+                            unitFormat={(v) => `${v.toFixed(1)} MB`}
+                            points={externalSeries.map((v, i) => ({
+                                x: i,
+                                y: v,
+                                label: `sample ${i}\n${v.toFixed(1)} MB`,
+                            }))}
+                        />
+                    ) : (
+                        <span className="dc-muted">not enough samples for a trend</span>
+                    )}
+                </div>
+                <div className="dc-card">
+                    <div className="dc-card-title">
+                        ArrayBuffer memory (MB) over the rep
+                        <span className="right">{arrayBufferSeries.length} samples</span>
+                    </div>
+                    {arrayBufferSeries.length >= 2 ? (
+                        <TrendChart
+                            height={130}
+                            unitFormat={(v) => `${v.toFixed(1)} MB`}
+                            points={arrayBufferSeries.map((v, i) => ({
+                                x: i,
+                                y: v,
+                                label: `sample ${i}\n${v.toFixed(1)} MB`,
+                            }))}
+                        />
+                    ) : (
+                        <span className="dc-muted">not enough samples for a trend</span>
+                    )}
+                </div>
                 <div className="dc-card">
                     <div className="dc-card-title">
                         Heap used (MB) over the rep

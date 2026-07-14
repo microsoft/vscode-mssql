@@ -100,6 +100,7 @@ class RichStatsCollector {
             metrics["heapUsedMB"] = Number((memory.heapUsed / 1048576).toFixed(1));
             metrics["rssMB"] = Number((memory.rss / 1048576).toFixed(1));
             metrics["externalMB"] = Number((memory.external / 1048576).toFixed(1));
+            metrics["arrayBuffersMB"] = Number(((memory.arrayBuffers ?? 0) / 1048576).toFixed(1));
         } catch {
             // metrics stay absent — never fabricated
         }

@@ -701,12 +701,27 @@ export const OBS_CONTRACT: Registry = {
             attrs: {
                 heapUsedMB: "diagnosticMetric",
                 rssMB: "diagnosticMetric",
+                externalMB: "diagnosticMetric",
+                arrayBuffersMB: "diagnosticMetric",
                 eventLoopP95Ms: "diagnosticMetric",
                 cpuUserMs: "diagnosticMetric",
                 cpuSystemMs: "diagnosticMetric",
             },
             attrsComplete: false,
             notes: "Rich collection output. Its PRESENCE marks the rep diagnostic-only.",
+        },
+        {
+            prefix: "exthost.memory.",
+            kind: "marker",
+            feature: "harness",
+            processRoles: ["extensionHost"],
+            timingClass: "derived",
+            measurementEligible: false,
+            attrs: {
+                value: "diagnosticMetric",
+            },
+            attrsComplete: true,
+            notes: "Extension-host process.memoryUsage counter sampled by the perf driver; normalized as diagnostic peak/final metrics.",
         },
         {
             name: "sessionDiag.enabled",
