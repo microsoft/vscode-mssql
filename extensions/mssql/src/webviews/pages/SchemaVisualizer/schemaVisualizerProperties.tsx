@@ -30,6 +30,7 @@ import {
     VisualizerForeignKey,
     VisualizerTable,
 } from "../../../schemaVisualizer/model/schemaVisualizerModel";
+import { generateTableScript } from "../../../schemaVisualizer/scripting/schemaVisualizerSqlGenerator";
 
 const useStyles = makeStyles({
     section: {
@@ -101,13 +102,17 @@ export const SchemaVisualizerProperties = ({
     table,
     foreignKeys,
     capabilities,
+    model,
 }: {
     table: VisualizerTable;
     foreignKeys: VisualizerForeignKey[];
     capabilities: SchemaVisualizerCatalogModel["capabilities"];
+    /** Full (subset) model — FK targets + capabilities for the script. */
+    model: SchemaVisualizerCatalogModel;
 }) => {
     const styles = useStyles();
     const keysLimited = capabilities.keyProperties.state !== "available";
+    const script = generateTableScript(table, model);
     return (
         <div>
             <div className={styles.section}>
@@ -177,6 +182,30 @@ export const SchemaVisualizerProperties = ({
                         </div>
                     ))
                 )}
+            </div>
+            <div className={styles.section}>
+                <Text className={styles.heading}>Script (informational)</Text>
+                <Text size={200} block style={{ color: tokens.colorNeutralForeground3 }}>
+                    Generated from cached metadata — not a publish artifact.
+                </Text>
+                {script.warnings.map((warning) => (
+                    <Text
+                        key={warning}
+                        size={200}
+                        block
+                        style={{ color: tokens.colorPaletteYellowForeground2 }}>
+                        ⚠ {warning}
+                    </Text>
+                ))}
+                <pre
+                    style={{
+                        fontSize: "11px",
+                        overflowX: "auto",
+                        userSelect: "text",
+                        whiteSpace: "pre",
+                    }}>
+                    {script.text}
+                </pre>
             </div>
             <div className={styles.section}>
                 <Text className={styles.heading}>Foreign keys ({foreignKeys.length})</Text>

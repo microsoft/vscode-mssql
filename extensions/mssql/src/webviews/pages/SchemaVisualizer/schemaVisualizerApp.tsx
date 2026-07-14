@@ -462,6 +462,7 @@ export const SchemaVisualizerApp = () => {
                                             fk.toObjectId === selectedTable.identity.objectId,
                                     )}
                                     capabilities={load.result.model.capabilities}
+                                    model={load.result.model}
                                 />
                             </div>
                         )}
