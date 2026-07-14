@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dataworkspace from "dataworkspace";
-import * as sqldbproj from "sqldbproj";
+import type * as dataworkspace from "dataworkspace";
+import * as sqldbproj from "../sqldbproj";
 import * as vscode from "vscode";
 import * as constants from "../common/constants";
 import { IconPathHelper } from "../common/iconHelper";

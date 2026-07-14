@@ -16,7 +16,7 @@
         "workspaceContains:**/*.sqlproj",
         "onView:dataworkspace.views.main"
     ],
-    "main": "./out/src/extension.js",
+    "main": "./dist/extension.js",
     "l10n": "./l10n",
     "repository": {
         "type": "git",
@@ -32,14 +32,16 @@
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
         "build:extension": "tsc -p tsconfig.extension.json",
+        "build:extension-bundle": "node esbuild.mjs",
         "build:prepare": "npm run build:runtime-localization",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
-        "watch": "npm run build:prepare && run-p -l watch:extension",
+        "watch:extension-bundle": "node esbuild.mjs --watch",
+        "watch": "npm run build:prepare && npm run build:extension && run-p -l watch:extension watch:extension-bundle",
         "lint": "eslint ./src ./test",
         "localization": "node ../../scripts/localization-extract.js sql-database-projects",
         "test": "npm run build && vscode-test --coverage",
-        "package": "npm run build && vsce package"
+        "package": "npm run build -- --prod && vsce package --no-dependencies"
     },
     "capabilities": {
         "virtualWorkspaces": false,
@@ -588,14 +590,14 @@
         "ajv": "^8.18.0",
         "axios": "^1.15.0",
         "extract-zip": "^2.0.1",
-        "fast-glob": "^3.2.7",
         "fs-extra": "^5.0.0",
+        "glob": "^13.0.6",
         "promisify-child-process": "^3.1.1",
         "semver": "^7.5.2",
         "tunnel": "0.0.6",
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
-        "which": "^2.0.2",
+        "which": "^6.0.1",
         "xml-formatter": "2.1.0"
     },
     "devDependencies": {
@@ -608,7 +610,7 @@
         "@types/sinon-chai": "^4.0.0",
         "@types/tunnel": "0.0.1",
         "@types/vscode": "1.98.0",
-        "@types/which": "^2.0.1",
+        "@types/which": "^3.0.4",
         "@types/xml-formatter": "^1.1.0",
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
@@ -620,6 +622,7 @@
         "eslint": "^9.32.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.1",
+        "esbuild": "^0.28.1",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
         "npm-run-all": "^4.1.5",

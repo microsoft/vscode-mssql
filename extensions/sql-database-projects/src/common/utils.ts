@@ -7,15 +7,15 @@ import * as vscode from "vscode";
 import * as os from "os";
 import * as constants from "./constants";
 import * as path from "path";
-import * as glob from "fast-glob";
-import * as dataworkspace from "dataworkspace";
-import * as vscodeMssql from "vscode-mssql";
+import { glob } from "glob";
+import type * as dataworkspace from "dataworkspace";
+import type * as vscodeMssql from "vscode-mssql";
 import * as fse from "fs-extra";
-import * as which from "which";
+import which = require("which");
 import { promises as fs } from "fs";
-import { ISqlProject, SqlTargetPlatform } from "sqldbproj";
-import { SystemDatabase } from "./typeHelper";
-import { DeploymentScenario } from "./enums";
+import { ISqlProject, SqlTargetPlatform } from "../sqldbproj";
+import { DatabaseEngineEdition, DeploymentScenario, SystemDatabase } from "./enums";
+import { dataWorkspaceExtensionId, mssqlExtensionId } from "./extensionIds";
 
 /**
  * Consolidates on the error message string
@@ -194,7 +194,7 @@ export function convertSlashesForSqlProj(filePath: string): string {
  * @returns
  */
 export function systemDatabaseToString(systemDb: SystemDatabase): string {
-    if (systemDb === vscodeMssql.SystemDatabase.Master) {
+    if (systemDb === SystemDatabase.Master) {
         return constants.master;
     } else {
         return constants.msdb;
@@ -202,9 +202,7 @@ export function systemDatabaseToString(systemDb: SystemDatabase): string {
 }
 
 export function getSystemDatabase(name: string): SystemDatabase {
-    return name === constants.master
-        ? vscodeMssql.SystemDatabase.Master
-        : vscodeMssql.SystemDatabase.MSDB;
+    return name === constants.master ? SystemDatabase.Master : SystemDatabase.MSDB;
 }
 
 /**
@@ -282,10 +280,7 @@ export function validateSqlCmdVariableName(name: string | undefined): string | n
  * @param folderPath
  */
 export async function getSqlProjectFilesInFolder(folderPath: string): Promise<string[]> {
-    // path needs to use forward slashes for glob to work
-    const escapedPath = glob.escapePath(folderPath.replace(/\\/g, "/"));
-    const sqlprojFilter = path.posix.join(escapedPath, "**", "*.sqlproj");
-    const results = await glob(sqlprojFilter);
+    const results = await glob("**/*.sqlproj", { cwd: folderPath, absolute: true });
 
     return results;
 }
@@ -299,7 +294,7 @@ export function getSqlProjectsInWorkspace(): Promise<vscode.Uri[]> {
 }
 
 export function getDataWorkspaceExtensionApi(): dataworkspace.IExtension {
-    const extension = vscode.extensions.getExtension(dataworkspace.extension.vscodeName)!;
+    const extension = vscode.extensions.getExtension(dataWorkspaceExtensionId)!;
     return extension.exports;
 }
 
@@ -324,7 +319,7 @@ export async function getSqlProjectsService(): Promise<ISqlProjectsService> {
 
 export async function getVscodeMssqlApi(): Promise<vscodeMssql.IExtension> {
     const ext = vscode.extensions.getExtension(
-        vscodeMssql.extension.name,
+        mssqlExtensionId,
     ) as vscode.Extension<vscodeMssql.IExtension>;
     return ext.activate();
 }
@@ -463,18 +458,16 @@ export async function getSqlFilesInFolder(
     folderPath: string,
     ignoreBinObj?: boolean,
 ): Promise<string[]> {
-    // path needs to use forward slashes for glob to work
-    folderPath = folderPath.replace(/\\/g, "/");
-    const sqlFilter = path.posix.join(folderPath, "**", "*.sql");
+    const options = { cwd: folderPath, absolute: true };
 
     if (ignoreBinObj) {
         // don't add files in bin and obj folders
-        const binIgnore = path.posix.join(folderPath, "bin", "**", "*.sql");
-        const objIgnore = path.posix.join(folderPath, "obj", "**", "*.sql");
-
-        return await glob(sqlFilter, { ignore: [binIgnore, objIgnore] });
+        return await glob("**/*.sql", {
+            ...options,
+            ignore: ["bin/**/*.sql", "obj/**/*.sql"],
+        });
     } else {
-        return await glob(sqlFilter);
+        return await glob("**/*.sql", options);
     }
 }
 
@@ -487,18 +480,16 @@ export async function getFoldersInFolder(
     folderPath: string,
     ignoreBinObj?: boolean,
 ): Promise<string[]> {
-    // path needs to use forward slashes for glob to work
-    const escapedPath = glob.escapePath(folderPath.replace(/\\/g, "/"));
-    const folderFilter = path.posix.join(escapedPath, "/**");
+    const results = await glob("**/", {
+        cwd: folderPath,
+        absolute: true,
+        ignore: ignoreBinObj ? ["bin/**", "obj/**"] : undefined,
+    });
 
-    if (ignoreBinObj) {
-        // don't add bin and obj folders
-        const binIgnore = path.posix.join(escapedPath, "bin");
-        const objIgnore = path.posix.join(escapedPath, "obj");
-        return await glob(folderFilter, { onlyDirectories: true, ignore: [binIgnore, objIgnore] });
-    } else {
-        return await glob(folderFilter, { onlyDirectories: true });
-    }
+    // A directory-ending glob includes cwd itself. Exclude it to preserve fast-glob's previous
+    // onlyDirectories behavior.
+    const rootPath = path.resolve(folderPath);
+    return results.filter((folder) => path.resolve(folder) !== rootPath);
 }
 
 /**
@@ -566,16 +557,16 @@ export async function getTargetPlatformFromServerVersion(
         const engineEdition = serverInfo.engineEditionId;
         if (isSqlDwUnifiedServer(serverUrl)) {
             targetPlatform = SqlTargetPlatform.sqlDwUnified;
-        } else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlOnDemand) {
+        } else if (engineEdition === DatabaseEngineEdition.SqlOnDemand) {
             targetPlatform = SqlTargetPlatform.sqlDwServerless;
-        } else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDbFabric) {
+        } else if (engineEdition === DatabaseEngineEdition.SqlDbFabric) {
             targetPlatform = SqlTargetPlatform.sqlDbFabric;
-        } else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDataWarehouse) {
+        } else if (engineEdition === DatabaseEngineEdition.SqlDataWarehouse) {
             targetPlatform = SqlTargetPlatform.sqlDW;
         } else {
             targetPlatform = SqlTargetPlatform.sqlAzure;
         }
-    } else if (serverInfo.engineEditionId === vscodeMssql.DatabaseEngineEdition.SqlDbFabric) {
+    } else if (serverInfo.engineEditionId === DatabaseEngineEdition.SqlDbFabric) {
         // Temporary workaround for https://github.com/microsoft/azuredatastudio/issues/26260
         // SqlDbFabric is not grouped into isCloud properly, remove this condition when it is fixed in SqlToolsService
         targetPlatform = SqlTargetPlatform.sqlDbFabric;

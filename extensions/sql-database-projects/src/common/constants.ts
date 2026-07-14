@@ -5,7 +5,7 @@
 
 import { l10n } from "vscode";
 import * as path from "path";
-import { SqlTargetPlatform } from "sqldbproj";
+import { SqlTargetPlatform } from "../sqldbproj";
 import * as utils from "./utils";
 
 //#region file extensions
