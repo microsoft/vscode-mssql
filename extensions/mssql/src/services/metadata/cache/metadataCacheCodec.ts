@@ -39,6 +39,7 @@ import {
     CatalogEnvironment,
     CatalogSection,
     CatalogSnapshot,
+    FkActionState,
     KeyConstraintKind,
     ObjectKind,
     SectionState,
@@ -47,8 +48,11 @@ import {
 /**
  * Hand-bumped catalog model version (addendum §6.2). Bump whenever the
  * payload arrays, their meaning, or CANONICAL_PAYLOAD_FIELDS change.
+ * cm2 (SV-R1): exact column detail (ids, type facts, defaults, identity
+ * text, computed) + FK actions/pair identities appended after the cm1
+ * tuple. cm1 payloads are a clean miss (reason "modelVersion").
  */
-export const CATALOG_MODEL_VERSION = "cm1";
+export const CATALOG_MODEL_VERSION = "cm2";
 
 /**
  * FROZEN canonical field order — the serialization order AND the hash
@@ -92,6 +96,31 @@ export const CANONICAL_PAYLOAD_FIELDS = [
     "descriptionOwner",
     "descriptionColumnSyms",
     "descriptionValueSyms",
+    // cm2 (SV-R1): appended after the full cm1 tuple — never inserted.
+    "columnColumnIds",
+    "columnDetailPresent",
+    "columnSystemTypeIds",
+    "columnUserTypeIds",
+    "columnTypeNameSyms",
+    "columnTypeSchemaSyms",
+    "columnBaseTypeNameSyms",
+    "columnIsUserDefined",
+    "columnIsAssemblyType",
+    "columnMaxLengthBytes",
+    "columnPrecisions",
+    "columnScales",
+    "columnCollationSyms",
+    "columnDefaultNameSyms",
+    "columnDefaultDefinitionSyms",
+    "columnIdentitySeedSyms",
+    "columnIdentityIncrementSyms",
+    "columnComputedDefinitionSyms",
+    "columnComputedPersisted",
+    "fkOnDeleteActions",
+    "fkOnUpdateActions",
+    "fkColumnOrdinals",
+    "fkColumnFromIds",
+    "fkColumnToIds",
 ] as const;
 
 /** Canonical key order inside the environment block (part of the hash). */
@@ -148,6 +177,32 @@ export interface CatalogCachePayloadV1 {
     readonly descriptionOwner?: readonly number[];
     readonly descriptionColumnSyms?: readonly number[];
     readonly descriptionValueSyms?: readonly number[];
+    // cm2 (SV-R1): REQUIRED — schema facts, not privacy-gated prose.
+    // Sym/id sentinels: -1 = no value (detail absent or nullable fact).
+    readonly columnColumnIds: readonly number[];
+    readonly columnDetailPresent: readonly boolean[];
+    readonly columnSystemTypeIds: readonly number[];
+    readonly columnUserTypeIds: readonly number[];
+    readonly columnTypeNameSyms: readonly number[];
+    readonly columnTypeSchemaSyms: readonly number[];
+    readonly columnBaseTypeNameSyms: readonly number[];
+    readonly columnIsUserDefined: readonly boolean[];
+    readonly columnIsAssemblyType: readonly boolean[];
+    readonly columnMaxLengthBytes: readonly number[];
+    readonly columnPrecisions: readonly number[];
+    readonly columnScales: readonly number[];
+    readonly columnCollationSyms: readonly number[];
+    readonly columnDefaultNameSyms: readonly number[];
+    readonly columnDefaultDefinitionSyms: readonly number[];
+    readonly columnIdentitySeedSyms: readonly number[];
+    readonly columnIdentityIncrementSyms: readonly number[];
+    readonly columnComputedDefinitionSyms: readonly number[];
+    readonly columnComputedPersisted: readonly boolean[];
+    readonly fkOnDeleteActions: readonly FkActionState[];
+    readonly fkOnUpdateActions: readonly FkActionState[];
+    readonly fkColumnOrdinals: readonly number[];
+    readonly fkColumnFromIds: readonly number[];
+    readonly fkColumnToIds: readonly number[];
 }
 
 export interface SerializeSnapshotOptions {
@@ -205,7 +260,38 @@ const INCLUDED_SYM_FIELDS = [
     "keyConstraintColumnSyms",
     "paramNameSyms",
     "paramTypeSyms",
+    // cm2 sym arrays (-1 sentinels are harmless in the used-set).
+    "columnTypeNameSyms",
+    "columnTypeSchemaSyms",
+    "columnBaseTypeNameSyms",
+    "columnCollationSyms",
+    "columnDefaultNameSyms",
+    "columnDefaultDefinitionSyms",
+    "columnIdentitySeedSyms",
+    "columnIdentityIncrementSyms",
+    "columnComputedDefinitionSyms",
 ] as const;
+
+/** cm2 sym arrays that allow the -1 "no value" sentinel (range >= -1). */
+const SENTINEL_SYM_FIELDS: ReadonlySet<string> = new Set([
+    "columnTypeNameSyms",
+    "columnTypeSchemaSyms",
+    "columnBaseTypeNameSyms",
+    "columnCollationSyms",
+    "columnDefaultNameSyms",
+    "columnDefaultDefinitionSyms",
+    "columnIdentitySeedSyms",
+    "columnIdentityIncrementSyms",
+    "columnComputedDefinitionSyms",
+]);
+
+const FK_ACTION_STATES: ReadonlySet<string> = new Set([
+    "NO_ACTION",
+    "CASCADE",
+    "SET_NULL",
+    "SET_DEFAULT",
+    "UNKNOWN",
+]);
 
 // ---------------------------------------------------------------------------
 // Serialize
@@ -254,6 +340,30 @@ export function serializeSnapshot(
         descriptionOwner: [...view.descriptionOwner],
         descriptionColumnSyms: [...view.descriptionColumnSyms],
         descriptionValueSyms: [...view.descriptionValueSyms],
+        columnColumnIds: [...view.columnColumnIds],
+        columnDetailPresent: [...view.columnDetailPresent],
+        columnSystemTypeIds: [...view.columnSystemTypeIds],
+        columnUserTypeIds: [...view.columnUserTypeIds],
+        columnTypeNameSyms: [...view.columnTypeNameSyms],
+        columnTypeSchemaSyms: [...view.columnTypeSchemaSyms],
+        columnBaseTypeNameSyms: [...view.columnBaseTypeNameSyms],
+        columnIsUserDefined: [...view.columnIsUserDefined],
+        columnIsAssemblyType: [...view.columnIsAssemblyType],
+        columnMaxLengthBytes: [...view.columnMaxLengthBytes],
+        columnPrecisions: [...view.columnPrecisions],
+        columnScales: [...view.columnScales],
+        columnCollationSyms: [...view.columnCollationSyms],
+        columnDefaultNameSyms: [...view.columnDefaultNameSyms],
+        columnDefaultDefinitionSyms: [...view.columnDefaultDefinitionSyms],
+        columnIdentitySeedSyms: [...view.columnIdentitySeedSyms],
+        columnIdentityIncrementSyms: [...view.columnIdentityIncrementSyms],
+        columnComputedDefinitionSyms: [...view.columnComputedDefinitionSyms],
+        columnComputedPersisted: [...view.columnComputedPersisted],
+        fkOnDeleteActions: [...view.fkOnDeleteActions],
+        fkOnUpdateActions: [...view.fkOnUpdateActions],
+        fkColumnOrdinals: [...view.fkColumnOrdinals],
+        fkColumnFromIds: [...view.fkColumnFromIds],
+        fkColumnToIds: [...view.fkColumnToIds],
     };
     if (options?.includeDescriptions === true) {
         return payload;
@@ -376,6 +486,29 @@ const FIELD_KINDS: Readonly<Record<string, FieldKind>> = {
     descriptionOwner: "intArray",
     descriptionColumnSyms: "intArray", // -1 sentinel allowed; range-checked below
     descriptionValueSyms: "symArray",
+    // cm2 (SV-R1) — sentinel sym arrays range-check separately (>= -1).
+    columnColumnIds: "intArray",
+    columnDetailPresent: "boolArray",
+    columnSystemTypeIds: "intArray",
+    columnUserTypeIds: "intArray",
+    columnTypeNameSyms: "symArray",
+    columnTypeSchemaSyms: "symArray",
+    columnBaseTypeNameSyms: "symArray",
+    columnIsUserDefined: "boolArray",
+    columnIsAssemblyType: "boolArray",
+    columnMaxLengthBytes: "intArray",
+    columnPrecisions: "intArray",
+    columnScales: "intArray",
+    columnCollationSyms: "symArray",
+    columnDefaultNameSyms: "symArray",
+    columnDefaultDefinitionSyms: "symArray",
+    columnIdentitySeedSyms: "symArray",
+    columnIdentityIncrementSyms: "symArray",
+    columnComputedDefinitionSyms: "symArray",
+    columnComputedPersisted: "boolArray",
+    fkColumnOrdinals: "intArray",
+    fkColumnFromIds: "intArray",
+    fkColumnToIds: "intArray",
 };
 
 const CANONICAL_FIELD_SET: ReadonlySet<string> = new Set(CANONICAL_PAYLOAD_FIELDS);
@@ -486,6 +619,15 @@ export function validatePayload(
     ) {
         return reject("elementType:keyConstraintKinds");
     }
+    for (const actionField of ["fkOnDeleteActions", "fkOnUpdateActions"]) {
+        const actions = record[actionField];
+        if (
+            !Array.isArray(actions) ||
+            !actions.every((a) => typeof a === "string" && FK_ACTION_STATES.has(a))
+        ) {
+            return reject(`elementType:${actionField}`);
+        }
+    }
     const modifyDates = record["objectModifyDates"];
     if (
         !Array.isArray(modifyDates) ||
@@ -531,6 +673,57 @@ export function validatePayload(
         ["paramNameSyms", payload.paramNameSyms.length, payload.paramOwner.length],
         ["paramTypeSyms", payload.paramTypeSyms.length, payload.paramOwner.length],
         ["paramOutput", payload.paramOutput.length, payload.paramOwner.length],
+        // cm2 column detail arrays: parallel to columnOwner
+        ["columnColumnIds", payload.columnColumnIds.length, payload.columnOwner.length],
+        ["columnDetailPresent", payload.columnDetailPresent.length, payload.columnOwner.length],
+        ["columnSystemTypeIds", payload.columnSystemTypeIds.length, payload.columnOwner.length],
+        ["columnUserTypeIds", payload.columnUserTypeIds.length, payload.columnOwner.length],
+        ["columnTypeNameSyms", payload.columnTypeNameSyms.length, payload.columnOwner.length],
+        ["columnTypeSchemaSyms", payload.columnTypeSchemaSyms.length, payload.columnOwner.length],
+        [
+            "columnBaseTypeNameSyms",
+            payload.columnBaseTypeNameSyms.length,
+            payload.columnOwner.length,
+        ],
+        ["columnIsUserDefined", payload.columnIsUserDefined.length, payload.columnOwner.length],
+        ["columnIsAssemblyType", payload.columnIsAssemblyType.length, payload.columnOwner.length],
+        ["columnMaxLengthBytes", payload.columnMaxLengthBytes.length, payload.columnOwner.length],
+        ["columnPrecisions", payload.columnPrecisions.length, payload.columnOwner.length],
+        ["columnScales", payload.columnScales.length, payload.columnOwner.length],
+        ["columnCollationSyms", payload.columnCollationSyms.length, payload.columnOwner.length],
+        ["columnDefaultNameSyms", payload.columnDefaultNameSyms.length, payload.columnOwner.length],
+        [
+            "columnDefaultDefinitionSyms",
+            payload.columnDefaultDefinitionSyms.length,
+            payload.columnOwner.length,
+        ],
+        [
+            "columnIdentitySeedSyms",
+            payload.columnIdentitySeedSyms.length,
+            payload.columnOwner.length,
+        ],
+        [
+            "columnIdentityIncrementSyms",
+            payload.columnIdentityIncrementSyms.length,
+            payload.columnOwner.length,
+        ],
+        [
+            "columnComputedDefinitionSyms",
+            payload.columnComputedDefinitionSyms.length,
+            payload.columnOwner.length,
+        ],
+        [
+            "columnComputedPersisted",
+            payload.columnComputedPersisted.length,
+            payload.columnOwner.length,
+        ],
+        // cm2 FK arrays: actions parallel to fkFrom; pair ids parallel to
+        // fkColumnConstraintIds
+        ["fkOnDeleteActions", payload.fkOnDeleteActions.length, payload.fkFrom.length],
+        ["fkOnUpdateActions", payload.fkOnUpdateActions.length, payload.fkFrom.length],
+        ["fkColumnOrdinals", payload.fkColumnOrdinals.length, payload.fkColumnConstraintIds.length],
+        ["fkColumnFromIds", payload.fkColumnFromIds.length, payload.fkColumnConstraintIds.length],
+        ["fkColumnToIds", payload.fkColumnToIds.length, payload.fkColumnConstraintIds.length],
     ];
     if (options.descriptionsExpected) {
         const owner = payload.descriptionOwner ?? [];
@@ -574,6 +767,15 @@ export function validatePayload(
     for (const sym of payload.descriptionColumnSyms ?? []) {
         if (sym < -1 || sym >= stringCount) {
             return reject("symRange:descriptionColumnSyms");
+        }
+    }
+    // cm2 sentinel sym arrays: -1 = "no value", otherwise a valid symbol.
+    for (const field of SENTINEL_SYM_FIELDS) {
+        const syms = (payload as unknown as Record<string, readonly number[]>)[field];
+        for (const sym of syms) {
+            if (sym < -1 || sym >= stringCount) {
+                return reject(`symRange:${field}`);
+            }
         }
     }
     const ownerFields: readonly (readonly [string, readonly number[]])[] = [
@@ -662,6 +864,30 @@ export function adoptPayload(payload: CatalogCachePayloadV1): CatalogBuilder {
     builder.descriptionOwner = [...(payload.descriptionOwner ?? [])];
     builder.descriptionColumnSyms = [...(payload.descriptionColumnSyms ?? [])];
     builder.descriptionValueSyms = [...(payload.descriptionValueSyms ?? [])];
+    builder.columnColumnIds = [...payload.columnColumnIds];
+    builder.columnDetailPresent = [...payload.columnDetailPresent];
+    builder.columnSystemTypeIds = [...payload.columnSystemTypeIds];
+    builder.columnUserTypeIds = [...payload.columnUserTypeIds];
+    builder.columnTypeNameSyms = [...payload.columnTypeNameSyms];
+    builder.columnTypeSchemaSyms = [...payload.columnTypeSchemaSyms];
+    builder.columnBaseTypeNameSyms = [...payload.columnBaseTypeNameSyms];
+    builder.columnIsUserDefined = [...payload.columnIsUserDefined];
+    builder.columnIsAssemblyType = [...payload.columnIsAssemblyType];
+    builder.columnMaxLengthBytes = [...payload.columnMaxLengthBytes];
+    builder.columnPrecisions = [...payload.columnPrecisions];
+    builder.columnScales = [...payload.columnScales];
+    builder.columnCollationSyms = [...payload.columnCollationSyms];
+    builder.columnDefaultNameSyms = [...payload.columnDefaultNameSyms];
+    builder.columnDefaultDefinitionSyms = [...payload.columnDefaultDefinitionSyms];
+    builder.columnIdentitySeedSyms = [...payload.columnIdentitySeedSyms];
+    builder.columnIdentityIncrementSyms = [...payload.columnIdentityIncrementSyms];
+    builder.columnComputedDefinitionSyms = [...payload.columnComputedDefinitionSyms];
+    builder.columnComputedPersisted = [...payload.columnComputedPersisted];
+    builder.fkOnDeleteActions = [...payload.fkOnDeleteActions];
+    builder.fkOnUpdateActions = [...payload.fkOnUpdateActions];
+    builder.fkColumnOrdinals = [...payload.fkColumnOrdinals];
+    builder.fkColumnFromIds = [...payload.fkColumnFromIds];
+    builder.fkColumnToIds = [...payload.fkColumnToIds];
 
     // Environment travels (§6.3, incl. the C-11-corrected caseSensitive):
     // direct field assignment, mirroring the builder defaults for absences.

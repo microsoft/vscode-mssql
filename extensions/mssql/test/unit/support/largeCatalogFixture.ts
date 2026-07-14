@@ -133,13 +133,41 @@ function objectRows(s: ResolvedSpec): Row[] {
     return rows;
 }
 
-/** H3: sys.columns ordered by object_id, column_id (int columns throughout). */
+/**
+ * H3: sys.columns ordered by object_id, column_id (int columns throughout),
+ * in the SV-R1 23-column extended shape (exact type facts; null
+ * default/identity/computed cells — plain int columns have none).
+ */
 function columnRows(s: ResolvedSpec): Row[] {
     const rows: Row[] = [];
     const pushColumns = (objectId: number, count: number): void => {
         for (let c = 1; c <= count; c++) {
             // int: max_length 4, precision 10, scale 0 → typeDisplay "int"
-            rows.push([objectId, c, columnName(c, count), "int", 4, 10, 0, false, false, false]);
+            rows.push([
+                objectId,
+                c,
+                columnName(c, count),
+                "int",
+                4,
+                10,
+                0,
+                false,
+                false,
+                false,
+                56, // system_type_id
+                56, // user_type_id
+                "sys", // type_schema
+                "int", // base_type_name
+                false, // is_user_defined
+                false, // is_assembly_type
+                null, // collation_name
+                null, // default_name
+                null, // default_definition
+                null, // identity_seed
+                null, // identity_increment
+                null, // computed_definition
+                null, // computed_persisted
+            ]);
         }
     };
     for (let i = 0; i < s.tables; i++) {
@@ -177,7 +205,10 @@ function keyRows(s: ResolvedSpec): Row[] {
     return rows;
 }
 
-/** H5: sys.foreign_keys ordered by constraint object_id (table k → table k+1). */
+/**
+ * H5: sys.foreign_keys ordered by constraint object_id (table k → table
+ * k+1), SV-R1 6-column shape with referential-action DESC strings.
+ */
 function foreignKeyRows(s: ResolvedSpec): Row[] {
     const rows: Row[] = [];
     for (let k = 0; k < s.foreignKeys; k++) {
@@ -186,17 +217,22 @@ function foreignKeyRows(s: ResolvedSpec): Row[] {
             `FK${pad(k + 1, 6)}`,
             FIRST_OBJECT_ID + k,
             FIRST_OBJECT_ID + k + 1,
+            "NO_ACTION",
+            "NO_ACTION",
         ]);
     }
     return rows;
 }
 
-/** H5B: sys.foreign_key_columns — one first-column pair per FK. */
+/**
+ * H5B: sys.foreign_key_columns — one first-column pair per FK, SV-R1
+ * 6-column shape (constraint_column_id + parent/referenced column ids).
+ */
 function foreignKeyColumnRows(s: ResolvedSpec): Row[] {
     const rows: Row[] = [];
     const column = columnName(1, s.columnsPerTable);
     for (let k = 0; k < s.foreignKeys; k++) {
-        rows.push([constraintId(s, k), column, column]);
+        rows.push([constraintId(s, k), column, column, 1, 1, 1]);
     }
     return rows;
 }
@@ -246,7 +282,14 @@ export function largeCatalogScripts(spec?: LargeCatalogSpec): FakeScript[] {
         // H5B FK column pairs — BEFORE H3 (its SQL also contains "sys.columns")
         script(
             (t) => t.includes("foreign_key_columns"),
-            ["constraint_object_id", "parent_column", "referenced_column"],
+            [
+                "constraint_object_id",
+                "parent_column",
+                "referenced_column",
+                "constraint_column_id",
+                "parent_column_id",
+                "referenced_column_id",
+            ],
             foreignKeyColumnRows(s),
         ),
         // digest — BEFORE H2 (its SQL also contains "FROM sys.objects o WHERE")
@@ -285,7 +328,7 @@ export function largeCatalogScripts(spec?: LargeCatalogSpec): FakeScript[] {
             ["object_id", "schema_id", "name", "type", "modify_date"],
             objectRows(s),
         ),
-        // H3 columns
+        // H3 columns (SV-R1 extended shape)
         script(
             (t) => t.includes("sys.columns"),
             [
@@ -299,13 +342,33 @@ export function largeCatalogScripts(spec?: LargeCatalogSpec): FakeScript[] {
                 "is_nullable",
                 "is_identity",
                 "is_computed",
+                "system_type_id",
+                "user_type_id",
+                "type_schema",
+                "base_type_name",
+                "is_user_defined",
+                "is_assembly_type",
+                "collation_name",
+                "default_name",
+                "default_definition",
+                "identity_seed",
+                "identity_increment",
+                "computed_definition",
+                "computed_persisted",
             ],
             columnRows(s),
         ),
-        // H5 FK edges
+        // H5 FK edges (SV-R1 extended shape)
         script(
             (t) => t.includes("sys.foreign_keys"),
-            ["object_id", "name", "parent_object_id", "referenced_object_id"],
+            [
+                "object_id",
+                "name",
+                "parent_object_id",
+                "referenced_object_id",
+                "delete_referential_action_desc",
+                "update_referential_action_desc",
+            ],
             foreignKeyRows(s),
         ),
     ];

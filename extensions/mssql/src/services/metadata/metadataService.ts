@@ -34,9 +34,11 @@ import {
 } from "../sqlDataPlane/api";
 import { leadingKeyword } from "../../sql/batchSplitter";
 import {
+    AddColumnDetail,
     buildSchemaContext,
     CatalogBuilder,
     CatalogSnapshot,
+    FkActionState,
     ObjectKind,
     SchemaContextRequest,
     SchemaContextResult,
@@ -153,13 +155,34 @@ const H1_SCHEMAS =
 const H2_OBJECTS =
     "SELECT o.object_id, o.schema_id, o.name, RTRIM(o.type) AS type, CONVERT(varchar(33), o.modify_date, 126) AS modify_date " +
     "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0 ORDER BY o.object_id;";
+// H3 (SV-R1 extension, visualizer addendum §5.1–§5.4): retains column_id +
+// exact type facts + default/identity/computed detail. Raw semantics only:
+// max_length stays BYTES (-1 = max); identity seed/increment CONVERT to
+// exact TEXT (sql_variant → nvarchar) — never parsed into JS numbers.
+// Matcher-collision note: additions ("sys.default_constraints",
+// "sys.identity_columns", "sys.computed_columns", "TYPE_NAME(") collide
+// with no other H-query fixture matcher; H3 keeps "sys.columns c JOIN
+// sys.types" so existing fixtures still match, and old 10-column fixture
+// rows remain valid (the parser treats missing trailing columns as
+// detail-absent).
 const H3_COLUMNS =
-    "SELECT c.object_id, c.column_id, c.name, t.name AS type_name, c.max_length, c.precision, c.scale, c.is_nullable, c.is_identity, c.is_computed " +
+    "SELECT c.object_id, c.column_id, c.name, t.name AS type_name, c.max_length, c.precision, c.scale, c.is_nullable, c.is_identity, c.is_computed, " +
+    "c.system_type_id, c.user_type_id, SCHEMA_NAME(t.schema_id) AS type_schema, TYPE_NAME(c.system_type_id) AS base_type_name, " +
+    "t.is_user_defined, t.is_assembly_type, c.collation_name, " +
+    "dc.name AS default_name, dc.definition AS default_definition, " +
+    "CONVERT(nvarchar(64), idc.seed_value) AS identity_seed, CONVERT(nvarchar(64), idc.increment_value) AS identity_increment, " +
+    "cc.definition AS computed_definition, cc.is_persisted AS computed_persisted " +
     "FROM sys.columns c JOIN sys.types t ON c.user_type_id = t.user_type_id " +
     "JOIN sys.objects o ON o.object_id = c.object_id AND o.type IN ('U','V','IF','TF') AND o.is_ms_shipped = 0 " +
+    "LEFT JOIN sys.default_constraints dc ON dc.object_id = c.default_object_id " +
+    "LEFT JOIN sys.identity_columns idc ON idc.object_id = c.object_id AND idc.column_id = c.column_id " +
+    "LEFT JOIN sys.computed_columns cc ON cc.object_id = c.object_id AND cc.column_id = c.column_id " +
     "ORDER BY c.object_id, c.column_id;";
+// H5 (SV-R1): + referential-action DESC strings (never the numeric values —
+// addendum §5.5: the catalog's 0/1 and the legacy OnAction 0/1 are SWAPPED).
 const H5_FOREIGN_KEYS =
-    "SELECT fk.object_id, fk.name, fk.parent_object_id, fk.referenced_object_id " +
+    "SELECT fk.object_id, fk.name, fk.parent_object_id, fk.referenced_object_id, " +
+    "fk.delete_referential_action_desc, fk.update_referential_action_desc " +
     "FROM sys.foreign_keys fk WHERE fk.is_ms_shipped = 0 ORDER BY fk.object_id;";
 const H0_ENV =
     "SELECT CAST(SERVERPROPERTY('EngineEdition') AS int) AS engine_edition, " +
@@ -172,8 +195,11 @@ const H4_KEYS =
     "JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id " +
     "WHERE i.is_primary_key = 1 OR i.is_unique_constraint = 1 " +
     "ORDER BY ic.object_id, i.index_id, ic.key_ordinal;";
+// H5B (SV-R1): + pair ordinal and parent/referenced column_ids — the
+// rename-safe pair identities the visualizer replay correlates on (§5.1).
 const H5B_FOREIGN_KEY_COLUMNS =
-    "SELECT fkc.constraint_object_id, pc.name AS parent_column, rc.name AS referenced_column " +
+    "SELECT fkc.constraint_object_id, pc.name AS parent_column, rc.name AS referenced_column, " +
+    "fkc.constraint_column_id, fkc.parent_column_id, fkc.referenced_column_id " +
     "FROM sys.foreign_key_columns fkc " +
     "JOIN sys.columns pc ON pc.object_id = fkc.parent_object_id AND pc.column_id = fkc.parent_column_id " +
     "JOIN sys.columns rc ON rc.object_id = fkc.referenced_object_id AND rc.column_id = fkc.referenced_column_id " +
@@ -324,6 +350,27 @@ function isDatabaseAccessError(error: unknown): boolean {
  */
 export function collationIsCaseSensitive(collation: string): boolean {
     return /_CS(_|$)|_BIN2?(_|$)/i.test(collation);
+}
+
+/**
+ * Normalize a sys.foreign_keys *_desc value to the FkActionState union by
+ * EXPLICIT string mapping (visualizer addendum §5.5). Anything else —
+ * missing column (old fixture shape), null, or an unrecognized value —
+ * is honestly UNKNOWN, never defaulted to NO_ACTION.
+ */
+export function fkActionFromDesc(value: unknown): FkActionState {
+    switch (value) {
+        case "NO_ACTION":
+            return "NO_ACTION";
+        case "CASCADE":
+            return "CASCADE";
+        case "SET_NULL":
+            return "SET_NULL";
+        case "SET_DEFAULT":
+            return "SET_DEFAULT";
+        default:
+            return "UNKNOWN";
+    }
 }
 
 export function typeDisplay(
@@ -927,18 +974,72 @@ export class MetadataService {
                     );
                 }
             }
-            // H3 columns (grouped by object_id, column_id — matches builder spans)
+            // H3 columns (grouped by object_id, column_id — matches builder
+            // spans). Old 10-column fixture rows stay valid: rows without the
+            // SV-R1 detail columns hydrate with detail ABSENT (honest
+            // unknown), never with fabricated values.
             let columnsFailed = false;
             let columnsError: unknown;
             try {
+                const asBool = (value: unknown) => value === true || value === 1;
+                const asText = (value: unknown) =>
+                    value === null || value === undefined ? undefined : String(value);
                 for (const row of await this.rows(session, H3_COLUMNS, "metadata:H3")) {
+                    let detail: AddColumnDetail | undefined;
+                    if (row.length > 10) {
+                        detail = {
+                            typeName: String(row[3]),
+                            systemTypeId: Number(row[10]),
+                            userTypeId: Number(row[11]),
+                            isUserDefined: asBool(row[14]),
+                            isAssemblyType: asBool(row[15]),
+                            maxLengthBytes: Number(row[4]),
+                            precision: Number(row[5]),
+                            scale: Number(row[6]),
+                        };
+                        const typeSchema = asText(row[12]);
+                        if (typeSchema !== undefined) {
+                            detail.typeSchema = typeSchema;
+                        }
+                        const baseTypeName = asText(row[13]);
+                        if (baseTypeName !== undefined) {
+                            detail.baseTypeName = baseTypeName;
+                        }
+                        const collationName = asText(row[16]);
+                        if (collationName !== undefined) {
+                            detail.collationName = collationName;
+                        }
+                        const defaultDefinition = asText(row[18]);
+                        if (defaultDefinition !== undefined) {
+                            detail.defaultDefinition = defaultDefinition;
+                            const defaultName = asText(row[17]);
+                            if (defaultName !== undefined) {
+                                detail.defaultName = defaultName;
+                            }
+                        }
+                        // Exact TEXT (§5.3): both facts or neither — a lone
+                        // seed would fabricate an increment downstream.
+                        const seedText = asText(row[19]);
+                        const incrementText = asText(row[20]);
+                        if (seedText !== undefined && incrementText !== undefined) {
+                            detail.identitySeedText = seedText;
+                            detail.identityIncrementText = incrementText;
+                        }
+                        const computedDefinition = asText(row[21]);
+                        if (computedDefinition !== undefined) {
+                            detail.computedDefinition = computedDefinition;
+                            detail.computedPersisted = asBool(row[22]);
+                        }
+                    }
                     builder.addColumn(
                         Number(row[0]),
                         String(row[2]),
                         typeDisplay(String(row[3]), Number(row[4]), Number(row[5]), Number(row[6])),
-                        row[7] === true || row[7] === 1,
-                        row[8] === true || row[8] === 1,
-                        row[9] === true || row[9] === 1,
+                        asBool(row[7]),
+                        asBool(row[8]),
+                        asBool(row[9]),
+                        Number(row[1]),
+                        detail,
                     );
                 }
             } catch (error) {
@@ -971,7 +1072,8 @@ export class MetadataService {
                 keysFailed = true;
                 keysError = error;
             }
-            // H5 FK edges
+            // H5 FK edges (+ SV-R1 referential actions via desc-string
+            // mapping; old 4-column rows → UNKNOWN, never NO_ACTION)
             let fkFailed = false;
             let fkError: unknown;
             try {
@@ -981,14 +1083,27 @@ export class MetadataService {
                         Number(row[3]),
                         String(row[1]),
                         Number(row[0]),
+                        fkActionFromDesc(row[4]),
+                        fkActionFromDesc(row[5]),
                     );
                 }
+                // H5B pairs (+ SV-R1 ordinal and column ids; old 3-column
+                // rows → identities absent)
+                const asId = (value: unknown): number =>
+                    value === null || value === undefined ? -1 : Number(value);
                 for (const row of await this.rows(
                     session,
                     H5B_FOREIGN_KEY_COLUMNS,
                     "metadata:H5B",
                 )) {
-                    builder.addForeignKeyColumn(Number(row[0]), String(row[1]), String(row[2]));
+                    builder.addForeignKeyColumn(
+                        Number(row[0]),
+                        String(row[1]),
+                        String(row[2]),
+                        asId(row[3]),
+                        asId(row[4]),
+                        asId(row[5]),
+                    );
                 }
             } catch (error) {
                 fkFailed = true;
