@@ -19,6 +19,7 @@ import {
     SqlActivityPage,
 } from "./pagesMore";
 import { CompletionsPage } from "./completionsPage";
+import { SqlDataPlanePage } from "./pagesSqlDataPlane";
 import { HistoryPage } from "./pagesPerf";
 import { PerfHistoryPage } from "./pagesPerfHistory";
 
@@ -39,6 +40,7 @@ const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon
         group: "Feature pages",
         items: [
             { id: "sql", label: "SQL Activity", icon: "⛁" },
+            { id: "sqlDataPlane", label: "SQL Data Plane", icon: "⬡" },
             { id: "connections", label: "Connections", icon: "⌁" },
             { id: "query", label: "Query & Results", icon: "▶" },
             { id: "oe", label: "Object Explorer", icon: "⌥" },
@@ -343,6 +345,9 @@ export function DebugConsoleApp() {
             break;
         case "sql":
             page = <SqlActivityPage />;
+            break;
+        case "sqlDataPlane":
+            page = <SqlDataPlanePage />;
             break;
         case "connections":
             page = <ConnectionsPage />;

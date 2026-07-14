@@ -491,6 +491,54 @@ export interface SqlActivityRow {
 }
 
 // ---------------------------------------------------------------------------
+// SQL Data Plane live status (TSQ2 §9 Debug Console page)
+// ---------------------------------------------------------------------------
+
+export interface DcSqlDataPlaneBackendEntry {
+    kind: string;
+    displayName: string;
+    state: string;
+    realmClass: string;
+    activeSessionCount: number;
+    staleConfig: boolean;
+    /**
+     * Safe subset of the entry's last startup/connect error. The raw message is
+     * deliberately omitted — connection errors can name the server/user; only
+     * the typed code, retryability, and SQL error number (safe metadata) ride.
+     */
+    lastError?: { code: string; retryable: boolean; serverErrorNumber?: number };
+}
+
+/**
+ * Passive, privacy-safe live snapshot of the SQL Data Plane registry and its
+ * running backends — the "what is this component doing" surface. Carries only
+ * protocol metadata (ids, states, counts, capability flags); never SQL text,
+ * rows, server names, or credentials.
+ */
+export interface DcSqlDataPlaneStatus {
+    capturedEpochMs: number;
+    enabled: boolean;
+    /** Configured backend id verbatim (may be INVALID(...) when misconfigured). */
+    backend: string;
+    normalizedBackend: string;
+    availability: { state: string; backend?: string; reason?: string; retryable?: boolean };
+    activeSessions: number;
+    entries: DcSqlDataPlaneBackendEntry[];
+    /** ts-native aggregate counters (terminals / invariant violations / post-terminal drops). */
+    tsNativeObservability?: {
+        terminals: number;
+        invariantViolations: number;
+        droppedAfterTerminal: number;
+    };
+    /**
+     * Per-backend service self-snapshot: ts-native internals (driver, active
+     * overrides, live sessions + in-flight queries), STS2 status. Rendered as a
+     * JSON tree so new fields surface without a contract change.
+     */
+    details: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
 // RPC types (extension host <-> Debug Console webview)
 // ---------------------------------------------------------------------------
 
@@ -536,6 +584,11 @@ export namespace DcListTracesRequest {
 export namespace DcGetSqlActivityRequest {
     export const type = new RequestType<{ sourceId: string }, SqlActivityRow[], void>(
         "dc/getSqlActivity",
+    );
+}
+export namespace DcGetSqlDataPlaneStatusRequest {
+    export const type = new RequestType<void, DcSqlDataPlaneStatus, void>(
+        "dc/getSqlDataPlaneStatus",
     );
 }
 export namespace DcSubscribeLiveRequest {

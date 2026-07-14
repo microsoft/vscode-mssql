@@ -60,6 +60,7 @@ export type DcPage =
     | "completions"
     | "replay"
     | "sql"
+    | "sqlDataPlane"
     | "connections"
     | "query"
     | "oe"

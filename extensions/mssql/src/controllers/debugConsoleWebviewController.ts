@@ -26,6 +26,8 @@ import {
     DcGetOverviewRequest,
     DcGetPerfSummaryRequest,
     DcGetSqlActivityRequest,
+    DcGetSqlDataPlaneStatusRequest,
+    DcSqlDataPlaneStatus,
     DcGetWaterfallRequest,
     DcImportPerfRunRequest,
     DcListSourcesRequest,
@@ -86,6 +88,8 @@ import {
     UploadPolicyId,
 } from "../sharedInterfaces/centralContract";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import { projectSqlDataPlaneStatus } from "../services/sqlDataPlane/debugConsoleStatus";
+import { tsNativeObservabilityCounters } from "../services/tsNative/observability";
 import {
     disableAiCompletions,
     enableAiCompletions,
@@ -323,6 +327,20 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         return this.diagnostics.store.eventsForSource(sourceId, this.liveArchive);
     }
 
+    /**
+     * Passive live snapshot of the SQL Data Plane registry for the Debug
+     * Console page. statusSummary() is documented as safe/passive (never
+     * constructs a backend); we only reshape it into the typed contract and
+     * append ts-native aggregate counters. All fields are protocol metadata.
+     */
+    private sqlDataPlaneStatus(): DcSqlDataPlaneStatus {
+        return projectSqlDataPlaneStatus(
+            SqlDataPlaneService.get().statusSummary(),
+            tsNativeObservabilityCounters(),
+            Date.now(),
+        );
+    }
+
     private gapsFor(sourceId: string): GapRecord[] {
         return sourceId === this.liveSourceId ? this.liveGaps : [];
     }
@@ -376,6 +394,8 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         this.onRequest(DcGetSqlActivityRequest.type, async ({ sourceId }) =>
             sqlActivityRows(this.eventsFor(sourceId)),
         );
+
+        this.onRequest(DcGetSqlDataPlaneStatusRequest.type, async () => this.sqlDataPlaneStatus());
 
         this.onRequest(DcSubscribeLiveRequest.type, async () => {
             this.subscribed = true;
