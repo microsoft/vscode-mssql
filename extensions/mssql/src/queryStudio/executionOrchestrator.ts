@@ -263,7 +263,11 @@ export class ExecutionOrchestrator {
         const selectionBase = Math.max(1, options.selectionStartLine);
         const plan = this.buildWorkPlan(text, options, selectionBase);
         const batches = plan.batches;
+        // SessionInfo is required by the public contract, but observability
+        // must remain non-fatal for legacy/test adapters that predate it.
+        const backend = this.session.info?.backendKind ?? "unknown";
         Perf.marker("mssql.queryStudio.query.submit", "begin", {
+            backend,
             scope: options.scope,
             batchCount: batches.length,
             selection: options.scope === "selection",
@@ -332,10 +336,27 @@ export class ExecutionOrchestrator {
                     (n) => {
                         if (!firstResultSeen) {
                             firstResultSeen = true;
-                            Perf.marker("mssql.queryStudio.query.firstResult", "instant", {
-                                msFromSubmit: Date.now() - startMs,
-                            });
-                            this.events.onFirstResult?.(Date.now() - startMs);
+                            const msFromSubmit = Date.now() - startMs;
+                            const firstPageAttrs = {
+                                backend: this.currentSession.info?.backendKind ?? "unknown",
+                                pageRows: n,
+                                msFromSubmit,
+                            };
+                            // Emitted only after RowStore.appendPage accepts
+                            // the page, so this is a durable provider-to-host
+                            // boundary rather than an optimistic driver event.
+                            Perf.marker(
+                                "mssql.queryStudio.query.firstPage",
+                                "instant",
+                                firstPageAttrs,
+                            );
+                            // Compatibility alias for existing diagnostics.
+                            Perf.marker(
+                                "mssql.queryStudio.query.firstResult",
+                                "instant",
+                                firstPageAttrs,
+                            );
+                            this.events.onFirstResult?.(msFromSubmit);
                         }
                         totalRows += n;
                     },
@@ -380,6 +401,9 @@ export class ExecutionOrchestrator {
         const durationMs = Date.now() - startMs;
         const storeStats = this.rowStore.stats;
         Perf.marker("mssql.queryStudio.query.complete", "end", {
+            backend,
+            status,
+            durationMs,
             batches: batches.length,
             resultSets,
             rows: totalRows,
@@ -806,7 +830,23 @@ export class ExecutionOrchestrator {
                         }
                     }
                 }
-                return summary;
+                // Provider-level failures can terminate before a server
+                // message exists. Keep the aggregate truthful even when an
+                // adapter reports errorCount=0 alongside a failed terminal;
+                // also reconcile adapters whose streamed error-message count
+                // is more precise than their terminal counter.
+                const terminalImpliesError =
+                    summary.status === "failed" ||
+                    summary.status === "completedWithErrors" ||
+                    summary.status === "connectionLost";
+                const observedErrorCount = Math.max(
+                    summary.errorCount,
+                    errorMessagesSeen,
+                    terminalImpliesError ? 1 : 0,
+                );
+                return observedErrorCount === summary.errorCount
+                    ? summary
+                    : { ...summary, errorCount: observedErrorCount };
             })
             .finally(() => {
                 if (this.activeHandle === handle) {
