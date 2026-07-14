@@ -57,23 +57,22 @@ import type {
 } from "../../../sharedInterfaces/queryResult";
 import {
     QsCellWindow,
+    QsCopySelectionToClipboardRequest,
     QsGetRowsRequest,
     type QsGetRowsParams,
     QsGridStyle,
     QsOpenCellDocumentRequest,
     QsResultColumn,
+    type QsCopySelectionResult,
     QsSaveResultRequest,
     QsSetViewModeRequest,
     QsResultSetSummary,
     QsState,
     QsUpdateGridSelectionRequest,
 } from "../../../sharedInterfaces/queryStudio";
-import { cellTextForPurpose } from "../../../sharedInterfaces/queryStudioGridOps";
+import { queryStudioWindowToGridRows } from "../../../sharedInterfaces/queryStudioGridWindow";
 import {
-    queryStudioWindowNullFlags,
-    queryStudioWindowToGridRows,
-} from "../../../sharedInterfaces/queryStudioGridWindow";
-import {
+    buildQueryStudioGridCopyText,
     planQueryStudioGridCopy,
     queryStudioGridCopyColumnRuns,
     type QueryStudioGridCopyInterval,
@@ -93,12 +92,6 @@ import { FrameThrottledEmitter } from "./frameThrottledEmitter";
 export { qsGridRowHeight, type Rpc } from "./resultsGridShared";
 import { qsGridRowHeight, Rpc } from "./resultsGridShared";
 
-/** Large narrow copies may amortize RPC overhead, but never request more rows. */
-const COPY_MAX_ROWS_PER_WINDOW = 8_192;
-/** Responsive work quantum: decoded cell objects retained/processed per turn. */
-const COPY_TARGET_DECODED_CELLS_PER_WINDOW = 8_192;
-/** Approx. 16 MiB UTF-16 payload, before the browser clipboard's own copy. */
-const COPY_MAX_TSV_CHARACTERS = 8_000_000;
 const DEFAULT_FONT_SIZE = 12;
 const SELECTION_UPDATE_MIN_INTERVAL_MS = 200;
 const GRID_COLUMN_WINDOWING = {
@@ -151,54 +144,6 @@ function resultSetOrdinal(resultSetId: string): number {
 // Copy (issue C): selection ranges → chunked QsGetRows → TSV
 // ---------------------------------------------------------------------------
 
-/** Decode a projected copy window directly to exact TSV field text. */
-function windowToCopyRows(window: QsCellWindow, columnCount: number): string[][] {
-    const isNull = queryStudioWindowNullFlags(window);
-    return window.values.map((row, rowIndex) => {
-        const fields: string[] = [];
-        for (let column = 0; column < columnCount; column++) {
-            fields.push(
-                isNull(rowIndex, column) ? "NULL" : cellTextForPurpose(row[column], "copy"),
-            );
-        }
-        return fields;
-    });
-}
-
-async function fetchCopyRowsWindow(
-    rpc: Rpc,
-    resultSetId: string,
-    start: number,
-    count: number,
-    columns: { start: number; count: number },
-): Promise<string[][]> {
-    // Projected fetch (QO-7b): only selected contiguous column runs cross
-    // the RPC. Two distant columns never pull the intervening wide payload.
-    const window = await rpc.sendRequest<
-        {
-            resultSetId: string;
-            start: number;
-            count: number;
-            purpose: "copy";
-            columnStart: number;
-            columnCount: number;
-        },
-        QsCellWindow
-    >(QsGetRowsRequest.type, {
-        resultSetId,
-        start,
-        count,
-        purpose: "copy",
-        columnStart: columns.start,
-        columnCount: columns.count,
-    });
-    return windowToCopyRows(window, columns.count);
-}
-
-function columnCount(interval: QueryStudioGridCopyInterval): number {
-    return interval.to - interval.from + 1;
-}
-
 function copyHeaderLine(
     summary: QsResultSetSummary,
     columnRuns: readonly QueryStudioGridCopyInterval[],
@@ -210,6 +155,28 @@ function copyHeaderLine(
         }
     }
     return headers.join("\t");
+}
+
+/**
+ * Keep ordinary small copies on Chromium's fast local clipboard path. Large
+ * or MAX-like result shapes use the host-direct route so raw values do not
+ * make an avoidable extension-host → webview → extension-host round trip.
+ */
+function prefersHostDirectCopy(summary: QsResultSetSummary, outputCellCount: number): boolean {
+    // The compact-page estimate is authoritative and provider-neutral. It
+    // catches computed `nvarchar(max)` expressions whose server metadata is
+    // merely `nvarchar`, unlike a type-name-only heuristic.
+    if ((summary.approxBytes ?? 0) >= 256 * 1024 || outputCellCount > 10_000) {
+        return true;
+    }
+    return (summary.columns ?? []).some((column) => {
+        const sqlType = column.sqlType?.toLowerCase() ?? "";
+        return (
+            column.isJson === true ||
+            column.isXml === true ||
+            /\b(?:n?varchar|varbinary)\s*\(\s*max\s*\)|\b(?:xml|image|text|ntext)\b/.test(sqlType)
+        );
+    });
 }
 
 /**
@@ -248,7 +215,9 @@ export async function copySelectionAsTsv(
     let formatMs = 0;
     let clipboardMs = 0;
     let clipboardAttempts = 0;
-    let clipboardMode: "webview" | "hostFallback" = "webview";
+    let clipboardMode: "webview" | "hostFallback" | "hostDirect" = "webview";
+    let copyRoute: "webview" | "hostDirect" = "webview";
+    let hostRowFetches = 0;
     let windowRows = 0;
     const finish = (
         outcome: "copied" | "tooLarge" | "empty" | "error",
@@ -265,6 +234,8 @@ export async function copySelectionAsTsv(
             clipboardMs,
             clipboardAttempts,
             clipboardMode,
+            copyRoute,
+            hostRowFetches,
             windowRows,
             durationMs: Math.max(0, performance.now() - started),
             ...details,
@@ -281,124 +252,68 @@ export async function copySelectionAsTsv(
         columns: plan.columnCount,
         cells: plan.outputCellCount,
     };
-    // Keep line strings until the Clipboard API call, but do not retain a
-    // second decoded matrix. Newline segments avoid another lines.join("\n")
-    // traversal and let the exact character budget include separators.
-    const textSegments: string[] = [];
-    let lineCount = 0;
-    const appendLine = (line: string): boolean => {
-        const added = line.length + (lineCount > 0 ? 1 : 0);
-        if (characters + added > COPY_MAX_TSV_CHARACTERS) {
-            return false;
-        }
-        if (lineCount > 0) {
-            textSegments.push("\n");
-        }
-        textSegments.push(line);
-        characters += added;
-        lineCount++;
-        return true;
-    };
-
     try {
-        if (includeHeaders) {
-            const formatStarted = performance.now();
-            const appended = appendLine(copyHeaderLine(summary, plan.columnRuns));
-            formatMs += Math.max(0, performance.now() - formatStarted);
-            if (!appended) {
-                finish("tooLarge", { ...details, reason: "characters" });
-                return "tooLarge";
-            }
+        if (prefersHostDirectCopy(summary, plan.outputCellCount)) {
+            copyRoute = "hostDirect";
+            const host = await rpc.sendRequest<
+                {
+                    resultSetId: string;
+                    selection: typeof plan.ranges;
+                    includeHeaders: boolean;
+                },
+                QsCopySelectionResult
+            >(QsCopySelectionToClipboardRequest.type, {
+                resultSetId: summary.resultSetId,
+                selection: plan.ranges,
+                includeHeaders,
+            });
+            rpcRequests = 1;
+            hostRowFetches = host.fetchCount;
+            characters = host.characters;
+            fetchDecodeMs = host.fetchMs;
+            formatMs = host.formatMs;
+            clipboardMs = host.clipboardMs;
+            clipboardAttempts = host.outcome === "copied" ? 1 : 0;
+            clipboardMode = "hostDirect";
+            windowRows = host.windowRows;
+            finish(host.outcome, {
+                rows: host.rows ?? details.rows,
+                columns: host.columns ?? details.columns,
+                cells: host.cells ?? details.cells,
+                ...(host.reason ? { reason: host.reason } : {}),
+            });
+            return host.outcome;
         }
 
-        // Bound the sum of decoded objects across all projected column runs.
-        // Wide selections therefore use fewer rows per request window.
-        windowRows = Math.max(
-            1,
-            Math.min(
-                COPY_MAX_ROWS_PER_WINDOW,
-                Math.floor(COPY_TARGET_DECODED_CELLS_PER_WINDOW / plan.columnCount),
-            ),
-        );
-        let rowBandIndex = 0;
-        for (const rowRun of plan.rowRuns) {
-            let start = rowRun.from;
-            while (start <= rowRun.to) {
-                const requestedRows = Math.min(windowRows, rowRun.to - start + 1);
-                const fetchedRuns: string[][][] = [];
-                let returnedRows = requestedRows;
-                for (const run of plan.columnRuns) {
-                    const fetchStarted = performance.now();
-                    const decoded = await fetchCopyRowsWindow(
-                        rpc,
-                        summary.resultSetId,
-                        start,
-                        requestedRows,
-                        { start: run.from, count: columnCount(run) },
-                    );
-                    fetchDecodeMs += Math.max(0, performance.now() - fetchStarted);
-                    rpcRequests++;
-                    fetchedRuns.push(decoded);
-                    returnedRows = Math.min(returnedRows, decoded.length);
-                }
-                if (returnedRows === 0) {
-                    break; // Defensive: the host returned a short/empty window.
-                }
-
-                const formatStarted = performance.now();
-                for (let rowOffset = 0; rowOffset < returnedRows; rowOffset++) {
-                    const sourceRow = start + rowOffset;
-                    while (
-                        rowBandIndex + 1 < plan.rowBands.length &&
-                        plan.rowBands[rowBandIndex].toRow < sourceRow
-                    ) {
-                        rowBandIndex++;
-                    }
-                    const selectedColumns = plan.rowBands[rowBandIndex]?.columnRuns ?? [];
-                    let selectedRunIndex = 0;
-                    const fields: string[] = [];
-                    let prospectiveCharacters = characters + (lineCount > 0 ? 1 : 0);
-                    for (let runIndex = 0; runIndex < plan.columnRuns.length; runIndex++) {
-                        const run = plan.columnRuns[runIndex];
-                        const rowValues = fetchedRuns[runIndex]?.[rowOffset];
-                        for (let column = run.from; column <= run.to; column++) {
-                            while (
-                                selectedRunIndex < selectedColumns.length &&
-                                selectedColumns[selectedRunIndex].to < column
-                            ) {
-                                selectedRunIndex++;
-                            }
-                            const selected =
-                                selectedRunIndex < selectedColumns.length &&
-                                selectedColumns[selectedRunIndex].from <= column;
-                            const value = selected ? (rowValues?.[column - run.from] ?? "") : "";
-                            prospectiveCharacters += value.length + (fields.length > 0 ? 1 : 0);
-                            if (prospectiveCharacters > COPY_MAX_TSV_CHARACTERS) {
-                                formatMs += Math.max(0, performance.now() - formatStarted);
-                                finish("tooLarge", { ...details, reason: "characters" });
-                                return "tooLarge";
-                            }
-                            fields.push(value);
-                        }
-                    }
-                    // The prospective check above makes this false only if a
-                    // future separator-accounting change drifts.
-                    if (!appendLine(fields.join("\t"))) {
-                        formatMs += Math.max(0, performance.now() - formatStarted);
-                        finish("tooLarge", { ...details, reason: "characters" });
-                        return "tooLarge";
-                    }
-                }
-                formatMs += Math.max(0, performance.now() - formatStarted);
-                start += returnedRows;
-            }
+        const built = await buildQueryStudioGridCopyText({
+            plan,
+            columnNames: summary.columnNames,
+            includeHeaders,
+            getRows: (start, count, columns) =>
+                rpc.sendRequest(QsGetRowsRequest.type, {
+                    resultSetId: summary.resultSetId,
+                    start,
+                    count,
+                    purpose: "copy",
+                    columnStart: columns.start,
+                    columnCount: columns.count,
+                }),
+        });
+        rpcRequests = built.fetchCount;
+        characters = built.characters;
+        fetchDecodeMs = built.fetchMs;
+        formatMs = built.formatMs;
+        windowRows = built.windowRows;
+        if (built.kind !== "copied") {
+            finish(built.kind, {
+                ...details,
+                ...(built.kind === "tooLarge" ? { reason: "characters" } : {}),
+            });
+            return built.kind;
         }
-        const finalFormatStarted = performance.now();
-        const text = textSegments.join("");
-        formatMs += Math.max(0, performance.now() - finalFormatStarted);
         const clipboardStarted = performance.now();
         try {
-            const result = await writeQueryStudioClipboard(rpc, text);
+            const result = await writeQueryStudioClipboard(rpc, built.text);
             clipboardAttempts = result.attempts;
             clipboardMode = result.mode;
         } finally {

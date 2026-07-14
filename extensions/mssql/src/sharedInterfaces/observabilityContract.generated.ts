@@ -1527,6 +1527,8 @@ export const OBS_CONTRACT: Registry = {
                 clipboardMs: "structuralMetadata",
                 clipboardAttempts: "structuralMetadata",
                 clipboardMode: "safeEnum",
+                copyRoute: "safeEnum",
+                hostRowFetches: "structuralMetadata",
                 windowRows: "structuralMetadata",
                 rows: "structuralMetadata",
                 columns: "structuralMetadata",
@@ -1534,7 +1536,7 @@ export const OBS_CONTRACT: Registry = {
                 reason: "safeEnum",
             },
             attrsComplete: false,
-            notes: "Grid copy terminates with safe outcome/reason and exact work cardinalities; rejected selections emit zero projected fetches.",
+            notes: "Grid copy terminates with safe outcome/reason and exact work cardinalities; large/MAX-like shapes may build and write host-direct, avoiding raw-value webview transport while retaining the same bounded planner and TSV semantics.",
         },
         {
             name: "mssql.queryStudio.grid.firstVisibleRowsPainted",

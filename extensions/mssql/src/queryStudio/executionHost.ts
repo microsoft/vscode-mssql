@@ -277,6 +277,7 @@ export class ExecutionHost {
                     columnNames: started.columnNames,
                     ...(started.columns ? { columns: started.columns } : {}),
                     rowCount: 0,
+                    approxBytes: 0,
                     complete: false,
                     ...(started.isPlanResult ? { isPlanResult: true } : {}),
                 };
@@ -288,10 +289,11 @@ export class ExecutionHost {
                 }
                 host.fan((l) => l.onResultSetStarted(summary));
             },
-            onRowsAppended(resultSetId, newRowCount, complete) {
+            onRowsAppended(resultSetId, newRowCount, acceptedApproxBytes, complete) {
                 const summary = host.summaries.get(resultSetId);
                 if (summary) {
                     summary.rowCount += newRowCount;
+                    summary.approxBytes = (summary.approxBytes ?? 0) + acceptedApproxBytes;
                     host.totalResultRows += newRowCount;
                 }
                 host.fan((l) => l.onRowsAppended(resultSetId, newRowCount, complete));
