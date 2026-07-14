@@ -43,7 +43,7 @@ export class BuildHelper {
     private initialized: boolean = false;
 
     constructor() {
-        const extName = sqldbproj.extension.vsCodeName;
+        const extName = sqldbproj.extensionId;
         this.extensionDir = vscode.extensions.getExtension(extName)?.extensionPath ?? "";
         this.extensionBuildDir = path.join(this.extensionDir, buildDirectory);
     }

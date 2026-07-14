@@ -79,7 +79,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
 
         // extensionBuildDirPath is set in the constructor — no network calls needed.
         const extensionPath =
-            vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
+            vscode.extensions.getExtension(sqldbproj.extensionId)?.extensionPath ?? "";
         expect(buildHelper.extensionBuildDirPath).to.equal(
             path.join(extensionPath, "BuildDirectory"),
         );
@@ -88,7 +88,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
     test("Should have all required SystemDacpacs files for supported target platforms", async function (): Promise<void> {
         // Get the extension's build directory path
         const extensionPath =
-            vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
+            vscode.extensions.getExtension(sqldbproj.extensionId)?.extensionPath ?? "";
         const systemDacpacsPath = path.join(extensionPath, "BuildDirectory", "SystemDacpacs");
 
         // Verify SystemDacpacs folder exists

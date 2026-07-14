@@ -5,10 +5,7 @@
 
 import * as vscode from "vscode";
 
-export enum extension {
-    name = "Microsoft.sql-database-projects",
-    vsCodeName = "ms-mssql.sql-database-projects-vscode",
-}
+export const extensionId = "ms-mssql.sql-database-projects-vscode";
 
 /**
  * sql database projects extension
