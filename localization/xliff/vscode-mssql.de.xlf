@@ -2516,7 +2516,7 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
         <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
-        <target state="new">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</target>
+        <target state="translated">Erstellen und verwalten Sie Tastenkombinationen für häufig verwendete Abfragen sowie für Aktionen im Abfrage-Editor und im Ergebnisraster, um verfügbare Befehle zu entdecken und sie effizienter auszuführen.</target>
       </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
