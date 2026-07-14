@@ -590,6 +590,8 @@ export const DataPlaneErrorCodes = {
     unavailable: "SqlDataPlane.Unavailable",
     auth: "SqlDataPlane.Auth",
     capabilityUnsupported: "SqlDataPlane.CapabilityUnsupported",
+    /** Server-originated query failure; details ride `server{}` + messages. */
+    queryFailed: "SqlDataPlane.QueryFailed",
     policyDenied: "SqlDataPlane.PolicyDenied",
     resourceLimit: "SqlDataPlane.ResourceLimit",
     clientAborted: "SqlDataPlane.Client.Aborted",

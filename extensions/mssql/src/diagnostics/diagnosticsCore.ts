@@ -78,6 +78,7 @@ const SAFE_ERROR_CODES = new Set([
     "SqlDataPlane.Unavailable",
     "SqlDataPlane.Auth",
     "SqlDataPlane.CapabilityUnsupported",
+    "SqlDataPlane.QueryFailed",
     "SqlDataPlane.PolicyDenied",
     "SqlDataPlane.ResourceLimit",
     "SqlDataPlane.Client.Aborted",
