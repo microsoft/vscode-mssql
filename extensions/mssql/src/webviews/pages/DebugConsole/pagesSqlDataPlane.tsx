@@ -8,21 +8,94 @@
  * and its running backends — the "what is this component doing right now"
  * surface. It answers the questions a ts-native dogfooder asks: which backend
  * is default, is it available, how many sessions are open, what capabilities
- * did each backend declare, and — for ts-native — what does the engine's own
- * snapshot say (driver, active overrides, live sessions and in-flight queries).
+ * did each backend declare, which profiles fell back to another backend this
+ * session, what host/runtime env is in play, and — for ts-native — what does
+ * the engine's own snapshot say (driver, active overrides, live sessions and
+ * in-flight queries).
  *
  * Everything here is protocol metadata; the host builds it from the registry's
- * passive statusSummary() plus ts-native aggregate counters. No SQL text, row
- * values, server names, or credentials cross this boundary.
+ * passive statusSummary() plus ts-native aggregate counters, the capability
+ * matrix, remembered fallbacks (non-reversible fingerprints), and host env
+ * facts. No SQL text, row values, server names, or credentials cross this
+ * boundary.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import {
     DcGetSqlDataPlaneStatusRequest,
+    DcSqlDataPlaneCapabilityValue,
     DcSqlDataPlaneStatus,
 } from "../../../sharedInterfaces/debugConsole";
 import { EmptyState, Kpi, PageHeader, StatusPill } from "./common";
 import { useDc } from "./state";
+
+function capabilitySupportTone(support: string): "ok" | "warn" | "error" | undefined {
+    switch (support) {
+        case "supported":
+            return "ok";
+        case "unsupported":
+            return "error";
+        case "degraded":
+        case "partial":
+            return "warn";
+        default:
+            return undefined;
+    }
+}
+
+/** One backend's declared capabilities, rendered as a compact matrix. */
+function CapabilityTable({ values }: { values: Record<string, DcSqlDataPlaneCapabilityValue> }) {
+    const ids = Object.keys(values).sort();
+    return (
+        <div className="dc-table-wrap">
+            <table className="dc-table">
+                <thead>
+                    <tr>
+                        <th>Capability</th>
+                        <th>Support</th>
+                        <th>Fidelity</th>
+                        <th>Limit</th>
+                        <th>Reason</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {ids.map((id) => {
+                        const v = values[id];
+                        const tone = capabilitySupportTone(v.support);
+                        return (
+                            <tr key={id}>
+                                <td className="dc-mono">{id}</td>
+                                <td>
+                                    <span
+                                        className={`dc-pill ${
+                                            tone === "ok"
+                                                ? "ok"
+                                                : tone === "error"
+                                                  ? "error"
+                                                  : tone === "warn"
+                                                    ? "warning"
+                                                    : "info"
+                                        }`}>
+                                        {v.support}
+                                    </span>
+                                </td>
+                                <td className="dc-mono">{v.fidelity ?? ""}</td>
+                                <td className="dc-mono">
+                                    {v.limit !== undefined
+                                        ? `${v.limit}${v.unit ? ` ${v.unit}` : ""}`
+                                        : ""}
+                                </td>
+                                <td className="dc-mono dc-muted">{v.reasonCode ?? ""}</td>
+                                <td className="dc-mono dc-muted">{v.source}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+}
 
 export function SqlDataPlanePage() {
     const { rpc, dataVersion } = useDc();
@@ -65,6 +138,9 @@ export function SqlDataPlanePage() {
             : status.availability.state === "unavailable"
               ? "error"
               : undefined;
+    const env = status.environment;
+    const remembered = status.rememberedFallbacks ?? [];
+    const capabilityKinds = status.capabilities ? Object.keys(status.capabilities).sort() : [];
 
     return (
         <>
@@ -93,6 +169,27 @@ export function SqlDataPlanePage() {
                     tone={availabilityTone}
                 />
                 <Kpi label="Active sessions" value={status.activeSessions} />
+                {status.fallbackPolicy ? (
+                    <Kpi
+                        label="Fallback policy"
+                        value={status.fallbackPolicy}
+                        note={
+                            status.fallbackPolicy === "off"
+                                ? "capability gaps hard-fail"
+                                : status.fallbackPolicy === "auto"
+                                  ? "auto-route + notify"
+                                  : "prompt before routing"
+                        }
+                        tone={status.fallbackPolicy === "off" ? "warn" : undefined}
+                    />
+                ) : null}
+                {remembered.length > 0 ? (
+                    <Kpi
+                        label="Fallback routes"
+                        value={remembered.length}
+                        note="profiles routed to an alternative backend"
+                    />
+                ) : null}
                 {obs ? (
                     <Kpi
                         label="ts-native terminals"
@@ -178,6 +275,105 @@ export function SqlDataPlanePage() {
                     </tbody>
                 </table>
             </div>
+
+            {remembered.length > 0 ? (
+                <>
+                    <div className="dc-card-title" style={{ marginTop: 16 }}>
+                        Fallback routing (this session)
+                    </div>
+                    <div className="dc-muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+                        Profiles the capability-fallback policy routed to an alternative backend —
+                        e.g. a Windows-integrated-auth profile that ts-native cannot open, sent to
+                        STS. The fingerprint is a non-reversible digest of the profile; it never
+                        reveals the server or credentials.
+                    </div>
+                    <div className="dc-table-wrap">
+                        <table className="dc-table">
+                            <thead>
+                                <tr>
+                                    <th>Profile fingerprint</th>
+                                    <th>Routed to backend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {remembered.map((r) => (
+                                    <tr key={r.profileFingerprint}>
+                                        <td className="dc-mono dc-muted">{r.profileFingerprint}</td>
+                                        <td className="dc-mono">{r.backendKind}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            ) : null}
+
+            {capabilityKinds.length > 0 ? (
+                <>
+                    <div className="dc-card-title" style={{ marginTop: 16 }}>
+                        Capability matrix
+                    </div>
+                    <div className="dc-muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+                        What each backend declared it can do, evaluated before any credentials are
+                        used. This is what the fallback policy reads to decide whether a profile can
+                        open on the default backend.
+                    </div>
+                    {capabilityKinds.map((kind) => (
+                        <div key={kind} style={{ marginBottom: 12 }}>
+                            <div className="dc-mono" style={{ marginBottom: 4, fontWeight: 600 }}>
+                                {kind}
+                            </div>
+                            <CapabilityTable values={status.capabilities![kind]} />
+                        </div>
+                    ))}
+                </>
+            ) : null}
+
+            {env ? (
+                <>
+                    <div className="dc-card-title" style={{ marginTop: 16 }}>
+                        Host environment
+                    </div>
+                    <div className="dc-muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+                        Runtime and behavior-affecting settings — the "what was interesting about
+                        the env" a bug report needs. Values only; never secrets.
+                    </div>
+                    <div className="dc-table-wrap">
+                        <table className="dc-table">
+                            <tbody>
+                                <tr>
+                                    <td className="dc-mono">node</td>
+                                    <td className="dc-mono">{env.node}</td>
+                                </tr>
+                                <tr>
+                                    <td className="dc-mono">platform</td>
+                                    <td className="dc-mono">{env.platform}</td>
+                                </tr>
+                                <tr>
+                                    <td className="dc-mono">arch</td>
+                                    <td className="dc-mono">{env.arch}</td>
+                                </tr>
+                                <tr>
+                                    <td className="dc-mono">extensionVersion</td>
+                                    <td className="dc-mono">{env.extensionVersion}</td>
+                                </tr>
+                                {Object.keys(env.settings)
+                                    .sort()
+                                    .map((key) => (
+                                        <tr key={key}>
+                                            <td className="dc-mono">{key}</td>
+                                            <td className="dc-mono">
+                                                {typeof env.settings[key] === "object"
+                                                    ? JSON.stringify(env.settings[key])
+                                                    : String(env.settings[key])}
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            ) : null}
 
             <div
                 className="dc-card-title"

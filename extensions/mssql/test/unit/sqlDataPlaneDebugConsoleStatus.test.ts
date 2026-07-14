@@ -16,8 +16,8 @@ const NOW = 1_783_900_000_000;
 
 suite("SQL Data Plane Debug Console projection (TSQ2 §9)", () => {
     test("drops the raw last-error message; keeps only code/retryable/serverErrorNumber", () => {
-        const status = projectSqlDataPlaneStatus(
-            {
+        const status = projectSqlDataPlaneStatus({
+            summary: {
                 enabled: true,
                 backend: "ts-native",
                 normalizedBackend: "ts-native",
@@ -42,9 +42,9 @@ suite("SQL Data Plane Debug Console projection (TSQ2 §9)", () => {
                 ],
                 details: {},
             },
-            { terminals: 5, invariantViolations: 0, droppedAfterTerminal: 0 },
-            NOW,
-        );
+            observability: { terminals: 5, invariantViolations: 0, droppedAfterTerminal: 0 },
+            nowEpochMs: NOW,
+        });
 
         const raw = JSON.stringify(status);
         expect(raw).to.not.contain("prod-sql-07");
@@ -60,8 +60,8 @@ suite("SQL Data Plane Debug Console projection (TSQ2 §9)", () => {
     });
 
     test("shapes the passive summary into the typed contract", () => {
-        const status = projectSqlDataPlaneStatus(
-            {
+        const status = projectSqlDataPlaneStatus({
+            summary: {
                 enabled: true,
                 backend: "ts-nativ", // misconfigured -> normalized differs
                 normalizedBackend: "INVALID(ts-nativ)",
@@ -79,9 +79,9 @@ suite("SQL Data Plane Debug Console projection (TSQ2 §9)", () => {
                 ],
                 details: { "ts-native": { driver: { name: "tedious", version: "20.0.0" } } },
             },
-            { terminals: 0, invariantViolations: 2, droppedAfterTerminal: 3 },
-            NOW,
-        );
+            observability: { terminals: 0, invariantViolations: 2, droppedAfterTerminal: 3 },
+            nowEpochMs: NOW,
+        });
 
         expect(status.capturedEpochMs).to.equal(NOW);
         expect(status.enabled).to.equal(true);
@@ -103,11 +103,65 @@ suite("SQL Data Plane Debug Console projection (TSQ2 §9)", () => {
     });
 
     test("tolerates a missing/empty summary without throwing", () => {
-        const status = projectSqlDataPlaneStatus({}, undefined, NOW);
+        const status = projectSqlDataPlaneStatus({ summary: {}, nowEpochMs: NOW });
         expect(status.enabled).to.equal(false);
         expect(status.availability.state).to.equal("unknown");
         expect(status.entries).to.deep.equal([]);
         expect(status.details).to.deep.equal({});
         expect(status.tsNativeObservability).to.equal(undefined);
+        expect(status.environment).to.equal(undefined);
+        expect(status.capabilities).to.equal(undefined);
+        expect(status.rememberedFallbacks).to.equal(undefined);
+    });
+
+    test("carries env facts, fallback policy, remembered routes, and the capability matrix", () => {
+        const status = projectSqlDataPlaneStatus({
+            summary: { enabled: true, backend: "ts-native", normalizedBackend: "ts-native" },
+            nowEpochMs: NOW,
+            fallbackPolicy: "prompt",
+            environment: {
+                node: "22.9.0",
+                platform: "win32",
+                arch: "x64",
+                extensionVersion: "1.44.0",
+                settings: { "mssql.sqlDataPlane.backend": "ts-native" },
+            },
+            rememberedFallbacks: [{ profileFingerprint: "fp_win", backendKind: "sts2-local" }],
+            capabilities: {
+                "ts-native": {
+                    "auth.integrated": {
+                        support: "unsupported",
+                        reasonCode: "driver.noIntegratedAuth",
+                        source: "static",
+                    },
+                    "exec.windowPages": {
+                        support: "supported",
+                        fidelity: "exact",
+                        limit: 4,
+                        unit: "pages",
+                        source: "static",
+                    },
+                },
+            },
+        });
+
+        expect(status.fallbackPolicy).to.equal("prompt");
+        expect(status.environment?.node).to.equal("22.9.0");
+        expect(status.environment?.platform).to.equal("win32");
+        expect(status.rememberedFallbacks).to.deep.equal([
+            { profileFingerprint: "fp_win", backendKind: "sts2-local" },
+        ]);
+        expect(status.capabilities?.["ts-native"]["auth.integrated"]).to.deep.equal({
+            support: "unsupported",
+            reasonCode: "driver.noIntegratedAuth",
+            source: "static",
+        });
+        expect(status.capabilities?.["ts-native"]["exec.windowPages"]).to.deep.equal({
+            support: "supported",
+            fidelity: "exact",
+            limit: 4,
+            unit: "pages",
+            source: "static",
+        });
     });
 });

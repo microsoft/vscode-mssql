@@ -334,11 +334,43 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
      * append ts-native aggregate counters. All fields are protocol metadata.
      */
     private sqlDataPlaneStatus(): DcSqlDataPlaneStatus {
-        return projectSqlDataPlaneStatus(
-            SqlDataPlaneService.get().statusSummary(),
-            tsNativeObservabilityCounters(),
-            Date.now(),
-        );
+        const svc = SqlDataPlaneService.get();
+        const cfg = vscode.workspace.getConfiguration();
+        const settingKeys = [
+            "mssql.sqlDataPlane.enabled",
+            "mssql.sqlDataPlane.backend",
+            "mssql.sqlDataPlane.capabilityFallback",
+            "mssql.sqlDataPlane.tsNative.overrides",
+            "mssql.sqlDataPlane.timeouts.openMs",
+            "mssql.sqlDataPlane.timeouts.cancelAckMs",
+            "mssql.sqlDataPlane.timeouts.closeMs",
+            "mssql.sqlDataPlane.timeouts.disposeDrainMs",
+        ];
+        const settings: Record<string, unknown> = {};
+        for (const key of settingKeys) {
+            const value = cfg.get<unknown>(key);
+            if (value !== undefined) {
+                settings[key] = value;
+            }
+        }
+        return projectSqlDataPlaneStatus({
+            summary: svc.statusSummary(),
+            nowEpochMs: Date.now(),
+            observability: tsNativeObservabilityCounters(),
+            fallbackPolicy: cfg.get<string>("mssql.sqlDataPlane.capabilityFallback", "prompt"),
+            environment: {
+                node: process.versions.node,
+                platform: process.platform,
+                arch: process.arch,
+                extensionVersion:
+                    (vscode.extensions.getExtension("ms-mssql.mssql")?.packageJSON?.version as
+                        | string
+                        | undefined) ?? "unknown",
+                settings,
+            },
+            rememberedFallbacks: svc.rememberedFallbacks(),
+            capabilities: svc.capabilitySnapshot(),
+        });
     }
 
     private gapsFor(sourceId: string): GapRecord[] {

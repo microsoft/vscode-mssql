@@ -509,11 +509,35 @@ export interface DcSqlDataPlaneBackendEntry {
     lastError?: { code: string; retryable: boolean; serverErrorNumber?: number };
 }
 
+/** One capability value as shown in the Debug Console matrix (safe metadata). */
+export interface DcSqlDataPlaneCapabilityValue {
+    support: string;
+    fidelity?: string;
+    limit?: number;
+    unit?: string;
+    reasonCode?: string;
+    source: string;
+}
+
+/** Host/runtime facts for a bug repro — the "what was interesting about the env". */
+export interface DcSqlDataPlaneEnvironment {
+    node: string;
+    platform: string;
+    arch: string;
+    extensionVersion: string;
+    /**
+     * Behavior-affecting mssql.sqlDataPlane.* settings (values only, never
+     * secrets): default backend, fallback policy, enabled flag, timeouts, and
+     * the ts-native overrides object.
+     */
+    settings: Record<string, unknown>;
+}
+
 /**
  * Passive, privacy-safe live snapshot of the SQL Data Plane registry and its
  * running backends — the "what is this component doing" surface. Carries only
- * protocol metadata (ids, states, counts, capability flags); never SQL text,
- * rows, server names, or credentials.
+ * protocol metadata (ids, states, counts, capability flags, non-reversible
+ * profile fingerprints); never SQL text, rows, server names, or credentials.
  */
 export interface DcSqlDataPlaneStatus {
     capturedEpochMs: number;
@@ -523,6 +547,8 @@ export interface DcSqlDataPlaneStatus {
     normalizedBackend: string;
     availability: { state: string; backend?: string; reason?: string; retryable?: boolean };
     activeSessions: number;
+    /** Capability fallback policy in effect (prompt | auto | off). */
+    fallbackPolicy?: string;
     entries: DcSqlDataPlaneBackendEntry[];
     /** ts-native aggregate counters (terminals / invariant violations / post-terminal drops). */
     tsNativeObservability?: {
@@ -530,6 +556,16 @@ export interface DcSqlDataPlaneStatus {
         invariantViolations: number;
         droppedAfterTerminal: number;
     };
+    /** Host/runtime + config facts for repro. */
+    environment?: DcSqlDataPlaneEnvironment;
+    /**
+     * Profiles that were routed to an alternative backend by the fallback
+     * policy this session (e.g. Windows-auth → sts2-local). The fingerprint is
+     * a non-reversible digest.
+     */
+    rememberedFallbacks?: Array<{ profileFingerprint: string; backendKind: string }>;
+    /** Per-backend capability matrix (kind → capabilityId → value). */
+    capabilities?: Record<string, Record<string, DcSqlDataPlaneCapabilityValue>>;
     /**
      * Per-backend service self-snapshot: ts-native internals (driver, active
      * overrides, live sessions + in-flight queries), STS2 status. Rendered as a
