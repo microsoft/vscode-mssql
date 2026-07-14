@@ -50,6 +50,7 @@ export enum TelemetryViews {
     SqlNotebooks = "SqlNotebooks",
     ServiceClient = "ServiceClient",
     SqlToolsMcp = "SqlToolsMcp",
+    ProtocolHandler = "ProtocolHandler",
 }
 
 export enum TelemetryActions {
@@ -192,6 +193,7 @@ export enum TelemetryActions {
     ChatCommand = "ChatCommand",
     ReadCredential = "ReadCredential",
     Connect = "Connect",
+    Invoke = "Invoke",
     LoadFabricWorkspaces = "LoadFabricWorkspaces",
     LoadFabricDatabases = "LoadFabricDatabases",
     LoadAzureSubscriptions = "LoadAzureSubscriptions",
@@ -293,6 +295,7 @@ export enum TelemetryActions {
     NotebookChangeDatabase = "NotebookChangeDatabase",
     CancelCellExecution = "CancelCellExecution",
     KernelSelected = "KernelSelected",
+    Stats = "Stats",
 }
 
 /**

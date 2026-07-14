@@ -10,6 +10,10 @@ import * as chai from "chai";
 import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as constants from "../src/common/constants";
+import { promises as fs } from "fs";
+import * as os from "os";
+import * as path from "path";
+import type { IProjectType } from "dataworkspace";
 import { WorkspaceService } from "../src/services/workspaceService";
 import { ProjectProviderRegistry } from "../src/common/projectProviderRegistry";
 import { createProjectProvider } from "./projectProviderRegistry.test";
@@ -233,6 +237,34 @@ suite("WorkspaceService", function (): void {
             .not.have.been.called;
         expect(extension7.activationStub, "extension7.activate() should not have been called").to
             .not.have.been.called;
+    });
+
+    test("getAllProjectsInFolder escapes paths and finds all supported project types", async () => {
+        const root = await fs.mkdtemp(path.join(os.tmpdir(), "data-workspace-glob-"));
+        const workspaceFolder = path.join(root, "workspace[1]");
+
+        try {
+            await fs.mkdir(path.join(workspaceFolder, "nested"), { recursive: true });
+            await Promise.all([
+                fs.writeFile(path.join(workspaceFolder, "root.sqlproj"), ""),
+                fs.writeFile(path.join(workspaceFolder, "nested", "other.csproj"), ""),
+                fs.writeFile(path.join(workspaceFolder, "nested", "ignored.txt"), ""),
+            ]);
+            sinon
+                .stub(service, "getAllProjectTypes")
+                .resolves([
+                    { projectFileExtension: "sqlproj" },
+                    { projectFileExtension: "csproj" },
+                ] as IProjectType[]);
+
+            const results = await service.getAllProjectsInFolder(vscode.Uri.file(workspaceFolder));
+            expect(results.map((result) => path.basename(result.fsPath)).sort()).to.deep.equal([
+                "other.csproj",
+                "root.sqlproj",
+            ]);
+        } finally {
+            await fs.rm(root, { recursive: true, force: true });
+        }
     });
 
     test("getProjectProvider", async () => {

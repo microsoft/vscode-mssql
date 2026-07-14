@@ -4,18 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as http from "http";
-import * as url from "url";
 import { AddressInfo } from "net";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
 const logger = getLogger("SimpleWebServer");
 
-export type WebHandler = (
-    req: http.IncomingMessage,
-    reqUrl: url.UrlWithParsedQuery,
-    res: http.ServerResponse,
-) => void;
+export type WebHandler = (req: http.IncomingMessage, reqUrl: URL, res: http.ServerResponse) => void;
 
 export class AlreadyRunningError extends Error {}
 
@@ -33,7 +28,7 @@ export class SimpleWebServer {
         this.autoShutoff();
         this.server = http.createServer((req, res) => {
             this.bumpLastUsed();
-            const reqUrl = url.parse(req.url!, /* parseQueryString */ true);
+            const reqUrl = new URL(req.url!, "http://localhost");
 
             const handler = this.pathMappings.get(reqUrl.pathname);
             if (handler) {

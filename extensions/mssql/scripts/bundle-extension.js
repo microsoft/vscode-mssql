@@ -3,59 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const logger = require("../../../scripts/terminal-logger");
-const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
+const { createNodeExtensionConfig, run } = require("../../../scripts/esbuild-utils");
 
-// Parse arguments
-const args = process.argv.slice(2);
-const isProd = args.includes("--prod") || args.includes("-p");
-const isWatch = args.includes("--watch") || args.includes("-w");
-
-// Build configuration
-const config = {
-    entryPoints: {
-        extension: "src/extension.ts",
-        serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
-        // Vector Workbench analysis worker (VEC-4): its own node bundle so the
-        // service can spawn worker_threads on dist/vectorAnalysisWorker.js.
-        vectorAnalysisWorker: "src/queryResults/vector/vectorAnalysisWorker.ts",
-        // ts-native SQL provider (TSQ2 D6): dedicated lazy chunk bundling
-        // tedious; loaded via computed-path require on first backend
-        // selection — never from the activation graph.
-        tsNativeProvider: "src/services/tsNative/providerEntry.ts",
-    },
-    bundle: true,
-    outdir: "dist",
-    platform: "node",
-    loader: {
-        ".ts": "ts",
-        ".js": "js",
-        ".json": "json",
-        ".node": "file",
-    },
-    tsconfig: "./tsconfig.extension.json",
-    plugins: [esbuildProblemMatcherPlugin("extension")],
-    nodePaths: ["./node_modules"],
-    sourcemap: !isProd,
-    sourcesContent: false,
-    metafile: !isProd,
-    external: ["vscode", "vscode-mssql"],
-    minify: isProd,
-};
-
-// Main execution
-async function main() {
-    if (isWatch) {
-        logger.header("Building extension (watch mode)");
-        await watch(config);
-    } else {
-        logger.header(`Building extension`);
-        const success = await build(config, isProd);
-        process.exit(success ? 0 : 1);
-    }
-}
-
-// Run if called directly
-if (require.main === module) {
-    main();
-}
+void run(
+    ({ isProd }) =>
+        createNodeExtensionConfig({
+            entryPoints: {
+                extension: "src/extension.ts",
+                serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
+                // Vector Workbench analysis worker (VEC-4): its own node
+                // bundle so the service can spawn it in worker_threads.
+                vectorAnalysisWorker: "src/queryResults/vector/vectorAnalysisWorker.ts",
+                // Lazy ts-native provider chunk: never part of the activation
+                // graph, loaded only after this backend is selected.
+                tsNativeProvider: "src/services/tsNative/providerEntry.ts",
+            },
+            external: ["vscode-mssql"],
+            loader: {
+                ".ts": "ts",
+                ".js": "js",
+                ".json": "json",
+                ".node": "file",
+            },
+            metafile: !isProd,
+            minify: isProd,
+            nodePaths: ["./node_modules"],
+            outdir: "dist",
+            sourcemap: !isProd,
+            sourcesContent: false,
+            tsconfig: "./tsconfig.extension.json",
+        }),
+    "extension",
+);

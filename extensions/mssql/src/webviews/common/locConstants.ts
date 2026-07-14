@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
+import type { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
@@ -349,25 +350,96 @@ export class LocConstants {
 
     public get shortcutsConfiguration() {
         return {
-            title: l10n.t("Shortcuts Configuration"),
+            title: l10n.t("Shortcuts Configuration (Preview)"),
             pageAriaLabel: l10n.t("Shortcuts configuration page"),
             configurationSections: l10n.t("Configuration sections"),
-            subtitle: l10n.t("Configure Quick Query and in-app shortcuts."),
+            subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
-                "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
+                "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.",
             ),
-            webviewShortcuts: l10n.t("In-App Shortcuts"),
+            quickQueriesKeyboardShortcutsBanner: l10n.t(
+                "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
+            ),
+            openKeyboardShortcutsEditor: l10n.t("Open Keyboard Shortcuts editor."),
+            webviewShortcuts: l10n.t("Extension Shortcuts"),
             webviewShortcutsDescription: l10n.t(
-                "Configure shortcuts that are handled inside MSSQL views.",
+                "Configure keyboard shortcuts used by the MSSQL extension.",
             ),
+            queryEditorShortcuts: l10n.t("Query Editor"),
+            queryEditorKeyboardShortcutsBanner: l10n.t(
+                "Query Editor shortcuts are managed by Visual Studio Code.",
+            ),
+            queryEditorKeyboardShortcutsFooter: l10n.t(
+                "Configure the full list of Query Editor shortcuts.",
+            ),
+            resultViewShortcuts: l10n.t("Result View"),
+            resultViewShortcutsBanner: l10n.t(
+                "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.",
+            ),
+            keyboardShortcutsEditor: l10n.t("Keyboard Shortcuts editor"),
+            viewConfigureKeybinding: l10n.t("View/configure keybinding"),
+            viewConfigureKeybindingTooltip: (name: string) =>
+                l10n.t({
+                    message: "View/configure keybinding for {0}",
+                    args: [name],
+                    comment: ["{0} is the command or shortcut display name"],
+                }),
+            configurableKeyCommandCategoryLabels: {
+                queryExecution: l10n.t("Query Execution"),
+                connection: l10n.t("Connection"),
+                others: l10n.t("Others"),
+            },
+            configurableKeyCommandCategoryDescriptions: {
+                queryExecution: l10n.t("Run, cancel, and create queries"),
+                connection: l10n.t("Connect and manage database connections"),
+                others: l10n.t("Extension and deployment actions"),
+            },
+            configurableKeyCommandLabels: {
+                "mssql.runQuery": l10n.t("Execute Query"),
+                "mssql.runCurrentStatement": l10n.t("Execute Selection or Current Statement"),
+                "mssql.cancelQuery": l10n.t("Cancel Query"),
+                "mssql.newQuery": l10n.t("New Query"),
+                "mssql.toggleSqlCmd": l10n.t("Toggle SQLCMD Mode"),
+                "mssql.connect": l10n.t("Connect"),
+                "mssql.disconnect": l10n.t("Disconnect"),
+                "mssql.changeConnection": l10n.t("Change Connection"),
+                "mssql.changeDatabase": l10n.t("Change Database"),
+                "mssql.showEstimatedPlan": l10n.t("Show Estimated Plan"),
+                "mssql.toggleActualPlan": l10n.t("Toggle Actual Plan"),
+                "mssql.copyAll": l10n.t("Copy All"),
+                "mssql.toggleQueryResultPanel": l10n.t("Toggle Query Result Panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
+            configurableKeyCommandDescriptions: {
+                "mssql.runQuery": l10n.t("Run a query for the current active SQL document"),
+                "mssql.runCurrentStatement": l10n.t(
+                    "Execute only the T-SQL statement under the cursor",
+                ),
+                "mssql.cancelQuery": l10n.t("Cancel the query execution in progress"),
+                "mssql.newQuery": l10n.t("Open a new SQL query file"),
+                "mssql.toggleSqlCmd": l10n.t(
+                    "Enable or disable SQLCMD mode for the active SQL document",
+                ),
+                "mssql.connect": l10n.t("Connect the active SQL document to a database"),
+                "mssql.disconnect": l10n.t("Disconnect the active SQL document from the database"),
+                "mssql.changeConnection": l10n.t(
+                    "Change the connection for the active SQL document",
+                ),
+                "mssql.changeDatabase": l10n.t("Change the database for the active SQL document"),
+                "mssql.showEstimatedPlan": l10n.t("View the estimated query execution plan"),
+                "mssql.toggleActualPlan": l10n.t(
+                    "Toggle actual execution plan collection for SQL queries",
+                ),
+                "mssql.copyAll": l10n.t("Copy all query result content"),
+                "mssql.toggleQueryResultPanel": l10n.t("Show or hide the query result panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
+            keybinding: l10n.t("Keybinding"),
             autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
-            managedInVsCode: l10n.t("Managed in VS Code"),
             showAllShortcuts: l10n.t("Show All"),
             showAllQuickQueryShortcutsTooltip: l10n.t(
                 "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
@@ -392,7 +464,11 @@ export class LocConstants {
                 }),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
-            searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
+            searchWebviewShortcuts: l10n.t("Search extension shortcut"),
+            noShortcutResultsTitle: l10n.t("No matching shortcuts"),
+            noShortcutResultsDescription: l10n.t(
+                "Try searching by command name, description, or keybinding.",
+            ),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
                 "Press desired key combination and then press ENTER.",
@@ -1362,6 +1438,7 @@ export class LocConstants {
             ),
             failedToAddTable: l10n.t("Failed to add table."),
             failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToApplySchema: l10n.t("Failed to apply schema."),
             failedToDeleteTable: l10n.t("Failed to delete table."),
             tableIdAlreadyExists: l10n.t("Table id already exists."),
             foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),

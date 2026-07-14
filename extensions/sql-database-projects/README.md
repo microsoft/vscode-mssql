@@ -4,7 +4,7 @@ Database source control where objects are stored as code, integrating with build
 
 ## Overview
 
-SQL Database Projects for Azure Data Studio and VS Code provides a way to design, edit, and publish objects to SQL databases from a source controlled project. For a complete development workflow, build and deploy your database projects in CI/CD pipelines, such as [GitHub Actions](https://github.com/azure/sql-action) or Azure DevOps.
+SQL Database Projects for Visual Studio Code provides a way to design, edit, and publish objects to SQL databases from a source controlled project. For a complete development workflow, build and deploy your database projects in CI/CD pipelines, such as [GitHub Actions](https://github.com/azure/sql-action) or Azure DevOps.
 
 ![SQL project lifecycle](https://github.com/Microsoft/vscode-mssql/raw/main/extensions/sql-database-projects/images/sqlproj-lifecycle.png)
 
@@ -39,30 +39,21 @@ CREATE TABLE [dbo].[Product] (
 - [Develop and validate database objects using T-SQL](https://learn.microsoft.com/sql/tools/sql-database-projects/sql-database-projects#validation)
 - [Start from an existing database to get it in source control](https://learn.microsoft.com/sql/tools/sql-database-projects/tutorials/start-from-existing-database?pivots=sq1-visual-studio-code)
 - [Publish the database objects to a SQL Server or Azure SQL instance](https://learn.microsoft.com/sql/tools/sql-database-projects/sql-database-projects#deployment)
-- [Publish the database objects to a local development container](https://learn.microsoft.com/azure-data-studio/extensions/sql-database-project-extension-build#publish-the-sql-project-and-deploy-to-a-local-container)
+- [Publish the database objects to a local development container](https://learn.microsoft.com/sql/tools/sql-database-projects/get-started)
 - [Automate generation of deployment scripts and reports](https://learn.microsoft.com/sql/tools/sqlpackage/sqlpackage#deployments)
 - [Update the database project from a database and visualize differences](https://learn.microsoft.com/sql/tools/sql-database-projects/howto/compare-database-project?pivots=sq1-visual-studio-code)
 - [Code analysis for best practices](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/sql-code-analysis/sql-code-analysis?pivots=sq1-visual-studio-code)
 - [Include custom scripts before and after deployment](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/pre-post-deployment-scripts?pivots=sq1-visual-studio-code)
 - [Declare deploy-time variables](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/sqlcmd-variables?pivots=sq1-visual-studio-code)
 
-### Preview Features
-
-- Generate SQL projects from OpenAPI/Swagger specs
-
 ## Settings
 
 ### General Settings
 
 - `sqlDatabaseProjects.dotnetSDK Location`: The path to the folder containing the `dotnet` folder for the .NET SDK. If not set, the extension will attempt to find the .NET SDK on the system.
-- `sqlDatabaseProjects.microsoftBuildSqlVersion`: Version of Microsoft.Build.Sql to use for SQL projects. Controls the SDK version referenced in newly created SDK-style project templates and the binaries used when building non-SDK-style SQL projects. If not set, the extension will use Microsoft.Build.Sql 2.1.0.
+- `sqlDatabaseProjects.microsoftBuildSqlVersion`: Version of Microsoft.Build.Sql to use for SQL projects. Controls the SDK version referenced in newly created SDK-style project templates and the binaries used when building non-SDK-style SQL projects. If not set, the extension will use Microsoft.Build.Sql 2.2.0.
 - `sqlDatabaseProjects.netCoreDoNotAsk`: When true, no longer prompts to install .NET SDK when a supported installation is not found.
 - `sqlDatabaseProjects.collapseProjectNodes`: Option to set the default state of the project nodes in the database projects view to collapsed. If not set, the extension will default to expanded.
-
-### AutoRest Settings (preview)
-
-- `sqlDatabaseProjects.nodejsDoNotAsk`: When true, no longer prompts to install Node.js when a supported installation is not found.
-- `sqlDatabaseProjects.autorestSqlVersion`: Version of AutoRest.sql to use for generating SQL projects from OpenAPI/Swagger specs. If not set, the extension will use the latest version.
 
 ## Code of Conduct
 
@@ -70,7 +61,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 ## Telemetry
 
-This extensions collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described [here for Azure Data Studio](https://aka.ms/ads-disable-telemetry) or [here for VS Code](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting).
+This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data. You can disable telemetry as described in the [Visual Studio Code telemetry documentation](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting).
 
 ## Privacy Statement
 

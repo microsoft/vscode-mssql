@@ -13,9 +13,11 @@ import { AuthenticationType } from "./sharedInterfaces/connectionDialog";
 import { ILogger } from "./sharedInterfaces/logger";
 import { logger } from "./models/logger";
 import MainController from "./controllers/mainController";
-import { cmdAddObjectExplorer } from "./constants/constants";
 import { getConnectionDisplayName } from "./models/connectionInfo";
 import { MatchScore } from "./models/utils";
+import { sendActionEvent, sendErrorEvent } from "./telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
+import { getErrorMessage } from "./utils/utils";
 
 enum Command {
     connect = "/connect",
@@ -37,7 +39,7 @@ export class MssqlProtocolHandler {
         private mainController: MainController,
         private client: SqlToolsServiceClient,
     ) {
-        this._logger = logger.withPrefix("MssqlProtocolHandler");
+        this._logger = logger.withPrefix("Protocol Handler");
     }
 
     /**
@@ -49,28 +51,59 @@ export class MssqlProtocolHandler {
      * @returns The connection information or undefined if not applicable.
      */
     public async handleUri(uri: vscode.Uri): Promise<void> {
-        this._logger.info(`URI: ${uri.toString()}`);
+        this._logger.info(`Handling URI: ${uri.toString()}`);
 
-        switch (uri.path) {
-            // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
-            case Command.connect:
-                await this.handleConnectCommand(uri);
-                return;
+        try {
+            let handled = false;
+            switch (uri.path) {
+                // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
+                case Command.connect:
+                    await this.handleConnectCommand(uri);
+                    handled = true;
+                    break;
 
-            // Open the connection dialog, pre-filled with the provided parameters.
-            case Command.openConnectionDialog:
-                await this.handleOpenConnectionDialogCommand(uri);
-                return;
+                // Open the connection dialog, pre-filled with the provided parameters.
+                case Command.openConnectionDialog:
+                    await this.handleOpenConnectionDialogCommand(uri);
+                    handled = true;
+                    break;
 
-            // Default behavior for unknown URIs: open the connection dialog with no pre-filled parameters
-            default: {
-                this._logger.warn(
-                    `Unknown URI action '${uri.path}'; defaulting to ${Command.openConnectionDialog}`,
-                );
+                // Default behavior for unknown URIs: open the connection dialog with no pre-filled parameters
+                default: {
+                    this._logger.warn(
+                        `Unknown URI action '${uri.path}'; defaulting to ${Command.openConnectionDialog}`,
+                    );
 
-                this.openConnectionDialog(undefined);
-                return;
+                    this.openConnectionDialog(undefined);
+                    handled = false;
+                    break;
+                }
             }
+
+            if (handled) {
+                this._logger.info(`Successfully handled URI: ${uri.toString()}`);
+                sendActionEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
+                    action: uri.path,
+                    source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                });
+            } else {
+                throw new Error(`Unknown URI command: ${uri.toString()}`);
+            }
+        } catch (err) {
+            this._logger.error(`Error handling URI: ${getErrorMessage(err)}`);
+
+            sendErrorEvent(
+                TelemetryViews.ProtocolHandler,
+                TelemetryActions.Invoke,
+                err,
+                false, // includeErrorMessage
+                undefined, //errorCode
+                undefined, // errorType
+                {
+                    command: uri.path,
+                    source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                },
+            );
         }
     }
 
@@ -131,7 +164,9 @@ export class MssqlProtocolHandler {
     }
 
     private openConnectionDialog(connProfile: IConnectionProfile | undefined): void {
-        vscode.commands.executeCommand(cmdAddObjectExplorer, connProfile);
+        // Always open as a new connection draft (prepopulated, but not in "edit existing" mode),
+        // since the profile came from an external URI and hasn't been saved yet.
+        this.mainController.openConnectionDialogForNewProfile(connProfile);
     }
 
     /**
