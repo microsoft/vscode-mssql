@@ -1860,16 +1860,12 @@ export function QueryStudioApp() {
         }
         return byResult;
     }, [resultSetSummaries]);
-    const visibleActiveTab = resolveQueryStudioVisibleTab(
-        activeTab,
-        {
-            results: hasDataResults,
-            queryPlan: hasPlanResults,
-            vector: hasVectorResults,
-            spatial: hasSpatialResults,
-        },
-        executing,
-    );
+    const visibleActiveTab = resolveQueryStudioVisibleTab(activeTab, {
+        results: hasDataResults,
+        queryPlan: hasPlanResults,
+        vector: hasVectorResults,
+        spatial: hasSpatialResults,
+    });
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {
             activateTab(visibleActiveTab, "eligibility");
