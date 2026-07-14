@@ -112,8 +112,11 @@ async function build(config, isProd) {
         }
 
         await context.dispose();
-        logger.success("Build completed!");
-        return result.errors.length === 0;
+        const success = result.errors.length === 0;
+        if (success) {
+            logger.success("Build completed!");
+        }
+        return success;
     } catch (error) {
         logger.error(`Build failed: ${error.message}`);
         return false;
