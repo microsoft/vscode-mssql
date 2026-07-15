@@ -193,10 +193,12 @@ export function useFluentResultGridKeyboardController({
     // Chromium focuses the nearest focusable ancestor — this container — when
     // the user grabs a grid SCROLLBAR. Re-activating on that focus calls
     // gotoCell(), which scrolls the ACTIVE cell back into view mid-drag
-    // (backward jumps, a synchronous full row render per grab). Pointer-
-    // initiated focus therefore never re-activates: cell clicks activate
-    // through SlickGrid's own click pipeline, and keyboard entry (Tab) keeps
-    // the reveal-active-cell behavior.
+    // (backward jumps, a cross-axis reset to the active cell, a synchronous
+    // full row render per grab). Pointer-initiated focus therefore never
+    // re-activates: cell clicks activate through SlickGrid's own click
+    // pipeline, and keyboard entry (Tab) keeps the reveal-active-cell
+    // behavior. The guard arms from BOTH pointerdown and mousedown capture:
+    // native scrollbar interactions dispatch mouse events only.
     const pointerDownAtRef = useRef<number | undefined>(undefined);
     const handleGridPointerDownCapture = useCallback(() => {
         pointerDownAtRef.current = performance.now();

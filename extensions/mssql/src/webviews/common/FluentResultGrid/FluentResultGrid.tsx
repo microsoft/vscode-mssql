@@ -99,6 +99,12 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                 onFocus={controller.handleGridContainerFocus}
                 onBlur={controller.handleGridContainerBlur}
                 onPointerDownCapture={controller.handleGridPointerDownCapture}
+                // Chromium dispatches NO pointer events for native scrollbar
+                // interactions — only mouse events — so a scrollbar grab must
+                // arm the pointer-initiated-focus guard through mousedown or
+                // the focus it triggers re-activates the grid and yanks both
+                // scroll axes back to the active cell.
+                onMouseDownCapture={controller.handleGridPointerDownCapture}
                 onKeyDownCapture={controller.handleGridKeyDownCapture}>
                 <div
                     id={`fluent-result-grid-body-${props.gridId}`}
