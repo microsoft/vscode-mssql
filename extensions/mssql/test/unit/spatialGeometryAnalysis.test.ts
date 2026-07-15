@@ -4,7 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { strict as assert } from "assert";
-import { analyzeSpatialCoordinates } from "../../src/webviews/pages/QueryStudio/spatial/spatialGeometryAnalysis";
+import {
+    analyzeSpatialCoordinates,
+    estimateSpatialDerivedBytes,
+    spatialBudgetReason,
+} from "../../src/webviews/pages/QueryStudio/spatial/spatialGeometryAnalysis";
+import { resolveSpatialRendererTier } from "../../src/webviews/pages/QueryStudio/spatial/spatialWorkerProtocol";
 
 suite("Spatial geometry analysis", () => {
     test("computes polygon envelope, vertices, parts, and rings", () => {
@@ -74,5 +79,23 @@ suite("Spatial geometry analysis", () => {
         assert.equal(result.vertices, 100_000);
         assert.equal(result.parts, 100_000);
         assert.deepEqual(result.envelope, [0, -99_999, 99_999, 0]);
+    });
+
+    test("prices retained geometry conservatively and rejects before crossing either budget", () => {
+        const bytes = estimateSpatialDerivedBytes(10, 4, 6);
+        assert.equal(bytes, 1024 + 10 * 128 + 20);
+        assert.equal(spatialBudgetReason(90, 0, 11, bytes, 100, 10_000), "vertexBudget");
+        assert.equal(
+            spatialBudgetReason(0, 10_000, 10, bytes, 100, 10_000 + bytes - 1),
+            "derivedMemoryBudget",
+        );
+        assert.equal(spatialBudgetReason(90, 10_000, 10, bytes, 100, 10_000 + bytes), undefined);
+    });
+
+    test("uses viewport clusters for large point sets while preserving explicit renderer choices", () => {
+        assert.equal(resolveSpatialRendererTier(true, 1_999, "auto"), "canvas");
+        assert.equal(resolveSpatialRendererTier(true, 2_000, "auto"), "clusters");
+        assert.equal(resolveSpatialRendererTier(true, 25_000, "gpuPoints"), "gpuPoints");
+        assert.equal(resolveSpatialRendererTier(false, 25_000, "clusters"), "canvas");
     });
 });

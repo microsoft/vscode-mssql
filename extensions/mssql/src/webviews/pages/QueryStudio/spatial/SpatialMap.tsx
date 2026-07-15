@@ -10,10 +10,16 @@ import Feature from "ol/Feature.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import VectorImageLayer from "ol/layer/VectorImage.js";
 import WebGLPointsLayer from "ol/layer/WebGLPoints.js";
+import Cluster from "ol/source/Cluster.js";
 import VectorSource from "ol/source/Vector.js";
 import { defaults as defaultControls } from "ol/control/defaults.js";
-import { Fill, Stroke, Style, Circle as CircleStyle } from "ol/style.js";
-import { SPATIAL_GPU_POINT_THRESHOLD, type SpatialDecodedFeature } from "./spatialWorkerProtocol";
+import { Fill, Stroke, Style, Circle as CircleStyle, Text } from "ol/style.js";
+import {
+    resolveSpatialRendererTier,
+    type SpatialDecodedFeature,
+    type SpatialRendererChoice,
+    type SpatialRendererTier,
+} from "./spatialWorkerProtocol";
 import { perfMark } from "../../../common/perfMarks";
 import { locConstants } from "../../../common/locConstants";
 
@@ -29,7 +35,7 @@ export interface SpatialMapProps {
         rotation: number;
     }): void;
     fitNonce: number;
-    renderer: "auto" | "canvas" | "gpuPoints";
+    renderer: SpatialRendererChoice;
     /**
      * Active map layer under the features (SPA-10). "none" is today's exact
      * behavior; "worldOutline" lazily loads the bundled offline land asset;
@@ -76,9 +82,10 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
     const gpuLayerRef = React.useRef<WebGLPointsLayer<VectorSource<Feature>> | undefined>(
         undefined,
     );
-    const tierRef = React.useRef<"canvas" | "gpuPoints">("canvas");
+    const clusterLayerRef = React.useRef<VectorImageLayer<Cluster<Feature>> | undefined>(undefined);
+    const tierRef = React.useRef<SpatialRendererTier>("canvas");
     const loadedRef = React.useRef(new Set<number>());
-    const previousInputRef = React.useRef<readonly SpatialDecodedFeature[]>([]);
+    const featureCacheRef = React.useRef(new globalThis.Map<number, Feature>());
     const propsRef = React.useRef(props);
     propsRef.current = props;
     const firstPaintRef = React.useRef(false);
@@ -122,6 +129,12 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             }),
         });
         const source = new VectorSource<Feature>({ useSpatialIndex: true });
+        const clusterSource = new Cluster<Feature>({
+            source,
+            distance: 36,
+            minDistance: 12,
+        });
+        const clusterStyles = new globalThis.Map<string, Style>();
         // VectorImage keeps panning/zooming responsive by reusing a rendered
         // image while interaction is active, then refreshes at rest.
         const layer = new VectorImageLayer({
@@ -167,6 +180,54 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                 ],
             },
         });
+        const clusterLayer = new VectorImageLayer({
+            source: clusterSource,
+            visible: false,
+            imageRatio: 1.2,
+            style: (clusterFeature) => {
+                const members = (clusterFeature.get("features") as Feature[] | undefined) ?? [];
+                if (members.length === 1) {
+                    const member = members[0];
+                    return member.get("ordinal") === propsRef.current.selectedOrdinal
+                        ? selected
+                        : normalStyles[member.get("colorIndex") ?? 0];
+                }
+                const containsSelection = members.some(
+                    (member) => member.get("ordinal") === propsRef.current.selectedOrdinal,
+                );
+                const radius = Math.min(24, 9 + Math.log2(Math.max(2, members.length)) * 2);
+                const key = `${members.length}:${containsSelection ? 1 : 0}`;
+                let style = clusterStyles.get(key);
+                if (!style) {
+                    style = new Style({
+                        image: new CircleStyle({
+                            radius,
+                            fill: new Fill({
+                                color: containsSelection
+                                    ? themeColor("--vscode-list-activeSelectionBackground")
+                                    : palette[0],
+                            }),
+                            stroke: new Stroke({
+                                color: containsSelection
+                                    ? themeColor("--vscode-focusBorder")
+                                    : themeColor("--vscode-editor-foreground"),
+                                width: containsSelection ? 3 : 1.5,
+                            }),
+                        }),
+                        text: new Text({
+                            text: members.length.toLocaleString(),
+                            fill: new Fill({ color: themeColor("--vscode-editor-background") }),
+                            stroke: new Stroke({
+                                color: themeColor("--vscode-editor-foreground"),
+                                width: 1,
+                            }),
+                        }),
+                    });
+                    clusterStyles.set(key, style);
+                }
+                return style;
+            },
+        });
         const camera = props.initialCamera;
         const view = new View({
             center: camera ? [camera.centerX, camera.centerY] : [0, 0],
@@ -176,7 +237,7 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
         });
         const map = new Map({
             target: targetRef.current,
-            layers: [layer, gpuLayer],
+            layers: [layer, clusterLayer, gpuLayer],
             view,
             controls: defaultControls({ attribution: false, rotate: false, zoom: false }),
             pixelRatio: Math.min(devicePixelRatio, 2),
@@ -185,7 +246,28 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             const feature = map.forEachFeatureAtPixel(event.pixel, (candidate) => candidate, {
                 hitTolerance: 5,
             });
-            const ordinal = feature?.get("ordinal");
+            const members = feature?.get("features") as Feature[] | undefined;
+            if (members && members.length > 1) {
+                const geometry = feature?.getGeometry() as
+                    | { getCoordinates?: () => unknown }
+                    | undefined;
+                const coordinates = geometry?.getCoordinates?.();
+                const center =
+                    Array.isArray(coordinates) &&
+                    typeof coordinates[0] === "number" &&
+                    typeof coordinates[1] === "number"
+                        ? ([coordinates[0], coordinates[1]] as [number, number])
+                        : undefined;
+                if (center !== undefined) {
+                    view.animate({
+                        center,
+                        zoom: Math.min(18, (view.getZoom() ?? 2) + 2),
+                        duration: 160,
+                    });
+                }
+                return;
+            }
+            const ordinal = members?.[0]?.get("ordinal") ?? feature?.get("ordinal");
             if (typeof ordinal === "number") {
                 propsRef.current.onSelect(ordinal);
             }
@@ -228,6 +310,7 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
         sourceRef.current = source;
         canvasLayerRef.current = layer;
         gpuLayerRef.current = gpuLayer;
+        clusterLayerRef.current = clusterLayer;
         const observer = new ResizeObserver(() => map.updateSize());
         observer.observe(targetRef.current);
         return () => {
@@ -236,11 +319,14 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             source.clear(true);
             map.dispose();
             gpuLayer.dispose();
+            clusterLayer.dispose();
             mapRef.current = undefined;
             sourceRef.current = undefined;
             canvasLayerRef.current = undefined;
             gpuLayerRef.current = undefined;
+            clusterLayerRef.current = undefined;
             loadedRef.current.clear();
+            featureCacheRef.current.clear();
             perfMark("mssql.queryResults.spatial.render.cancel", { reason: "unmount" });
         };
     }, []);
@@ -250,27 +336,13 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
         const map = mapRef.current;
         if (!source || !map) return;
         const reader = new GeoJSON();
-        const added: Feature[] = [];
-        const previous = previousInputRef.current;
-        const isAppend =
-            props.features.length >= previous.length &&
-            (previous.length === 0 ||
-                props.features[previous.length - 1]?.ordinal ===
-                    previous[previous.length - 1]?.ordinal);
-        if (!isAppend) {
-            source.clear(true);
-            loadedRef.current.clear();
-        }
-        const pending = isAppend ? props.features.slice(previous.length) : props.features;
-        previousInputRef.current = props.features;
-        for (const decoded of pending) {
-            if (
-                decoded.status !== "ready" ||
-                !decoded.geometry ||
-                loadedRef.current.has(decoded.ordinal)
-            ) {
+        const desired = new Set<number>();
+        for (const decoded of props.features) {
+            if (decoded.status !== "ready" || !decoded.geometry) {
                 continue;
             }
+            desired.add(decoded.ordinal);
+            if (featureCacheRef.current.has(decoded.ordinal)) continue;
             try {
                 const feature = reader.readFeature(
                     { type: "Feature", geometry: decoded.geometry, properties: {} },
@@ -283,26 +355,42 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                 feature.set("ordinal", decoded.ordinal, true);
                 const category = decoded.colorValue ?? decoded.geometryType ?? "Spatial";
                 feature.set("colorIndex", hashCategory(category) % 6, true);
-                added.push(feature);
-                loadedRef.current.add(decoded.ordinal);
+                featureCacheRef.current.set(decoded.ordinal, feature);
             } catch {
                 // Worker status remains the source of truth; one malformed
                 // geometry cannot prevent later features rendering.
             }
         }
-        if (added.length > 0) {
-            source.addFeatures(added);
-            const allPoints = source
-                .getFeatures()
-                .every((feature) => feature.getGeometry()?.getType() === "Point");
-            const useGpu =
-                allPoints &&
-                (props.renderer === "gpuPoints" ||
-                    (props.renderer === "auto" &&
-                        source.getFeatures().length >= SPATIAL_GPU_POINT_THRESHOLD));
-            tierRef.current = useGpu ? "gpuPoints" : "canvas";
-            canvasLayerRef.current?.setVisible(!useGpu);
-            gpuLayerRef.current?.setVisible(useGpu);
+        const firstAcceptedBatch = loadedRef.current.size === 0 && desired.size > 0;
+        for (const ordinal of loadedRef.current) {
+            if (!desired.has(ordinal)) {
+                const feature = featureCacheRef.current.get(ordinal);
+                if (feature) source.removeFeature(feature);
+            }
+        }
+        const added: Feature[] = [];
+        for (const ordinal of desired) {
+            if (!loadedRef.current.has(ordinal)) {
+                const feature = featureCacheRef.current.get(ordinal);
+                if (feature) added.push(feature);
+            }
+        }
+        if (added.length > 0) source.addFeatures(added);
+        loadedRef.current = desired;
+        const sourceFeatures = source.getFeatures();
+        if (sourceFeatures.length > 0) {
+            const allPoints = sourceFeatures.every(
+                (feature) => feature.getGeometry()?.getType() === "Point",
+            );
+            const tier = resolveSpatialRendererTier(
+                allPoints,
+                sourceFeatures.length,
+                props.renderer,
+            );
+            tierRef.current = tier;
+            canvasLayerRef.current?.setVisible(tier === "canvas");
+            clusterLayerRef.current?.setVisible(tier === "clusters");
+            gpuLayerRef.current?.setVisible(tier === "gpuPoints");
             if (!renderBeginRef.current) {
                 renderBeginRef.current = true;
                 // offline is honest: false only while an online layer is active.
@@ -312,7 +400,7 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                     layer: layerAttrOf(propsRef.current.basemapLayer),
                 });
             }
-            if (loadedRef.current.size === added.length && !props.initialCamera) {
+            if (firstAcceptedBatch && !props.initialCamera) {
                 const extent = source.getExtent();
                 if (extent) {
                     map.getView().fit(extent, {
@@ -327,6 +415,7 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
 
     React.useEffect(() => {
         sourceRef.current?.changed();
+        clusterLayerRef.current?.changed();
         gpuLayerRef.current?.updateStyleVariables({
             selectedOrdinal: props.selectedOrdinal ?? -1,
         });

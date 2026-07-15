@@ -10,7 +10,11 @@ import type {
     SpatialDecodeResponse,
     SpatialDecodedFeature,
 } from "./spatialWorkerProtocol";
-import { analyzeSpatialCoordinates } from "./spatialGeometryAnalysis";
+import {
+    analyzeSpatialCoordinates,
+    estimateSpatialDerivedBytes,
+    spatialBudgetReason,
+} from "./spatialGeometryAnalysis";
 
 const wkb = new WKB();
 const geoJson = new GeoJSON();
@@ -94,7 +98,36 @@ self.onmessage = (event: MessageEvent<SpatialDecodeRequest>) => {
         return;
     }
     const startedAt = performance.now();
-    const features = event.data.features.map(decodeFeature);
+    const features: SpatialDecodedFeature[] = [];
+    let vertices = 0;
+    let derivedBytes = 0;
+    let budgetReason: SpatialDecodeResponse["budgetReason"];
+    for (const source of event.data.features) {
+        const feature = decodeFeature(source);
+        const featureVertices = feature.vertices ?? 0;
+        // This covers the retained GeoJSON coordinate tree, the OpenLayers
+        // feature reconstructed by the map, feature metadata, and array/map
+        // overhead with a deliberately conservative safety margin.
+        const featureDerivedBytes = estimateSpatialDerivedBytes(
+            featureVertices,
+            feature.label?.length,
+            feature.colorValue?.length,
+        );
+        budgetReason = spatialBudgetReason(
+            vertices,
+            derivedBytes,
+            featureVertices,
+            featureDerivedBytes,
+            event.data.remainingVertices,
+            event.data.remainingDerivedBytes,
+        );
+        if (budgetReason) {
+            break;
+        }
+        features.push(feature);
+        vertices += featureVertices;
+        derivedBytes += featureDerivedBytes;
+    }
     const response: SpatialDecodeResponse = {
         type: "decoded",
         generation: event.data.generation,
@@ -103,6 +136,9 @@ self.onmessage = (event: MessageEvent<SpatialDecodeRequest>) => {
         decoded: features.filter((feature) => feature.status === "ready").length,
         unsupported: features.filter((feature) => feature.status === "unsupported").length,
         errors: features.filter((feature) => feature.status === "error").length,
+        vertices,
+        derivedBytes,
+        ...(budgetReason ? { budgetReason } : {}),
         elapsedMs: performance.now() - startedAt,
     };
     self.postMessage(response);

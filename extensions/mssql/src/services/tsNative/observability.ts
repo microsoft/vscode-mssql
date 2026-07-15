@@ -40,6 +40,24 @@ const counters: TsNativeObservabilityCounters = {
     droppedAfterTerminal: 0,
 };
 
+interface ProcessMemoryPoint {
+    heapUsedBytes: number;
+    externalBytes: number;
+    rssBytes: number;
+    arrayBuffersBytes?: number;
+}
+
+interface QueryMemoryWindow {
+    start: ProcessMemoryPoint;
+    peak: ProcessMemoryPoint;
+    last: ProcessMemoryPoint;
+    samples: number;
+    lastSampleAt: number;
+}
+
+/** Prevent tiny pages from turning diagnostic memory reads into per-row work. */
+const MEMORY_SAMPLE_INTERVAL_MS = 25;
+
 export function tsNativeObservabilityCounters(): TsNativeObservabilityCounters {
     return { ...counters };
 }
@@ -57,9 +75,67 @@ function statusOf(summary: QueryCompleteSummary): "ok" | "warning" | "error" {
 }
 
 export function createDiagEngineObserver(): EngineObserver {
+    const memoryWindows = new Map<string, QueryMemoryWindow>();
+
+    const sampleMemory = (clientQueryId: string, force = false): QueryMemoryWindow | undefined => {
+        if (!diag.anySinkActive) {
+            return memoryWindows.get(clientQueryId);
+        }
+        const now = Date.now();
+        const current = memoryWindows.get(clientQueryId);
+        if (current && !force && now - current.lastSampleAt < MEMORY_SAMPLE_INTERVAL_MS) {
+            return current;
+        }
+        try {
+            const usage = process.memoryUsage();
+            const point: ProcessMemoryPoint = {
+                heapUsedBytes: usage.heapUsed,
+                externalBytes: usage.external,
+                rssBytes: usage.rss,
+                ...(typeof usage.arrayBuffers === "number"
+                    ? { arrayBuffersBytes: usage.arrayBuffers }
+                    : {}),
+            };
+            if (!current) {
+                const created: QueryMemoryWindow = {
+                    start: point,
+                    peak: { ...point },
+                    last: point,
+                    samples: 1,
+                    lastSampleAt: now,
+                };
+                memoryWindows.set(clientQueryId, created);
+                return created;
+            }
+            current.last = point;
+            current.samples++;
+            current.lastSampleAt = now;
+            current.peak.heapUsedBytes = Math.max(current.peak.heapUsedBytes, point.heapUsedBytes);
+            current.peak.externalBytes = Math.max(current.peak.externalBytes, point.externalBytes);
+            current.peak.rssBytes = Math.max(current.peak.rssBytes, point.rssBytes);
+            if (point.arrayBuffersBytes !== undefined) {
+                current.peak.arrayBuffersBytes = Math.max(
+                    current.peak.arrayBuffersBytes ?? point.arrayBuffersBytes,
+                    point.arrayBuffersBytes,
+                );
+            }
+            return current;
+        } catch {
+            return current;
+        }
+    };
+
     return {
+        onQueryStarted: (clientQueryId: string): void => {
+            sampleMemory(clientQueryId, true);
+        },
+        onPageProduced: (clientQueryId: string): void => {
+            sampleMemory(clientQueryId);
+        },
         onTerminal: (summary: QueryCompleteSummary, aggregates: EngineAggregates): void => {
             counters.terminals++;
+            const memory = sampleMemory(summary.clientQueryId, true);
+            memoryWindows.delete(summary.clientQueryId);
             diag.emit({
                 feature: "sqlDataPlane",
                 kind: "event",
@@ -134,6 +210,7 @@ export function createDiagEngineObserver(): EngineObserver {
                     ...(summary.error?.code !== undefined
                         ? { errorCode: { raw: summary.error.code, cls: "diagnostic.metadata" } }
                         : {}),
+                    ...(memory ? processMemoryFields(memory) : {}),
                 },
             });
         },
@@ -156,6 +233,64 @@ export function createDiagEngineObserver(): EngineObserver {
             counters.droppedAfterTerminal++;
         },
     };
+}
+
+function processMemoryFields(
+    memory: QueryMemoryWindow,
+): Record<string, { raw: number | boolean; cls: "diagnostic.metadata" }> {
+    const fields: Record<string, { raw: number | boolean; cls: "diagnostic.metadata" }> = {
+        processMemorySamples: { raw: memory.samples, cls: "diagnostic.metadata" },
+        processHeapUsedStartBytes: {
+            raw: memory.start.heapUsedBytes,
+            cls: "diagnostic.metadata",
+        },
+        processHeapUsedPeakBytes: {
+            raw: memory.peak.heapUsedBytes,
+            cls: "diagnostic.metadata",
+        },
+        processHeapUsedFinalBytes: {
+            raw: memory.last.heapUsedBytes,
+            cls: "diagnostic.metadata",
+        },
+        processExternalStartBytes: {
+            raw: memory.start.externalBytes,
+            cls: "diagnostic.metadata",
+        },
+        processExternalPeakBytes: {
+            raw: memory.peak.externalBytes,
+            cls: "diagnostic.metadata",
+        },
+        processExternalFinalBytes: {
+            raw: memory.last.externalBytes,
+            cls: "diagnostic.metadata",
+        },
+        processRssStartBytes: { raw: memory.start.rssBytes, cls: "diagnostic.metadata" },
+        processRssPeakBytes: { raw: memory.peak.rssBytes, cls: "diagnostic.metadata" },
+        processRssFinalBytes: { raw: memory.last.rssBytes, cls: "diagnostic.metadata" },
+        processArrayBuffersAvailable: {
+            raw: memory.start.arrayBuffersBytes !== undefined,
+            cls: "diagnostic.metadata",
+        },
+    };
+    if (
+        memory.start.arrayBuffersBytes !== undefined &&
+        memory.peak.arrayBuffersBytes !== undefined &&
+        memory.last.arrayBuffersBytes !== undefined
+    ) {
+        fields["processArrayBuffersStartBytes"] = {
+            raw: memory.start.arrayBuffersBytes,
+            cls: "diagnostic.metadata",
+        };
+        fields["processArrayBuffersPeakBytes"] = {
+            raw: memory.peak.arrayBuffersBytes,
+            cls: "diagnostic.metadata",
+        };
+        fields["processArrayBuffersFinalBytes"] = {
+            raw: memory.last.arrayBuffersBytes,
+            cls: "diagnostic.metadata",
+        };
+    }
+    return fields;
 }
 
 function round2(value: number): number {

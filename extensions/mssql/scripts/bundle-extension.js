@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const { createNodeExtensionConfig, run } = require("../../../scripts/esbuild-utils");
+const { tediousStreamingPlpDecodePlugin } = require("./tedious-streaming-plp-decode-plugin");
 
 void run(
     ({ isProd }) =>
@@ -29,6 +30,7 @@ void run(
             minify: isProd,
             nodePaths: ["./node_modules"],
             outdir: "dist",
+            plugins: [tediousStreamingPlpDecodePlugin()],
             sourcemap: !isProd,
             sourcesContent: false,
             tsconfig: "./tsconfig.extension.json",

@@ -636,14 +636,16 @@ export function QsResultGridSurface(props: {
         [columnCount, rpc, summary.resultSetId],
     );
 
-    // Column identity must stay STABLE across the coarse state pushes while
-    // rows stream (each push rebuilds columnNames) — otherwise the grid
-    // re-derives its column set on every push. Cache on the joined names.
-    const columnsKey = JSON.stringify(summary.columns ?? summary.columnNames);
-    const columnInfoRef = useRef<{ key: string; value: IDbColumn[] } | undefined>(undefined);
-    if (columnInfoRef.current?.key !== columnsKey) {
+    // Column metadata is immutable for a result-set id. Coarse state pushes
+    // rebuild the transport arrays while rows stream; keying on the id keeps
+    // the Fluent columns stable without JSON-stringifying a wide schema on
+    // every local render. The results provider remounts on each run.
+    const columnInfoRef = useRef<{ resultSetId: string; value: IDbColumn[] } | undefined>(
+        undefined,
+    );
+    if (columnInfoRef.current?.resultSetId !== summary.resultSetId) {
         columnInfoRef.current = {
-            key: columnsKey,
+            resultSetId: summary.resultSetId,
             value: fabricateColumnInfo(summary.columnNames, summary.columns),
         };
     }

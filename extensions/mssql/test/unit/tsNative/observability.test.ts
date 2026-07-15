@@ -85,6 +85,8 @@ suite("ts-native observability wiring (TSQ2 §9)", () => {
         const raw = JSON.stringify(terminal[0]);
         expect(raw).to.contain("resultSets");
         expect(raw).to.contain("rows");
+        expect(raw).to.contain("processExternalPeakBytes");
+        expect(raw).to.contain("processArrayBuffersAvailable");
     });
 
     test("query status maps onto diag status (ok / warning / error)", () => {

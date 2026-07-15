@@ -5,8 +5,26 @@
 
 import type { QsSpatialFeatureTransport } from "../../../../sharedInterfaces/spatialResults";
 
-/** Keep medium sets on lower-overhead canvas; reserve WebGL for large point clouds. */
-export const SPATIAL_GPU_POINT_THRESHOLD = 50_000;
+export const SPATIAL_CLUSTER_POINT_THRESHOLD = 2_000;
+export const SPATIAL_VERTEX_BUDGET = 250_000;
+export const SPATIAL_DERIVED_BYTES_BUDGET = 64 * 1024 * 1024;
+
+export type SpatialRendererChoice = "auto" | "canvas" | "clusters" | "gpuPoints";
+export type SpatialRendererTier = "canvas" | "clusters" | "gpuPoints";
+
+export function resolveSpatialRendererTier(
+    allRenderableArePoints: boolean,
+    featureCount: number,
+    renderer: SpatialRendererChoice,
+): SpatialRendererTier {
+    if (!allRenderableArePoints) return "canvas";
+    if (renderer === "canvas") return "canvas";
+    if (renderer === "gpuPoints") return "gpuPoints";
+    if (renderer === "clusters" || featureCount >= SPATIAL_CLUSTER_POINT_THRESHOLD) {
+        return "clusters";
+    }
+    return "canvas";
+}
 
 export type SpatialDecodeStatus = "ready" | "null" | "unrenderable" | "unsupported" | "error";
 
@@ -35,6 +53,8 @@ export interface SpatialDecodeRequest {
     generation: number;
     sequence: number;
     features: QsSpatialFeatureTransport[];
+    remainingVertices: number;
+    remainingDerivedBytes: number;
 }
 
 export interface SpatialDecodeResponse {
@@ -45,5 +65,8 @@ export interface SpatialDecodeResponse {
     decoded: number;
     unsupported: number;
     errors: number;
+    vertices: number;
+    derivedBytes: number;
+    budgetReason?: "vertexBudget" | "derivedMemoryBudget";
     elapsedMs: number;
 }

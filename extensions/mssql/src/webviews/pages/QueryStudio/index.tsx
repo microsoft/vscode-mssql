@@ -42,9 +42,23 @@ function QueryStudioRoot(): React.JSX.Element {
     );
 }
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+const root = ReactDOM.createRoot(document.getElementById("root")!);
+root.render(
     <VscodeWebviewProvider>
         <QueryStudioRoot />
     </VscodeWebviewProvider>,
+);
+// A disposed VS Code webview can leave its renderer context awaiting a later
+// Chromium collection. Tear down React-owned grids, subscriptions, and workers
+// while the page is still alive. Two microtasks let component pagehide flushes
+// run first; a bfcache page stays mounted for restoration.
+window.addEventListener(
+    "pagehide",
+    (event) => {
+        if (!event.persisted) {
+            queueMicrotask(() => queueMicrotask(() => root.unmount()));
+        }
+    },
+    { once: true },
 );
 perfMark("mssql.queryStudio.boot.reactMount", {});

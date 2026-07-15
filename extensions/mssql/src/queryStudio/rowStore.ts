@@ -552,6 +552,7 @@ export class RowStore {
         let nullCells = 0;
         let nonNullCells = 0;
         let nonEmptyCells = 0;
+        let gridPreviewTransformMs = 0;
         // Per-cell content inspection is diagnostics-only work — priced only
         // at verbose/full (QO-2). The null bitmap is UI data and always built.
         const countCells = this.verbose;
@@ -589,6 +590,7 @@ export class RowStore {
             const nullBitmap = compact.nullBitmap
                 ? Buffer.from(compact.nullBitmap, "base64")
                 : undefined;
+            const previewTransformStartedAt = gridPreview ? performance.now() : 0;
             for (let row = from; row < to; row++) {
                 const sourceRow = compact.values[row] ?? [];
                 const targetRow: unknown[] = gridPreview
@@ -610,20 +612,22 @@ export class RowStore {
                             documentLanguages!.push(null);
                         } else {
                             sourceValueCharacters += retainedCellPayloadCharacters(sourceValue);
-                            const preview = clampDisplay(
-                                cellDisplayText(sourceValue),
-                                this.tuning.displayCellClamp,
-                            );
+                            const displayText = cellDisplayText(sourceValue);
+                            const preview = clampDisplay(displayText, this.tuning.displayCellClamp);
                             targetRow[targetColumn] = preview;
                             returnedValueCharacters += preview.length;
                             const metadata = set.columns[col];
                             documentLanguages!.push(
-                                cellDocumentLanguage(sourceValue, {
-                                    sqlType: metadata?.sqlType,
-                                    typeHint: set.typeHints?.[col],
-                                    isXml: metadata?.isXml,
-                                    isJson: metadata?.isJson,
-                                }) ?? null,
+                                cellDocumentLanguage(
+                                    sourceValue,
+                                    {
+                                        sqlType: metadata?.sqlType,
+                                        typeHint: set.typeHints?.[col],
+                                        isXml: metadata?.isXml,
+                                        isJson: metadata?.isJson,
+                                    },
+                                    displayText,
+                                ) ?? null,
                             );
                         }
                         targetColumn++;
@@ -640,6 +644,9 @@ export class RowStore {
                         }
                     }
                 }
+            }
+            if (gridPreview) {
+                gridPreviewTransformMs += performance.now() - previewTransformStartedAt;
             }
         }
         const window: QsCellWindow = {
@@ -690,6 +697,11 @@ export class RowStore {
             pagesMissing,
             shortWindow: values.length < end - start,
             gridPreview,
+            ...(gridPreview
+                ? {
+                      gridPreviewTransformMs: Math.round(gridPreviewTransformMs * 100) / 100,
+                  }
+                : {}),
             sourceValueCharacters,
             returnedValueCharacters,
             ms: Date.now() - startedAt,
@@ -977,6 +989,15 @@ export class RowStore {
         if (this.disposed) {
             return;
         }
+        const disposeStartedAt = performance.now();
+        Perf.marker("mssql.queryStudio.rows.dispose.begin", "begin", {
+            resultSets: this.resultSets.size,
+            residentPageBytes: this.memoryBytes,
+            spillBytes: this.spillBytes,
+            spillWrites: this.spillWrites,
+            spillReads: this.spillReads,
+            windowCacheBytes: this.windowCacheBytes,
+        });
         this.disposed = true;
         this.resultSets.clear();
         this.probationary = [];
@@ -992,11 +1013,12 @@ export class RowStore {
         // writer checks `disposed` before touching the fd). Chained so
         // flushSpill() awaited after dispose observes the cleanup too.
         this.spillChain = this.spillChain.then(() => {
+            let cleanupFailed = false;
             if (this.spillFd !== undefined) {
                 try {
                     fs.closeSync(this.spillFd);
                 } catch {
-                    /* already closed */
+                    cleanupFailed = true;
                 }
                 this.spillFd = undefined;
             }
@@ -1005,9 +1027,14 @@ export class RowStore {
                     fs.rmSync(this.spillPath, { force: true });
                     fs.rmdirSync(this.spillDir);
                 } catch {
-                    /* best-effort delete; deactivate sweep catches leftovers */
+                    cleanupFailed = true;
                 }
             }
+            Perf.marker("mssql.queryStudio.rows.dispose.end", "end", {
+                outcome: cleanupFailed ? "bestEffortFailure" : "ok",
+                spillFileRemoved: this.spillPath ? !fs.existsSync(this.spillPath) : true,
+                ms: roundMs(performance.now() - disposeStartedAt),
+            });
         });
     }
 

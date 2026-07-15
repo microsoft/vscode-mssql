@@ -18,7 +18,8 @@
 export interface MemorySnapshot {
     heapUsedBytes: number;
     externalBytes: number;
-    arrayBuffersBytes: number;
+    /** Absent when the host runtime does not expose this Node memory field. */
+    arrayBuffersBytes?: number;
     rssBytes: number;
 }
 
@@ -33,7 +34,9 @@ export function productionMemoryReader(): MemoryReader {
             return {
                 heapUsedBytes: usage.heapUsed,
                 externalBytes: usage.external,
-                arrayBuffersBytes: usage.arrayBuffers ?? 0,
+                ...(typeof usage.arrayBuffers === "number"
+                    ? { arrayBuffersBytes: usage.arrayBuffers }
+                    : {}),
                 rssBytes: usage.rss,
             };
         },

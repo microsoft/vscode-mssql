@@ -26,7 +26,10 @@ import {
 import { IQueryResultStore, QueryResultStoreLease } from "../queryResultTypes";
 
 const CHUNK_ROWS = 512;
-const MAX_RESPONSE_BYTES = 2_500_000;
+const MAX_SCAN_ROWS = 25_000;
+const RESPONSE_SOFT_BYTES = 1 * 1024 * 1024;
+const RESPONSE_HARD_BYTES = 2 * 1024 * 1024;
+const MAX_SESSION_RESPONSE_BYTES = 32 * 1024 * 1024;
 const MAX_TEXT_BYTES = 1024;
 const MAX_SESSIONS = 4;
 
@@ -47,6 +50,7 @@ interface SpatialSession {
     nullCells: number;
     unavailableCells: number;
     payloadBytes: number;
+    responseBytes: number;
     startedAt: number;
     prepareEnded: boolean;
     closed: boolean;
@@ -73,8 +77,8 @@ function estimatedFeatureBytes(feature: QsSpatialFeatureTransport): number {
     const payload = spatial?.status === "ok" ? Math.ceil((spatial.wkbBytes * 4) / 3) : 0;
     return (
         payload +
-        Buffer.byteLength(feature.label ?? "", "utf8") +
-        Buffer.byteLength(feature.colorValue ?? "", "utf8") +
+        Buffer.byteLength(JSON.stringify(feature.label ?? ""), "utf8") +
+        Buffer.byteLength(JSON.stringify(feature.colorValue ?? ""), "utf8") +
         256
     );
 }
@@ -139,6 +143,7 @@ export class SpatialSessionManager {
             nullCells: 0,
             unavailableCells: 0,
             payloadBytes: 0,
+            responseBytes: 0,
             startedAt: performance.now(),
             prepareEnded: false,
             closed: false,
@@ -146,8 +151,8 @@ export class SpatialSessionManager {
         this.sessions.set(session.handle, session);
         Perf.marker("mssql.queryResults.spatial.prepare.begin", "begin", {
             sourceMode: "capturedResult",
-            rowBudget: summary.rowCount,
-            payloadBudgetBytes: MAX_RESPONSE_BYTES,
+            rowBudget: Math.min(summary.rowCount, MAX_SCAN_ROWS),
+            payloadBudgetBytes: MAX_SESSION_RESPONSE_BYTES,
         });
         return {
             handle: session.handle,
@@ -155,6 +160,8 @@ export class SpatialSessionManager {
             totalRows: session.totalRows,
             kind: column.spatial.kind,
             chunkRows: CHUNK_ROWS,
+            rowBudget: Math.min(summary.rowCount, MAX_SCAN_ROWS),
+            payloadBudgetBytes: MAX_SESSION_RESPONSE_BYTES,
         };
     }
 
@@ -187,7 +194,12 @@ export class SpatialSessionManager {
         const features: QsSpatialFeatureTransport[] = [];
         let scannedRows = 0;
         let estimatedBytes = 256;
-        const rowCount = Math.min(CHUNK_ROWS, session.totalRows - session.nextRow);
+        const remainingResponseBytes = MAX_SESSION_RESPONSE_BYTES - session.responseBytes;
+        const rowCount = Math.min(
+            CHUNK_ROWS,
+            session.totalRows - session.nextRow,
+            MAX_SCAN_ROWS - session.nextRow,
+        );
         for await (const chunk of session.store.streamRows({
             resultSetId: session.resultSetId,
             rowStart: session.nextRow,
@@ -226,26 +238,40 @@ export class SpatialSessionManager {
                     ...(colorValue !== undefined ? { colorValue } : {}),
                 };
                 const bytes = estimatedFeatureBytes(feature);
-                if (features.length > 0 && estimatedBytes + bytes > MAX_RESPONSE_BYTES) {
+                const nextEstimatedBytes = estimatedBytes + bytes;
+                if (
+                    nextEstimatedBytes > remainingResponseBytes ||
+                    (features.length > 0 && nextEstimatedBytes > RESPONSE_SOFT_BYTES) ||
+                    (features.length === 0 && nextEstimatedBytes > RESPONSE_HARD_BYTES)
+                ) {
                     break;
                 }
                 features.push(feature);
-                estimatedBytes += bytes;
+                estimatedBytes = nextEstimatedBytes;
                 scannedRows++;
-                session.candidateCells++;
-                if (spatial === null) {
-                    session.nullCells++;
-                } else if (spatial.status === "unrenderable") {
-                    session.unavailableCells++;
-                } else {
-                    session.payloadBytes += spatial.wkbBytes;
-                }
             }
         }
         // A hard-to-fit feature still advances; typed cell guards cap it at 1 MiB.
         session.nextRow += scannedRows;
         session.nextSequence++;
-        const done = session.nextRow >= session.totalRows || scannedRows === 0;
+        const rowBudgetReached = session.nextRow >= Math.min(session.totalRows, MAX_SCAN_ROWS);
+        const responseBudgetReached =
+            remainingResponseBytes <= 0 ||
+            (scannedRows === 0 && session.nextRow < session.totalRows && !rowBudgetReached);
+        const storeShortRead = scannedRows === 0 && !rowBudgetReached && !responseBudgetReached;
+        const done =
+            session.nextRow >= session.totalRows ||
+            rowBudgetReached ||
+            responseBudgetReached ||
+            storeShortRead;
+        const partialReason =
+            session.nextRow >= session.totalRows
+                ? undefined
+                : rowBudgetReached
+                  ? ("rowBudget" as const)
+                  : responseBudgetReached
+                    ? ("payloadBudget" as const)
+                    : ("storeShortRead" as const);
         const provisional = {
             generation: session.generation,
             sequence: params.sequence,
@@ -253,6 +279,7 @@ export class SpatialSessionManager {
             features,
             scannedRows,
             wireBytes: 0,
+            ...(partialReason ? { partial: true, partialReason } : {}),
         };
         let wireBytes = 0;
         for (let i = 0; i < 3; i++) {
@@ -262,6 +289,17 @@ export class SpatialSessionManager {
             );
             if (measured === wireBytes) break;
             wireBytes = measured;
+        }
+        session.responseBytes += wireBytes;
+        for (const feature of features) {
+            session.candidateCells++;
+            if (feature.spatial === null) {
+                session.nullCells++;
+            } else if (feature.spatial.status === "unrenderable") {
+                session.unavailableCells++;
+            } else {
+                session.payloadBytes += feature.spatial.wkbBytes;
+            }
         }
         Perf.marker("mssql.queryResults.spatial.chunk.end", "instant", {
             sequence: params.sequence,
@@ -280,10 +318,13 @@ export class SpatialSessionManager {
                 nullCells: session.nullCells,
                 transportUnavailableCells: session.unavailableCells,
                 payloadBytes: session.payloadBytes,
-                partial: session.nextRow < session.totalRows ? "true" : "false",
-                partialReason: session.nextRow < session.totalRows ? "storeShortRead" : "none",
+                responseBytes: session.responseBytes,
+                partial: partialReason ? "true" : "false",
+                partialReason: partialReason ?? "none",
                 ms: Math.round((performance.now() - session.startedAt) * 100) / 100,
             });
+            // A completed pull must not retain the authoritative result store.
+            this.close(session.handle, partialReason ?? "completed");
         }
         return { ...provisional, wireBytes };
     }
@@ -315,6 +356,7 @@ export class SpatialSessionManager {
                 nullCells: session.nullCells,
                 transportUnavailableCells: session.unavailableCells,
                 payloadBytes: session.payloadBytes,
+                responseBytes: session.responseBytes,
                 partial: "true",
                 partialReason: reason,
                 ms: Math.round((performance.now() - session.startedAt) * 100) / 100,

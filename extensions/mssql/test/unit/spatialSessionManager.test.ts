@@ -92,9 +92,9 @@ suite("SpatialSessionManager", () => {
             generation: opened.generation,
             sequence: 0,
         });
-        expect(stale.error).to.include("out-of-order");
+        expect(stale.error).to.include("expired");
 
-        service.close(opened.handle);
+        // The final response releases the spatial lease immediately.
         store.releaseLiveOwner("rerun");
         expect(store.state).to.equal("disposed");
     });
