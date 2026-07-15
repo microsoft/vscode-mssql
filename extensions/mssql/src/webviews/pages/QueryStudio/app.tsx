@@ -2559,6 +2559,10 @@ export function QueryStudioApp() {
                                                             visibleActiveTab === "spatial"
                                                         }
                                                         panelVisible={panelVisible}
+                                                        basemapEnabled={
+                                                            state?.capabilities.spatialBasemap ===
+                                                            true
+                                                        }
                                                         initialViewState={
                                                             panelViewStateRef.current.spatial
                                                         }

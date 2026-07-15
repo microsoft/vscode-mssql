@@ -4197,6 +4197,9 @@
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
     </trans-unit>
+    <trans-unit id="++CODE++0bcd66e677f4ee7288547da02b6cd5594fd8b8c3abbc6482dfd42c788ecbe448">
+      <source xml:lang="en">Layers</source>
+    </trans-unit>
     <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
       <source xml:lang="en">Layout</source>
     </trans-unit>
@@ -4599,6 +4602,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
       <source xml:lang="en">Mandatory (True)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2507e7a80c8e69e9ee48a97512619a0594f95c6d67f37650c9749a9b870de3eb">
+      <source xml:lang="en">Map layer could not be loaded</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bddd21dda7f5e469bff450d2005296b2af7de2bf8d04215e2b22c8bc14c16853">
+      <source xml:lang="en">Map layer unavailable for this coordinate system</source>
     </trans-unit>
     <trans-unit id="++CODE++4d2c1b44580c3174463c5515d330b289c012384751e5350be4cb2b5d568d174f">
       <source xml:lang="en">Map zoom controls</source>
@@ -8252,6 +8261,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
       <source xml:lang="en">Workspace is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++24eaaedc380dc1d8805ec936ffdf0f1e4943475ac07a1fcab04f049c8d83cf30">
+      <source xml:lang="en">World outline</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6e1e5b3543b138100ae82e90e4050783a955adb3268d9c73b3dedb5055358f4">
+      <source xml:lang="en">World outline (offline)</source>
     </trans-unit>
     <trans-unit id="++CODE++136286bc5a894ca127a857f65556676fa503d02c806d035053fe50a4d5678214">
       <source xml:lang="en">Write a review</source>

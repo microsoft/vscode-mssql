@@ -49,6 +49,30 @@ function preloadManifestPlugin() {
     };
 }
 
+/**
+ * The Spatial world-outline layer (SPA-10 / D-0023) lazily fetches a bundled
+ * Natural Earth land topology from the webview resource origin. The asset is
+ * data, not code: it must never enter a JS chunk (bundle budget) and loads
+ * only when the user selects the layer.
+ */
+function worldOutlineAssetPlugin() {
+    return {
+        name: "spatial-world-outline-asset",
+        setup(build) {
+            build.onEnd(async (result) => {
+                if (result.errors.length > 0) {
+                    return;
+                }
+                await fs.mkdir("./dist/views", { recursive: true });
+                await fs.copyFile(
+                    require.resolve("world-atlas/land-110m.json"),
+                    "./dist/views/spatial-world-land-110m.json",
+                );
+            });
+        },
+    };
+}
+
 function createConfigs({ isProd }) {
     const webviews = createBrowserConfig({
         entryPoints: {
@@ -102,7 +126,7 @@ function createConfigs({ isProd }) {
         metafile: true,
         minify: isProd,
         outdir: "dist/views",
-        plugins: [preloadManifestPlugin()],
+        plugins: [preloadManifestPlugin(), worldOutlineAssetPlugin()],
         // Linked maps in development avoid loading multi-megabyte inline maps
         // during normal webview startup; the maps remain available in devtools.
         sourcemap: isProd ? false : "linked",

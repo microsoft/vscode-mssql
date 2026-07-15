@@ -28,6 +28,12 @@ export interface PinnedResultsState {
     errorCount: number;
     hasLocalMessages: boolean;
     gridStyle?: QsGridStyle;
+    /**
+     * SPA-10 / D-0024: pinned panes may use the OFFLINE world outline layer
+     * (webview-local, zero network). Online sources are Query Studio-only —
+     * this controller registers no basemap RPCs, and the pane offers none.
+     */
+    spatialBasemapEnabled?: boolean;
 }
 
 export function isPinnedResultsState(value: unknown): value is PinnedResultsState {

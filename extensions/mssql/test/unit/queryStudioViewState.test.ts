@@ -195,6 +195,7 @@ suite("Query Studio panel view state", () => {
             selectedRowOrdinal: 17,
             camera: { centerX: -122.3, centerY: 47.6, zoom: 8, rotation: 0.25 },
             listScrollTop: 220,
+            layerId: "worldOutline",
         };
         state.queryPlan.pageScrollTop = 84;
         state.queryPlan.graphs["0"] = {
@@ -252,6 +253,24 @@ suite("Query Studio panel view state", () => {
                 "run-1",
             ),
         ).to.equal(undefined);
+
+        // SPA-10: layerId persists only as a bounded identifier — never a URL
+        // or template. Anything URL-shaped or oversized invalidates the slice.
+        for (const layerId of ["https://tiles.example/{z}/{x}/{y}.png", "a b", "0leading"]) {
+            expect(
+                normalizeQueryStudioPanelViewState(
+                    { ...state, spatial: { ...state.spatial, layerId } },
+                    "run-1",
+                ),
+                layerId,
+            ).to.equal(undefined);
+        }
+        expect(
+            normalizeQueryStudioPanelViewState(
+                { ...state, spatial: { ...state.spatial, layerId: "contoso-road" } },
+                "run-1",
+            ),
+        ).to.not.equal(undefined);
     });
 
     test("new runs clear result-derived state and retain panel preferences", () => {
@@ -285,6 +304,7 @@ suite("Query Studio panel view state", () => {
         state.spatial.groupBy = "geometryType";
         state.spatial.renderer = "gpuPoints";
         state.spatial.listOpen = false;
+        state.spatial.layerId = "worldOutline";
         state.queryPlan.graphs["0"] = {
             zoomPercent: 150,
             scrollTop: 10,
@@ -309,6 +329,9 @@ suite("Query Studio panel view state", () => {
             groupBy: "geometryType",
             renderer: "gpuPoints",
             listOpen: false,
+            // Layer choice survives reruns (D-0031); eligibility/consent are
+            // re-checked against the new result before anything renders.
+            layerId: "worldOutline",
         });
         const expectedVector = createQueryStudioPanelViewState("run-2").vector;
         expectedVector.workspace = "compare";

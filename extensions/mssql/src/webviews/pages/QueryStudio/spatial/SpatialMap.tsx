@@ -30,6 +30,14 @@ export interface SpatialMapProps {
     }): void;
     fitNonce: number;
     renderer: "auto" | "canvas" | "gpuPoints";
+    /**
+     * Active map layer under the features (SPA-10). "none" is today's exact
+     * behavior; "worldOutline" lazily loads the bundled offline land asset.
+     * The pane only passes a non-"none" value for EPSG:4326/3857-compatible
+     * feature sets (D-0030).
+     */
+    basemapLayer: "none" | "worldOutline";
+    onBasemapState(state: "loading" | "ready" | "unavailable"): void;
 }
 
 function themeColor(variable: string): string {
@@ -200,6 +208,7 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
                     ),
                     partial: "true",
                     rafThrottled: 0,
+                    layer: propsRef.current.basemapLayer,
                 });
             }
         });
@@ -284,9 +293,12 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             gpuLayerRef.current?.setVisible(useGpu);
             if (!renderBeginRef.current) {
                 renderBeginRef.current = true;
+                // offline stays "true" for none/worldOutline; it turns "false"
+                // only when an online layer class is active (MAP-3).
                 perfMark("mssql.queryResults.spatial.render.begin", {
                     tier: tierRef.current,
                     offline: "true",
+                    layer: propsRef.current.basemapLayer,
                 });
             }
             if (loadedRef.current.size === added.length && !props.initialCamera) {
@@ -308,6 +320,60 @@ export function SpatialMap(props: SpatialMapProps): React.JSX.Element {
             selectedOrdinal: props.selectedOrdinal ?? -1,
         });
     }, [props.selectedOrdinal]);
+
+    // Map layer slot (SPA-10). The layer module + asset load only on first
+    // selection; switching back to "none" removes the layer without touching
+    // feature rendering. A layer failure reports an honest state and never
+    // degrades features (plan §4 stop conditions).
+    const basemapLayerObjectRef = React.useRef<
+        import("./worldOutlineLayer").WorldOutlineLayer | undefined
+    >(undefined);
+    const basemapGenerationRef = React.useRef(0);
+    React.useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const generation = ++basemapGenerationRef.current;
+        const removeCurrent = () => {
+            if (basemapLayerObjectRef.current) {
+                map.removeLayer(basemapLayerObjectRef.current);
+                basemapLayerObjectRef.current.dispose();
+                basemapLayerObjectRef.current = undefined;
+            }
+        };
+        if (props.basemapLayer !== "worldOutline") {
+            removeCurrent();
+            return;
+        }
+        propsRef.current.onBasemapState("loading");
+        perfMark("mssql.queryResults.spatial.basemap.layer.begin", { layer: "worldOutline" });
+        void import("./worldOutlineLayer")
+            .then((module) => module.loadWorldOutlineLayer(themeColor))
+            .then((layer) => {
+                if (generation !== basemapGenerationRef.current || !mapRef.current) {
+                    layer.dispose();
+                    return;
+                }
+                removeCurrent();
+                basemapLayerObjectRef.current = layer;
+                map.getLayers().insertAt(0, layer);
+                perfMark("mssql.queryResults.spatial.basemap.layer.ready", {
+                    layer: "worldOutline",
+                    outcome: "ok",
+                });
+                propsRef.current.onBasemapState("ready");
+            })
+            .catch(() => {
+                if (generation !== basemapGenerationRef.current) {
+                    return;
+                }
+                perfMark("mssql.queryResults.spatial.basemap.layer.ready", {
+                    layer: "worldOutline",
+                    outcome: "unavailable",
+                });
+                propsRef.current.onBasemapState("unavailable");
+            });
+        return removeCurrent;
+    }, [props.basemapLayer]);
 
     React.useEffect(() => {
         const map = mapRef.current;

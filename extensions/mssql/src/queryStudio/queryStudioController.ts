@@ -527,6 +527,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             capabilities: {
                 vectorWorkbench: model.executionHost.vectorWorkbenchGate(),
                 spatialResults: model.executionHost.spatialResultsGate(),
+                spatialBasemap: QueryStudioController.spatialBasemapGate(),
                 panelVisible: true,
             },
             vectorSessionEpoch: 0,
@@ -671,6 +672,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         state.completions = { enabled: isInlineCompletionFeatureEnabled() };
         state.capabilities.vectorWorkbench = this.model.executionHost.vectorWorkbenchGate();
         state.capabilities.spatialResults = this.model.executionHost.spatialResultsGate();
+        state.capabilities.spatialBasemap = QueryStudioController.spatialBasemapGate();
         state.capabilities.panelVisible = this.panel.visible;
         state.vectorSessionEpoch = this.vectorSessionEpoch;
         // Grid windowing knobs ride the style snapshot (QO-7): the run's
@@ -819,6 +821,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private spatialResults(): SpatialSessionManager {
         this.spatialService ??= new SpatialSessionManager();
         return this.spatialService;
+    }
+
+    /** SPA-10: the Layers selector gate; read live so a settings flip lands on the next state push. */
+    private static spatialBasemapGate(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.queryStudio.spatial.basemap.enabled") === true
+        );
     }
 
     private resetSpatialServices(): void {

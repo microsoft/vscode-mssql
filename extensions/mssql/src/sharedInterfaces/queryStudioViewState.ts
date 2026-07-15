@@ -245,6 +245,13 @@ export interface QsSpatialPanelViewState {
     selectedRowOrdinal?: number;
     camera?: { centerX: number; centerY: number; zoom: number; rotation: number };
     listScrollTop: number;
+    /**
+     * Selected map layer id (SPA-10): "worldOutline" or a configured online
+     * source id. Absent means None. Only the id persists — never a URL,
+     * credential, or attribution; online ids are revalidated (source, consent,
+     * trust) on restore before any session opens.
+     */
+    layerId?: string;
 }
 
 export interface QueryStudioPanelViewState {
@@ -351,6 +358,11 @@ export function resetQueryStudioPanelViewState(
     next.spatial.listOpen = previous.spatial.listOpen;
     next.spatial.detailsOpen = previous.spatial.detailsOpen;
     next.spatial.filters = { ...previous.spatial.filters };
+    // Layer choice survives reruns (SPA-10 / D-0031); eligibility, consent,
+    // and trust are re-checked against the NEW result before anything renders.
+    if (previous.spatial.layerId !== undefined) {
+        next.spatial.layerId = previous.spatial.layerId;
+    }
     return next;
 }
 
@@ -815,7 +827,11 @@ function isSpatialState(value: unknown): boolean {
             "selectedRowOrdinal",
             "camera",
             "listScrollTop",
+            "layerId",
         ]) &&
+        (value.layerId === undefined ||
+            (isBoundedString(value.layerId, 64) &&
+                /^[A-Za-z][A-Za-z0-9_-]*$/.test(value.layerId as string))) &&
         (selectedColumn === undefined ||
             (isRecord(selectedColumn) &&
                 hasOnlyKeys(selectedColumn, ["resultSetId", "columnOrdinal"]) &&

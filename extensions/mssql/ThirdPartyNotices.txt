@@ -15,6 +15,7 @@ otherwise.
 6.  Microsoft SQL Server 2016 Transact-SQL Language Service
 7.  dockerode (https://github.com/apocas/dockerode)
 8.  OpenLayers (https://github.com/openlayers/openlayers)
+9.  Natural Earth via world-atlas (https://github.com/topojson/world-atlas)
 
 %% Bower Package Manager for Visual Studio Code NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
@@ -342,3 +343,30 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================
 END OF OpenLayers NOTICES, INFORMATION, AND LICENSE
+
+%% Natural Earth / world-atlas NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+=========================================
+The bundled world outline asset (spatial-world-land-110m.json) is derived from
+Natural Earth (https://www.naturalearthdata.com/), distributed via the
+world-atlas project (https://github.com/topojson/world-atlas).
+
+Natural Earth is a public domain map dataset. No permission is needed to use
+it; crediting the authors is appreciated: "Made with Natural Earth."
+
+world-atlas is provided under the ISC License:
+
+Copyright 2013-2019 Michael Bostock
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+=========================================
+END OF Natural Earth / world-atlas NOTICES, INFORMATION, AND LICENSE

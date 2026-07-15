@@ -150,6 +150,10 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             errorCount: description.messages.errorCount,
             hasLocalMessages: description.hasLocalMessages,
             gridStyle: readGridStyle((key) => vscode.workspace.getConfiguration().get(key)),
+            spatialBasemapEnabled:
+                vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>("mssql.queryStudio.spatial.basemap.enabled") === true,
         };
     }
 

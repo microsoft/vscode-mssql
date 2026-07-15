@@ -2998,6 +2998,11 @@
     },
     "Waiting": "Waiting",
     "Offline · no basemap requests": "Offline · no basemap requests",
+    "Layers": "Layers",
+    "World outline (offline)": "World outline (offline)",
+    "World outline": "World outline",
+    "Map layer unavailable for this coordinate system": "Map layer unavailable for this coordinate system",
+    "Map layer could not be loaded": "Map layer could not be loaded",
     "Groups: {0}/{0} is a summary of safe spatial type or SRID group counts": {
         "message": "Groups: {0}",
         "comment": ["{0} is a summary of safe spatial type or SRID group counts"]

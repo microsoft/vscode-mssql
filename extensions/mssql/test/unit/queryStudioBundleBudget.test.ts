@@ -177,6 +177,34 @@ suite("Query Studio bundle budget (BOOT-3)", () => {
         expect(manifest.queryStudio.length).to.be.greaterThan(0);
     });
 
+    test("the world outline asset is data, bounded, and outside every JS chunk", () => {
+        // SPA-10 / D-0023: the Natural Earth land topology ships as a copied
+        // static file fetched lazily on layer selection. If it ever enters a
+        // JS chunk (via import/inlining) the spatial chunk budget and the
+        // pay-for-what-you-use rule are both violated.
+        const assetPath = path.join(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "dist",
+            "views",
+            "spatial-world-land-110m.json",
+        );
+        expect(fs.existsSync(assetPath), "spatial-world-land-110m.json missing").to.equal(true);
+        const bytes = fs.statSync(assetPath).size;
+        expect(bytes, "world outline asset unexpectedly large").to.be.lessThan(120_000);
+        const { outputs } = loadMetafile();
+        for (const [file, output] of Object.entries(outputs)) {
+            if (!file.endsWith(".js")) continue;
+            for (const input of Object.keys(output.inputs ?? {})) {
+                expect(input, `world-atlas data inlined into ${file}`).to.not.include(
+                    "world-atlas",
+                );
+            }
+        }
+    });
+
     test("the Blob-backed Spatial worker is self-contained", () => {
         const workerPath = path.join(
             __dirname,

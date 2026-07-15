@@ -1297,6 +1297,11 @@ export class LocConstants {
                 }),
             waiting: l10n.t("Waiting"),
             offline: l10n.t("Offline · no basemap requests"),
+            layers: l10n.t("Layers"),
+            worldOutline: l10n.t("World outline (offline)"),
+            worldOutlineActive: l10n.t("World outline"),
+            layerUnavailableForCrs: l10n.t("Map layer unavailable for this coordinate system"),
+            layerFailed: l10n.t("Map layer could not be loaded"),
             groups: (summary: string) =>
                 l10n.t({
                     message: "Groups: {0}",

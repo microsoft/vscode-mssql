@@ -43,6 +43,8 @@ export interface SpatialResultsPaneProps {
     runKey: string;
     active: boolean;
     panelVisible: boolean;
+    /** mssql.queryStudio.spatial.basemap.enabled (SPA-10): shows the Layers selector. */
+    basemapEnabled: boolean;
     initialViewState?: QsSpatialPanelViewState;
     onViewStateChange?: (state: QsSpatialPanelViewState) => void;
 }
@@ -304,6 +306,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         longTasks: 0,
                         derivedBytes,
                         ms: Math.round((performance.now() - renderStartedAt) * 100) / 100,
+                        layer: effectiveBasemapLayerRef.current,
                     });
                     break;
                 }
@@ -366,6 +369,25 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             }),
         [features, viewState.filters],
     );
+    // Map-layer eligibility (SPA-10 / D-0030): a world layer may only sit
+    // under features whose decoded projection is EPSG:4326 or EPSG:3857.
+    // One planar/unknown-SRID feature in the rendered set disables layers —
+    // arbitrary Cartesian data is never placed on Earth by guesswork.
+    const basemapEligible = React.useMemo(() => {
+        const ready = filteredFeatures.filter((feature) => feature.status === "ready");
+        return ready.length > 0 && ready.every((feature) => feature.projection !== "planar");
+    }, [filteredFeatures]);
+    const [basemapState, setBasemapState] = React.useState<
+        "idle" | "loading" | "ready" | "unavailable"
+    >("idle");
+    const selectedLayerId = viewState.layerId ?? "none";
+    const effectiveBasemapLayer: "none" | "worldOutline" =
+        props.basemapEnabled && basemapEligible && selectedLayerId === "worldOutline"
+            ? "worldOutline"
+            : "none";
+    const effectiveBasemapLayerRef = React.useRef(effectiveBasemapLayer);
+    effectiveBasemapLayerRef.current = effectiveBasemapLayer;
+
     const selectedFeature = features.find(
         (feature) => feature.ordinal === viewState.selectedRowOrdinal,
     );
@@ -521,6 +543,27 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         <option value="gpuPoints">{locConstants.spatialResults.gpuPoints}</option>
                     </select>
                 </label>
+                {props.basemapEnabled ? (
+                    <label>
+                        <span>{locConstants.spatialResults.layers}</span>
+                        <select
+                            value={selectedLayerId}
+                            onChange={(event) => {
+                                setBasemapState("idle");
+                                updateState({
+                                    layerId:
+                                        event.target.value === "none"
+                                            ? undefined
+                                            : event.target.value,
+                                });
+                            }}>
+                            <option value="none">{locConstants.common.none}</option>
+                            <option value="worldOutline" disabled={!basemapEligible}>
+                                {locConstants.spatialResults.worldOutline}
+                            </option>
+                        </select>
+                    </label>
+                ) : null}
                 <button type="button" className="qs-btn" onClick={() => setFitNonce((n) => n + 1)}>
                     <span className="codicon codicon-screen-full" aria-hidden="true" />{" "}
                     {locConstants.spatialResults.fit}
@@ -540,7 +583,15 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                           ? loadState.message
                           : locConstants.spatialResults.waiting}
                 </span>
-                <span>{locConstants.spatialResults.offline}</span>
+                <span>
+                    {selectedLayerId === "none" || !props.basemapEnabled
+                        ? locConstants.spatialResults.offline
+                        : !basemapEligible
+                          ? locConstants.spatialResults.layerUnavailableForCrs
+                          : basemapState === "unavailable"
+                            ? locConstants.spatialResults.layerFailed
+                            : locConstants.spatialResults.worldOutlineActive}
+                </span>
                 {groupSummary ? (
                     <span>{locConstants.spatialResults.groups(groupSummary)}</span>
                 ) : null}
@@ -634,6 +685,8 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         onCameraChange={(camera) => updateState({ camera })}
                         fitNonce={fitNonce}
                         renderer={viewState.renderer}
+                        basemapLayer={effectiveBasemapLayer}
+                        onBasemapState={setBasemapState}
                     />
                     {loadState.kind === "loading" ? (
                         <div className="qs-spatial-progress" role="status">
