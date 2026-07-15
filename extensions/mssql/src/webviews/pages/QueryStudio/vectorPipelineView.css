@@ -222,17 +222,26 @@
 /* --- Host-minted confirmation dialog ----------------------------------------- */
 
 .qs-vecp-scrim {
-    position: absolute;
+    /* Fixed (viewport-scoped) like the Search model dialog — an absolute
+       scrim scoped to the pane is shorter than the dialog in a split
+       results layout, cropping it behind a stray scrollbar. */
+    position: fixed;
     inset: 0;
     background: color-mix(in srgb, var(--vscode-widget-shadow, #000) 40%, transparent);
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 48px;
+    padding: 48px 12px 24px;
     z-index: 10;
 }
 .qs-vecp-dialog {
     width: min(560px, calc(100% - 48px));
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Cap to the page, not `60vh` of it on the body alone: title and
+       buttons stay visible and only the body scrolls on overflow. */
+    max-height: calc(100vh - 72px);
     background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
     border: 1px solid var(--vscode-editorWidget-border);
     border-radius: 2px;
@@ -258,7 +267,8 @@
 }
 .qs-vecp-dialog-body {
     padding: 0 14px 8px;
-    max-height: 60vh;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
 }
 .qs-vecp-dialog-buttons {

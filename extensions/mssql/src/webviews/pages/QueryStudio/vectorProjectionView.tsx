@@ -6,11 +6,13 @@
 /**
  * Projection workspace (VEC-6): deterministic PCA 2D scatter on a Canvas 2D
  * engine ported from the r06 mock recipe — devicePixelRatio backing store
- * sized by ResizeObserver, drag-pan and wheel-zoom-to-cursor (scale clamp
- * 6–1200) that mutate a ref and redraw directly (NEVER setState on
- * mousemove), click-pick within 7 px, Fit = bounding box × 0.86, offscreen
- * culling, +/−/0 keys. A synchronized manually-virtualized point list
- * (rowH 24) gives every point a keyboard/AT path; selection is bidirectional.
+ * sized by ResizeObserver, drag-pan and wheel-zoom-to-cursor (camera math in
+ * vectorProjectionMath.ts: fit is unclamped below so wide PCA spreads frame
+ * correctly; the wheel floor is fit-relative) that mutate a ref and redraw
+ * directly (NEVER setState on mousemove), click-pick within 7 px,
+ * Fit = bounding box × 0.86, offscreen culling, +/−/0 keys. A synchronized
+ * manually-virtualized point list (rowH 24) gives every point a
+ * keyboard/AT path; selection is bidirectional.
  *
  * Truth banner (≤24 px): analyzed vs rendered are SEPARATE counts (P0-8 —
  * the render cap is never called a sample) and distances are computed in the
@@ -32,6 +34,12 @@ import {
 import { formatCount, formatPct, formatStat, resolveToken } from "./vectorViewsShared";
 import type { QsVectorProjectionViewState } from "../../../sharedInterfaces/queryStudioViewState";
 import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
+import {
+    VECTOR_PROJECTION_SCALE_MAX,
+    computeProjectionFit,
+    projectionShowsAnyPoint,
+    projectionZoomFloor,
+} from "./vectorProjectionMath";
 
 export interface VectorProjectionViewProps {
     rpc: Rpc;
@@ -53,10 +61,8 @@ export const vectorProjectionIntegration = {
 };
 
 const ROW_HEIGHT = 24;
-const SCALE_MIN = 6;
-const SCALE_MAX = 1200;
+const SCALE_MAX = VECTOR_PROJECTION_SCALE_MAX;
 const PICK_RADIUS_SQ = 49; // ≤7 px
-const FIT_PADDING = 0.86;
 
 interface PointStore {
     readonly xs: Float64Array;
@@ -93,6 +99,8 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
         scale: initialViewState?.scale ?? 60,
     });
     const fittedRef = React.useRef(initialViewState?.fitted ?? false);
+    /** Scale of the last computed fit — anchors the relative zoom-out floor. */
+    const fitScaleRef = React.useRef<number | undefined>(undefined);
     const listScrollTopRef = React.useRef(initialViewState?.listScrollTop ?? 0);
     const pendingListScrollTopRef = React.useRef(initialViewState?.listScrollTop ?? 0);
     const initialSelectedOrdinalRef = React.useRef(initialViewState?.selectedOrdinal);
@@ -199,33 +207,19 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
     const fit = React.useCallback(() => {
         const canvas = canvasRef.current;
         const points = pointsRef.current;
-        if (!canvas || !points || points.count === 0) {
+        if (!canvas || !points) {
             return;
         }
         const dpr = window.devicePixelRatio || 1;
-        const w = canvas.width / dpr;
-        const h = canvas.height / dpr;
-        let minX = Infinity;
-        let maxX = -Infinity;
-        let minY = Infinity;
-        let maxY = -Infinity;
-        for (let i = 0; i < points.count; i++) {
-            const x = points.xs[i];
-            const y = points.ys[i];
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
+        const fitted = computeProjectionFit(points, canvas.width / dpr, canvas.height / dpr);
+        if (!fitted) {
+            return;
         }
         const view = viewRef.current;
-        view.cx = (minX + maxX) / 2;
-        view.cy = (minY + maxY) / 2;
-        const spanX = Math.max(1e-9, maxX - minX);
-        const spanY = Math.max(1e-9, maxY - minY);
-        view.scale = Math.min(
-            SCALE_MAX,
-            Math.max(SCALE_MIN, Math.min(w / spanX, h / spanY) * FIT_PADDING),
-        );
+        view.cx = fitted.cx;
+        view.cy = fitted.cy;
+        view.scale = fitted.scale;
+        fitScaleRef.current = fitted.scale;
         fittedRef.current = true;
         draw();
         persistViewState();
@@ -246,7 +240,10 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
             // World point under the cursor stays fixed through the zoom.
             const wx = view.cx + (px - w / 2) / view.scale;
             const wy = view.cy - (py - h / 2) / view.scale;
-            view.scale = Math.min(SCALE_MAX, Math.max(SCALE_MIN, view.scale * factor));
+            view.scale = Math.min(
+                SCALE_MAX,
+                Math.max(projectionZoomFloor(fitScaleRef.current), view.scale * factor),
+            );
             view.cx = wx - (px - w / 2) / view.scale;
             view.cy = wy + (py - h / 2) / view.scale;
             draw();
@@ -401,10 +398,24 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
             canvas.height = Math.max(1, Math.round(rect.height * dpr));
             if (!fitted) {
                 fitted = true;
-                if (fittedRef.current) {
+                const points = pointsRef.current;
+                const showsData =
+                    points !== undefined &&
+                    projectionShowsAnyPoint(
+                        points,
+                        viewRef.current,
+                        canvas.width / dpr,
+                        canvas.height / dpr,
+                    );
+                if (fittedRef.current && showsData) {
                     draw();
                 } else {
-                    fit(); // auto-fit once after the first complete projection
+                    // Auto-fit once after the first complete projection — and
+                    // whenever a restored camera frames NONE of this data
+                    // (e.g. it was saved against a different vector column).
+                    // Presenting empty space and making the user hunt for the
+                    // points is never the right restore.
+                    fit();
                 }
             } else {
                 draw();

@@ -132,6 +132,9 @@ suite("Query Studio panel view state", () => {
             selectedRowOrdinal: 17,
             expression: "normalize(A + B)",
             targetId: "vst_host_owned",
+            modelText: "I want ice cream",
+            modelId: "vsm_external_model",
+            modelParameters: '{"dimensions": 64}',
             lastRunId: "vsr_last_completed",
             metric: "euclidean",
             k: 50,
@@ -271,6 +274,57 @@ suite("Query Studio panel view state", () => {
                 "run-1",
             ),
         ).to.not.equal(undefined);
+    });
+
+    test("retains the unsent model draft within bounds (restore contract)", () => {
+        const state = createQueryStudioPanelViewState("run-1");
+        state.vector.search.modelText = "I want ice cream";
+        state.vector.search.modelId = "vsm_external_model";
+        state.vector.search.modelParameters = '{"dimensions": 64}';
+        const normalized = normalizeQueryStudioPanelViewState(
+            JSON.parse(JSON.stringify(state)),
+            "run-1",
+        );
+        expect(normalized?.vector.search.modelText).to.equal("I want ice cream");
+        expect(normalized?.vector.search.modelId).to.equal("vsm_external_model");
+        expect(normalized?.vector.search.modelParameters).to.equal('{"dimensions": 64}');
+
+        // Bounds: the draft cap matches the model-call cap (32,768 chars);
+        // id and parameter text stay short.
+        state.vector.search.modelText = "x".repeat(32_768);
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.not.equal(undefined);
+        state.vector.search.modelText = "x".repeat(32_769);
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+        state.vector.search.modelText = "ok";
+        state.vector.search.modelId = "m".repeat(257);
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+        state.vector.search.modelId = undefined;
+        state.vector.search.modelParameters = "p".repeat(2_049);
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+
+        // New runs do NOT carry the draft — it is result-session context.
+        state.vector.search.modelParameters = undefined;
+        state.vector.search.modelText = "unsent draft";
+        const next = resetQueryStudioPanelViewState(state, "run-2");
+        expect(next.vector.search.modelText).to.equal(undefined);
+    });
+
+    test("projection scale accepts sub-1 fits and rejects non-positive values", () => {
+        // Wide PCA spreads legitimately fit at scales « 1; rejecting them
+        // here would silently drop the ENTIRE panel snapshot on round trip.
+        const state = createQueryStudioPanelViewState("run-1");
+        state.vector.projection = {
+            fitted: true,
+            centerX: 0,
+            centerY: 0,
+            scale: 0.005,
+            listScrollTop: 0,
+        };
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.not.equal(undefined);
+        state.vector.projection.scale = 0;
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+        state.vector.projection.scale = -4;
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
     });
 
     test("new runs clear result-derived state and retain panel preferences", () => {

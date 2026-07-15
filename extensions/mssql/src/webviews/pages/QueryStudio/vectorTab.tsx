@@ -306,6 +306,13 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
             source: current.source,
             selectedRowOrdinal: current.selectedRowOrdinal,
             ...(current.expression !== undefined ? { expression: current.expression } : {}),
+            // Composer drafts are not target-bound — an Index-initiated
+            // target change must not eat unsent typing.
+            ...(current.modelText !== undefined ? { modelText: current.modelText } : {}),
+            ...(current.modelId !== undefined ? { modelId: current.modelId } : {}),
+            ...(current.modelParameters !== undefined
+                ? { modelParameters: current.modelParameters }
+                : {}),
             ...(targetId ? { targetId } : {}),
             metric: current.metric,
             k: current.k,

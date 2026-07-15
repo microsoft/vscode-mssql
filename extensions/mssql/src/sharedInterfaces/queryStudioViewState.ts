@@ -151,6 +151,17 @@ export interface QsVectorSearchViewState {
     /** Safe grammar text only; evaluated vector components never enter panel state. */
     expression?: string;
     targetId?: string;
+    /**
+     * UNSENT "Text with model" draft (+ model choice and parameter text).
+     * Kept so a recreated webview restores the user's typing (Karl
+     * 2026-07-14); the panel-state contract above (memory-only, never
+     * diagnostics/replay/telemetry) is what makes this admissible. Pasted
+     * vectors and generated query vectors stay excluded, and a new run
+     * clears these with the rest of the result-bound state.
+     */
+    modelText?: string;
+    modelId?: string;
+    modelParameters?: string;
     lastRunId?: string;
     metric: "cosine" | "euclidean" | "dot";
     k: number;
@@ -687,11 +698,13 @@ function isVectorSearchState(value: unknown): boolean {
             "selectedRowOrdinal",
             "expression",
             "targetId",
+            "modelText",
+            "modelId",
+            "modelParameters",
             "lastRunId",
             "metric",
             "k",
             "includeApprox",
-            "lastRunId",
             "filters",
             "sqlOpen",
             "sqlTab",
@@ -706,6 +719,9 @@ function isVectorSearchState(value: unknown): boolean {
         isFiniteNumber(value.selectedRowOrdinal) &&
         (value.expression === undefined || isBoundedString(value.expression, 2_048)) &&
         (value.targetId === undefined || isBoundedString(value.targetId, 256)) &&
+        (value.modelText === undefined || isBoundedString(value.modelText, 32_768)) &&
+        (value.modelId === undefined || isBoundedString(value.modelId, 256)) &&
+        (value.modelParameters === undefined || isBoundedString(value.modelParameters, 2_048)) &&
         (value.lastRunId === undefined || isBoundedString(value.lastRunId, 256)) &&
         ["cosine", "euclidean", "dot"].includes(value.metric as string) &&
         Number.isInteger(value.k) &&
@@ -764,7 +780,10 @@ function isVectorProjectionState(value: unknown): boolean {
         typeof value.fitted === "boolean" &&
         isFiniteNumber(value.centerX, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) &&
         isFiniteNumber(value.centerY, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) &&
-        isFiniteNumber(value.scale, 1, 10_000) &&
+        // Fit scale is unclamped below (wide PCA spreads legitimately fit at
+        // scales « 1) — rejecting a small scale here would silently drop the
+        // ENTIRE panel snapshot on the next round trip.
+        isFiniteNumber(value.scale, 1e-9, 10_000) &&
         (value.selectedOrdinal === undefined ||
             (Number.isInteger(value.selectedOrdinal) && isFiniteNumber(value.selectedOrdinal))) &&
         isFiniteNumber(value.listScrollTop)

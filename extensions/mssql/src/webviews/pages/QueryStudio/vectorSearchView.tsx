@@ -62,6 +62,7 @@ import {
     type QsActivateTabParams,
 } from "../../../sharedInterfaces/queryStudio";
 import { resolveVectorPerfSearchTarget } from "./vectorPerfAction";
+import { resolveAuthoritativeVectorTargetIndex } from "./vectorSearchTargetSync";
 import {
     validateVectorExpressionLocally,
     VECTOR_EXPRESSION_SYMBOLS,
@@ -367,10 +368,14 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
         String(initialViewState?.selectedRowOrdinal ?? 0),
     );
     const [pasteText, setPasteText] = React.useState("");
-    const [modelText, setModelText] = React.useState("");
-    const [modelParameters, setModelParameters] = React.useState("");
+    const [modelText, setModelText] = React.useState(initialViewState?.modelText ?? "");
+    const [modelParameters, setModelParameters] = React.useState(
+        initialViewState?.modelParameters ?? "",
+    );
     const [modelsResult, setModelsResult] = React.useState<QsVectorSearchModelsResult>();
-    const [selectedModelId, setSelectedModelId] = React.useState<string>();
+    const [selectedModelId, setSelectedModelId] = React.useState<string | undefined>(
+        initialViewState?.modelId,
+    );
     const [modelBusy, setModelBusy] = React.useState(false);
     const [modelExecutionPending, setModelExecutionPending] = React.useState(false);
     const [modelPrepare, setModelPrepare] = React.useState<QsVectorSearchModelPrepareResult>();
@@ -423,6 +428,16 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
     const searchInFlightRef = React.useRef(false);
     const latestViewStateRef = React.useRef<QsVectorSearchViewState | undefined>(undefined);
     const selectedTargetIdRef = React.useRef(initialViewState?.targetId);
+    /**
+     * Last targetId this view EMITTED through onViewStateChange. The
+     * authoritative prop echoes emissions back one commit later, so a local
+     * dropdown pick briefly renders against a stale prop; treating that echo
+     * as an external (Index-initiated) change reverts the pick, the persist
+     * effect re-emits the reverted value, and the two effects leapfrog
+     * forever — the whole pane flickers as dependent controls reset each
+     * cycle. Only a prop that differs from our own last emission is real.
+     */
+    const lastEmittedTargetIdRef = React.useRef(initialViewState?.targetId);
     const initialRestoreTargetIdRef = React.useRef(initialViewState?.targetId);
     const initialRunIdRef = React.useRef(initialViewState?.lastRunId);
     const restoreAttemptedRef = React.useRef(false);
@@ -602,13 +617,16 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
     // selection in place so transient composer input (notably pasted vectors)
     // survives; only facts/results that belong to the old table are cleared.
     React.useEffect(() => {
-        if (!active || !authoritativeTargetId || !targetsResult?.targets) {
+        if (!active) {
             return;
         }
-        const nextIndex = targetsResult.targets.findIndex(
-            (candidate) => candidate.id === authoritativeTargetId,
-        );
-        if (nextIndex < 0 || targetsResult.targets[nextIndex]?.id === target?.id) {
+        const nextIndex = resolveAuthoritativeVectorTargetIndex({
+            authoritativeTargetId,
+            lastEmittedTargetId: lastEmittedTargetIdRef.current,
+            currentTargetId: target?.id,
+            targets: targetsResult?.targets,
+        });
+        if (nextIndex === undefined) {
             return;
         }
         selectedTargetIdRef.current = authoritativeTargetId;
@@ -674,6 +692,7 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
         const ordinal = Number(ordinalText.trim().replace(/^#/, ""));
         const persistedTargetId =
             target?.id ?? (targetsResult?.targets ? undefined : selectedTargetIdRef.current);
+        lastEmittedTargetIdRef.current = persistedTargetId;
         const viewState: QsVectorSearchViewState = {
             source:
                 sourceTab === "row"
@@ -686,6 +705,9 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
             selectedRowOrdinal: Number.isInteger(ordinal) && ordinal >= 0 ? ordinal : 0,
             expression: expressionText,
             ...(persistedTargetId ? { targetId: persistedTargetId } : {}),
+            ...(modelText.length > 0 ? { modelText } : {}),
+            ...(selectedModelId ? { modelId: selectedModelId } : {}),
+            ...(modelParameters.length > 0 ? { modelParameters } : {}),
             ...(lastRunId ? { lastRunId } : {}),
             metric,
             k: clampKLocal(k),
@@ -710,10 +732,13 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
         k,
         lastRunId,
         metric,
+        modelParameters,
+        modelText,
         onViewStateChange,
         ordinalText,
         predicates,
         rankScrollTop,
+        selectedModelId,
         selectedRankIndex,
         sourceTab,
         sqlOpen,
@@ -836,8 +861,9 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
         void rpc
             .sendRequest(QsVectorSearchCancelRequest.type, { handle, sensitive: true })
             .catch(() => undefined);
-        setModelText("");
-        setModelParameters("");
+        // In-flight/derived model state dies with panel visibility; the
+        // user's DRAFT text and parameters survive (restore contract —
+        // hiding a panel must not eat unsent typing).
         setModelPrepare(undefined);
         setModelSqlOpen(false);
         setModelBusy(false);
@@ -1650,13 +1676,16 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                         value={draft.column}
                         disabled={busy || modelBusy}
                         aria-label={`Filter ${i + 1} column`}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                            // Read BEFORE the updater: React nulls
+                            // currentTarget after dispatch, and a deferred
+                            // updater runs during render — reading the event
+                            // there crashes the pane to its error boundary.
+                            const column = e.currentTarget.value;
                             setPredicates((rows) =>
-                                rows.map((row, j) =>
-                                    j === i ? { ...row, column: e.currentTarget.value } : row,
-                                ),
-                            )
-                        }>
+                                rows.map((row, j) => (j === i ? { ...row, column } : row)),
+                            );
+                        }}>
                         <option value="">Choose column</option>
                         {(target?.filterColumns ?? []).map((column) => (
                             <option key={column.name} value={column.name}>
@@ -1669,18 +1698,12 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                         value={draft.op}
                         disabled={busy || modelBusy}
                         aria-label={`Filter ${i + 1} operator`}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                            const op = e.currentTarget.value as VectorSearchPredicateOp;
                             setPredicates((rows) =>
-                                rows.map((row, j) =>
-                                    j === i
-                                        ? {
-                                              ...row,
-                                              op: e.currentTarget.value as VectorSearchPredicateOp,
-                                          }
-                                        : row,
-                                ),
-                            )
-                        }>
+                                rows.map((row, j) => (j === i ? { ...row, op } : row)),
+                            );
+                        }}>
                         {OP_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -1693,13 +1716,12 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                         value={draft.value}
                         disabled={busy || modelBusy}
                         aria-label={`Filter ${i + 1} value`}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                            const value = e.currentTarget.value;
                             setPredicates((rows) =>
-                                rows.map((row, j) =>
-                                    j === i ? { ...row, value: e.currentTarget.value } : row,
-                                ),
-                            )
-                        }
+                                rows.map((row, j) => (j === i ? { ...row, value } : row)),
+                            );
+                        }}
                     />
                     <button
                         className="qs-vec8-icon-btn"
@@ -1714,7 +1736,10 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                 <button
                     className="qs-vec8-add-filter"
                     disabled={
-                        busy || modelBusy || predicates.length >= 8 || !target?.filterColumns.length
+                        busy ||
+                        modelBusy ||
+                        predicates.length >= 8 ||
+                        !target?.filterColumns?.length
                     }
                     onClick={() =>
                         setPredicates((rows) => [...rows, { column: "", op: "eq", value: "" }])
