@@ -6,6 +6,12 @@ import { supportedActions, workspaceTargets } from "./workspace-targets.mjs";
 const npmCommand = "npm";
 const spawnOptions = { shell: process.platform === "win32" };
 const minSupportedNodeMajor = 24;
+const mssqlPackageOnlyArgs = new Set([
+    "--online",
+    "--offline",
+    "--skip-service-install",
+    "--package-mcp",
+]);
 
 function ensureSupportedNodeVersion() {
     const currentNodeMajor = Number.parseInt(process.versions.node.split(".")[0], 10);
@@ -138,6 +144,29 @@ function ensureProdBuildSupport(targets, prod) {
     }
 }
 
+function validatePackageArguments(targets, action, forwardedArgs) {
+    if (action !== "package") {
+        return;
+    }
+
+    const mssqlOnlyArgs = forwardedArgs.filter((arg) => mssqlPackageOnlyArgs.has(arg));
+    if (mssqlOnlyArgs.length === 0 || targets.some((target) => target.target === "mssql")) {
+        return;
+    }
+
+    throw new Error(
+        `${mssqlOnlyArgs.join(", ")} is only supported when packaging the mssql target. Add --target mssql.`,
+    );
+}
+
+function getTargetForwardedArgs(target, action, forwardedArgs) {
+    if (action !== "package" || target.target === "mssql") {
+        return forwardedArgs;
+    }
+
+    return forwardedArgs.filter((arg) => !mssqlPackageOnlyArgs.has(arg));
+}
+
 function pruneRedundantWatchTargets(targets) {
     const includedTargets = new Set(targets.flatMap((target) => target.watchIncludesTargets ?? []));
 
@@ -262,6 +291,7 @@ function main() {
 
     const targets = resolveTargets(action, targetValue);
     ensureProdBuildSupport(targets, prod);
+    validatePackageArguments(targets, action, forwardedArgs);
 
     let actionArgs = forwardedArgs;
     if (prod) {
@@ -279,7 +309,7 @@ function main() {
     }
 
     for (const target of targets) {
-        runWorkspaceScript(target, action, actionArgs);
+        runWorkspaceScript(target, action, getTargetForwardedArgs(target, action, actionArgs));
     }
 }
 

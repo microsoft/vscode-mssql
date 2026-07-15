@@ -2516,7 +2516,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
         <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
-        <target state="new">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</target>
+        <target state="translated">자주 사용하는 쿼리와 쿼리 편집기 및 결과 그리드 작업에 대한 바로 가기 키를 만들고 관리하세요. 사용 가능한 명령을 확인하고 더 효율적으로 실행할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
