@@ -84,6 +84,10 @@ export const DEFAULT_SLICE_POLICY: EngineSlicePolicy = {
 
 /** Narrow observability port (real impl in observability.ts; no-op default). */
 export interface EngineObserver {
+    /** Diagnostic query window begins; implementations must stay no-op without a sink. */
+    onQueryStarted?(clientQueryId: string): void;
+    /** Bounded sampling point after a compact page is produced. */
+    onPageProduced?(clientQueryId: string): void;
     onPause?(reason: string): void;
     onResume?(reason: string): void;
     onTerminal?(summary: QueryCompleteSummary, aggregates: EngineAggregates): void;
@@ -188,6 +192,7 @@ export class TsNativeQuery {
     ) {
         this.clientQueryId = deps.ids.next("tnq");
         this.startedMs = deps.clock.now();
+        this.deps.observer?.onQueryStarted?.(this.clientQueryId);
         this.sliceStartMs = this.startedMs;
         this.pageLimits.pageRows = clampPageLimit(opts.pageRows, TS_NATIVE_PAGE_DEFAULTS.pageRows);
         this.pageLimits.pageBytes = clampPageLimit(
@@ -471,6 +476,7 @@ export class TsNativeQuery {
             return;
         }
         this.aggregates.pages++;
+        this.deps.observer?.onPageProduced?.(this.clientQueryId);
         if (this.aggregates.firstPageProducedMs === undefined) {
             this.aggregates.firstPageProducedMs = this.deps.clock.now() - this.startedMs;
         }

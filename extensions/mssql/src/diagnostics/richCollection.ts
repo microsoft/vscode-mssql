@@ -100,7 +100,11 @@ class RichStatsCollector {
             metrics["heapUsedMB"] = Number((memory.heapUsed / 1048576).toFixed(1));
             metrics["rssMB"] = Number((memory.rss / 1048576).toFixed(1));
             metrics["externalMB"] = Number((memory.external / 1048576).toFixed(1));
-            metrics["arrayBuffersMB"] = Number(((memory.arrayBuffers ?? 0) / 1048576).toFixed(1));
+            // Some Electron extension-host builds omit this Node field.
+            // Unsupported is not the same observation as a measured zero.
+            if (typeof memory.arrayBuffers === "number") {
+                metrics["arrayBuffersMB"] = Number((memory.arrayBuffers / 1048576).toFixed(1));
+            }
         } catch {
             // metrics stay absent — never fabricated
         }
