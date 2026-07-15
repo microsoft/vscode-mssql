@@ -1235,6 +1235,9 @@
     <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
       <source xml:lang="en">Cloud</source>
     </trans-unit>
+    <trans-unit id="++CODE++92d5e4c5cd37431e5a659de27354604b4b95684a307f2b9602c51d84585a85b0">
+      <source xml:lang="en">Clusters</source>
+    </trans-unit>
     <trans-unit id="++CODE++3c7b470089d5686bf5295ce8455026208381441672b649aebdc03663e68b6975">
       <source xml:lang="en">Code Analysis</source>
     </trans-unit>
@@ -5521,6 +5524,10 @@
     </trans-unit>
     <trans-unit id="++CODE++66b45de27e1411a123aeed6e4928add19d8ddd09659a5af511731dedf4c360fd">
       <source xml:lang="en">Partial / errors</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6a2170f25a5151345d9ba5d84fabef1c3c43dadb85cf7e9f96bfd5fecbc8e5b">
+      <source xml:lang="en">Partial view · safety limit: {0}</source>
+      <note>{0} is a bounded internal safety-limit category</note>
     </trans-unit>
     <trans-unit id="++CODE++efbcd674b4f43dccabacb225785788da668a0a975e51eae40b05687ddea370f9">
       <source xml:lang="en">Parts</source>

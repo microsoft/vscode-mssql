@@ -55,7 +55,6 @@ import {
     QsSetDatabaseRequest,
     QsSetViewModeRequest,
     QsState,
-    QsStateChangedNotification,
     QsShowCommandPaletteRequest,
     QsShowPlanQueryRequest,
     QsShowPlanXmlRequest,
@@ -381,7 +380,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             },
             onResultSetStarted: (summary) => {
                 void this.sendNotification(QsResultSetStartedNotification.type, summary);
-                this.queueStatePush();
+                // The first summary makes Results mountable. Do not make the
+                // user wait behind the coarse-state debounce left by the run
+                // reset; later sets retain normal pacing for large scripts.
+                this.queueStatePush(
+                    this.model.executionHost.resultsState().resultSets.length === 1,
+                );
             },
             onRowsAppended: (resultSetId, newRowCount, complete) => {
                 // Coalesced per rowsNotifyIntervalMs (0 = immediate, today's
@@ -753,11 +757,17 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.queueStatePush();
     }
 
-    private queueStatePush(): void {
+    private queueStatePush(urgent = false): void {
         const now = Date.now();
-        const wait = Math.max(0, this.statePushMinIntervalMs - (now - this.lastStatePush));
+        const wait = urgent
+            ? 0
+            : Math.max(0, this.statePushMinIntervalMs - (now - this.lastStatePush));
         if (this.statePushTimer) {
-            return;
+            if (!urgent) {
+                return;
+            }
+            clearTimeout(this.statePushTimer);
+            this.statePushTimer = undefined;
         }
         this.statePushTimer = setTimeout(() => {
             this.statePushTimer = undefined;
@@ -782,6 +792,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             Perf.marker("mssql.queryStudio.state.push", "instant", {
                 executionKind: next.execution.kind,
                 intervalMs: this.statePushMinIntervalMs,
+                urgent,
                 buildMs: Math.round(buildMs * 100) / 100,
                 resultSets: resultSets.length,
                 columns: this.model.executionHost.resultColumnCount,
@@ -789,7 +800,6 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 messages: next.results.messageCount,
                 ...(payloadChars !== undefined ? { payloadChars } : {}),
             });
-            void this.sendNotification(QsStateChangedNotification.type, next);
         }, wait);
         this.statePushTimer.unref?.();
     }

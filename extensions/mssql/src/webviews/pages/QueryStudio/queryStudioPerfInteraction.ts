@@ -203,5 +203,15 @@ export async function performQueryStudioPerfInteraction(
     if (action.kind === "copyGrid") {
         return performRegisteredQueryStudioPerfGridCopy(gridId, action.includeHeaders);
     }
-    return performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
+    // A terminal row-count refresh can briefly swap/invalidate the live data
+    // view after the grid element and controller are already discoverable.
+    // Real pointer/keyboard input naturally lands after that paint boundary;
+    // the PERF_MODE seam retries the same product-owned action for a bounded
+    // four paint cycles so the measured interaction does not race that swap.
+    let outcome = performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
+    for (let retry = 0; outcome === "viewportUnavailable" && retry < 4; retry++) {
+        await waitForQueryStudioPerfPaint();
+        outcome = performRegisteredQueryStudioPerfGridScroll(gridId, action.axis, action.target);
+    }
+    return outcome;
 }

@@ -1270,6 +1270,7 @@ export class LocConstants {
             renderer: l10n.t("Renderer"),
             automatic: l10n.t("Automatic"),
             canvas: l10n.t("Canvas"),
+            clusters: l10n.t("Clusters"),
             gpuPoints: l10n.t("GPU points"),
             renderable: (count: number) =>
                 l10n.t({
@@ -1294,6 +1295,12 @@ export class LocConstants {
                     message: "Loading {0} of {1}…",
                     args: [scanned.toLocaleString(), total.toLocaleString()],
                     comment: ["{0} is the scanned row count", "{1} is the total row count"],
+                }),
+            limited: (reason: string) =>
+                l10n.t({
+                    message: "Partial view · safety limit: {0}",
+                    args: [reason],
+                    comment: ["{0} is a bounded internal safety-limit category"],
                 }),
             waiting: l10n.t("Waiting"),
             offline: l10n.t("Offline · no basemap requests"),

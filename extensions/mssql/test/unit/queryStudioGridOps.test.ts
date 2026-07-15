@@ -371,6 +371,11 @@ suite("Query Studio grid client ops", () => {
             expect(cellDocumentLanguage("{not json}")).to.equal(undefined);
         });
 
+        test("reuses caller-materialized display text", () => {
+            const value = { toString: () => "not json" };
+            expect(cellDocumentLanguage(value, undefined, '{"already":true}')).to.equal("json");
+        });
+
         test("large JSON-shaped text is linkable without a full parse", () => {
             const text = `{"payload":"${"x".repeat(QS_CELL_DOCUMENT_PARSE_LIMIT + 1)}"}`;
             expect(cellDocumentLanguage(text)).to.equal("json");

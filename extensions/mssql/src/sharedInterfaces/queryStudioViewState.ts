@@ -231,7 +231,7 @@ export interface QsSpatialPanelViewState {
     labelColumnOrdinal?: number;
     colorColumnOrdinal?: number;
     groupBy: "none" | "srid" | "geometryType";
-    renderer: "auto" | "canvas" | "gpuPoints";
+    renderer: "auto" | "canvas" | "clusters" | "gpuPoints";
     sidebarOpen: boolean;
     listOpen: boolean;
     detailsOpen: boolean;
@@ -826,7 +826,7 @@ function isSpatialState(value: unknown): boolean {
         (value.colorColumnOrdinal === undefined ||
             isNonNegativeInteger(value.colorColumnOrdinal)) &&
         ["none", "srid", "geometryType"].includes(value.groupBy as string) &&
-        ["auto", "canvas", "gpuPoints"].includes(value.renderer as string) &&
+        ["auto", "canvas", "clusters", "gpuPoints"].includes(value.renderer as string) &&
         typeof value.sidebarOpen === "boolean" &&
         typeof value.listOpen === "boolean" &&
         typeof value.detailsOpen === "boolean" &&

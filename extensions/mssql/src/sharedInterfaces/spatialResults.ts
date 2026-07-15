@@ -21,6 +21,9 @@ export interface QsSpatialOpenResult {
     totalRows: number;
     kind?: SpatialKind;
     chunkRows: number;
+    /** Host-authoritative limits returned for progress/explanation only. */
+    rowBudget?: number;
+    payloadBudgetBytes?: number;
     error?: string;
 }
 
@@ -46,6 +49,9 @@ export interface QsSpatialNextResult {
     features: QsSpatialFeatureTransport[];
     scannedRows: number;
     wireBytes: number;
+    /** True when a host or decoder safety budget stopped before totalRows. */
+    partial?: boolean;
+    partialReason?: "rowBudget" | "payloadBudget" | "storeShortRead";
     error?: string;
 }
 

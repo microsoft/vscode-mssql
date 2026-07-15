@@ -1144,10 +1144,17 @@ export class Sts2Query {
 
     private async cancel(): Promise<CancelAck> {
         this.cancelRequested = true;
+        const deadlineAt = Date.now() + this.backend.deadlines.cancelAckMs;
         try {
+            // A user can cancel immediately after execute() returns, before the execute
+            // response assigns the server query id. Never send the empty placeholder: wait
+            // for this query's own id within the existing cancel-ack deadline.
+            const queryId =
+                this.backendId ||
+                (await withDeadline(this.handle.backendQueryId, remainingDeadlineMs(deadlineAt)));
             await withDeadline(
-                this.rpc.sendRequest(STS2_METHODS.queryCancel, { queryId: this.backendId }),
-                this.backend.deadlines.cancelAckMs,
+                this.rpc.sendRequest(STS2_METHODS.queryCancel, { queryId }),
+                remainingDeadlineMs(deadlineAt),
             );
             // Terminal must still arrive; synthesize if it never does (§8.7).
             this.armCancelCompletionDeadline();
@@ -1176,10 +1183,14 @@ export class Sts2Query {
     }
 
     private async disposeQuery(): Promise<void> {
+        const deadlineAt = Date.now() + this.backend.deadlines.disposeDrainMs;
         try {
+            const queryId =
+                this.backendId ||
+                (await withDeadline(this.handle.backendQueryId, remainingDeadlineMs(deadlineAt)));
             await withDeadline(
-                this.rpc.sendRequest(STS2_METHODS.queryDispose, { queryId: this.backendId }),
-                this.backend.deadlines.disposeDrainMs,
+                this.rpc.sendRequest(STS2_METHODS.queryDispose, { queryId }),
+                remainingDeadlineMs(deadlineAt),
             );
             // D-0011: the wire complete(disposed) is the single terminal; give
             // it the drain window, then synthesize.

@@ -442,6 +442,7 @@ export class ExecutionOrchestrator {
         });
         if (this.cancelRequestedAt !== undefined) {
             Perf.marker("mssql.queryStudio.cancel", "instant", {
+                status,
                 msToAck: this.cancelAckMs ?? -1,
                 msToTerminal: Date.now() - this.cancelRequestedAt,
             });

@@ -423,6 +423,36 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(summary.error?.message).to.include("no terminal within");
     });
 
+    test("cancel waits for the execute response instead of sending an empty query id", async () => {
+        const rpc = standardRpc();
+        let resolveExecute!: (value: { queryId: string }) => void;
+        rpc.responders.set(
+            STS2_METHODS.queryExecute,
+            () =>
+                new Promise<{ queryId: string }>((resolve) => {
+                    resolveExecute = resolve;
+                }),
+        );
+        const sink = new RecordingSink();
+        const backend = new Sts2Backend(rpc, { ...DEFAULT_DEADLINES, cancelAckMs: 1000 });
+        await backend.start();
+        const session = await backend.openSession({
+            profile: PROFILE,
+            applicationName: "test",
+            auth: { passwordProvider: async () => "pw-canary-x" },
+        });
+        const handle = session.execute("WAITFOR DELAY '00:00:20'", {}, sink);
+
+        const cancel = handle.cancel();
+        await Promise.resolve();
+        expect(rpc.requests.some((r) => r.method === STS2_METHODS.queryCancel)).to.equal(false);
+
+        resolveExecute({ queryId: "q-late" });
+        expect((await cancel).acknowledged).to.equal(true);
+        const request = rpc.requests.find((r) => r.method === STS2_METHODS.queryCancel);
+        expect(request?.params).to.deep.equal({ queryId: "q-late" });
+    });
+
     test("dispose settles the completion even when the wire stays silent (D-0011 drain)", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();

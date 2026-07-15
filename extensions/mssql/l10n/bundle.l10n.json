@@ -2979,6 +2979,7 @@
     "Renderer": "Renderer",
     "Automatic": "Automatic",
     "Canvas": "Canvas",
+    "Clusters": "Clusters",
     "GPU points": "GPU points",
     "{0} renderable/{0} is the number of renderable spatial features": {
         "message": "{0} renderable",
@@ -2995,6 +2996,10 @@
     "Loading {0} of {1}…/{0} is the scanned row count{1} is the total row count": {
         "message": "Loading {0} of {1}…",
         "comment": ["{0} is the scanned row count", "{1} is the total row count"]
+    },
+    "Partial view · safety limit: {0}/{0} is a bounded internal safety-limit category": {
+        "message": "Partial view · safety limit: {0}",
+        "comment": ["{0} is a bounded internal safety-limit category"]
     },
     "Waiting": "Waiting",
     "Offline · no basemap requests": "Offline · no basemap requests",

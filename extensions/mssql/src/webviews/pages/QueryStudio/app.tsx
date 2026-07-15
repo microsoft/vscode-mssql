@@ -51,7 +51,6 @@ import {
     QsPinResultSetRequest,
     QsSetViewModeRequest,
     QsState,
-    QsStateChangedNotification,
     QsActivateTabParams,
     QsActivateTabNotification,
     QsPerfInteractionNotification,
@@ -103,6 +102,7 @@ import {
     QsLangSignatureHelpRequest,
 } from "../../../sharedInterfaces/queryStudioLanguage";
 import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResultsLayout";
+import { classifyQueryStudioResultTabs } from "../../../sharedInterfaces/queryStudioResultTabs";
 import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
 // BOOT-2 staged loading: the grid stack (slickgrid) and the plan surface
 // (azdataGraph) are DYNAMIC chunks — the entry carries Monaco + shell only.
@@ -223,8 +223,7 @@ export function QueryStudioApp() {
     } = useVscodeWebview<QsState, void>();
     const snapshot = useSyncExternalStore(subscribe, getSnapshot);
     const providerState = isQueryStudioState(snapshot) ? snapshot : undefined;
-    const [pushedState, setPushedState] = useState<QsState | undefined>(undefined);
-    const state = providerState ?? pushedState;
+    const state = providerState;
     const panelViewStateRef = useRef<QueryStudioPanelViewState>(
         createQueryStudioPanelViewState(String(providerState?.execution.startedEpochMs ?? "idle")),
     );
@@ -323,6 +322,8 @@ export function QueryStudioApp() {
     const expectedEchoTextsRef = useRef<Map<string, string>>(new Map());
     const renderedRunRef = useRef<number | undefined>(undefined);
     const observedRunRef = useRef<number | undefined>(undefined);
+    const summaryObservedRunRef = useRef<number | undefined>(undefined);
+    const resultsPaneMountedRunRef = useRef<number | undefined>(undefined);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const dbWrapRef = useRef<HTMLSpanElement | null>(null);
     const dbListRequestRef = useRef(0);
@@ -839,9 +840,6 @@ export function QueryStudioApp() {
             }),
             rpc.onNotification(QsSyncResyncNotification.type, (resync: QsSyncResync) => {
                 applyRemoteText(resync.text, resync.hostVersion, resync.eol);
-            }),
-            rpc.onNotification(QsStateChangedNotification.type, (next: QsState) => {
-                setPushedState(next);
             }),
             rpc.onNotification(
                 QsRowsAppendedNotification.type,
@@ -1776,43 +1774,69 @@ export function QueryStudioApp() {
     // grids split the measured pane: exact content heights when everything
     // fits, otherwise fair shares with a 12-row minimum and pane scrolling
     // only once even the minimums overflow (queryStudioResultsLayout).
-    const allResultSetSummaries = results?.resultSets ?? [];
-    const effectiveRowCount = (summary: (typeof allResultSetSummaries)[number]) =>
+    const resultTabClassification = React.useMemo(() => {
+        const measure = perfMarksEnabled();
+        const startedAt = measure ? performance.now() : 0;
+        const classified = classifyQueryStudioResultTabs(results?.resultSets ?? []);
+        if (measure) {
+            perfMark("mssql.queryStudio.tabs.eligibility", {
+                durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+                resultSets: results?.resultSets.length ?? 0,
+                columns: classified.totalColumns,
+                dataResultSets: classified.dataResultSets.length,
+                planResultSets: classified.planResultSets.length,
+                vectorColumns: classified.vectorColumns.length,
+                spatialColumns: classified.spatialColumns.length,
+            });
+        }
+        return classified;
+    }, [results?.resultSets]);
+    const resultSetSummaries = resultTabClassification.dataResultSets;
+    const planResultSetSummaries = resultTabClassification.planResultSets;
+    const effectiveRowCount = (summary: (typeof resultSetSummaries)[number]) =>
         Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0);
-    const resultSetSummaries = allResultSetSummaries.filter(
-        (summary) => summary.isPlanResult !== true,
-    );
-    const planResultSetSummaries = allResultSetSummaries.filter(
-        (summary) => summary.isPlanResult === true,
-    );
     const gridResultSetSummaries = resultSetSummaries;
     const hasDataResults = resultSetSummaries.length > 0;
     const hasPlanResults = planResultSetSummaries.length > 0;
+    useEffect(() => {
+        if (
+            runId === undefined ||
+            results === undefined ||
+            results.resultSets.length === 0 ||
+            summaryObservedRunRef.current === runId
+        ) {
+            return;
+        }
+        summaryObservedRunRef.current = runId;
+        perfMark("mssql.queryStudio.results.summary.received", {
+            executionKind,
+            terminal: TERMINAL_KINDS.has(executionKind),
+            streaming: results.streaming,
+            resultSets: results.resultSets.length,
+            columns: resultTabClassification.totalColumns,
+            rows: results.totalRows,
+        });
+    }, [executionKind, resultTabClassification.totalColumns, results, runId]);
+    useEffect(() => {
+        if (
+            runId === undefined ||
+            !showResults ||
+            !panelViewStateReady ||
+            resultsPaneMountedRunRef.current === runId
+        ) {
+            return;
+        }
+        resultsPaneMountedRunRef.current = runId;
+        perfMarkAfterNextPaint("mssql.queryStudio.results.paneMounted", {
+            activeTab: activeTabRef.current,
+            resultSets: results?.resultSets.length ?? 0,
+            rows: results?.totalRows ?? 0,
+        });
+    }, [panelViewStateReady, results?.resultSets.length, results?.totalRows, runId, showResults]);
     // Vector tab appliesTo sniff (VEC-5): cheap column-metadata scan in the
     // shell — the pane chunk loads only on first activation.
     const vectorWorkbenchEnabled = state?.capabilities.vectorWorkbench === true;
-    const vectorColumnCandidates = React.useMemo(
-        () =>
-            resultSetSummaries.flatMap(
-                (summary) =>
-                    summary.columns?.flatMap((column, ordinal) =>
-                        column.vector
-                            ? [
-                                  {
-                                      resultSetId: summary.resultSetId,
-                                      columnOrdinal: ordinal,
-                                      columnName: column.displayName || column.name,
-                                      ...(column.vector.dimensions !== undefined
-                                          ? { dimensions: column.vector.dimensions }
-                                          : {}),
-                                      transport: column.vector.transport,
-                                  },
-                              ]
-                            : [],
-                    ) ?? [],
-            ),
-        [resultSetSummaries],
-    );
+    const vectorColumnCandidates = resultTabClassification.vectorColumns;
     const hasVectorResults =
         isVectorTabEligible(
             vectorWorkbenchEnabled,
@@ -1830,31 +1854,11 @@ export function QueryStudioApp() {
     const spatialResultsEnabled = state?.capabilities.spatialResults === true;
     const spatialColumns = React.useMemo(
         () =>
-            resultSetSummaries.flatMap(
-                (summary, resultIndex) =>
-                    summary.columns?.flatMap((column, ordinal) =>
-                        column.spatial
-                            ? [
-                                  {
-                                      resultSetId: summary.resultSetId,
-                                      resultSetLabel: `Result ${resultIndex + 1}`,
-                                      columnOrdinal: ordinal,
-                                      columnName: column.displayName || column.name,
-                                      kind: column.spatial.kind,
-                                      totalRows: effectiveRowCount(summary),
-                                      columns: (summary.columns ?? []).map((candidate, index) => ({
-                                          ordinal: index,
-                                          name: candidate.displayName || candidate.name,
-                                          ...(candidate.sqlType
-                                              ? { sqlType: candidate.sqlType }
-                                              : {}),
-                                      })),
-                                  },
-                              ]
-                            : [],
-                    ) ?? [],
-            ),
-        [resultSetSummaries, liveRowCounts],
+            resultTabClassification.spatialColumns.map((column) => ({
+                ...column,
+                totalRows: Math.max(column.summaryRowCount, liveRowCounts[column.resultSetId] ?? 0),
+            })),
+        [liveRowCounts, resultTabClassification.spatialColumns],
     );
     const hasSpatialResults =
         isSpatialTabEligible(
@@ -1864,26 +1868,7 @@ export function QueryStudioApp() {
             })),
         ) && results?.streaming !== true;
     // String-typed columns per result set (Pipeline source-text picker).
-    const stringColumnsByResult = React.useMemo(() => {
-        const byResult: Record<string, { ordinal: number; name: string }[]> = {};
-        for (const summary of resultSetSummaries) {
-            const strings = (summary.columns ?? []).flatMap((c, ordinal) => {
-                const t = c.sqlType?.toLowerCase() ?? "";
-                return t === "varchar" ||
-                    t === "nvarchar" ||
-                    t === "char" ||
-                    t === "nchar" ||
-                    t === "text" ||
-                    t === "ntext"
-                    ? [{ ordinal, name: c.displayName || c.name }]
-                    : [];
-            });
-            if (strings.length > 0) {
-                byResult[summary.resultSetId] = strings;
-            }
-        }
-        return byResult;
-    }, [resultSetSummaries]);
+    const stringColumnsByResult = resultTabClassification.stringColumnsByResult;
     // Results is home and never auto-redirects to Messages: the terminal-state
     // handler above is the SINGLE authority that moves a completed no-data or
     // errored run to Messages (from one coherent snapshot, once per run). This
@@ -1901,9 +1886,16 @@ export function QueryStudioApp() {
             activateTab(visibleActiveTab, "eligibility");
         }
     }, [activateTab, activeTab, visibleActiveTab]);
-    const dataTotalRows = resultSetSummaries.reduce(
-        (total, summary) => total + effectiveRowCount(summary),
-        0,
+    const effectiveGridRowCounts = React.useMemo(
+        () =>
+            resultSetSummaries.map((summary) =>
+                Math.max(summary.rowCount, liveRowCounts[summary.resultSetId] ?? 0),
+            ),
+        [liveRowCounts, resultSetSummaries],
+    );
+    const dataTotalRows = React.useMemo(
+        () => effectiveGridRowCounts.reduce((total, rows) => total + rows, 0),
+        [effectiveGridRowCounts],
     );
     const planResultSetIdsKey = planResultSetSummaries
         .map((summary) => summary.resultSetId)
@@ -1925,16 +1917,21 @@ export function QueryStudioApp() {
         visibleActiveTab === "queryPlan" ||
         visibleActiveTab === "vector" ||
         visibleActiveTab === "spatial";
-    const resultsLayout = computeResultsLayout(
-        gridResultSetSummaries.map(effectiveRowCount),
-        // clientHeight includes the body's 4px vertical paddings.
-        resultsPaneHeight !== undefined ? resultsPaneHeight - 8 : undefined,
-        {
-            rowHeight: qsGridRowHeight(state?.gridStyle),
-            headerHeight: GRID_HEADER_PX,
-            chromePx: GRID_CHROME_PX,
-            captionPx: GRID_CAPTION_PX,
-        },
+    const gridRowHeight = qsGridRowHeight(state?.gridStyle);
+    const resultsLayout = React.useMemo(
+        () =>
+            computeResultsLayout(
+                effectiveGridRowCounts,
+                // clientHeight includes the body's 4px vertical paddings.
+                resultsPaneHeight !== undefined ? resultsPaneHeight - 8 : undefined,
+                {
+                    rowHeight: gridRowHeight,
+                    headerHeight: GRID_HEADER_PX,
+                    chromePx: GRID_CHROME_PX,
+                    captionPx: GRID_CAPTION_PX,
+                },
+            ),
+        [effectiveGridRowCounts, gridRowHeight, resultsPaneHeight],
     );
     useEffect(() => {
         setMountedTabs((current) => {
@@ -2383,6 +2380,11 @@ export function QueryStudioApp() {
                                                                     return (
                                                                         <LazyResultGridBlock
                                                                             key={
+                                                                                resultTabClassification
+                                                                                    .gridKeysByResult[
+                                                                                    summary
+                                                                                        .resultSetId
+                                                                                ] ??
                                                                                 summary.resultSetId
                                                                             }
                                                                             rpc={rpc}

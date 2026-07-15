@@ -267,6 +267,8 @@ function isJsonDocumentText(text: string): boolean {
 export function cellDocumentLanguage(
     value: unknown,
     metadata?: QsCellDocumentMetadata,
+    /** Optional display text already materialized by the caller. */
+    materializedText?: string,
 ): QsCellDocumentLanguage | undefined {
     const fromMetadata = metadataDocumentLanguage(metadata);
     if (fromMetadata !== undefined) {
@@ -281,7 +283,7 @@ export function cellDocumentLanguage(
     if (isVectorCellOkV1(value)) {
         return "json";
     }
-    const text = cellDisplayText(value);
+    const text = materializedText ?? cellDisplayText(value);
     if (isJsonDocumentText(text)) {
         return "json";
     }

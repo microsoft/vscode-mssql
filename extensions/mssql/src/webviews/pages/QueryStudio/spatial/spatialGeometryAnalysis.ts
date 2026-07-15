@@ -10,6 +10,31 @@ export interface SpatialGeometryAnalysis {
     rings: number;
 }
 
+export function estimateSpatialDerivedBytes(
+    vertices: number,
+    labelLength = 0,
+    colorValueLength = 0,
+): number {
+    return 1024 + vertices * 128 + labelLength * 2 + colorValueLength * 2;
+}
+
+export function spatialBudgetReason(
+    currentVertices: number,
+    currentDerivedBytes: number,
+    nextVertices: number,
+    nextDerivedBytes: number,
+    remainingVertices: number,
+    remainingDerivedBytes: number,
+): "vertexBudget" | "derivedMemoryBudget" | undefined {
+    if (currentVertices + nextVertices > remainingVertices) {
+        return "vertexBudget";
+    }
+    if (currentDerivedBytes + nextDerivedBytes > remainingDerivedBytes) {
+        return "derivedMemoryBudget";
+    }
+    return undefined;
+}
+
 export function analyzeSpatialCoordinates(
     type: string,
     coordinates: unknown,

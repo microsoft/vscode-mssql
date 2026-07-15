@@ -20,7 +20,9 @@ import { perfMark, perfMarkAfterNextPaint } from "../../../common/perfMarks";
 import { QsUpdateGridSelectionRequest } from "../../../../sharedInterfaces/queryStudio";
 import { SpatialMap } from "./SpatialMap";
 import {
-    SPATIAL_GPU_POINT_THRESHOLD,
+    SPATIAL_DERIVED_BYTES_BUDGET,
+    SPATIAL_VERTEX_BUDGET,
+    resolveSpatialRendererTier,
     type SpatialDecodeResponse,
     type SpatialDecodedFeature,
 } from "./spatialWorkerProtocol";
@@ -50,7 +52,17 @@ export interface SpatialResultsPaneProps {
 type LoadState =
     | { kind: "idle" }
     | { kind: "loading"; scanned: number; total: number }
-    | { kind: "ready"; scanned: number; total: number }
+    | {
+          kind: "ready";
+          scanned: number;
+          total: number;
+          partialReason?:
+              | "rowBudget"
+              | "payloadBudget"
+              | "storeShortRead"
+              | "vertexBudget"
+              | "derivedMemoryBudget";
+      }
     | { kind: "error"; message: string };
 
 function initialState(value?: QsSpatialPanelViewState): QsSpatialPanelViewState {
@@ -72,6 +84,8 @@ function workerDecode(
     generation: number,
     sequence: number,
     features: QsSpatialNextResult["features"],
+    remainingVertices: number,
+    remainingDerivedBytes: number,
 ): Promise<SpatialDecodeResponse> {
     return new Promise((resolve, reject) => {
         const onMessage = (event: MessageEvent<SpatialDecodeResponse>) => {
@@ -92,7 +106,14 @@ function workerDecode(
         };
         worker.addEventListener("message", onMessage);
         worker.addEventListener("error", onError);
-        worker.postMessage({ type: "decode", generation, sequence, features });
+        worker.postMessage({
+            type: "decode",
+            generation,
+            sequence,
+            features,
+            remainingVertices,
+            remainingDerivedBytes,
+        });
     });
 }
 
@@ -249,20 +270,16 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     chunk.generation,
                     chunk.sequence,
                     chunk.features,
+                    Math.max(0, SPATIAL_VERTEX_BUDGET - vertices),
+                    Math.max(0, SPATIAL_DERIVED_BYTES_BUDGET - derivedBytes),
                 );
                 if (canceled) return;
                 perfMark("mssql.queryResults.spatial.decode.end", {
                     outcome: decoded.errors > 0 ? "partial" : "ok",
                     features: decoded.decoded,
-                    vertices: decoded.features.reduce(
-                        (total, feature) => total + (feature.vertices ?? 0),
-                        0,
-                    ),
+                    vertices: decoded.vertices,
                     skipped: decoded.unsupported + decoded.errors,
-                    derivedBytes: decoded.features.reduce(
-                        (total, feature) => total + (feature.vertices ?? 0) * 16,
-                        0,
-                    ),
+                    derivedBytes: decoded.derivedBytes,
                     ms: Math.round(decoded.elapsedMs * 100) / 100,
                 });
                 setFeatures((current) => [...current, ...decoded.features]);
@@ -272,35 +289,38 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     decoded.features.every(
                         (feature) => feature.status !== "ready" || feature.geometryType === "Point",
                     );
-                vertices += decoded.features.reduce(
-                    (total, feature) => total + (feature.vertices ?? 0),
-                    0,
-                );
+                vertices += decoded.vertices;
                 skipped += decoded.unsupported + decoded.errors;
-                derivedBytes += decoded.features.reduce(
-                    (total, feature) => total + (feature.vertices ?? 0) * 16,
-                    0,
-                );
+                derivedBytes += decoded.derivedBytes;
                 scanned += chunk.scannedRows;
+                const partialReason = decoded.budgetReason ?? chunk.partialReason;
                 setLoadState({
-                    kind: chunk.done ? "ready" : "loading",
+                    kind: chunk.done || partialReason ? "ready" : "loading",
                     scanned,
                     total: opened.totalRows,
+                    ...(partialReason ? { partialReason } : {}),
                 });
-                if (chunk.done) {
-                    const settledTier =
-                        allRenderableArePoints &&
-                        (viewState.renderer === "gpuPoints" ||
-                            (viewState.renderer === "auto" &&
-                                rendered >= SPATIAL_GPU_POINT_THRESHOLD))
-                            ? "gpuPoints"
-                            : "canvas";
+                if (decoded.budgetReason) {
+                    perfMark("mssql.queryResults.spatial.decode.cancel", {
+                        reason: decoded.budgetReason,
+                    });
+                    void props.rpc.sendRequest(QsSpatialCancelRequest.type, {
+                        handle,
+                        generation,
+                    });
+                }
+                if (chunk.done || decoded.budgetReason) {
+                    const settledTier = resolveSpatialRendererTier(
+                        allRenderableArePoints,
+                        rendered,
+                        viewState.renderer,
+                    );
                     void perfMarkAfterNextPaint("mssql.queryResults.spatial.render.settled", {
                         tier: settledTier,
                         features: rendered,
                         vertices,
                         skipped,
-                        partial: "false",
+                        partial: partialReason ? "true" : "false",
                         longTasks: 0,
                         derivedBytes,
                         ms: Math.round((performance.now() - renderStartedAt) * 100) / 100,
@@ -518,6 +538,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         }>
                         <option value="auto">{locConstants.spatialResults.automatic}</option>
                         <option value="canvas">{locConstants.spatialResults.canvas}</option>
+                        <option value="clusters">{locConstants.spatialResults.clusters}</option>
                         <option value="gpuPoints">{locConstants.spatialResults.gpuPoints}</option>
                     </select>
                 </label>
@@ -541,6 +562,9 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                           : locConstants.spatialResults.waiting}
                 </span>
                 <span>{locConstants.spatialResults.offline}</span>
+                {loadState.kind === "ready" && loadState.partialReason ? (
+                    <span>{locConstants.spatialResults.limited(loadState.partialReason)}</span>
+                ) : null}
                 {groupSummary ? (
                     <span>{locConstants.spatialResults.groups(groupSummary)}</span>
                 ) : null}
@@ -627,6 +651,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 ) : null}
                 <main className="qs-spatial-map-region">
                     <SpatialMap
+                        key={`${props.runKey}:${selectedKey}:${viewState.labelColumnOrdinal ?? -1}:${viewState.colorColumnOrdinal ?? -1}`}
                         features={filteredFeatures}
                         selectedOrdinal={viewState.selectedRowOrdinal}
                         onSelect={selectFeature}

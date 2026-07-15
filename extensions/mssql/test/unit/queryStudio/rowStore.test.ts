@@ -92,6 +92,31 @@ suite("Query Studio RowStore", () => {
         }
     });
 
+    test("dispose waits for queued spill work and removes the spill directory", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-dispose-"));
+        const store = new RowStore(spillDir, {
+            maxMemoryBytes: 1,
+            spillEnabled: true,
+            maxSpillBytes: 64 * 1024 * 1024,
+            maxRowsPerResultSet: 1_000_000,
+        });
+        store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+        await store.appendPage("r0", {
+            rowOffset: 0,
+            rowCount: 10,
+            approxBytes: 1024,
+            compact: { values: Array.from({ length: 10 }, (_, row) => [`row-${row}`]) },
+        });
+        await store.flushSpill();
+        expect(store.stats.spillWrites).to.be.greaterThan(0);
+        expect(fs.existsSync(spillDir)).to.equal(true);
+
+        store.dispose();
+        await store.flushSpill();
+
+        expect(fs.existsSync(spillDir)).to.equal(false);
+    });
+
     test("row cap rejects the overflowing page and records the truncation reason", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir, {
