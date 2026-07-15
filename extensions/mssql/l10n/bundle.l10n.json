@@ -3003,6 +3003,10 @@
     "World outline": "World outline",
     "Map layer unavailable for this coordinate system": "Map layer unavailable for this coordinate system",
     "Map layer could not be loaded": "Map layer could not be loaded",
+    "Online layer disabled in an untrusted workspace": "Online layer disabled in an untrusted workspace",
+    "Select the layer again to confirm online map access": "Select the layer again to confirm online map access",
+    "{0} · online": "{0} · online",
+    "Layer: {0}": "Layer: {0}",
     "Groups: {0}/{0} is a summary of safe spatial type or SRID group counts": {
         "message": "Groups: {0}",
         "comment": ["{0} is a summary of safe spatial type or SRID group counts"]

@@ -28,6 +28,7 @@ import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import { activateSchemaVisualizer } from "../schemaVisualizer/schemaVisualizerActivation";
+import { initializeSpatialBasemapHost } from "../queryResults/spatialBasemap/spatialBasemapHost";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
@@ -1412,6 +1413,11 @@ export default class MainController implements vscode.Disposable {
             // B26 (K5): group CRUD/move/DnD share the classic storage.
             groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
         });
+
+        // Spatial basemap host (SPA-10): consent store, dedicated tile-cache
+        // root, source registry, and the clear commands. Panels borrow these
+        // seams lazily — nothing here touches the network at activation.
+        initializeSpatialBasemapHost(this._context);
 
         // Schema Visualizer (preview, SV-R4): read-only diagram served by
         // MetadataStore leases over the data plane. Zero v1 traffic on the

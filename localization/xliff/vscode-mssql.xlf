@@ -4197,6 +4197,9 @@
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c2d726ad29eb4e6920bad8b69f788ff6b4ca7b08d83f2130d4d4ef330c0375c">
+      <source xml:lang="en">Layer: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++0bcd66e677f4ee7288547da02b6cd5594fd8b8c3abbc6482dfd42c788ecbe448">
       <source xml:lang="en">Layers</source>
     </trans-unit>
@@ -5373,6 +5376,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
       <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++591ddf96c29680f1ba3e3549693049fa4b6db4cfc7112f6c64fa4ccc05ce5756">
+      <source xml:lang="en">Online layer disabled in an untrusted workspace</source>
     </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
@@ -6878,6 +6884,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9ecda0247fcac26fa6b5b650012315b4faeaf853a3d1147f243e0af310d6c1da">
       <source xml:lang="en">Select the entire current row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b91e6a7cffe5e81876eb8ce2abfa1910afb48c04364b236b607549f64f9bc93">
+      <source xml:lang="en">Select the layer again to confirm online map access</source>
     </trans-unit>
     <trans-unit id="++CODE++21f736a51b932eed3aed712f5cc2cd8ca7fd204ad2690df8c6d8d1f6cd926e1a">
       <source xml:lang="en">Select the target schema</source>
@@ -8713,6 +8722,9 @@
       <source xml:lang="en">{0} {1} issues</source>
       <note>{0} is the tab name
 {1} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bd704d982ce6b1817d67a2dd5cf111819c382c799a14527875e56eff0807f3e1">
+      <source xml:lang="en">{0} · online</source>
     </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>

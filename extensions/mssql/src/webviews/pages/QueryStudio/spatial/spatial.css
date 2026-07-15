@@ -254,3 +254,23 @@
         display: none;
     }
 }
+
+/* SPA-10: attribution stays visible over the map while an online layer is
+   active — outside the feature canvas, above map controls. */
+.qs-spatial-attribution {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    background: var(--vscode-editorWidget-background);
+    color: var(--vscode-descriptionForeground);
+    border: 1px solid var(--vscode-editorWidget-border, transparent);
+    border-radius: 3px;
+    z-index: 5;
+    pointer-events: auto;
+}
+.qs-spatial-attribution a {
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+}

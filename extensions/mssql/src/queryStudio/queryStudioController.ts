@@ -84,6 +84,14 @@ import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
 import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
 import { SpatialSessionManager } from "../queryResults/spatial/spatialSessionManager";
+import { SpatialBasemapSessionManager } from "../queryResults/spatialBasemap/spatialBasemapSessionManager";
+import { spatialBasemapHost } from "../queryResults/spatialBasemap/spatialBasemapHost";
+import {
+    QsSpatialBasemapCloseRequest,
+    QsSpatialBasemapListRequest,
+    QsSpatialBasemapOpenRequest,
+    QsSpatialBasemapTileRequest,
+} from "../sharedInterfaces/spatialBasemap";
 import {
     QsSpatialCancelRequest,
     QsSpatialCloseRequest,
@@ -227,9 +235,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
         this.panelViewState.shell.resultsHeightPct =
             QueryStudioController.currentGridStyle().resultsPaneHeightPct ?? 50;
+        // SPA-10 / D-0022: the basemap tile cache directory is the ONLY extra
+        // local root — never all of global storage (addendum §6.4).
+        const basemapCacheRoot = spatialBasemapHost()?.cacheRoot;
         this.panel.webview.options = {
             enableScripts: true,
-            localResourceRoots: [vscode.Uri.file(context.extensionPath)],
+            localResourceRoots: [
+                vscode.Uri.file(context.extensionPath),
+                ...(basemapCacheRoot ? [basemapCacheRoot] : []),
+            ],
         };
         this.panel.webview.html = this._getHtmlTemplate();
         // Bind the RPC reader/writer to the PROVIDED panel's webview — the
@@ -319,7 +333,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                         e.affectsConfiguration("mssql.queryStudio.spatial.enabled") &&
                         !this.model.executionHost.spatialResultsGate()
                     ) {
-                        this.resetSpatialServices();
+                        this.resetSpatialServices("configChanged");
                     }
                     this.queueStatePush();
                 }
@@ -351,7 +365,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             // Database/principal/session changes invalidate catalog bindings
             // and any source handles held by live-only Vector workspaces.
             this.resetVectorServices();
-            this.resetSpatialServices();
+            this.resetSpatialServices("configChanged");
             this.queueStatePush();
         });
 
@@ -375,7 +389,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 // result store. The pane can lazily create fresh services when
                 // it next becomes active.
                 this.resetVectorServices();
-                this.resetSpatialServices();
+                this.resetSpatialServices("rerun");
                 void this.sendNotification(QsRunStartedNotification.type, { startedEpochMs });
                 this.queueStatePush();
             },
@@ -818,6 +832,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         return this.vectorService;
     }
 
+    private spatialBasemapService: SpatialBasemapSessionManager | undefined;
+
     private spatialResults(): SpatialSessionManager {
         this.spatialService ??= new SpatialSessionManager();
         return this.spatialService;
@@ -832,9 +848,31 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
     }
 
-    private resetSpatialServices(): void {
+    private resetSpatialServices(reason: "rerun" | "configChanged" | "disposed" = "rerun"): void {
         this.spatialService?.dispose();
         this.spatialService = undefined;
+        this.spatialBasemapService?.dispose(reason);
+        this.spatialBasemapService = undefined;
+    }
+
+    /** Lazy per-panel basemap sessions over the extension-level host seams. */
+    private spatialBasemap(): SpatialBasemapSessionManager | undefined {
+        if (!this.spatialBasemapService) {
+            const host = spatialBasemapHost();
+            if (!host) {
+                return undefined;
+            }
+            this.spatialBasemapService = new SpatialBasemapSessionManager({
+                sources: () => host.sources(),
+                consent: host.consent,
+                cache: host.cache,
+                fetcher: host.fetcher,
+                isTrusted: () => host.isTrusted(),
+                confirm: (source) => host.confirm(source),
+                secretFor: (ref) => host.secretFor(ref),
+            });
+        }
+        return this.spatialBasemapService;
     }
 
     private resetVectorServices(): void {
@@ -1317,6 +1355,45 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.spatialService?.close(handle);
         });
 
+        // --- spatial basemap (SPA-10): host-proxied layers -------------------
+        this.onRequest(QsSpatialBasemapListRequest.type, async () => {
+            const host = spatialBasemapHost();
+            if (!host || !QueryStudioController.spatialBasemapGate()) {
+                return { layers: [], trusted: host?.isTrusted() ?? false };
+            }
+            return {
+                layers: host.sources().map((source) => source.descriptor),
+                trusted: host.isTrusted(),
+            };
+        });
+        this.onRequest(QsSpatialBasemapOpenRequest.type, async (params) => {
+            const sessions = this.spatialBasemap();
+            if (!sessions || !QueryStudioController.spatialBasemapGate()) {
+                return { status: "unavailable" as const };
+            }
+            const outcome = await sessions.open(params);
+            return { ...outcome, tileProjection: "EPSG:3857" as const };
+        });
+        this.onRequest(QsSpatialBasemapTileRequest.type, async (params) => {
+            const sessions = this.spatialBasemapService;
+            if (!sessions) {
+                return { status: "cancelled" as const };
+            }
+            const outcome = await sessions.tile(params);
+            if (outcome.status !== "ready" || !outcome.filePath) {
+                return { status: outcome.status };
+            }
+            return {
+                status: "ready" as const,
+                localUri: this.panel.webview
+                    .asWebviewUri(vscode.Uri.file(outcome.filePath))
+                    .toString(),
+            };
+        });
+        this.onRequest(QsSpatialBasemapCloseRequest.type, async ({ handle, reason }) => {
+            this.spatialBasemapService?.close(handle, reason);
+        });
+
         // --- vector workbench (VEC-4): opaque pull sessions -----------------
         // The service is created lazily on the first vector RPC — a document
         // that never opens the Vector tab pays nothing here.
@@ -1693,7 +1770,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.inlineCompletionCts?.cancel();
         this.inlineCompletionCts = undefined;
         this.resetVectorServices();
-        this.resetSpatialServices();
+        this.resetSpatialServices("disposed");
         this.languageService.dispose();
         this.modelListener.dispose();
         this.bindingListener?.dispose();

@@ -1302,6 +1302,10 @@ export class LocConstants {
             worldOutlineActive: l10n.t("World outline"),
             layerUnavailableForCrs: l10n.t("Map layer unavailable for this coordinate system"),
             layerFailed: l10n.t("Map layer could not be loaded"),
+            layerUntrusted: l10n.t("Online layer disabled in an untrusted workspace"),
+            layerConsentRequired: l10n.t("Select the layer again to confirm online map access"),
+            onlineLayerOption: (name: string) => l10n.t("{0} · online", name),
+            onlineLayerActive: (name: string) => l10n.t("Layer: {0}", name),
             groups: (summary: string) =>
                 l10n.t({
                     message: "Groups: {0}",

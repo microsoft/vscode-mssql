@@ -18,7 +18,17 @@ import {
 import type { QsSpatialPanelViewState } from "../../../../sharedInterfaces/queryStudioViewState";
 import { perfMark, perfMarkAfterNextPaint } from "../../../common/perfMarks";
 import { QsUpdateGridSelectionRequest } from "../../../../sharedInterfaces/queryStudio";
-import { SpatialMap } from "./SpatialMap";
+import {
+    QsSpatialBasemapCloseRequest,
+    QsSpatialBasemapListRequest,
+    QsSpatialBasemapOpenRequest,
+    QsSpatialBasemapTileRequest,
+    type QsSpatialBasemapDescriptor,
+    type QsSpatialBasemapListResult,
+    type QsSpatialBasemapOpenParams,
+    type QsSpatialBasemapOpenResult,
+} from "../../../../sharedInterfaces/spatialBasemap";
+import { SpatialMap, type SpatialMapProps } from "./SpatialMap";
 import {
     SPATIAL_GPU_POINT_THRESHOLD,
     type SpatialDecodeResponse,
@@ -381,12 +391,116 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
         "idle" | "loading" | "ready" | "unavailable"
     >("idle");
     const selectedLayerId = viewState.layerId ?? "none";
-    const effectiveBasemapLayer: "none" | "worldOutline" =
-        props.basemapEnabled && basemapEligible && selectedLayerId === "worldOutline"
-            ? "worldOutline"
-            : "none";
-    const effectiveBasemapLayerRef = React.useRef(effectiveBasemapLayer);
-    effectiveBasemapLayerRef.current = effectiveBasemapLayer;
+
+    // Online sources: sanitized descriptors only (ids, names, attribution).
+    const [onlineLayers, setOnlineLayers] = React.useState<readonly QsSpatialBasemapDescriptor[]>(
+        [],
+    );
+    const [workspaceTrusted, setWorkspaceTrusted] = React.useState(true);
+    React.useEffect(() => {
+        if (!props.basemapEnabled) return;
+        let cancelled = false;
+        void props.rpc
+            .sendRequest<Record<string, never>, QsSpatialBasemapListResult>(
+                QsSpatialBasemapListRequest.type,
+                {},
+            )
+            .then((result) => {
+                if (!cancelled) {
+                    setOnlineLayers(result.layers);
+                    setWorkspaceTrusted(result.trusted);
+                }
+            })
+            .catch(() => undefined);
+        return () => {
+            cancelled = true;
+        };
+    }, [props.basemapEnabled, props.rpc]);
+
+    // Online session lifecycle (D-0027): interactive opens may prompt for
+    // consent; restores never do. Sessions close on layer change, ineligible
+    // data, and rerun (runKey). A declined consent reverts the selection.
+    const selectedOnline = onlineLayers.find((layer) => layer.id === selectedLayerId);
+    const [onlineSession, setOnlineSession] = React.useState<
+        { handle: string; generation: number; minZoom: number; maxZoom: number } | undefined
+    >(undefined);
+    const [onlineStatus, setOnlineStatus] = React.useState<
+        QsSpatialBasemapOpenResult["status"] | "idle"
+    >("idle");
+    const interactiveSelectRef = React.useRef(false);
+    const activeProjection = React.useMemo(() => {
+        if (!basemapEligible) return "planar" as const;
+        return filteredFeatures.some(
+            (feature) => feature.status === "ready" && feature.projection === "EPSG:4326",
+        )
+            ? ("EPSG:4326" as const)
+            : ("EPSG:3857" as const);
+    }, [basemapEligible, filteredFeatures]);
+    React.useEffect(() => {
+        if (!props.basemapEnabled || !selectedOnline || !basemapEligible) {
+            setOnlineSession(undefined);
+            if (!selectedOnline) setOnlineStatus("idle");
+            return;
+        }
+        let cancelled = false;
+        let opened: string | undefined;
+        const interactive = interactiveSelectRef.current;
+        interactiveSelectRef.current = false;
+        void props.rpc
+            .sendRequest<QsSpatialBasemapOpenParams, QsSpatialBasemapOpenResult>(
+                QsSpatialBasemapOpenRequest.type,
+                { layerId: selectedOnline.id, activeProjection, interactive },
+            )
+            .then((result) => {
+                if (cancelled) return;
+                setOnlineStatus(result.status);
+                if (result.status === "ready" && result.handle) {
+                    opened = result.handle;
+                    setOnlineSession({
+                        handle: result.handle,
+                        generation: result.generation ?? 0,
+                        minZoom: result.minZoom ?? 0,
+                        maxZoom: result.maxZoom ?? 19,
+                    });
+                } else if (result.status === "declined") {
+                    updateState({ layerId: undefined });
+                }
+            })
+            .catch(() => {
+                if (!cancelled) setOnlineStatus("unavailable");
+            });
+        return () => {
+            cancelled = true;
+            setOnlineSession(undefined);
+            if (opened) {
+                void props.rpc.sendRequest(QsSpatialBasemapCloseRequest.type, {
+                    handle: opened,
+                    reason: "layerChange",
+                });
+            }
+        };
+    }, [props.basemapEnabled, selectedOnline?.id, basemapEligible, activeProjection, props.runKey]);
+
+    const effectiveBasemapLayer: SpatialMapProps["basemapLayer"] =
+        !props.basemapEnabled || !basemapEligible
+            ? "none"
+            : selectedLayerId === "worldOutline"
+              ? "worldOutline"
+              : selectedOnline && onlineSession
+                ? {
+                      kind: "xyzRaster" as const,
+                      requestTile: (coords: { z: number; x: number; y: number }) =>
+                          props.rpc.sendRequest(QsSpatialBasemapTileRequest.type, {
+                              handle: onlineSession.handle,
+                              generation: onlineSession.generation,
+                              ...coords,
+                          }),
+                      session: onlineSession,
+                  }
+                : "none";
+    const effectiveBasemapLayerRef = React.useRef("none" as string);
+    effectiveBasemapLayerRef.current =
+        typeof effectiveBasemapLayer === "string" ? effectiveBasemapLayer : "xyzRaster";
 
     const selectedFeature = features.find(
         (feature) => feature.ordinal === viewState.selectedRowOrdinal,
@@ -550,6 +664,8 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                             value={selectedLayerId}
                             onChange={(event) => {
                                 setBasemapState("idle");
+                                setOnlineStatus("idle");
+                                interactiveSelectRef.current = true;
                                 updateState({
                                     layerId:
                                         event.target.value === "none"
@@ -561,6 +677,16 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                             <option value="worldOutline" disabled={!basemapEligible}>
                                 {locConstants.spatialResults.worldOutline}
                             </option>
+                            {onlineLayers.map((layer) => (
+                                <option
+                                    key={layer.id}
+                                    value={layer.id}
+                                    disabled={!basemapEligible || !workspaceTrusted}>
+                                    {locConstants.spatialResults.onlineLayerOption(
+                                        layer.displayName,
+                                    )}
+                                </option>
+                            ))}
                         </select>
                     </label>
                 ) : null}
@@ -588,9 +714,19 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         ? locConstants.spatialResults.offline
                         : !basemapEligible
                           ? locConstants.spatialResults.layerUnavailableForCrs
-                          : basemapState === "unavailable"
-                            ? locConstants.spatialResults.layerFailed
-                            : locConstants.spatialResults.worldOutlineActive}
+                          : selectedLayerId === "worldOutline"
+                            ? basemapState === "unavailable"
+                                ? locConstants.spatialResults.layerFailed
+                                : locConstants.spatialResults.worldOutlineActive
+                            : onlineStatus === "untrusted"
+                              ? locConstants.spatialResults.layerUntrusted
+                              : onlineStatus === "consentRequired"
+                                ? locConstants.spatialResults.layerConsentRequired
+                                : onlineStatus === "ready" && basemapState !== "unavailable"
+                                  ? locConstants.spatialResults.onlineLayerActive(
+                                        selectedOnline?.displayName ?? selectedLayerId,
+                                    )
+                                  : locConstants.spatialResults.layerFailed}
                 </span>
                 {groupSummary ? (
                     <span>{locConstants.spatialResults.groups(groupSummary)}</span>
@@ -693,6 +829,19 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                             {locConstants.spatialResults.loadingProgress(
                                 loadState.scanned,
                                 loadState.total,
+                            )}
+                        </div>
+                    ) : null}
+                    {typeof effectiveBasemapLayer !== "string" && selectedOnline ? (
+                        // Attribution stays visible over the map whenever an
+                        // online layer is active (addendum §4.1).
+                        <div className="qs-spatial-attribution">
+                            {selectedOnline.attribution.termsUrl ? (
+                                <a href={selectedOnline.attribution.termsUrl}>
+                                    {selectedOnline.attribution.text}
+                                </a>
+                            ) : (
+                                selectedOnline.attribution.text
                             )}
                         </div>
                     ) : null}
