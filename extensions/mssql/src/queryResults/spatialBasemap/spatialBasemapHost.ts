@@ -61,6 +61,16 @@ export function initializeSpatialBasemapHost(context: vscode.ExtensionContext): 
     if (host) {
         return;
     }
+    try {
+        initialize(context);
+    } catch {
+        // Partial contexts (unit-test mocks, restricted hosts) leave the
+        // feature unavailable rather than failing activation.
+        host = undefined;
+    }
+}
+
+function initialize(context: vscode.ExtensionContext): void {
     let hmacKey = context.globalState.get<string>(HMAC_KEY_STATE);
     if (!hmacKey) {
         hmacKey = randomBytes(32).toString("hex");
