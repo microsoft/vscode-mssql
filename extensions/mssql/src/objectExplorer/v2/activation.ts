@@ -19,6 +19,7 @@ import { MetadataStoreService } from "../../services/metadata/metadataStoreServi
 import {
     ProfileSecretSource,
     ProfileTokenSource,
+    stableProfileId,
 } from "../../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneService";
 import { vscodeFallbackInteraction } from "../../services/sqlDataPlane/vscodeFallbackInteraction";
@@ -341,6 +342,29 @@ export function activateObjectExplorerV2(
                     await handoff?.close(connectionId);
                     await controller?.disconnectProfile(connectionId);
                 }
+            },
+        ),
+        // v1 parity: Edit Connection on top-level connection nodes opens the
+        // shared Connection Dialog pre-filled with the saved profile. Profile
+        // lookup mirrors moveToGroup; the v1 handler accepts a bare profile.
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.editConnection",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                const config = (deps.groupConfig ?? (() => undefined))();
+                if (!connectionId || !config) {
+                    return;
+                }
+                const profile = (await config.getConnections()).find(
+                    (candidate) => stableProfileId(candidate as { id?: string }) === connectionId,
+                );
+                if (!profile) {
+                    void vscode.window.showWarningMessage(
+                        "That connection could not be found in saved connections.",
+                    );
+                    return;
+                }
+                await vscode.commands.executeCommand("mssql.editConnection", profile);
             },
         ),
         vscode.commands.registerCommand(

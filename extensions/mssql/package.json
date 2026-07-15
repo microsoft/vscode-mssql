@@ -711,6 +711,11 @@
                     "group": "0_oe2_connection@1"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.editConnection",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|connectingConnection|lostConnection)\\b/",
+                    "group": "0_oe2_connection@2"
+                },
+                {
                     "command": "mssql.objectExplorerV2.refresh",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canRefresh\\b/",
                     "group": "1_oe2_refresh@0"
@@ -1234,6 +1239,10 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.disconnect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editConnection",
                     "when": "false"
                 },
                 {
@@ -2297,6 +2306,11 @@
             {
                 "command": "mssql.objectExplorerV2.disconnect",
                 "title": "Disconnect",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.editConnection",
+                "title": "%mssql.editConnection%",
                 "category": "MS SQL"
             },
             {
