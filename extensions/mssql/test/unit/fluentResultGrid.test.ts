@@ -22,7 +22,10 @@ import {
     shouldApplyFluentResultGridFrozenOptions,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
-import { isFluentResultGridPointerInitiatedFocus } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboardController";
+import {
+    isFluentResultGridKeyboardInitiatedFocus,
+    isFluentResultGridPointerInitiatedFocus,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboardController";
 import {
     getFluentResultGridKeyboardAction,
     type FluentResultGridKeyboardShortcutEvent,
@@ -269,6 +272,73 @@ suite("Fluent Result Grid", () => {
             await new Promise<void>((resolve) => setImmediate(resolve));
             expect(requests.at(-1)).to.deep.equal({ offset: 0, count: 2 });
             dataView.dispose();
+        });
+
+        test("streaming row growth defers updateRowCount while the viewport scrolls", async () => {
+            // SlickGrid's updateRowCount() reaches scrollTo(), which writes
+            // the viewport scrollTop when the page/offset mapping shifts —
+            // mid-drag that teleports the scrollbar thumb (block jumps,
+            // sometimes against the drag direction). Streaming growth must
+            // wait for a scroll-quiet window.
+            const testGlobal = globalThis as unknown as Record<string, unknown>;
+            const previousRequestAnimationFrame = testGlobal.requestAnimationFrame;
+            const previousCancelAnimationFrame = testGlobal.cancelAnimationFrame;
+            testGlobal.requestAnimationFrame = () => 1;
+            testGlobal.cancelAnimationFrame = () => undefined;
+            let updateRowCountCalls = 0;
+            const dataView = createFluentResultGridDataView({
+                columnCount: 1,
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 1,
+                    getRows: (offset, count) =>
+                        Array.from({ length: count }, (_value, index) => [
+                            cell(`row-${offset + index}`),
+                        ]),
+                },
+            });
+            const onScroll = new SlickEvent();
+            const grid = {
+                onViewportChanged: new SlickEvent(),
+                onScroll,
+                onColumnsResized: new SlickEvent(),
+                onColumnsReordered: new SlickEvent(),
+                getViewport: () => ({ top: 0, bottom: 5, leftPx: 0, rightPx: 100 }),
+                getColumns: () => [],
+                getOptions: () => ({ frozenColumn: -1 }),
+                getActiveCell: () => undefined,
+                invalidateAllRows: () => undefined,
+                invalidateRows: () => undefined,
+                updateRowCount: () => {
+                    updateRowCountCalls++;
+                },
+                render: () => undefined,
+            } as unknown as SlickGrid;
+            dataView.setGrid(grid);
+
+            // Quiet viewport: row growth relayouts immediately.
+            dataView.setLength(5);
+            expect(updateRowCountCalls).to.equal(1);
+
+            // Scrolling viewport: growth arriving mid-scroll is deferred…
+            onScroll.notify({} as never);
+            dataView.setLength(10);
+            expect(updateRowCountCalls).to.equal(1);
+
+            // …and flushes once the viewport has been quiet long enough.
+            await new Promise<void>((resolve) => setTimeout(resolve, 450));
+            expect(updateRowCountCalls).to.equal(2);
+            dataView.dispose();
+            if (previousRequestAnimationFrame) {
+                testGlobal.requestAnimationFrame = previousRequestAnimationFrame;
+            } else {
+                delete testGlobal.requestAnimationFrame;
+            }
+            if (previousCancelAnimationFrame) {
+                testGlobal.cancelAnimationFrame = previousCancelAnimationFrame;
+            } else {
+                delete testGlobal.cancelAnimationFrame;
+            }
         });
 
         test("retries an incomplete window instead of treating placeholders as loaded", async () => {
@@ -537,6 +607,16 @@ suite("Fluent Result Grid", () => {
             // Keyboard entry (Tab) keeps the reveal-active-cell behavior.
             expect(isFluentResultGridPointerInitiatedFocus(undefined, 1005)).to.equal(false);
             expect(isFluentResultGridPointerInitiatedFocus(1000, 1200)).to.equal(false);
+        });
+
+        test("only provable keyboard entry (recent Tab) may reveal the active cell", () => {
+            // Scrollbar grabs dispatch NO pointer or mouse events, so the
+            // reveal is gated on positive Tab evidence — an unexplained focus
+            // (scrollbar grab, programmatic focus) must never scroll.
+            expect(isFluentResultGridKeyboardInitiatedFocus(1000, 1005)).to.equal(true);
+            expect(isFluentResultGridKeyboardInitiatedFocus(1000, 1249)).to.equal(true);
+            expect(isFluentResultGridKeyboardInitiatedFocus(undefined, 1005)).to.equal(false);
+            expect(isFluentResultGridKeyboardInitiatedFocus(1000, 1250)).to.equal(false);
         });
 
         test("maps column-menu and focus traversal actions", () => {

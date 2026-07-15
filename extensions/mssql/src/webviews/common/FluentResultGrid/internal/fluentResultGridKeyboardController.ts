@@ -5,6 +5,7 @@
 
 import {
     useCallback,
+    useEffect,
     useRef,
     useState,
     type FocusEvent as ReactFocusEvent,
@@ -49,6 +50,29 @@ export function isFluentResultGridPointerInitiatedFocus(
     now: number,
 ): boolean {
     return pointerDownAt !== undefined && now - pointerDownAt < POINTER_FOCUS_WINDOW_MS;
+}
+
+/**
+ * A container focus within this window of a Tab keydown is keyboard entry.
+ * Tab dispatches its focus change synchronously in the keydown's default
+ * action; the window only absorbs dispatch overhead.
+ */
+const KEYBOARD_FOCUS_WINDOW_MS = 250;
+
+/**
+ * Pure decision seam for the reveal-on-focus guard: ONLY provable keyboard
+ * entry (a recent Tab keydown) may re-activate the grid and scroll the
+ * active cell into view. Chromium moves focus to this container when the
+ * user grabs a grid scrollbar WITHOUT dispatching any pointer or mouse
+ * event, so "no recent pointerdown" cannot identify scrollbar grabs — the
+ * yank (backward jumps, cross-axis resets mid-drag) must be gated on
+ * positive evidence of keyboard entry instead.
+ */
+export function isFluentResultGridKeyboardInitiatedFocus(
+    tabKeyDownAt: number | undefined,
+    now: number,
+): boolean {
+    return tabKeyDownAt !== undefined && now - tabKeyDownAt < KEYBOARD_FOCUS_WINDOW_MS;
 }
 
 export function useFluentResultGridKeyboardController({
@@ -194,25 +218,42 @@ export function useFluentResultGridKeyboardController({
     // the user grabs a grid SCROLLBAR. Re-activating on that focus calls
     // gotoCell(), which scrolls the ACTIVE cell back into view mid-drag
     // (backward jumps, a cross-axis reset to the active cell, a synchronous
-    // full row render per grab). Pointer-initiated focus therefore never
-    // re-activates: cell clicks activate through SlickGrid's own click
-    // pipeline, and keyboard entry (Tab) keeps the reveal-active-cell
-    // behavior. The guard arms from BOTH pointerdown and mousedown capture:
-    // native scrollbar interactions dispatch mouse events only.
+    // full row render per grab). Scrollbar grabs dispatch NO pointer or
+    // mouse events, so absence-of-pointer evidence cannot identify them:
+    // the reveal is gated on POSITIVE evidence of keyboard entry (a recent
+    // Tab keydown, tracked window-level because the keydown fires on the
+    // element focus is LEAVING). Cell clicks still activate through
+    // SlickGrid's own click pipeline; every other focus provenance leaves
+    // the scroll position alone.
     const pointerDownAtRef = useRef<number | undefined>(undefined);
     const handleGridPointerDownCapture = useCallback(() => {
         pointerDownAtRef.current = performance.now();
+    }, []);
+    const tabKeyDownAtRef = useRef<number | undefined>(undefined);
+    useEffect(() => {
+        const onWindowKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Tab") {
+                tabKeyDownAtRef.current = performance.now();
+            }
+        };
+        window.addEventListener("keydown", onWindowKeyDown, true);
+        return () => window.removeEventListener("keydown", onWindowKeyDown, true);
     }, []);
 
     const handleGridContainerFocus = useCallback(
         (event: ReactFocusEvent<HTMLDivElement>) => {
             setIsGridFocused(true);
 
+            const now = performance.now();
+            const keyboardInitiated = isFluentResultGridKeyboardInitiatedFocus(
+                tabKeyDownAtRef.current,
+                now,
+            );
             const pointerInitiated = isFluentResultGridPointerInitiatedFocus(
                 pointerDownAtRef.current,
-                performance.now(),
+                now,
             );
-            if (event.target === event.currentTarget && !pointerInitiated) {
+            if (event.target === event.currentTarget && keyboardInitiated && !pointerInitiated) {
                 focusGrid();
             }
         },

@@ -27,6 +27,15 @@ import { resolveFluentResultGridColumnWindow } from "./fluentResultGridColumnWin
 
 export const FLUENT_RESULT_GRID_ROW_NUMBER_FIELD = "_fluentResultGridRowNumber";
 
+/**
+ * How long the viewport must be scroll-quiet before a streaming row-count
+ * change may relayout the grid. SlickGrid's updateRowCount() reaches
+ * scrollTo(), which writes the viewport's scrollTop when the virtual
+ * page/offset mapping shifts — mid-drag that teleports the scrollbar thumb
+ * (block jumps, sometimes against the drag direction).
+ */
+export const SCROLL_QUIET_ROW_COUNT_DEFER_MS = 200;
+
 export interface FluentResultGridCellValue extends DbCellValue {
     ariaLabel: string;
     invariantCultureDisplayValue: string;
@@ -678,6 +687,9 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
     private disposed = false;
     private pendingAnimationFrame: number | undefined;
     private columnWindow: FluentResultGridColumnWindow | undefined;
+    /** Last grid onScroll timestamp — streaming row-count relayouts wait it out. */
+    private lastScrollAt = 0;
+    private pendingRowCountTimer: ReturnType<typeof setTimeout> | undefined;
 
     constructor(
         private readonly rowStore: FluentResultGridRowStore<T>,
@@ -713,7 +725,10 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
         this.gridEventHandler.unsubscribeAll();
         this.grid = grid;
         this.gridEventHandler.subscribe(grid.onViewportChanged, () => this.ensureViewportLoaded());
-        this.gridEventHandler.subscribe(grid.onScroll, () => this.ensureViewportLoaded());
+        this.gridEventHandler.subscribe(grid.onScroll, () => {
+            this.lastScrollAt = performance.now();
+            this.ensureViewportLoaded();
+        });
         this.gridEventHandler.subscribe(grid.onColumnsResized, () => this.ensureViewportLoaded());
         this.gridEventHandler.subscribe(grid.onColumnsReordered, () => this.ensureViewportLoaded());
         this.ensureViewportLoaded();
@@ -885,6 +900,10 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
             cancelAnimationFrame(this.pendingAnimationFrame);
             this.pendingAnimationFrame = undefined;
         }
+        if (this.pendingRowCountTimer !== undefined) {
+            clearTimeout(this.pendingRowCountTimer);
+            this.pendingRowCountTimer = undefined;
+        }
         this.gridEventHandler.unsubscribeAll();
         this.grid = undefined;
         this.rowStore.dispose();
@@ -892,6 +911,23 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
 
     private scheduleRowCountUpdate(): void {
         if (!this.grid || this.disposed) {
+            return;
+        }
+
+        // SlickGrid's updateRowCount() reaches scrollTo(), which WRITES the
+        // viewport's scrollTop whenever the virtual page/offset mapping
+        // shifts. Doing that while the user is scrolling teleports the
+        // scrollbar thumb mid-drag: block jumps, sometimes OPPOSITE to the
+        // drag direction (streaming runs made grids jerky until the run
+        // finished). Streaming row growth therefore waits for a scroll-quiet
+        // window; the deferred update also coalesces the relayout burst.
+        if (performance.now() - this.lastScrollAt < SCROLL_QUIET_ROW_COUNT_DEFER_MS) {
+            if (this.pendingRowCountTimer === undefined) {
+                this.pendingRowCountTimer = setTimeout(() => {
+                    this.pendingRowCountTimer = undefined;
+                    this.scheduleRowCountUpdate();
+                }, SCROLL_QUIET_ROW_COUNT_DEFER_MS);
+            }
             return;
         }
 
