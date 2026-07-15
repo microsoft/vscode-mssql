@@ -26,6 +26,7 @@ import {
     type OnSelectionChangeFunc,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import "./schemaGraphFlowColors.css";
 import { SchemaGraphTableNode } from "./SchemaGraphTableNode";
 import { SchemaGraphTableData } from "./schemaGraphTypes";
 
@@ -65,7 +66,9 @@ export const SchemaGraphCanvas = (props: SchemaGraphCanvasProps) => {
             minZoom={0.05}
             defaultEdgeOptions={{
                 markerEnd: { type: MarkerType.ArrowClosed },
-                type: "smoothstep",
+                // Legacy parity: default bezier (curved) edges at width 1
+                // (schemaGraphFlowColors.css); smoothstep read as heavy
+                // orthogonal wiring next to the old designer.
             }}
             proOptions={{ hideAttribution: true }}>
             <MiniMap pannable zoomable />

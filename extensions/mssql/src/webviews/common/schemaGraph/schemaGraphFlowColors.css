@@ -1,0 +1,116 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* React Flow chrome themed with VS Code tokens (visual parity with the
+ * legacy designer's schemaDesignerFlowColors.css — kept as a provider-
+ * neutral copy because the shared module must not import legacy page files,
+ * §10.4 allowlist). Without these overrides the vendor stylesheet renders a
+ * LIGHT minimap/controls/edge palette regardless of editor theme. */
+
+.react-flow {
+    /* Edge styling */
+    --xy-edge-stroke-default: var(--vscode-editor-foreground);
+    --xy-edge-stroke-width-default: 1;
+    --xy-edge-stroke-selected-default: var(--vscode-focusBorder);
+    --xy-connectionline-stroke-default: var(--vscode-editor-foreground);
+    --xy-connectionline-stroke-width-default: 1;
+
+    /* Minimap styling */
+    --xy-attribution-background-color-default: var(--vscode-editor-background);
+    --xy-minimap-background-color-default: var(--vscode-editor-background);
+    --xy-minimap-mask-background-color-default: rgba(60, 60, 60, 0.6);
+    --xy-minimap-mask-stroke-color-default: var(--vscode-editor-foreground);
+    --xy-minimap-mask-stroke-width-default: 1;
+    --xy-minimap-node-background-color-default: var(--vscode-editor-selectionBackground);
+    --xy-minimap-node-stroke-color-default: var(--vscode-editor-foreground);
+    --xy-minimap-node-stroke-width-default: 1;
+
+    /* Background styling */
+    --xy-background-color-default: var(--vscode-editor-background);
+    --xy-background-pattern-dots-color-default: var(--vscode-badge-background);
+    --xy-background-pattern-lines-color-default: var(--vscode-badge-background);
+    --xy-background-pattern-cross-color-default: var(--vscode-badge-background);
+
+    /* Node styling */
+    --xy-node-color-default: var(--vscode-editor-foreground);
+    --xy-node-border-default: 1px solid var(--vscode-badge-background);
+    --xy-node-background-color-default: var(--vscode-editor-background);
+    --xy-node-group-background-color-default: var(--vscode-editorWidget-background);
+    --xy-node-boxshadow-hover-default: 0 1px 4px 1px rgba(0, 0, 0, 0.3);
+    --xy-node-boxshadow-selected-default: 0 0 0 2px var(--vscode-focusBorder);
+
+    /* Handle styling */
+    --xy-handle-background-color-default: var(--vscode-focusBorder);
+    --xy-handle-border-color-default: var(--vscode-editor-background);
+
+    /* Selection styling */
+    --xy-selection-background-color-default: rgba(38, 79, 120, 0.25);
+    --xy-selection-border-default: 1px dotted var(--vscode-focusBorder);
+
+    /* Controls styling */
+    --xy-controls-button-background-color-default: var(--vscode-editorWidget-background);
+    --xy-controls-button-background-color-hover-default: var(--vscode-toolbar-hoverBackground);
+    --xy-controls-button-color-default: var(--vscode-editor-foreground);
+    --xy-controls-button-color-hover-default: var(--vscode-editor-foreground);
+    --xy-controls-button-border-color-default: var(--vscode-editorWidget-border);
+    --xy-controls-box-shadow-default: var(--vscode-widget-shadow);
+
+    /* Edge label styling */
+    --xy-edge-label-background-color-default: var(--vscode-editorWidget-background);
+    --xy-edge-label-color-default: var(--vscode-editor-foreground);
+}
+
+/* Selected edges override highlight colors (legacy parity). */
+.react-flow__edge.selected .react-flow__edge-path {
+    stroke: var(--vscode-focusBorder);
+    stroke-width: 3;
+}
+
+.react-flow__edge.selected .react-flow__arrowhead path {
+    fill: var(--vscode-focusBorder);
+    stroke: var(--vscode-focusBorder);
+}
+
+/* Edit-state node highlights (op log): added/modified tables. */
+.react-flow__node.schema-graph-node-added > div {
+    outline: 2px solid var(--vscode-gitDecoration-addedResourceForeground);
+    outline-offset: -1px;
+}
+
+.react-flow__node.schema-graph-node-modified > div {
+    outline: 2px solid var(--vscode-editorWarning-foreground);
+    outline-offset: -1px;
+}
+
+/* Edit-state edge highlights (op log): added/modified/dropped FK edges. */
+.react-flow__edge.schema-graph-edge-added .react-flow__edge-path {
+    stroke: var(--vscode-gitDecoration-addedResourceForeground);
+    stroke-width: 2;
+}
+
+.react-flow__edge.schema-graph-edge-added .react-flow__arrowhead path {
+    fill: var(--vscode-gitDecoration-addedResourceForeground);
+    stroke: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.react-flow__edge.schema-graph-edge-modified .react-flow__edge-path {
+    stroke: var(--vscode-editorWarning-foreground);
+    stroke-width: 2;
+}
+
+.react-flow__edge.schema-graph-edge-modified .react-flow__arrowhead path {
+    fill: var(--vscode-editorWarning-foreground);
+    stroke: var(--vscode-editorWarning-foreground);
+}
+
+.react-flow__edge.schema-graph-edge-deleted .react-flow__edge-path {
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground);
+    stroke-width: 2;
+}
+
+.react-flow__edge.schema-graph-edge-deleted .react-flow__arrowhead path {
+    fill: var(--vscode-gitDecoration-deletedResourceForeground);
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground);
+}

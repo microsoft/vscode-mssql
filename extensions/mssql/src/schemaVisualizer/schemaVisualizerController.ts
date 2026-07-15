@@ -20,6 +20,7 @@
  */
 
 import * as vscode from "vscode";
+import * as LocConstants from "../constants/locConstants";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
@@ -90,18 +91,21 @@ export class SchemaVisualizerWebviewController extends WebviewPanelController<
                 status: "initializing",
             },
             {
-                title: `${deps.database} (Schema Visualizer)`,
+                // Drop-in parity with the legacy designer document (same
+                // localized title and icon) — users should not be able to
+                // tell the surfaces apart from the editor tab.
+                title: `${LocConstants.SchemaDesigner.PanelTitle} - ${deps.database}`,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "designSchema_light.svg",
+                        "applicationQuickStart_light.svg",
                     ),
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "designSchema_dark.svg",
+                        "applicationQuickStart_dark.svg",
                     ),
                 },
                 showRestorePromptAfterClose: false,
