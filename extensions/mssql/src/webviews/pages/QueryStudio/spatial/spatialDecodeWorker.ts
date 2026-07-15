@@ -44,7 +44,10 @@ function decodeFeature(feature: SpatialDecodeRequest["features"][number]): Spati
     }
     try {
         const geometry = wkb.readGeometry(decodeBase64(feature.spatial.wkb));
-        const geometryObject = geoJson.writeGeometryObject(geometry) as Record<string, unknown>;
+        const geometryObject = geoJson.writeGeometryObject(geometry) as unknown as Record<
+            string,
+            unknown
+        >;
         const geometryType = geometry.getType();
         const coordinates = geometryObject["coordinates"];
         const analysis = analyzeSpatialCoordinates(geometryType, coordinates);

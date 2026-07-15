@@ -106,6 +106,7 @@
         "@types/sinon": "^10.0.12",
         "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
+        "@types/topojson-client": "^3.1.5",
         "@types/tunnel": "0.0.1",
         "@types/vscode": "1.101.0",
         "@types/vscode-webview": "^1.57.5",
@@ -142,6 +143,7 @@
         "typescript": "^5.8.3",
         "vscode-oniguruma": "^2.0.1",
         "vscode-textmate": "^9.3.2",
+        "world-atlas": "^2.0.2",
         "xliff": "^6.2.1",
         "yargs": "^17.7.2"
     },
@@ -183,6 +185,7 @@
         "tar": "^7.5.16",
         "tedious": "20.0.0",
         "tmp": "^0.2.7",
+        "topojson-client": "^3.1.0",
         "tunnel": "0.0.6",
         "vscode-jsonrpc": "^9.0.0",
         "vscode-languageclient": "10.0.0",
@@ -1176,6 +1179,14 @@
                 {
                     "command": "mssql.queryStudio.languageServiceStatus",
                     "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.spatialBasemap.clearCache",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
+                },
+                {
+                    "command": "mssql.spatialBasemap.clearConsent",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
                 },
                 {
                     "command": "mssql.metadataCache.showStatus",
@@ -2237,6 +2248,16 @@
                 "title": "Object Explorer v2: Refresh",
                 "category": "MS SQL",
                 "icon": "$(refresh)"
+            },
+            {
+                "command": "mssql.spatialBasemap.clearCache",
+                "title": "Spatial Map Layers: Clear Tile Cache",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.spatialBasemap.clearConsent",
+                "title": "Spatial Map Layers: Clear Layer Consent",
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.metadataCache.showStatus",
@@ -3612,6 +3633,102 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.queryStudio.spatial.enabled%",
+                    "scope": "application"
+                },
+                "mssql.queryStudio.spatial.basemap.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.queryStudio.spatial.basemap.enabled%",
+                    "scope": "application"
+                },
+                "mssql.queryStudio.spatial.basemap.sources": {
+                    "type": "array",
+                    "default": [],
+                    "markdownDescription": "%mssql.queryStudio.spatial.basemap.sources%",
+                    "scope": "application",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "displayName",
+                            "kind",
+                            "urlTemplate",
+                            "attribution"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "Stable ASCII identifier for this source (letters, digits, hyphens)."
+                            },
+                            "displayName": {
+                                "type": "string",
+                                "description": "Name shown in the Layers selector (plain text)."
+                            },
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "xyzRaster"
+                                ],
+                                "description": "Source protocol. Only host-proxied XYZ raster tiles are supported."
+                            },
+                            "urlTemplate": {
+                                "type": "string",
+                                "description": "HTTPS tile URL template containing exactly one {z}, {x}, and {y} placeholder and no other placeholders or credentials."
+                            },
+                            "minZoom": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 22
+                            },
+                            "maxZoom": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 22
+                            },
+                            "attribution": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "text"
+                                ],
+                                "properties": {
+                                    "text": {
+                                        "type": "string",
+                                        "description": "Attribution text shown over the map (plain text)."
+                                    },
+                                    "termsUrl": {
+                                        "type": "string",
+                                        "description": "Optional HTTPS link to the provider's terms."
+                                    }
+                                }
+                            },
+                            "credentialRef": {
+                                "type": "string",
+                                "description": "Optional SecretStorage key name (set via the MS SQL spatial map commands); the secret is sent host-side as an Authorization bearer token. Never place a secret in this setting."
+                            },
+                            "allowPrivateNetwork": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "Allow a source that resolves to loopback/private addresses (additional confirmation required)."
+                            }
+                        }
+                    }
+                },
+                "mssql.queryStudio.spatial.basemap.cache.maxMb": {
+                    "type": "number",
+                    "default": 128,
+                    "minimum": 16,
+                    "maximum": 1024,
+                    "description": "%mssql.queryStudio.spatial.basemap.cache.maxMb%",
+                    "scope": "application"
+                },
+                "mssql.queryStudio.spatial.basemap.cache.maxAgeDays": {
+                    "type": "number",
+                    "default": 30,
+                    "minimum": 1,
+                    "maximum": 365,
+                    "description": "%mssql.queryStudio.spatial.basemap.cache.maxAgeDays%",
                     "scope": "application"
                 },
                 "mssql.queryStudio.statusBarGroupColor": {

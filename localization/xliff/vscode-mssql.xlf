@@ -9008,6 +9008,9 @@
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect (MSSQL)</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.cache.maxMb">
+      <source xml:lang="en">Disk budget for cached spatial map tiles (MB). Tiles are evicted by size and age; use &quot;MS SQL: Spatial Map Layers: Clear Tile Cache&quot; to remove them immediately.</source>
+    </trans-unit>
     <trans-unit id="mssql.quickQueries.name">
       <source xml:lang="en">Display name for this Quick Query.</source>
     </trans-unit>
@@ -9119,6 +9122,9 @@
     <trans-unit id="mssql.queryStudio.spatial.enabled">
       <source xml:lang="en">Enable the Spatial results tab (preview): queries with native geometry or geography columns transport complete typed WKB and gain the offline spatial analysis pane. Applies to the next query execution.</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.enabled">
+      <source xml:lang="en">Enable the Spatial tab&apos;s Layers selector (preview): an offline world outline and, when configured and consented, host-proxied online map tile sources. The default layer is always None; no map network requests happen without an explicit per-source confirmation.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>
     </trans-unit>
@@ -9203,6 +9209,9 @@
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.cache.maxAgeDays">
+      <source xml:lang="en">Maximum age for cached spatial map tiles (days).</source>
+    </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
     </trans-unit>
@@ -9256,6 +9265,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
       <source xml:lang="en">Object Explorer filters</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources">
+      <source xml:lang="en">Online map tile sources for the Spatial tab (user settings only — workspace values are ignored). Each source is a host-proxied HTTPS XYZ raster endpoint; the Query Studio webview never contacts the provider directly. Selecting a source requires a one-time confirmation because tile requests reveal the approximate viewed area to the provider.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
