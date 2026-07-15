@@ -183,7 +183,9 @@ suite("RowStore", () => {
                     Array.from({ length: 10 }, (_, r) => [r]),
                 ),
             ),
-        ).to.equal(true);
+        ).to.deep.include({ acceptedRows: 10, truncated: false });
+        // The crossing page is TRIMMED to the cap boundary, never dropped
+        // whole — the store lands exactly maxRowsPerResultSet.
         expect(
             await store.appendPage(
                 "rs1",
@@ -192,10 +194,10 @@ suite("RowStore", () => {
                     Array.from({ length: 10 }, (_, r) => [10 + r]),
                 ),
             ),
-        ).to.equal(false);
+        ).to.deep.include({ acceptedRows: 5, truncated: true });
         const summary = store.summary("rs1");
         expect(summary?.truncatedReason).to.equal("maxRowsPerResultSet");
-        expect(summary?.rowCount).to.equal(10);
+        expect(summary?.rowCount).to.equal(15);
         store.dispose();
     });
 
