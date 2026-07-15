@@ -61,6 +61,13 @@ import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedIn
 
 export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
 
+/**
+ * Cache-buster for UNHASHED webview entry assets (see _getHtmlTemplate).
+ * One stamp per extension-host session: new host = fresh fetch, same host =
+ * normal caching.
+ */
+const WEBVIEW_ASSET_STAMP = Date.now().toString(36);
+
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -253,6 +260,13 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 
     protected _getHtmlTemplate() {
         const nonce = getNonce();
+        // VS Code's webview service worker caches resources by URL, and the
+        // ENTRY bundle/stylesheet names are unhashed (queryStudio.js, ….css):
+        // after a rebuild a new webview can silently render a STALE cached
+        // bundle (chunks are content-hashed; only entries are at risk). The
+        // per-host-session stamp busts that cache on every extension-host
+        // start while still caching within a session.
+        const assetStamp = `?v=${WEBVIEW_ASSET_STAMP}`;
 
         const baseUrl = this._getWebview().asWebviewUri(
             vscode.Uri.joinPath(this._context.extensionUri, "dist", "views"),
@@ -293,9 +307,9 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 				</style>
 				</head>
 				<body>
-					<link rel="stylesheet" href="${this._sourceFile}.css">
+					<link rel="stylesheet" href="${this._sourceFile}.css${assetStamp}">
 					<div id="root"></div>
-				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js"></script> <!-- since our bundles are in esm format we need to use type="module" -->
+				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js${assetStamp}"></script> <!-- since our bundles are in esm format we need to use type="module" -->
 				</body>
 			</html>
 		`;
