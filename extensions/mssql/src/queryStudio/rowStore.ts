@@ -54,6 +54,47 @@ export const DEFAULT_LIMITS: RowStoreLimits = {
     maxRowsPerResultSet: 5_000_000,
 };
 
+export interface RowStoreAppendResult {
+    /** Rows actually stored from this page (a cap-crossing page is trimmed). */
+    acceptedRows: number;
+    /** Estimated bytes for the accepted rows (drives host byte accounting). */
+    acceptedApproxBytes: number;
+    /** The set hit a limit — `summary().truncatedReason` says which. */
+    truncated: boolean;
+}
+
+/**
+ * Keep the first `keep` rows of a cap-crossing page. The null bitmap is
+ * row-major LSB-first (`bitmapHasBit`), so keeping the first
+ * `keep * columnCount` bits is a prefix byte slice; stale bits in the final
+ * byte index rows ≥ keep, which are never queried once rowCount = keep.
+ * approxBytes is an estimate — scaled proportionally.
+ */
+export function trimPageToRowCap(
+    page: { rowOffset: number; rowCount: number; approxBytes: number; compact: CompactPage },
+    keep: number,
+    columnCount: number,
+): { rowOffset: number; rowCount: number; approxBytes: number; compact: CompactPage } {
+    const values = page.compact.values.slice(0, keep);
+    let nullBitmap = page.compact.nullBitmap;
+    if (nullBitmap !== undefined) {
+        const bytes = Buffer.from(nullBitmap, "base64");
+        nullBitmap = bytes
+            .subarray(0, Math.ceil((keep * Math.max(1, columnCount)) / 8))
+            .toString("base64");
+    }
+    return {
+        rowOffset: page.rowOffset,
+        rowCount: keep,
+        approxBytes: Math.max(1, Math.round((page.approxBytes * keep) / page.rowCount)),
+        compact: {
+            values,
+            ...(nullBitmap !== undefined ? { nullBitmap } : {}),
+            ...(page.compact.typeHints ? { typeHints: page.compact.typeHints } : {}),
+        },
+    };
+}
+
 /** QO-6 cache/backpressure knobs (QueryTuning params; defaults mirror the registry). */
 export interface RowStoreTuning {
     /** Spill queue saturation point — appendPage awaits below this. */
@@ -199,48 +240,60 @@ export class RowStore {
     }
 
     /**
-     * Append a page; resolves false when the row cap or a storage limit
-     * truncated the set (`summary().truncatedReason` says which). Awaits
-     * spill-queue capacity when saturated — this is the backpressure point
-     * that holds the STS2 ack (invariant: ack = real bounded acceptance).
+     * Append a page; the result reports how many of the page's rows were
+     * actually accepted and whether the set is now truncated
+     * (`summary().truncatedReason` says why). A page that CROSSES the row
+     * cap is trimmed to the cap boundary — the store lands EXACTLY
+     * `maxRowsPerResultSet` rows, never fewer (pages are variable-sized:
+     * pageBytes can close them early, so the crossing page routinely holds
+     * hundreds of rows). Awaits spill-queue capacity when saturated — this
+     * is the backpressure point that holds the STS2 ack (invariant: ack =
+     * real bounded acceptance).
      */
     async appendPage(
         resultSetId: string,
         page: { rowOffset: number; rowCount: number; approxBytes: number; compact: CompactPage },
-    ): Promise<boolean> {
+    ): Promise<RowStoreAppendResult> {
         const set = this.resultSets.get(resultSetId);
         if (!set || this.disposed) {
-            return false;
+            return { acceptedRows: 0, acceptedApproxBytes: 0, truncated: false };
         }
-        if (set.rowCount + page.rowCount > this.limits.maxRowsPerResultSet) {
+        let toStore = page;
+        let truncated = false;
+        const remaining = this.limits.maxRowsPerResultSet - set.rowCount;
+        if (page.rowCount > remaining) {
             set.truncatedReason = "maxRowsPerResultSet";
-            return false;
+            truncated = true;
+            if (remaining <= 0) {
+                return { acceptedRows: 0, acceptedApproxBytes: 0, truncated: true };
+            }
+            toStore = trimPageToRowCap(page, remaining, set.columns.length);
         }
         if (this.spillFailed) {
             set.truncatedReason = "spillLimit";
-            return false;
+            return { acceptedRows: 0, acceptedApproxBytes: 0, truncated: true };
         }
         if (
             !this.limits.spillEnabled &&
-            this.memoryBytes + page.approxBytes >
+            this.memoryBytes + toStore.approxBytes >
                 this.limits.maxMemoryBytes + this.tuning.maxPendingSpillBytes
         ) {
             // No spill and past the hard memory allowance: honest refusal —
             // the orchestrator cancels with a clear storage-limit message.
             set.truncatedReason = "memoryLimit";
-            return false;
+            return { acceptedRows: 0, acceptedApproxBytes: 0, truncated: true };
         }
         const startedAt = performance.now();
-        set.typeHints ??= page.compact.typeHints;
+        set.typeHints ??= toStore.compact.typeHints;
         const stored: StoredPage = {
-            rowOffset: page.rowOffset,
-            rowCount: page.rowCount,
-            approxBytes: page.approxBytes,
-            compact: page.compact,
+            rowOffset: toStore.rowOffset,
+            rowCount: toStore.rowCount,
+            approxBytes: toStore.approxBytes,
+            compact: toStore.compact,
         };
         set.pages.push(stored);
-        set.rowCount += page.rowCount;
-        this.memoryBytes += page.approxBytes;
+        set.rowCount += toStore.rowCount;
+        this.memoryBytes += toStore.approxBytes;
         this.memoryBytesPeak = Math.max(this.memoryBytesPeak, this.memoryBytes);
         this.probationary.push({ set, page: stored });
         this.evictIfNeeded();
@@ -249,8 +302,8 @@ export class RowStore {
         if (this.verbose) {
             Perf.marker("mssql.queryStudio.rows.append", "instant", {
                 resultSetId,
-                rows: page.rowCount,
-                bytes: page.approxBytes,
+                rows: toStore.rowCount,
+                bytes: toStore.approxBytes,
                 ms: roundMs(elapsed),
             });
         }
@@ -261,10 +314,20 @@ export class RowStore {
         }
         if (this.spillFailed) {
             // Storage limit / write failure surfaced while this page waited.
+            // The rows above WERE accepted and remain served from memory —
+            // report them; the truncation flag stops the run.
             set.truncatedReason ??= "spillLimit";
-            return false;
+            return {
+                acceptedRows: toStore.rowCount,
+                acceptedApproxBytes: toStore.approxBytes,
+                truncated: true,
+            };
         }
-        return true;
+        return {
+            acceptedRows: toStore.rowCount,
+            acceptedApproxBytes: toStore.approxBytes,
+            truncated,
+        };
     }
 
     /**

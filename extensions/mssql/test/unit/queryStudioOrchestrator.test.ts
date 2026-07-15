@@ -547,6 +547,54 @@ suite("Query Studio execution orchestrator", () => {
         rowStore.dispose();
     });
 
+    test("a cap-crossing multi-row page is trimmed so the store lands EXACTLY the cap", async () => {
+        // Pages are variable-sized (pageBytes can close them early), so the
+        // page that crosses the cap routinely carries many rows. Dropping it
+        // whole left the grid short of the advertised limit (5M repro:
+        // 4,999,767 of 5,000,000). pageSize 4 with cap 10 forces the third
+        // page (rows 8..11) to cross with 2 rows of remaining capacity.
+        const backend = new FakeBackend({
+            scripts: [
+                {
+                    match: () => true,
+                    events: [
+                        {
+                            type: "resultSet",
+                            columns: ["n"],
+                            rows: Array.from({ length: 20 }, (_, i) => [i]),
+                            pageSize: 4,
+                        },
+                        { type: "complete", status: "succeeded" },
+                    ],
+                },
+            ],
+        });
+        const session = await sessionFor(backend);
+        const rowStore = new RowStore(fs.mkdtempSync(path.join(os.tmpdir(), "qs-orch-")), {
+            ...DEFAULT_LIMITS,
+            maxRowsPerResultSet: 10,
+        });
+        const events = new RecordingEvents();
+        const orchestrator = new ExecutionOrchestrator(session, rowStore, events);
+        const result = await orchestrator.run("select too_much", {
+            selectionStartLine: 1,
+            stopOnError: false,
+            scope: "document",
+        });
+        const storeId = events.resultSets[0];
+        const summary = rowStore.summary(storeId);
+
+        expect(result.status).to.equal("canceled");
+        expect(summary?.rowCount).to.equal(10);
+        expect(result.totalRows).to.equal(10);
+        expect(summary?.truncatedReason).to.equal("maxRowsPerResultSet");
+        // The trimmed rows are real and servable: the final row is row 9.
+        const window = await rowStore.getRows(storeId, 8, 2, "grid");
+        expect(window.rowCount).to.equal(2);
+        expect(window.values.map((row) => row[0])).to.deep.equal([8, 9]);
+        rowStore.dispose();
+    });
+
     test("GO n repeats a batch and store ids stay distinct per repetition", async () => {
         const backend = new FakeBackend({
             scripts: [

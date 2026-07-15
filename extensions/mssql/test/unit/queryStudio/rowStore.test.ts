@@ -7,7 +7,7 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { RowStore } from "../../../src/queryStudio/rowStore";
+import { DEFAULT_LIMITS, RowStore } from "../../../src/queryStudio/rowStore";
 
 suite("Query Studio RowStore", () => {
     test("serves high-offset windows from many small pages", async () => {
@@ -117,7 +117,7 @@ suite("Query Studio RowStore", () => {
         expect(fs.existsSync(spillDir)).to.equal(false);
     });
 
-    test("row cap rejects the overflowing page and records the truncation reason", async () => {
+    test("row cap trims the overflowing page and records the truncation reason", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir, {
             maxMemoryBytes: 64 * 1024 * 1024,
@@ -134,7 +134,9 @@ suite("Query Studio RowStore", () => {
                     approxBytes: 100,
                     compact: { values: Array.from({ length: 10 }, (_, r) => [r]) },
                 }),
-            ).to.equal(true);
+            ).to.deep.include({ acceptedRows: 10, truncated: false });
+            // The crossing page lands its first 5 rows: exactly the cap,
+            // never fewer (the 5M dogfood repro landed 4,999,767).
             expect(
                 await store.appendPage("r0", {
                     rowOffset: 10,
@@ -142,9 +144,9 @@ suite("Query Studio RowStore", () => {
                     approxBytes: 100,
                     compact: { values: Array.from({ length: 10 }, (_, r) => [10 + r]) },
                 }),
-            ).to.equal(false);
+            ).to.deep.include({ acceptedRows: 5, truncated: true });
             expect(store.summary("r0")?.truncatedReason).to.equal("maxRowsPerResultSet");
-            expect(store.summary("r0")?.rowCount).to.equal(10);
+            expect(store.summary("r0")?.rowCount).to.equal(15);
         } finally {
             store.dispose();
         }
@@ -401,6 +403,80 @@ suite("Query Studio RowStore", () => {
         }
     });
 
+    test("a page crossing maxRowsPerResultSet is trimmed to land exactly the cap", async () => {
+        const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
+        const store = new RowStore(spillDir, {
+            ...DEFAULT_LIMITS,
+            maxRowsPerResultSet: 5,
+        });
+        try {
+            store.beginResultSet("r0", [
+                { name: "a", displayName: "a" },
+                { name: "b", displayName: "b" },
+            ]);
+            const first = await store.appendPage("r0", {
+                rowOffset: 0,
+                rowCount: 3,
+                approxBytes: 300,
+                compact: {
+                    values: [
+                        [0, "x"],
+                        [1, "y"],
+                        [2, "z"],
+                    ],
+                },
+            });
+            expect(first).to.deep.include({ acceptedRows: 3, truncated: false });
+
+            // Crossing page: 4 rows arrive, 2 fit. Row 1 carries a NULL in
+            // column b — its bit must survive the bitmap prefix trim.
+            const crossing = await store.appendPage("r0", {
+                rowOffset: 3,
+                rowCount: 4,
+                approxBytes: 400,
+                compact: {
+                    values: [
+                        [3, undefined],
+                        [4, "w"],
+                        [5, "v"],
+                        [6, "u"],
+                    ],
+                    // row-major LSB-first bits (1 = NULL): row0 col b = bit 1.
+                    nullBitmap: Buffer.from([0b0000_0010]).toString("base64"),
+                },
+            });
+            expect(crossing.acceptedRows).to.equal(2);
+            expect(crossing.truncated).to.equal(true);
+            expect(crossing.acceptedApproxBytes).to.equal(200);
+            expect(store.summary("r0")?.rowCount).to.equal(5);
+            expect(store.summary("r0")?.truncatedReason).to.equal("maxRowsPerResultSet");
+
+            const window = await store.getRows("r0", 3, 2, "grid");
+            expect(window.rowCount).to.equal(2);
+            expect(window.values.map((row) => row[0])).to.deep.equal([3, 4]);
+            const bits = Buffer.from(window.nullBitmap!, "base64");
+            expect((bits[0] & 0b0000_0010) !== 0).to.equal(true); // row 3 col b NULL
+            expect((bits[0] & 0b0000_1000) !== 0).to.equal(false); // row 4 col b not NULL
+
+            // Once at the cap, later pages are refused whole.
+            const after = await store.appendPage("r0", {
+                rowOffset: 5,
+                rowCount: 2,
+                approxBytes: 100,
+                compact: {
+                    values: [
+                        [7, "t"],
+                        [8, "s"],
+                    ],
+                },
+            });
+            expect(after).to.deep.include({ acceptedRows: 0, truncated: true });
+            expect(store.summary("r0")?.rowCount).to.equal(5);
+        } finally {
+            store.dispose();
+        }
+    });
+
     test("spill cap rejects with spillLimit and the run truncates honestly (QO-6)", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir, {
@@ -411,9 +487,9 @@ suite("Query Studio RowStore", () => {
         });
         try {
             store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
-            let accepted = true;
-            for (let i = 0; i < 200 && accepted; i++) {
-                accepted = await store.appendPage("r0", {
+            let truncated = false;
+            for (let i = 0; i < 200 && !truncated; i++) {
+                const append = await store.appendPage("r0", {
                     rowOffset: i * 10,
                     rowCount: 10,
                     approxBytes: 600,
@@ -421,9 +497,10 @@ suite("Query Studio RowStore", () => {
                         values: Array.from({ length: 10 }, (_, r) => [`row-${i * 10 + r}`]),
                     },
                 });
+                truncated = append.truncated;
                 await store.flushSpill();
             }
-            expect(accepted).to.equal(false);
+            expect(truncated).to.equal(true);
             expect(store.summary("r0")?.truncatedReason).to.equal("spillLimit");
         } finally {
             store.dispose();

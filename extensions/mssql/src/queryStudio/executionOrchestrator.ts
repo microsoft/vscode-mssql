@@ -690,19 +690,30 @@ export class ExecutionOrchestrator {
                 const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${page.resultSetId}`;
                 // Async acceptance (QO-6): this await is the backpressure
                 // point — the STS2 ack is held while the spill queue drains.
-                const accepted = await rowStore.appendPage(storeId, {
+                const append = await rowStore.appendPage(storeId, {
                     rowOffset: page.rowOffset,
                     rowCount: page.rowCount,
                     approxBytes: page.approxBytes,
                     compact: page.compact,
                 });
-                if (accepted) {
-                    onRows(page.rowCount);
+                if (append.acceptedRows > 0) {
+                    // A cap-crossing page is trimmed, not dropped: the store
+                    // lands EXACTLY the row limit, and the reported count
+                    // must follow the ACCEPTED rows (host summaries and the
+                    // grid caption are fed from onRowsAppended).
+                    onRows(append.acceptedRows);
                     rowCounts.set(
                         page.resultSetId,
-                        (rowCounts.get(page.resultSetId) ?? 0) + page.rowCount,
+                        (rowCounts.get(page.resultSetId) ?? 0) + append.acceptedRows,
                     );
-                    events.onRowsAppended(storeId, page.rowCount, page.approxBytes, false);
+                    events.onRowsAppended(
+                        storeId,
+                        append.acceptedRows,
+                        append.acceptedApproxBytes,
+                        false,
+                    );
+                }
+                if (!append.truncated) {
                     return;
                 }
                 const storeSummary = rowStore.summary(storeId);
