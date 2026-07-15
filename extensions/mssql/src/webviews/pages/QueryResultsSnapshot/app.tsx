@@ -16,6 +16,7 @@ import * as React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { installDocumentScrollBackstop } from "../../common/documentScrollBackstop";
 import { locConstants } from "../../common/locConstants";
 import {
     PinnedResultsState,
@@ -93,6 +94,20 @@ export function PinnedResultsApp() {
         document.addEventListener("visibilitychange", onVisibilityChange);
         return () => document.removeEventListener("visibilitychange", onVisibilityChange);
     }, []);
+
+    // Same document-scroll discipline as the live Query Studio shell.
+    useEffect(
+        () =>
+            installDocumentScrollBackstop((violation) =>
+                rpc.log.error(
+                    "Pinned results document scrolled (backstopped to 0)",
+                    violation.element,
+                    `top=${violation.scrollTop} left=${violation.scrollLeft}`,
+                    violation.activeElement,
+                ),
+            ),
+        [rpc],
+    );
 
     const flushPanelViewState = useCallback(() => {
         if (panelViewStateTimerRef.current) {

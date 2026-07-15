@@ -19,6 +19,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import type * as monacoNs from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { installDocumentScrollBackstop } from "../../common/documentScrollBackstop";
 import {
     perfMark,
     perfMarkAfterNextPaint,
@@ -474,6 +475,23 @@ export function QueryStudioApp() {
                 label,
                 `${error.name}: ${error.message}`.slice(0, 2_000),
                 componentStack?.slice(0, 8_000),
+            ),
+        [rpc],
+    );
+
+    // The document chain (html/body/#root) never scrolls in this shell —
+    // panes own their scrollbars. Programmatic reveals against a mis-sized
+    // pane can still scroll clipped ancestors, shifting the whole UI and
+    // stranding dead space under the status bar; pin it and log the culprit.
+    useEffect(
+        () =>
+            installDocumentScrollBackstop((violation) =>
+                rpc.log.error(
+                    "Query Studio document scrolled (backstopped to 0)",
+                    violation.element,
+                    `top=${violation.scrollTop} left=${violation.scrollLeft}`,
+                    violation.activeElement,
+                ),
             ),
         [rpc],
     );
