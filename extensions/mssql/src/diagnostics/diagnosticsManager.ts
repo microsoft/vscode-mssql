@@ -12,6 +12,7 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import { initializeCompletionsCaptureJournal } from "../copilot/inlineCompletionDebug/completionsJournalBinding";
 import { CaptureMode, ProvenanceSummary } from "../sharedInterfaces/debugConsole";
 import { diag, newTraceId } from "./diagnosticsCore";
 import { richStats } from "./richCollection";
@@ -102,6 +103,14 @@ export class DiagnosticsManager implements vscode.Disposable {
         // sessions become `partial`; activation never waits on it.
         void this.bundleManager.reconcileOnStartup().catch(() => {
             // reconcile reports its own issues; never disturb activation
+        });
+        // WI-2.4: completions capture-journal dual-write (M2 dark journal),
+        // gated by the Amendment C settings mapping. Failure-isolated: a
+        // journal that cannot start never affects completions or the ring.
+        initializeCompletionsCaptureJournal(context, {
+            storeRoot: this.store.storeRoot,
+            hostSessionId: diag.sessionId,
+            bundleManager: this.bundleManager,
         });
         this.applySettings();
         this.applyRichSetting();

@@ -52,7 +52,16 @@ export class SessionStore {
                 ) as SessionManifest;
                 sessions.push({ manifest, dir });
             } catch {
-                // unreadable session: skip (never delete silently)
+                // WI-2.3 gap fix (WI-2.5): a session whose only artifacts are
+                // rich captures/replay runs never wrote a diag manifest.json —
+                // it has a bundle.json instead. Admit it with a synthesized
+                // metadata-only manifest so retention, clear-all, validation,
+                // and source listing cover its bytes too. Sessions with
+                // neither file stay skipped (never delete silently).
+                const bundle = readBundleFile(dir);
+                if (bundle) {
+                    sessions.push({ manifest: manifestFromBundle(bundle), dir });
+                }
             }
         }
         return sessions.sort((a, b) => b.manifest.createdUtc.localeCompare(a.manifest.createdUtc));
@@ -455,6 +464,30 @@ export class SessionStore {
         this.cache.clear();
         return { removed };
     }
+}
+
+/**
+ * Synthesized diag manifest for a bundle-only session directory (no Plane-A
+ * capture ever ran): zero diag events/segments, size and status from the
+ * bundle catalog. Lets every manifest-driven store path (retention budgets,
+ * clear-all, validation, source listing) treat the session honestly.
+ */
+function manifestFromBundle(bundle: ObservabilityBundleV1): SessionManifest {
+    return {
+        schemaVersion: "mssql.diag.sessionManifest/1",
+        sessionId: bundle.hostSessionId,
+        createdUtc: bundle.createdUtc,
+        updatedUtc: bundle.updatedUtc,
+        source: "bundle",
+        captureMode: "off",
+        policyId: "none",
+        eventCount: 0,
+        gapCount: 0,
+        segments: [],
+        sizeBytes: bundle.totals?.bytes ?? 0,
+        provenance: bundle.provenance ?? {},
+        status: bundle.status,
+    };
 }
 
 /** Parse a session's bundle catalog; undefined for legacy/corrupt (fallback applies). */

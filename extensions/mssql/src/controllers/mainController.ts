@@ -121,6 +121,7 @@ import {
     getConfiguredTraceFolder,
     saveInlineCompletionTraceOnDeactivate,
 } from "../copilot/inlineCompletionDebug/tracePersistence";
+import { flushCompletionsCaptureJournalOnDeactivate } from "../copilot/inlineCompletionDebug/completionsJournalBinding";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
@@ -314,7 +315,10 @@ export default class MainController implements vscode.Disposable {
         }
         this._deactivated = true;
         this._logger.debug("Extension de-activated.");
+        // M2 dual-write: the legacy trace save stays authoritative for the
+        // Live UI; the journal flush barrier (WI-2.4) runs right after it.
         await saveInlineCompletionTraceOnDeactivate(this._context);
+        await flushCompletionsCaptureJournalOnDeactivate();
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();
         this._shortcutsConfigurationController = undefined;

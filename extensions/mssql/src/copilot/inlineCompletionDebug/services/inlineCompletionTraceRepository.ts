@@ -37,6 +37,11 @@ import {
     getTraceCaptureEnabledSetting,
     saveInlineCompletionTraceNow,
 } from "../tracePersistence";
+import {
+    completionsStoredSessionsConfigured,
+    listStoredCompletionSessionEntries,
+    loadStoredCompletionSessionTrace,
+} from "../storedSessionProvider";
 import { getRecordWhenClosedSetting } from "./inlineCompletionCaptureService";
 import { InlineCompletionDebugHostServices } from "./inlineCompletionDebugHostServices";
 
@@ -118,10 +123,29 @@ export class InlineCompletionTraceRepository {
                 hadExistingIndex ? includedFileKeys : new Set(),
                 loadedFileKeys,
             );
+            // WI-2.5: journal-backed capture sessions from the local store,
+            // side by side with folder/imported files (manifest-only index;
+            // the current live epoch is excluded by the provider). Failure
+            // here never breaks the folder dataset.
+            let storedEntries: InlineCompletionDebugSessionsState["traceIndex"] = [];
+            if (completionsStoredSessionsConfigured()) {
+                try {
+                    storedEntries = await listStoredCompletionSessionEntries({
+                        includedFileKeys,
+                        loadedFileKeys,
+                        hadExistingIndex,
+                    });
+                } catch {
+                    storedEntries = [];
+                }
+            }
             const importedEntries = this._sessionsState.traceIndex.filter(
                 (entry) => entry.imported,
             );
-            const mergedEntries = mergeTraceIndexEntries(folderEntries, importedEntries);
+            const mergedEntries = mergeTraceIndexEntries(
+                [...folderEntries, ...storedEntries],
+                importedEntries,
+            );
 
             this._sessionsState = {
                 ...this._sessionsState,
@@ -211,7 +235,7 @@ export class InlineCompletionTraceRepository {
         const loadErrors = new Map<string, string>();
         for (const entry of unloadedEntries) {
             try {
-                const trace = await loadTraceFile(entry.path);
+                const trace = await loadTraceForEntry(entry);
                 cached.set(entry.fileKey, trace);
                 newlyLoaded.push({ fileKey: entry.fileKey, trace });
             } catch (error) {
@@ -425,7 +449,7 @@ export class InlineCompletionTraceRepository {
         }
 
         try {
-            const trace = await loadTraceFile(entry.path);
+            const trace = await loadTraceForEntry(entry);
             const loaded = { fileKey, trace };
             this.setSessionsState({
                 ...this._sessionsState,
@@ -470,6 +494,20 @@ export class InlineCompletionTraceRepository {
             this._onDidChangeEmitter.fire();
         }
     }
+}
+
+/**
+ * Load the full trace behind one dataset entry: stored sessions go through
+ * the journal reader + compatibility projection (WI-2.5); everything else
+ * stays the untrusted-file loader.
+ */
+async function loadTraceForEntry(
+    entry: InlineCompletionDebugSessionsState["traceIndex"][number],
+): Promise<InlineCompletionDebugExportData> {
+    if (entry.sourceKind === "storedSession") {
+        return loadStoredCompletionSessionTrace(entry);
+    }
+    return loadTraceFile(entry.path);
 }
 
 export function createEmptySessionsState(traceFolder: string): InlineCompletionDebugSessionsState {

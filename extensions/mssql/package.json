@@ -1638,6 +1638,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.copilot.completions.journal.reconcile",
+                "title": "Completions: Reconcile Capture Journal (Developer)",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.runQuery",
                 "title": "%mssql.runQuery%",
                 "category": "MS SQL",

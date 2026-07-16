@@ -45,12 +45,15 @@ const SCAN_OPTIONS = {
         trace: InlineCompletionDebugExportData,
     ): InlineCompletionDebugTraceIndexEntry => ({
         ...base,
+        sourceKind: base.imported ? "imported" : "folder",
         profile: inferProfile(trace),
         schemaMode: inferSchemaMode(trace.events[0]),
         schemaSizeKind: inferSchemaSizeKind(trace.events[0]),
     }),
-    createErrorEntry: (base: FeatureTraceIndexEntryBase): InlineCompletionDebugTraceIndexEntry =>
-        base,
+    createErrorEntry: (base: FeatureTraceIndexEntryBase): InlineCompletionDebugTraceIndexEntry => ({
+        ...base,
+        sourceKind: base.imported ? "imported" : "folder",
+    }),
 };
 
 export async function scanTraceFolder(

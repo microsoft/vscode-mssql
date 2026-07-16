@@ -321,6 +321,33 @@ export class FeatureCaptureJournalWriter<
         await this._flushChain;
     }
 
+    /**
+     * Cheap totals snapshot for catalog notifications (WI-2.4): what the
+     * bundle descriptor needs — counts, bytes, drops, and the manifest-status
+     * the next checkpoint would claim — without touching the filesystem.
+     */
+    public statsSnapshot(): {
+        records: number;
+        events: number;
+        bytes: number;
+        droppedRecords: number;
+        status: "active" | "closed" | "partial";
+    } {
+        const droppedRecords = this._droppedRanges.reduce(
+            (sum, range) => sum + (range.throughRecordSeq - range.fromRecordSeq + 1),
+            0,
+        );
+        return {
+            ...this._totals,
+            droppedRecords,
+            status: this._closed
+                ? this._hadAppendFailure || this._state === "failed"
+                    ? "partial"
+                    : "closed"
+                : "active",
+        };
+    }
+
     public health(): FeatureCaptureJournalWriterHealth {
         const droppedRecords = this._droppedRanges.reduce(
             (sum, range) => sum + (range.throughRecordSeq - range.fromRecordSeq + 1),

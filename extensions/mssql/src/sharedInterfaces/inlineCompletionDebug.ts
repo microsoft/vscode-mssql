@@ -423,6 +423,18 @@ export interface InlineCompletionDebugExportData {
     events: InlineCompletionDebugEvent[];
 }
 
+/**
+ * Where a Sessions dataset entry came from (additive, WI-2.5):
+ * - "folder": a trace file discovered in the configured trace folder;
+ * - "imported": a trace file the user added explicitly;
+ * - "storedSession": a journal-backed capture session from the local
+ *   observability store (indexed from its manifest only; read-only in this
+ *   stage — retention owns deletion).
+ * Absent on entries produced before the field existed (treat as folder/
+ * imported via the `imported` flag).
+ */
+export type InlineCompletionDebugTraceSourceKind = "folder" | "imported" | "storedSession";
+
 export interface InlineCompletionDebugTraceIndexEntry {
     fileKey: string;
     filename: string;
@@ -442,6 +454,11 @@ export interface InlineCompletionDebugTraceIndexEntry {
     loaded: boolean;
     imported: boolean;
     loadError?: string;
+    sourceKind?: InlineCompletionDebugTraceSourceKind;
+    /** Stored sessions only: capture policy id from the stream manifest. */
+    capturePolicyId?: string;
+    /** Stored sessions only: journal record count from the stream manifest. */
+    recordCount?: number;
 }
 
 export interface InlineCompletionDebugLoadedTrace {

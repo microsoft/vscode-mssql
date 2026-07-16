@@ -866,7 +866,11 @@ function featureCaptureManifestToArtifact(
     nowUtc: string,
 ): ObservabilityArtifactDescriptorV1 {
     return {
-        artifactId: `fc-${manifest.stream?.captureSessionId ?? captureSessionId}`,
+        // Keyed by the stream DIRECTORY name, matching live registration
+        // (WI-2.4): a mid-epoch policy roll produces sibling directories
+        // (`<epoch>--2`) that must stay distinct artifacts even though the
+        // manifest's captureSessionId is the shared epoch id.
+        artifactId: `fc-${captureSessionId}`,
         kind: "featureCapture",
         featureId: manifest.stream?.featureId ?? "unknown",
         schema: manifest.schema,

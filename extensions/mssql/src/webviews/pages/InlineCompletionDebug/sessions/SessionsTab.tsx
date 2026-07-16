@@ -172,10 +172,21 @@ const useStyles = makeStyles({
     },
     datasetTable: {
         display: "grid",
-        gridTemplateColumns: "34px minmax(260px, 1fr) 180px 72px 82px 108px 108px 152px",
+        gridTemplateColumns: "34px minmax(230px, 1fr) 66px 180px 72px 82px 108px 108px 152px",
         maxHeight: "176px",
         overflowY: "auto",
         ...shorthands.borderTop("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    sourceBadge: {
+        display: "inline-block",
+        fontSize: tokens.fontSizeBase100,
+        lineHeight: "14px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: "var(--vscode-descriptionForeground)",
+        ...shorthands.border("1px", "solid", "var(--vscode-panel-border)"),
+        ...shorthands.borderRadius("2px"),
+        ...shorthands.padding("0", "4px"),
     },
     tableHeader: {
         position: "sticky",
@@ -1118,15 +1129,23 @@ function DatasetSelector({
             </div>
             {fileListOpen ? (
                 <div className={classes.datasetTable}>
-                    {["", "Filename", "Saved", "Events", "Size", "Profile", "Schema", "Replay"].map(
-                        (label) => (
-                            <div
-                                key={label || "checkbox"}
-                                className={mergeClasses(classes.datasetCell, classes.tableHeader)}>
-                                {label}
-                            </div>
-                        ),
-                    )}
+                    {[
+                        "",
+                        "Filename",
+                        "Source",
+                        "Saved",
+                        "Events",
+                        "Size",
+                        "Profile",
+                        "Schema",
+                        "Replay",
+                    ].map((label) => (
+                        <div
+                            key={label || "checkbox"}
+                            className={mergeClasses(classes.datasetCell, classes.tableHeader)}>
+                            {label}
+                        </div>
+                    ))}
                     {entries.map((entry) => (
                         <TraceRow key={entry.fileKey} entry={entry} onToggleTrace={onToggleTrace} />
                     ))}
@@ -1161,6 +1180,11 @@ function TraceRow({
                     addSessionToReplayCart(entry.fileKey);
                 }}>
                 {entry.filename}
+            </div>
+            <div className={classes.datasetCell}>
+                <span className={classes.sourceBadge} title={traceSourceTitle(entry)}>
+                    {traceSourceLabel(entry)}
+                </span>
             </div>
             <div className={mergeClasses(classes.datasetCell, classes.mono, classes.savedCell)}>
                 {entry.savedAt ? formatShortDate(entry.savedAt) : "--"}
@@ -1985,6 +2009,27 @@ function getDatasetRange(entries: InlineCompletionDebugTraceIndexEntry[]): strin
         return undefined;
     }
     return `${formatDateOnly(Math.min(...starts))} -> ${formatDateOnly(Math.max(...ends))}`;
+}
+
+/** Compact source badge text (WI-2.5); older entries fall back to the imported flag. */
+function traceSourceLabel(entry: InlineCompletionDebugTraceIndexEntry): string {
+    if (entry.sourceKind === "storedSession") {
+        return "session";
+    }
+    if (entry.sourceKind === "imported" || (entry.sourceKind === undefined && entry.imported)) {
+        return "import";
+    }
+    return "file";
+}
+
+function traceSourceTitle(entry: InlineCompletionDebugTraceIndexEntry): string {
+    if (entry.sourceKind === "storedSession") {
+        return "Journal-backed capture session from the local observability store (read-only; retention owns deletion)";
+    }
+    if (entry.sourceKind === "imported" || (entry.sourceKind === undefined && entry.imported)) {
+        return "Trace file added explicitly";
+    }
+    return "Trace file from the configured trace folder";
 }
 
 function formatShortDate(value: string): string {
