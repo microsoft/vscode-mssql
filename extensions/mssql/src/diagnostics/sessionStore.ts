@@ -20,6 +20,12 @@ import {
     ProvenanceSummary,
     SessionManifest,
 } from "../sharedInterfaces/debugConsole";
+import {
+    OBSERVABILITY_BUNDLE_FILE,
+    ObservabilityBundleV1,
+    isObservabilityBundleShape,
+    isSafeBundleRelativePath,
+} from "./sessionBundle/bundleSchemas";
 
 const MAX_QUERY_LIMIT = 2000;
 
@@ -263,6 +269,13 @@ export class SessionStore {
     }
 
     private sessionSizeBytes(session: { manifest: SessionManifest; dir: string }): number {
+        // Bundle totals are authoritative when a catalog exists: they include
+        // rich/replay child bytes, which count toward the size budget too
+        // (WI-2.3). The du-style fallback stays for legacy sessions only.
+        const bundleBytes = this.bundleTotalBytes(session.dir);
+        if (bundleBytes !== undefined) {
+            return bundleBytes;
+        }
         if (typeof session.manifest.sizeBytes === "number") {
             return session.manifest.sizeBytes;
         }
@@ -277,6 +290,12 @@ export class SessionStore {
             // unreadable: treat as zero (age/count rules still apply)
         }
         return total;
+    }
+
+    /** Total bytes from the session's bundle catalog; undefined for legacy/corrupt. */
+    private bundleTotalBytes(dir: string): number | undefined {
+        const bundle = readBundleFile(dir);
+        return bundle && typeof bundle.totals.bytes === "number" ? bundle.totals.bytes : undefined;
     }
 
     /**
@@ -338,8 +357,86 @@ export class SessionStore {
                     `${label}: ${dropped} event(s) lost to store-buffer overflow (${manifest.droppedRanges.length} exact range(s) in manifest)`,
                 );
             }
+            this.validateBundle(dir, label, issues);
         }
         return { sessions: sessions.length, totalBytes, issues };
+    }
+
+    /**
+     * Bundle catalog consistency (WI-2.3): bundle.json parseable, every
+     * descriptor's child manifest present, totals agreeing with the child
+     * manifests. Active artifacts are skipped — the catalog is debounced and
+     * may honestly lag a live writer. Issues are reported, never fatal.
+     */
+    private validateBundle(dir: string, label: string, issues: string[]): void {
+        const bundlePath = path.join(dir, OBSERVABILITY_BUNDLE_FILE);
+        if (!fs.existsSync(bundlePath)) {
+            return; // legacy session: no catalog is a valid state
+        }
+        let bundle: ObservabilityBundleV1;
+        try {
+            const parsed: unknown = JSON.parse(fs.readFileSync(bundlePath, "utf8"));
+            if (!isObservabilityBundleShape(parsed)) {
+                issues.push(`${label}: bundle.json is not a valid bundle catalog (rebuildable)`);
+                return;
+            }
+            bundle = parsed;
+        } catch {
+            issues.push(`${label}: bundle.json unreadable or corrupt (rebuildable)`);
+            return;
+        }
+        for (const artifact of bundle.artifacts) {
+            if (artifact.relativeManifest === undefined) {
+                continue; // external refs carry no local manifest
+            }
+            if (!isSafeBundleRelativePath(artifact.relativeManifest)) {
+                issues.push(
+                    `${label}: bundle artifact ${artifact.artifactId} has an unsafe manifest path (${artifact.relativeManifest})`,
+                );
+                continue;
+            }
+            const manifestFile = path.join(dir, artifact.relativeManifest);
+            if (!fs.existsSync(manifestFile)) {
+                if (artifact.status !== "missing") {
+                    issues.push(
+                        `${label}: bundle artifact ${artifact.artifactId} manifest missing (${artifact.relativeManifest})`,
+                    );
+                }
+                continue;
+            }
+            if (artifact.status === "active") {
+                continue; // live writer: debounced totals may lag, tolerated
+            }
+            try {
+                const child = JSON.parse(fs.readFileSync(manifestFile, "utf8")) as {
+                    eventCount?: number;
+                    sizeBytes?: number;
+                    totals?: { events?: number; bytes?: number };
+                };
+                const childEvents =
+                    artifact.kind === "diagStream" ? child.eventCount : child.totals?.events;
+                const childBytes =
+                    artifact.kind === "diagStream" ? child.sizeBytes : child.totals?.bytes;
+                if (
+                    typeof childEvents === "number" &&
+                    artifact.events !== undefined &&
+                    childEvents !== artifact.events
+                ) {
+                    issues.push(
+                        `${label}: bundle artifact ${artifact.artifactId} events ${artifact.events} != child manifest ${childEvents}`,
+                    );
+                }
+                if (typeof childBytes === "number" && childBytes !== artifact.bytes) {
+                    issues.push(
+                        `${label}: bundle artifact ${artifact.artifactId} bytes ${artifact.bytes} != child manifest ${childBytes}`,
+                    );
+                }
+            } catch {
+                issues.push(
+                    `${label}: bundle artifact ${artifact.artifactId} child manifest unreadable`,
+                );
+            }
+        }
     }
 
     public clearAll(exceptSessionId?: string): { removed: number } {
@@ -357,6 +454,18 @@ export class SessionStore {
         }
         this.cache.clear();
         return { removed };
+    }
+}
+
+/** Parse a session's bundle catalog; undefined for legacy/corrupt (fallback applies). */
+function readBundleFile(dir: string): ObservabilityBundleV1 | undefined {
+    try {
+        const parsed: unknown = JSON.parse(
+            fs.readFileSync(path.join(dir, OBSERVABILITY_BUNDLE_FILE), "utf8"),
+        );
+        return isObservabilityBundleShape(parsed) ? parsed : undefined;
+    } catch {
+        return undefined;
     }
 }
 

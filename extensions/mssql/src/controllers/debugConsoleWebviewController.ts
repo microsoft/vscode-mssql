@@ -527,6 +527,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 enabled: this.diagnostics.storeActive,
                 ...this.diagnostics.store.validateStore(),
             },
+            bundles: this.diagnostics.bundleManager.healthSnapshot(),
         }));
         // Trace Identity V1 lint: how well-stitched is this source (or one
         // trace)? Fog is reported, never painted over.

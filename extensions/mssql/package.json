@@ -1628,6 +1628,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.sessionDiag.clearSensitiveCaptures",
+                "title": "Session Diagnostics: Clear Sensitive Captures",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.sessionDiag.openStorageFolder",
                 "title": "Session Diagnostics: Open Storage Folder",
                 "category": "MS SQL"

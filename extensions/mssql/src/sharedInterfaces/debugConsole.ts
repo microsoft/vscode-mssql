@@ -712,9 +712,29 @@ export interface StoreHealth {
     /** Integrity findings across persisted sessions (empty = clean). */
     issues: string[];
 }
+/**
+ * One observability-bundle catalog row (WI-2.3): per-bundle status, write
+ * queue depth, last write, and recorded issues. Catalog degradation is
+ * visible here, never silent — and never fails capture.
+ */
+export interface BundleHealthRow {
+    hostSessionId: string;
+    bundleId: string;
+    status: "active" | "closed" | "partial";
+    artifacts: number;
+    /** Catalog changes not yet written (debounce window or write failure). */
+    dirty: boolean;
+    queueDepth: number;
+    writesCompleted: number;
+    consecutiveWriteFailures: number;
+    lastWriteUtc?: string;
+    issues: string[];
+}
 export interface DiagHealthSnapshot {
     sinks: SinkHealth[];
     store: StoreHealth;
+    /** Bundle catalog rows (absent when the bundle manager is not running). */
+    bundles?: BundleHealthRow[];
 }
 export namespace DcGetHealthRequest {
     export const type = new RequestType<void, DiagHealthSnapshot, void>("dc/getHealth");

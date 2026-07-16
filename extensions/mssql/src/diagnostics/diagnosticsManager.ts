@@ -15,8 +15,29 @@ import * as vscode from "vscode";
 import { CaptureMode, ProvenanceSummary } from "../sharedInterfaces/debugConsole";
 import { diag, newTraceId } from "./diagnosticsCore";
 import { richStats } from "./richCollection";
+import {
+    ObservabilityBundleManager,
+    diagManifestToArtifactInput,
+} from "./sessionBundle/bundleManager";
 import { SessionDiagSink } from "./sinks";
 import { SessionStore } from "./sessionStore";
+
+/** Dialog seam so destructive commands are testable without vscode UI. */
+export interface DiagnosticsDialogs {
+    /** Modal confirm; resolves true when the user picked the confirm label. */
+    confirm(message: string, confirmLabel: string): Promise<boolean>;
+}
+
+const vscodeDialogs: DiagnosticsDialogs = {
+    async confirm(message: string, confirmLabel: string): Promise<boolean> {
+        const choice = await vscode.window.showWarningMessage(
+            message,
+            { modal: true },
+            confirmLabel,
+        );
+        return choice === confirmLabel;
+    },
+};
 
 const SETTING_ENABLED = "mssql.sessionDiag.enabled";
 const SETTING_MODE = "mssql.sessionDiag.captureMode";
@@ -42,8 +63,15 @@ export class DiagnosticsManager implements vscode.Disposable {
     private statusItem: vscode.StatusBarItem | undefined;
     public readonly store: SessionStore;
     public readonly provenance: ProvenanceSummary;
+    /** Sole writer of per-session bundle.json catalogs (WI-2.3). */
+    public readonly bundleManager: ObservabilityBundleManager;
+    private readonly dialogs: DiagnosticsDialogs;
 
-    constructor(private readonly context: vscode.ExtensionContext) {
+    constructor(
+        private readonly context: vscode.ExtensionContext,
+        dialogs?: DiagnosticsDialogs,
+    ) {
+        this.dialogs = dialogs ?? vscodeDialogs;
         // Store location is configurable so always-on capture can land traces
         // wherever the user wants (takes effect on restart).
         const configuredRoot = vscode.workspace
@@ -59,6 +87,22 @@ export class DiagnosticsManager implements vscode.Disposable {
             ...(packageJson.version !== undefined ? { extensionVersion: packageJson.version } : {}),
             vscodeVersion: vscode.version,
         };
+        this.bundleManager = new ObservabilityBundleManager({
+            storeRoot: this.store.storeRoot,
+            currentHostSessionId: diag.sessionId,
+            provenance: {
+                ...(packageJson.version !== undefined
+                    ? { extensionVersion: packageJson.version }
+                    : {}),
+                vscodeVersion: vscode.version,
+                platform: process.platform,
+            },
+        });
+        // Startup repair is non-blocking: stale `active` bundles from dead
+        // sessions become `partial`; activation never waits on it.
+        void this.bundleManager.reconcileOnStartup().catch(() => {
+            // reconcile reports its own issues; never disturb activation
+        });
         this.applySettings();
         this.applyRichSetting();
         context.subscriptions.push(
@@ -154,6 +198,15 @@ export class DiagnosticsManager implements vscode.Disposable {
                     mode,
                     diag.capturePolicy.policyId,
                     this.provenance,
+                    // Bundle catalog: register-or-update the diagStream
+                    // artifact from the manifest the sink just wrote. The
+                    // descriptor input copies primitives synchronously; the
+                    // manager debounces the actual bundle.json write.
+                    (manifest) =>
+                        void this.bundleManager.registerArtifact(
+                            manifest.sessionId,
+                            diagManifestToArtifactInput(manifest),
+                        ),
                 );
                 diag.addSink(this.storeSink);
                 diag.emit({
@@ -214,6 +267,25 @@ export class DiagnosticsManager implements vscode.Disposable {
                     `Removed ${removed} diagnostic session(s).`,
                 );
             }
+        });
+        register("mssql.sessionDiag.clearSensitiveCaptures", async () => {
+            // "Clear sensitive captures" is deliberately separate from
+            // "Clear all diagnostics" (§9.4): rich feature captures and
+            // replay runs go; metadata-only diag streams stay.
+            const confirmed = await this.dialogs.confirm(
+                "Delete all locally stored rich feature captures and replay runs? Metadata-only diagnostic sessions are preserved.",
+                "Delete sensitive captures",
+            );
+            if (!confirmed) {
+                return;
+            }
+            const result = await this.bundleManager.deleteSensitiveArtifacts();
+            const detail =
+                result.issues.length > 0 ? ` ${result.issues.length} issue(s) reported.` : "";
+            void vscode.window.showInformationMessage(
+                `Removed ${result.removedDirectories} sensitive capture folder(s) across ` +
+                    `${result.sessionsScanned} session(s); diagnostic sessions preserved.${detail}`,
+            );
         });
         register("mssql.sessionDiag.openStorageFolder", async () => {
             await vscode.env.openExternal(vscode.Uri.file(this.store.storeRoot));
@@ -315,7 +387,10 @@ export class DiagnosticsManager implements vscode.Disposable {
     }
 
     public dispose(): void {
+        // Sink close rewrites the manifest (final catalog notification),
+        // then the bundle flush barrier lands the catalog immediately.
         this.storeSink?.close();
+        void this.bundleManager.dispose();
     }
 }
 
