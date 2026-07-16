@@ -26,6 +26,7 @@ import {
     createSpatialBasemapConsentStore,
 } from "./spatialBasemapConsent";
 import { SpatialBasemapTileCache } from "./spatialBasemapTileCache";
+import { createSpatialBasemapSetupOffer } from "./spatialBasemapOnboarding";
 import { dns } from "./spatialBasemapNode";
 
 export interface SpatialBasemapHost {
@@ -37,6 +38,8 @@ export interface SpatialBasemapHost {
     confirm(source: SpatialBasemapValidatedSource): Promise<boolean>;
     secretFor(credentialRef: string): Promise<string | undefined>;
     isTrusted(): boolean;
+    /** First-spatial-view setup offer (one-click OpenStreetMap); once per session. */
+    maybeOfferSetup(): Promise<void>;
 }
 
 let host: SpatialBasemapHost | undefined;
@@ -88,6 +91,49 @@ function initialize(context: vscode.ExtensionContext): void {
         maxAgeMs: budgets.maxAgeMs,
     });
     void vscode.workspace.fs.createDirectory(cacheRoot);
+    const setupOffer = createSpatialBasemapSetupOffer({
+        memento: context.globalState,
+        isEnabled: () =>
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.queryStudio.spatial.basemap.enabled") === true,
+        globalSources: () =>
+            vscode.workspace.getConfiguration().inspect("mssql.queryStudio.spatial.basemap.sources")
+                ?.globalValue ?? [],
+        updateSettings: async (sources) => {
+            const config = vscode.workspace.getConfiguration();
+            // Sources land first so enabling never races an empty layer list.
+            await config.update(
+                "mssql.queryStudio.spatial.basemap.sources",
+                sources,
+                vscode.ConfigurationTarget.Global,
+            );
+            await config.update(
+                "mssql.queryStudio.spatial.basemap.enabled",
+                true,
+                vscode.ConfigurationTarget.Global,
+            );
+        },
+        prompt: async () => {
+            const add = vscode.l10n.t("Add OpenStreetMap");
+            const never = vscode.l10n.t("Don't Ask Again");
+            const choice = await vscode.window.showInformationMessage(
+                vscode.l10n.t(
+                    "Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.",
+                ),
+                add,
+                never,
+            );
+            return choice === add ? "add" : choice === never ? "never" : "dismiss";
+        },
+        confirm: () =>
+            void vscode.window.showInformationMessage(
+                vscode.l10n.t(
+                    "OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.",
+                ),
+            ),
+        recordConsent: (fingerprint) => consent.record(fingerprint),
+    });
     host = {
         cacheRoot,
         consent,
@@ -132,6 +178,9 @@ function initialize(context: vscode.ExtensionContext): void {
         secretFor: (credentialRef) =>
             Promise.resolve(context.secrets.get(`mssql.spatialBasemap.${credentialRef}`)),
         isTrusted: () => vscode.workspace.isTrusted,
+        maybeOfferSetup: async () => {
+            await setupOffer.maybeOffer();
+        },
     };
 
     context.subscriptions.push(

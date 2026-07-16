@@ -1269,8 +1269,14 @@
     <trans-unit id="++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1">
       <source xml:lang="en">Collapse connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++f8eabdcfc1345cf137950e6b35f4723e75a5ef6bc52199d8d35a175236faed53">
+      <source xml:lang="en">Collapse feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
       <source xml:lang="en">Collapse settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db45b6dfdf9967ee24d0aa8747067d39a2b7fb346856db9ee433b3577a84d6dc">
+      <source xml:lang="en">Collapse the feature list</source>
     </trans-unit>
     <trans-unit id="++CODE++ce767f8068bba3846263c85f968cda6378384e175ff05bbf8efc38cab8476223">
       <source xml:lang="en">Collapse {0}</source>
@@ -1789,6 +1795,13 @@
     </trans-unit>
     <trans-unit id="++CODE++b5b443f33da497ccf2678851978831b0e00e274513ff16f44c570776cb6cc34c">
       <source xml:lang="en">Copy data and save results to files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3cb27ae0fbca8ae3efdf8fa92493efc9cae666d90b99ae18d2cadf586f5dad32">
+      <source xml:lang="en">Copy image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ddbc8827ac5b601ca4c6f2db7eb0b6f4247dc8dec73ec75d835e24b0bee728d3">
+      <source xml:lang="en">Copy image failed: {0}</source>
+      <note>{0} is a short error message</note>
     </trans-unit>
     <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
       <source xml:lang="en">Copy link</source>
@@ -2947,6 +2960,9 @@
     <trans-unit id="++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62">
       <source xml:lang="en">Expand connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++7cf9e3bc58608088aade792969d329e8d48a32703e308ae5fc708037a99012ff">
+      <source xml:lang="en">Expand feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
@@ -2967,6 +2983,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1f6fd5837dbaa5405a58b9b5a8a025cab673664f697a7c9a9ed2a59189e1843b">
       <source xml:lang="en">Expand the active grid to fill the panel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a541901ea440d40b58cf538ebca90c15372bb3e2dc27fc8f62d04656b685d726">
+      <source xml:lang="en">Expand the feature list</source>
     </trans-unit>
     <trans-unit id="++CODE++23950c524f395d8a86f042de7ea4cbba348146e9c1c79acb3d7fbb89d4198080">
       <source xml:lang="en">Expand {0}</source>
@@ -3463,6 +3482,9 @@
     </trans-unit>
     <trans-unit id="++CODE++db977fde0b1cbb3a3a5c4093cbff6b231ea747d7daebfb7bd6b9280805625bcc">
       <source xml:lang="en">Feature details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5697d03daef4de9cf8db7cb11755f71358a32b4acca94909a9d449f71040d2dd">
+      <source xml:lang="en">Features</source>
     </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
@@ -4608,6 +4630,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
       <source xml:lang="en">Mandatory (True)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d4ac36585215c432f50cc74fcaa1b5dcbd68d7cfd317efa5cda7aa8cbfa147b1">
+      <source xml:lang="en">Map actions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6d8289091873de993a3173035e757e1c42a6bfefd08ed2edacdcf13db5d78820">
+      <source xml:lang="en">Map image copied to the clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++2507e7a80c8e69e9ee48a97512619a0594f95c6d67f37650c9749a9b870de3eb">
       <source xml:lang="en">Map layer could not be loaded</source>
@@ -6145,8 +6173,14 @@
       <source xml:lang="en">Resize column &apos;{0}&apos;</source>
       <note>{0} is the name of the column</note>
     </trans-unit>
+    <trans-unit id="++CODE++15d997d74a205b6029b0ff22ca99705808fd2fc5f73e6c51517b513952b2c92b">
+      <source xml:lang="en">Resize feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba50184c03e5671b84f9fe34814a98c248dc7250e79df61fa1de6635beff3876">
+      <source xml:lang="en">Resize the feature list</source>
     </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>

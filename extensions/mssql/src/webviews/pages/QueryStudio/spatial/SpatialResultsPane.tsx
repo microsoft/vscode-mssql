@@ -28,7 +28,7 @@ import {
     type QsSpatialBasemapOpenParams,
     type QsSpatialBasemapOpenResult,
 } from "../../../../sharedInterfaces/spatialBasemap";
-import { SpatialMap, type SpatialMapProps } from "./SpatialMap";
+import { SpatialMap, type SpatialMapHandle, type SpatialMapProps } from "./SpatialMap";
 import {
     SPATIAL_DERIVED_BYTES_BUDGET,
     SPATIAL_VERTEX_BUDGET,
@@ -57,6 +57,8 @@ export interface SpatialResultsPaneProps {
     panelVisible: boolean;
     /** mssql.queryStudio.spatial.basemap.enabled (SPA-10): shows the Layers selector. */
     basemapEnabled: boolean;
+    /** Bumped when basemap settings change so the layer list re-fetches live. */
+    basemapEpoch?: number;
     initialViewState?: QsSpatialPanelViewState;
     onViewStateChange?: (state: QsSpatialPanelViewState) => void;
 }
@@ -210,6 +212,80 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
     const [loadState, setLoadState] = React.useState<LoadState>({ kind: "idle" });
     const [fitNonce, setFitNonce] = React.useState(0);
 
+    // Map context menu ("Copy image" / "Fit") + transient outcome notice.
+    // The default webview Cut/Copy/Paste items are suppressed on the map
+    // region (none of them can act on a canvas).
+    const mapHandleRef = React.useRef<SpatialMapHandle>(null);
+    const bodyRef = React.useRef<HTMLDivElement>(null);
+    const [mapMenu, setMapMenu] = React.useState<{ x: number; y: number } | undefined>(undefined);
+    const [notice, setNotice] = React.useState<string | undefined>(undefined);
+    const noticeTimerRef = React.useRef<number | undefined>(undefined);
+    const showNotice = React.useCallback((text: string) => {
+        setNotice(text);
+        if (noticeTimerRef.current !== undefined) {
+            window.clearTimeout(noticeTimerRef.current);
+        }
+        noticeTimerRef.current = window.setTimeout(() => setNotice(undefined), 2500);
+    }, []);
+    React.useEffect(
+        () => () => {
+            if (noticeTimerRef.current !== undefined) {
+                window.clearTimeout(noticeTimerRef.current);
+            }
+        },
+        [],
+    );
+    const mapMenuOpen = mapMenu !== undefined;
+    React.useEffect(() => {
+        if (!mapMenuOpen) {
+            return;
+        }
+        const close = () => setMapMenu(undefined);
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                close();
+            }
+        };
+        window.addEventListener("pointerdown", close);
+        window.addEventListener("keydown", onKeyDown);
+        return () => {
+            window.removeEventListener("pointerdown", close);
+            window.removeEventListener("keydown", onKeyDown);
+        };
+    }, [mapMenuOpen]);
+    const onMapContextMenu = React.useCallback((event: React.MouseEvent<HTMLElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const rect = event.currentTarget.getBoundingClientRect();
+        setMapMenu({
+            x: Math.max(0, Math.min(event.clientX - rect.left, rect.width - 170)),
+            y: Math.max(0, Math.min(event.clientY - rect.top, rect.height - 76)),
+        });
+    }, []);
+    const copyMapImage = React.useCallback(async () => {
+        setMapMenu(undefined);
+        try {
+            const handle = mapHandleRef.current;
+            if (!handle) {
+                throw new Error(locConstants.spatialResults.waiting);
+            }
+            const blob = await handle.exportImage();
+            const clipboardItemCtor = (globalThis as { ClipboardItem?: typeof ClipboardItem })
+                .ClipboardItem;
+            if (!clipboardItemCtor || !navigator.clipboard?.write) {
+                throw new Error("clipboard image support unavailable");
+            }
+            await navigator.clipboard.write([new clipboardItemCtor({ "image/png": blob })]);
+            showNotice(locConstants.spatialResults.imageCopied);
+        } catch (error) {
+            showNotice(
+                locConstants.spatialResults.copyImageFailed(
+                    error instanceof Error ? error.message : String(error),
+                ),
+            );
+        }
+    }, [showNotice]);
+
     const updateState = React.useCallback(
         (patch: Partial<QsSpatialPanelViewState>) => {
             setViewState((current) => {
@@ -219,6 +295,36 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             });
         },
         [props.onViewStateChange],
+    );
+
+    // Side-panel widths (persisted) + splitter drags relative to the map.
+    const listWidth = viewState.listWidth ?? 280;
+    const detailsWidth = viewState.detailsWidth ?? 260;
+    const startPanelResize = React.useCallback(
+        (side: "list" | "details", startWidth: number) => (down: React.PointerEvent) => {
+            down.preventDefault();
+            const body = bodyRef.current;
+            if (!body) {
+                return;
+            }
+            const startX = down.clientX;
+            const maxWidth = Math.max(180, Math.floor(body.getBoundingClientRect().width * 0.5));
+            const move = (event: PointerEvent) => {
+                const delta = event.clientX - startX;
+                const width = Math.min(
+                    maxWidth,
+                    Math.max(150, side === "list" ? startWidth + delta : startWidth - delta),
+                );
+                updateState(side === "list" ? { listWidth: width } : { detailsWidth: width });
+            };
+            const up = () => {
+                window.removeEventListener("pointermove", move);
+                window.removeEventListener("pointerup", up);
+            };
+            window.addEventListener("pointermove", move);
+            window.addEventListener("pointerup", up);
+        },
+        [updateState],
     );
 
     React.useEffect(() => {
@@ -435,7 +541,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
         return () => {
             cancelled = true;
         };
-    }, [props.basemapEnabled, props.rpc]);
+    }, [props.basemapEnabled, props.basemapEpoch, props.rpc]);
 
     // Online session lifecycle (D-0027): interactive opens may prompt for
     // consent; restores never do. Sessions close on layer change, ineligible
@@ -756,9 +862,25 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     <span>{locConstants.spatialResults.groups(groupSummary)}</span>
                 ) : null}
             </div>
-            <div className="qs-spatial-body">
+            <div className="qs-spatial-body" ref={bodyRef}>
                 {viewState.listOpen ? (
-                    <aside className="qs-spatial-sidebar">
+                    <aside className="qs-spatial-sidebar" style={{ width: listWidth }}>
+                        <div className="qs-spatial-panel-head">
+                            <span className="qs-spatial-panel-title">
+                                {locConstants.spatialResults.features}
+                            </span>
+                            <span className="qs-spatial-panel-count">
+                                {filteredFeatures.length.toLocaleString()}
+                            </span>
+                            <button
+                                type="button"
+                                className="qs-spatial-panel-toggle"
+                                title={locConstants.spatialResults.collapseFeatureList}
+                                aria-label={locConstants.spatialResults.collapseFeatureList}
+                                onClick={() => updateState({ listOpen: false })}>
+                                <span className="codicon codicon-chevron-left" aria-hidden="true" />
+                            </button>
+                        </div>
                         <div className="qs-spatial-filter-row">
                             <label>
                                 <select
@@ -835,9 +957,33 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                             onScroll={(listScrollTop) => updateState({ listScrollTop })}
                         />
                     </aside>
+                ) : (
+                    <div className="qs-spatial-rail left">
+                        <button
+                            type="button"
+                            className="qs-spatial-panel-toggle"
+                            title={locConstants.spatialResults.expandFeatureList}
+                            aria-label={locConstants.spatialResults.expandFeatureList}
+                            onClick={() => updateState({ listOpen: true })}>
+                            <span className="codicon codicon-chevron-right" aria-hidden="true" />
+                        </button>
+                    </div>
+                )}
+                {viewState.listOpen ? (
+                    <div
+                        className="qs-spatial-splitter"
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label={locConstants.spatialResults.resizeFeatureList}
+                        onPointerDown={startPanelResize("list", listWidth)}
+                    />
                 ) : null}
-                <main className="qs-spatial-map-region">
+                <main
+                    className="qs-spatial-map-region"
+                    data-vscode-context='{"preventDefaultContextMenuItems": true}'
+                    onContextMenu={onMapContextMenu}>
                     <SpatialMap
+                        ref={mapHandleRef}
                         key={`${props.runKey}:${selectedKey}:${viewState.labelColumnOrdinal ?? -1}:${viewState.colorColumnOrdinal ?? -1}`}
                         features={filteredFeatures}
                         selectedOrdinal={viewState.selectedRowOrdinal}
@@ -870,48 +1016,126 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                             )}
                         </div>
                     ) : null}
+                    {mapMenu ? (
+                        <div
+                            className="qs-spatial-context-menu"
+                            role="menu"
+                            aria-label={locConstants.spatialResults.mapContextMenuLabel}
+                            style={{ left: mapMenu.x, top: mapMenu.y }}
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onContextMenu={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }}>
+                            <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => void copyMapImage()}>
+                                <span
+                                    className="codicon codicon-device-camera"
+                                    aria-hidden="true"
+                                />
+                                {locConstants.spatialResults.copyImage}
+                            </button>
+                            <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                    setMapMenu(undefined);
+                                    setFitNonce((nonce) => nonce + 1);
+                                }}>
+                                <span className="codicon codicon-screen-full" aria-hidden="true" />
+                                {locConstants.spatialResults.fit}
+                            </button>
+                        </div>
+                    ) : null}
+                    {notice ? (
+                        <div className="qs-spatial-progress qs-spatial-notice" role="status">
+                            {notice}
+                        </div>
+                    ) : null}
                 </main>
+                {viewState.detailsOpen ? (
+                    <div
+                        className="qs-spatial-splitter details"
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label={locConstants.spatialResults.resizeDetails}
+                        onPointerDown={startPanelResize("details", detailsWidth)}
+                    />
+                ) : null}
                 {viewState.detailsOpen ? (
                     <aside
                         className="qs-spatial-details"
+                        style={{ width: detailsWidth }}
                         aria-label={locConstants.spatialResults.detailsLabel}>
-                        <h3>{locConstants.spatialResults.featureDetails}</h3>
-                        {selectedFeature ? (
-                            <dl>
-                                <dt>{locConstants.spatialResults.sourceRow}</dt>
-                                <dd>{selectedFeature.ordinal + 1}</dd>
-                                <dt>{locConstants.spatialResults.status}</dt>
-                                <dd>{selectedFeature.status}</dd>
-                                <dt>{locConstants.spatialResults.kind}</dt>
-                                <dd>{selectedFeature.kind ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.geometry}</dt>
-                                <dd>{selectedFeature.geometryType ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.srid}</dt>
-                                <dd>{selectedFeature.srid ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.layout}</dt>
-                                <dd>{selectedFeature.layout ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.vertices}</dt>
-                                <dd>{selectedFeature.vertices ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.parts}</dt>
-                                <dd>{selectedFeature.parts ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.rings}</dt>
-                                <dd>{selectedFeature.rings ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.envelope}</dt>
-                                <dd>
-                                    {selectedFeature.envelope
-                                        ?.map((value) => value.toPrecision(8))
-                                        .join(", ") ?? "—"}
-                                </dd>
-                                <dt>{locConstants.spatialResults.wkbBytes}</dt>
-                                <dd>{selectedFeature.wkbBytes ?? "—"}</dd>
-                                <dt>{locConstants.spatialResults.reason}</dt>
-                                <dd>{selectedFeature.reason ?? "—"}</dd>
-                            </dl>
-                        ) : (
-                            <p className="qs-muted">{locConstants.spatialResults.selectFeature}</p>
-                        )}
+                        <div className="qs-spatial-panel-head">
+                            <button
+                                type="button"
+                                className="qs-spatial-panel-toggle"
+                                title={locConstants.spatialResults.collapseDetails}
+                                aria-label={locConstants.spatialResults.collapseDetails}
+                                onClick={() => updateState({ detailsOpen: false })}>
+                                <span
+                                    className="codicon codicon-chevron-right"
+                                    aria-hidden="true"
+                                />
+                            </button>
+                            <span className="qs-spatial-panel-title">
+                                {locConstants.spatialResults.featureDetails}
+                            </span>
+                        </div>
+                        <div className="qs-spatial-details-body">
+                            {selectedFeature ? (
+                                <dl>
+                                    <dt>{locConstants.spatialResults.sourceRow}</dt>
+                                    <dd>{selectedFeature.ordinal + 1}</dd>
+                                    <dt>{locConstants.spatialResults.status}</dt>
+                                    <dd>{selectedFeature.status}</dd>
+                                    <dt>{locConstants.spatialResults.kind}</dt>
+                                    <dd>{selectedFeature.kind ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.geometry}</dt>
+                                    <dd>{selectedFeature.geometryType ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.srid}</dt>
+                                    <dd>{selectedFeature.srid ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.layout}</dt>
+                                    <dd>{selectedFeature.layout ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.vertices}</dt>
+                                    <dd>{selectedFeature.vertices ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.parts}</dt>
+                                    <dd>{selectedFeature.parts ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.rings}</dt>
+                                    <dd>{selectedFeature.rings ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.envelope}</dt>
+                                    <dd>
+                                        {selectedFeature.envelope
+                                            ?.map((value) => value.toPrecision(8))
+                                            .join(", ") ?? "—"}
+                                    </dd>
+                                    <dt>{locConstants.spatialResults.wkbBytes}</dt>
+                                    <dd>{selectedFeature.wkbBytes ?? "—"}</dd>
+                                    <dt>{locConstants.spatialResults.reason}</dt>
+                                    <dd>{selectedFeature.reason ?? "—"}</dd>
+                                </dl>
+                            ) : (
+                                <p className="qs-muted">
+                                    {locConstants.spatialResults.selectFeature}
+                                </p>
+                            )}
+                        </div>
                     </aside>
-                ) : null}
+                ) : (
+                    <div className="qs-spatial-rail right">
+                        <button
+                            type="button"
+                            className="qs-spatial-panel-toggle"
+                            title={locConstants.spatialResults.expandDetails}
+                            aria-label={locConstants.spatialResults.expandDetails}
+                            onClick={() => updateState({ detailsOpen: true })}>
+                            <span className="codicon codicon-chevron-left" aria-hidden="true" />
+                        </button>
+                    </div>
+                )}
             </div>
         </section>
     );

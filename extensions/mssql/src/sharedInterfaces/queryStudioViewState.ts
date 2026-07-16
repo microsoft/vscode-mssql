@@ -256,6 +256,9 @@ export interface QsSpatialPanelViewState {
     selectedRowOrdinal?: number;
     camera?: { centerX: number; centerY: number; zoom: number; rotation: number };
     listScrollTop: number;
+    /** Feature-list / details panel widths in px (splitter-adjusted). */
+    listWidth?: number;
+    detailsWidth?: number;
     /**
      * Selected map layer id (SPA-10): "worldOutline" or a configured online
      * source id. Absent means None. Only the id persists — never a URL,
@@ -368,6 +371,12 @@ export function resetQueryStudioPanelViewState(
     next.spatial.sidebarOpen = previous.spatial.sidebarOpen;
     next.spatial.listOpen = previous.spatial.listOpen;
     next.spatial.detailsOpen = previous.spatial.detailsOpen;
+    if (previous.spatial.listWidth !== undefined) {
+        next.spatial.listWidth = previous.spatial.listWidth;
+    }
+    if (previous.spatial.detailsWidth !== undefined) {
+        next.spatial.detailsWidth = previous.spatial.detailsWidth;
+    }
     next.spatial.filters = { ...previous.spatial.filters };
     // Layer choice survives reruns (SPA-10 / D-0031); eligibility, consent,
     // and trust are re-checked against the NEW result before anything renders.
@@ -846,6 +855,8 @@ function isSpatialState(value: unknown): boolean {
             "selectedRowOrdinal",
             "camera",
             "listScrollTop",
+            "listWidth",
+            "detailsWidth",
             "layerId",
         ]) &&
         (value.layerId === undefined ||
@@ -865,12 +876,25 @@ function isSpatialState(value: unknown): boolean {
         typeof value.sidebarOpen === "boolean" &&
         typeof value.listOpen === "boolean" &&
         typeof value.detailsOpen === "boolean" &&
-        hasOnlyKeys(value.filters, ["showNull", "showEmpty", "showUnsupported"]) &&
+        // geometryType/srid are optional runtime filter keys — omitting them
+        // here used to reject (and silently drop) the whole persisted state.
+        hasOnlyKeys(value.filters, [
+            "showNull",
+            "showEmpty",
+            "showUnsupported",
+            "geometryType",
+            "srid",
+        ]) &&
         typeof value.filters.showNull === "boolean" &&
         typeof value.filters.showEmpty === "boolean" &&
         typeof value.filters.showUnsupported === "boolean" &&
+        (value.filters.geometryType === undefined ||
+            isBoundedString(value.filters.geometryType, 64)) &&
+        (value.filters.srid === undefined || isNonNegativeInteger(value.filters.srid)) &&
         (value.selectedRowOrdinal === undefined ||
             isNonNegativeInteger(value.selectedRowOrdinal)) &&
+        (value.listWidth === undefined || isFiniteNumber(value.listWidth, 120, 4000)) &&
+        (value.detailsWidth === undefined || isFiniteNumber(value.detailsWidth, 120, 4000)) &&
         (camera === undefined ||
             (isRecord(camera) &&
                 hasOnlyKeys(camera, ["centerX", "centerY", "zoom", "rotation"]) &&

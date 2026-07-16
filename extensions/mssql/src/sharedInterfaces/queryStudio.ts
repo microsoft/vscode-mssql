@@ -208,6 +208,8 @@ export interface QsState {
     capabilities: Record<string, boolean>;
     /** Invalidates renderer-held Vector handles after host-side session reset. */
     vectorSessionEpoch?: number;
+    /** Bumped when basemap settings change so panes re-fetch the layer list. */
+    spatialBasemapEpoch?: number;
 }
 
 // ---------------------------------------------------------------------------

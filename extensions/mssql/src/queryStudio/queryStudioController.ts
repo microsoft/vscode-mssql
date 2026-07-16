@@ -336,6 +336,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     }
                     this.queueStatePush();
                 }
+                if (e.affectsConfiguration("mssql.queryStudio.spatial.basemap")) {
+                    // Epoch bump makes mounted spatial panes re-fetch the
+                    // layer list (one-click OSM setup lands live).
+                    this.spatialBasemapEpoch++;
+                    this.queueStatePush();
+                }
             }),
         );
 
@@ -693,6 +699,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         state.capabilities.spatialBasemap = QueryStudioController.spatialBasemapGate();
         state.capabilities.panelVisible = this.panel.visible;
         state.vectorSessionEpoch = this.vectorSessionEpoch;
+        state.spatialBasemapEpoch = this.spatialBasemapEpoch;
         // Grid windowing knobs ride the style snapshot (QO-7): the run's
         // tuning when one exists, else the current resolution.
         const tuning = (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params;
@@ -843,6 +850,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     }
 
     private spatialBasemapService: SpatialBasemapSessionManager | undefined;
+    /** Bumped on basemap config changes so panes re-fetch the layer list. */
+    private spatialBasemapEpoch = 0;
 
     private spatialResults(): SpatialSessionManager {
         this.spatialService ??= new SpatialSessionManager();
@@ -1352,9 +1361,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
 
         // --- spatial results: lazy, opaque, bounded pull sessions -----------
-        this.onRequest(QsSpatialOpenRequest.type, async (params) =>
-            this.spatialResults().open(this.model.executionHost.retainedStore, params),
-        );
+        this.onRequest(QsSpatialOpenRequest.type, async (params) => {
+            // First spatial view is the moment map layers become relevant:
+            // offer the one-click OpenStreetMap setup (no-op once configured
+            // or dismissed; the host caps it at once per session).
+            void spatialBasemapHost()?.maybeOfferSetup();
+            return this.spatialResults().open(this.model.executionHost.retainedStore, params);
+        });
         this.onRequest(QsSpatialNextRequest.type, async (params) =>
             this.spatialResults().next(params),
         );

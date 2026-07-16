@@ -2583,6 +2583,9 @@ export function QueryStudioApp() {
                                                             state?.capabilities.spatialBasemap ===
                                                             true
                                                         }
+                                                        basemapEpoch={
+                                                            state?.spatialBasemapEpoch ?? 0
+                                                        }
                                                         initialViewState={
                                                             panelViewStateRef.current.spatial
                                                         }

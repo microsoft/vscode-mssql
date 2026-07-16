@@ -21,6 +21,10 @@ import {
     validateSpatialBasemapSources,
 } from "../../src/queryResults/spatialBasemap/spatialBasemapConfig";
 import { createSpatialBasemapConsentStore } from "../../src/queryResults/spatialBasemap/spatialBasemapConsent";
+import {
+    createSpatialBasemapSetupOffer,
+    SPATIAL_BASEMAP_OFFER_DISMISSED_KEY,
+} from "../../src/queryResults/spatialBasemap/spatialBasemapOnboarding";
 import { SpatialBasemapTileCache } from "../../src/queryResults/spatialBasemap/spatialBasemapTileCache";
 import { fetchSpatialBasemapTile } from "../../src/queryResults/spatialBasemap/spatialBasemapFetcher";
 import { SpatialBasemapSessionManager } from "../../src/queryResults/spatialBasemap/spatialBasemapSessionManager";
@@ -453,5 +457,122 @@ suite("spatial basemap tile cache (D-0028)", () => {
         await cache.put("fp", 1, 1, 1, PNG);
         const surviving = await cache.evict();
         expect(surviving).to.be.at.most(2 * PNG.byteLength + 4);
+    });
+});
+
+suite("spatial basemap setup offer (first-view OpenStreetMap onboarding)", () => {
+    interface OfferHarness {
+        offer: ReturnType<typeof createSpatialBasemapSetupOffer>;
+        settings: { enabled?: boolean; sources: unknown };
+        prompts: number;
+        confirms: number;
+        consents: string[];
+        memento: ReturnType<typeof memento>;
+    }
+
+    function harness(
+        options: {
+            enabled?: boolean;
+            sources?: unknown;
+            choice?: "add" | "never" | "dismiss";
+            dismissed?: boolean;
+        } = {},
+    ): OfferHarness {
+        const store = memento();
+        if (options.dismissed) {
+            void store.update(SPATIAL_BASEMAP_OFFER_DISMISSED_KEY, true);
+        }
+        const state: OfferHarness = {
+            offer: undefined as unknown as ReturnType<typeof createSpatialBasemapSetupOffer>,
+            settings: { enabled: options.enabled, sources: options.sources ?? [] },
+            prompts: 0,
+            confirms: 0,
+            consents: [],
+            memento: store,
+        };
+        state.offer = createSpatialBasemapSetupOffer({
+            memento: store,
+            isEnabled: () => state.settings.enabled === true,
+            globalSources: () => state.settings.sources,
+            updateSettings: async (sources) => {
+                state.settings.sources = sources;
+                state.settings.enabled = true;
+            },
+            prompt: async () => {
+                state.prompts++;
+                return options.choice ?? "add";
+            },
+            confirm: () => {
+                state.confirms++;
+            },
+            recordConsent: async (fingerprint) => {
+                state.consents.push(fingerprint);
+            },
+        });
+        return state;
+    }
+
+    test("accepting writes enabled + a valid OSM source and records its consent", async () => {
+        const state = harness({ enabled: false });
+        expect(await state.offer.maybeOffer()).to.equal("added");
+        expect(state.settings.enabled).to.equal(true);
+        const validated = validateSpatialBasemapSources(state.settings.sources);
+        expect(validated.issues).to.deep.equal([]);
+        expect(validated.sources).to.have.length(1);
+        expect(validated.sources[0].config.id).to.equal("osm-standard");
+        expect(validated.sources[0].descriptor.displayName).to.equal("OpenStreetMap");
+        // Consent binds to the fingerprint of EXACTLY the entry written —
+        // the offer text carries the tile-coordinate disclosure, so the
+        // in-pane consent modal never asks the same question again.
+        expect(state.consents).to.deep.equal([validated.sources[0].fingerprint]);
+        expect(state.confirms).to.equal(1);
+    });
+
+    test("offers when enabled but unconfigured; skips once sources exist", async () => {
+        const unconfigured = harness({ enabled: true, sources: [] });
+        expect(await unconfigured.offer.maybeOffer()).to.equal("added");
+
+        const configured = harness({ enabled: true, sources: [GOOD_SOURCE] });
+        expect(await configured.offer.maybeOffer()).to.equal("skipped");
+        expect(configured.prompts).to.equal(0);
+    });
+
+    test("existing user sources are preserved; OSM is never duplicated", async () => {
+        // Disabled but with a source already authored: appending keeps it.
+        const state = harness({ enabled: false, sources: [GOOD_SOURCE] });
+        expect(await state.offer.maybeOffer()).to.equal("added");
+        const validated = validateSpatialBasemapSources(state.settings.sources);
+        expect(validated.sources.map((source) => source.config.id)).to.deep.equal([
+            "contoso-road",
+            "osm-standard",
+        ]);
+
+        const withOsm = harness({
+            enabled: false,
+            sources: [{ ...GOOD_SOURCE, id: "OSM-Standard" }],
+        });
+        expect(await withOsm.offer.maybeOffer()).to.equal("added");
+        expect(
+            validateSpatialBasemapSources(withOsm.settings.sources).sources.map((source) =>
+                source.config.id.toLowerCase(),
+            ),
+        ).to.deep.equal(["osm-standard"]);
+    });
+
+    test("asks at most once per session and never after don't-ask-again", async () => {
+        const state = harness({ enabled: false, choice: "dismiss" });
+        expect(await state.offer.maybeOffer()).to.equal("declined");
+        expect(await state.offer.maybeOffer()).to.equal("skipped");
+        expect(state.prompts).to.equal(1);
+        // Plain dismiss does NOT persist: a fresh session may offer again.
+        expect(state.memento.get(SPATIAL_BASEMAP_OFFER_DISMISSED_KEY, false)).to.equal(false);
+
+        const never = harness({ enabled: false, choice: "never" });
+        expect(await never.offer.maybeOffer()).to.equal("declined");
+        expect(never.memento.get(SPATIAL_BASEMAP_OFFER_DISMISSED_KEY, false)).to.equal(true);
+
+        const dismissed = harness({ enabled: false, dismissed: true });
+        expect(await dismissed.offer.maybeOffer()).to.equal("skipped");
+        expect(dismissed.prompts).to.equal(0);
     });
 });

@@ -327,6 +327,43 @@ suite("Query Studio panel view state", () => {
         expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
     });
 
+    test("spatial panel widths and result filters persist and stay bounded", () => {
+        const state = createQueryStudioPanelViewState("run-1");
+        state.spatial.listWidth = 320;
+        state.spatial.detailsWidth = 240;
+        // Regression: the geometryType/srid filter keys used to fail key
+        // validation and silently drop the WHOLE persisted snapshot.
+        state.spatial.filters.geometryType = "Point";
+        state.spatial.filters.srid = 4326;
+        const normalized = normalizeQueryStudioPanelViewState(state, "run-1");
+        expect(normalized?.spatial.listWidth).to.equal(320);
+        expect(normalized?.spatial.detailsWidth).to.equal(240);
+        expect(normalized?.spatial.filters.geometryType).to.equal("Point");
+        expect(normalized?.spatial.filters.srid).to.equal(4326);
+
+        // Widths are bounded; filter shapes validate.
+        state.spatial.listWidth = 80;
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+        state.spatial.listWidth = 320;
+        state.spatial.detailsWidth = 4001;
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+        state.spatial.detailsWidth = 240;
+        state.spatial.filters.geometryType = "g".repeat(65);
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+        state.spatial.filters.geometryType = "Point";
+        state.spatial.filters.srid = -1;
+        expect(normalizeQueryStudioPanelViewState(state, "run-1")).to.equal(undefined);
+        state.spatial.filters.srid = 4326;
+
+        // Splitter positions and collapse state are panel preferences: they
+        // survive reruns.
+        state.spatial.detailsOpen = false;
+        const next = resetQueryStudioPanelViewState(state, "run-2");
+        expect(next.spatial.listWidth).to.equal(320);
+        expect(next.spatial.detailsWidth).to.equal(240);
+        expect(next.spatial.detailsOpen).to.equal(false);
+    });
+
     test("new runs clear result-derived state and retain panel preferences", () => {
         const state = createQueryStudioPanelViewState("run-1");
         state.shell.activeTab = "queryPlan";
