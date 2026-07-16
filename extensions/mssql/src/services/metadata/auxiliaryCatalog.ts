@@ -217,11 +217,15 @@ export const SERVER_AUX_SECTIONS: readonly AuxSectionSpec[] = [
     {
         key: "security/logins",
         scope: "server",
-        // S=sql, U=windows, G=windows group, C=certificate, K=asymmetric key;
+        // S=sql, U=windows, G=windows group, C=certificate, K=asymmetric key,
+        // E=external (Entra) login, X=external (Entra) group — Azure logical
+        // servers are mostly E/X, which SSMS lists under Logins too; without
+        // them the folder rendered empty on Azure (dogfood #5).
         // ##...## internal certificate principals excluded like SSMS.
         sql:
             "SELECT p.name, p.type, p.is_disabled FROM sys.server_principals AS p " +
-            "WHERE p.type IN ('S','U','G','C','K') AND p.name NOT LIKE '##%' ORDER BY p.name;",
+            "WHERE p.type IN ('S','U','G','C','K','E','X') AND p.name NOT LIKE '##%' " +
+            "ORDER BY p.name;",
         map: (row) =>
             row[0] === null || row[0] === undefined
                 ? undefined

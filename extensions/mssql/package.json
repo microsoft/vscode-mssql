@@ -711,6 +711,16 @@
                     "group": "0_oe2_connection@1"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.cancelConnect",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCancelConnect\\b/",
+                    "group": "0_oe2_connection@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.cancelConnect",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCancelConnect\\b/",
+                    "group": "inline"
+                },
+                {
                     "command": "mssql.objectExplorerV2.editConnection",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|connectingConnection|lostConnection)\\b/",
                     "group": "0_oe2_connection@2"
@@ -796,9 +806,19 @@
                     "group": "2_MSSQL_admin@2"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.legacyActions",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(connectedServer|database|object)\\b/",
-                    "group": "5_oe2_legacy@0"
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profiler\\b/",
+                    "group": "2_MSSQL_admin@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaCompare",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaCompare\\b/",
+                    "group": "2_MSSQL_admin@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTable",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTable\\b/",
+                    "group": "2_MSSQL_admin@0"
                 },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
@@ -1242,6 +1262,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.cancelConnect",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.objectExplorerV2.editConnection",
                     "when": "false"
                 },
@@ -1295,6 +1319,18 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaCompare",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTable",
                     "when": "false"
                 },
                 {
@@ -2309,6 +2345,12 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.objectExplorerV2.cancelConnect",
+                "title": "Cancel Connecting",
+                "category": "MS SQL",
+                "icon": "$(stop-circle)"
+            },
+            {
                 "command": "mssql.objectExplorerV2.editConnection",
                 "title": "%mssql.editConnection%",
                 "category": "MS SQL"
@@ -2375,12 +2417,27 @@
             },
             {
                 "command": "mssql.objectExplorerV2.backupDatabase",
-                "title": "Backup…",
+                "title": "Backup Database...",
                 "category": "MS SQL"
             },
             {
                 "command": "mssql.objectExplorerV2.restoreDatabase",
-                "title": "Restore…",
+                "title": "Restore Database...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.launchProfiler",
+                "title": "Launch Query Profiler...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.schemaCompare",
+                "title": "Compare Schemas...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.editTable",
+                "title": "Modify Table Structure...",
                 "category": "MS SQL"
             },
             {

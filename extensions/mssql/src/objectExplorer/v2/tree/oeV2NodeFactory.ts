@@ -169,5 +169,13 @@ export function childrenOfGroup(
 
 /** Context value used by the vscode edge (kept here so tests stay pure). */
 export function nodeContextValue(node: OeV2Node): string {
-    return contextValueFor(node.kind, node.capabilities, commandFlagsFor(node));
+    return contextValueFor(
+        node.kind,
+        node.capabilities,
+        commandFlagsFor({
+            kind: node.kind,
+            ...(node.database !== undefined ? { database: node.database } : {}),
+            ...(node.path.kind === "object" ? { objectKind: node.path.objectKind } : {}),
+        }),
+    );
 }

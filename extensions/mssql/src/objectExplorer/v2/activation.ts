@@ -334,6 +334,15 @@ export function activateObjectExplorerV2(
             },
         ),
         vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.cancelConnect",
+            (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                if (connectionId) {
+                    controller?.cancelConnect(connectionId);
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
             "mssql.objectExplorerV2.disconnect",
             async (node?: OeV2Node) => {
                 const connectionId = connectionIdOf(node);

@@ -255,16 +255,76 @@ export function databasesFolderChildren(
     if (!databases) {
         return [loadingNode(scope, connectionId)];
     }
-    const visible = showSystemDatabases
-        ? databases
-        : databases.filter((database) => database.isSystem !== true);
-    if (visible.length === 0) {
+    // v1/SSMS parity (dogfood #6): system databases nest under a "System
+    // Databases" folder that leads the list; user databases follow.
+    const userDatabases = databases.filter((database) => database.isSystem !== true);
+    const systemDatabases = showSystemDatabases
+        ? databases.filter((database) => database.isSystem === true)
+        : [];
+    const children: OeV2Node[] = [
+        ...(systemDatabases.length > 0 ? [systemDatabasesFolderNode(connectionId)] : []),
+        ...userDatabases.map((database) => databaseNode(connectionId, database)),
+    ];
+    if (children.length === 0) {
+        return withStaleNotice(scope, connectionId, [noItemsNode(scope, connectionId)], freshness);
+    }
+    return withStaleNotice(scope, connectionId, children, freshness);
+}
+
+/** The "System Databases" folder id in serverFolder paths. */
+export const SYSTEM_DATABASES_FOLDER = "databases/system";
+
+function systemDatabasesFolderNode(connectionId: string): OeV2Node {
+    const path: OeV2Path = {
+        kind: "serverFolder",
+        connectionId,
+        folder: SYSTEM_DATABASES_FOLDER,
+    };
+    return {
+        id: encodePath(path),
+        path,
+        kind: "serverFolder",
+        label: "System Databases",
+        collapsible: true,
+        connectionId,
+        readiness: NOT_APPLICABLE,
+        capabilities: { canRefresh: true },
+        icon: "Folder",
+    };
+}
+
+/** Children of the System Databases folder: the system databases only. */
+export function systemDatabasesFolderChildren(
+    connectionId: string,
+    status: ServerCatalogStatus | undefined,
+    view: IPinnedServerCatalogView | undefined,
+    freshness?: OeV2FreshnessFacts,
+): OeV2Node[] {
+    const scope = `server/${connectionId}/${SYSTEM_DATABASES_FOLDER}`;
+    if (!status || status.readiness === "absent" || status.readiness === "loading") {
+        return [loadingNode(scope, connectionId)];
+    }
+    if (status.readiness === "failed") {
+        return [
+            errorNode(
+                scope,
+                `Databases unavailable: ${status.errorMessage ?? "server catalog failed"}. Refresh to retry.`,
+                connectionId,
+            ),
+        ];
+    }
+    const databases = view?.listDatabases();
+    if (!databases) {
+        return [loadingNode(scope, connectionId)];
+    }
+    const system = databases.filter((database) => database.isSystem === true);
+    if (system.length === 0) {
         return withStaleNotice(scope, connectionId, [noItemsNode(scope, connectionId)], freshness);
     }
     return withStaleNotice(
         scope,
         connectionId,
-        visible.map((database) => databaseNode(connectionId, database)),
+        system.map((database) => databaseNode(connectionId, database)),
         freshness,
     );
 }
@@ -358,10 +418,12 @@ function catalogGate(
 /** Sections served by the main catalog snapshot (vs lazy aux sections). */
 const SNAPSHOT_SECTIONS = new Set(["objects", "synonyms", "schemas"]);
 
-/** presence:"nonEmpty" check for dropped-ledger folders over facet items. */
-function droppedLedgerItemsExist(aux: OeV2AuxAccess | undefined, def: OeV2FolderDef): boolean {
+/** presence:"nonEmpty" check for facet-selected folders (dropped ledger,
+ *  external tables) over facet items. */
+function facetItemsExist(aux: OeV2AuxAccess | undefined, def: OeV2FolderDef): boolean {
+    const flag = def.facetFlag ?? "isDroppedLedger";
     const items = aux?.items(def.section);
-    return items !== undefined && items.some((item) => (item.facts?.isDroppedLedger ?? 0) === 1);
+    return items !== undefined && items.some((item) => (item.facts?.[flag] ?? 0) === 1);
 }
 
 export function databaseFolderChildren(
@@ -389,7 +451,7 @@ export function databaseFolderChildren(
             ? resolveFolders("database", facts, {
                   parentId: def.id,
                   hasItems: (child) =>
-                      child.presence === "nonEmpty" ? droppedLedgerItemsExist(aux, child) : true,
+                      child.presence === "nonEmpty" ? facetItemsExist(aux, child) : true,
               })
             : [];
     const before = subDefs
@@ -420,6 +482,35 @@ export function databaseFolderChildren(
             ),
             freshness,
         );
+    } else if (def.facetFlag === "isExternal" && def.objectKinds) {
+        // External Tables (v1 parity): items are REAL catalog objects
+        // selected from the snapshot by facet — columns expand and object
+        // commands work exactly like the main table list.
+        const gate = catalogGate(scope, connectionId, status, snapshot, "objects");
+        if (gate) {
+            return [...before, ...gate, ...after];
+        }
+        const facetsById = facetMap(aux, def.parentId ?? def.id);
+        const objects = snapshot!
+            .listObjects(schema, [...def.objectKinds])
+            .filter((info) => (facetsById.get(info.objectId)?.[def.facetFlag] ?? 0) === 1);
+        content = withStaleNotice(
+            scope,
+            connectionId,
+            objects.length === 0
+                ? [noItemsNode(scope, connectionId)]
+                : objects.map((info) =>
+                      objectNode(
+                          connectionId,
+                          database,
+                          info.schema,
+                          info.name,
+                          info.kind as OeV2ObjectKind,
+                          facetPresentation(facetsById.get(info.objectId)),
+                      ),
+                  ),
+            freshness,
+        );
     } else if (def.section === "aux") {
         // Pure parent folder: registry children ARE the content.
         content = before.length + after.length === 0 ? [noItemsNode(scope, connectionId)] : [];
@@ -429,7 +520,8 @@ export function databaseFolderChildren(
     return [...before, ...content, ...after];
 }
 
-/** K3 exclusion: history/dropped rows never render in the main list. */
+/** K3 exclusion: history/dropped/external rows never render in the main
+ *  list — external tables live in their own folder (v1 parity). */
 function visibleWithFacets(facetValues: Readonly<Record<string, number>> | undefined): boolean {
     if (!facetValues) {
         return true;
@@ -437,7 +529,8 @@ function visibleWithFacets(facetValues: Readonly<Record<string, number>> | undef
     return (
         facetValues.temporalType !== 1 &&
         facetValues.ledgerType !== 1 &&
-        facetValues.isDroppedLedger !== 1
+        facetValues.isDroppedLedger !== 1 &&
+        facetValues.isExternal !== 1
     );
 }
 
@@ -644,7 +737,8 @@ function databaseAuxLeafContent(
             (item) => item.kind !== undefined && def.objectKinds?.includes(item.kind as never),
         );
     } else if (def.section === "tableFacets" || def.section === "viewFacets") {
-        visible = visible.filter((item) => (item.facts?.isDroppedLedger ?? 0) === 1);
+        const flag = def.facetFlag ?? "isDroppedLedger";
+        visible = visible.filter((item) => (item.facts?.[flag] ?? 0) === 1);
     }
     if (def.hideSystemItems && facts.isSystemDatabase !== true) {
         visible = visible.filter((item) => !item.isSystem);

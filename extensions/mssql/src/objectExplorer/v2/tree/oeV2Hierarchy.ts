@@ -49,6 +49,8 @@ export interface OeV2FolderDef {
     readonly isSystemFolder?: boolean;
     /** "nonEmpty" folders are hidden when they would render zero items (K3). */
     readonly presence?: "always" | "nonEmpty";
+    /** Facet fact (tableFacets/viewFacets) that selects this folder's items. */
+    readonly facetFlag?: string;
     /** Aux leaves whose SYSTEM items hide outside system-database context (K2). */
     readonly hideSystemItems?: boolean;
     /** Dropped Ledger* pattern: sorts after every normally-ordered sibling. */
@@ -219,6 +221,23 @@ export const OE_V2_HIERARCHY: readonly OeV2FolderDef[] = [
         order: 1,
         section: "tableFacets",
         presence: "nonEmpty",
+        facetFlag: "isDroppedLedger",
+        sortLast: true,
+        icon: "Folder",
+    },
+    // External Tables (dogfood #7, v1 parity): appears ONLY when external
+    // tables exist, after the table items. Items are REAL catalog objects
+    // (columns expand, scripting) selected from the snapshot by facet.
+    {
+        id: "tables/externalTables",
+        label: "External Tables",
+        scope: "database",
+        parentId: "tables",
+        order: 2,
+        section: "tableFacets",
+        objectKinds: ["table"],
+        presence: "nonEmpty",
+        facetFlag: "isExternal",
         sortLast: true,
         icon: "Folder",
     },
@@ -251,6 +270,7 @@ export const OE_V2_HIERARCHY: readonly OeV2FolderDef[] = [
         order: 1,
         section: "viewFacets",
         presence: "nonEmpty",
+        facetFlag: "isDroppedLedger",
         sortLast: true,
         icon: "Folder",
     },

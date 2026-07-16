@@ -22,6 +22,8 @@ export interface OeV2CommandTargetFacts {
     readonly kind: OeV2Node["kind"];
     /** Set for database nodes AND DB-scoped top-level connections. */
     readonly database?: string;
+    /** Set for object nodes (table/view/procedure/…). */
+    readonly objectKind?: string;
 }
 
 export interface OeV2CommandDef {
@@ -41,7 +43,8 @@ export interface OeV2CommandDef {
 export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     {
         id: "mssql.objectExplorerV2.backupDatabase",
-        title: "Backup…",
+        // Dogfood #8: v1 wording on the same nodes — drop-in parity.
+        title: "Backup Database...",
         feature: "backupDatabase",
         route: "legacyRedirect",
         flag: "backup",
@@ -54,13 +57,40 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.restoreDatabase",
-        title: "Restore…",
+        title: "Restore Database...",
         feature: "restoreDatabase",
         route: "legacyRedirect",
         flag: "restore",
         menuGroup: "2_MSSQL_admin@2",
         // K4: servers (top-level connections, DB-scoped or not) + databases.
         appliesTo: (facts) => facts.kind === "connectedServer" || facts.kind === "database",
+    },
+    {
+        id: "mssql.objectExplorerV2.launchProfiler",
+        title: "Launch Query Profiler...",
+        feature: "profiler",
+        route: "legacyRedirect",
+        flag: "profiler",
+        menuGroup: "2_MSSQL_admin@3",
+        appliesTo: (facts) => facts.kind === "connectedServer" || facts.kind === "database",
+    },
+    {
+        id: "mssql.objectExplorerV2.schemaCompare",
+        title: "Compare Schemas...",
+        feature: "schemaCompare",
+        route: "legacyRedirect",
+        flag: "schemaCompare",
+        menuGroup: "2_MSSQL_admin@4",
+        appliesTo: (facts) => facts.kind === "database",
+    },
+    {
+        id: "mssql.objectExplorerV2.editTable",
+        title: "Modify Table Structure...",
+        feature: "editTable",
+        route: "legacyRedirect",
+        flag: "editTable",
+        menuGroup: "2_MSSQL_admin@0",
+        appliesTo: (facts) => facts.kind === "object" && facts.objectKind === "table",
     },
 ];
 

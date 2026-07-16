@@ -193,6 +193,29 @@ export class OeV2SessionRegistry {
         }
     }
 
+    /**
+     * Cancel an in-flight connect: the node returns to disconnected
+     * immediately. The pending open settles under its backend deadline and
+     * hits the superseded branch, which closes any late-arriving session.
+     */
+    cancelConnect(connectionId: string): boolean {
+        const entry = this.entries.get(connectionId);
+        if (!entry || entry.state !== "connecting") {
+            return false;
+        }
+        entry.state = "disconnected";
+        entry.failureReason = undefined;
+        entry.connectingSince = undefined;
+        diag.emit({
+            feature: "objectExplorer",
+            kind: "event",
+            type: "objectExplorerV2.connection.openCanceled",
+            fields: {},
+        });
+        this.notify(connectionId);
+        return true;
+    }
+
     /** Records a profile/auth preparation failure so command UI can show its reason. */
     recordPreparationFailure(connectionId: string, failureReason: string, error: unknown): void {
         const previous = this.entries.get(connectionId);

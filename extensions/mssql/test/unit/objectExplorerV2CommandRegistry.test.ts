@@ -61,13 +61,24 @@ suite("Object Explorer v2 command registry (B25)", () => {
         expect(commandFlagsFor({ kind: "database", database: "AppDb" })).to.deep.equal([
             "oe2:cmd=backup",
             "oe2:cmd=restore",
+            "oe2:cmd=profiler",
+            "oe2:cmd=schemaCompare",
         ]);
-        expect(commandFlagsFor({ kind: "connectedServer" })).to.deep.equal(["oe2:cmd=restore"]);
+        expect(commandFlagsFor({ kind: "connectedServer" })).to.deep.equal([
+            "oe2:cmd=restore",
+            "oe2:cmd=profiler",
+        ]);
         expect(commandFlagsFor({ kind: "connectedServer", database: "AppDb" })).to.deep.equal([
             "oe2:cmd=backup",
             "oe2:cmd=restore",
+            "oe2:cmd=profiler",
         ]);
+        // Modify Table Structure targets TABLE objects only (dogfood #8).
         expect(commandFlagsFor({ kind: "object" })).to.deep.equal([]);
+        expect(commandFlagsFor({ kind: "object", objectKind: "table" })).to.deep.equal([
+            "oe2:cmd=editTable",
+        ]);
+        expect(commandFlagsFor({ kind: "object", objectKind: "view" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "databaseFolder", database: "AppDb" })).to.deep.equal([]);
     });
 

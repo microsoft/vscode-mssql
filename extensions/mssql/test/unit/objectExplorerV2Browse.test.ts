@@ -403,6 +403,40 @@ suite("Object Explorer v2 browse (B18)", () => {
         h.controller.dispose();
     });
 
+    test("cancel while connecting returns to disconnected; the late session self-closes", async () => {
+        let closed = 0;
+        let resolveOpen!: (value: { session: ISqlSession }) => void;
+        const registry = new OeV2SessionRegistry(
+            () => new Promise((resolve) => (resolveOpen = resolve)),
+        );
+        const prepared = {
+            serverFingerprint: "fp_cancel_test",
+        } as Parameters<OeV2SessionRegistry["connect"]>[1];
+        const pending = registry.connect("p1", prepared);
+        expect(registry.stateOf("p1")).to.equal("connecting");
+
+        expect(registry.cancelConnect("p1")).to.equal(true);
+        expect(registry.stateOf("p1")).to.equal("disconnected");
+        // No-op on anything not connecting.
+        expect(registry.cancelConnect("p1")).to.equal(false);
+
+        // The pending open settles late: the superseded branch must close
+        // the session, never resurrect the canceled connect.
+        const session = {
+            info: {},
+            close: async () => {
+                closed++;
+            },
+            onDidChangeState: () => ({ dispose: () => undefined }),
+        } as unknown as ISqlSession;
+        resolveOpen({ session });
+        const outcome = await pending;
+        expect(outcome.state).to.equal("disconnected");
+        expect(registry.stateOf("p1")).to.equal("disconnected");
+        expect(closed).to.equal(1);
+        registry.dispose();
+    });
+
     test("AzureMFA uses the injected token source for OE and metadata opens with no v1/password path", async () => {
         let tokenLookups = 0;
         let passwordLookups = 0;
@@ -443,18 +477,23 @@ suite("Object Explorer v2 browse (B18)", () => {
         const h = harness();
         const { dbFolder } = await browseToDatabases(h);
         const databases = await h.controller.children(dbFolder);
+        // v1/SSMS parity: system databases nest under a leading folder.
         expect(databases.map((n) => n.label)).to.deep.equal([
+            "System Databases",
             "AppDb",
             "Locked",
             "OtherDb",
-            "master",
         ]);
+        const systemFolder = databases[0];
+        const system = await h.controller.children(systemFolder);
+        expect(system.map((n) => n.label)).to.deep.equal(["master"]);
+        expect(system[0].kind).to.equal("database");
         const locked = databases.find((n) => n.label === "Locked")!;
         expect(locked.collapsible).to.equal(false);
         expect(locked.readiness.kind).to.equal("permissionDenied");
         expect(locked.description).to.contain("no access");
 
-        // system-database filter
+        // system-database filter hides the folder entirely
         h.settings.showSystemDatabases = false;
         const filtered = await h.controller.children(dbFolder);
         expect(filtered.map((n) => n.label)).to.deep.equal(["AppDb", "Locked", "OtherDb"]);
@@ -904,20 +943,20 @@ suite("Object Explorer v2 browse freshness (CACHE-5)", () => {
 
         const withinTtl = await h.controller.children(dbFolder);
         expect(withinTtl.map((n) => n.label)).to.deep.equal([
+            "System Databases",
             "AppDb",
             "Locked",
             "OtherDb",
-            "master",
         ]);
         expect(serverCounters.list, "within the TTL: no re-hydration").to.equal(baseline);
 
         await sleep(250);
         const beyondTtl = await h.controller.children(dbFolder);
         expect(beyondTtl.map((n) => n.label)).to.deep.equal([
+            "System Databases",
             "AppDb",
             "Locked",
             "OtherDb",
-            "master",
         ]);
         expect(serverCounters.list, "beyond the TTL: one re-hydration").to.equal(baseline + 1);
         h.controller.dispose();

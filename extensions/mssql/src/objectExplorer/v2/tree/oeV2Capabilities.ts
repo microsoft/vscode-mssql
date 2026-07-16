@@ -16,6 +16,7 @@ import { OeV2NodeCapabilities, OeV2NodeKind } from "./oeV2Node";
 const FLAG_ORDER: readonly (keyof OeV2NodeCapabilities & string)[] = [
     "canConnect",
     "canDisconnect",
+    "canCancelConnect",
     "canRefresh",
     "canFilter",
     "canSearch",
@@ -51,6 +52,8 @@ export function capabilitiesFor(kind: OeV2NodeKind): OeV2NodeCapabilities {
     switch (kind) {
         case "disconnectedConnection":
             return { canConnect: true };
+        case "connectingConnection":
+            return { canCancelConnect: true };
         case "connectedServer":
             return { canDisconnect: true, canRefresh: true, canOpenQuery: true };
         case "lostConnection":

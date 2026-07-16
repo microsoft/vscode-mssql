@@ -61,6 +61,8 @@ export const NOT_APPLICABLE: OeV2Readiness = { kind: "notApplicable" };
 export interface OeV2NodeCapabilities {
     readonly canConnect?: boolean;
     readonly canDisconnect?: boolean;
+    /** In-flight connect: the node offers Cancel instead of spinning forever. */
+    readonly canCancelConnect?: boolean;
     readonly canRefresh?: boolean;
     readonly canFilter?: boolean;
     readonly canSearch?: boolean;

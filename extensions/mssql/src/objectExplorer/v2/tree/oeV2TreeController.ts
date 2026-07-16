@@ -40,6 +40,8 @@ import {
     OeV2FreshnessFacts,
     serverAuxFolderChildren,
     serverChildren,
+    SYSTEM_DATABASES_FOLDER,
+    systemDatabasesFolderChildren,
 } from "./oeV2Browse";
 import { folderDef, isSystemDatabaseName, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
 import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
@@ -238,6 +240,15 @@ export class OeV2TreeController {
         return true;
     }
 
+    /**
+     * Cancel an in-flight connect. The node returns to disconnected at once;
+     * the pending open self-supersedes when its deadline settles it.
+     */
+    cancelConnect(connectionId: string): void {
+        this.deps.sessions?.cancelConnect(connectionId);
+        this.explicitlyDisconnected.add(connectionId);
+    }
+
     async disconnectProfile(connectionId: string): Promise<void> {
         const runtime = this.runtimes.get(connectionId);
         if (runtime) {
@@ -377,6 +388,18 @@ export class OeV2TreeController {
                         runtime.coordinator.serverStatus(),
                         runtime.coordinator.serverView(),
                         settings.showSystemDatabases,
+                        serverFresh ? { freshness: serverFresh.freshness } : undefined,
+                    );
+                }
+                if (path.folder === SYSTEM_DATABASES_FOLDER) {
+                    const serverFresh = await boundedWait(
+                        runtime.coordinator.ensureServerFresh(),
+                        this.deps.waits?.expandMs ?? EXPAND_WAIT_MS,
+                    );
+                    return systemDatabasesFolderChildren(
+                        path.connectionId,
+                        runtime.coordinator.serverStatus(),
+                        runtime.coordinator.serverView(),
                         serverFresh ? { freshness: serverFresh.freshness } : undefined,
                     );
                 }
