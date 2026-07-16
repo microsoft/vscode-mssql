@@ -56,6 +56,8 @@ interface Entry {
     failureReason: string | undefined;
     stateSubscription: { dispose(): void } | undefined;
     connectingSince: number | undefined;
+    /** The in-flight open — a second connect() JOINS it (outcome, not snapshot). */
+    pending: Promise<OeV2ConnectionSession> | undefined;
 }
 
 export class OeV2SessionRegistry {
@@ -103,11 +105,18 @@ export class OeV2SessionRegistry {
         connectionId: string,
         prepared: PreparedConnection,
     ): Promise<OeV2ConnectionSession> {
-        let entry = this.entries.get(connectionId);
-        if (entry && (entry.state === "connected" || entry.state === "connecting")) {
-            return snapshotOf(entry);
+        const existing = this.entries.get(connectionId);
+        if (existing && existing.state === "connected") {
+            return snapshotOf(existing);
         }
-        entry = {
+        if (existing && existing.state === "connecting") {
+            // JOIN the in-flight attempt (live-run finding: the deployment
+            // wizard's explicit connect races the single-new-profile
+            // auto-connect). A "still connecting" snapshot here read as
+            // failure to callers awaiting the outcome.
+            return existing.pending ?? snapshotOf(existing);
+        }
+        const entry: Entry = {
             connectionId,
             prepared,
             state: "connecting",
@@ -115,9 +124,24 @@ export class OeV2SessionRegistry {
             failureReason: undefined,
             stateSubscription: undefined,
             connectingSince: Date.now(),
+            pending: undefined,
         };
         this.entries.set(connectionId, entry);
         this.notify(connectionId);
+        const pending = this.runConnect(connectionId, entry, prepared).finally(() => {
+            if (entry.pending === pending) {
+                entry.pending = undefined;
+            }
+        });
+        entry.pending = pending;
+        return pending;
+    }
+
+    private async runConnect(
+        connectionId: string,
+        entry: Entry,
+        prepared: PreparedConnection,
+    ): Promise<OeV2ConnectionSession> {
         const span = diag.startSpan({
             feature: "objectExplorer",
             kind: "span",
@@ -229,6 +253,7 @@ export class OeV2SessionRegistry {
             failureReason,
             stateSubscription: undefined,
             connectingSince: undefined,
+            pending: undefined,
         });
         diag.emit({
             feature: "objectExplorer",

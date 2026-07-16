@@ -9,6 +9,7 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as os from "os";
 import * as sqlServerContainer from "../../src/deployment/sqlServerContainer";
+import { classicContainerHostAdapter } from "../../src/objectExplorer/classicContainerHostAdapter";
 import { LocalContainers } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { Platform } from "../../src/constants/constants";
@@ -342,8 +343,7 @@ suite("SQL Server Container", () => {
 
         let result = await sqlServerContainer.restartSqlServerContainer(
             containerName,
-            node,
-            mockObjectExplorerService,
+            classicContainerHostAdapter(node, mockObjectExplorerService),
         );
         expect(result, "Should return success when container is already running").to.be.true;
         listContainersStub.resetHistory();
@@ -367,8 +367,7 @@ suite("SQL Server Container", () => {
 
         result = await sqlServerContainer.restartSqlServerContainer(
             containerName,
-            node,
-            mockObjectExplorerService,
+            classicContainerHostAdapter(node, mockObjectExplorerService),
         );
         expect(result, "Should return success when container is restarted successfully").to.be.true;
         expect(sendActionEvent).to.have.been.calledThrice;

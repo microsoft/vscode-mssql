@@ -24,6 +24,8 @@ export interface OeV2CommandTargetFacts {
     readonly database?: string;
     /** Set for object nodes (table/view/procedure/…). */
     readonly objectKind?: string;
+    /** Docker container connection (profile carries containerName, DOCK-2). */
+    readonly isContainer?: boolean;
 }
 
 export interface OeV2CommandDef {
@@ -91,6 +93,42 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
         flag: "editTable",
         menuGroup: "2_MSSQL_admin@0",
         appliesTo: (facts) => facts.kind === "object" && facts.objectKind === "table",
+    },
+    // Docker container lifecycle (DOCK-2): v1 wording, v1 node-state gates
+    // (start on stopped, stop on connected, delete on both), native route
+    // over the shared docker core.
+    {
+        id: "mssql.objectExplorerV2.startContainer",
+        title: "Start SQL Container",
+        feature: "startContainer",
+        route: "native",
+        flag: "startContainer",
+        menuGroup: "9_MSSQL_container@1",
+        appliesTo: (facts) =>
+            facts.isContainer === true &&
+            (facts.kind === "disconnectedConnection" || facts.kind === "lostConnection"),
+    },
+    {
+        id: "mssql.objectExplorerV2.stopContainer",
+        title: "Stop SQL Container",
+        feature: "stopContainer",
+        route: "native",
+        flag: "stopContainer",
+        menuGroup: "9_MSSQL_container@2",
+        appliesTo: (facts) => facts.isContainer === true && facts.kind === "connectedServer",
+    },
+    {
+        id: "mssql.objectExplorerV2.deleteContainer",
+        title: "Delete SQL Container",
+        feature: "deleteContainer",
+        route: "native",
+        flag: "deleteContainer",
+        menuGroup: "9_MSSQL_container@3",
+        appliesTo: (facts) =>
+            facts.isContainer === true &&
+            (facts.kind === "disconnectedConnection" ||
+                facts.kind === "connectedServer" ||
+                facts.kind === "lostConnection"),
     },
 ];
 

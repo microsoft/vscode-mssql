@@ -54,6 +54,8 @@ export interface ConnectionNodeFacts {
     readonly failureReason?: string;
     /** B27: elapsed connect time — slow connects surface honestly. */
     readonly connectingForMs?: number;
+    /** Transient docker activity text ("Starting container…", DOCK-2). */
+    readonly activityText?: string;
 }
 
 export function connectionNode(
@@ -71,19 +73,22 @@ export function connectionNode(
                 ? ("lostConnection" as const)
                 : ("disconnectedConnection" as const);
     // K6: database/auth already live in the v1-recipe label — description
-    // carries connection STATE only.
+    // carries connection STATE only. Docker activity text (container
+    // start/stop/preflight) takes precedence while it runs (DOCK-2).
     const description =
-        facts.state === "connecting"
-            ? facts.connectingForMs !== undefined && facts.connectingForMs >= 5000
-                ? `connecting… (${Math.round(facts.connectingForMs / 1000)}s)`
-                : "connecting…"
-            : facts.state === "disconnecting"
-              ? "disconnecting…"
-              : facts.state === "lost"
-                ? "connection lost"
-                : facts.state === "failed"
-                  ? `failed: ${facts.failureReason ?? "connect error"}`
-                  : undefined;
+        facts.activityText !== undefined
+            ? facts.activityText
+            : facts.state === "connecting"
+              ? facts.connectingForMs !== undefined && facts.connectingForMs >= 5000
+                  ? `connecting… (${Math.round(facts.connectingForMs / 1000)}s)`
+                  : "connecting…"
+              : facts.state === "disconnecting"
+                ? "disconnecting…"
+                : facts.state === "lost"
+                  ? "connection lost"
+                  : facts.state === "failed"
+                    ? `failed: ${facts.failureReason ?? "connect error"}`
+                    : undefined;
     const lines = connectionTooltipLines(profile.stored);
     if (facts.serverVersion) {
         // Additive over v1 (journaled): live server version when connected.
@@ -93,6 +98,9 @@ export function connectionNode(
     if (differs.length > 0) {
         lines.push("Differs from same-named connections:", ...differs);
     }
+    // Container connections keep the v1 docker identity: docker icons and
+    // the container commands (targeted via oe2:cmd flags, DOCK-2).
+    const containerName = profile.stored.containerName;
     return {
         id: encodePath(path),
         path,
@@ -104,9 +112,17 @@ export function connectionNode(
         connectionId: profile.profileId,
         // DB-scoped connections carry their database (K4 backup targeting).
         ...(profile.database ? { database: profile.database } : {}),
+        ...(containerName ? { containerName } : {}),
         readiness: NOT_APPLICABLE,
         capabilities: capabilitiesFor(kind),
-        icon: facts.state === "connected" ? "Server_green" : "Server_red",
+        icon:
+            facts.state === "connected"
+                ? containerName
+                    ? "DockerContainer_green"
+                    : "Server_green"
+                : containerName
+                  ? "DockerContainer_red"
+                  : "Server_red",
     };
 }
 
@@ -176,6 +192,7 @@ export function nodeContextValue(node: OeV2Node): string {
             kind: node.kind,
             ...(node.database !== undefined ? { database: node.database } : {}),
             ...(node.path.kind === "object" ? { objectKind: node.path.objectKind } : {}),
+            ...(node.containerName !== undefined ? { isContainer: true } : {}),
         }),
     );
 }

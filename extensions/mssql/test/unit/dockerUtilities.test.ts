@@ -10,7 +10,8 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as os from "os";
 import * as dockerUtils from "../../src/docker/dockerUtils";
-import { LocalContainers } from "../../src/constants/locConstants";
+import { classicContainerHostAdapter } from "../../src/objectExplorer/classicContainerHostAdapter";
+import { Common, LocalContainers } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { defaultSqlServerContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
@@ -826,26 +827,22 @@ suite("Docker Utilities", () => {
             return createSpawnSuccessProcess("");
         });
 
+        // The classic adapter carries the v1 behavior (modal + removeNode)
+        // through the DOCK-0 seam — asserted end-to-end here.
+        const host = classicContainerHostAdapter(node, mockObjectExplorerService);
+
         // Docker is running, and container exists
         listContainersStub
             .onFirstCall()
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]);
 
-        let result = await dockerUtils.prepareForDockerContainerCommand(
-            containerName,
-            node,
-            mockObjectExplorerService,
-        );
+        let result = await dockerUtils.prepareForDockerContainerCommand(containerName, host);
         expect(result.success, "Should return true if container exists").to.be.true;
 
         // Docker is running, container does not exist
         listContainersStub.onSecondCall().resolves([]);
 
-        result = await dockerUtils.prepareForDockerContainerCommand(
-            containerName,
-            node,
-            mockObjectExplorerService,
-        );
+        result = await dockerUtils.prepareForDockerContainerCommand(containerName, host);
         expect(!result.success, "Should return false if container does not exist").to.be.true;
         expect(result.error).to.equal(LocalContainers.containerDoesNotExistError);
         expect(showInformationMessageStub, "Should show info message if container does not exist")
@@ -854,13 +851,25 @@ suite("Docker Utilities", () => {
         // finding container returns an error
         listContainersStub.onThirdCall().rejects(new Error("Something went wrong"));
 
-        result = await dockerUtils.prepareForDockerContainerCommand(
-            containerName,
-            node,
-            mockObjectExplorerService,
-        );
+        result = await dockerUtils.prepareForDockerContainerCommand(containerName, host);
         expect(!result.success, "Should return false if container does not exist").to.be.true;
         expect(result.error).to.equal(LocalContainers.containerDoesNotExistError);
+    });
+
+    test("classicContainerHostAdapter: status + missing-container removal ride the seam", async () => {
+        const showInformationMessageStub = sandbox
+            .stub(vscode.window, "showInformationMessage")
+            .resolves(Common.remove as unknown as vscode.MessageItem);
+        const host = classicContainerHostAdapter(node, mockObjectExplorerService);
+
+        await host.setStatus("Starting container…");
+        expect(node.loadingLabel).to.equal("Starting container…");
+        expect(mockObjectExplorerService.setLoadingUiForNode).to.have.been.calledWith(node);
+
+        await host.onContainerMissing();
+        expect(showInformationMessageStub).to.have.been.calledOnce;
+        expect(mockObjectExplorerService.removeNode, "Remove choice removes the node").to.have.been
+            .calledOnce;
     });
 
     test("sanitizeContainerInput: should properly sanitize container input", () => {

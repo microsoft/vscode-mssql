@@ -38,6 +38,10 @@ import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
 import { OeV2DragAndDropController, registerOeV2GroupCommands } from "./commands/oeV2GroupCommands";
 import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
 import { ConnectionConfig } from "../../connectionconfig/connectionconfig";
+import { Common, LocalContainers } from "../../constants/locConstants";
+import { ContainerHostAdapter } from "../../docker/containerHostAdapter";
+import { deleteContainer, stopContainer } from "../../docker/dockerUtils";
+import { restartSqlServerContainer } from "../../deployment/sqlServerContainer";
 import { OeV2Node } from "./tree/oeV2Node";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
 
@@ -58,6 +62,37 @@ export function activateObjectExplorerV2(
     let controller: OeV2TreeController | undefined;
     let registry: OeV2SessionRegistry | undefined;
     let handoff: OeV2ClassicHandoffService | undefined;
+
+    const removeSavedProfile = async (connectionId: string): Promise<void> => {
+        const config = (deps.groupConfig ?? (() => undefined))();
+        if (!config) {
+            return;
+        }
+        const profile = (await config.getConnections()).find(
+            (candidate) => stableProfileId(candidate as never) === connectionId,
+        );
+        if (profile) {
+            await config.removeConnection(profile as never);
+        }
+    };
+    // DOCK-2/3: the docker host adapter for v2 nodes — activity text on
+    // the tree node, toasts, and the container-vanished modal offering
+    // saved-profile removal (v1 removeNode parity).
+    const containerHost = (connectionId: string): ContainerHostAdapter => ({
+        setStatus: (text: string) => controller?.setContainerActivity(connectionId, text),
+        showError: (message: string) => void vscode.window.showErrorMessage(message),
+        onContainerMissing: async () => {
+            const choice = await vscode.window.showInformationMessage(
+                LocalContainers.containerDoesNotExistError,
+                { modal: true },
+                Common.remove,
+            );
+            if (choice === Common.remove) {
+                await removeSavedProfile(connectionId);
+                controller?.refresh();
+            }
+        },
+    });
 
     const register = () => {
         if (registration) {
@@ -81,6 +116,11 @@ export function activateObjectExplorerV2(
             sessions: registry,
             coordinatorFactory: (prepared) =>
                 new OeV2MetadataCoordinator(MetadataStoreService.get().store(), prepared),
+            // Container pre-flight (DOCK-3) over the shared docker core.
+            containers: {
+                restart: (containerName, connectionId) =>
+                    restartSqlServerContainer(containerName, containerHost(connectionId)),
+            },
             settings: () => {
                 const settings = oeV2Settings();
                 return {
@@ -333,12 +373,120 @@ export function activateObjectExplorerV2(
                 }
             },
         ),
+        // DOCK-1 internal seam: the deployment wizard's v2 connect adapter
+        // opens the just-saved container profile through the data plane.
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.connectProfileById",
+            async (connectionId?: string): Promise<boolean> => {
+                if (!connectionId || !controller) {
+                    return false;
+                }
+                // The caller typically JUST saved the profile: drop the
+                // cached tree so findProfile sees it (live perf run caught
+                // this race — settings-change events settle asynchronously).
+                controller.refresh();
+                const connected = await controller.connectProfile(connectionId);
+                if (!connected) {
+                    // Callers (wizard adapter, perf seams) surface THIS text —
+                    // a bare false hid the real reason from every consumer.
+                    const reason = registry?.get(connectionId)?.failureReason;
+                    throw new Error(
+                        reason ?? "the profile could not be opened (no failure reason recorded)",
+                    );
+                }
+                return true;
+            },
+        ),
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.cancelConnect",
             (node?: OeV2Node) => {
                 const connectionId = connectionIdOf(node);
                 if (connectionId) {
                     controller?.cancelConnect(connectionId);
+                }
+            },
+        ),
+        // DOCK-2: container lifecycle with v1 wording and v1 outcomes. Start
+        // rides connectProfile — the DOCK-3 pre-flight owns the docker work.
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.startContainer",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                const containerName = node?.containerName;
+                if (!connectionId || !containerName || !controller) {
+                    return;
+                }
+                const connected = await controller.connectProfile(connectionId);
+                if (!connected) {
+                    void vscode.window.showErrorMessage(
+                        LocalContainers.failStartContainer(containerName),
+                    );
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.stopContainer",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                const containerName = node?.containerName;
+                if (!connectionId || !containerName || !controller) {
+                    return;
+                }
+                controller.setContainerActivity(
+                    connectionId,
+                    LocalContainers.stoppingContainerLoadingLabel,
+                );
+                try {
+                    await handoff?.close(connectionId);
+                    await controller.disconnectProfile(connectionId);
+                    const stopped = await stopContainer(containerName);
+                    void vscode.window.showInformationMessage(
+                        stopped
+                            ? LocalContainers.stoppedContainerSucessfully(containerName)
+                            : LocalContainers.failStopContainer(containerName),
+                    );
+                } finally {
+                    controller.setContainerActivity(connectionId, undefined);
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.deleteContainer",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                const containerName = node?.containerName;
+                if (!connectionId || !containerName || !controller) {
+                    return;
+                }
+                const confirmation = await vscode.window.showInformationMessage(
+                    LocalContainers.deleteContainerConfirmation(containerName),
+                    { modal: true },
+                    Common.delete,
+                );
+                if (confirmation !== Common.delete) {
+                    return;
+                }
+                controller.setContainerActivity(
+                    connectionId,
+                    LocalContainers.deletingContainerLoadingLabel,
+                );
+                try {
+                    await handoff?.close(connectionId);
+                    await controller.disconnectProfile(connectionId);
+                    const deleted = await deleteContainer(containerName);
+                    void vscode.window.showInformationMessage(
+                        deleted
+                            ? LocalContainers.deletedContainerSucessfully(containerName)
+                            : LocalContainers.failDeleteContainer(containerName),
+                    );
+                    if (deleted) {
+                        // v1 parity: deleting the container removes the node,
+                        // which in v2 means removing the saved profile.
+                        await removeSavedProfile(connectionId);
+                        controller.refresh();
+                    }
+                } finally {
+                    controller.setContainerActivity(connectionId, undefined);
                 }
             },
         ),
@@ -423,7 +571,7 @@ export function activateObjectExplorerV2(
                 }
             }),
         ),
-        vscode.commands.registerCommand("mssql.objectExplorerV2.showStatus", () => {
+        vscode.commands.registerCommand("mssql.objectExplorerV2.showStatus", async () => {
             const channel = vscode.window.createOutputChannel("MSSQL Object Explorer v2");
             const dataPlane = SqlDataPlaneService.get();
             channel.appendLine(`viewMode: ${oeViewMode()}`);
@@ -433,6 +581,23 @@ export function activateObjectExplorerV2(
             channel.appendLine(
                 `metadataStore: ${JSON.stringify(MetadataStoreService.get().store().status())}`,
             );
+            // DOCK-4: container profiles + connection state (names only).
+            try {
+                const tree = await readProfileTree(deps.profiles);
+                const containers = tree.profiles.filter(
+                    (profile) => profile.stored.containerName !== undefined,
+                );
+                channel.appendLine(`containerProfiles: ${containers.length}`);
+                for (const profile of containers) {
+                    channel.appendLine(
+                        `  ${profile.stored.containerName}: ${
+                            registry?.stateOf(profile.profileId) ?? "disconnected"
+                        }`,
+                    );
+                }
+            } catch {
+                channel.appendLine("containerProfiles: <unavailable>");
+            }
             channel.show(true);
         }),
         vscode.commands.registerCommand("mssql.objectExplorerV2.openClassicObjectExplorer", () =>

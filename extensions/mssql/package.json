@@ -639,6 +639,11 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.deployNewDatabase",
+                    "when": "view == mssql.objectExplorerV2",
+                    "group": "navigation@3"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer",
                     "title": "%mssql.addObjectExplorer%",
@@ -819,6 +824,21 @@
                     "command": "mssql.objectExplorerV2.editTable",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTable\\b/",
                     "group": "2_MSSQL_admin@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.startContainer",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=startContainer\\b/",
+                    "group": "9_MSSQL_container@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.stopContainer",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=stopContainer\\b/",
+                    "group": "9_MSSQL_container@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deleteContainer",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=deleteContainer\\b/",
+                    "group": "9_MSSQL_container@3"
                 },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
@@ -1254,6 +1274,10 @@
                     "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.deployNewDatabase",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
+                },
+                {
                     "command": "mssql.objectExplorerV2.connect",
                     "when": "false"
                 },
@@ -1331,6 +1355,18 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.editTable",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.startContainer",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.stopContainer",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deleteContainer",
                     "when": "false"
                 },
                 {
@@ -2159,6 +2195,15 @@
                 }
             },
             {
+                "command": "mssql.objectExplorerV2.deployNewDatabase",
+                "title": "%mssql.newDeployment%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/newContainer_dark.svg",
+                    "light": "media/newContainer_light.svg"
+                }
+            },
+            {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
                 "category": "MS SQL"
@@ -2438,6 +2483,21 @@
             {
                 "command": "mssql.objectExplorerV2.editTable",
                 "title": "Modify Table Structure...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.startContainer",
+                "title": "%mssql.startContainer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.stopContainer",
+                "title": "%mssql.stopContainer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.deleteContainer",
+                "title": "%mssql.deleteContainer%",
                 "category": "MS SQL"
             },
             {

@@ -52,6 +52,7 @@ import {
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { restartSqlServerContainer } from "../deployment/sqlServerContainer";
+import { classicContainerHostAdapter } from "./classicContainerHostAdapter";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
@@ -991,8 +992,7 @@ export class ObjectExplorerService {
                 // start docker and docker container
                 const successfullyRunning = await restartSqlServerContainer(
                     connectionProfile.containerName,
-                    containerNode,
-                    this,
+                    classicContainerHostAdapter(containerNode, this),
                 );
                 this._logger.debug(
                     successfullyRunning

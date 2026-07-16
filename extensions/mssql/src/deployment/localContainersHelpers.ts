@@ -19,9 +19,10 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
+import { ContainerConnectAdapter } from "./containerConnectAdapter";
+import { diag } from "../diagnostics/diagnosticsCore";
 import * as dockerUtils from "../docker/dockerUtils";
 import * as sqlServerContainer from "./sqlServerContainer";
-import MainController from "../controllers/mainController";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { UserSurvey } from "../nps/userSurvey";
@@ -73,10 +74,23 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         let dockerResult: lc.DockerCommandParams;
         let stepSuccessful = false;
         const stepStartTime = Date.now();
+        // DOCK-4: every wizard step is a span (name + outcome + ms) — the
+        // session journal shows exactly where a deployment stalled.
+        const stepSpan = diag.startSpan({
+            feature: "deployment",
+            kind: "span",
+            type: "docker.step",
+            fields: {
+                step: {
+                    raw: lc.DockerStepOrder[currentStepNumber],
+                    cls: "diagnostic.metadata",
+                },
+            },
+        });
         if (currentStepNumber === lc.DockerStepOrder.connectToContainer) {
             const connectionResult = await addContainerConnection(
                 localContainersState.formState,
-                deploymentController.mainController,
+                deploymentController.containerConnect,
             );
             stepSuccessful = connectionResult;
 
@@ -107,6 +121,7 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         const telemetryMeasures: Record<string, number> = {
             timeToCompleteStepInMs: Date.now() - stepStartTime,
         };
+        stepSpan.end(stepSuccessful ? "ok" : "error");
         // If the step was successful, update the step's load state to Loaded, send telemetry,
         // and increment the current step number to move to the next step
         if (stepSuccessful) {
@@ -279,7 +294,7 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
 
 export async function addContainerConnection(
     dockerProfile: lc.DockerConnectionProfile,
-    mainController: MainController,
+    connectAdapter: ContainerConnectAdapter,
 ): Promise<boolean> {
     let connection: unknown = {
         ...dockerProfile,
@@ -293,11 +308,9 @@ export async function addContainerConnection(
     };
 
     try {
-        const profile = await mainController.connectionManager.connectionUI.saveProfile(
-            connection as IConnectionProfile,
-        );
-
-        await mainController.createObjectExplorerSession(profile);
+        // The seam decides WHICH Object Explorer persists and opens the
+        // profile (classic OE session vs v2 data-plane connect, DOCK-1).
+        await connectAdapter.saveAndConnect(connection as IConnectionProfile);
     } catch {
         return false;
     }

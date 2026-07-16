@@ -144,6 +144,12 @@ import {
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../docker/dockerUtils";
+import { classicContainerHostAdapter } from "../objectExplorer/classicContainerHostAdapter";
+import {
+    ContainerConnectAdapter,
+    oeV2ContainerConnectAdapter,
+} from "../deployment/containerConnectAdapter";
+import { registerOeV2ContainerPerfSeams } from "../objectExplorer/v2/perf/oeV2ContainerPerfSeams";
 import { ProfilerController } from "../profiler/profilerController";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
@@ -366,6 +372,21 @@ export default class MainController implements vscode.Disposable {
                     initialConnectionGroup = args.connectionGroup?.id;
                 }
                 this.onDeployNewDatabase(initialConnectionGroup);
+            });
+            // DOCK-1: the SAME wizard from the OE v2 title bar — the terminal
+            // connect step routes through the v2 data plane instead of a
+            // classic OE session.
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand("mssql.objectExplorerV2.deployNewDatabase", () => {
+                    this.onDeployNewDatabase(undefined, oeV2ContainerConnectAdapter(this));
+                }),
+            );
+            // DOCK-4: PERF_MODE container scenarios (no-op outside PERF_MODE).
+            registerOeV2ContainerPerfSeams(this._context, {
+                saveProfile: (profile) => this.connectionManager.connectionUI.saveProfile(profile),
+                removeProfile: async (profile) => {
+                    await this.connectionManager.connectionStore.removeProfile(profile);
+                },
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -3197,13 +3218,17 @@ export default class MainController implements vscode.Disposable {
         return true;
     }
 
-    public onDeployNewDatabase(initialConnectionGroup?: string): void {
+    public onDeployNewDatabase(
+        initialConnectionGroup?: string,
+        containerConnect?: ContainerConnectAdapter,
+    ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
             this._context,
             this,
             initialConnectionGroup,
+            containerConnect,
         );
         reactPanel.revealToForeground();
     }
@@ -3960,8 +3985,10 @@ export default class MainController implements vscode.Disposable {
         return (
             await prepareForDockerContainerCommand(
                 containerName,
-                node as ConnectionNode,
-                this._objectExplorerProvider.objectExplorerService,
+                classicContainerHostAdapter(
+                    node as ConnectionNode,
+                    this._objectExplorerProvider.objectExplorerService,
+                ),
             )
         ).success;
     }

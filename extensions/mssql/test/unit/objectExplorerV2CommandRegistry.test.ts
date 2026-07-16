@@ -82,6 +82,53 @@ suite("Object Explorer v2 command registry (B25)", () => {
         expect(commandFlagsFor({ kind: "databaseFolder", database: "AppDb" })).to.deep.equal([]);
     });
 
+    test("container commands target by container fact + node state (DOCK-2)", () => {
+        // v1 gates: start on stopped, stop on connected, delete on both.
+        expect(
+            commandFlagsFor({ kind: "disconnectedConnection", isContainer: true }),
+        ).to.deep.equal(["oe2:cmd=startContainer", "oe2:cmd=deleteContainer"]);
+        expect(commandFlagsFor({ kind: "lostConnection", isContainer: true })).to.deep.equal([
+            "oe2:cmd=startContainer",
+            "oe2:cmd=deleteContainer",
+        ]);
+        expect(commandFlagsFor({ kind: "connectedServer", isContainer: true })).to.deep.equal([
+            "oe2:cmd=restore",
+            "oe2:cmd=profiler",
+            "oe2:cmd=stopContainer",
+            "oe2:cmd=deleteContainer",
+        ]);
+        // Non-container connections never see container commands.
+        expect(commandFlagsFor({ kind: "disconnectedConnection" })).to.deep.equal([]);
+    });
+
+    test("container connections carry docker identity end-to-end (DOCK-2)", () => {
+        const profile = {
+            profileId: "c1",
+            displayName: "box",
+            server: "localhost,1450",
+            authKind: "sql" as const,
+            stored: { server: "localhost,1450", containerName: "sqlbox" },
+        };
+        const connected = connectionNode(profile as never, { state: "connected" });
+        expect(connected.icon).to.equal("DockerContainer_green");
+        expect(connected.containerName).to.equal("sqlbox");
+        expect(nodeContextValue(connected)).to.contain("oe2:cmd=stopContainer");
+        expect(nodeContextValue(connected)).to.contain("oe2:cmd=deleteContainer");
+        expect(nodeContextValue(connected)).to.not.contain("oe2:cmd=startContainer");
+
+        const stopped = connectionNode(profile as never, { state: "disconnected" });
+        expect(stopped.icon).to.equal("DockerContainer_red");
+        expect(nodeContextValue(stopped)).to.contain("oe2:cmd=startContainer");
+        expect(nodeContextValue(stopped)).to.not.contain("oe2:cmd=stopContainer");
+
+        // Docker activity text takes over the description while it runs.
+        const busy = connectionNode(profile as never, {
+            state: "disconnected",
+            activityText: "Starting container…",
+        });
+        expect(busy.description).to.equal("Starting container…");
+    });
+
     test("context values carry command flags from node facts", () => {
         const dbScoped = serverNode("AppDb");
         expect(nodeContextValue(dbScoped)).to.contain("oe2:cmd=backup");

@@ -24,7 +24,10 @@ import { FakeBackend, FakeScript } from "../../src/services/sqlDataPlane/fakeBac
 import { MetadataStore } from "../../src/services/metadata/metadataStore";
 import { OeV2MetadataCoordinator } from "../../src/objectExplorer/v2/metadata/oeV2MetadataCoordinator";
 import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
-import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
+import {
+    OeV2ContainerOps,
+    OeV2TreeController,
+} from "../../src/objectExplorer/v2/tree/oeV2TreeController";
 import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 import type {
     ProfileSecretSource,
@@ -305,6 +308,15 @@ function harness(overrides?: {
     secrets?: ProfileSecretSource;
     tokens?: ProfileTokenSource;
     beforeOpen?: (params: OpenSessionParams) => Promise<void>;
+    /** DOCK-3 docker seam + preflight bound. */
+    containers?: OeV2ContainerOps;
+    waits?: {
+        expandMs?: number;
+        connectKickMs?: number;
+        containerPreflightMs?: number;
+        containerOpenRetryBackoffMs?: number;
+        containerOpenRetryBudgetMs?: number;
+    };
 }): Harness {
     const fallback = new FakeBackend({
         scripts: [
@@ -351,6 +363,8 @@ function harness(overrides?: {
         sessions: registry,
         coordinatorFactory: (prepared) =>
             new OeV2MetadataCoordinator(store, prepared, overrides?.freshness),
+        ...(overrides?.containers ? { containers: overrides.containers } : {}),
+        ...(overrides?.waits ? { waits: overrides.waits } : {}),
         settings: () => settings,
     });
     return { controller, registry, store, fallback, settings };
@@ -401,6 +415,149 @@ suite("Object Explorer v2 browse (B18)", () => {
             "Server Objects",
         ]);
         h.controller.dispose();
+    });
+
+    test("container pre-flight: stopped containers start before the open; failures and hangs fail honestly (DOCK-3)", async () => {
+        const containerProfile = {
+            id: "p1",
+            server: "localhost,1450",
+            profileName: "box",
+            groupId: "ROOT",
+            containerName: "sqlbox",
+        };
+
+        // restart succeeds → the data-plane open proceeds normally.
+        const restarted: string[] = [];
+        const ok = harness({
+            profile: containerProfile,
+            containers: {
+                restart: async (name) => {
+                    restarted.push(name);
+                    return true;
+                },
+            },
+        });
+        expect(await ok.controller.connectProfile("p1")).to.equal(true);
+        expect(restarted).to.deep.equal(["sqlbox"]);
+        expect(ok.registry.stateOf("p1")).to.equal("connected");
+        ok.controller.dispose();
+
+        // restart fails → NO data-plane open; honest failed state.
+        const failing = harness({
+            profile: containerProfile,
+            containers: { restart: async () => false },
+        });
+        expect(await failing.controller.connectProfile("p1")).to.equal(false);
+        expect(failing.registry.stateOf("p1")).to.equal("failed");
+        expect(failing.registry.get("p1")?.failureReason).to.contain("could not be started");
+        failing.controller.dispose();
+
+        // restart HANGS (wedged docker daemon) → the preflight bound fails
+        // the node with an honest reason — never an infinite spinner.
+        const hanging = harness({
+            profile: containerProfile,
+            containers: { restart: () => new Promise<boolean>(() => undefined) },
+            waits: { containerPreflightMs: 30 },
+        });
+        expect(await hanging.controller.connectProfile("p1")).to.equal(false);
+        expect(hanging.registry.stateOf("p1")).to.equal("failed");
+        expect(hanging.registry.get("p1")?.failureReason).to.contain("did not become ready");
+        hanging.controller.dispose();
+
+        // Non-container profiles never touch the docker seam.
+        const plain = harness({
+            containers: {
+                restart: async () => {
+                    throw new Error("must not be called");
+                },
+            },
+        });
+        expect(await plain.controller.connectProfile("p1")).to.equal(true);
+        plain.controller.dispose();
+    });
+
+    test("container open rides out a booting server's pre-login reset, but a bad password fails fast (DOCK-3)", async () => {
+        const containerProfile = {
+            id: "p1",
+            server: "localhost,1450",
+            profileName: "box",
+            groupId: "ROOT",
+            containerName: "sqlbox",
+        };
+
+        // The readiness log line beats the server's pre-login endpoint: the
+        // first two opens are reset ("forcibly closed"), the third succeeds —
+        // exactly the container boot bounce. The open retries and recovers.
+        let opens = 0;
+        const booting = harness({
+            profile: containerProfile,
+            containers: { restart: async () => true },
+            waits: { containerOpenRetryBackoffMs: 1 },
+            // Count only the OE v2 connection opens — the metadata coordinator
+            // opens its own dedicated sessions once connected, and those must
+            // not be mistaken for retries.
+            beforeOpen: async (params) => {
+                if (params.applicationName !== "vscode-mssql-oe-v2") {
+                    return;
+                }
+                opens++;
+                if (opens <= 2) {
+                    throw new Error(
+                        "Connection failed: A connection was successfully established with the server, but then an error occurred during the pre-login handshake. (provider: TCP Provider, error: 0 - An existing connection was forcibly closed by the remote host.)",
+                    );
+                }
+            },
+        });
+        expect(await booting.controller.connectProfile("p1")).to.equal(true);
+        expect(opens, "opened three times — two resets then success").to.equal(3);
+        expect(booting.registry.stateOf("p1")).to.equal("connected");
+        booting.controller.dispose();
+
+        // A wrong password is NOT a boot bounce: it must fail on the FIRST
+        // attempt, never burn the retry budget on a permanent error.
+        let authOpens = 0;
+        const badPassword = harness({
+            profile: containerProfile,
+            containers: { restart: async () => true },
+            waits: { containerOpenRetryBackoffMs: 1 },
+            beforeOpen: async (params) => {
+                if (params.applicationName !== "vscode-mssql-oe-v2") {
+                    return;
+                }
+                authOpens++;
+                throw new Error("Login failed for user 'sa'.");
+            },
+        });
+        expect(await badPassword.controller.connectProfile("p1")).to.equal(false);
+        expect(authOpens, "no retries on a permanent auth failure").to.equal(1);
+        expect(badPassword.registry.stateOf("p1")).to.equal("failed");
+        badPassword.controller.dispose();
+    });
+
+    test("a second connect during an in-flight open JOINS it (wizard vs auto-connect race)", async () => {
+        let resolveOpen!: (value: { session: ISqlSession }) => void;
+        let opens = 0;
+        const registry = new OeV2SessionRegistry(() => {
+            opens++;
+            return new Promise((resolve) => (resolveOpen = resolve));
+        });
+        const prepared = {
+            serverFingerprint: "fp_join_test",
+        } as Parameters<OeV2SessionRegistry["connect"]>[1];
+        const first = registry.connect("p1", prepared);
+        const second = registry.connect("p1", prepared); // joins, never re-opens
+        const session = {
+            info: {},
+            close: async () => undefined,
+            onDidChangeState: () => ({ dispose: () => undefined }),
+        } as unknown as ISqlSession;
+        resolveOpen({ session });
+        expect((await first).state).to.equal("connected");
+        // Live-run finding: this used to resolve "connecting" — read as
+        // failure by the deployment wizard racing the auto-connect.
+        expect((await second).state).to.equal("connected");
+        expect(opens).to.equal(1);
+        registry.dispose();
     });
 
     test("cancel while connecting returns to disconnected; the late session self-closes", async () => {

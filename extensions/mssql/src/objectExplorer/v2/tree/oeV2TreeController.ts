@@ -17,6 +17,7 @@
  * plane like classic OE unless the user explicitly disconnected it.
  */
 
+import { diag } from "../../../diagnostics/diagnosticsCore";
 import {
     PreparedConnection,
     prepareConnection,
@@ -30,7 +31,7 @@ import {
     OeV2ProfileTree,
     readProfileTree,
 } from "../sessions/oeV2ProfileAdapter";
-import { OeV2SessionRegistry } from "../sessions/oeV2SessionRegistry";
+import { OeV2ConnectionSession, OeV2SessionRegistry } from "../sessions/oeV2SessionRegistry";
 import {
     databaseChildren,
     databaseFolderChildren,
@@ -62,6 +63,16 @@ export interface OeV2BrowseSettings {
     readonly showSystemDatabases: boolean;
 }
 
+/**
+ * Docker operations seam (DOCK-3): the activation edge supplies the real
+ * implementation over the shared docker core (which owns Docker Desktop
+ * launch, container start and readiness); tests supply fakes. `restart`
+ * reports its progress through the controller's container-activity text.
+ */
+export interface OeV2ContainerOps {
+    restart(containerName: string, connectionId: string): Promise<boolean>;
+}
+
 export interface OeV2TreeControllerDeps {
     readonly profiles: ConnectionProfileSource;
     readonly dataPlane: DataPlaneProbe;
@@ -71,8 +82,16 @@ export interface OeV2TreeControllerDeps {
     readonly sessions?: OeV2SessionRegistry;
     readonly coordinatorFactory?: (prepared: PreparedConnection) => OeV2MetadataCoordinator;
     readonly settings?: () => OeV2BrowseSettings;
+    /** Container lifecycle (DOCK-3) — absent means no docker pre-flight. */
+    readonly containers?: OeV2ContainerOps;
     /** Test seam: expansion wait ceilings (defaults EXPAND/CONNECT_KICK). */
-    readonly waits?: { expandMs?: number; connectKickMs?: number };
+    readonly waits?: {
+        expandMs?: number;
+        connectKickMs?: number;
+        containerPreflightMs?: number;
+        containerOpenRetryBackoffMs?: number;
+        containerOpenRetryBudgetMs?: number;
+    };
 }
 
 interface ConnectionRuntime {
@@ -215,6 +234,17 @@ export class OeV2TreeController {
         if (!profile) {
             return false;
         }
+        // Container pre-flight (DOCK-3): stopped containers start before the
+        // data-plane open, exactly like v1's expand-while-stopped behavior.
+        if (profile.stored.containerName) {
+            const ready = await this.ensureContainerReady(
+                connectionId,
+                profile.stored.containerName,
+            );
+            if (!ready) {
+                return false;
+            }
+        }
         let prepared: PreparedConnection;
         try {
             prepared = prepareConnection(profile.stored, secrets, tokens);
@@ -226,7 +256,9 @@ export class OeV2TreeController {
             );
             return false;
         }
-        const session = await sessions.connect(connectionId, prepared);
+        const session = profile.stored.containerName
+            ? await this.openContainerSessionWithRetry(connectionId, prepared)
+            : await sessions.connect(connectionId, prepared);
         if (session.state !== "connected") {
             return false;
         }
@@ -565,8 +597,9 @@ export class OeV2TreeController {
 
     private connectionFacts(profileId: string): ConnectionNodeFacts | undefined {
         const session = this.deps.sessions?.get(profileId);
+        const activityText = this.containerActivity.get(profileId);
         if (!session) {
-            return undefined;
+            return activityText !== undefined ? { state: "disconnected", activityText } : undefined;
         }
         return {
             state: session.state,
@@ -575,7 +608,122 @@ export class OeV2TreeController {
             ...(session.connectingForMs !== undefined
                 ? { connectingForMs: session.connectingForMs }
                 : {}),
+            ...(activityText !== undefined ? { activityText } : {}),
         };
+    }
+
+    // -- docker containers (DOCK-2/3) -----------------------------------------
+
+    /** Transient per-connection docker activity text (renders as description). */
+    private readonly containerActivity = new Map<string, string>();
+
+    setContainerActivity(connectionId: string, text: string | undefined): void {
+        if (text === undefined) {
+            this.containerActivity.delete(connectionId);
+        } else {
+            this.containerActivity.set(connectionId, text);
+        }
+        this.fireChange();
+    }
+
+    /**
+     * Container pre-flight (DOCK-3): a stopped container transparently
+     * starts (Docker Desktop launch → container start → readiness wait)
+     * BEFORE the data-plane open. BOUNDED by a backstop above the shared
+     * core's own 300s readiness cap — a wedged docker daemon fails the node
+     * with an honest reason, never an infinite spinner.
+     */
+    private async ensureContainerReady(
+        connectionId: string,
+        containerName: string,
+    ): Promise<boolean> {
+        const containers = this.deps.containers;
+        if (!containers) {
+            return true; // no docker seam wired (tests/shell) — open directly
+        }
+        const span = diag.startSpan({
+            feature: "objectExplorer",
+            kind: "span",
+            type: "objectExplorerV2.container.preflight",
+            fields: {},
+        });
+        try {
+            const outcome = await boundedWait(
+                containers.restart(containerName, connectionId),
+                this.deps.waits?.containerPreflightMs ?? CONTAINER_PREFLIGHT_WAIT_MS,
+            );
+            if (outcome === true) {
+                span.end("ok");
+                return true;
+            }
+            const timedOut = outcome === undefined;
+            const reason = timedOut
+                ? "The SQL container did not become ready in time — Docker may be unresponsive."
+                : "The SQL container could not be started. Check the Docker logs and try again.";
+            this.deps.sessions?.recordPreparationFailure(connectionId, reason, new Error(reason));
+            span.end("error", {
+                errorClass: {
+                    raw: timedOut ? "preflightTimeout" : "preflightFailed",
+                    cls: "diagnostic.metadata",
+                },
+            });
+            return false;
+        } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            this.deps.sessions?.recordPreparationFailure(connectionId, reason, error);
+            span.end("error", {
+                errorClass: { raw: "preflightError", cls: "diagnostic.metadata" },
+            });
+            return false;
+        } finally {
+            this.setContainerActivity(connectionId, undefined);
+        }
+    }
+
+    /**
+     * A container reports "ready" (its log line appears) a beat before SQL
+     * Server will actually accept a session: during that boot window the
+     * server briefly resets the pre-login endpoint (TCP "forcibly closed").
+     * Real SQL clients ride this out with a short retry, so does the OE v2
+     * open — but ONLY for container profiles and ONLY on transient startup
+     * errors, so a genuine failure (wrong password → "Login failed") still
+     * surfaces on the first attempt. v1's shared restart/readiness path is
+     * untouched; this resilience lives entirely in the v2 open.
+     */
+    private async openContainerSessionWithRetry(
+        connectionId: string,
+        prepared: PreparedConnection,
+    ): Promise<OeV2ConnectionSession> {
+        const sessions = this.deps.sessions!;
+        const backoffMs =
+            this.deps.waits?.containerOpenRetryBackoffMs ?? CONTAINER_OPEN_RETRY_BACKOFF_MS;
+        const budgetMs =
+            this.deps.waits?.containerOpenRetryBudgetMs ?? CONTAINER_OPEN_RETRY_BUDGET_MS;
+        const startedAt = Date.now();
+        let session = await sessions.connect(connectionId, prepared);
+        let attempt = 0;
+        while (
+            session.state !== "connected" &&
+            isRetryableContainerOpenError(session.failureReason) &&
+            Date.now() - startedAt < budgetMs
+        ) {
+            attempt++;
+            const span = diag.startSpan({
+                feature: "deployment",
+                kind: "span",
+                type: "objectExplorerV2.container.openRetry",
+                fields: { attempt: { raw: attempt, cls: "diagnostic.metadata" } },
+            });
+            await delay(backoffMs);
+            session = await sessions.connect(connectionId, prepared);
+            span.end(session.state === "connected" ? "ok" : "info", {
+                result: {
+                    raw: session.state === "connected" ? "recovered" : "retrying",
+                    cls: "diagnostic.metadata",
+                },
+            });
+        }
+        return session;
     }
 
     private async connectionChildren(connectionId: string): Promise<OeV2Node[]> {
@@ -721,6 +869,42 @@ export class OeV2TreeController {
  */
 const EXPAND_WAIT_MS = 6_000;
 const CONNECT_KICK_WAIT_MS = 400;
+/** DOCK-3 backstop ABOVE the docker core's 300s readiness cap: even a wedged
+ *  dockerode call (npipe hang) fails the node honestly, never spins forever. */
+const CONTAINER_PREFLIGHT_WAIT_MS = 360_000;
+
+/**
+ * A container can be *running yet not accepting connections* — its SQL Server
+ * is mid-boot (the `alreadyRunning` pre-flight short-circuit is v1-correct, but
+ * "running" ≠ "ready"). This happens on a full cold boot (docker auto-start on
+ * machine login, or a restart raced by another connect). The open then retries
+ * on the transient reset until SQL is up. Bound by wall-clock, not attempt
+ * count, because each failed open itself takes a variable moment; 60s covers a
+ * cold SQL Server boot and is well under the 300s readiness-log ceiling.
+ */
+const CONTAINER_OPEN_RETRY_BUDGET_MS = 60_000;
+const CONTAINER_OPEN_RETRY_BACKOFF_MS = 2_000;
+
+/**
+ * True only for the transient errors a still-booting SQL container throws —
+ * transport/pre-login resets, "server not currently available". Explicitly
+ * NOT "Login failed" (a wrong password must fail fast, not retry for 10s).
+ */
+function isRetryableContainerOpenError(reason: string | undefined): boolean {
+    if (!reason) {
+        return false;
+    }
+    return /pre-login handshake|forcibly closed|transport-level|being established|actively refused|not currently available|error occurred (while|during)|semaphore timeout/i.test(
+        reason,
+    );
+}
+
+function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        const timer = setTimeout(resolve, ms);
+        (timer as { unref?: () => void }).unref?.();
+    });
+}
 
 /**
  * Race a promise against a ceiling: undefined past the deadline, and the

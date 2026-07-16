@@ -8,10 +8,12 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
+import { localhost, sa, sqlAuthentication } from "../../src/constants/constants";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import * as sqlServerContainer from "../../src/deployment/sqlServerContainer";
 import * as localContainersHelpers from "../../src/deployment/localContainersHelpers";
+import { classicContainerConnectAdapter } from "../../src/deployment/containerConnectAdapter";
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import MainController from "../../src/controllers/mainController";
@@ -286,7 +288,7 @@ suite("localContainers logic", () => {
         expect(sendActionEvent).to.have.been.called;
     });
 
-    test("addContainerConnection returns true on success", async () => {
+    test("addContainerConnection returns true on success (classic adapter path)", async () => {
         const dockerProfile = {
             containerName: "c",
             port: 1433,
@@ -306,11 +308,47 @@ suite("localContainers logic", () => {
 
         const result = await localContainersHelpers.addContainerConnection(
             dockerProfile,
-            mainController,
+            classicContainerConnectAdapter(mainController),
         );
         expect(result).to.be.true;
         expect(saveProfileStub).to.have.been.calledOnce;
         expect(createSessionStub).to.have.been.calledOnce;
+    });
+
+    test("addContainerConnection is honest about adapter failure and profile shape", async () => {
+        const dockerProfile = {
+            containerName: "c",
+            port: 1450,
+            profileName: "",
+            savePassword: false,
+        } as any;
+
+        let seen: any;
+        const okAdapter = {
+            saveAndConnect: async (profile: unknown) => {
+                seen = profile;
+            },
+        };
+        expect(
+            await localContainersHelpers.addContainerConnection(dockerProfile, okAdapter),
+        ).to.equal(true);
+        // The profile the seam receives is the container connection contract:
+        // localhost,<port> / sa / SqlLogin / trusted cert / container marker.
+        expect(seen.server).to.equal(`${localhost},1450`);
+        expect(seen.user).to.equal(sa);
+        expect(seen.authenticationType).to.equal(sqlAuthentication);
+        expect(seen.trustServerCertificate).to.equal(true);
+        expect(seen.containerName).to.equal("c");
+        expect(seen.profileName, "empty profile name falls back to container name").to.equal("c");
+
+        const failingAdapter = {
+            saveAndConnect: async () => {
+                throw new Error("connect failed");
+            },
+        };
+        expect(
+            await localContainersHelpers.addContainerConnection(dockerProfile, failingAdapter),
+        ).to.equal(false);
     });
 
     test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {

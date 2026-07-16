@@ -92,6 +92,8 @@ export interface OeV2Node {
     readonly database?: string;
     readonly schema?: string;
     readonly objectName?: string;
+    /** Docker container behind this connection profile (DOCK-2). */
+    readonly containerName?: string;
     readonly readiness: OeV2Readiness;
     readonly capabilities: OeV2NodeCapabilities;
     /** Icon name resolved against media/objectTypes at the vscode edge. */

@@ -26,8 +26,8 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
-import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
-import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
+import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
+import { ContainerHostAdapter, NULL_CONTAINER_HOST } from "./containerHostAdapter";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "./dockerodeClient";
 
@@ -568,6 +568,14 @@ export async function pullContainerImage(
     errorMessage: string,
     platform?: string,
 ): Promise<DockerCommandParams> {
+    // DOCK-4: pulls dominate first-deploy wallclock — image name is a public
+    // registry coordinate, safe to carry.
+    const span = diag.startSpan({
+        feature: "deployment",
+        kind: "span",
+        type: "docker.image.pull",
+        fields: { image: { raw: imageName, cls: "diagnostic.metadata" } },
+    });
     try {
         dockerLogger.info(`Pulling container image: ${imageName}`);
         const dockerClient = getDockerodeClient();
@@ -580,9 +588,13 @@ export async function pullContainerImage(
             );
         });
         dockerLogger.info(`Container image ${imageName} pulled successfully.`);
+        span.end("ok");
         return { success: true };
     } catch (e) {
         dockerLogger.error(`Failed to pull container image ${imageName}: ${getErrorMessage(e)}`);
+        span.end("error", {
+            errorClass: { raw: diagnosticErrorClass(e), cls: "diagnostic.metadata" },
+        });
         return {
             success: false,
             error: errorMessage,
@@ -613,8 +625,7 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
  * Attempts to start Docker Desktop within 30 seconds.
  */
 export async function startDocker(
-    node?: ConnectionNode,
-    objectExplorerService?: ObjectExplorerService,
+    host: ContainerHostAdapter = NULL_CONTAINER_HOST,
 ): Promise<DockerCommandParams> {
     try {
         await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
@@ -635,28 +646,46 @@ export async function startDocker(
         }
         // Otherwise docker is likely not running, so we proceed to start it.
     }
-    if (node && objectExplorerService) {
-        node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
-        await objectExplorerService.setLoadingUiForNode(node);
-    }
+    // DOCK-4: the engine launch + readiness poll is the slowest cold-start
+    // hop — spanned so a slow/failed Docker Desktop start is attributable.
+    const span = diag.startSpan({
+        feature: "deployment",
+        kind: "span",
+        type: "docker.engine.start",
+        fields: {},
+    });
+    const spannedResult = (result: DockerCommandParams): DockerCommandParams => {
+        span.end(result.success ? "ok" : "error", {
+            ...(result.success
+                ? {}
+                : {
+                      errorClass: {
+                          raw: diagnosticErrorClass(new Error(result.error ?? "unknown")),
+                          cls: "diagnostic.metadata" as const,
+                      },
+                  }),
+        });
+        return result;
+    };
+    await host.setStatus(LocalContainers.startingDockerLoadingLabel);
     let dockerDesktopPath = "";
     if (platform() === Platform.Windows) {
         dockerDesktopPath = await getDockerPath(windowsDockerDesktopExecutable);
         if (!dockerDesktopPath) {
-            return {
+            return spannedResult({
                 success: false,
                 error: LocalContainers.dockerDesktopPathError,
-            };
+            });
         }
     }
     const startCommands = COMMANDS.START_DOCKER(dockerDesktopPath);
     const startCommand = startCommands[platform()];
 
     if (!startCommand) {
-        return {
+        return spannedResult({
             success: false,
             error: LocalContainers.unsupportedDockerPlatformError(platform()),
-        };
+        });
     }
 
     try {
@@ -676,25 +705,27 @@ export async function startDocker(
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
                         dockerStartedThroughExtension: "true",
                     });
-                    resolve({ success: true });
+                    resolve(spannedResult({ success: true }));
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
                         clearInterval(checkDocker);
-                        resolve({
-                            success: false,
-                            error: LocalContainers.dockerFailedToStartWithinTimeout,
-                            fullErrorText: getErrorMessage(e),
-                        });
+                        resolve(
+                            spannedResult({
+                                success: false,
+                                error: LocalContainers.dockerFailedToStartWithinTimeout,
+                                fullErrorText: getErrorMessage(e),
+                            }),
+                        );
                     }
                 }
             }, interval);
         });
     } catch (e) {
-        return {
+        return spannedResult({
             success: false,
             error: LocalContainers.dockerFailedToStartWithinTimeout,
             fullErrorText: getErrorMessage(e),
-        };
+        });
     }
 }
 
@@ -702,6 +733,12 @@ export async function startDocker(
  * Deletes a Docker container with the specified name.
  */
 export async function deleteContainer(containerName: string): Promise<boolean> {
+    const span = diag.startSpan({
+        feature: "deployment",
+        kind: "span",
+        type: "docker.container.delete",
+        fields: {},
+    });
     try {
         const container = await getContainerByName(containerName);
         if (!container) {
@@ -715,6 +752,7 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
         }
         await container.remove();
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
+        span.end("ok");
         return true;
     } catch (e) {
         sendErrorEvent(
@@ -725,6 +763,9 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
             undefined, // errorCode
             undefined, // errorType
         );
+        span.end("error", {
+            errorClass: { raw: diagnosticErrorClass(e), cls: "diagnostic.metadata" },
+        });
         return false;
     }
 }
@@ -733,6 +774,12 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
  * Stops a Docker container with the specified name.
  */
 export async function stopContainer(containerName: string): Promise<boolean> {
+    const span = diag.startSpan({
+        feature: "deployment",
+        kind: "span",
+        type: "docker.container.stop",
+        fields: {},
+    });
     try {
         const container = await getContainerByName(containerName);
         if (!container) {
@@ -741,6 +788,7 @@ export async function stopContainer(containerName: string): Promise<boolean> {
 
         await container.stop();
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
+        span.end("ok");
         return true;
     } catch (e) {
         sendErrorEvent(
@@ -751,6 +799,9 @@ export async function stopContainer(containerName: string): Promise<boolean> {
             undefined, // errorCode
             undefined, // errorType
         );
+        span.end("error", {
+            errorClass: { raw: diagnosticErrorClass(e), cls: "diagnostic.metadata" },
+        });
         return false;
     }
 }
@@ -829,28 +880,19 @@ export async function findAvailablePort(startPort: number): Promise<number> {
  */
 export async function prepareForDockerContainerCommand(
     containerName: string,
-    containerNode: ConnectionNode,
-    objectExplorerService: ObjectExplorerService,
+    host: ContainerHostAdapter,
 ): Promise<DockerCommandParams> {
-    const startDockerResult = await startDocker(containerNode, objectExplorerService);
+    const startDockerResult = await startDocker(host);
     if (!startDockerResult.success) {
-        vscode.window.showErrorMessage(startDockerResult.error);
+        host.showError(startDockerResult.error);
         return startDockerResult;
     }
 
     const containerExists = await checkContainerExists(containerName);
 
     if (!containerExists) {
-        containerNode.loadingLabel = Common.error;
-        await objectExplorerService.setLoadingUiForNode(containerNode);
-        const confirmation = await vscode.window.showInformationMessage(
-            LocalContainers.containerDoesNotExistError,
-            { modal: true },
-            Common.remove,
-        );
-        if (confirmation === Common.remove) {
-            await objectExplorerService.removeNode(containerNode, false);
-        }
+        await host.setStatus(Common.error);
+        await host.onContainerMissing();
         return {
             success: false,
             error: LocalContainers.containerDoesNotExistError,
