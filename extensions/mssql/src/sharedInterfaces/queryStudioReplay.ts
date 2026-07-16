@@ -22,6 +22,7 @@ import {
     FeatureReplayTags,
 } from "./featureReplay";
 import { QueryTuningOverrides, QueryTuningSnapshot } from "./queryTuning";
+import { ObservabilityLinkV1 } from "./observabilityLink";
 
 export const QS_RUN_RECORD_VERSION = 1;
 
@@ -45,8 +46,11 @@ export interface QsRunOutcome {
 }
 
 export interface QsRunRecord {
+    /** Ring-local display ordinal; durable identity is link.captureEventId. */
     id: string;
     timestamp: number;
+    /** Cross-plane identity block (mssql.observabilityLink/1); absent on legacy traces. */
+    link?: ObservabilityLinkV1;
     /** Run status doubles as the replay-engine runnable gate ("pending" while executing). */
     result: string;
     recordVersion: typeof QS_RUN_RECORD_VERSION;

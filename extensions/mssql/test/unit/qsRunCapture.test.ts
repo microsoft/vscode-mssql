@@ -11,6 +11,7 @@
 import { expect } from "chai";
 import { diag } from "../../src/diagnostics/diagnosticsCore";
 import { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
+import { FeatureCaptureLease } from "../../src/diagnostics/featureCapture/captureStore";
 import {
     beginRunRecord,
     completeRunRecord,
@@ -32,9 +33,15 @@ function begin() {
 }
 
 suite("Query Studio run capture", () => {
+    let lease: FeatureCaptureLease | undefined;
+    const armCapture = () => {
+        lease = qsRunCaptureStore.acquireViewer("qsRunCapture.test");
+    };
+
     teardown(() => {
         qsRunCaptureStore.clearEvents();
-        qsRunCaptureStore.setPanelOpen(false);
+        lease?.dispose();
+        lease = undefined;
         diag.setCaptureMode("redacted");
     });
 
@@ -44,7 +51,7 @@ suite("Query Studio run capture", () => {
     });
 
     test("armed default policy: digests only, no SQL text anywhere", () => {
-        qsRunCaptureStore.setPanelOpen(true);
+        armCapture();
         const recordId = begin();
         expect(recordId).to.be.a("string");
 
@@ -84,7 +91,7 @@ suite("Query Studio run capture", () => {
     });
 
     test("elevated capture: SQL text captured and policy recorded honestly", () => {
-        qsRunCaptureStore.setPanelOpen(true);
+        armCapture();
         diag.setCaptureMode("full", { reason: "qs capture test", durationMs: 60_000 });
         const recordId = begin();
         const record = qsRunCaptureStore.getEvent(recordId!)!;
@@ -105,7 +112,7 @@ suite("Query Studio run capture", () => {
         };
         diag.addSink(sink);
         try {
-            qsRunCaptureStore.setPanelOpen(true);
+            armCapture();
             begin();
             const captured = events.find(
                 (event) => event.type === "queryStudio.runRecord.captured",

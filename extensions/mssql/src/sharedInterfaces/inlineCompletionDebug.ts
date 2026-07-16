@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ObservabilityLinkV1 } from "./observabilityLink";
+
 export type InlineCompletionResult =
     | "success"
     | "accepted"
@@ -115,8 +117,11 @@ export interface InlineCompletionDebugEventTags {
 }
 
 export interface InlineCompletionDebugEvent {
+    /** Ring-local display ordinal; durable identity is link.captureEventId. */
     id: string;
     timestamp: number;
+    /** Cross-plane identity block (mssql.observabilityLink/1); absent on legacy traces. */
+    link?: ObservabilityLinkV1;
     documentUri: string;
     documentFileName: string;
     line: number;

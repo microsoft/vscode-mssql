@@ -53,6 +53,7 @@ class InlineCompletionDebugStore extends FeatureCaptureStore<
     constructor() {
         super({
             logName: "InlineCompletionDebug",
+            featureId: "completions",
             defaultOverrides,
             normalizeOverrides,
             normalizePartialOverrides,

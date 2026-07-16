@@ -15,6 +15,7 @@ import { classifyPayload, CAPTURE_POLICIES } from "../../src/diagnostics/redacti
 import { serializeFeatureTrace } from "../../src/diagnostics/featureCapture/traceCodec";
 import { inlineCompletionTraceRedaction } from "../../src/copilot/inlineCompletionDebug/traceSerializer";
 import { diag } from "../../src/diagnostics/diagnosticsCore";
+import { FeatureCaptureLease } from "../../src/diagnostics/featureCapture/captureStore";
 import { beginRunRecord, qsRunCaptureStore } from "../../src/queryStudio/replay/qsRunCapture";
 
 const CANARY = {
@@ -38,14 +39,20 @@ function captureCanaryRun(): string | undefined {
 }
 
 suite("Feature capture privacy canaries (B7)", () => {
+    let lease: FeatureCaptureLease | undefined;
+    const armCapture = () => {
+        lease = qsRunCaptureStore.acquireViewer("privacyCanary.test");
+    };
+
     teardown(() => {
         qsRunCaptureStore.clearEvents();
-        qsRunCaptureStore.setPanelOpen(false);
+        lease?.dispose();
+        lease = undefined;
         diag.setCaptureMode("redacted");
     });
 
     test("QsRunRecord trace file, default policy: SQL/server/uri canaries absent", () => {
-        qsRunCaptureStore.setPanelOpen(true);
+        armCapture();
         captureCanaryRun();
 
         const trace = serializeFeatureTrace(qsRunCaptureStore.getEvents(), {
@@ -60,7 +67,7 @@ suite("Feature capture privacy canaries (B7)", () => {
     });
 
     test("QsRunRecord under elevation: SQL present by design, server/uri still digests", () => {
-        qsRunCaptureStore.setPanelOpen(true);
+        armCapture();
         diag.setCaptureMode("full", { reason: "canary", durationMs: 60_000 });
         captureCanaryRun();
 

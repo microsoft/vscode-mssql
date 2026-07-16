@@ -20,6 +20,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../../controllers/webviewPanelController";
 import { diag } from "../../diagnostics/diagnosticsCore";
+import { FeatureCaptureLease } from "../../diagnostics/featureCapture/captureStore";
 import { digestValue } from "../../diagnostics/redaction";
 import {
     FeatureReplayEngine,
@@ -54,6 +55,7 @@ export class QueryStudioReplayController extends WebviewPanelController<
         QsReplayMatrixCell
     > = new FeatureReplayEngine(this.createReplayHost());
     private _lastError: string | undefined;
+    private readonly _viewerLease: FeatureCaptureLease;
 
     constructor(
         private readonly _extensionContext: vscode.ExtensionContext,
@@ -82,7 +84,7 @@ export class QueryStudioReplayController extends WebviewPanelController<
             },
         );
 
-        qsRunCaptureStore.setPanelOpen(true);
+        this._viewerLease = qsRunCaptureStore.acquireViewer("queryStudio.replayLab");
         this.registerDisposable(
             qsRunCaptureStore.onDidChange(() => {
                 if (!this.isDisposed) {
@@ -96,7 +98,7 @@ export class QueryStudioReplayController extends WebviewPanelController<
 
     public override dispose(): void {
         this._replayEngine.dispose();
-        qsRunCaptureStore.setPanelOpen(false);
+        this._viewerLease.dispose();
         super.dispose();
     }
 

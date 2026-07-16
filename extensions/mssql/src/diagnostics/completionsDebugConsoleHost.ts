@@ -42,6 +42,7 @@ import {
     getConfiguredTraceFolder,
     getTraceCaptureEnabledSetting,
 } from "../copilot/inlineCompletionDebug/tracePersistence";
+import { FeatureCaptureLease } from "./featureCapture/captureStore";
 import { CompletionSchemaContextService } from "../copilot/completionSchemaContextService";
 import { selectConfiguredLanguageModels } from "../copilot/languageModelSelection";
 import {
@@ -138,7 +139,7 @@ export class ConsoleCompletionsDebugHost {
     private readonly _logger = logger2.withPrefix("ConsoleCompletionsDebug");
     private readonly _onDidChangeEmitter = new vscode.EventEmitter<void>();
     private readonly _disposables: vscode.Disposable[] = [];
-    private readonly _panelWasOpenAtCreate: boolean;
+    private readonly _viewerLease: FeatureCaptureLease;
     private _availableModels: InlineCompletionDebugModelOption[] = [];
     private _effectiveDefaultModelOption: InlineCompletionDebugModelOption | undefined;
     private _savedCustomPromptValue: string | null;
@@ -164,11 +165,9 @@ export class ConsoleCompletionsDebugHost {
                 undefined,
             ) ?? undefined;
 
-        // The capture store gates recording on a single panel-open flag (no
-        // refcount). Snapshot what it was so disposing the console keeps a
-        // concurrently open standalone panel recording.
-        this._panelWasOpenAtCreate = inlineCompletionDebugStore.isPanelOpen();
-        inlineCompletionDebugStore.setPanelOpen(true);
+        // Named viewer lease: disposing the console never affects a
+        // concurrently open standalone panel's lease (final plan WI-0.4).
+        this._viewerLease = inlineCompletionDebugStore.acquireViewer("debugConsole.completions");
 
         this._disposables.push(
             inlineCompletionDebugStore.onDidChange(() => this.fireChanged()),
@@ -227,7 +226,7 @@ export class ConsoleCompletionsDebugHost {
             disposable.dispose();
         }
         this._disposables.length = 0;
-        inlineCompletionDebugStore.setPanelOpen(this._panelWasOpenAtCreate);
+        this._viewerLease.dispose();
         this._onDidChangeEmitter.dispose();
     }
 

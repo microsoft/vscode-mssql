@@ -185,6 +185,10 @@ export class SqlInlineCompletionProvider
                 languageId: { raw: document.languageId, cls: "diagnostic.metadata" },
             },
         });
+        // Reverse-link out-slot: core sets it when a rich record exists so the
+        // span end can carry the capture-event id (final plan WI-0.3). The span
+        // cannot carry fields added after end — this is the documented seam.
+        const linkOut: { captureEventId?: string } = {};
         try {
             const result = await this.provideInlineCompletionItemsCore(
                 document,
@@ -192,10 +196,19 @@ export class SqlInlineCompletionProvider
                 context,
                 token,
                 requestSpan.traceId,
+                linkOut,
             );
             const itemCount = Array.isArray(result) ? result.length : result.items.length;
             requestSpan.end("ok", {
                 itemCount: { raw: itemCount, cls: "diagnostic.metadata" },
+                ...(linkOut.captureEventId
+                    ? {
+                          captureEventId: {
+                              raw: linkOut.captureEventId,
+                              cls: "diagnostic.metadata",
+                          },
+                      }
+                    : {}),
             });
             return result;
         } catch (error) {
@@ -210,6 +223,7 @@ export class SqlInlineCompletionProvider
         context: vscode.InlineCompletionContext,
         token: vscode.CancellationToken,
         requestTraceId: string,
+        linkOut: { captureEventId?: string },
     ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
         if (!this.isEnabledForDocument(document) || context.selectedCompletionInfo) {
             return [];
@@ -286,6 +300,13 @@ export class SqlInlineCompletionProvider
         const shouldCaptureDebug = inlineCompletionDebugStore.shouldCapture(
             this.getRecordWhenClosedSetting(),
         );
+        // Durable identity is reserved BEFORE the pending record or any Plane-A
+        // reverse link (emission-ordering rule, final plan WI-0.3). No rich
+        // record ⇒ no capture-event id is ever emitted.
+        const eventLink = shouldCaptureDebug
+            ? inlineCompletionDebugStore.createEventLink({ traceId: requestTraceId })
+            : undefined;
+        linkOut.captureEventId = eventLink?.captureEventId;
         const schemaContextOverrides = getInlineCompletionProfileSchemaContextOverrides(
             profile,
             overrides.schemaContext,
@@ -328,6 +349,7 @@ export class SqlInlineCompletionProvider
             timestamp: number = Date.now(),
         ): Omit<InlineCompletionDebugEvent, "id"> => ({
             timestamp,
+            ...(eventLink ? { link: eventLink } : {}),
             documentUri: document.uri.toString(),
             documentFileName: path.basename(document.fileName || document.uri.fsPath),
             line: position.line + 1,
@@ -448,6 +470,8 @@ export class SqlInlineCompletionProvider
         ): InlineCompletionDebugEvent | undefined => {
             if (result !== "pending") {
                 // Substrate result event — fires regardless of debug capture.
+                // Reverse-link IDs (opaque, diagnostic.metadata) point at the
+                // rich record when one exists; never content (WI-0.2).
                 diag.emit({
                     feature: "completions",
                     kind: "event",
@@ -457,6 +481,22 @@ export class SqlInlineCompletionProvider
                     fields: {
                         result: { raw: result, cls: "diagnostic.metadata" },
                         latencyMs: { raw: Date.now() - modelStartedAt, cls: "diagnostic.metadata" },
+                        ...(eventLink
+                            ? {
+                                  captureFeatureId: {
+                                      raw: eventLink.featureId,
+                                      cls: "diagnostic.metadata",
+                                  },
+                                  captureSessionId: {
+                                      raw: eventLink.captureSessionId,
+                                      cls: "diagnostic.metadata",
+                                  },
+                                  captureEventId: {
+                                      raw: eventLink.captureEventId,
+                                      cls: "diagnostic.metadata",
+                                  },
+                              }
+                            : {}),
                     },
                 });
             }

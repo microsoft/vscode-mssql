@@ -65,6 +65,7 @@ import {
     InlineCompletionModelPreference,
 } from "./inlineCompletionDebugProfiles";
 import { inlineCompletionDebugStore } from "./inlineCompletionDebugStore";
+import { FeatureCaptureLease } from "../../diagnostics/featureCapture/captureStore";
 import {
     FeatureReplayEngine,
     FeatureReplayHost,
@@ -160,6 +161,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
     > = new FeatureReplayEngine(this.createReplayHost());
     private _replayCartDialogSnapshot: InlineCompletionDebugReplayEventSnapshot[] | undefined;
     private _traceFolderWatcher: vscode.FileSystemWatcher | undefined;
+    private readonly _viewerLease: FeatureCaptureLease;
 
     constructor(
         private readonly _extensionContext: vscode.ExtensionContext,
@@ -200,7 +202,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
         this._savedCustomPromptValue = savedCustomPrompt;
         this._customPromptLastSavedAt = savedCustomPromptAt;
         this._sessionsState = createEmptySessionsState(getConfiguredTraceFolder(_extensionContext));
-        inlineCompletionDebugStore.setPanelOpen(true);
+        this._viewerLease = inlineCompletionDebugStore.acquireViewer("standalonePanel");
         emitSettingsSnapshot(COMPLETIONS_SETTINGS_SPEC, "panelOpened");
         this.registerDisposables();
         this.registerReducers();
@@ -211,7 +213,7 @@ export class InlineCompletionDebugController extends WebviewPanelController<
         this._traceFolderWatcher?.dispose();
         this._traceFolderWatcher = undefined;
         this._replayEngine.dispose();
-        inlineCompletionDebugStore.setPanelOpen(false);
+        this._viewerLease.dispose();
         super.dispose();
     }
 
