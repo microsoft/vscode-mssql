@@ -47,6 +47,24 @@ import {
 import { CompletionSchemaContextService } from "../copilot/completionSchemaContextService";
 import { FeatureCaptureLease } from "./featureCapture/captureStore";
 import {
+    buildCompletionLiveRowsResult,
+    resolveCompletionEventDetail,
+} from "./completionsDebugRpcHost";
+import {
+    DcCompletionEventDetailParams,
+    DcCompletionEventDetailResult,
+    DcCompletionLiveRowsParams,
+    DcCompletionLiveRowsResult,
+    DcIcDebugCapabilitiesResult,
+    DcIcDebugChanged2Params,
+    DcIcDebugCommandParams,
+    DcIcDebugCommandResult,
+    IC_DEBUG_PROTOCOL_VERSION,
+    IcDebugChangedDomain,
+    icDebugChangedDomains,
+    validateIcDebugCommand,
+} from "../sharedInterfaces/completionsDebugRpc";
+import {
     InlineCompletionDebugReducers,
     InlineCompletionDebugWebviewState,
     inlineCompletionCategories,
@@ -105,6 +123,34 @@ export function createConsoleCompletionsDebugHost(): ConsoleCompletionsDebugHost
     return hostDeps ? new ConsoleCompletionsDebugHost(hostDeps) : undefined;
 }
 
+/** Rejection message for typed commands while the feature gate is off. */
+export const IC_DEBUG_GATE_OFF_MESSAGE =
+    "Inline completion debug is unavailable — enable AI completions first.";
+
+/** Gate-off capabilities: honest empties, featureGateOn:false (WI-1.2). */
+export function createGateOffIcDebugCapabilities(): DcIcDebugCapabilitiesResult {
+    return {
+        protocolVersion: IC_DEBUG_PROTOCOL_VERSION,
+        enabledCommands: [],
+        featureGateOn: false,
+    };
+}
+
+/** Gate-off live rows: an honest empty page at revision 0 (WI-1.3). */
+export function createGateOffCompletionLiveRowsResult(): DcCompletionLiveRowsResult {
+    return { rows: [], revision: 0, totalCount: 0, droppedFromRing: false };
+}
+
+/** Gate-off event detail: nothing is findable (WI-1.3). */
+export function createGateOffCompletionEventDetailResult(): DcCompletionEventDetailResult {
+    return { found: false, revision: 0, sections: {} };
+}
+
+/** Gate-off command result: rejected before any service, revision 0 (WI-1.2). */
+export function createGateOffIcDebugCommandResult(): DcIcDebugCommandResult {
+    return { revision: 0, validation: { ok: false, message: IC_DEBUG_GATE_OFF_MESSAGE } };
+}
+
 /**
  * Honest default state for when the feature gate is off (or deps are absent):
  * no events, no models, defaults from compile-time constants only.
@@ -143,16 +189,26 @@ export function createEmptyConsoleCompletionsDebugState(): InlineCompletionDebug
 
 export class ConsoleCompletionsDebugHost {
     private readonly _onDidChangeEmitter = new vscode.EventEmitter<void>();
+    private readonly _onDidChange2Emitter = new vscode.EventEmitter<DcIcDebugChanged2Params>();
     private readonly _disposables: vscode.Disposable[] = [];
     private readonly _services: InlineCompletionDebugServiceSet;
     private readonly _hostServices: InlineCompletionDebugHostServices;
     private readonly _viewerLease: FeatureCaptureLease;
+    private readonly _pendingChangedDomains = new Set<IcDebugChangedDomain>();
     private _throttleTimer: ReturnType<typeof setTimeout> | undefined;
     private _lastChangeFiredAt = 0;
+    private _revision = 0;
     private _disposed = false;
 
     /** Throttled (≥250 ms) change signal; the webview re-pulls state on it. */
     public readonly onDidChange = this._onDidChangeEmitter.event;
+
+    /**
+     * Typed sibling of onDidChange on the same 250 ms throttle (≤4/sec,
+     * addendum §14): revision plus the domains that changed since the last
+     * flush, so the webview refetches only the affected thin resources.
+     */
+    public readonly onDidChange2 = this._onDidChange2Emitter.event;
 
     constructor(deps: CompletionsDebugConsoleHostDeps) {
         this._hostServices = deps.hostServices ?? createDefaultInlineCompletionDebugHostServices();
@@ -166,12 +222,15 @@ export class ConsoleCompletionsDebugHost {
         this._viewerLease = inlineCompletionDebugStore.acquireViewer("debugConsole.completions");
 
         this._disposables.push(
-            inlineCompletionDebugStore.onDidChange(() => this.fireChanged()),
-            this._services.captureService.onDidChange(() => this.fireChanged()),
-            this._services.traceRepository.onDidChange(() => this.fireChanged()),
-            this._services.replayService.onDidChange(() => this.fireChanged()),
+            // The store's one emitter covers both the event ring and the
+            // session overrides, so its changes tag both domains (a superset
+            // re-pull is honest; a missed domain would not be).
+            inlineCompletionDebugStore.onDidChange(() => this.fireChanged(["live", "config"])),
+            this._services.captureService.onDidChange(() => this.fireChanged(["config"])),
+            this._services.traceRepository.onDidChange(() => this.fireChanged(["sessions"])),
+            this._services.replayService.onDidChange(() => this.fireChanged(["replay"])),
             watchCompletionsDebugConfiguration({
-                onStateAffectingChange: () => this.fireChanged(),
+                onStateAffectingChange: () => this.fireChanged(["config"]),
                 onModelConfigurationChange: () =>
                     this._services.captureService.refreshEffectiveDefaultModel(),
                 // No sessions surface here: reset the read model to the new
@@ -198,6 +257,12 @@ export class ConsoleCompletionsDebugHost {
         this._services.dispose();
         this._viewerLease.dispose();
         this._onDidChangeEmitter.dispose();
+        this._onDidChange2Emitter.dispose();
+    }
+
+    /** Monotonic state revision; bumps on every domain change event. */
+    public get revision(): number {
+        return this._revision;
     }
 
     public getState(): InlineCompletionDebugWebviewState {
@@ -226,8 +291,77 @@ export class ConsoleCompletionsDebugHost {
         return this.getState();
     }
 
-    private fireChanged(): void {
-        if (this._disposed || this._throttleTimer) {
+    // --- Typed, versioned RPC surface (WI-1.2/WI-1.3) ----------------------
+
+    /** Protocol handshake: version + this host's enabled command subset. */
+    public getCapabilities(): DcIcDebugCapabilitiesResult {
+        return {
+            protocolVersion: IC_DEBUG_PROTOCOL_VERSION,
+            enabledCommands: [...CONSOLE_ENABLED_COMMANDS].sort(),
+            featureGateOn: true,
+        };
+    }
+
+    /** Thin, cursor-paged live rows — never prompt/response/schema/locals. */
+    public getLiveRows(params: DcCompletionLiveRowsParams | undefined): DcCompletionLiveRowsResult {
+        return buildCompletionLiveRowsResult({
+            events: inlineCompletionDebugStore.getEvents(),
+            availableModels: this._services.captureService.availableModels,
+            params,
+            revision: this._revision,
+            droppedFromRing: inlineCompletionDebugStore.evictedEventCount > 0,
+        });
+    }
+
+    /** Section-lazy detail for one live-ring or loaded-trace event. */
+    public async getEventDetail(
+        params: DcCompletionEventDetailParams,
+    ): Promise<DcCompletionEventDetailResult> {
+        return resolveCompletionEventDetail(params, {
+            revision: this._revision,
+            availableModels: this._services.captureService.availableModels,
+            traceRepository: this._services.traceRepository,
+        });
+    }
+
+    /**
+     * Dispatch a typed command. Shape/enum validation rejects malformed
+     * payloads BEFORE any service runs; non-allowlisted commands surface the
+     * standalone-viewer stub in-band (same allowlist as dispatchAction).
+     */
+    public async dispatchCommand(
+        params: DcIcDebugCommandParams | undefined,
+    ): Promise<DcIcDebugCommandResult> {
+        const validation = validateIcDebugCommand(params?.command);
+        if (validation.ok === false) {
+            return {
+                revision: this._revision,
+                validation: { ok: false, message: validation.message },
+            };
+        }
+        const command = validation.command;
+        if (!CONSOLE_ENABLED_COMMANDS.has(command.name)) {
+            return {
+                revision: this._revision,
+                validation: { ok: false, message: REPLAY_SESSIONS_STUB_MESSAGE },
+            };
+        }
+
+        await this._services.commandHandler.handle(command.name, command.payload);
+        return { revision: this._revision, validation: { ok: true } };
+    }
+
+    private fireChanged(domains: readonly IcDebugChangedDomain[]): void {
+        if (this._disposed) {
+            return;
+        }
+        // Revision moves on every change event; the notification flush is
+        // what the 250 ms throttle coalesces (≤4/sec, addendum §14).
+        this._revision++;
+        for (const domain of domains) {
+            this._pendingChangedDomains.add(domain);
+        }
+        if (this._throttleTimer) {
             return;
         }
         const elapsed = Date.now() - this._lastChangeFiredAt;
@@ -238,7 +372,12 @@ export class ConsoleCompletionsDebugHost {
                 return;
             }
             this._lastChangeFiredAt = Date.now();
+            const changed = icDebugChangedDomains.filter((domain) =>
+                this._pendingChangedDomains.has(domain),
+            );
+            this._pendingChangedDomains.clear();
             this._onDidChangeEmitter.fire();
+            this._onDidChange2Emitter.fire({ revision: this._revision, changed });
         }, delay);
     }
 }

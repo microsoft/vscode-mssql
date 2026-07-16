@@ -79,6 +79,7 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
     private _events: TEvent[] = [];
     private _overrides: TOverrides;
     private _eventCounter = 0;
+    private _evictedEventCount = 0;
     private _captureSessionId = newCaptureSessionId();
     private readonly _viewerLeases = new Map<string, { owner: string; acquiredAt: number }>();
 
@@ -130,6 +131,15 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
         return this._events.find((event) => event.link?.captureEventId === captureEventId);
     }
 
+    /**
+     * Live-ring evictions during the current capture epoch (resets with
+     * clear/import). Lets read models say honestly that earlier live records
+     * fell out of the ring (addendum §3.8).
+     */
+    public get evictedEventCount(): number {
+        return this._evictedEventCount;
+    }
+
     public getOverrides(): TOverrides {
         return { ...this._overrides };
     }
@@ -163,7 +173,9 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
 
         this._events.push(storedEvent);
         if (this._events.length > this._capacity) {
-            this._events.splice(0, this._events.length - this._capacity);
+            const overflow = this._events.length - this._capacity;
+            this._events.splice(0, overflow);
+            this._evictedEventCount += overflow;
         }
 
         this._onDidChange.fire();
@@ -207,6 +219,7 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
         }
 
         this._events = [];
+        this._evictedEventCount = 0;
         this._captureSessionId = newCaptureSessionId();
         this._onDidChange.fire();
     }
@@ -216,6 +229,7 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
         const importedEvents = [...(events ?? [])].slice(-this._capacity).map(prepare);
 
         this._events = importedEvents;
+        this._evictedEventCount = 0;
         // Imported events keep their original link blocks (external identity);
         // the live epoch renews so new captures never share an imported epoch.
         this._captureSessionId = newCaptureSessionId();

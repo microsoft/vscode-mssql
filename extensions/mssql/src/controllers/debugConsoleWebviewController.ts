@@ -68,7 +68,18 @@ import {
     ConsoleCompletionsDebugHost,
     createConsoleCompletionsDebugHost,
     createEmptyConsoleCompletionsDebugState,
+    createGateOffCompletionEventDetailResult,
+    createGateOffCompletionLiveRowsResult,
+    createGateOffIcDebugCapabilities,
+    createGateOffIcDebugCommandResult,
 } from "../diagnostics/completionsDebugConsoleHost";
+import {
+    DcCompletionEventDetailRequest,
+    DcCompletionLiveRowsRequest,
+    DcIcDebugCapabilitiesRequest,
+    DcIcDebugChanged2Notification,
+    DcIcDebugCommandRequest,
+} from "../sharedInterfaces/completionsDebugRpc";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
 import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
@@ -783,6 +794,31 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 : createEmptyConsoleCompletionsDebugState();
         });
 
+        // Typed, versioned Inline Completion Debug RPC (WI-1.2/WI-1.3):
+        // capabilities handshake, validated command dispatch, thin cursor-paged
+        // live rows, and section-lazy event detail. Additive — the legacy
+        // state/action/changed trio above keeps working until the webview
+        // migrates. Gate-off mirrors the state handler: honest empties.
+        this.onRequest(DcIcDebugCapabilitiesRequest.type, async () => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getCapabilities() : createGateOffIcDebugCapabilities();
+        });
+
+        this.onRequest(DcIcDebugCommandRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.dispatchCommand(params) : createGateOffIcDebugCommandResult();
+        });
+
+        this.onRequest(DcCompletionLiveRowsRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getLiveRows(params) : createGateOffCompletionLiveRowsResult();
+        });
+
+        this.onRequest(DcCompletionEventDetailRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getEventDetail(params) : createGateOffCompletionEventDetailResult();
+        });
+
         // Central observability upload (central design §8.3): preview is the
         // exact projection dry-run; upload streams the same item stream. Only
         // stored (closed/partial) sessions are uploadable in v1 (C-6) — the
@@ -879,6 +915,13 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 host.onDidChange(() => {
                     if (!this.disposed) {
                         void this.sendNotification(DcIcDebugChangedNotification.type, undefined);
+                    }
+                });
+                // Typed sibling (WI-1.2): revision + changed domains on the
+                // same throttle; the legacy void poke above keeps firing.
+                host.onDidChange2((payload) => {
+                    if (!this.disposed) {
+                        void this.sendNotification(DcIcDebugChanged2Notification.type, payload);
                     }
                 });
                 this.icDebugHost = host;
