@@ -20,7 +20,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import {
     ConsoleCompletionsDebugHost,
-    REPLAY_SESSIONS_STUB_MESSAGE,
+    projectIcDebugStateResult,
+    resolveCompletionsDebugLaunchTarget,
 } from "../../src/diagnostics/completionsDebugConsoleHost";
 import {
     buildCompletionLiveRowsResult,
@@ -346,14 +347,17 @@ suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
         resetSingletonStore();
     });
 
-    test("capabilities: protocol version + allowlisted command subset", () => {
+    test("capabilities: protocol version + the FULL command surface (WI-1.4/1.5)", () => {
         const capabilities = host.getCapabilities();
         expect(capabilities.protocolVersion).to.equal(IC_DEBUG_PROTOCOL_VERSION);
         expect(capabilities.featureGateOn).to.equal(true);
         expect(capabilities.enabledCommands).to.include("clearEvents");
         expect(capabilities.enabledCommands).to.include("updateOverrides");
-        expect(capabilities.enabledCommands).to.not.include("queueReplayCart");
-        expect(capabilities.enabledCommands).to.not.include("sessionsRefresh");
+        // Sessions/replay commands are enabled — the allowlist is gone.
+        expect(capabilities.enabledCommands).to.include("queueReplayCart");
+        expect(capabilities.enabledCommands).to.include("sessionsRefresh");
+        expect(capabilities.enabledCommands).to.include("runReplayMatrix");
+        expect(capabilities.enabledCommands).to.include("addEventsToReplayCart");
     });
 
     test("revision is monotonic and changed domains accumulate through one throttled flush", async () => {
@@ -409,8 +413,6 @@ suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
         } as unknown as DcIcDebugCommandParams);
         expect(queueReplayCart.validation?.ok).to.equal(false);
         expect(queueReplayCart.validation?.message).to.include("configMode");
-        // Rejected at validation — not by the allowlist stub.
-        expect(queueReplayCart.validation?.message).to.not.equal(REPLAY_SESSIONS_STUB_MESSAGE);
 
         const badOverrides = validateIcDebugCommand({
             name: "updateOverrides",
@@ -419,7 +421,7 @@ suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
         expect(badOverrides.ok).to.equal(false);
     });
 
-    test("well-formed allowlisted commands dispatch through the shared handler", async () => {
+    test("well-formed commands dispatch through the shared handler", async () => {
         const result = await host.dispatchCommand({
             command: { name: "selectProfile", payload: { profileId: "focused" } },
         });
@@ -428,12 +430,147 @@ suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
         expect(inlineCompletionDebugStore.getOverrides().profileId).to.equal("focused");
     });
 
-    test("valid but non-allowlisted commands surface the standalone-viewer stub in-band", async () => {
-        const result = await host.dispatchCommand({
-            command: { name: "queueReplayCart", payload: {} },
+    test("formerly stubbed sessions/replay commands now dispatch (allowlist removed)", async () => {
+        const openBuilder = await host.dispatchCommand({
+            command: { name: "openReplayBuilder", payload: {} },
         });
-        expect(result.validation?.ok).to.equal(false);
-        expect(result.validation?.message).to.equal(REPLAY_SESSIONS_STUB_MESSAGE);
+        expect(openBuilder.validation?.ok).to.equal(true);
+        expect(host.getState().replay.builderOpen).to.equal(true);
+
+        const event = inlineCompletionDebugStore.addEvent(createSentinelEvent());
+        const addToCart = await host.dispatchCommand({
+            command: {
+                name: "addEventsToReplayCart",
+                payload: { items: [{ liveEventId: event.id }] },
+            },
+        });
+        expect(addToCart.validation?.ok).to.equal(true);
+        expect(host.getState().replay.cart).to.have.length(1);
+
+        const queue = await host.dispatchCommand({
+            command: { name: "clearReplayCart", payload: {} },
+        });
+        expect(queue.validation?.ok).to.equal(true);
+        expect(host.getState().replay.cart).to.deep.equal([]);
+    });
+
+    test("addEventsToReplayCart validates the event/liveEventId union", () => {
+        expect(
+            validateIcDebugCommand({
+                name: "addEventsToReplayCart",
+                payload: { items: [{ liveEventId: "E-1" }] },
+            }).ok,
+        ).to.equal(true);
+        expect(
+            validateIcDebugCommand({
+                name: "addEventsToReplayCart",
+                payload: { items: [{ event: { id: "E-1", timestamp: 1 } }] },
+            }).ok,
+        ).to.equal(true);
+        expect(
+            validateIcDebugCommand({
+                name: "addEventsToReplayCart",
+                payload: { items: [{}] },
+            }).ok,
+        ).to.equal(false);
+        expect(
+            validateIcDebugCommand({
+                name: "addEventsToReplayCart",
+                payload: {
+                    items: [{ liveEventId: "E-1", event: { id: "E-1", timestamp: 1 } }],
+                },
+            }).ok,
+        ).to.equal(false);
+    });
+});
+
+suite("completions debug rpc: omitEvents state projection (WI-1.4)", () => {
+    setup(resetSingletonStore);
+    teardown(resetSingletonStore);
+
+    function stateWithEvents() {
+        inlineCompletionDebugStore.addEvent(createSentinelEvent());
+        return {
+            events: inlineCompletionDebugStore.getEvents(),
+            liveEvictedCount: 0,
+            overrides: { ...inlineCompletionDebugDefaultOverrides },
+            defaults: {
+                useSchemaContext: false,
+                includeSqlDiagnostics: true,
+                debounceMs: 0,
+                continuationMaxTokens: 0,
+                intentMaxTokens: 0,
+                enabledCategories: [],
+                allowAutomaticTriggers: true,
+                schemaContext: null,
+            },
+            profiles: [],
+            availableModels: [],
+            recordWhenClosed: false,
+            customPrompt: { dialogOpen: false, savedValue: null, defaultValue: "" },
+            sessions: {
+                traceFolder: "c:/traces",
+                traceCaptureEnabled: true,
+                traceIndex: [],
+                loadedTraces: [],
+                loading: false,
+            },
+            replay: { cart: [], runs: [], queueRows: [], builderOpen: true },
+        };
+    }
+
+    test("omitEvents strips live event bodies and nothing else", () => {
+        const state = stateWithEvents();
+        const projected = projectIcDebugStateResult(state, { omitEvents: true });
+        expect(projected.events).to.deep.equal([]);
+        expect(projected.sessions.traceFolder).to.equal("c:/traces");
+        expect(projected.replay.builderOpen).to.equal(true);
+
+        const json = JSON.stringify(projected);
+        for (const [name, sentinel] of Object.entries(SENTINELS)) {
+            expect(json, `omitEvents leaked ${name}`).to.not.include(sentinel);
+        }
+        // The source state is not mutated.
+        expect(state.events).to.have.length(1);
+    });
+
+    test("legacy callers (no params / no omitEvents) get the unmodified state", () => {
+        const state = stateWithEvents();
+        expect(projectIcDebugStateResult(state, undefined)).to.equal(state);
+        expect(projectIcDebugStateResult(state, {})).to.equal(state);
+        expect(projectIcDebugStateResult(state, { omitEvents: false })).to.equal(state);
+    });
+});
+
+suite("completions debug deep link routing (WI-1.6)", () => {
+    test("flag off routes to the Debug Console Completions page regardless of gate", () => {
+        expect(
+            resolveCompletionsDebugLaunchTarget({
+                standalonePanelFlag: false,
+                featureEnabled: true,
+            }),
+        ).to.deep.equal({ kind: "console", page: "completions" });
+        expect(
+            resolveCompletionsDebugLaunchTarget({
+                standalonePanelFlag: false,
+                featureEnabled: false,
+            }),
+        ).to.deep.equal({ kind: "console", page: "completions" });
+    });
+
+    test("flag on keeps the legacy standalone behavior (gated)", () => {
+        expect(
+            resolveCompletionsDebugLaunchTarget({
+                standalonePanelFlag: true,
+                featureEnabled: true,
+            }),
+        ).to.deep.equal({ kind: "standalonePanel" });
+        expect(
+            resolveCompletionsDebugLaunchTarget({
+                standalonePanelFlag: true,
+                featureEnabled: false,
+            }),
+        ).to.deep.equal({ kind: "none" });
     });
 });
 

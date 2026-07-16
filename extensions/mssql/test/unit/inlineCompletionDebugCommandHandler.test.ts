@@ -16,10 +16,7 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
-import {
-    ConsoleCompletionsDebugHost,
-    REPLAY_SESSIONS_STUB_MESSAGE,
-} from "../../src/diagnostics/completionsDebugConsoleHost";
+import { ConsoleCompletionsDebugHost } from "../../src/diagnostics/completionsDebugConsoleHost";
 import {
     inlineCompletionDebugDefaultOverrides,
     inlineCompletionDebugStore,
@@ -299,9 +296,34 @@ suite("Inline completion debug command handler (WI-1.1)", () => {
         expect(state.replay.cart).to.deep.equal([]);
         expect(state.sessions.traceIndex).to.deep.equal([]);
     });
+
+    test("addEventsToReplayCart resolves live-ring references host-side (WI-1.4)", async () => {
+        const event = inlineCompletionDebugStore.addEvent(createTestEvent());
+        await services.commandHandler.handle("addEventsToReplayCart", {
+            items: [{ liveEventId: event.id }],
+        });
+
+        const state = services.projector.buildState(services.commandHandler.viewState);
+        expect(state.replay.cart).to.have.length(1);
+        expect(state.replay.cart[0].sourceEventId).to.equal(event.id);
+        // Full body resolved from the ring — never round-tripped by the caller.
+        expect(state.replay.cart[0].event.rawResponse).to.equal("raw response text");
+        expect(record.infoMessages).to.deep.equal([]);
+    });
+
+    test("addEventsToReplayCart drops evicted live references honestly", async () => {
+        await services.commandHandler.handle("addEventsToReplayCart", {
+            items: [{ liveEventId: "E-does-not-exist" }],
+        });
+
+        const state = services.projector.buildState(services.commandHandler.viewState);
+        expect(state.replay.cart).to.deep.equal([]);
+        expect(record.infoMessages).to.have.length(1);
+        expect(record.infoMessages[0]).to.include("no longer in the live ring");
+    });
 });
 
-suite("Debug Console completions command handler allowlist (WI-1.1)", () => {
+suite("Debug Console completions command handler full surface (WI-1.4/1.5)", () => {
     let record: FakeHostRecord;
     let host: ConsoleCompletionsDebugHost;
 
@@ -319,18 +341,30 @@ suite("Debug Console completions command handler allowlist (WI-1.1)", () => {
         resetSingletonStore();
     });
 
-    test("replay and sessions commands surface the stub message", async () => {
-        for (const name of ["replayEvent", "sessionsRefresh", "queueReplayCart"]) {
-            await host.dispatchAction(name, {});
-        }
-        expect(record.infoMessages).to.deep.equal([
-            REPLAY_SESSIONS_STUB_MESSAGE,
-            REPLAY_SESSIONS_STUB_MESSAGE,
-            REPLAY_SESSIONS_STUB_MESSAGE,
-        ]);
+    test("previously stubbed replay commands now dispatch through the shared handler", async () => {
+        // openReplayBuilder was stubbed while the console ran the Live-only
+        // subset; it now mutates real replay state through the shared service.
+        const opened = await host.dispatchAction("openReplayBuilder", {});
+        expect(opened.replay.builderOpen).to.equal(true);
+        expect(record.infoMessages).to.deep.equal([]);
+
+        const closed = await host.dispatchAction("closeReplayBuilder", { restoreCart: false });
+        expect(closed.replay.builderOpen).to.equal(false);
     });
 
-    test("allowlisted live commands ride the shared handler", async () => {
+    test("previously stubbed cart commands mutate real replay state", async () => {
+        const event = inlineCompletionDebugStore.addEvent(createTestEvent());
+        const withItem = await host.dispatchAction("addEventsToReplayCart", {
+            items: [{ liveEventId: event.id }],
+        });
+        expect(withItem.replay.cart).to.have.length(1);
+
+        const cleared = await host.dispatchAction("clearReplayCart", {});
+        expect(cleared.replay.cart).to.deep.equal([]);
+        expect(record.infoMessages).to.deep.equal([]);
+    });
+
+    test("live commands keep riding the shared handler", async () => {
         inlineCompletionDebugStore.addEvent(createTestEvent());
         const state = await host.dispatchAction("clearEvents", {});
         expect(record.infoMessages).to.deep.equal([]);
@@ -338,9 +372,17 @@ suite("Debug Console completions command handler allowlist (WI-1.1)", () => {
         expect(inlineCompletionDebugStore.getEvents()).to.have.length(0);
     });
 
-    test("unknown commands are stubbed, never thrown", async () => {
+    test("unknown commands surface the validation message, never thrown", async () => {
         const state = await host.dispatchAction("definitelyNotACommand", { anything: 1 });
-        expect(record.infoMessages).to.deep.equal([REPLAY_SESSIONS_STUB_MESSAGE]);
+        expect(record.infoMessages).to.have.length(1);
+        expect(record.infoMessages[0]).to.include("unknown command name");
         expect(state.customPrompt.dialogOpen).to.equal(false);
+    });
+
+    test("malformed payloads on the legacy action path are rejected in-band", async () => {
+        const state = await host.dispatchAction("replayEvent", {});
+        expect(record.infoMessages).to.have.length(1);
+        expect(record.infoMessages[0]).to.include("eventId");
+        expect(state.replay.runs).to.deep.equal([]);
     });
 });

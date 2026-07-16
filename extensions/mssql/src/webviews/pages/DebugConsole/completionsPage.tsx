@@ -5,8 +5,10 @@
 
 /**
  * Completions page: enablement plus the console-hosted Inline Completion Debug
- * Live experience (forked from the standalone viewer; replay & sessions stay
- * in the standalone panel for now).
+ * experience — the COMPLETE shared app (Live | Sessions tabs, DetailPane,
+ * ReplayTraceBuilder drawer, custom prompt dialog) via direct component reuse
+ * over the typed thin transport (WI-1.4/1.5). The app chunk lazy-loads so the
+ * console's initial bundle stays lean.
  *
  * Privacy split (deliberate): while the feature gate is OFF this page renders
  * substrate DiagEvents only — protocol metadata (trigger, stages, result,
@@ -15,7 +17,7 @@
  * schema context) as the standalone viewer — this is the gated debug surface.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import {
     CompletionsStatusInfo,
     DcCompletionsEnableRequest,
@@ -26,8 +28,13 @@ import {
 } from "../../../sharedInterfaces/debugConsole";
 import { EmptyState, PageHeader, formatTime } from "./common";
 import { ConsoleCompletionsDebugStateProvider } from "./completionsDebug/consoleStateProvider";
-import { InlineCompletionDebugPage } from "./completionsDebug/LivePage";
 import { useDc } from "./state";
+
+const InlineCompletionDebugApp = lazy(() =>
+    import("../InlineCompletionDebug/App").then((module) => ({
+        default: module.InlineCompletionDebugApp,
+    })),
+);
 
 function Pill({ on, labelOn, labelOff }: { on: boolean; labelOn: string; labelOff: string }) {
     return <span className={`dc-pill ${on ? "ok" : "blocked"}`}>{on ? labelOn : labelOff}</span>;
@@ -180,10 +187,10 @@ export function CompletionsPage() {
                 )}
             </div>
             {status?.featureEnabled ? (
-                // Console-hosted fork of the standalone viewer's Live tab: full
-                // fidelity (prompts, responses, schema context) straight from the
-                // shared capture store. Replay & sessions still open the
-                // standalone viewer (button above).
+                // The complete shared Inline Completion Debug app (Live |
+                // Sessions | replay drawer) — direct component reuse, driven
+                // over the typed thin transport by the console provider. The
+                // page fills the content area; every pane scrolls internally.
                 <div
                     className="dc-card"
                     style={{
@@ -193,7 +200,14 @@ export function CompletionsPage() {
                         overflow: "hidden",
                     }}>
                     <ConsoleCompletionsDebugStateProvider>
-                        <InlineCompletionDebugPage />
+                        <Suspense
+                            fallback={
+                                <div className="dc-muted" style={{ padding: 12 }}>
+                                    loading debug tools…
+                                </div>
+                            }>
+                            <InlineCompletionDebugApp layout="fill" />
+                        </Suspense>
                     </ConsoleCompletionsDebugStateProvider>
                 </div>
             ) : (

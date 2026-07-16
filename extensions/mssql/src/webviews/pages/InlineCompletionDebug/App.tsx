@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useMemo, useState } from "react";
-import { makeStyles, shorthands } from "@fluentui/react-components";
+import { makeStyles, mergeClasses, shorthands } from "@fluentui/react-components";
 import { InlineCompletionDebugPage } from "./inlineCompletionDebug";
 import { InlineCompletionDebugTab, InlineCompletionDebugTabBar } from "./TabBar";
 import { SessionsTab } from "./sessions/SessionsTab";
@@ -21,6 +21,11 @@ const useStyles = makeStyles({
         color: "var(--vscode-foreground)",
         ...shorthands.overflow("hidden"),
     },
+    // Hosted inside another shell (Debug Console page): fill the container,
+    // never the viewport — the shell owns the page chrome.
+    rootFill: {
+        height: "100%",
+    },
     content: {
         ...shorthands.flex(1),
         minHeight: 0,
@@ -30,7 +35,12 @@ const useStyles = makeStyles({
     },
 });
 
-export function InlineCompletionDebugApp() {
+export function InlineCompletionDebugApp({
+    layout = "viewport",
+}: {
+    /** "viewport" = standalone panel (100vh); "fill" = hosted in a shell. */
+    layout?: "viewport" | "fill";
+}) {
     const classes = useStyles();
     const [activeTab, setActiveTab] = useState<InlineCompletionDebugTab>("live");
     const liveCount = useInlineCompletionDebugSelector((state) => state.events.length);
@@ -50,7 +60,10 @@ export function InlineCompletionDebugApp() {
         sessions.lastRefreshedAt !== undefined || sessions.traceIndex.length > 0;
 
     return (
-        <div className={classes.root}>
+        <div
+            className={
+                layout === "fill" ? mergeClasses(classes.root, classes.rootFill) : classes.root
+            }>
             <InlineCompletionDebugTabBar
                 activeTab={activeTab}
                 liveCount={liveCount}

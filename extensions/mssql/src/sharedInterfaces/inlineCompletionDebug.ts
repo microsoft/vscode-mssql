@@ -230,7 +230,19 @@ export interface InlineCompletionDebugReplayEventSnapshot {
     override?: Partial<InlineCompletionDebugReplayConfig> | null;
 }
 
-export interface InlineCompletionDebugReplayCartAddItem {
+/**
+ * One event added to the replay cart. Callers that hold the full event body
+ * (session traces loaded locally) pass `event`; thin-transport callers (the
+ * console-hosted live grid, which only holds content-free row projections)
+ * pass `liveEventId` and the command handler resolves the full body from the
+ * live ring host-side — event content never has to round-trip the webview.
+ */
+export type InlineCompletionDebugReplayCartAddItem =
+    | { event: InlineCompletionDebugEvent; liveEventId?: undefined; sourceLabel?: string }
+    | { liveEventId: string; event?: undefined; sourceLabel?: string };
+
+/** The resolved form the replay service consumes (post live-ring lookup). */
+export interface InlineCompletionDebugReplayCartResolvedItem {
     event: InlineCompletionDebugEvent;
     sourceLabel?: string;
 }
@@ -285,6 +297,12 @@ export interface InlineCompletionDebugReplayState {
 
 export interface InlineCompletionDebugWebviewState {
     events: InlineCompletionDebugEvent[];
+    /**
+     * Events evicted from the live ring this capture epoch (honest
+     * truncation state — addendum §2.2). Optional for older serialized
+     * snapshots; absent means unknown, 0 means nothing was dropped.
+     */
+    liveEvictedCount?: number;
     overrides: InlineCompletionDebugOverrides;
     defaults: InlineCompletionDebugDefaults;
     profiles: InlineCompletionDebugProfileOption[];

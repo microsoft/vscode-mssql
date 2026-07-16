@@ -438,9 +438,19 @@ const commandPayloadChecks: Record<keyof InlineCompletionDebugReducers, PayloadC
     openReplayBuilder: noArguments,
     closeReplayBuilder: fields({ restoreCart: aBoolean }),
     addEventsToReplayCart: fields({
-        items: arrayOf((item) =>
-            isJsonRecord(item) ? eventShape(item.event) : "must be an object",
-        ),
+        items: arrayOf((item) => {
+            if (!isJsonRecord(item)) {
+                return "must be an object";
+            }
+            // Union: either a full event body or a live-ring reference the
+            // host resolves (thin-transport callers never hold the body).
+            if (typeof item.liveEventId === "string") {
+                return item.event === undefined
+                    ? undefined
+                    : ".event must be omitted when .liveEventId is set";
+            }
+            return eventShape(item.event);
+        }),
     }),
     addSessionToReplayCart: fields({ fileKey: aString }),
     replaySessionNow: fields({ fileKey: aString }),

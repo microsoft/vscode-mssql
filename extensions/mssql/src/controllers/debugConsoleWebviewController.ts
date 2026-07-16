@@ -47,7 +47,9 @@ import {
     DcIcDebugActionRequest,
     DcIcDebugChangedNotification,
     DcIcDebugStateRequest,
+    DcNavigateNotification,
     DcOpenCompletionsViewerRequest,
+    DcPageId,
     DcCentralPreviewRequest,
     DcCentralUploadProgressNotification,
     DcCentralUploadRequest,
@@ -72,6 +74,7 @@ import {
     createGateOffCompletionLiveRowsResult,
     createGateOffIcDebugCapabilities,
     createGateOffIcDebugCommandResult,
+    projectIcDebugStateResult,
 } from "../diagnostics/completionsDebugConsoleHost";
 import {
     DcCompletionEventDetailRequest,
@@ -150,6 +153,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         private readonly diagnostics: DiagnosticsManager,
+        initialPage?: DcPageId,
     ) {
         super(
             context,
@@ -164,6 +168,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     : {}),
                 provenance: diagnostics.provenance,
                 fixtureMode: false,
+                ...(initialPage !== undefined ? { initialPage } : {}),
             },
             {
                 title: "MSSQL Debug Console",
@@ -778,13 +783,17 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             return { ok: true };
         });
 
-        // Console-hosted Inline Completion Debug (forked Live experience): the
-        // host wraps the singleton capture store; it comes up lazily on the
-        // first state pull and only while the feature gate is on. When gated
-        // off, the page gets the honest empty default state instead.
-        this.onRequest(DcIcDebugStateRequest.type, async () => {
+        // Console-hosted Inline Completion Debug: the host wraps the singleton
+        // capture store; it comes up lazily on the first state pull and only
+        // while the feature gate is on. When gated off, the page gets the
+        // honest empty default state instead. omitEvents (WI-1.4) strips live
+        // event bodies — the page reads those over dc/completionLiveRows.
+        this.onRequest(DcIcDebugStateRequest.type, async (params) => {
             const host = this.ensureIcDebugHost();
-            return host ? host.getState() : createEmptyConsoleCompletionsDebugState();
+            return projectIcDebugStateResult(
+                host ? host.getState() : createEmptyConsoleCompletionsDebugState(),
+                params,
+            );
         });
 
         this.onRequest(DcIcDebugActionRequest.type, async ({ name, payload }) => {
@@ -1014,12 +1023,19 @@ export function registerDebugConsole(
     diagnostics: DiagnosticsManager,
 ): void {
     context.subscriptions.push(
-        vscode.commands.registerCommand("mssql.openDebugConsole", () => {
+        // Optional deep-link arg (WI-1.6): `{ page }` opens the console AT
+        // that page — a fresh console gets it as initial state, an open one
+        // is steered via dc/navigate before being revealed.
+        vscode.commands.registerCommand("mssql.openDebugConsole", (route?: { page?: DcPageId }) => {
+            const page = route?.page;
             if (activeConsole && !activeConsole.disposed) {
+                if (page !== undefined) {
+                    void activeConsole.sendNotification(DcNavigateNotification.type, { page });
+                }
                 activeConsole.revealToForeground();
                 return;
             }
-            activeConsole = new DebugConsoleWebviewController(context, diagnostics);
+            activeConsole = new DebugConsoleWebviewController(context, diagnostics, page);
             activeConsole.revealToForeground();
         }),
     );

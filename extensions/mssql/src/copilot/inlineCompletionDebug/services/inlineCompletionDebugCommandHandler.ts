@@ -22,7 +22,10 @@ import * as vscode from "vscode";
 import * as Constants from "../../../constants/constants";
 import { CompletionSchemaContextService } from "../../completionSchemaContextService";
 import { inlineCompletionDebugStore } from "../inlineCompletionDebugStore";
-import { InlineCompletionDebugReducers } from "../../../sharedInterfaces/inlineCompletionDebug";
+import {
+    InlineCompletionDebugReducers,
+    InlineCompletionDebugReplayCartResolvedItem,
+} from "../../../sharedInterfaces/inlineCompletionDebug";
 import { InlineCompletionCaptureService } from "./inlineCompletionCaptureService";
 import { InlineCompletionTraceRepository } from "./inlineCompletionTraceRepository";
 import { InlineCompletionReplayService } from "./inlineCompletionReplayService";
@@ -155,7 +158,32 @@ export class InlineCompletionDebugCommandHandler {
             this._deps.replayService.closeBuilder(payload.restoreCart);
         },
         addEventsToReplayCart: (payload) => {
-            this._deps.replayService.addEventsToCart(payload.items);
+            // Resolve live-ring references to full bodies here so thin
+            // transports (console live grid) never round-trip event content;
+            // references whose event was evicted are dropped honestly.
+            const resolved: InlineCompletionDebugReplayCartResolvedItem[] = [];
+            for (const item of payload.items ?? []) {
+                const event =
+                    item.event ??
+                    (item.liveEventId !== undefined
+                        ? inlineCompletionDebugStore.getEvent(item.liveEventId)
+                        : undefined);
+                if (event) {
+                    resolved.push(
+                        item.sourceLabel !== undefined
+                            ? { event, sourceLabel: item.sourceLabel }
+                            : { event },
+                    );
+                }
+            }
+            if (resolved.length < (payload.items?.length ?? 0)) {
+                void this._deps.hostServices.showInformationMessage(
+                    "Some events were no longer in the live ring and were not added to the replay cart.",
+                );
+            }
+            if (resolved.length > 0) {
+                this._deps.replayService.addEventsToCart(resolved);
+            }
         },
         addSessionToReplayCart: async (payload) => {
             const loaded = await this._deps.traceRepository.getLoadedTrace(payload.fileKey);

@@ -4263,6 +4263,12 @@
                     "description": "Keep recording inline completion debug events while the debug panel is closed.",
                     "scope": "window"
                 },
+                "mssql.copilot.inlineCompletions.debug.standalonePanel": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Open the legacy standalone Copilot Completion Debug panel instead of the Debug Console Completions page.",
+                    "scope": "window"
+                },
                 "mssql.copilot.inlineCompletions.trace.captureEnabled": {
                     "type": "boolean",
                     "default": false,

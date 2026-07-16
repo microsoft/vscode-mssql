@@ -387,8 +387,11 @@ export const InlineCompletionDebugEventGrid = ({
                             if (onAddEventsToReplayCart) {
                                 onAddEventsToReplayCart(replayableEvents);
                             } else {
+                                // Default path = the LIVE grid: send live-ring
+                                // references so the host resolves full bodies —
+                                // thin-transport hosts never hold event content.
                                 addEventsToReplayCart(
-                                    replayableEvents.map((item) => ({ event: item })),
+                                    replayableEvents.map((item) => ({ liveEventId: item.id })),
                                 );
                             }
                             break;

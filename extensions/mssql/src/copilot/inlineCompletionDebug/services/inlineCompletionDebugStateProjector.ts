@@ -117,6 +117,7 @@ function createState(options: {
     const configuredSchemaContext = getConfiguredSchemaContextSetting();
     return {
         events: inlineCompletionDebugStore.getEvents(),
+        liveEvictedCount: inlineCompletionDebugStore.evictedEventCount,
         overrides,
         defaults: {
             configuredModelSelector,

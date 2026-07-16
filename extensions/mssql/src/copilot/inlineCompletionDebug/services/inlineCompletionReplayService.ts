@@ -66,7 +66,7 @@ import {
     InlineCompletionDebugOverrides,
     InlineCompletionDebugPromptMessage,
     InlineCompletionDebugProfileId,
-    InlineCompletionDebugReplayCartAddItem,
+    InlineCompletionDebugReplayCartResolvedItem,
     InlineCompletionDebugReplayCartConfigMode,
     InlineCompletionDebugReplayConfig,
     InlineCompletionDebugReplayEventSnapshot,
@@ -148,7 +148,7 @@ export class InlineCompletionReplayService {
         this._replayEngine.setBuilderOpen(false);
     }
 
-    public addEventsToCart(items: InlineCompletionDebugReplayCartAddItem[]): void {
+    public addEventsToCart(items: InlineCompletionDebugReplayCartResolvedItem[]): void {
         this._replayEngine.addToCart(items);
     }
 

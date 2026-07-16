@@ -12,11 +12,10 @@
  * is gone — both adapters call the exact same service implementations over
  * the SINGLETON inlineCompletionDebugStore.
  *
- * The console's behavior surface is unchanged for this work item: only the
- * Live-experience command subset is enabled (a thin allowlist below);
- * replay/sessions commands still surface the standalone-viewer info message.
- * State fields those commands would populate stay honest empty defaults
- * because nothing drives this host's sessions/replay services.
+ * WI-1.4/1.5: the full command surface is enabled — the former Live-subset
+ * allowlist (and its standalone-viewer stub message) is gone. Sessions,
+ * replay, cart, and trace-file workflows all dispatch through the shared
+ * command handler; dialogs run through the injected host services.
  */
 
 import * as vscode from "vscode";
@@ -62,41 +61,15 @@ import {
     IC_DEBUG_PROTOCOL_VERSION,
     IcDebugChangedDomain,
     icDebugChangedDomains,
+    icDebugCommandNames,
     validateIcDebugCommand,
 } from "../sharedInterfaces/completionsDebugRpc";
 import {
-    InlineCompletionDebugReducers,
     InlineCompletionDebugWebviewState,
     inlineCompletionCategories,
 } from "../sharedInterfaces/inlineCompletionDebug";
 
 const CHANGE_THROTTLE_MS = 250;
-
-export const REPLAY_SESSIONS_STUB_MESSAGE =
-    "Replay & sessions run in the standalone viewer for now — MSSQL: Open Inline Completion Debug.";
-
-/**
- * Live-experience command subset enabled in the console for this work item.
- * Everything else (sessions, replay, cart, trace-file workflows) surfaces the
- * standalone-viewer stub message — an allowlist, not forked logic; the shared
- * command handler implements every command.
- */
-const CONSOLE_ENABLED_COMMANDS: ReadonlySet<keyof InlineCompletionDebugReducers> = new Set<
-    keyof InlineCompletionDebugReducers
->([
-    "clearEvents",
-    "selectEvent",
-    "updateOverrides",
-    "selectProfile",
-    "setRecordWhenClosed",
-    "openCustomPromptDialog",
-    "closeCustomPromptDialog",
-    "saveCustomPrompt",
-    "resetCustomPrompt",
-    "refreshSchemaContext",
-    "exportSession",
-    "copyEventPayload",
-]);
 
 export interface CompletionsDebugConsoleHostDeps {
     extensionContext: vscode.ExtensionContext;
@@ -126,6 +99,47 @@ export function createConsoleCompletionsDebugHost(): ConsoleCompletionsDebugHost
 /** Rejection message for typed commands while the feature gate is off. */
 export const IC_DEBUG_GATE_OFF_MESSAGE =
     "Inline completion debug is unavailable — enable AI completions first.";
+
+/**
+ * Project a full-state pull result for the wire (WI-1.4). `omitEvents`
+ * strips the live event bodies — the console provider reads live rows over
+ * the thin dc/completionLiveRows transport instead, so its initial payload
+ * carries no prompt/response content (addendum §14 budget). Loaded session
+ * traces still ride the sessions slice once the USER loads them — the
+ * standalone panel's semantics, interim until Phase-2 host-side aggregation.
+ * Legacy callers (no params) get the unmodified full state.
+ */
+export function projectIcDebugStateResult(
+    state: InlineCompletionDebugWebviewState,
+    params: { omitEvents?: boolean } | undefined,
+): InlineCompletionDebugWebviewState {
+    if (!params?.omitEvents) {
+        return state;
+    }
+    return { ...state, events: [] };
+}
+
+/**
+ * WI-1.6 deep-link routing: where `mssql.openInlineCompletionDebug` lands.
+ * Flag OFF (default) → the Debug Console AT the Completions page — even while
+ * the feature gate is off, because that page hosts the enablement flow.
+ * Flag ON → the legacy standalone panel (the rollback path), which keeps its
+ * existing behavior of doing nothing while the feature gate is off.
+ */
+export type CompletionsDebugLaunchTarget =
+    | { kind: "console"; page: "completions" }
+    | { kind: "standalonePanel" }
+    | { kind: "none" };
+
+export function resolveCompletionsDebugLaunchTarget(options: {
+    standalonePanelFlag: boolean;
+    featureEnabled: boolean;
+}): CompletionsDebugLaunchTarget {
+    if (!options.standalonePanelFlag) {
+        return { kind: "console", page: "completions" };
+    }
+    return options.featureEnabled ? { kind: "standalonePanel" } : { kind: "none" };
+}
 
 /** Gate-off capabilities: honest empties, featureGateOn:false (WI-1.2). */
 export function createGateOffIcDebugCapabilities(): DcIcDebugCapabilitiesResult {
@@ -270,22 +284,26 @@ export class ConsoleCompletionsDebugHost {
     }
 
     /**
-     * Dispatch a reducer-named action from the console webview. Allowlisted
-     * commands ride the shared command handler; everything else surfaces the
-     * stub info message and returns the current state unchanged (never throw).
+     * Dispatch a reducer-named action from the console webview (legacy
+     * dc/icDebugAction path — kept for contract compatibility). Every command
+     * rides the shared command handler; validation happens in-band so a bad
+     * name/payload never reaches a service (never throw).
      */
     public async dispatchAction(
         name: string,
         payload: unknown,
     ): Promise<InlineCompletionDebugWebviewState> {
-        const command = name as keyof InlineCompletionDebugReducers;
-        if (CONSOLE_ENABLED_COMMANDS.has(command)) {
-            await this._services.commandHandler.handle(
-                command,
-                (isRecord(payload) ? payload : {}) as InlineCompletionDebugReducers[typeof command],
-            );
+        const validation = validateIcDebugCommand({
+            name,
+            payload: isRecord(payload) ? payload : {},
+        });
+        if (validation.ok === false) {
+            void this._hostServices.showInformationMessage(validation.message);
         } else {
-            void this._hostServices.showInformationMessage(REPLAY_SESSIONS_STUB_MESSAGE);
+            await this._services.commandHandler.handle(
+                validation.command.name,
+                validation.command.payload,
+            );
         }
 
         return this.getState();
@@ -293,11 +311,11 @@ export class ConsoleCompletionsDebugHost {
 
     // --- Typed, versioned RPC surface (WI-1.2/WI-1.3) ----------------------
 
-    /** Protocol handshake: version + this host's enabled command subset. */
+    /** Protocol handshake: version + the full enabled command surface. */
     public getCapabilities(): DcIcDebugCapabilitiesResult {
         return {
             protocolVersion: IC_DEBUG_PROTOCOL_VERSION,
-            enabledCommands: [...CONSOLE_ENABLED_COMMANDS].sort(),
+            enabledCommands: [...icDebugCommandNames].sort(),
             featureGateOn: true,
         };
     }
@@ -326,8 +344,8 @@ export class ConsoleCompletionsDebugHost {
 
     /**
      * Dispatch a typed command. Shape/enum validation rejects malformed
-     * payloads BEFORE any service runs; non-allowlisted commands surface the
-     * standalone-viewer stub in-band (same allowlist as dispatchAction).
+     * payloads BEFORE any service runs; well-formed commands all dispatch
+     * through the shared command handler (WI-1.4/1.5: no allowlist).
      */
     public async dispatchCommand(
         params: DcIcDebugCommandParams | undefined,
@@ -340,12 +358,6 @@ export class ConsoleCompletionsDebugHost {
             };
         }
         const command = validation.command;
-        if (!CONSOLE_ENABLED_COMMANDS.has(command.name)) {
-            return {
-                revision: this._revision,
-                validation: { ok: false, message: REPLAY_SESSIONS_STUB_MESSAGE },
-            };
-        }
 
         await this._services.commandHandler.handle(command.name, command.payload);
         return { revision: this._revision, validation: { ok: true } };

@@ -46,7 +46,10 @@ import {
     makeCentralProbeSession,
     queryCentralRows,
 } from "../diagnostics/centralUpload";
-import { configureCompletionsDebugHost } from "../diagnostics/completionsDebugConsoleHost";
+import {
+    configureCompletionsDebugHost,
+    resolveCompletionsDebugLaunchTarget,
+} from "../diagnostics/completionsDebugConsoleHost";
 import { assertUploadable, projectDiagSession } from "../sharedInterfaces/centralContract";
 import * as os from "os";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
@@ -551,7 +554,26 @@ export default class MainController implements vscode.Disposable {
             );
             this.registerCommand(Constants.cmdOpenInlineCompletionDebug);
             this._event.on(Constants.cmdOpenInlineCompletionDebug, () => {
-                if (!isInlineCompletionFeatureEnabled()) {
+                // WI-1.6 deep link: the command is a permanent alias — by
+                // default it lands on the Debug Console's Completions page;
+                // the standalonePanel setting is the rollback to the legacy
+                // panel (unchanged behavior, including its feature-gate check).
+                const target = resolveCompletionsDebugLaunchTarget({
+                    standalonePanelFlag: vscode.workspace
+                        .getConfiguration()
+                        .get<boolean>(
+                            "mssql.copilot.inlineCompletions.debug.standalonePanel",
+                            false,
+                        ),
+                    featureEnabled: isInlineCompletionFeatureEnabled(),
+                });
+                if (target.kind === "none") {
+                    return;
+                }
+                if (target.kind === "console") {
+                    void vscode.commands.executeCommand("mssql.openDebugConsole", {
+                        page: target.page,
+                    });
                     return;
                 }
                 if (

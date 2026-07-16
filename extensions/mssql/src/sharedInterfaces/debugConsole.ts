@@ -325,6 +325,26 @@ export interface AnomalySummary {
 // Webview protocol (requests are vscode-webview RPC; live events are pushes)
 // ---------------------------------------------------------------------------
 
+/**
+ * Console page ids — the shell's routing vocabulary. Kept here so the host
+ * can deep-link a page (initialPage / dc/navigate) without stringly names.
+ */
+export type DcPageId =
+    | "overview"
+    | "trace"
+    | "waterfall"
+    | "perf"
+    | "history"
+    | "completions"
+    | "replay"
+    | "sql"
+    | "sqlDataPlane"
+    | "connections"
+    | "query"
+    | "oe"
+    | "exports"
+    | "settings";
+
 export interface DebugConsoleState {
     /** Initial snapshot pushed to the webview. */
     sources: DebugSource[];
@@ -333,6 +353,8 @@ export interface DebugConsoleState {
     captureExpiresEpochMs?: number;
     provenance: ProvenanceSummary;
     fixtureMode: boolean;
+    /** Deep-link: page the shell shows on first load (default: overview). */
+    initialPage?: DcPageId;
 }
 
 export interface LiveTailPushEvent {
@@ -587,6 +609,11 @@ export interface SourceOverview {
     anomalies: AnomalySummary[];
 }
 
+/** Deep-link an already-open console to a page (host → webview). */
+export namespace DcNavigateNotification {
+    export const type = new NotificationType<{ page: DcPageId }>("dc/navigate");
+}
+
 export namespace DcListSourcesRequest {
     export const type = new RequestType<void, DebugSource[], void>("dc/listSources");
 }
@@ -820,17 +847,27 @@ export namespace DcOpenCompletionsViewerRequest {
     );
 }
 
-// Console-hosted Inline Completion Debug (forked Live experience) -----------
-// The Completions page hosts a fork of the standalone viewer's Live tab. State
-// is pull-based: the webview requests the full InlineCompletionDebugWebviewState
-// snapshot, dispatches reducer-named actions over dc/icDebugAction (the fresh
-// state comes back on the response), and re-pulls when the host pokes it with
-// dc/icDebugChanged.
+// Console-hosted Inline Completion Debug --------------------------------------
+// The Completions page hosts the full shared Inline Completion Debug app. The
+// config/sessions/replay slices ride this pull-based state request — with
+// `omitEvents: true` the live event bodies are stripped and the page reads
+// live rows over the thin dc/completionLiveRows transport instead (WI-1.4).
+// Legacy callers that pass no params keep getting the unmodified full state.
+// dc/icDebugAction (reducer-named actions, full state on the response) and
+// the dc/icDebugChanged poke remain for compatibility; the typed surface
+// lives in completionsDebugRpc.ts.
+
+export interface DcIcDebugStateParams {
+    /** Strip live event bodies; read live rows via dc/completionLiveRows. */
+    omitEvents?: boolean;
+}
 
 export namespace DcIcDebugStateRequest {
-    export const type = new RequestType<void, InlineCompletionDebugWebviewState, void>(
-        "dc/icDebugState",
-    );
+    export const type = new RequestType<
+        DcIcDebugStateParams | undefined,
+        InlineCompletionDebugWebviewState,
+        void
+    >("dc/icDebugState");
 }
 
 export namespace DcIcDebugActionRequest {
