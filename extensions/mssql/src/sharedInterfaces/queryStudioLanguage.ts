@@ -133,6 +133,19 @@ export interface QsLangSignatureHelpResult {
 export interface QsLangDefinitionResult {
     /** In-document target; absent means no navigable definition. */
     readonly range?: QsLangRange;
+    /**
+     * Scripted catalog target: the generated script rides to the webview so
+     * Peek Definition renders it INSIDE the editor (it used to say "Can't
+     * find definition" while the host opened a tab as a side effect).
+     * Explicit navigation opens the read-only mssql-def document beside via
+     * QsLangOpenScriptedDefinitionRequest (§13.5).
+     */
+    readonly virtualContent?: {
+        readonly title: string;
+        readonly text: string;
+        readonly anchor?: { readonly line: number; readonly character: number };
+        readonly cacheKey: string;
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -228,6 +241,12 @@ export namespace QsLangDefinitionRequest {
         QsLangDefinitionResult | null,
         void
     >("qs/lang.definition");
+}
+/** Explicit navigation to a scripted definition the host recently served. */
+export namespace QsLangOpenScriptedDefinitionRequest {
+    export const type = new RequestType<{ cacheKey: string }, { opened: boolean }, void>(
+        "qs/lang.openScriptedDefinition",
+    );
 }
 export namespace QsLangFoldingRequest {
     export const type = new RequestType<void, { ranges: readonly QsLangFoldingRange[] }, void>(

@@ -18,13 +18,17 @@ import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
     QsCopyMessagesToClipboardRequest,
     QsGetMessagesRequest,
+    QsGetPlanStateRequest,
     QsGetRowsRequest,
     QsNavigateToLineRequest,
     QsOpenCellDocumentRequest,
     QsOpenPlanRequest,
     QsResultSetSummary,
+    QsSaveExecutionPlanRequest,
     QsSaveResultRequest,
     QsSetViewModeRequest,
+    QsShowPlanQueryRequest,
+    QsShowPlanXmlRequest,
     QsUpdateGridSelectionRequest,
 } from "../sharedInterfaces/queryStudio";
 import {
@@ -54,7 +58,15 @@ import {
     QsVectorProfileRequest,
     QsVectorProjectionRequest,
 } from "../sharedInterfaces/vectorWorkbench";
-import { openExecutionPlanWebview } from "../controllers/sharedExecutionPlanUtils";
+import {
+    createExecutionPlanGraphs,
+    openExecutionPlanWebview,
+    saveExecutionPlan,
+    showPlanXml,
+    showQuery,
+} from "../controllers/sharedExecutionPlanUtils";
+import { ExecutionPlanWebviewState } from "../sharedInterfaces/executionPlan";
+import { ApiStatus } from "../sharedInterfaces/webview";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import SqlDocumentService from "../controllers/sqlDocumentService";
 import { getQueryResultAccessService } from "./queryResultAccessService";
@@ -202,6 +214,41 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
 
     private summaryFor(resultSetId: string): QsResultSetSummary | undefined {
         return this.state.resultSets.find((set) => set.resultSetId === resultSetId);
+    }
+
+    /** Plan XML of a pinned plan result set (row 0, column 0), if present. */
+    private async planXmlForResultSet(resultSetId: string): Promise<string | undefined> {
+        const summary = this.summaryFor(resultSetId);
+        if (!summary?.isPlanResult) {
+            return undefined;
+        }
+        const window = await getQueryResultAccessService().getWindow({
+            snapshotId: this.snapshotId,
+            resultSetId,
+            rowStart: 0,
+            rowCount: 1,
+            reason: "cellDocument",
+        });
+        const value = window.values[0]?.[0];
+        return value === undefined || value === null ? undefined : cellDocumentText(value);
+    }
+
+    /** Extension-level plan services (same seam QsOpenPlanRequest used). */
+    private async planSeam(): Promise<
+        | {
+              context?: vscode.ExtensionContext;
+              executionPlanService?: ExecutionPlanService;
+              sqlDocumentService?: SqlDocumentService;
+          }
+        | undefined
+    > {
+        return (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
+            | {
+                  context?: vscode.ExtensionContext;
+                  executionPlanService?: ExecutionPlanService;
+                  sqlDocumentService?: SqlDocumentService;
+              }
+            | undefined;
     }
 
     private registerHandlers(): void {
@@ -353,30 +400,11 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         );
         this.onRequest(QsOpenPlanRequest.type, async ({ resultSetId }) => {
             try {
-                const summary = this.summaryFor(resultSetId);
-                if (!summary?.isPlanResult) {
+                const xml = await this.planXmlForResultSet(resultSetId);
+                if (xml === undefined) {
                     return { opened: false };
                 }
-                const window = await service.getWindow({
-                    snapshotId: this.snapshotId,
-                    resultSetId,
-                    rowStart: 0,
-                    rowCount: 1,
-                    reason: "cellDocument",
-                });
-                const value = window.values[0]?.[0];
-                if (value === undefined || value === null) {
-                    return { opened: false };
-                }
-                const seam = (await vscode.commands.executeCommand(
-                    "mssql.getControllerForTests",
-                )) as
-                    | {
-                          context?: vscode.ExtensionContext;
-                          executionPlanService?: ExecutionPlanService;
-                          sqlDocumentService?: SqlDocumentService;
-                      }
-                    | undefined;
+                const seam = await this.planSeam();
                 if (!seam?.executionPlanService || !seam.sqlDocumentService) {
                     return { opened: false };
                 }
@@ -384,13 +412,74 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                     seam.context ?? this._context,
                     seam.executionPlanService,
                     seam.sqlDocumentService,
-                    cellDocumentText(value),
+                    xml,
                     `${this.state.sourceTitle ?? "Pinned results"} plan`,
                 );
                 return { opened: true };
             } catch {
                 return { opened: false };
             }
+        });
+        // In-document Query Plan tab (live-QS parity): plan XML comes from
+        // the frozen snapshot; graphs parse through the shared execution-plan
+        // service. Plan result sets no longer render as raw-XML grids — that
+        // path rendered erratically and crawled on multi-MB plan cells.
+        this.onRequest(QsGetPlanStateRequest.type, async ({ resultSetIds }) => {
+            try {
+                const xmlPlans = (
+                    await Promise.all(resultSetIds.map((id) => this.planXmlForResultSet(id)))
+                ).filter((xml): xml is string => xml !== undefined);
+                if (xmlPlans.length === 0) {
+                    return { error: "No execution plan results are available in this snapshot." };
+                }
+                const seam = await this.planSeam();
+                if (!seam?.executionPlanService) {
+                    return { error: "Execution plan service is unavailable." };
+                }
+                const state: ExecutionPlanWebviewState = {
+                    executionPlanState: {
+                        loadState: ApiStatus.Loading,
+                        executionPlanGraphs: [],
+                        totalCost: 0,
+                    },
+                };
+                const result = await createExecutionPlanGraphs(
+                    state,
+                    seam.executionPlanService,
+                    xmlPlans,
+                    "QueryResults",
+                );
+                return { executionPlanState: result.executionPlanState };
+            } catch (error) {
+                return { error: error instanceof Error ? error.message : String(error) };
+            }
+        });
+        this.onRequest(QsSaveExecutionPlanRequest.type, async ({ sqlPlanContent }) => {
+            const state: ExecutionPlanWebviewState = {
+                executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
+            };
+            await saveExecutionPlan(state, { sqlPlanContent });
+        });
+        this.onRequest(QsShowPlanXmlRequest.type, async ({ sqlPlanContent }) => {
+            const state: ExecutionPlanWebviewState = {
+                executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
+            };
+            await showPlanXml(state, { sqlPlanContent });
+        });
+        this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
+            const seam = await this.planSeam();
+            if (!seam?.sqlDocumentService) {
+                return;
+            }
+            const state: ExecutionPlanWebviewState = {
+                executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
+            };
+            await showQuery(
+                state,
+                { query },
+                seam.sqlDocumentService,
+                this.document.uri.toString(),
+            );
         });
         this.onRequest(QsGetMessagesRequest.type, async (params) => {
             const afterIndex = (params as { afterIndex?: number })?.afterIndex ?? 0;

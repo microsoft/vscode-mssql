@@ -22,7 +22,11 @@ import {
     PinnedResultsState,
     isPinnedResultsState,
 } from "../../../sharedInterfaces/queryResultsSnapshot";
-import { QsGetMessagesRequest, QsMessageRow } from "../../../sharedInterfaces/queryStudio";
+import {
+    QsGetMessagesRequest,
+    QsGetPlanStateRequest,
+    QsMessageRow,
+} from "../../../sharedInterfaces/queryStudio";
 import {
     QueryStudioPanelViewState,
     QsGetPanelViewStateRequest,
@@ -31,6 +35,8 @@ import {
     orderedQueryStudioTabs,
 } from "../../../sharedInterfaces/queryStudioViewState";
 import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResultsLayout";
+import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { MessagesView, ResultGridBlock } from "../QueryStudio/results";
 import { QsResultsGridProvider, qsGridRowHeight } from "../QueryStudio/resultsGrid";
 import { QueryStudioErrorBoundary } from "../QueryStudio/queryStudioErrorBoundary";
@@ -39,7 +45,7 @@ const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
 
-type PinnedTab = "results" | "messages" | "vector" | "spatial";
+type PinnedTab = "results" | "messages" | "vector" | "spatial" | "queryPlan";
 
 // VEC-11: the Vector Workbench stays a lazy chunk here too — a pinned tab
 // without vector columns never loads it.
@@ -48,6 +54,12 @@ const LazyVectorTab = React.lazy(async () => ({
 }));
 const LazySpatialTab = React.lazy(async () => ({
     default: (await import("../QueryStudio/spatialTab")).SpatialResultsPane,
+}));
+// Live-QS parity: pinned plan result sets render as REAL plan graphs in a
+// Query Plan tab — never as raw-XML grids (those rendered erratically and
+// crawled on multi-MB plan cells). azdataGraph stays a lazy on-use chunk.
+const LazyPlanTab = React.lazy(async () => ({
+    default: (await import("../QueryStudio/queryPlanTab")).QueryStudioExecutionPlanView,
 }));
 
 export function PinnedResultsApp() {
@@ -186,6 +198,12 @@ export function PinnedResultsApp() {
         },
         [updatePanelViewState],
     );
+    const persistPlanViewState = useCallback(
+        (queryPlan: QueryStudioPanelViewState["queryPlan"]) => {
+            updatePanelViewState((current) => ({ ...current, queryPlan }));
+        },
+        [updatePanelViewState],
+    );
     const selectTab = useCallback(
         (tab: PinnedTab) => {
             setActiveTab(tab);
@@ -220,7 +238,8 @@ export function PinnedResultsApp() {
                 const savedTab: PinnedTab =
                     saved.shell.activeTab === "messages" ||
                     saved.shell.activeTab === "vector" ||
-                    saved.shell.activeTab === "spatial"
+                    saved.shell.activeTab === "spatial" ||
+                    saved.shell.activeTab === "queryPlan"
                         ? saved.shell.activeTab
                         : "results";
                 setActiveTab(savedTab);
@@ -347,7 +366,48 @@ export function PinnedResultsApp() {
             ),
         [gridSummaries],
     );
-    const singleGrid = gridSummaries.length === 1 && planSummaries.length === 0;
+    // Plan graphs load once (the snapshot is frozen) when the tab first mounts.
+    const [planTabState, setPlanTabState] = useState<ExecutionPlanState | undefined>(undefined);
+    const planMounted = mountedTabs.has("queryPlan");
+    useEffect(() => {
+        if (!planMounted || planSummaries.length === 0 || planTabState !== undefined) {
+            return;
+        }
+        let canceled = false;
+        void rpc
+            .sendRequest(QsGetPlanStateRequest.type, {
+                resultSetIds: planSummaries.map((summary) => summary.resultSetId),
+            })
+            .then((result) => {
+                if (canceled) {
+                    return;
+                }
+                setPlanTabState(
+                    result.executionPlanState ??
+                        ({
+                            loadState: ApiStatus.Error,
+                            executionPlanGraphs: [],
+                            totalCost: 0,
+                            errorMessage: result.error ?? "Execution plan could not be loaded.",
+                        } satisfies ExecutionPlanState),
+                );
+            })
+            .catch((error) => {
+                if (!canceled) {
+                    setPlanTabState({
+                        loadState: ApiStatus.Error,
+                        executionPlanGraphs: [],
+                        totalCost: 0,
+                        errorMessage: error instanceof Error ? error.message : String(error),
+                    });
+                }
+            });
+        return () => {
+            canceled = true;
+        };
+    }, [planMounted, planSummaries, planTabState, rpc]);
+
+    const singleGrid = gridSummaries.length === 1;
     const maximizedGrid = gridSummaries.some((s) => s.resultSetId === maximizedGridId)
         ? maximizedGridId
         : undefined;
@@ -362,11 +422,11 @@ export function PinnedResultsApp() {
         },
     );
     const availableTabs = orderedQueryStudioTabs({
-        results: gridSummaries.length > 0 || planSummaries.length > 0,
+        results: gridSummaries.length > 0,
         messages: state?.hasLocalMessages === true || (state?.messageCount ?? 0) > 0,
         vector: vectorColumns.length > 0,
         spatial: spatialColumns.length > 0,
-        queryPlan: false,
+        queryPlan: planSummaries.length > 0,
     }) as PinnedTab[];
     const visibleActiveTab = availableTabs.includes(activeTab)
         ? activeTab
@@ -433,7 +493,9 @@ export function PinnedResultsApp() {
                               ? `Messages${state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""}`
                               : tab === "vector"
                                 ? "Vector"
-                                : locConstants.spatialResults.spatial}
+                                : tab === "queryPlan"
+                                  ? `Query Plan${planSummaries.length > 1 ? ` (${planSummaries.length})` : ""}`
+                                  : locConstants.spatialResults.spatial}
                     </button>
                 ))}
             </div>
@@ -488,24 +550,6 @@ export function PinnedResultsApp() {
                                         />
                                     );
                                 })}
-                                {planSummaries.map((summary, index) => (
-                                    <ResultGridBlock
-                                        key={summary.resultSetId}
-                                        rpc={rpc}
-                                        summary={summary}
-                                        displayOrdinal={gridSummaries.length + index + 1}
-                                        rowCount={summary.rowCount}
-                                        gridStyle={state.gridStyle}
-                                        sizing={{ kind: "height", bodyPx: 120 }}
-                                        runActive={false}
-                                        initialGridState={
-                                            panelViewStateRef.current.results.grids[
-                                                summary.resultSetId
-                                            ]
-                                        }
-                                        onGridStateChange={gridStateHandler(summary.resultSetId)}
-                                    />
-                                ))}
                             </QsResultsGridProvider>
                         </QueryStudioErrorBoundary>
                     </div>
@@ -581,6 +625,31 @@ export function PinnedResultsApp() {
                                     basemapEnabled={state.spatialBasemapEnabled === true}
                                     initialViewState={panelViewStateRef.current.spatial}
                                     onViewStateChange={persistSpatialViewState}
+                                />
+                            </React.Suspense>
+                        </QueryStudioErrorBoundary>
+                    </div>
+                ) : null}
+                {planSummaries.length > 0 && mountedTabs.has("queryPlan") ? (
+                    <div
+                        className="qs-tab-panel qs-tab-panel-fill"
+                        hidden={visibleActiveTab !== "queryPlan"}>
+                        <QueryStudioErrorBoundary
+                            label="Query Plan"
+                            resetKey={`plan:${panelViewStateRef.current.generation}`}
+                            onError={reportPaneError}>
+                            <React.Suspense
+                                fallback={
+                                    <div className="qs-muted qs-pinned-loading">
+                                        Loading plan view…
+                                    </div>
+                                }>
+                                <LazyPlanTab
+                                    rpc={rpc}
+                                    executionPlanState={planTabState}
+                                    active={panelVisible && visibleActiveTab === "queryPlan"}
+                                    initialViewState={panelViewStateRef.current.queryPlan}
+                                    onViewStateChange={persistPlanViewState}
                                 />
                             </React.Suspense>
                         </QueryStudioErrorBoundary>

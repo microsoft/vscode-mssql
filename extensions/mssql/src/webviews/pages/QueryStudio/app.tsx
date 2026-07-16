@@ -99,6 +99,7 @@ import {
     QsLangDocumentSymbolsRequest,
     QsLangFoldingRequest,
     QsLangHoverRequest,
+    QsLangOpenScriptedDefinitionRequest,
     QsLangRange,
     QsLangSignatureHelpRequest,
 } from "../../../sharedInterfaces/queryStudioLanguage";
@@ -1523,7 +1524,63 @@ export function QueryStudioApp() {
 
     // --- language features (LS-0): Monaco providers over the qs/lang.* bridge --
     useEffect(() => {
+        // Scripted definitions render INSIDE Monaco (Peek shows the CREATE
+        // script in the editor; it used to say "Can't find definition").
+        // Explicit navigation to a mssql-def model routes to the host, which
+        // opens the read-only document beside (§13.5). uri → cacheKey.
+        const scriptedDefModels = new Map<string, string>();
+        const disposeScriptedDefModel = (uriString: string) => {
+            monacoApi.editor.getModel(monacoApi.Uri.parse(uriString))?.dispose();
+            scriptedDefModels.delete(uriString);
+        };
+        const scriptedDefinitionLocation = (content: {
+            title: string;
+            text: string;
+            cacheKey: string;
+            anchor?: { line: number; character: number };
+        }) => {
+            const uri = monacoApi.Uri.from({
+                scheme: "mssql-def",
+                path: `/${encodeURIComponent(content.cacheKey)}/${content.title}.sql`,
+            });
+            const existing = monacoApi.editor.getModel(uri);
+            if (existing) {
+                if (existing.getValue() !== content.text) {
+                    existing.setValue(content.text);
+                }
+            } else {
+                monacoApi.editor.createModel(content.text, "sql", uri);
+            }
+            scriptedDefModels.delete(uri.toString());
+            scriptedDefModels.set(uri.toString(), content.cacheKey);
+            while (scriptedDefModels.size > 24) {
+                const [oldest] = scriptedDefModels.keys();
+                disposeScriptedDefModel(oldest);
+            }
+            const anchor = content.anchor ?? { line: 0, character: 0 };
+            return {
+                uri,
+                range: new monacoApi.Range(
+                    anchor.line + 1,
+                    anchor.character + 1,
+                    anchor.line + 1,
+                    anchor.character + 1,
+                ),
+            };
+        };
         const providerDisposables = [
+            monacoApi.editor.registerEditorOpener({
+                openCodeEditor: (_source, resource) => {
+                    const cacheKey = scriptedDefModels.get(resource.toString());
+                    if (cacheKey === undefined) {
+                        return false;
+                    }
+                    void rpc
+                        .sendRequest(QsLangOpenScriptedDefinitionRequest.type, { cacheKey })
+                        .catch(() => undefined);
+                    return true;
+                },
+            }),
             monacoApi.languages.registerCompletionItemProvider("sql", {
                 triggerCharacters: [".", " ", "@", "("],
                 provideCompletionItems: async (model, position, context) => {
@@ -1676,10 +1733,13 @@ export function QueryStudioApp() {
                             character: position.column - 1,
                             textHash: textHash(model.getValue()),
                         });
-                        if (!result?.range) {
-                            return null;
+                        if (result?.range) {
+                            return { uri: model.uri, range: langRangeToMonaco(result.range) };
                         }
-                        return { uri: model.uri, range: langRangeToMonaco(result.range) };
+                        if (result?.virtualContent) {
+                            return scriptedDefinitionLocation(result.virtualContent);
+                        }
+                        return null;
                     } catch {
                         return null;
                     }
@@ -1739,6 +1799,9 @@ export function QueryStudioApp() {
         return () => {
             for (const disposable of providerDisposables) {
                 disposable.dispose();
+            }
+            for (const uriString of [...scriptedDefModels.keys()]) {
+                disposeScriptedDefModel(uriString);
             }
         };
     }, [rpc, flushEdits]);

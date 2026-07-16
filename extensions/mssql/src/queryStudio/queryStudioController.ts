@@ -137,13 +137,18 @@ import {
     QsLangDocumentSymbolsRequest,
     QsLangFoldingRequest,
     QsLangHoverRequest,
+    QsLangOpenScriptedDefinitionRequest,
     QsLangSignatureHelpRequest,
     QsLangStatusRequest,
 } from "../sharedInterfaces/queryStudioLanguage";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { getSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import SqlDocumentService from "../controllers/sqlDocumentService";
-import { definitionContentProvider, openScriptedDefinition } from "./definitionContentProvider";
+import {
+    definitionContentProvider,
+    openScriptedDefinition,
+    type ScriptedDefinitionContent,
+} from "./definitionContentProvider";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
 import {
     DIAGNOSTICS_ENABLED_SETTING,
@@ -852,6 +857,17 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private spatialBasemapService: SpatialBasemapSessionManager | undefined;
     /** Bumped on basemap config changes so panes re-fetch the layer list. */
     private spatialBasemapEpoch = 0;
+    /** Recently served scripted definitions, addressed by cacheKey (LRU). */
+    private readonly scriptedDefinitions = new Map<string, ScriptedDefinitionContent>();
+
+    private rememberScriptedDefinition(content: ScriptedDefinitionContent): void {
+        this.scriptedDefinitions.delete(content.cacheKey);
+        this.scriptedDefinitions.set(content.cacheKey, content);
+        while (this.scriptedDefinitions.size > 16) {
+            const oldest = this.scriptedDefinitions.keys().next().value as string;
+            this.scriptedDefinitions.delete(oldest);
+        }
+    }
 
     private spatialResults(): SpatialSessionManager {
         this.spatialService ??= new SpatialSessionManager();
@@ -1722,19 +1738,28 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             if (result?.range) {
                 return { range: result.range };
             }
-            // Scripted target (LS-4): open the generated script BESIDE as a
-            // read-only mssql-def: document at the anchor (design §13.5);
-            // the webview keeps its in-editor navigation for ranges only.
-            // The definition document then joins THIS editor's connection
-            // context (profile + current database) — never an ambient one.
+            // Scripted target (LS-4): the generated script rides to the
+            // webview so Peek renders it INSIDE the editor. Opening the
+            // read-only mssql-def document beside (§13.5) happens only on
+            // EXPLICIT navigation below — provideDefinition also fires on
+            // ctrl-hover, which must never pop a tab.
             if (result?.virtualContent !== undefined) {
-                const provider = definitionContentProvider();
-                if (provider !== undefined) {
-                    const uri = await openScriptedDefinition(provider, result.virtualContent);
-                    await this.languageService.adoptDefinitionDocumentConnection(uri);
-                }
+                this.rememberScriptedDefinition(result.virtualContent);
+                return { virtualContent: result.virtualContent };
             }
             return null;
+        });
+        this.onRequest(QsLangOpenScriptedDefinitionRequest.type, async ({ cacheKey }) => {
+            const content = this.scriptedDefinitions.get(cacheKey);
+            const provider = definitionContentProvider();
+            if (content === undefined || provider === undefined) {
+                return { opened: false };
+            }
+            // The definition document joins THIS editor's connection context
+            // (profile + current database) — never an ambient one.
+            const uri = await openScriptedDefinition(provider, content);
+            await this.languageService.adoptDefinitionDocumentConnection(uri);
+            return { opened: true };
         });
         this.onRequest(QsLangFoldingRequest.type, async () => ({
             ranges: (await this.languageService.folding()) ?? [],
