@@ -16,7 +16,7 @@ import {
     ISqlChatResult,
     provideFollowups,
 } from "./copilot/chatAgentRequestHandler";
-import { sendActionEvent } from "./telemetry/telemetry";
+import { sendActionEvent, telemetryReporter } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
@@ -39,6 +39,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     controller = new MainController(context);
     context.subscriptions.push(controller);
+    context.subscriptions.push(telemetryReporter);
     // Initialize loc cache for webviews early so that it's ready by the time any webview requests it.
     initializeWebviewLocalizationCache();
 

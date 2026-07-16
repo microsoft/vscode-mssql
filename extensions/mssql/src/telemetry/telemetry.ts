@@ -12,10 +12,10 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import AdsTelemetryReporter, {
+import TelemetryReporter, {
     TelemetryEventMeasures,
     TelemetryEventProperties,
-} from "@microsoft/ads-extension-telemetry";
+} from "./telemetryReporter";
 
 import { IConnectionProfile } from "../models/interfaces";
 import { extensionId } from "../constants/constants";
@@ -23,16 +23,10 @@ import { uuid } from "../utils/utils";
 
 const packageJson = vscode.extensions.getExtension(extensionId).packageJSON;
 
-let packageInfo = {
-    name: "vscode-mssql", // Differentiate this from the mssql extension in ADS
-    version: packageJson.version,
-    aiKey: packageJson.aiKey,
-};
-
-const telemetryReporter = new AdsTelemetryReporter<
+export const telemetryReporter = new TelemetryReporter<
     TelemetryViews | string,
     TelemetryActions | string
->(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+>(packageJson.aiKey);
 
 // Function names to skip in call stack (telemetry internals)
 const SKIP_FUNCTIONS = new Set([
@@ -118,14 +112,7 @@ export function sendActionEvent(
         actionEvent = actionEvent.withConnectionInfo(connectionInfo);
     }
     if (serverInfo) {
-        // transform serverInfo.engineEditionId from number to string so that telemetry pipeline can process it as a property
-        const transformedServerInfo = {
-            ...serverInfo,
-            engineEditionId: String(serverInfo.engineEditionId),
-        };
-        actionEvent = actionEvent.withServerInfo(
-            transformedServerInfo as unknown as vscodeMssql.IServerInfo,
-        );
+        actionEvent = actionEvent.withServerInfo(serverInfo);
     }
     actionEvent.send();
 }
