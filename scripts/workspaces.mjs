@@ -90,7 +90,10 @@ function resolveTargets(action, targetValue) {
     const availableTargets = workspaceTargets.filter((target) => target.scripts.includes(action));
 
     if (!targetValue) {
-        return availableTargets;
+        return {
+            tasks: expandTargetsWithDependencies(action, availableTargets),
+            requestedTargets: availableTargets,
+        };
     }
 
     const requested = targetValue
@@ -116,7 +119,74 @@ function resolveTargets(action, targetValue) {
         return target;
     });
 
-    return [...new Map(resolved.map((target) => [target.target, target])).values()];
+    const requestedTargets = [
+        ...new Map(resolved.map((target) => [target.target, target])).values(),
+    ];
+
+    return {
+        tasks: expandTargetsWithDependencies(action, requestedTargets),
+        requestedTargets,
+    };
+}
+
+function findTarget(name) {
+    return workspaceTargets.find(
+        (candidate) => candidate.target === name || candidate.aliases.includes(name),
+    );
+}
+
+function getTargetDependencies(target, action) {
+    return (target.dependencies?.[action] ?? []).map((dependency) =>
+        typeof dependency === "string" ? { target: dependency, action } : dependency,
+    );
+}
+
+function expandTargetsWithDependencies(action, targets) {
+    const expanded = new Map();
+    const visiting = new Set();
+
+    function visit(target, targetAction) {
+        const taskKey = `${targetAction}:${target.target}`;
+
+        if (expanded.has(taskKey)) {
+            return;
+        }
+
+        if (visiting.has(taskKey)) {
+            throw new Error(
+                `Cyclic target dependency involving "${target.target}" for action "${targetAction}".`,
+            );
+        }
+
+        visiting.add(taskKey);
+
+        for (const dependencyConfig of getTargetDependencies(target, targetAction)) {
+            const dependency = findTarget(dependencyConfig.target);
+
+            if (!dependency) {
+                throw new Error(
+                    `Target "${target.target}" depends on unknown target "${dependencyConfig.target}".`,
+                );
+            }
+
+            if (!dependency.scripts.includes(dependencyConfig.action)) {
+                throw new Error(
+                    `Target "${target.target}" depends on "${dependency.target}", but "${dependency.target}" does not support "${dependencyConfig.action}".`,
+                );
+            }
+
+            visit(dependency, dependencyConfig.action);
+        }
+
+        visiting.delete(taskKey);
+        expanded.set(taskKey, { target, action: targetAction });
+    }
+
+    for (const target of targets) {
+        visit(target, action);
+    }
+
+    return [...expanded.values()];
 }
 
 function ensureProdBuildSupport(targets, prod) {
@@ -260,26 +330,40 @@ function main() {
         );
     }
 
-    const targets = resolveTargets(action, targetValue);
-    ensureProdBuildSupport(targets, prod);
-
-    let actionArgs = forwardedArgs;
-    if (prod) {
-        actionArgs = [...actionArgs, "--prod"];
+    if (prod && action !== "build") {
+        throw new Error(`The --prod flag is only supported for the "build" action.`);
     }
 
-    if (prerelease) {
-        actionArgs = [...actionArgs, "--pre-release"];
-    }
+    const { tasks, requestedTargets } = resolveTargets(action, targetValue);
+    const requestedTargetNames = new Set(requestedTargets.map((target) => target.target));
+    ensureProdBuildSupport(requestedTargets, prod);
+
+    const getActionArgs = (target) => {
+        let actionArgs = forwardedArgs;
+
+        if (prod && requestedTargetNames.has(target.target)) {
+            actionArgs = [...actionArgs, "--prod"];
+        }
+
+        if (prerelease && requestedTargetNames.has(target.target)) {
+            actionArgs = [...actionArgs, "--pre-release"];
+        }
+
+        return actionArgs;
+    };
 
     if (action === "watch") {
-        const watchableTargets = pruneRedundantWatchTargets(targets);
-        watchTargets(watchableTargets, actionArgs);
+        const watchableTargets = pruneRedundantWatchTargets(tasks.map((task) => task.target));
+        watchTargets(watchableTargets, forwardedArgs);
         return;
     }
 
-    for (const target of targets) {
-        runWorkspaceScript(target, action, actionArgs);
+    for (const task of tasks) {
+        const taskArgs =
+            task.action === action && requestedTargetNames.has(task.target.target)
+                ? getActionArgs(task.target)
+                : [];
+        runWorkspaceScript(task.target, task.action, taskArgs);
     }
 }
 

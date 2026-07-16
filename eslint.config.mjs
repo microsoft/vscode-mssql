@@ -120,6 +120,33 @@ export default [
         ],
     },
 
+    // extension-toolkit package
+    {
+        files: ["packages/extension-toolkit/src/**/*.ts"],
+        ignores: [...(includeIgnoreFile(gitignorePath).ignores || [])],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+            parser: tseslint.parser,
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: "./packages/extension-toolkit/tsconfig.json",
+            },
+        },
+        plugins: {
+            notice,
+            jsdoc,
+            ["@typescript-eslint"]: tseslint.plugin,
+            ...eslintPluginPrettierRecommended.plugins,
+            "@stylistic": stylistic,
+            "custom-eslint-rules": customRules,
+        },
+        rules: {
+            ...sharedRules,
+            "custom-eslint-rules/extension-toolkit-layering": "error",
+        },
+    },
+
     // mssql extension - with React support
     {
         files: [
