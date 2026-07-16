@@ -97,6 +97,8 @@ export interface Sts2Deadlines {
     closeMs: number;
     disposeDrainMs: number;
     completeAfterCancelMs: number;
+    /** v2/initialize handshake budget — a wedged service must fail, not hang. */
+    initializeMs: number;
 }
 
 export const DEFAULT_DEADLINES: Sts2Deadlines = {
@@ -105,6 +107,7 @@ export const DEFAULT_DEADLINES: Sts2Deadlines = {
     closeMs: 15_000,
     disposeDrainMs: 10_000,
     completeAfterCancelMs: 30_000,
+    initializeMs: 20_000,
 };
 
 const STS2_CAPABILITIES: SqlBackendCapabilities = {
@@ -236,14 +239,35 @@ export class Sts2Backend implements ISqlConnectionService {
         );
     }
 
-    /** v2/initialize handshake; MethodNotFound ⇒ notEnabledOnService. */
+    private starting: Promise<DataPlaneAvailability> | undefined;
+
+    /**
+     * v2/initialize handshake; MethodNotFound ⇒ notEnabledOnService.
+     * BOUNDED and single-flight: consumers block on this before their own
+     * open deadline starts, so an unanswered initialize used to hang them
+     * forever (OE v2 spun endlessly against a wedged service — journal
+     * showed rpc.v2/initialize.begin with no end). A deadline expiry now
+     * fails honestly and stays retryable.
+     */
     async start(): Promise<DataPlaneAvailability> {
+        if (!this.starting) {
+            this.starting = this.doStart().finally(() => {
+                this.starting = undefined;
+            });
+        }
+        return this.starting;
+    }
+
+    private async doStart(): Promise<DataPlaneAvailability> {
         this.subscribe();
         try {
-            const result = await this.rpc.sendRequest<V2InitializeResult>(STS2_METHODS.initialize, {
-                clientName: "vscode-mssql-sqlDataPlane",
-                requestedSpecVersion: "2.0",
-            });
+            const result = await withDeadline(
+                this.rpc.sendRequest<V2InitializeResult>(STS2_METHODS.initialize, {
+                    clientName: "vscode-mssql-sqlDataPlane",
+                    requestedSpecVersion: "2.0",
+                }),
+                this.deadlines.initializeMs,
+            );
             this.availability = {
                 state: "available",
                 backend: this.backendInfo.kind,
@@ -261,16 +285,22 @@ export class Sts2Backend implements ISqlConnectionService {
                 },
             };
         } catch (error) {
+            const timedOut =
+                error instanceof SqlDataPlaneError &&
+                error.code === DataPlaneErrorCodes.clientTimeout;
             const code = sts2ErrorCode(error);
             const message = error instanceof Error ? error.message : String(error);
             const notEnabled =
-                /method not found|unhandled method/i.test(message) || code === undefined;
+                !timedOut &&
+                (/method not found|unhandled method/i.test(message) || code === undefined);
             this.availability = {
                 state: "unavailable",
                 backend: this.backendInfo.kind,
-                reason: notEnabled
-                    ? "notEnabledOnService (launch STS with --enable-sts2)"
-                    : `${code ?? "error"}: ${message}`,
+                reason: timedOut
+                    ? `v2/initialize timed out after ${this.deadlines.initializeMs}ms (service busy or wedged)`
+                    : notEnabled
+                      ? "notEnabledOnService (launch STS with --enable-sts2)"
+                      : `${code ?? "error"}: ${message}`,
                 retryable: true,
             };
         }
@@ -362,7 +392,13 @@ export class Sts2Backend implements ISqlConnectionService {
     }
 
     async canOpen(): Promise<{ ok: boolean; reason?: string }> {
-        if (this.availability.state === "unknown") {
+        // Retryable unavailability (timed-out or errored handshake) re-attempts
+        // the bounded initialize — a transient wedge must not poison every
+        // later open with a stale failure.
+        if (
+            this.availability.state === "unknown" ||
+            (this.availability.state === "unavailable" && this.availability.retryable === true)
+        ) {
             await this.start();
         }
         return this.availability.state === "available"

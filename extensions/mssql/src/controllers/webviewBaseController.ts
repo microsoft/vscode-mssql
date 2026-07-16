@@ -638,7 +638,12 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             return Promise.resolve();
         }
         if (this._isDisposed) {
-            throw new Error("Cannot send notification on disposed controller");
+            // A disposed webview can't receive anything: dropping the
+            // notification is the only correct delivery. Throwing here made
+            // in-flight work fail AFTER its real outcome (e.g. the connection
+            // dialog's post-connect state push raced its own auto-close and
+            // reported "Cannot send notification on disposed controller").
+            return Promise.resolve();
         }
         sendActionEvent(
             TelemetryViews.WebviewController,

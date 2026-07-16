@@ -94,6 +94,7 @@ const TIMEOUT_SETTINGS = [
     "mssql.sqlDataPlane.timeouts.cancelAckMs",
     "mssql.sqlDataPlane.timeouts.closeMs",
     "mssql.sqlDataPlane.timeouts.disposeDrainMs",
+    "mssql.sqlDataPlane.timeouts.initializeMs",
 ] as const;
 
 function vscodeConfigReader(): DataPlaneConfigReader {
@@ -120,6 +121,10 @@ function deadlinesFromConfig(config: DataPlaneConfigReader): Sts2Deadlines {
             DEFAULT_DEADLINES.disposeDrainMs,
         ),
         completeAfterCancelMs: DEFAULT_DEADLINES.completeAfterCancelMs,
+        initializeMs: config.get<number>(
+            "mssql.sqlDataPlane.timeouts.initializeMs",
+            DEFAULT_DEADLINES.initializeMs,
+        ),
     };
 }
 
@@ -372,7 +377,7 @@ function loadTsNativeProvider(): TsNativeProviderExports {
     //  - bundled: __dirname = <ext>/dist            → dist/tsNativeProvider.js
     //  - tsc/out: __dirname = out/src/services/sqlDataPlane
     //             → out/src/services/tsNative/providerEntry.js
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     const path = require("path") as typeof import("path");
     const candidates = [
         path.join(__dirname, "tsNativeProvider.js"),
@@ -381,7 +386,6 @@ function loadTsNativeProvider(): TsNativeProviderExports {
     let lastError: unknown;
     for (const candidate of candidates) {
         try {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
             return require(candidate) as TsNativeProviderExports;
         } catch (error) {
             lastError = error;

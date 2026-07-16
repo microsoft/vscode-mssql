@@ -250,8 +250,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             // react updates state asynchronously, so if the state of unfiltered
             // items hasn't been updated yet, ie. on the first filter, use items instead
             const currentItems = firstFilter ? items : unfilteredItems;
+            // Case-insensitive: "Actual" and "actual" must match the same rows.
+            const needle = searchValue.toLowerCase();
             let filteredItems = currentItems.filter(
-                (item) => item.name.includes(searchValue) || item.value.includes(searchValue),
+                (item) =>
+                    item.name.toLowerCase().includes(needle) ||
+                    item.value.toLowerCase().includes(needle),
             );
 
             setItems(buildFilteredItemsFromChildList(filteredItems, currentItems));

@@ -137,6 +137,32 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect((availability as { reason: string }).reason).to.include("notEnabledOnService");
     });
 
+    test("a wedged initialize FAILS within its deadline and stays retryable", async () => {
+        const rpc = new ScriptedRpc();
+        // A responder that never settles — the wedged-service case that left
+        // OE v2 spinning forever (journal: rpc.v2/initialize.begin, no end).
+        let wedged = true;
+        rpc.responders.set(STS2_METHODS.initialize, () =>
+            wedged ? new Promise(() => undefined) : { specVersion: "2.0.0-preview.1" },
+        );
+        const backend = new Sts2Backend(rpc, { ...DEFAULT_DEADLINES, initializeMs: 30 });
+        const availability = await backend.start();
+        expect(availability.state).to.equal("unavailable");
+        expect((availability as { reason: string }).reason).to.include("timed out");
+        expect((availability as { retryable?: boolean }).retryable).to.equal(true);
+        // canOpen re-attempts the bounded handshake once the service recovers
+        // — a transient wedge must not poison every later open.
+        wedged = false;
+        expect((await backend.canOpen()).ok).to.equal(true);
+    });
+
+    test("concurrent starts share one initialize (single flight)", async () => {
+        const rpc = standardRpc();
+        const backend = new Sts2Backend(rpc);
+        await Promise.all([backend.start(), backend.start(), backend.start()]);
+        expect(rpc.requests.filter((r) => r.method === STS2_METHODS.initialize)).to.have.length(1);
+    });
+
     test("happy path: ordered sink events, structured rowsAffected, one terminal", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();
