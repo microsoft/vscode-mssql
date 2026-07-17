@@ -419,6 +419,16 @@
                     }
                 ],
                 "priority": "option"
+            },
+            {
+                "viewType": "mssql.runbookStudio",
+                "displayName": "Runbook Studio",
+                "selector": [
+                    {
+                        "filenamePattern": "*.runbook.json"
+                    }
+                ],
+                "priority": "default"
             }
         ],
         "notebookRenderer": [
@@ -1192,6 +1202,10 @@
                 {
                     "command": "mssql.queryStudio.new",
                     "when": "config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.runbookStudio.new",
+                    "when": "config.mssql.runbookStudio.enabled"
                 },
                 {
                     "command": "mssql.queryResults.showStatus",
@@ -2286,6 +2300,11 @@
             {
                 "command": "mssql.queryStudio.new",
                 "title": "Query Studio: New Query",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.runbookStudio.new",
+                "title": "Runbook Studio: New Runbook",
                 "category": "MS SQL"
             },
             {
@@ -3762,6 +3781,18 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enable the Query Studio custom editor for .sql files (preview). Reload required.",
+                    "scope": "application"
+                },
+                "mssql.runbookStudio.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable Runbook Studio, the editor for .runbook.json files (preview). Reload required.",
+                    "scope": "application"
+                },
+                "mssql.runbookStudio.debugTools": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Show the Runbook Studio Debug & Replay tools (developer preview).",
                     "scope": "application"
                 },
                 "mssql.queryStudio.vectorWorkbench.enabled": {

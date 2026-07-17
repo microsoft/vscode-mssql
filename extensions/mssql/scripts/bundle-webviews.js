@@ -93,6 +93,7 @@ function createConfigs({ isProd }) {
             queryResult: "src/webviews/pages/QueryResult/index.tsx",
             queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
             queryStudioReplay: "src/webviews/pages/QueryStudioReplay/index.tsx",
+            runbookStudio: "src/webviews/pages/RunbookStudio/index.tsx",
             queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",
             inlineCompletionDebug: "src/webviews/pages/InlineCompletionDebug/index.tsx",
             editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",

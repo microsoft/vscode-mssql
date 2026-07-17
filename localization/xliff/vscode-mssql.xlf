@@ -56,6 +56,9 @@
     <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
       <source xml:lang="en">(empty)</source>
     </trans-unit>
+    <trans-unit id="++CODE++e863802edb6e52d6a2e56869e3e183147cf4e982fcc28472d4ed8965a6a6712a">
+      <source xml:lang="en">(rebind at run time)</source>
+    </trans-unit>
     <trans-unit id="++CODE++2dbc3a842e150a69d5a35dc7e059907884fff202bead2f25e3284cdbecedf340">
       <source xml:lang="en">({0} row(s) affected)</source>
       <note>{0} is the number of rows affected</note>
@@ -181,6 +184,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++38da1505ca8373288489495101b14f24ac95078f520ad64df18272aa6054f750">
+      <source xml:lang="en">Activity</source>
     </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -550,6 +556,9 @@
     <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
       <source xml:lang="en">Authentication not supported</source>
     </trans-unit>
+    <trans-unit id="++CODE++d95082a2ee57f3e40e3050662a346e26a872fd4d0baf57d293ac5a883f0f4ff5">
+      <source xml:lang="en">Author</source>
+    </trans-unit>
     <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
       <source xml:lang="en">Auto Arrange</source>
     </trans-unit>
@@ -749,8 +758,14 @@
     <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
       <source xml:lang="en">Between</source>
     </trans-unit>
+    <trans-unit id="++CODE++ee8b49c03f6e7beb6c00080fd72847d6a71af8722fd7e426e21d5d32f370f838">
+      <source xml:lang="en">Bind parameters and start a run to see live progress here.</source>
+    </trans-unit>
     <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
       <source xml:lang="en">Blanks</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8638fdf109cd5edd1a1397078a97fe0908be36320140aba5fe28efcd4c234b3c">
+      <source xml:lang="en">Blast radius</source>
     </trans-unit>
     <trans-unit id="++CODE++24bafb0b2477f80fafd003f8104d90cb0a4ccf72dd30290872be59d153168476">
       <source xml:lang="en">Blob</source>
@@ -1371,6 +1386,13 @@
     </trans-unit>
     <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
       <source xml:lang="en">Compatibility Level</source>
+    </trans-unit>
+    <trans-unit id="++CODE++635e3f4e5a4db594d8597d8ff8f3783908f1d1380751e0ae9078235dab7830a9">
+      <source xml:lang="en">Compiled plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0f32637b6843a0b31434fc0b95cb7d9b6cebe414dc86a61fd3c67c9231b1ce09">
+      <source xml:lang="en">Compiled plan revision {0}</source>
+      <note>{0} is a plan revision number</note>
     </trans-unit>
     <trans-unit id="++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8">
       <source xml:lang="en">Compress backup</source>
@@ -2172,6 +2194,9 @@
     <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
       <source xml:lang="en">Database the table is created in</source>
     </trans-unit>
+    <trans-unit id="++CODE++4dbd051d047c69655a105b1e88920cc3e7ed06f0ed29b160ba660ad9573717a0">
+      <source xml:lang="en">Debug &amp; Replay</source>
+    </trans-unit>
     <trans-unit id="++CODE++5191aa33efee0799a1c940701c80f431062de1587ff3fc034a8a963a7fdaac65">
       <source xml:lang="en">Decoded features</source>
     </trans-unit>
@@ -2477,6 +2502,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
       <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++658b158af9bde570fd7936f48d14af314d7a400afbc3a377157379b0eb6e6f41">
+      <source xml:lang="en">Edges</source>
     </trans-unit>
     <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
       <source xml:lang="en">Edit Connection Group - {0}</source>
@@ -3968,6 +3996,9 @@
     <trans-unit id="++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0">
       <source xml:lang="en">Highlights</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e769600933790607b2a13b33ddfade0fa17810eb62c3b28ee23e59516516491">
+      <source xml:lang="en">History</source>
+    </trans-unit>
     <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
       <source xml:lang="en">Hostname</source>
     </trans-unit>
@@ -4125,6 +4156,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aca9e581f935a7772af49f14b1bc37305d26449df47ba4a8ecea51c758d4814f">
       <source xml:lang="en">Integrated &amp; secure</source>
+    </trans-unit>
+    <trans-unit id="++CODE++29131ad07db3d306af181c950497e1b60401b182def2732bfc2683833157d4a7">
+      <source xml:lang="en">Intent</source>
     </trans-unit>
     <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
       <source xml:lang="en">Invalid Firewall rule name</source>
@@ -4536,6 +4570,9 @@
     </trans-unit>
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c8885cf40442d827f55c1f7ace8336cdb5421a7565b633e16b31cb8844bd85dc">
+      <source xml:lang="en">Loading…</source>
     </trans-unit>
     <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
       <source xml:lang="en">Local Container Deployment</source>
@@ -4981,6 +5018,9 @@
     <trans-unit id="++CODE++14b597fbf3bcf6c5c2d537614aacd0fc0ad22c1a5fee4bec6f2d9fedf0591d38">
       <source xml:lang="en">New media set name</source>
     </trans-unit>
+    <trans-unit id="++CODE++879003267b82b42a808f9473847c83aaec76b7044fa71ae9cba96d7a6bfef799">
+      <source xml:lang="en">New runbook</source>
+    </trans-unit>
     <trans-unit id="++CODE++0850ea0cc273586f20d521ce50115a6fc5e53ed6fc2e0b9bd698bd7631d6e2e3">
       <source xml:lang="en">New to MSSQL extension? Check out our quick-start guide.</source>
     </trans-unit>
@@ -5075,6 +5115,9 @@
     <trans-unit id="++CODE++294bba553d6958c3b25354a196e6bdb356fc76d4053754eb434c38618f9fff38">
       <source xml:lang="en">No code analysis rules available.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dfd867f5e843f91e5de07464b1a6ce4ac8f26999ba8b6a03a4d2debcbbd3042e">
+      <source xml:lang="en">No compiled plan</source>
+    </trans-unit>
     <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
       <source xml:lang="en">No connection credentials found</source>
     </trans-unit>
@@ -5158,6 +5201,9 @@
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
+    <trans-unit id="++CODE++81d27cc3b01f5237941df96c08983f01b0be94b130abc7f66d181964972dc01e">
+      <source xml:lang="en">No intent authored yet. Describe what this runbook should do.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
@@ -5183,6 +5229,12 @@
     </trans-unit>
     <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
       <source xml:lang="en">No objects found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c753d08b0989bfc30bedc3adb02208f80a0f7a03d31b205ecd73044b8195c673">
+      <source xml:lang="en">No outputs yet</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a7003b7635bf4428817b7eedcf3d9ef04061422ad917e3434ecc9b15333d52b">
+      <source xml:lang="en">No parameters</source>
     </trans-unit>
     <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
       <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -5227,6 +5279,12 @@
     </trans-unit>
     <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
       <source xml:lang="en">No rules match the current filter.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++812efc4e39d159ddb7983d867db804f3f54f7f7359bce1f3707fb6e14d6e8623">
+      <source xml:lang="en">No run yet</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7729203e9653ff378a7e8d2168fab380389503f77bc4cd08a871de3a2a7760ef">
+      <source xml:lang="en">No runs recorded</source>
     </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
@@ -5548,6 +5606,9 @@
     <trans-unit id="++CODE++ebdad9ba4c5e3ce0078ad8e8fb31e4c76176834cd2370f05bd043e4baf8d6c5a">
       <source xml:lang="en">Others</source>
     </trans-unit>
+    <trans-unit id="++CODE++b2439bcb8dee14b685f137f294b0e0cb62f5aadf45143ce01d79777d435a93b4">
+      <source xml:lang="en">Output</source>
+    </trans-unit>
     <trans-unit id="++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f">
       <source xml:lang="en">Output file</source>
     </trans-unit>
@@ -5575,6 +5636,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153">
       <source xml:lang="en">Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dd066ec1bf1d4485d3597f93a32c2f64b88ccdb6c555428ac4af3d17bf691cc2">
+      <source xml:lang="en">Parameter</source>
     </trans-unit>
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
@@ -5613,6 +5677,9 @@
     <trans-unit id="++CODE++b6eb82cd3300c838f99773b371b2f81d5ad517b3ba903de637d3e5920de7c04f">
       <source xml:lang="en">Passwords do not match</source>
     </trans-unit>
+    <trans-unit id="++CODE++73855eaf9fd996e3790cfff5581a49284f2e6df6f4b067a426cb206fb562f327">
+      <source xml:lang="en">Past runs of this runbook appear here.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
       <source xml:lang="en">Paste</source>
     </trans-unit>
@@ -5643,6 +5710,12 @@
     </trans-unit>
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
+      <source xml:lang="en">Plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cca5a81704ac9175322dcad61b697e520cf5a6091ca6849ff5aad3725c700c70">
+      <source xml:lang="en">Plan revision</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -6162,6 +6235,9 @@
     <trans-unit id="++CODE++9deb780b4331c60e997ac3b4855911f7e0fc8c432d7607992e566cb0087e7ca2">
       <source xml:lang="en">Renderer</source>
     </trans-unit>
+    <trans-unit id="++CODE++3a8b43bbddfb5c34b78e2c0b950fe9bfab24d23bcaa4c5ec2e13bdbdd8e08597">
+      <source xml:lang="en">Replay with parameter and model overrides arrives in a later preview.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
@@ -6239,6 +6315,9 @@
     <trans-unit id="++CODE++059715b1246f29c5dd30aa69328e5185f7f5153f5c40a1c3951e16505df5542f">
       <source xml:lang="en">Restrict access to the restored database</source>
     </trans-unit>
+    <trans-unit id="++CODE++6e7d50e84f4731ef74187cf8cfa2672184eed8866b0b0074a772f4a64e0f4ba2">
+      <source xml:lang="en">Result</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1519957e8b397de6037c8e8a9a1af37009bf6d89fa0f388b1e4b3dc76179e64">
       <source xml:lang="en">Result Set Batch {0} - Query {1}</source>
       <note>{0} is the batch number
@@ -6271,6 +6350,9 @@
     <trans-unit id="++CODE++19845d8a46ab987a3d8bf7a121f630c6f4dd5bbf37f30e81ec6fb187bba7a8e3">
       <source xml:lang="en">Results Preview ({0})</source>
       <note>{0} is the keyboard shortcut for the preview results tab</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9958c71f28a48ed46223eb572951ae5ebdecbb04d9d8886fcc18e1a04db23b6a">
+      <source xml:lang="en">Results appear here after a run completes or produces output.</source>
     </trans-unit>
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
@@ -6360,6 +6442,9 @@
     <trans-unit id="++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3">
       <source xml:lang="en">Rules</source>
     </trans-unit>
+    <trans-unit id="++CODE++00d60e31a4e6b8344d4201f25a6a7dee770713107f6d097abb01559d32b17f26">
+      <source xml:lang="en">Run</source>
+    </trans-unit>
     <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
@@ -6380,6 +6465,12 @@
     </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c39a72628dac966d2c7484aba1f98e76e72f7f79d5d680008402f8a34a786356">
+      <source xml:lang="en">Runbook Studio sections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8ed0171a9f85d99406436dd647961c928d191eee51813c9304bd43b98f666869">
+      <source xml:lang="en">Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.</source>
     </trans-unit>
     <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
       <source xml:lang="en">Running</source>
@@ -7348,6 +7439,9 @@
     <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
       <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ecbc89cd37a037342e740f9e0e0633a70180a2279b0157c9a823fce729f4bd77">
+      <source xml:lang="en">Started</source>
+    </trans-unit>
     <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
       <source xml:lang="en">Started executing query at </source>
     </trans-unit>
@@ -7385,12 +7479,18 @@
     <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
       <source xml:lang="en">Starts with</source>
     </trans-unit>
+    <trans-unit id="++CODE++a3b50c476732c7409d297c3d7d0e23569fee5e08318553ae76041ab5fe60582e">
+      <source xml:lang="en">State</source>
+    </trans-unit>
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
     </trans-unit>
     <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
       <source xml:lang="en">Status: {0}</source>
       <note>{0} is the task status</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8e6a6cca7aae1d1e781d3ee04849d6b00f7aaf48f7c642f35105e4bf990a8cb4">
+      <source xml:lang="en">Step</source>
     </trans-unit>
     <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
       <source xml:lang="en">Step {0} of {1}</source>
@@ -7772,6 +7872,9 @@
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9312c9d85664607d9901b01b346566f4c8391b799bca91ab40383f8bf70d1d98">
+      <source xml:lang="en">The runbook runtime is not available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
@@ -7818,11 +7921,31 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7f129869f60215068dcf146370b2142bd3346d2429c7927605dd4e18882f9b4f">
+      <source xml:lang="en">This file is not a valid runbook</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b66e66298f47c8eba7cd3aa9e408063df46a203ada5016bc649f3aaeac658e4">
+      <source xml:lang="en">This file is not a valid runbook: {0}</source>
+      <note>{0} is a technical detail string</note>
+    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d61a4b2a59e09dacacd07c8f32c2a1b3243269a241d27d5dac0f6b2ac82f41d9">
+      <source xml:lang="en">This run has not produced any typed outputs.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0669a8886d1a9356118127c1639eec72ec3b3a68dea6f5b5cb16559acdac69b7">
+      <source xml:lang="en">This runbook declares no parameters.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de15064778b830c8aa582193df715ddc175d35b775d8793935d7b05ca1e5db3c">
+      <source xml:lang="en">This runbook has not been compiled. Compilation turns the intent into a typed plan of registered activities.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d946546745cff617ea14dd7577f4359c62971cc768f32c0b295e2866b651f0a">
+      <source xml:lang="en">This runbook was created by a newer version of the extension. Update the MSSQL extension to open it. ({0})</source>
+      <note>{0} is a technical detail string</note>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -8465,6 +8588,10 @@
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
     </trans-unit>
+    <trans-unit id="++CODE++3a2f0f1dd1fb48018c94e4c71fb334e5df808fec85ecca716db7834d3bef637a">
+      <source xml:lang="en">compiled v{0}</source>
+      <note>{0} is a plan revision number</note>
+    </trans-unit>
     <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
       <source xml:lang="en">contains</source>
     </trans-unit>
@@ -8477,6 +8604,9 @@
     <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
       <source xml:lang="en">delete the saved connection: {0}?</source>
       <note>{0} is the connection name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4b430cbcf942dab43ceaad79c3e1261f3167e47f63153c3a6a785925e6c68d81">
+      <source xml:lang="en">detail data expired</source>
     </trans-unit>
     <trans-unit id="++CODE++80ccd8c9b9af87acd9ce5bea7f8b6c9978971ca8f81888ab1d2ab3a3de6d2c06">
       <source xml:lang="en">does not contain</source>
@@ -8523,8 +8653,14 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59">
+      <source xml:lang="en">no</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
       <source xml:lang="en">none selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c69b8d2d9f9f2c49e8130c447bf2ec2a0bc99eee97eefaf4fcf70ba20ef48cbf">
+      <source xml:lang="en">not compiled</source>
     </trans-unit>
     <trans-unit id="++CODE++c83cb9c83f01a1dd4f46165ee292e834d69397b661e8c6d72689019245f92d71">
       <source xml:lang="en">not equals</source>
@@ -8540,6 +8676,9 @@
     </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6cafaf08af081ad1a1babc81642848df104d44cf4a8b77723b80c186bf3fcd85">
+      <source xml:lang="en">restricted mode</source>
     </trans-unit>
     <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
       <source xml:lang="en">server</source>
@@ -8570,6 +8709,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d">
+      <source xml:lang="en">yes</source>
     </trans-unit>
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>

@@ -1,0 +1,423 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Pure runbook-artifact logic: parse, validate, canonicalize, hash (ADR-4).
+ * No vscode imports — unit-testable and reusable by a future headless host.
+ * Canonical serialization: ordinal-sorted keys, 2-space indent, LF, trailing
+ * newline. The content hash covers ONLY source+lock (presentation and
+ * cosmetic fields never invalidate a compiled plan).
+ */
+
+import * as crypto from "crypto";
+import {
+    CompiledRunbookLock,
+    RunbookArtifactFile,
+    RunbookParameterType,
+    RunbookStudioErrorCode,
+    RUNBOOK_LOCK_SCHEMA_VERSION,
+    RUNBOOK_SOURCE_SCHEMA_VERSION,
+} from "../sharedInterfaces/runbookStudio";
+
+export interface ArtifactParseFailure {
+    ok: false;
+    code: RunbookStudioErrorCode;
+    /** Non-localized diagnostic detail (safe: structural facts only). */
+    detail: string;
+}
+
+export interface ArtifactParseSuccess {
+    ok: true;
+    artifact: RunbookArtifactFile;
+}
+
+export type ArtifactParseResult = ArtifactParseSuccess | ArtifactParseFailure;
+
+/** Narrowing helper — the extension tsconfig is non-strict, where boolean
+ *  literal discriminants do not narrow; a type predicate always does. */
+export function isArtifactParseFailure(
+    result: ArtifactParseResult,
+): result is ArtifactParseFailure {
+    return !result.ok;
+}
+
+const PARAMETER_TYPES: ReadonlySet<string> = new Set<RunbookParameterType>([
+    "string",
+    "int",
+    "boolean",
+    "enum",
+    "connection",
+    "database",
+    "secret",
+]);
+
+const NODE_KINDS: ReadonlySet<string> = new Set(["activity", "gate", "report"]);
+const EDGE_WHEN: ReadonlySet<string> = new Set(["success", "failure", "approved", "rejected"]);
+
+/** Hard input bounds — repository artifacts are untrusted (A1 §12). */
+const MAX_ARTIFACT_BYTES = 2 * 1024 * 1024;
+const MAX_NODES = 500;
+const MAX_EDGES = 2000;
+const MAX_PARAMETERS = 200;
+
+function fail(code: RunbookStudioErrorCode, detail: string): ArtifactParseFailure {
+    return { ok: false, code, detail };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+    return typeof value === "string" && value.length > 0;
+}
+
+export function parseRunbookArtifact(text: string): ArtifactParseResult {
+    if (Buffer.byteLength(text, "utf8") > MAX_ARTIFACT_BYTES) {
+        return fail("RunbookStudio.InvalidArtifact", "artifact exceeds size limit");
+    }
+    let raw: unknown;
+    try {
+        raw = JSON.parse(text);
+    } catch {
+        return fail("RunbookStudio.InvalidArtifact", "not valid JSON");
+    }
+    if (!isRecord(raw)) {
+        return fail("RunbookStudio.InvalidArtifact", "root is not an object");
+    }
+    if (typeof raw.schemaVersion !== "number") {
+        return fail("RunbookStudio.InvalidArtifact", "missing schemaVersion");
+    }
+    if (raw.schemaVersion > 1) {
+        // Newer artifact than this build understands: refuse, never munge.
+        return fail(
+            "RunbookStudio.IncompatibleVersion",
+            `artifact schemaVersion ${raw.schemaVersion} > supported 1`,
+        );
+    }
+    if (!isNonEmptyString(raw.id)) {
+        return fail("RunbookStudio.InvalidArtifact", "missing id");
+    }
+    if (!isNonEmptyString(raw.name)) {
+        return fail("RunbookStudio.InvalidArtifact", "missing name");
+    }
+    if (
+        raw.family !== undefined &&
+        raw.family !== "build" &&
+        raw.family !== "validate" &&
+        raw.family !== "investigate"
+    ) {
+        return fail("RunbookStudio.InvalidArtifact", "unknown family");
+    }
+
+    const source = raw.source;
+    if (!isRecord(source)) {
+        return fail("RunbookStudio.InvalidArtifact", "missing source");
+    }
+    if (source.schemaVersion !== RUNBOOK_SOURCE_SCHEMA_VERSION) {
+        if (typeof source.schemaVersion === "number" && source.schemaVersion > 1) {
+            return fail(
+                "RunbookStudio.IncompatibleVersion",
+                `source schemaVersion ${source.schemaVersion} > supported 1`,
+            );
+        }
+        return fail("RunbookStudio.InvalidArtifact", "source schemaVersion invalid");
+    }
+    if (typeof source.intent !== "string") {
+        return fail("RunbookStudio.InvalidArtifact", "source.intent missing");
+    }
+    if (!Array.isArray(source.parameters)) {
+        return fail("RunbookStudio.InvalidArtifact", "source.parameters missing");
+    }
+    if (source.parameters.length > MAX_PARAMETERS) {
+        return fail("RunbookStudio.InvalidArtifact", "too many parameters");
+    }
+    const parameterIds = new Set<string>();
+    for (const parameter of source.parameters as unknown[]) {
+        const failure = validateParameter(parameter, parameterIds);
+        if (failure) {
+            return failure;
+        }
+    }
+
+    if (raw.lock !== undefined) {
+        const failure = validateLock(raw.lock);
+        if (failure) {
+            return failure;
+        }
+    }
+
+    return { ok: true, artifact: raw as unknown as RunbookArtifactFile };
+}
+
+function validateParameter(
+    parameter: unknown,
+    seenIds: Set<string>,
+): ArtifactParseFailure | undefined {
+    if (!isRecord(parameter)) {
+        return fail("RunbookStudio.InvalidArtifact", "parameter is not an object");
+    }
+    if (!isNonEmptyString(parameter.id)) {
+        return fail("RunbookStudio.InvalidArtifact", "parameter missing id");
+    }
+    if (seenIds.has(parameter.id)) {
+        return fail("RunbookStudio.InvalidArtifact", `duplicate parameter id '${parameter.id}'`);
+    }
+    seenIds.add(parameter.id);
+    if (!isNonEmptyString(parameter.label)) {
+        return fail("RunbookStudio.InvalidArtifact", `parameter '${parameter.id}' missing label`);
+    }
+    if (typeof parameter.type !== "string" || !PARAMETER_TYPES.has(parameter.type)) {
+        return fail(
+            "RunbookStudio.InvalidArtifact",
+            `parameter '${parameter.id}' has unknown type`,
+        );
+    }
+    if (parameter.type === "secret" && parameter.default !== undefined) {
+        // Secrets are rebind-only: a default would persist secret material.
+        return fail(
+            "RunbookStudio.InvalidArtifact",
+            `secret parameter '${parameter.id}' must not declare a default`,
+        );
+    }
+    if (parameter.type === "enum") {
+        if (
+            !Array.isArray(parameter.enumValues) ||
+            parameter.enumValues.length === 0 ||
+            !parameter.enumValues.every((v: unknown) => typeof v === "string")
+        ) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `enum parameter '${parameter.id}' missing enumValues`,
+            );
+        }
+    }
+    return undefined;
+}
+
+function validateLock(lock: unknown): ArtifactParseFailure | undefined {
+    if (!isRecord(lock)) {
+        return fail("RunbookStudio.InvalidArtifact", "lock is not an object");
+    }
+    if (lock.schemaVersion !== RUNBOOK_LOCK_SCHEMA_VERSION) {
+        if (typeof lock.schemaVersion === "number" && lock.schemaVersion > 1) {
+            return fail(
+                "RunbookStudio.IncompatibleVersion",
+                `lock schemaVersion ${lock.schemaVersion} > supported 1`,
+            );
+        }
+        return fail("RunbookStudio.InvalidArtifact", "lock schemaVersion invalid");
+    }
+    if (!isNonEmptyString(lock.planRevision) || !isNonEmptyString(lock.planHash)) {
+        return fail("RunbookStudio.InvalidArtifact", "lock missing planRevision/planHash");
+    }
+    if (!Array.isArray(lock.nodes) || lock.nodes.length === 0) {
+        return fail("RunbookStudio.InvalidArtifact", "lock has no nodes");
+    }
+    if (lock.nodes.length > MAX_NODES) {
+        return fail("RunbookStudio.InvalidArtifact", "lock exceeds node limit");
+    }
+    if (!Array.isArray(lock.edges)) {
+        return fail("RunbookStudio.InvalidArtifact", "lock.edges missing");
+    }
+    if (lock.edges.length > MAX_EDGES) {
+        return fail("RunbookStudio.InvalidArtifact", "lock exceeds edge limit");
+    }
+    const nodeIds = new Set<string>();
+    for (const node of lock.nodes as unknown[]) {
+        if (!isRecord(node) || !isNonEmptyString(node.id)) {
+            return fail("RunbookStudio.InvalidArtifact", "lock node missing id");
+        }
+        if (nodeIds.has(node.id)) {
+            return fail("RunbookStudio.InvalidArtifact", `duplicate node id '${node.id}'`);
+        }
+        nodeIds.add(node.id);
+        if (!isNonEmptyString(node.label)) {
+            return fail("RunbookStudio.InvalidArtifact", `node '${node.id}' missing label`);
+        }
+        if (typeof node.kind !== "string" || !NODE_KINDS.has(node.kind)) {
+            return fail("RunbookStudio.InvalidArtifact", `node '${node.id}' has unknown kind`);
+        }
+        if (node.kind === "activity" && !isNonEmptyString(node.activityKind)) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `activity node '${node.id}' missing activityKind`,
+            );
+        }
+    }
+    if (!isNonEmptyString(lock.entryNodeId) || !nodeIds.has(lock.entryNodeId)) {
+        return fail("RunbookStudio.InvalidArtifact", "lock entryNodeId not a known node");
+    }
+    for (const edge of lock.edges as unknown[]) {
+        if (!isRecord(edge) || !isNonEmptyString(edge.from) || !isNonEmptyString(edge.to)) {
+            return fail("RunbookStudio.InvalidArtifact", "edge missing from/to");
+        }
+        if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `edge ${edge.from}->${edge.to} references unknown node`,
+            );
+        }
+        if (
+            edge.when !== undefined &&
+            (typeof edge.when !== "string" || !EDGE_WHEN.has(edge.when))
+        ) {
+            return fail("RunbookStudio.InvalidArtifact", "edge has unknown condition");
+        }
+    }
+    return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Canonical serialization + content hash
+// ---------------------------------------------------------------------------
+
+function sortKeysDeep(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(sortKeysDeep);
+    }
+    if (isRecord(value)) {
+        const sorted: Record<string, unknown> = {};
+        for (const key of Object.keys(value).sort()) {
+            const entry = value[key];
+            if (entry !== undefined) {
+                sorted[key] = sortKeysDeep(entry);
+            }
+        }
+        return sorted;
+    }
+    return value;
+}
+
+/** Ordinal-sorted keys, 2-space indent, LF, trailing newline (ADR-4). */
+export function canonicalizeRunbookArtifact(artifact: RunbookArtifactFile): string {
+    return JSON.stringify(sortKeysDeep(artifact), undefined, 2) + "\n";
+}
+
+/** sha256 over canonical source+lock only — presentation edits never
+ *  invalidate a compiled plan; plan/source edits always do. */
+export function computeContentHash(artifact: RunbookArtifactFile): string {
+    const hashed = sortKeysDeep({
+        id: artifact.id,
+        source: artifact.source,
+        lock: artifact.lock ?? null,
+    });
+    return "sha256:" + crypto.createHash("sha256").update(JSON.stringify(hashed)).digest("hex");
+}
+
+/** Hash the plan a lock would be computed against (source+nodes/edges). */
+export function computePlanHash(
+    source: RunbookArtifactFile["source"],
+    lock: Pick<CompiledRunbookLock, "entryNodeId" | "nodes" | "edges">,
+): string {
+    const hashed = sortKeysDeep({
+        source,
+        entryNodeId: lock.entryNodeId,
+        nodes: lock.nodes,
+        edges: lock.edges,
+    });
+    return "sha256:" + crypto.createHash("sha256").update(JSON.stringify(hashed)).digest("hex");
+}
+
+// ---------------------------------------------------------------------------
+// Templates and fixtures
+// ---------------------------------------------------------------------------
+
+/** Fresh-document template for `Runbook Studio: New Runbook`. */
+export function createNewRunbookArtifact(name: string, id: string): RunbookArtifactFile {
+    return {
+        schemaVersion: 1,
+        id,
+        name,
+        source: {
+            schemaVersion: RUNBOOK_SOURCE_SCHEMA_VERSION,
+            intent: "",
+            parameters: [],
+        },
+    };
+}
+
+/**
+ * Deterministic precompiled fixture used by tests and perf scenarios: a
+ * three-node read-only plan (query -> threshold -> report) with one
+ * connection parameter. No model is ever needed to execute it.
+ */
+export function createFixtureRunbookArtifact(): RunbookArtifactFile {
+    const artifact: RunbookArtifactFile = {
+        schemaVersion: 1,
+        id: "fixture-readonly-check",
+        name: "Read-only health check (fixture)",
+        description: "Deterministic fixture: run one read-only query and assert a threshold.",
+        family: "validate",
+        source: {
+            schemaVersion: RUNBOOK_SOURCE_SCHEMA_VERSION,
+            intent: "Run a read-only health query against the selected connection and verify the result stays within the configured threshold.",
+            parameters: [
+                {
+                    id: "target",
+                    label: "Target connection",
+                    type: "connection",
+                    required: true,
+                },
+                {
+                    id: "maxCount",
+                    label: "Maximum row count",
+                    type: "int",
+                    default: 100,
+                },
+            ],
+        },
+        lock: {
+            schemaVersion: RUNBOOK_LOCK_SCHEMA_VERSION,
+            planRevision: "1",
+            planHash: "",
+            entryNodeId: "query",
+            nodes: [
+                {
+                    id: "query",
+                    label: "Run health query",
+                    kind: "activity",
+                    activityKind: "sql.query.read",
+                    activityVersion: 1,
+                    inputs: { connection: "$params.target", sql: "fixture" },
+                    blastRadius: {
+                        resource: "none",
+                        operation: "read",
+                        targetEnvironment: "local",
+                        reversibility: "noEffect",
+                    },
+                },
+                {
+                    id: "threshold",
+                    label: "Assert row count under limit",
+                    kind: "activity",
+                    activityKind: "assert.threshold",
+                    activityVersion: 1,
+                    inputs: {
+                        value: "$nodes.query.rowCount",
+                        max: "$params.maxCount",
+                    },
+                    blastRadius: {
+                        resource: "none",
+                        operation: "read",
+                        targetEnvironment: "local",
+                        reversibility: "noEffect",
+                    },
+                },
+                {
+                    id: "report",
+                    label: "Summarize verdict",
+                    kind: "report",
+                },
+            ],
+            edges: [
+                { from: "query", to: "threshold" },
+                { from: "threshold", to: "report" },
+            ],
+        },
+    };
+    artifact.lock!.planHash = computePlanHash(artifact.source, artifact.lock!);
+    return artifact;
+}

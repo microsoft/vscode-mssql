@@ -1,0 +1,178 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Runbook artifact contract tests (RBS2-2): parse/validate failures carry
+ * stable error identities, newer schema versions refuse rather than munge,
+ * canonical serialization is key-order independent, and the content hash
+ * covers source+lock but never presentation.
+ */
+
+import { expect } from "chai";
+import {
+    ArtifactParseResult,
+    canonicalizeRunbookArtifact,
+    computeContentHash,
+    createFixtureRunbookArtifact,
+    createNewRunbookArtifact,
+    isArtifactParseFailure,
+    parseRunbookArtifact,
+} from "../../src/runbookStudio/runbookArtifact";
+import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
+
+function fixtureText(): string {
+    return canonicalizeRunbookArtifact(createFixtureRunbookArtifact());
+}
+
+function expectFailure(result: ArtifactParseResult) {
+    if (!isArtifactParseFailure(result)) {
+        throw new Error("expected parse failure");
+    }
+    return result;
+}
+
+function expectSuccess(result: ArtifactParseResult): RunbookArtifactFile {
+    if (isArtifactParseFailure(result)) {
+        throw new Error(`expected parse success, got ${result.code}: ${result.detail}`);
+    }
+    return result.artifact;
+}
+
+suite("runbookArtifact", () => {
+    suite("parseRunbookArtifact", () => {
+        test("accepts the deterministic fixture", () => {
+            const artifact = expectSuccess(parseRunbookArtifact(fixtureText()));
+            expect(artifact.id).to.equal("fixture-readonly-check");
+            expect(artifact.lock?.nodes).to.have.length(3);
+        });
+
+        test("accepts a fresh template (no lock)", () => {
+            const template = createNewRunbookArtifact("My runbook", "runbook-x");
+            const artifact = expectSuccess(
+                parseRunbookArtifact(canonicalizeRunbookArtifact(template)),
+            );
+            expect(artifact.lock).to.equal(undefined);
+        });
+
+        test("rejects non-JSON with InvalidArtifact", () => {
+            const failure = expectFailure(parseRunbookArtifact("SELECT 1"));
+            expect(failure.code).to.equal("RunbookStudio.InvalidArtifact");
+        });
+
+        test("refuses newer artifact schema with IncompatibleVersion", () => {
+            const artifact = createFixtureRunbookArtifact() as unknown as Record<string, unknown>;
+            artifact.schemaVersion = 99;
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.code).to.equal("RunbookStudio.IncompatibleVersion");
+        });
+
+        test("refuses newer lock schema with IncompatibleVersion", () => {
+            const artifact = createFixtureRunbookArtifact();
+            (artifact.lock as unknown as Record<string, unknown>).schemaVersion = 2;
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.code).to.equal("RunbookStudio.IncompatibleVersion");
+        });
+
+        test("rejects duplicate node ids", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.lock!.nodes.push({ ...artifact.lock!.nodes[0] });
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.detail).to.contain("duplicate node id");
+        });
+
+        test("rejects dangling edges", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.lock!.edges.push({ from: "query", to: "missing-node" });
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.detail).to.contain("unknown node");
+        });
+
+        test("rejects an entry node that does not exist", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.lock!.entryNodeId = "nope";
+            expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+        });
+
+        test("rejects a secret parameter that declares a default", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.source.parameters.push({
+                id: "token",
+                label: "Token",
+                type: "secret",
+                default: "hunter2",
+            });
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.detail).to.contain("secret");
+        });
+
+        test("rejects duplicate parameter ids", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.source.parameters.push({ ...artifact.source.parameters[0] });
+            expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+        });
+
+        test("rejects an activity node without activityKind", () => {
+            const artifact = createFixtureRunbookArtifact();
+            delete (artifact.lock!.nodes[0] as unknown as Record<string, unknown>).activityKind;
+            expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+        });
+    });
+
+    suite("canonicalization and hashing", () => {
+        test("canonical form is independent of input key order", () => {
+            const artifact = createFixtureRunbookArtifact();
+            // Same semantic artifact, authored with keys in reversed order.
+            const reversed = JSON.parse(fixtureText(), function reviver(_key, value) {
+                if (value && typeof value === "object" && !Array.isArray(value)) {
+                    const flipped: Record<string, unknown> = {};
+                    for (const k of Object.keys(value).reverse()) {
+                        flipped[k] = (value as Record<string, unknown>)[k];
+                    }
+                    return flipped;
+                }
+                return value;
+            }) as RunbookArtifactFile;
+            expect(canonicalizeRunbookArtifact(reversed)).to.equal(
+                canonicalizeRunbookArtifact(artifact),
+            );
+        });
+
+        test("canonical text ends with exactly one newline and uses LF", () => {
+            const text = canonicalizeRunbookArtifact(createFixtureRunbookArtifact());
+            expect(text.endsWith("\n")).to.equal(true);
+            expect(text.endsWith("\n\n")).to.equal(false);
+            expect(text.includes("\r")).to.equal(false);
+        });
+
+        test("content hash is stable across presentation changes", () => {
+            const artifact = createFixtureRunbookArtifact();
+            const before = computeContentHash(artifact);
+            artifact.presentation = { layout: "wide", widgets: [] };
+            const after = computeContentHash(artifact);
+            expect(after).to.equal(before);
+        });
+
+        test("content hash changes when the source changes", () => {
+            const artifact = createFixtureRunbookArtifact();
+            const before = computeContentHash(artifact);
+            artifact.source.intent = "something else";
+            expect(computeContentHash(artifact)).to.not.equal(before);
+        });
+
+        test("content hash changes when the lock changes", () => {
+            const artifact = createFixtureRunbookArtifact();
+            const before = computeContentHash(artifact);
+            artifact.lock!.nodes[0].label = "renamed";
+            expect(computeContentHash(artifact)).to.not.equal(before);
+        });
+
+        test("fixture planHash is reproducible", () => {
+            const a = createFixtureRunbookArtifact();
+            const b = createFixtureRunbookArtifact();
+            expect(a.lock!.planHash).to.equal(b.lock!.planHash);
+            expect(a.lock!.planHash).to.match(/^sha256:[0-9a-f]{64}$/);
+        });
+    });
+});

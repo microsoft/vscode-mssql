@@ -35,6 +35,27 @@ export class SqlToolsMcp {
     public static serverLabel = l10n.t("SQL Tools (MSSQL)");
 }
 
+export class RunbookStudio {
+    public static newRunbookName = l10n.t("New runbook");
+    public static incompatibleArtifact = (detail: string) =>
+        l10n.t({
+            message:
+                "This runbook was created by a newer version of the extension. Update the MSSQL extension to open it. ({0})",
+            args: [detail],
+            comment: ["{0} is a technical detail string"],
+        });
+    public static invalidArtifact = (detail: string) =>
+        l10n.t({
+            message: "This file is not a valid runbook: {0}",
+            args: [detail],
+            comment: ["{0} is a technical detail string"],
+        });
+    public static untrustedWorkspace = l10n.t(
+        "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.",
+    );
+    public static runtimeUnavailable = l10n.t("The runbook runtime is not available.");
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");

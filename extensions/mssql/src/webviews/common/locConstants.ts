@@ -3547,6 +3547,80 @@ export class LocConstants {
             chooseBlob: l10n.t("Please choose a blob to load restore plan"),
         };
     }
+    public get runbookStudio() {
+        return {
+            author: l10n.t("Author"),
+            parameters: l10n.t("Parameters"),
+            run: l10n.t("Run"),
+            plan: l10n.t("Plan"),
+            results: l10n.t("Results"),
+            history: l10n.t("History"),
+            debugReplay: l10n.t("Debug & Replay"),
+            sectionsAriaLabel: l10n.t("Runbook Studio sections"),
+            intent: l10n.t("Intent"),
+            compiledPlan: l10n.t("Compiled plan"),
+            edges: l10n.t("Edges"),
+            compiledV: (revision: string) =>
+                l10n.t({
+                    message: "compiled v{0}",
+                    args: [revision],
+                    comment: ["{0} is a plan revision number"],
+                }),
+            compiledPlanRevisionTitle: (revision: string) =>
+                l10n.t({
+                    message: "Compiled plan revision {0}",
+                    args: [revision],
+                    comment: ["{0} is a plan revision number"],
+                }),
+            notCompiled: l10n.t("not compiled"),
+            restrictedMode: l10n.t("restricted mode"),
+            untrustedDetail: l10n.t(
+                "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.",
+            ),
+            dismiss: l10n.t("Dismiss"),
+            loading: l10n.t("Loading…"),
+            invalidRunbookTitle: l10n.t("This file is not a valid runbook"),
+            noIntent: l10n.t("No intent authored yet. Describe what this runbook should do."),
+            notCompiledDetail: l10n.t(
+                "This runbook has not been compiled. Compilation turns the intent into a typed plan of registered activities.",
+            ),
+            step: l10n.t("Step"),
+            kind: l10n.t("Kind"),
+            activity: l10n.t("Activity"),
+            blastRadius: l10n.t("Blast radius"),
+            parameter: l10n.t("Parameter"),
+            type: l10n.t("Type"),
+            required: l10n.t("Required"),
+            defaultColumn: l10n.t("Default"),
+            state: l10n.t("State"),
+            duration: l10n.t("Duration"),
+            result: l10n.t("Result"),
+            output: l10n.t("Output"),
+            rows: l10n.t("Rows"),
+            started: l10n.t("Started"),
+            planRevision: l10n.t("Plan revision"),
+            yes: l10n.t("yes"),
+            no: l10n.t("no"),
+            rebindAtRunTime: l10n.t("(rebind at run time)"),
+            detailDataExpired: l10n.t("detail data expired"),
+            noParametersTitle: l10n.t("No parameters"),
+            noParametersDetail: l10n.t("This runbook declares no parameters."),
+            noRunTitle: l10n.t("No run yet"),
+            noRunDetail: l10n.t("Bind parameters and start a run to see live progress here."),
+            noCompiledPlanTitle: l10n.t("No compiled plan"),
+            noResultsTitle: l10n.t("No results"),
+            noResultsDetail: l10n.t(
+                "Results appear here after a run completes or produces output.",
+            ),
+            noOutputsTitle: l10n.t("No outputs yet"),
+            noOutputsDetail: l10n.t("This run has not produced any typed outputs."),
+            noHistoryTitle: l10n.t("No runs recorded"),
+            noHistoryDetail: l10n.t("Past runs of this runbook appear here."),
+            debugPlaceholderDetail: l10n.t(
+                "Replay with parameter and model overrides arrives in a later preview.",
+            ),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

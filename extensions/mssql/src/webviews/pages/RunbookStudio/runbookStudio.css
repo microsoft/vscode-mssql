@@ -1,0 +1,268 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Runbook Studio shell — VS Code theme tokens only (no hardcoded colors). */
+
+.rbs-shell {
+    display: grid;
+    grid-template-areas:
+        "topbar topbar"
+        "rail page";
+    grid-template-rows: 36px 1fr;
+    grid-template-columns: 180px 1fr;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    font-family: var(--vscode-font-family);
+    font-size: 12px;
+}
+
+.rbs-topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-sideBar-background);
+}
+
+.rbs-doc-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40%;
+}
+
+.rbs-spacer {
+    flex: 1;
+}
+
+.rbs-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 9px;
+    font-size: 11px;
+    border: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    white-space: nowrap;
+}
+
+.rbs-chip-ok {
+    background: transparent;
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    border-color: currentColor;
+}
+
+.rbs-chip-warn {
+    background: transparent;
+    color: var(--vscode-editorWarning-foreground);
+    border-color: currentColor;
+}
+
+.rbs-error-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--vscode-errorForeground);
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rbs-rail {
+    grid-area: rail;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 6px 4px;
+    border-right: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-sideBar-background);
+    overflow-y: auto;
+}
+
+.rbs-rail-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--vscode-sideBar-foreground, var(--vscode-foreground));
+    cursor: pointer;
+    text-align: left;
+    font-size: 12px;
+    font-family: inherit;
+}
+
+.rbs-rail-item:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.rbs-rail-item.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.rbs-rail-item:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.rbs-rail-icon {
+    width: 15px;
+    text-align: center;
+}
+
+.rbs-page {
+    grid-area: page;
+    overflow: auto;
+    padding: 10px 14px;
+}
+
+.rbs-page-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 980px;
+}
+
+.rbs-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--vscode-descriptionForeground);
+    margin: 0 0 6px;
+}
+
+.rbs-intent {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.rbs-muted {
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-mono {
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 11.5px;
+}
+
+.rbs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rbs-table th {
+    text-align: left;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--vscode-descriptionForeground);
+    border-bottom: 1px solid var(--vscode-panel-border);
+    padding: 4px 8px;
+}
+
+.rbs-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    vertical-align: top;
+}
+
+.rbs-run-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbs-edge-list {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.6;
+}
+
+.rbs-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 60%;
+    min-height: 160px;
+    text-align: center;
+}
+
+.rbs-empty-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.rbs-empty-detail {
+    color: var(--vscode-descriptionForeground);
+    max-width: 460px;
+    line-height: 1.5;
+}
+
+.rbs-btn {
+    border: 1px solid var(--vscode-button-border, transparent);
+    border-radius: 3px;
+    background: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11.5px;
+    padding: 2px 8px;
+}
+
+.rbs-btn-quiet {
+    background: transparent;
+    border-color: transparent;
+    color: inherit;
+}
+
+/* Run/node state chips ride theme status colors. */
+.rbs-state-running,
+.rbs-state-accepted,
+.rbs-state-queued {
+    color: var(--vscode-charts-blue);
+    background: transparent;
+    border-color: currentColor;
+}
+
+.rbs-state-succeeded {
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    background: transparent;
+    border-color: currentColor;
+}
+
+.rbs-state-failed {
+    color: var(--vscode-errorForeground);
+    background: transparent;
+    border-color: currentColor;
+}
+
+.rbs-state-awaitingApproval {
+    color: var(--vscode-editorWarning-foreground);
+    background: transparent;
+    border-color: currentColor;
+}
+
+.rbs-state-cancelled,
+.rbs-state-cancelling,
+.rbs-state-skipped,
+.rbs-state-pending {
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    border-color: currentColor;
+}
