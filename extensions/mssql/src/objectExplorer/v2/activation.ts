@@ -318,6 +318,18 @@ export function activateObjectExplorerV2(
         vscode.commands.registerCommand("mssql.objectExplorerV2.addConnection", () =>
             vscode.commands.executeCommand("mssql.addObjectExplorer"),
         ),
+        // v1-parity toolbar toggle: flips the v2 setting; the config watcher
+        // below refreshes the tree (mssql.objectExplorer.v2 scope).
+        vscode.commands.registerCommand("mssql.objectExplorerV2.enableGroupBySchema", () =>
+            vscode.workspace
+                .getConfiguration()
+                .update("mssql.objectExplorer.v2.groupBySchema", true, true),
+        ),
+        vscode.commands.registerCommand("mssql.objectExplorerV2.disableGroupBySchema", () =>
+            vscode.workspace
+                .getConfiguration()
+                .update("mssql.objectExplorer.v2.groupBySchema", false, true),
+        ),
         vscode.workspace.onDidChangeConfiguration((event) => {
             if (event.affectsConfiguration("mssql.objectExplorer.viewMode")) {
                 if (oeViewMode() === "v2Preview") {

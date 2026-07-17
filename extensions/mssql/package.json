@@ -635,14 +635,24 @@
                     "group": "navigation@2"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.refresh",
-                    "when": "view == mssql.objectExplorerV2",
-                    "group": "navigation"
+                    "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                    "when": "view == mssql.objectExplorerV2 && !config.mssql.objectExplorer.v2.groupBySchema",
+                    "group": "navigation@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                    "when": "view == mssql.objectExplorerV2 && config.mssql.objectExplorer.v2.groupBySchema",
+                    "group": "navigation@4"
                 },
                 {
                     "command": "mssql.objectExplorerV2.deployNewDatabase",
                     "when": "view == mssql.objectExplorerV2",
-                    "group": "navigation@3"
+                    "group": "navigation@5"
+                },
+                {
+                    "command": "mssql.shortcutsConfiguration.open",
+                    "when": "view == mssql.objectExplorerV2",
+                    "group": "navigation@6"
                 },
                 {
                     "command": "mssql.addObjectExplorer",
@@ -1269,6 +1279,14 @@
                 {
                     "command": "mssql.objectExplorerV2.refresh",
                     "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview' && !config.mssql.objectExplorer.v2.groupBySchema"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview' && config.mssql.objectExplorer.v2.groupBySchema"
                 },
                 {
                     "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
@@ -2513,15 +2531,36 @@
             },
             {
                 "command": "mssql.objectExplorerV2.addConnection",
-                "title": "Add Connection",
+                "title": "%mssql.addObjectExplorer%",
                 "category": "MS SQL",
-                "icon": "$(add)"
+                "icon": {
+                    "light": "media/addNewConnection_light.svg",
+                    "dark": "media/addNewConnection_dark.svg"
+                }
             },
             {
                 "command": "mssql.objectExplorerV2.connectionGroups.create",
-                "title": "New Connection Group",
+                "title": "%mssql.connectionGroups.create%",
                 "category": "MS SQL",
                 "icon": "$(new-folder)"
+            },
+            {
+                "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                "title": "%mssql.objectExplorer.enableGroupBySchema%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/groupBySchemaEnabled_dark.svg",
+                    "light": "media/groupBySchemaEnabled_light.svg"
+                }
+            },
+            {
+                "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                "title": "%mssql.objectExplorer.disableGroupBySchema%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/groupBySchemaDisabled_dark.svg",
+                    "light": "media/groupBySchemaDisabled_light.svg"
+                }
             },
             {
                 "command": "mssql.objectExplorerV2.connectionGroups.edit",
