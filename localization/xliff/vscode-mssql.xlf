@@ -7297,6 +7297,10 @@
       <source xml:lang="en">Showing {0} of {1} events</source>
       <note>{0} is filtered count, {1} is total count</note>
     </trans-unit>
+    <trans-unit id="++CODE++18b362b24b6ecddb1f8b6483342fc6b027e1eae0d2251c6a103324ced0e25b16">
+      <source xml:lang="en">Showing {0} of {1} rows.</source>
+      <note>{0} and {1} are row counts</note>
+    </trans-unit>
     <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
       <source xml:lang="en">Showplan XML</source>
     </trans-unit>
@@ -7797,6 +7801,10 @@
     <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
       <source xml:lang="en">Text tab - displays SQL text data</source>
     </trans-unit>
+    <trans-unit id="++CODE++c24a722739b44c934cfad7eb0dba4998a16e17f8f3b53a2628380b952e43b70b">
+      <source xml:lang="en">The &apos;{0}&apos; view is not available yet in this preview.</source>
+      <note>{0} is a renderer kind id</note>
+    </trans-unit>
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
@@ -7815,6 +7823,10 @@
     </trans-unit>
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea7a428b0f5939085e1d4497ece0b8b13331110a985dc12a00bbec3a27f29a27">
+      <source xml:lang="en">The chosen &apos;{0}&apos; view is not compatible with this output anymore; a compatible view is shown instead.</source>
+      <note>{0} is a renderer kind id</note>
     </trans-unit>
     <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
       <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
@@ -7851,6 +7863,9 @@
     </trans-unit>
     <trans-unit id="++CODE++afa41030cc9e7ca60e853725a1f788bd8993bcb46073757fcf32884799f92228">
       <source xml:lang="en">The detail data for this output has expired.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++baadb07c802b54c6a6777b0c539ee88a41fcacd184f31195df3d08f47816eb7c">
+      <source xml:lang="en">The detail data for this output has expired. The run record remains available.</source>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -7940,6 +7955,9 @@
     <trans-unit id="++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111">
       <source xml:lang="en">The selected profile authenticates using Entra ID &apos;{0}&apos;, but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
       <note>{0} is the account ID or label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++25b1366077c998403b9fe6bd8d05cb29103950e2ed34a8f56d7a8c442b2586e1">
+      <source xml:lang="en">The step this widget was bound to no longer exists.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -8446,6 +8464,9 @@
     <trans-unit id="++CODE++6e293a8c009e001103199768f7bcbea1729c59f9fc1ef2748958757f47ab99ed">
       <source xml:lang="en">Waiting</source>
     </trans-unit>
+    <trans-unit id="++CODE++a3332cf376529da6c1c40d33793a65cbd095419611326105c148b6a0f4966c37">
+      <source xml:lang="en">Waiting for this step to produce output…</source>
+    </trans-unit>
     <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
       <source xml:lang="en">Warehouse</source>
     </trans-unit>
@@ -8665,6 +8686,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7">
       <source xml:lang="en">equals</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2eadc1d4386a44310bfa2d5856d010b8f2209ba71c80d384b22583e98e516480">
+      <source xml:lang="en">fallback view</source>
     </trans-unit>
     <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
       <source xml:lang="en">greater than</source>

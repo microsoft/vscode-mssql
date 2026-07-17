@@ -35,6 +35,10 @@ import {
 } from "../sharedInterfaces/runbookStudio";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
+import {
+    resolvePresentation,
+    validatePresentationDefinition,
+} from "./presentation/presentationResolver";
 
 /** Coarse state pushes are throttled; edits/typing must not flood the webview. */
 const STATE_PUSH_MIN_INTERVAL_MS = 100;
@@ -250,6 +254,21 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 edges: artifact.lock?.edges ?? [],
             };
         }
+        // Pure resolution (rendering spec: deterministic, zero model calls,
+        // handles only). Same-process official candidate marker pair.
+        let presentation: ReturnType<typeof resolvePresentation> | undefined;
+        if (model.activeRun) {
+            Perf.marker("mssql.runbookStudio.presentation.resolve.begin", "begin");
+            presentation = resolvePresentation(
+                validatePresentationDefinition(artifact?.presentation),
+                model.activeRun,
+            );
+            Perf.marker("mssql.runbookStudio.presentation.resolve.end", "end", {
+                widgetCount: presentation.sections.reduce((n, s) => n + s.widgets.length, 0),
+                sectionCount: presentation.sections.length,
+                nodeCount: model.activeRun.nodes.length,
+            });
+        }
         return {
             schemaVersion: RBS_STATE_SCHEMA_VERSION,
             documentKind: model.documentKind,
@@ -258,6 +277,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             ...(summary ? { artifact: summary } : {}),
             ...(model.artifactError ? { artifactError: model.artifactError } : {}),
             ...(model.activeRun ? { run: model.activeRun } : {}),
+            ...(presentation ? { presentation } : {}),
             history: model.history,
             debugEnabled: vscode.workspace
                 .getConfiguration()

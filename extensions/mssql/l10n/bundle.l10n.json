@@ -4367,5 +4367,21 @@
     "Replay with parameter and model overrides arrives in a later preview.": "Replay with parameter and model overrides arrives in a later preview.",
     "Open diagnostics": "Open diagnostics",
     "Run runbook": "Run runbook",
-    "Run in progress…": "Run in progress…"
+    "Run in progress…": "Run in progress…",
+    "Waiting for this step to produce output…": "Waiting for this step to produce output…",
+    "The step this widget was bound to no longer exists.": "The step this widget was bound to no longer exists.",
+    "The detail data for this output has expired. The run record remains available.": "The detail data for this output has expired. The run record remains available.",
+    "The '{0}' view is not available yet in this preview./{0} is a renderer kind id": {
+        "message": "The '{0}' view is not available yet in this preview.",
+        "comment": ["{0} is a renderer kind id"]
+    },
+    "fallback view": "fallback view",
+    "The chosen '{0}' view is not compatible with this output anymore; a compatible view is shown instead./{0} is a renderer kind id": {
+        "message": "The chosen '{0}' view is not compatible with this output anymore; a compatible view is shown instead.",
+        "comment": ["{0} is a renderer kind id"]
+    },
+    "Showing {0} of {1} rows./{0} and {1} are row counts": {
+        "message": "Showing {0} of {1} rows.",
+        "comment": ["{0} and {1} are row counts"]
+    }
 }

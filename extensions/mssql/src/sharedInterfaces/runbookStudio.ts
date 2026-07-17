@@ -12,6 +12,7 @@
  */
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
+import type { ResolvedPresentation } from "./runbookPresentation";
 
 // ---------------------------------------------------------------------------
 // Version domains
@@ -301,6 +302,9 @@ export interface RbsState {
     artifactError?: RbsError;
     /** The active (latest) run for this document, if any. */
     run?: RunbookRunSnapshot;
+    /** Deterministic resolved results layout for the active run (handles
+     *  only — the webview pulls pages through the controller). */
+    presentation?: ResolvedPresentation;
     history: RunbookRunHistoryEntry[];
     /** Debug & Replay route visibility (developer/preview setting). */
     debugEnabled: boolean;

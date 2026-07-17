@@ -1,0 +1,147 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Pure presentation resolution (RBS2-9 keystone): determinism, total layout
+ * (explicit pending/noOutput/expired/sourceMissing states), derived default
+ * layout, drift fallback with the pin preserved, and definition validation
+ * degrading to derived rather than blanking the surface.
+ */
+
+import { expect } from "chai";
+import {
+    resolvePresentation,
+    validatePresentationDefinition,
+} from "../../src/runbookStudio/presentation/presentationResolver";
+import {
+    PresentationDefinition,
+    PRESENTATION_SCHEMA_VERSION,
+} from "../../src/sharedInterfaces/runbookPresentation";
+import { RunbookRunSnapshot } from "../../src/sharedInterfaces/runbookStudio";
+
+function snapshot(): RunbookRunSnapshot {
+    return {
+        runId: "run_1",
+        runbookId: "rb",
+        planRevision: "1",
+        planHash: "sha256:x",
+        state: "succeeded",
+        seq: 9,
+        nodes: [
+            {
+                nodeId: "query",
+                state: "succeeded",
+                attempt: 1,
+                outputs: [{ handleId: "h1", contract: "rowset/1", rows: 5 }],
+            },
+            {
+                nodeId: "threshold",
+                state: "succeeded",
+                attempt: 1,
+                outputs: [{ handleId: "h2", contract: "scalarSet/1" }],
+            },
+            { nodeId: "report", state: "running", attempt: 1 },
+        ],
+    };
+}
+
+function definition(): PresentationDefinition {
+    return {
+        schemaVersion: PRESENTATION_SCHEMA_VERSION,
+        revision: 3,
+        sections: [
+            {
+                id: "main",
+                title: "Main",
+                widgets: [
+                    { id: "w1", source: { nodeId: "query" }, view: "grid" },
+                    {
+                        id: "w2",
+                        source: { nodeId: "threshold" },
+                        view: "scalar-cards",
+                        pinnedByUser: true,
+                    },
+                    { id: "w3", source: { nodeId: "report" }, view: "markdown" },
+                    { id: "w4", source: { nodeId: "gone" }, view: "grid" },
+                ],
+            },
+        ],
+    };
+}
+
+suite("presentationResolver", () => {
+    test("resolution is deterministic", () => {
+        const a = resolvePresentation(definition(), snapshot());
+        const b = resolvePresentation(definition(), snapshot());
+        expect(JSON.stringify(a)).to.equal(JSON.stringify(b));
+    });
+
+    test("total layout: every widget resolves to an explicit state", () => {
+        const resolved = resolvePresentation(definition(), snapshot());
+        const widgets = resolved.sections[0].widgets;
+        expect(widgets.map((w) => w.state)).to.deep.equal([
+            "ready", // query rowset
+            "ready", // threshold scalars
+            "pending", // report still running, no output yet
+            "sourceMissing", // node 'gone' not in the plan
+        ]);
+        expect(resolved.revision).to.equal(3);
+        expect(resolved.derived).to.equal(false);
+    });
+
+    test("noOutput when a terminal node produced nothing", () => {
+        const snap = snapshot();
+        snap.nodes[2] = { nodeId: "report", state: "succeeded", attempt: 1 };
+        const resolved = resolvePresentation(definition(), snap);
+        expect(resolved.sections[0].widgets[2].state).to.equal("noOutput");
+    });
+
+    test("expired handles render as expired, keeping identity", () => {
+        const snap = snapshot();
+        snap.nodes[0].outputs = [{ handleId: "h1", contract: "rowset/1", expired: true }];
+        const resolved = resolvePresentation(definition(), snap);
+        const widget = resolved.sections[0].widgets[0];
+        expect(widget.state).to.equal("expired");
+        expect(widget.handleId).to.equal("h1");
+    });
+
+    test("drift: incompatible pinned view degrades visibly to the contract default", () => {
+        const def = definition();
+        // Pin the threshold widget to a view its scalarSet contract does not support.
+        def.sections[0].widgets[1].view = "er-diagram";
+        const resolved = resolvePresentation(def, snapshot());
+        const widget = resolved.sections[0].widgets[1];
+        expect(widget.state).to.equal("ready");
+        expect(widget.view).to.equal("scalar-cards");
+        expect(widget.drift?.requestedView).to.equal("er-diagram");
+    });
+
+    test("no definition derives one section per node with outputs", () => {
+        const resolved = resolvePresentation(undefined, snapshot());
+        expect(resolved.derived).to.equal(true);
+        expect(resolved.revision).to.equal(0);
+        expect(resolved.sections.map((s) => s.id)).to.deep.equal(["node:query", "node:threshold"]);
+        expect(resolved.sections[0].widgets[0].view).to.equal("grid");
+        expect(resolved.sections[1].widgets[0].view).to.equal("scalar-cards");
+    });
+
+    test("validatePresentationDefinition refuses malformed/duplicate/newer input", () => {
+        expect(validatePresentationDefinition(undefined)).to.equal(undefined);
+        expect(validatePresentationDefinition("nope")).to.equal(undefined);
+        expect(
+            validatePresentationDefinition({ schemaVersion: 2, revision: 1, sections: [] }),
+        ).to.equal(undefined);
+        const dupe = definition();
+        dupe.sections[0].widgets.push({ ...dupe.sections[0].widgets[0] });
+        expect(validatePresentationDefinition(dupe)).to.equal(undefined);
+        expect(validatePresentationDefinition(definition())).to.not.equal(undefined);
+    });
+
+    test("empty run resolves to an empty derived layout (not a crash)", () => {
+        const resolved = resolvePresentation(undefined, undefined);
+        expect(resolved.sections).to.deep.equal([]);
+        expect(resolved.derived).to.equal(true);
+    });
+});

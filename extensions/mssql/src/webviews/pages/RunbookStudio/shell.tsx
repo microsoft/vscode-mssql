@@ -19,6 +19,7 @@ import {
     RunbookPlanNode,
 } from "../../../sharedInterfaces/runbookStudio";
 import { useRbs } from "./state";
+import { ResolvedWidgetView } from "./widgets";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
     { id: "author", label: () => locConstants.runbookStudio.author, icon: "✎" },
@@ -425,35 +426,27 @@ function ResultsPage() {
     if (!state?.run) {
         return <EmptyState title={loc.noResultsTitle} detail={loc.noResultsDetail} />;
     }
-    const outputs = state.run.nodes.flatMap((node) =>
-        (node.outputs ?? []).map((output) => ({ node, output })),
-    );
-    if (outputs.length === 0) {
+    const presentation = state.presentation;
+    if (!presentation || presentation.sections.length === 0) {
         return <EmptyState title={loc.noOutputsTitle} detail={loc.noOutputsDetail} />;
     }
     return (
         <div className="rbs-page-body">
-            <table className="rbs-table">
-                <thead>
-                    <tr>
-                        <th>{loc.step}</th>
-                        <th>{loc.output}</th>
-                        <th>{loc.rows}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {outputs.map(({ node, output }) => (
-                        <tr key={output.handleId}>
-                            <td className="rbs-mono">{node.nodeId}</td>
-                            <td className="rbs-mono">
-                                {output.contract}
-                                {output.expired ? ` (${loc.detailDataExpired})` : ""}
-                            </td>
-                            <td className="rbs-mono">{output.rows ?? "—"}</td>
-                        </tr>
+            {state.run.verdict ? (
+                <div className="rbs-run-header">
+                    <span className={`rbs-chip rbs-verdict-${state.run.verdict}`}>
+                        {state.run.verdict}
+                    </span>
+                </div>
+            ) : null}
+            {presentation.sections.map((section) => (
+                <section className="rbs-section" key={section.id}>
+                    <h2 className="rbs-section-title">{section.title}</h2>
+                    {section.widgets.map((widget) => (
+                        <ResolvedWidgetView key={widget.id} widget={widget} />
                     ))}
-                </tbody>
-            </table>
+                </section>
+            ))}
         </div>
     );
 }

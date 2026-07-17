@@ -3623,6 +3623,31 @@ export class LocConstants {
             value: l10n.t("Value"),
             runButton: l10n.t("Run runbook"),
             runActiveLabel: l10n.t("Run in progress…"),
+            widgetPending: l10n.t("Waiting for this step to produce output…"),
+            widgetSourceMissing: l10n.t("The step this widget was bound to no longer exists."),
+            dataExpiredDetail: l10n.t(
+                "The detail data for this output has expired. The run record remains available.",
+            ),
+            unsupportedRenderer: (view: string) =>
+                l10n.t({
+                    message: "The '{0}' view is not available yet in this preview.",
+                    args: [view],
+                    comment: ["{0} is a renderer kind id"],
+                }),
+            driftBadge: l10n.t("fallback view"),
+            driftDetail: (requested: string) =>
+                l10n.t({
+                    message:
+                        "The chosen '{0}' view is not compatible with this output anymore; a compatible view is shown instead.",
+                    args: [requested],
+                    comment: ["{0} is a renderer kind id"],
+                }),
+            showingRows: (shown: number, total: number) =>
+                l10n.t({
+                    message: "Showing {0} of {1} rows.",
+                    args: [shown, total],
+                    comment: ["{0} and {1} are row counts"],
+                }),
         };
     }
 }

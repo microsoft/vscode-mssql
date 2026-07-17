@@ -260,6 +260,82 @@
     outline-offset: -1px;
 }
 
+.rbs-widget {
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    background: var(--vscode-editorWidget-background, transparent);
+}
+
+.rbs-widget-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+}
+
+.rbs-widget-title {
+    font-weight: 600;
+}
+
+.rbs-widget-scroll {
+    overflow-x: auto;
+}
+
+.rbs-cards {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rbs-card {
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 6px;
+    padding: 9px 13px;
+    min-width: 110px;
+    background: var(--vscode-sideBar-background);
+}
+
+.rbs-card-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-card-value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.rbs-text-block {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.rbs-verdict-pass {
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    background: transparent;
+    border-color: currentColor;
+}
+
+.rbs-verdict-fail {
+    color: var(--vscode-errorForeground);
+    background: transparent;
+    border-color: currentColor;
+}
+
+.rbs-verdict-indeterminate {
+    color: var(--vscode-editorWarning-foreground);
+    background: transparent;
+    border-color: currentColor;
+}
+
 /* Run/node state chips ride theme status colors. */
 .rbs-state-running,
 .rbs-state-accepted,
