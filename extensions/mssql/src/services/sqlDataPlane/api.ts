@@ -57,6 +57,13 @@ export interface SqlConnectionProfileRef {
     displayName?: string;
     /** Profile accent for UI tinting (safe). */
     accentColor?: string;
+    /**
+     * Entra account identity backing an `aad` profile. Host-side only — used
+     * for ARM lookups (serverless pause status); backends must never place
+     * these on the wire.
+     */
+    accountId?: string;
+    tenantId?: string;
 }
 
 export interface AuthProviderBundle {

@@ -17,7 +17,6 @@ export function oeViewMode(): OeViewMode {
 }
 
 export interface OeV2Settings {
-    readonly confirmLegacyHandoff: boolean;
     readonly groupBySchema: boolean;
     readonly showSystemDatabases: boolean;
 }
@@ -25,8 +24,6 @@ export interface OeV2Settings {
 export function oeV2Settings(): OeV2Settings {
     const config = vscode.workspace.getConfiguration();
     return {
-        confirmLegacyHandoff:
-            config.get<boolean>("mssql.objectExplorer.v2.confirmLegacyHandoff", true) === true,
         groupBySchema: config.get<boolean>("mssql.objectExplorer.v2.groupBySchema", false) === true,
         showSystemDatabases:
             config.get<boolean>("mssql.objectExplorer.v2.showSystemDatabases", true) === true,

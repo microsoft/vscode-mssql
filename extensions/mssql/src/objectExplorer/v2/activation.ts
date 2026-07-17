@@ -38,7 +38,7 @@ import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
 import { OeV2DragAndDropController, registerOeV2GroupCommands } from "./commands/oeV2GroupCommands";
 import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
 import { ConnectionConfig } from "../../connectionconfig/connectionconfig";
-import { Common, LocalContainers } from "../../constants/locConstants";
+import { Common, LocalContainers, ObjectExplorer } from "../../constants/locConstants";
 import { ContainerHostAdapter } from "../../docker/containerHostAdapter";
 import { deleteContainer, stopContainer } from "../../docker/dockerUtils";
 import { restartSqlServerContainer } from "../../deployment/sqlServerContainer";
@@ -62,6 +62,7 @@ export function activateObjectExplorerV2(
     let controller: OeV2TreeController | undefined;
     let registry: OeV2SessionRegistry | undefined;
     let handoff: OeV2ClassicHandoffService | undefined;
+    let activeView: vscode.TreeView<OeV2Node> | undefined;
 
     const removeSavedProfile = async (connectionId: string): Promise<void> => {
         const config = (deps.groupConfig ?? (() => undefined))();
@@ -143,25 +144,15 @@ export function activateObjectExplorerV2(
                   }
                 : {}),
         });
+        // Legacy commands hand off silently — v1/v2 connections coexisting is
+        // the normal state for older features; the Debug Console surfaces both.
         handoff = deps.legacyConnections
-            ? new OeV2ClassicHandoffService(deps.legacyConnections, {
-                  confirm: async (message) => {
-                      if (!oeV2Settings().confirmLegacyHandoff) {
-                          return true;
-                      }
-                      const proceed = "Continue";
-                      const choice = await vscode.window.showWarningMessage(
-                          message,
-                          { modal: true },
-                          proceed,
-                      );
-                      return choice === proceed;
-                  },
-              })
+            ? new OeV2ClassicHandoffService(deps.legacyConnections)
             : undefined;
         const localRegistry = registry;
         const localController = controller;
         const localHandoff = handoff;
+        activeView = view;
         registration = vscode.Disposable.from(view, provider, {
             dispose: () => {
                 localController.dispose();
@@ -183,13 +174,19 @@ export function activateObjectExplorerV2(
         controller = undefined;
         registry = undefined;
         handoff = undefined;
+        activeView = undefined;
     };
 
     if (oeViewMode() === "v2Preview") {
         register();
     }
 
-    registerOeV2NativeCommands(context, () => controller);
+    registerOeV2NativeCommands(
+        context,
+        () => controller,
+        // Ctrl+C keybinding parity: fall back to the focused tree selection.
+        () => activeView?.selection[0],
+    );
 
     // B27: while any connection is opening/closing, tick the tree so the
     // slow-connect elapsed description ("connecting… (12s)") stays live.
@@ -328,6 +325,18 @@ export function activateObjectExplorerV2(
         // config watcher's single-new-profile rule connects it in v2.
         vscode.commands.registerCommand("mssql.objectExplorerV2.addConnection", () =>
             vscode.commands.executeCommand("mssql.addObjectExplorer"),
+        ),
+        // v1-parity toolbar toggle: flips the v2 setting; the config watcher
+        // below refreshes the tree (mssql.objectExplorer.v2 scope).
+        vscode.commands.registerCommand("mssql.objectExplorerV2.enableGroupBySchema", () =>
+            vscode.workspace
+                .getConfiguration()
+                .update("mssql.objectExplorer.v2.groupBySchema", true, true),
+        ),
+        vscode.commands.registerCommand("mssql.objectExplorerV2.disableGroupBySchema", () =>
+            vscode.workspace
+                .getConfiguration()
+                .update("mssql.objectExplorer.v2.groupBySchema", false, true),
         ),
         vscode.workspace.onDidChangeConfiguration((event) => {
             if (event.affectsConfiguration("mssql.objectExplorer.viewMode")) {
@@ -499,6 +508,30 @@ export function activateObjectExplorerV2(
                     await handoff?.close(connectionId);
                     await controller?.disconnectProfile(connectionId);
                 }
+            },
+        ),
+        // v1 parity: Remove Connection deletes the saved profile (classic
+        // removeNode semantics — same confirmation wording, disconnect first).
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.removeConnection",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                if (!connectionId || !node) {
+                    return;
+                }
+                const response = await vscode.window.showInformationMessage(
+                    ObjectExplorer.NodeDeletionConfirmation(node.label),
+                    { modal: true },
+                    ObjectExplorer.NodeDeletionConfirmationYes,
+                    ObjectExplorer.NodeDeletionConfirmationNo,
+                );
+                if (response !== ObjectExplorer.NodeDeletionConfirmationYes) {
+                    return;
+                }
+                await handoff?.close(connectionId);
+                await controller?.disconnectProfile(connectionId);
+                await removeSavedProfile(connectionId);
+                controller?.refresh();
             },
         ),
         // v1 parity: Edit Connection on top-level connection nodes opens the

@@ -5,8 +5,8 @@
 
 /**
  * OE v2 explicit legacy handoff (B20): the policy table drives exposure,
- * the handoff service creates exactly one guarded classic connection per
- * v2 connection (confirmation gate, secret-free owner URIs, idle TTL,
+ * the handoff service silently creates exactly one guarded classic
+ * connection per v2 connection (secret-free owner URIs, idle TTL,
  * close-on-disconnect, failure isolation), and the H2 adapter synthesizes
  * classic nodes only for adaptable kinds.
  */
@@ -70,39 +70,44 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         initializeIconUtils(); // TreeNodeInfo resolves icons in its ctor
     });
 
-    test("policy table: exposure by node kind, H1/H2 levels only, no H3", () => {
+    test("policy table: exposure by node kind, H0/H1/H2 levels only, no H3", () => {
         expect(policiesForNode("database").map((p) => p.feature)).to.deep.equal([
             "backupDatabase",
             "restoreDatabase",
             "profiler",
             "schemaCompare",
+            "schemaDesigner",
+            "buildDataApi",
+            "renameDatabase",
+            "dropDatabase",
+            "flatFileImport",
+            "dacpacDialog",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+            "createNotebook",
         ]);
-        expect(policiesForNode("object").map((p) => p.feature)).to.deep.equal(["editTable"]);
+        expect(policiesForNode("object").map((p) => p.feature)).to.deep.equal([
+            "editTable",
+            "tableExplorer",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+        ]);
         expect(policiesForNode("databaseFolder")).to.deep.equal([]);
-        expect(policiesForNode("disconnectedConnection")).to.deep.equal([]);
+        expect(policiesForNode("disconnectedConnection").map((p) => p.feature)).to.deep.equal([
+            "copyConnectionString",
+        ]);
         for (const policy of LEGACY_COMMAND_POLICIES) {
-            expect(["h1", "h2"]).to.contain(policy.level);
+            expect(["h0", "h1", "h2"]).to.contain(policy.level);
         }
     });
 
-    test("handoff: confirmation gate, one connection per v2 connection, reuse, close", async () => {
+    test("handoff: silent (no prompt), one connection per v2 connection, reuse, close", async () => {
         const { connections, calls } = seam();
-        let prompts = 0;
-        let approve = false;
         const service = new OeV2ClassicHandoffService(connections, {
-            confirm: async () => (prompts++, approve),
             uriNonce: () => "nonce",
         });
 
-        // declined → no classic connection is created
-        expect(
-            await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "profiler"),
-        ).to.equal(undefined);
-        expect(calls.connect).to.have.length(0);
-        expect(prompts).to.equal(1);
-
-        // approved → exactly one connection with a secret-free owner URI
-        approve = true;
+        // handoff is silent — exactly one connection with a secret-free owner URI
         const ownerUri = await service.ensureOwnerUri(
             "p1",
             "sfp_abcdef123456",
@@ -114,12 +119,10 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         expect(ownerUri).to.not.contain("user@example.com");
         expect(calls.connect).to.deep.equal([ownerUri]);
 
-        // second feature on the same connection REUSES (no second connect,
-        // no second prompt)
+        // second feature on the same connection REUSES (no second connect)
         const again = await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "backup");
         expect(again).to.equal(ownerUri);
         expect(calls.connect).to.have.length(1);
-        expect(prompts).to.equal(2); // prompted once before approval, once at approval
 
         expect(service.hasHandoff("p1")).to.equal(true);
         await service.close("p1");
@@ -162,5 +165,52 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             kind: "databaseFolder",
         };
         expect(toLegacyTreeNode(folder, "owner-uri", PROFILE)).to.equal(undefined);
+    });
+
+    test("H2 adapter: object nodes get a synthetic parent Database node so classic database walks resolve", () => {
+        const path = {
+            kind: "object" as const,
+            connectionId: "p1",
+            database: "AppDb",
+            schema: "dbo",
+            name: "Suppliers",
+            objectKind: "table" as const,
+        };
+        const node: OeV2Node = {
+            id: encodePath(path),
+            path,
+            kind: "object",
+            label: "dbo.Suppliers",
+            collapsible: true,
+            connectionId: "p1",
+            database: "AppDb",
+            schema: "dbo",
+            objectName: "Suppliers",
+            readiness: { kind: "notApplicable" },
+            capabilities: {},
+        };
+        const adapted = toLegacyTreeNode(node, "owner-uri", PROFILE)!;
+        expect(adapted.nodeType).to.equal("Table");
+        expect(adapted.metadata?.schema).to.equal("dbo");
+        expect(adapted.metadata?.name).to.equal("Suppliers");
+
+        // Classic handlers (TableDesignerWebviewController.getDatabaseNameForNode,
+        // ObjectExplorerUtils.getDatabaseName) walk parentNode until they find a
+        // node whose metadata says "Database". Without a parent they silently
+        // fall back to "master" and the Table Designer model targets the wrong
+        // catalog.
+        const parent = adapted.parentNode;
+        expect(parent, "object node must carry a synthetic Database parent").to.not.equal(
+            undefined,
+        );
+        expect(parent.nodeType).to.equal("Database");
+        expect(parent.metadata?.metadataTypeName).to.equal("Database");
+        expect(parent.metadata?.name).to.equal("AppDb");
+        expect(parent.parentNode).to.equal(undefined);
+
+        // Database-kind nodes are their own database context — no parent chain.
+        expect(toLegacyTreeNode(databaseNode(), "owner-uri", PROFILE)!.parentNode).to.equal(
+            undefined,
+        );
     });
 });

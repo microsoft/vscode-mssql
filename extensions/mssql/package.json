@@ -166,6 +166,7 @@
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
+        "extension-toolkit": "file:../../packages/extension-toolkit",
         "figures": "^1.4.0",
         "find-remove": "5.1.1",
         "fix-path": "^5.0.0",
@@ -644,14 +645,24 @@
                     "group": "navigation@2"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.refresh",
-                    "when": "view == mssql.objectExplorerV2",
-                    "group": "navigation"
+                    "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                    "when": "view == mssql.objectExplorerV2 && !config.mssql.objectExplorer.v2.groupBySchema",
+                    "group": "navigation@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                    "when": "view == mssql.objectExplorerV2 && config.mssql.objectExplorer.v2.groupBySchema",
+                    "group": "navigation@4"
                 },
                 {
                     "command": "mssql.objectExplorerV2.deployNewDatabase",
                     "when": "view == mssql.objectExplorerV2",
-                    "group": "navigation@3"
+                    "group": "navigation@5"
+                },
+                {
+                    "command": "mssql.shortcutsConfiguration.open",
+                    "when": "view == mssql.objectExplorerV2",
+                    "group": "navigation@6"
                 },
                 {
                     "command": "mssql.addObjectExplorer",
@@ -718,17 +729,17 @@
                 {
                     "command": "mssql.objectExplorerV2.connect",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canConnect\\b/",
-                    "group": "0_oe2_connection@0"
+                    "group": "2_MSSQL_connection@0"
                 },
                 {
                     "command": "mssql.objectExplorerV2.disconnect",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canDisconnect\\b/",
-                    "group": "0_oe2_connection@1"
+                    "group": "2_MSSQL_connection@2"
                 },
                 {
                     "command": "mssql.objectExplorerV2.cancelConnect",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCancelConnect\\b/",
-                    "group": "0_oe2_connection@1"
+                    "group": "2_MSSQL_connection@2"
                 },
                 {
                     "command": "mssql.objectExplorerV2.cancelConnect",
@@ -738,32 +749,27 @@
                 {
                     "command": "mssql.objectExplorerV2.editConnection",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|connectingConnection|lostConnection)\\b/",
-                    "group": "0_oe2_connection@2"
+                    "group": "2_MSSQL_connection@1"
                 },
                 {
                     "command": "mssql.objectExplorerV2.refresh",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canRefresh\\b/",
-                    "group": "1_oe2_refresh@0"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.newQuery",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canOpenQuery\\b/",
-                    "group": "2_oe2_query@0"
+                    "group": "1_MSSQL_primary@90"
                 },
                 {
                     "command": "mssql.schemaVisualizer.open",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=database\\b/ && config.mssql.schemaVisualizer.enabled",
-                    "group": "2_oe2_query@3"
+                    "group": "2a_MSSQL_databaseDesign@3"
                 },
                 {
                     "command": "mssql.objectExplorerV2.selectTop",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSelectTop\\b/",
-                    "group": "2_oe2_query@1"
+                    "group": "1_MSSQL_primary@2"
                 },
                 {
                     "submenu": "mssql.objectExplorerV2.generateScriptSubmenu",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canGenerateScript\\b/",
-                    "group": "2_oe2_query@2"
+                    "group": "3a_MSSQL_tableScripts@1"
                 },
                 {
                     "command": "mssql.objectExplorerV2.filter",
@@ -776,19 +782,9 @@
                     "group": "3_oe2_filter@1"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.search",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSearch\\b/",
-                    "group": "3_oe2_filter@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.copyName",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyName\\b/",
-                    "group": "4_oe2_copy@0"
-                },
-                {
                     "command": "mssql.objectExplorerV2.copyQualifiedName",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyQualifiedName\\b/",
-                    "group": "4_oe2_copy@1"
+                    "group": "1_MSSQL_primary@95"
                 },
                 {
                     "command": "mssql.objectExplorerV2.connectionGroups.create",
@@ -808,47 +804,7 @@
                 {
                     "command": "mssql.objectExplorerV2.moveToGroup",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|connectingConnection|lostConnection)\\b/",
-                    "group": "0_oe2_groups@5"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.backupDatabase",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=backup\\b/",
-                    "group": "2_MSSQL_admin@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.restoreDatabase",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restore\\b/",
-                    "group": "2_MSSQL_admin@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.launchProfiler",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profiler\\b/",
-                    "group": "2_MSSQL_admin@3"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.schemaCompare",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaCompare\\b/",
-                    "group": "2_MSSQL_admin@4"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.editTable",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTable\\b/",
-                    "group": "2_MSSQL_admin@0"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.startContainer",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=startContainer\\b/",
-                    "group": "9_MSSQL_container@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.stopContainer",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=stopContainer\\b/",
-                    "group": "9_MSSQL_container@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.deleteContainer",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=deleteContainer\\b/",
-                    "group": "9_MSSQL_container@3"
+                    "group": "2_MSSQL_connection@5"
                 },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
@@ -1196,6 +1152,136 @@
                     "command": "mssql.cancelBackgroundTask",
                     "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
                     "group": "inline@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.refresh",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canRefresh\\b/",
+                    "group": "inline@9999"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.removeConnection",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|lostConnection)\\b/",
+                    "group": "2_MSSQL_connection@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.newQuery",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=newQuery\\b/",
+                    "group": "1_MSSQL_primary@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTableData",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTableData\\b/",
+                    "group": "2b_MSSQL_tableActions@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTable",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTable\\b/",
+                    "group": "2b_MSSQL_tableActions@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaDesigner",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaDesigner\\b/",
+                    "group": "2a_MSSQL_databaseDesign@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.buildDataApi",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=buildDataApi\\b/",
+                    "group": "2a_MSSQL_databaseDesign@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.search",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=search\\b/",
+                    "group": "3_MSSQL_databaseDiscover@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profiler\\b/",
+                    "group": "4_MSSQL_discoverAndProfile@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profilerDb\\b/",
+                    "group": "3_MSSQL_databaseDiscover@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.renameDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=renameDatabase\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.backupDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=backup\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restore\\b/",
+                    "group": "3_MSSQL_instanceDatabaseActions@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restoreDb\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importDataSrv\\b/",
+                    "group": "3_MSSQL_instanceDatabaseActions@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importData\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dropDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dropDatabase\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@5"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyConnectionString",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copyConnectionString\\b/",
+                    "group": "2_MSSQL_connection@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabase",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotChat\\b/ && mssql.copilot.isGHCInstalled",
+                    "group": "6_MSSQL_copilot@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotAgent\\b/ && mssql.copilot.isGHCInstalled",
+                    "group": "6_MSSQL_copilot@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaCompare",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaCompare\\b/",
+                    "group": "7_MSSQL_compareAndDacpac@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dacpacDialog",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dacpac\\b/",
+                    "group": "7_MSSQL_compareAndDacpac@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.newNotebook",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=newNotebook\\b/",
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.startContainer",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=startContainer\\b/",
+                    "group": "9_MSSQL_container@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.stopContainer",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=stopContainer\\b/",
+                    "group": "9_MSSQL_container@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deleteContainer",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=deleteContainer\\b/",
+                    "group": "9_MSSQL_container@3"
                 }
             ],
             "commandPalette": [
@@ -1282,6 +1368,14 @@
                 {
                     "command": "mssql.objectExplorerV2.refresh",
                     "when": "config.mssql.objectExplorer.viewMode == 'v2Preview'"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview' && !config.mssql.objectExplorer.v2.groupBySchema"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                    "when": "config.mssql.objectExplorer.viewMode == 'v2Preview' && config.mssql.objectExplorer.v2.groupBySchema"
                 },
                 {
                     "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
@@ -1605,6 +1699,54 @@
                 },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTableData",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaDesigner",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.buildDataApi",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.renameDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dropDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyConnectionString",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dacpacDialog",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.newNotebook",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.removeConnection",
                     "when": "false"
                 }
             ],
@@ -2366,7 +2508,8 @@
                 "command": "mssql.objectExplorerV2.refresh",
                 "title": "Object Explorer v2: Refresh",
                 "category": "MS SQL",
-                "icon": "$(refresh)"
+                "icon": "$(refresh)",
+                "shortTitle": "%mssql.refreshObjectExplorerNode%"
             },
             {
                 "command": "mssql.spatialBasemap.clearCache",
@@ -2415,7 +2558,7 @@
             },
             {
                 "command": "mssql.objectExplorerV2.disconnect",
-                "title": "Disconnect",
+                "title": "%mssql.disconnect%",
                 "category": "MS SQL"
             },
             {
@@ -2436,7 +2579,7 @@
             },
             {
                 "command": "mssql.objectExplorerV2.copyQualifiedName",
-                "title": "Copy Qualified Name",
+                "title": "%mssql.copyObjectName%",
                 "category": "MS SQL"
             },
             {
@@ -2481,7 +2624,7 @@
             },
             {
                 "command": "mssql.objectExplorerV2.search",
-                "title": "Search Objects",
+                "title": "%mssql.searchDatabase%",
                 "category": "MS SQL"
             },
             {
@@ -2515,6 +2658,66 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.objectExplorerV2.editTableData",
+                "title": "Edit Table Data...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.schemaDesigner",
+                "title": "Visualize and Design Schema...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.buildDataApi",
+                "title": "Build Data API...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.renameDatabase",
+                "title": "Rename Database...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.dropDatabase",
+                "title": "Drop Database...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.importData",
+                "title": "Import Data...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.copyConnectionString",
+                "title": "Copy Connection String",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.chatWithDatabase",
+                "title": "Open in GitHub Copilot Chat",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
+                "title": "Open in GitHub Copilot Agent",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.dacpacDialog",
+                "title": "DACPAC/BACPAC Operations...",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.newNotebook",
+                "title": "New SQL Notebook",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.removeConnection",
+                "title": "%mssql.removeObjectExplorerNode%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.objectExplorerV2.startContainer",
                 "title": "%mssql.startContainer%",
                 "category": "MS SQL"
@@ -2531,15 +2734,36 @@
             },
             {
                 "command": "mssql.objectExplorerV2.addConnection",
-                "title": "Add Connection",
+                "title": "%mssql.addObjectExplorer%",
                 "category": "MS SQL",
-                "icon": "$(add)"
+                "icon": {
+                    "light": "media/addNewConnection_light.svg",
+                    "dark": "media/addNewConnection_dark.svg"
+                }
             },
             {
                 "command": "mssql.objectExplorerV2.connectionGroups.create",
-                "title": "New Connection Group",
+                "title": "%mssql.connectionGroups.create%",
                 "category": "MS SQL",
                 "icon": "$(new-folder)"
+            },
+            {
+                "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                "title": "%mssql.objectExplorer.enableGroupBySchema%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/groupBySchemaEnabled_dark.svg",
+                    "light": "media/groupBySchemaEnabled_light.svg"
+                }
+            },
+            {
+                "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                "title": "%mssql.objectExplorer.disableGroupBySchema%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/groupBySchemaDisabled_dark.svg",
+                    "light": "media/groupBySchemaDisabled_light.svg"
+                }
             },
             {
                 "command": "mssql.objectExplorerV2.connectionGroups.edit",
@@ -2635,6 +2859,12 @@
                 "key": "ctrl+c",
                 "mac": "cmd+c",
                 "when": "sideBarFocus && activeViewlet == workbench.view.extension.objectExplorer"
+            },
+            {
+                "command": "mssql.objectExplorerV2.copyQualifiedName",
+                "key": "ctrl+c",
+                "mac": "cmd+c",
+                "when": "focusedView == mssql.objectExplorerV2"
             }
         ],
         "configuration": {
@@ -4481,12 +4711,6 @@
                     "markdownDescription": "Enable the Schema Visualizer preview: a read-only schema diagram served entirely by the SQL Data Plane and MetadataStore (no SQL Tools Service v1 traffic on the read path). Requires `mssql.sqlDataPlane.enabled`.",
                     "scope": "application"
                 },
-                "mssql.schemaVisualizer.confirmLegacyHandoff": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Ask before the Schema Visualizer creates a legacy (SQL Tools Service v1) connection to preview or publish schema changes through DacFx.",
-                    "scope": "application"
-                },
                 "mssql.objectExplorer.viewMode": {
                     "type": "string",
                     "default": "classic",
@@ -4495,12 +4719,6 @@
                         "v2Preview"
                     ],
                     "markdownDescription": "Choose which Object Explorer view is active. `classic` uses the established SQL Tools Service Object Explorer. `v2Preview` additionally shows Object Explorer v2, which browses through the SQL Data Plane and MetadataStore (STS v1 only for explicit legacy feature handoff). Requires `mssql.sqlDataPlane.enabled`.",
-                    "scope": "application"
-                },
-                "mssql.objectExplorer.v2.confirmLegacyHandoff": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Ask before an Object Explorer v2 command creates a legacy (SQL Tools Service v1) connection for a feature handoff.",
                     "scope": "application"
                 },
                 "mssql.objectExplorer.v2.groupBySchema": {

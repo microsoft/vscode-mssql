@@ -31,7 +31,6 @@ import {
 import { SchemaVisualizerWebviewController } from "./schemaVisualizerController";
 import {
     ClassicConnectionSeam,
-    confirmClassicHandoff,
     createClassicPublishResolver,
     legacyPortOverService,
 } from "./handoff/classicPublishResolver";
@@ -94,7 +93,6 @@ export function activateSchemaVisualizer(
                           resolver: createClassicPublishResolver({
                               connections: deps.publish.connections,
                               storedProfile: record.stored as IConnectionProfile,
-                              confirm: confirmClassicHandoff,
                           }),
                           legacy: legacyPortOverService(deps.publish.service),
                       },

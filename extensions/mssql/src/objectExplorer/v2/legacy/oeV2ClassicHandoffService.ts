@@ -8,9 +8,13 @@
  * OE v2 creates STS v1 state, and only after a user invokes a policy-listed
  * legacy command. H1 = a lazily-connected owner URI through the classic
  * ConnectionManager (injected seam); H2 adds a synthesized TreeNodeInfo.
- * Guardrails: first-use confirmation (setting-gated), idle TTL disposal,
- * closed on v2 disconnect, one handoff connection per v2 connection,
- * every use measured; browse paths cannot reach this module (lint + spies).
+ * The handoff is silent — v1/v2 connections coexisting is the normal state
+ * for legacy features, so there is no user-facing confirmation; the Debug
+ * Console shows both connections via the handoff/legacyConnection events
+ * below plus the classic connection's own STS diag spans. Guardrails:
+ * idle TTL disposal, closed on v2 disconnect, one handoff connection per
+ * v2 connection, every use measured; browse paths cannot reach this
+ * module (lint + spies).
  */
 
 import { diag } from "../../../diagnostics/diagnosticsCore";
@@ -19,10 +23,6 @@ import { IConnectionProfile } from "../../../models/interfaces";
 export interface HandoffConnectionSeam {
     connect(ownerUri: string, profile: IConnectionProfile): Promise<boolean>;
     disconnect(ownerUri: string): Promise<boolean>;
-}
-
-export interface HandoffPrompt {
-    (message: string): Promise<boolean>;
 }
 
 interface HandoffEntry {
@@ -34,15 +34,12 @@ interface HandoffEntry {
 export interface OeV2HandoffOptions {
     /** Idle ms before the handoff connection is dropped (default 10 min). */
     idleTtlMs?: number;
-    /** Confirmation gate; wired to the confirmLegacyHandoff setting. */
-    confirm?: HandoffPrompt;
     /** Owner-URI suffix source (tests inject deterministic values). */
     uriNonce?: () => string;
 }
 
 export class OeV2ClassicHandoffService {
     private entries = new Map<string, HandoffEntry>();
-    private confirmed = false;
 
     constructor(
         private readonly connections: HandoffConnectionSeam,
@@ -51,7 +48,7 @@ export class OeV2ClassicHandoffService {
 
     /**
      * H1: ensure a connected classic owner URI for this v2 connection.
-     * Returns undefined when the user declines or connect fails.
+     * Returns undefined when connect fails.
      */
     async ensureOwnerUri(
         connectionId: string,
@@ -64,16 +61,6 @@ export class OeV2ClassicHandoffService {
             this.touch(existing, connectionId);
             this.emitHandoff(feature, "reused");
             return existing.ownerUri;
-        }
-        if (!this.confirmed && this.options.confirm) {
-            const approved = await this.options.confirm(
-                "This command uses a legacy SQL Tools Service connection alongside Object Explorer v2. Continue?",
-            );
-            if (!approved) {
-                this.emitHandoff(feature, "declined");
-                return undefined;
-            }
-            this.confirmed = true;
         }
         const nonce = this.options.uriNonce?.() ?? Math.random().toString(36).slice(2, 10);
         const ownerUri = `objectexplorerv2://handoff/${fingerprint.slice(0, 12)}/${nonce}`;
