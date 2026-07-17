@@ -3809,6 +3809,12 @@
                     "description": "Which runbook runtime executes runs (preview).",
                     "scope": "application"
                 },
+                "mssql.runbookStudio.hobbesRuntimePath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to the Hobbes runtime executable (used when mssql.runbookStudio.runtime is 'hobbes'). Launched loopback-only with an isolated data directory.",
+                    "scope": "machine"
+                },
                 "mssql.queryStudio.vectorWorkbench.enabled": {
                     "type": "boolean",
                     "default": false,

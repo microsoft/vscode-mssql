@@ -39,6 +39,8 @@ import { RunbookRunLedger } from "./runbookRunLedger";
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
+import { HobbesRuntimeAdapter } from "./runtime/hobbesRuntimeAdapter";
+import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
     RuntimeBoundaryEvent,
@@ -69,12 +71,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly activeByRunId = new Map<string, ActiveRunBinding>();
     private readonly seededModels = new WeakSet<RunbookStudioDocumentModel>();
 
+    private readonly storageRoot: string;
+
     constructor(context: vscode.ExtensionContext) {
-        const storageRoot = path.join(
+        this.storageRoot = path.join(
             (context.storageUri ?? context.globalStorageUri).fsPath,
             "runbookStudio",
         );
-        this.ledger = new RunbookRunLedger(storageRoot);
+        this.ledger = new RunbookRunLedger(this.storageRoot);
     }
 
     public dispose(): void {
@@ -320,9 +324,31 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const runtimeKind = vscode.workspace
             .getConfiguration()
             .get<string>("mssql.runbookStudio.runtime", "fake");
-        if (runtimeKind !== "fake") {
-            // The Hobbes adapter lands in RBS2-4b; report the dependency
-            // honestly instead of spawning hidden fallback behavior (A2 §3.3).
+        let adapter: RunbookRuntimeAdapter;
+        if (runtimeKind === "fake") {
+            adapter = new FakeRuntimeAdapter();
+        } else if (runtimeKind === "hobbes") {
+            // The runtime is a pinned black-box package (A2 §3.3); the
+            // executable is resolved from explicit configuration or env —
+            // never guessed, never downloaded silently (ADR-8 gates that).
+            const executablePath =
+                vscode.workspace
+                    .getConfiguration()
+                    .get<string>("mssql.runbookStudio.hobbesRuntimePath", "") ||
+                process.env.MSSQL_HOBBES_RUNTIME ||
+                "";
+            if (!executablePath) {
+                return {
+                    error: {
+                        code: "RunbookStudio.RuntimeCapabilityUnsupported",
+                        message: LocRunbookStudio.hobbesRuntimePathMissing,
+                    },
+                };
+            }
+            adapter = new HobbesRuntimeAdapter(
+                new RuntimeSupervisor(executablePath, this.storageRoot),
+            );
+        } else {
             return {
                 error: {
                     code: "RunbookStudio.RuntimeCapabilityUnsupported",
@@ -330,14 +356,32 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 },
             };
         }
-        const adapter = new FakeRuntimeAdapter();
         Perf.marker(
             "mssql.runbookStudio.runtime.initialize.begin",
             "begin",
             undefined,
             context.traceId,
         );
-        this.capabilities = await adapter.initialize(context);
+        try {
+            this.capabilities = await adapter.initialize(context);
+        } catch (error) {
+            Perf.marker(
+                "mssql.runbookStudio.runtime.initialize.end",
+                "end",
+                { outcome: "failed" },
+                context.traceId,
+            );
+            emitRunbookEvent(context, "runbookStudio.runtime.initializeFailed", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return {
+                error: {
+                    code: "RunbookStudio.RuntimeUnavailable",
+                    message: LocRunbookStudio.runtimeUnavailable,
+                    retryable: true,
+                },
+            };
+        }
         Perf.marker(
             "mssql.runbookStudio.runtime.initialize.end",
             "end",

@@ -68,6 +68,9 @@ export class RunbookStudio {
             comment: ["{0} is a configuration value"],
         });
     public static gateNotPending = l10n.t("This approval is no longer pending.");
+    public static hobbesRuntimePathMissing = l10n.t(
+        "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.",
+    );
     public static dataExpired = l10n.t("The detail data for this output has expired.");
     public static parameterRequired = (label: string) =>
         l10n.t({

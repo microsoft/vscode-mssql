@@ -5048,6 +5048,9 @@
     <trans-unit id="++CODE++6d7af8a57c85229b9b08306d93d38a7f0f2d369dc90a339ea4708ca45a92252b">
       <source xml:lang="en">No Azure accounts found</source>
     </trans-unit>
+    <trans-unit id="++CODE++55c162a4424ad9468f0aa3776af6ac45c05618593dd03cf6e44cbfe8611ed1c2">
+      <source xml:lang="en">No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
       <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
     </trans-unit>
