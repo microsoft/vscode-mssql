@@ -9049,7 +9049,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
         <source xml:lang="en">Shortcuts Configuration</source>
-        <target state="new">Shortcuts Configuration</target>
+        <target state="translated">Configuração de Atalhos</target>
       </trans-unit>
       <trans-unit id="++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba">
         <source xml:lang="en">Shortcuts Configuration (Preview)</source>
@@ -12353,7 +12353,7 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
       </trans-unit>
       <trans-unit id="mssql.format.enablePreviewFormatter">
         <source xml:lang="en">Use the preview SQL formatter.</source>
-        <target state="new">Use the preview SQL formatter.</target>
+        <target state="translated">Usar o formatador SQL de visualização.</target>
       </trans-unit>
       <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
