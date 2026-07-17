@@ -4,6 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-languageclient";
+import { TelemetryActions } from "../../sharedInterfaces/telemetry";
+
+// ------------------------------- < SQL Tools Service Telemetry Event > --------------------------
+
+export interface SqlToolsServiceTelemetryParams {
+    params: {
+        eventName: TelemetryActions;
+        properties?: Record<string, string>;
+        measures?: Record<string, number>;
+    };
+}
+
+/**
+ * Event sent when SQL Tools Service emits a telemetry event.
+ */
+export namespace SqlToolsServiceTelemetryNotification {
+    export const type = new NotificationType<SqlToolsServiceTelemetryParams>("telemetry/sqlevent");
+}
+
+// ------------------------------- </ SQL Tools Service Telemetry Event > -------------------------
 
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
 
