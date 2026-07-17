@@ -6478,11 +6478,17 @@
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
     </trans-unit>
+    <trans-unit id="++CODE++98fc98c876f876665c38a429c4f73c45faaebca208b98dc881a2ce8d2c9eaf1d">
+      <source xml:lang="en">Run in progress…</source>
+    </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>
       <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the SQL query</note>
+    </trans-unit>
+    <trans-unit id="++CODE++93cfaeb39957c7f919bde29e6b067e9b8c24b4f7ae2d80627a04ea2b32fca5f8">
+      <source xml:lang="en">Run runbook</source>
     </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>

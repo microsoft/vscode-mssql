@@ -231,6 +231,35 @@
     color: inherit;
 }
 
+.rbs-btn-primary {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    padding: 4px 14px;
+}
+
+.rbs-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.rbs-input {
+    width: 100%;
+    max-width: 260px;
+    box-sizing: border-box;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.rbs-input:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
 /* Run/node state chips ride theme status colors. */
 .rbs-state-running,
 .rbs-state-accepted,

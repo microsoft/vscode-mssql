@@ -10,7 +10,7 @@
  * populated — never a blank panel (rendering-spec total-layout rule).
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -197,43 +197,139 @@ function defaultDisplay(parameter: RunbookParameterDefinition): string {
     return parameter.default === undefined ? "—" : String(parameter.default);
 }
 
+function ParameterValueEditor({
+    parameter,
+    value,
+    onChange,
+}: {
+    parameter: RunbookParameterDefinition;
+    value: string;
+    onChange: (next: string) => void;
+}) {
+    if (parameter.type === "boolean") {
+        return (
+            <input
+                type="checkbox"
+                aria-label={parameter.label}
+                checked={value === "true"}
+                onChange={(e) => onChange(e.target.checked ? "true" : "false")}
+            />
+        );
+    }
+    if (parameter.type === "enum") {
+        return (
+            <select
+                className="rbs-input"
+                aria-label={parameter.label}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}>
+                <option value="" />
+                {(parameter.enumValues ?? []).map((enumValue) => (
+                    <option key={enumValue} value={enumValue}>
+                        {enumValue}
+                    </option>
+                ))}
+            </select>
+        );
+    }
+    return (
+        <input
+            className="rbs-input"
+            aria-label={parameter.label}
+            type={parameter.type === "secret" ? "password" : "text"}
+            placeholder={defaultDisplay(parameter)}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+        />
+    );
+}
+
 function ParametersPage() {
-    const { state } = useRbs();
+    const { state, startRun } = useRbs();
     const loc = locConstants.runbookStudio;
+    const [values, setValues] = useState<Record<string, string>>({});
+    const [starting, setStarting] = useState(false);
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
     const parameters = state?.artifact?.parameters ?? [];
-    if (parameters.length === 0) {
-        return <EmptyState title={loc.noParametersTitle} detail={loc.noParametersDetail} />;
-    }
+    const runActive =
+        state?.run !== undefined && !["succeeded", "failed", "cancelled"].includes(state.run.state);
+    const canRun =
+        (state?.workspaceTrusted ?? false) && (state?.artifact?.hasLock ?? false) && !runActive;
+    const onRun = async () => {
+        setStarting(true);
+        try {
+            const parameterValues: Record<string, string | number | boolean | null> = {};
+            for (const parameter of parameters) {
+                const raw = values[parameter.id];
+                if (raw === undefined || raw === "") {
+                    continue;
+                }
+                parameterValues[parameter.id] = parameter.type === "boolean" ? raw === "true" : raw;
+            }
+            await startRun(parameterValues);
+        } finally {
+            setStarting(false);
+        }
+    };
     return (
         <div className="rbs-page-body">
-            <table className="rbs-table">
-                <thead>
-                    <tr>
-                        <th>{loc.parameter}</th>
-                        <th>{loc.type}</th>
-                        <th>{loc.required}</th>
-                        <th>{loc.defaultColumn}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {parameters.map((parameter) => (
-                        <tr key={parameter.id}>
-                            <td>
-                                <div>{parameter.label}</div>
-                                {parameter.description ? (
-                                    <div className="rbs-muted">{parameter.description}</div>
-                                ) : null}
-                            </td>
-                            <td className="rbs-mono">{parameter.type}</td>
-                            <td>{parameter.required ? loc.yes : loc.no}</td>
-                            <td className="rbs-mono">{defaultDisplay(parameter)}</td>
+            {parameters.length === 0 ? (
+                <p className="rbs-muted">{loc.noParametersDetail}</p>
+            ) : (
+                <table className="rbs-table">
+                    <thead>
+                        <tr>
+                            <th>{loc.parameter}</th>
+                            <th>{loc.type}</th>
+                            <th>{loc.required}</th>
+                            <th>{loc.value}</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {parameters.map((parameter) => (
+                            <tr key={parameter.id}>
+                                <td>
+                                    <div>{parameter.label}</div>
+                                    {parameter.description ? (
+                                        <div className="rbs-muted">{parameter.description}</div>
+                                    ) : null}
+                                </td>
+                                <td className="rbs-mono">{parameter.type}</td>
+                                <td>{parameter.required ? loc.yes : loc.no}</td>
+                                <td>
+                                    <ParameterValueEditor
+                                        parameter={parameter}
+                                        value={values[parameter.id] ?? ""}
+                                        onChange={(next) =>
+                                            setValues((current) => ({
+                                                ...current,
+                                                [parameter.id]: next,
+                                            }))
+                                        }
+                                    />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+            <div>
+                <button
+                    className="rbs-btn rbs-btn-primary"
+                    disabled={!canRun || starting}
+                    title={
+                        !state?.workspaceTrusted
+                            ? loc.untrustedDetail
+                            : !state?.artifact?.hasLock
+                              ? loc.notCompiledDetail
+                              : undefined
+                    }
+                    onClick={() => void onRun()}>
+                    {runActive ? loc.runActiveLabel : loc.runButton}
+                </button>
+            </div>
         </div>
     );
 }

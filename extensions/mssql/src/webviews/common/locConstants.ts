@@ -3620,6 +3620,9 @@ export class LocConstants {
                 "Replay with parameter and model overrides arrives in a later preview.",
             ),
             openDiagnostics: l10n.t("Open diagnostics"),
+            value: l10n.t("Value"),
+            runButton: l10n.t("Run runbook"),
+            runActiveLabel: l10n.t("Run in progress…"),
         };
     }
 }
