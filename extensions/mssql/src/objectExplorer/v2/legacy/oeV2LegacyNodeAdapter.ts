@@ -55,7 +55,7 @@ export function toLegacyTreeNode(
         nodeType,
         ownerUri,
         scopedProfile,
-        undefined as unknown as TreeNodeInfo,
+        syntheticDatabaseParent(node, nodeType, database, ownerUri, scopedProfile),
         [],
         "",
         node.kind === "object" && node.schema && node.objectName
@@ -67,5 +67,52 @@ export function toLegacyTreeNode(
                   urn: "",
               }
             : undefined,
+    );
+}
+
+/**
+ * Classic command handlers resolve the target database by walking the node's
+ * parentNode chain until they hit a node whose metadata says "Database"
+ * (TableDesignerWebviewController.getDatabaseNameForNode,
+ * ObjectExplorerUtils.getDatabaseName). A synthetic node with no parent makes
+ * those walks come up empty and the handlers silently fall back to "master" —
+ * the Table Designer then builds its DacFx model against the wrong catalog and
+ * fails with "could not be found in the model". Give object-kind nodes a
+ * minimal parent Database node so the classic walks land on the real database.
+ */
+function syntheticDatabaseParent(
+    node: OeV2Node,
+    nodeType: string,
+    database: string | undefined,
+    ownerUri: string,
+    scopedProfile: IConnectionProfile,
+): TreeNodeInfo {
+    if (nodeType === "Database" || node.kind !== "object" || database === undefined) {
+        return undefined as unknown as TreeNodeInfo;
+    }
+    return new TreeNodeInfo(
+        database,
+        {
+            type: "Database",
+            subType: "",
+            filterable: false,
+            hasFilters: false,
+        },
+        vscode.TreeItemCollapsibleState.None,
+        `oe2-handoff/Database/${database}`,
+        "Online",
+        "Database",
+        ownerUri,
+        scopedProfile,
+        undefined as unknown as TreeNodeInfo,
+        [],
+        "",
+        {
+            metadataType: 0,
+            metadataTypeName: "Database",
+            schema: "",
+            name: database,
+            urn: "",
+        },
     );
 }

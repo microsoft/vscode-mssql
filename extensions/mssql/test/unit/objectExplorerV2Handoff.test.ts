@@ -163,4 +163,51 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         };
         expect(toLegacyTreeNode(folder, "owner-uri", PROFILE)).to.equal(undefined);
     });
+
+    test("H2 adapter: object nodes get a synthetic parent Database node so classic database walks resolve", () => {
+        const path = {
+            kind: "object" as const,
+            connectionId: "p1",
+            database: "AppDb",
+            schema: "dbo",
+            name: "Suppliers",
+            objectKind: "table" as const,
+        };
+        const node: OeV2Node = {
+            id: encodePath(path),
+            path,
+            kind: "object",
+            label: "dbo.Suppliers",
+            collapsible: true,
+            connectionId: "p1",
+            database: "AppDb",
+            schema: "dbo",
+            objectName: "Suppliers",
+            readiness: { kind: "notApplicable" },
+            capabilities: {},
+        };
+        const adapted = toLegacyTreeNode(node, "owner-uri", PROFILE)!;
+        expect(adapted.nodeType).to.equal("Table");
+        expect(adapted.metadata?.schema).to.equal("dbo");
+        expect(adapted.metadata?.name).to.equal("Suppliers");
+
+        // Classic handlers (TableDesignerWebviewController.getDatabaseNameForNode,
+        // ObjectExplorerUtils.getDatabaseName) walk parentNode until they find a
+        // node whose metadata says "Database". Without a parent they silently
+        // fall back to "master" and the Table Designer model targets the wrong
+        // catalog.
+        const parent = adapted.parentNode;
+        expect(parent, "object node must carry a synthetic Database parent").to.not.equal(
+            undefined,
+        );
+        expect(parent.nodeType).to.equal("Database");
+        expect(parent.metadata?.metadataTypeName).to.equal("Database");
+        expect(parent.metadata?.name).to.equal("AppDb");
+        expect(parent.parentNode).to.equal(undefined);
+
+        // Database-kind nodes are their own database context — no parent chain.
+        expect(toLegacyTreeNode(databaseNode(), "owner-uri", PROFILE)!.parentNode).to.equal(
+            undefined,
+        );
+    });
 });
