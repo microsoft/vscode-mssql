@@ -190,6 +190,7 @@
     },
     "dependencies": {
         "@microsoft/ads-extension-telemetry": "^3.0.1",
+        "extension-toolkit": "file:../../packages/extension-toolkit",
         "glob": "^13.0.6",
         "vscode-nls": "^4.0.0"
     },
