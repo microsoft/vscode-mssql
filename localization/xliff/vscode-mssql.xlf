@@ -213,6 +213,9 @@
     <trans-unit id="++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e">
       <source xml:lang="en">Add MCP server to workspace configuration</source>
     </trans-unit>
+    <trans-unit id="++CODE++50f7055428f0ad82923fa95a0903d1917c5a5d49376cd17d35658f5776351b52">
+      <source xml:lang="en">Add OpenStreetMap</source>
+    </trans-unit>
     <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
       <source xml:lang="en">Add Row</source>
     </trans-unit>
@@ -2419,6 +2422,9 @@
     <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
       <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
     </trans-unit>
+    <trans-unit id="++CODE++33adc66daa87a2ef80e7811a4454c1574b6db68d8f42d1a48e074593535cb48b">
+      <source xml:lang="en">Don&apos;t Ask Again</source>
+    </trans-unit>
     <trans-unit id="++CODE++696dd2e6ecf74f4f9f3c7a4f86dbd20c49f797f6f328f1c7b1235a2058d08d78">
       <source xml:lang="en">Don&apos;t Save</source>
     </trans-unit>
@@ -2513,6 +2519,9 @@
     <trans-unit id="++CODE++c6c094bc0054f9cbe34102ff49f86b3928b5ac09f3d2ac87e170d0500675921f">
       <source xml:lang="en">Empty</source>
     </trans-unit>
+    <trans-unit id="++CODE++5342e09f2729fbc6514528e727aeb9857afb31719d43568e6b18661ace7d1014">
+      <source xml:lang="en">Enable</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
@@ -2543,6 +2552,11 @@
     <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
       <source xml:lang="en">Enable all rules in {0}</source>
       <note>{0} is the category name, e.g. Design</note>
+    </trans-unit>
+    <trans-unit id="++CODE++29ba5db7b2307576ffcf26407a663e786f49ebcc0b822d2c15a67c1bbeafcb5d">
+      <source xml:lang="en">Enable online map layer &quot;{0}&quot;? The provider ({1}) will receive tile coordinates that reveal the approximate area you view. Query results, labels, SQL text, and credentials are not sent as map data.</source>
+      <note>{0} is the configured display name of the map layer
+{1} is the provider attribution text</note>
     </trans-unit>
     <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
       <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
@@ -5489,6 +5503,9 @@
     <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
       <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++0415708c0be7f6bc586e3605a88e4b07d3c4e303266e0d1a755a7ce20cc069ff">
+      <source xml:lang="en">OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
     </trans-unit>
@@ -7283,8 +7300,17 @@
     <trans-unit id="++CODE++89ff5697374c47bc35d008eecad946bbc67d0dbb517fcdb6ee806a5e645459b7">
       <source xml:lang="en">Spatial features</source>
     </trans-unit>
+    <trans-unit id="++CODE++4d78a6277f73daad992f6679cab9b41514df1fdad0c27bcaa21aa35ec91af369">
+      <source xml:lang="en">Spatial map layer consent cleared. Online layers will ask again before their next use.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f747ba9dc4e0624b2abc89f8217292353684b7694750e9426d7fe7936a40289">
+      <source xml:lang="en">Spatial map tile cache cleared.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a4a2039189d95ac8717438746dbae5f24c167eaeeb080a73d6f8b7210b11836">
       <source xml:lang="en">Spatial results analysis</source>
+    </trans-unit>
+    <trans-unit id="++CODE++92e22b4f9ae9d53f25c83ec2da78e4f1b0527c329c816516367beb6b633a3fb2">
+      <source xml:lang="en">Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.</source>
     </trans-unit>
     <trans-unit id="++CODE++bdbc9d96a4e6017cd25eff17e86ca1cd230435429813bd402621ff7e0400c689">
       <source xml:lang="en">Spatial session could not be opened.</source>
@@ -8207,6 +8233,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56f120aa5343154a3604fcd5db4e828f39dfa0b9d3e4786c687e287e37c45bcf">
+      <source xml:lang="en">View provider terms</source>
     </trans-unit>
     <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
       <source xml:lang="en">View roadmap</source>

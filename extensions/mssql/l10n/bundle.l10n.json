@@ -2247,6 +2247,21 @@
         "message": "Couldn't update the 'github.copilot.enable' setting. {0}",
         "comment": ["{0} is the error message"]
     },
+    "Add OpenStreetMap": "Add OpenStreetMap",
+    "Don't Ask Again": "Don't Ask Again",
+    "Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.": "Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.",
+    "OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.": "OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.",
+    "Enable": "Enable",
+    "View provider terms": "View provider terms",
+    "Enable online map layer \"{0}\"? The provider ({1}) will receive tile coordinates that reveal the approximate area you view. Query results, labels, SQL text, and credentials are not sent as map data./{0} is the configured display name of the map layer{1} is the provider attribution text": {
+        "message": "Enable online map layer \"{0}\"? The provider ({1}) will receive tile coordinates that reveal the approximate area you view. Query results, labels, SQL text, and credentials are not sent as map data.",
+        "comment": [
+            "{0} is the configured display name of the map layer",
+            "{1} is the provider attribution text"
+        ]
+    },
+    "Spatial map tile cache cleared.": "Spatial map tile cache cleared.",
+    "Spatial map layer consent cleared. Online layers will ask again before their next use.": "Spatial map layer consent cleared. Online layers will ask again before their next use.",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",

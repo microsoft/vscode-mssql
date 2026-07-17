@@ -28,6 +28,7 @@ import {
 import { SpatialBasemapTileCache } from "./spatialBasemapTileCache";
 import { createSpatialBasemapSetupOffer } from "./spatialBasemapOnboarding";
 import { dns } from "./spatialBasemapNode";
+import { SpatialBasemap as Loc } from "../../constants/locConstants";
 
 export interface SpatialBasemapHost {
     readonly cacheRoot: vscode.Uri;
@@ -43,6 +44,16 @@ export interface SpatialBasemapHost {
 }
 
 let host: SpatialBasemapHost | undefined;
+
+/**
+ * Deterministic tile-cache root under global storage. Exposed apart from the
+ * host singleton because webview panels restored at startup construct BEFORE
+ * activation initializes the host, and localResourceRoots are fixed at
+ * construction — a root omitted there turns every tile request into a 401.
+ */
+export function spatialBasemapCacheRoot(context: { globalStorageUri: vscode.Uri }): vscode.Uri {
+    return vscode.Uri.file(path.join(context.globalStorageUri.fsPath, "spatial-basemap-cache"));
+}
 
 const HMAC_KEY_STATE = "mssql.spatialBasemap.cacheKey.v1";
 
@@ -79,9 +90,7 @@ function initialize(context: vscode.ExtensionContext): void {
         hmacKey = randomBytes(32).toString("hex");
         void context.globalState.update(HMAC_KEY_STATE, hmacKey);
     }
-    const cacheRoot = vscode.Uri.file(
-        path.join(context.globalStorageUri.fsPath, "spatial-basemap-cache"),
-    );
+    const cacheRoot = spatialBasemapCacheRoot(context);
     const consent = createSpatialBasemapConsentStore(context.globalState);
     const budgets = cacheBudgets();
     const cache = new SpatialBasemapTileCache({
@@ -115,23 +124,16 @@ function initialize(context: vscode.ExtensionContext): void {
             );
         },
         prompt: async () => {
-            const add = vscode.l10n.t("Add OpenStreetMap");
-            const never = vscode.l10n.t("Don't Ask Again");
+            const add = Loc.addOpenStreetMap;
+            const never = Loc.dontAskAgain;
             const choice = await vscode.window.showInformationMessage(
-                vscode.l10n.t(
-                    "Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.",
-                ),
+                Loc.setupOfferMessage,
                 add,
                 never,
             );
             return choice === add ? "add" : choice === never ? "never" : "dismiss";
         },
-        confirm: () =>
-            void vscode.window.showInformationMessage(
-                vscode.l10n.t(
-                    "OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.",
-                ),
-            ),
+        confirm: () => void vscode.window.showInformationMessage(Loc.setupConfirmation),
         recordConsent: (fingerprint) => consent.record(fingerprint),
     });
     host = {
@@ -153,16 +155,12 @@ function initialize(context: vscode.ExtensionContext): void {
             return validateSpatialBasemapSources(raw?.globalValue ?? []).sources;
         },
         confirm: async (source) => {
-            const enable = vscode.l10n.t("Enable");
-            const viewTerms = vscode.l10n.t("View provider terms");
+            const enable = Loc.enable;
+            const viewTerms = Loc.viewProviderTerms;
             const actions = source.config.attribution.termsUrl ? [enable, viewTerms] : [enable];
             for (;;) {
                 const choice = await vscode.window.showWarningMessage(
-                    vscode.l10n.t(
-                        'Enable online map layer "{0}"? The provider ({1}) will receive tile coordinates that reveal the approximate area you view. Query results, labels, SQL text, and credentials are not sent as map data.',
-                        source.config.displayName,
-                        source.config.attribution.text,
-                    ),
+                    Loc.consentPrompt(source.config.displayName, source.config.attribution.text),
                     { modal: true },
                     ...actions,
                 );
@@ -186,17 +184,11 @@ function initialize(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand("mssql.spatialBasemap.clearCache", async () => {
             await cache.clearAll();
-            void vscode.window.showInformationMessage(
-                vscode.l10n.t("Spatial map tile cache cleared."),
-            );
+            void vscode.window.showInformationMessage(Loc.tileCacheCleared);
         }),
         vscode.commands.registerCommand("mssql.spatialBasemap.clearConsent", async () => {
             await consent.clearAll();
-            void vscode.window.showInformationMessage(
-                vscode.l10n.t(
-                    "Spatial map layer consent cleared. Online layers will ask again before their next use.",
-                ),
-            );
+            void vscode.window.showInformationMessage(Loc.consentCleared);
         }),
     );
     // Startup hygiene: prune expired/oversized tiles without blocking activation.

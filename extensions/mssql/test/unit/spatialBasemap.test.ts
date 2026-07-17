@@ -15,6 +15,8 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as vscode from "vscode";
+import { spatialBasemapCacheRoot } from "../../src/queryResults/spatialBasemap/spatialBasemapHost";
 import {
     isPrivateNetworkHost,
     spatialBasemapFingerprint,
@@ -457,6 +459,17 @@ suite("spatial basemap tile cache (D-0028)", () => {
         await cache.put("fp", 1, 1, 1, PNG);
         const surviving = await cache.evict();
         expect(surviving).to.be.at.most(2 * PNG.byteLength + 4);
+    });
+});
+
+suite("spatial basemap cache root (D-0022 local resource root)", () => {
+    test("derives from global storage alone — usable before host init", () => {
+        // Restored editors resolve mid-activation, before the host singleton
+        // exists; the panel's localResourceRoots and the host's tile cache
+        // must agree on this path or every tile 401s from the ServiceWorker.
+        const globalStorageUri = vscode.Uri.file(path.join(os.tmpdir(), "mssql-global-storage"));
+        const root = spatialBasemapCacheRoot({ globalStorageUri });
+        expect(root.fsPath).to.equal(path.join(globalStorageUri.fsPath, "spatial-basemap-cache"));
     });
 });
 

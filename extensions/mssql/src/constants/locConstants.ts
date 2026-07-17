@@ -4213,3 +4213,29 @@ export function copilotEnableGuardApplyFailed(errorMessage: string) {
         comment: ["{0} is the error message"],
     });
 }
+export class SpatialBasemap {
+    public static addOpenStreetMap = l10n.t("Add OpenStreetMap");
+    public static dontAskAgain = l10n.t("Don't Ask Again");
+    public static setupOfferMessage = l10n.t(
+        "Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.",
+    );
+    public static setupConfirmation = l10n.t(
+        "OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.",
+    );
+    public static enable = l10n.t("Enable");
+    public static viewProviderTerms = l10n.t("View provider terms");
+    public static consentPrompt = (displayName: string, attributionText: string) =>
+        l10n.t({
+            message:
+                'Enable online map layer "{0}"? The provider ({1}) will receive tile coordinates that reveal the approximate area you view. Query results, labels, SQL text, and credentials are not sent as map data.',
+            args: [displayName, attributionText],
+            comment: [
+                "{0} is the configured display name of the map layer",
+                "{1} is the provider attribution text",
+            ],
+        });
+    public static tileCacheCleared = l10n.t("Spatial map tile cache cleared.");
+    public static consentCleared = l10n.t(
+        "Spatial map layer consent cleared. Online layers will ask again before their next use.",
+    );
+}

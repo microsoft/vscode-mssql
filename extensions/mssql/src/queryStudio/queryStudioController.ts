@@ -84,7 +84,10 @@ import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
 import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
 import { SpatialSessionManager } from "../queryResults/spatial/spatialSessionManager";
 import { SpatialBasemapSessionManager } from "../queryResults/spatialBasemap/spatialBasemapSessionManager";
-import { spatialBasemapHost } from "../queryResults/spatialBasemap/spatialBasemapHost";
+import {
+    spatialBasemapCacheRoot,
+    spatialBasemapHost,
+} from "../queryResults/spatialBasemap/spatialBasemapHost";
 import {
     QsSpatialBasemapCloseRequest,
     QsSpatialBasemapListRequest,
@@ -240,13 +243,16 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.panelViewState.shell.resultsHeightPct =
             QueryStudioController.currentGridStyle().resultsPaneHeightPct ?? 50;
         // SPA-10 / D-0022: the basemap tile cache directory is the ONLY extra
-        // local root — never all of global storage (addendum §6.4).
-        const basemapCacheRoot = spatialBasemapHost()?.cacheRoot;
+        // local root — never all of global storage (addendum §6.4). Derived
+        // from context, NOT the host singleton: restored editors resolve
+        // mid-activation before the host initializes, and roots are fixed at
+        // construction — omitting it here 401s every tile for the panel's
+        // lifetime.
         this.panel.webview.options = {
             enableScripts: true,
             localResourceRoots: [
                 vscode.Uri.file(context.extensionPath),
-                ...(basemapCacheRoot ? [basemapCacheRoot] : []),
+                spatialBasemapCacheRoot(context),
             ],
         };
         this.panel.webview.html = this._getHtmlTemplate();
