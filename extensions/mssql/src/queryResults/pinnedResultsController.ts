@@ -48,6 +48,14 @@ import {
     QsSpatialNextRequest,
     QsSpatialOpenRequest,
 } from "../sharedInterfaces/spatialResults";
+import {
+    QsSpatialBasemapCloseRequest,
+    QsSpatialBasemapListRequest,
+    QsSpatialBasemapOpenRequest,
+    QsSpatialBasemapTileRequest,
+} from "../sharedInterfaces/spatialBasemap";
+import { SpatialBasemapSessionManager } from "./spatialBasemap/spatialBasemapSessionManager";
+import { spatialBasemapCacheRoot, spatialBasemapHost } from "./spatialBasemap/spatialBasemapHost";
 import { ingestBudgetFrom } from "./vector/vectorResultSource";
 import {
     QsVectorCancelRequest,
@@ -104,9 +112,15 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             document.snapshotId ?? document.uri.toString(),
         );
         this.resultSetCount = description?.resultSetCount ?? 0;
+        // SPA-10 / D-0022: the basemap tile cache directory is the only extra
+        // local root, same as live Query Studio — derived from context so it
+        // holds even when this panel restores before the host initializes.
         this.panel.webview.options = {
             enableScripts: true,
-            localResourceRoots: [vscode.Uri.file(context.extensionPath)],
+            localResourceRoots: [
+                vscode.Uri.file(context.extensionPath),
+                spatialBasemapCacheRoot(context),
+            ],
         };
         this.panel.webview.html = this._getHtmlTemplate();
         this.updateConnectionWebview(this.panel.webview);
@@ -120,11 +134,34 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                 }
             }),
         );
-        this.state = PinnedResultsController.buildState(
-            document.snapshotId
-                ? getQueryResultAccessService().describeSnapshot(document.snapshotId)
+        this.registerDisposable(
+            vscode.workspace.onDidChangeConfiguration((e) => {
+                if (e.affectsConfiguration("mssql.queryStudio.spatial.basemap")) {
+                    // Epoch bump makes a mounted spatial pane re-fetch the
+                    // layer list (one-click OSM setup lands live), same as
+                    // live Query Studio.
+                    this.spatialBasemapEpoch++;
+                    this.state = this.currentState();
+                }
+            }),
+        );
+        this.registerDisposable({
+            dispose: () => {
+                this.spatialBasemapService?.dispose("disposed");
+                this.spatialBasemapService = undefined;
+            },
+        });
+        this.state = this.currentState();
+    }
+
+    private currentState(): PinnedResultsState {
+        const state = PinnedResultsController.buildState(
+            this.document.snapshotId
+                ? getQueryResultAccessService().describeSnapshot(this.document.snapshotId)
                 : undefined,
         );
+        state.spatialBasemapEpoch = this.spatialBasemapEpoch;
+        return state;
     }
 
     private static buildState(
@@ -210,6 +247,41 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
     private suspendSpatialResults(): void {
         this.spatialService?.dispose();
         this.spatialService = undefined;
+    }
+
+    /** Basemap sessions over the shared host seams (SPA-10, pinned parity).
+     * NOT suspended on hide: the pane keeps its session handles across
+     * visibility flips (matching live QS), so disposal here would strand a
+     * still-mounted pane on "cancelled" tiles. Disposed with the panel. */
+    private spatialBasemapService: SpatialBasemapSessionManager | undefined;
+    /** Bumped on basemap config changes so panes re-fetch the layer list. */
+    private spatialBasemapEpoch = 0;
+
+    private static spatialBasemapGate(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.queryStudio.spatial.basemap.enabled") === true
+        );
+    }
+
+    private spatialBasemap(): SpatialBasemapSessionManager | undefined {
+        if (!this.spatialBasemapService) {
+            const host = spatialBasemapHost();
+            if (!host) {
+                return undefined;
+            }
+            this.spatialBasemapService = new SpatialBasemapSessionManager({
+                sources: () => host.sources(),
+                consent: host.consent,
+                cache: host.cache,
+                fetcher: host.fetcher,
+                isTrusted: () => host.isTrusted(),
+                confirm: (source) => host.confirm(source),
+                secretFor: (ref) => host.secretFor(ref),
+            });
+        }
+        return this.spatialBasemapService;
     }
 
     private summaryFor(resultSetId: string): QsResultSetSummary | undefined {
@@ -304,6 +376,10 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             this.vectorService?.close(handle);
         });
         this.onRequest(QsSpatialOpenRequest.type, async (params) => {
+            // First spatial view offers the one-click OpenStreetMap setup,
+            // same as live QS (no-op once configured or dismissed; the host
+            // caps it at once per session).
+            void spatialBasemapHost()?.maybeOfferSetup();
             const snapshot = service.storeForSnapshot(this.snapshotId);
             if (snapshot?.derived) {
                 return {
@@ -324,6 +400,48 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         });
         this.onRequest(QsSpatialCloseRequest.type, async ({ handle }) => {
             this.spatialService?.close(handle);
+        });
+
+        // --- spatial basemap (SPA-10, D-0024 revised): pinned parity --------
+        // Thin proxies over the shared extension-level host, mirroring live
+        // Query Studio: consent, trust, cache, and fetch policy all live
+        // host-side; the webview supplies only ids and tile coordinates.
+        this.onRequest(QsSpatialBasemapListRequest.type, async () => {
+            const host = spatialBasemapHost();
+            if (!host || !PinnedResultsController.spatialBasemapGate()) {
+                return { layers: [], trusted: host?.isTrusted() ?? false };
+            }
+            return {
+                layers: host.sources().map((source) => source.descriptor),
+                trusted: host.isTrusted(),
+            };
+        });
+        this.onRequest(QsSpatialBasemapOpenRequest.type, async (params) => {
+            const sessions = this.spatialBasemap();
+            if (!sessions || !PinnedResultsController.spatialBasemapGate()) {
+                return { status: "unavailable" as const };
+            }
+            const outcome = await sessions.open(params);
+            return { ...outcome, tileProjection: "EPSG:3857" as const };
+        });
+        this.onRequest(QsSpatialBasemapTileRequest.type, async (params) => {
+            const sessions = this.spatialBasemapService;
+            if (!sessions) {
+                return { status: "cancelled" as const };
+            }
+            const outcome = await sessions.tile(params);
+            if (outcome.status !== "ready" || !outcome.filePath) {
+                return { status: outcome.status };
+            }
+            return {
+                status: "ready" as const,
+                localUri: this.panel.webview
+                    .asWebviewUri(vscode.Uri.file(outcome.filePath))
+                    .toString(),
+            };
+        });
+        this.onRequest(QsSpatialBasemapCloseRequest.type, async ({ handle, reason }) => {
+            this.spatialBasemapService?.close(handle, reason);
         });
         this.onRequest(QsGetRowsRequest.type, async (params) => {
             const reason =

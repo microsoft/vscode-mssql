@@ -623,6 +623,7 @@ export function PinnedResultsApp() {
                                     active={panelVisible && visibleActiveTab === "spatial"}
                                     panelVisible={panelVisible}
                                     basemapEnabled={state.spatialBasemapEnabled === true}
+                                    basemapEpoch={state.spatialBasemapEpoch ?? 0}
                                     initialViewState={panelViewStateRef.current.spatial}
                                     onViewStateChange={persistSpatialViewState}
                                 />

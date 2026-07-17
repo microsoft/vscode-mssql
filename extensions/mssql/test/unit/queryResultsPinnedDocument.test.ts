@@ -78,6 +78,39 @@ suite("queryResults pinned document contract", () => {
         expect(PINNED_RESULTS_SCHEME).to.equal("mssql-query-results-snapshot");
     });
 
+    test("pinned basemap parity (D-0035): same RPC surface and resource root as live QS", () => {
+        const sourceRoot = path.join(__dirname, "..", "..", "..", "src");
+        const pinned = fs.readFileSync(
+            path.join(sourceRoot, "queryResults", "pinnedResultsController.ts"),
+            "utf8",
+        );
+        const live = fs.readFileSync(
+            path.join(sourceRoot, "queryStudio", "queryStudioController.ts"),
+            "utf8",
+        );
+        const app = fs.readFileSync(
+            path.join(sourceRoot, "webviews", "pages", "QueryResultsSnapshot", "app.tsx"),
+            "utf8",
+        );
+        // Every basemap RPC live QS answers, the pinned controller answers too.
+        for (const rpc of [
+            "QsSpatialBasemapListRequest.type",
+            "QsSpatialBasemapOpenRequest.type",
+            "QsSpatialBasemapTileRequest.type",
+            "QsSpatialBasemapCloseRequest.type",
+        ]) {
+            expect(live, `live registers ${rpc}`).to.include(`this.onRequest(${rpc}`);
+            expect(pinned, `pinned registers ${rpc}`).to.include(`this.onRequest(${rpc}`);
+        }
+        // Both surfaces admit the tile cache as a local resource root via the
+        // context-derived helper (never the host singleton — restore order).
+        expect(pinned).to.include("spatialBasemapCacheRoot(context)");
+        expect(live).to.include("spatialBasemapCacheRoot(context)");
+        // Config changes reach a mounted pane: epoch in state, prop in app.
+        expect(pinned).to.include("this.spatialBasemapEpoch++");
+        expect(app).to.include("basemapEpoch={state.spatialBasemapEpoch ?? 0}");
+    });
+
     test("hidden pinned Vector work is suspended in both host and renderer", () => {
         const sourceRoot = path.join(__dirname, "..", "..", "..", "src");
         const controller = fs.readFileSync(
