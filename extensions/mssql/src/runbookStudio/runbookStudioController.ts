@@ -161,18 +161,29 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         });
 
         this.onRequest(RbsOpenDiagnosticsRequest.type, async ({ runId, nodeId }) => {
-            // RBS2-7 wires the Debug Console deep link; structured no-op until then.
+            // Debug Console deep link (A2 §9.2): observation and navigation
+            // only — the console is never the product host. A run whose
+            // trace this window no longer retains fails safely.
+            const traceId = runId ? this.coordinator?.traceIdOf(runId) : undefined;
             diag.emit({
                 feature: "runbookStudio",
                 kind: "event",
                 type: "runbookStudio.openDiagnostics.requested",
-                status: "ok",
+                status: traceId || !runId ? "ok" : "partial",
                 fields: {
                     hasRunId: { raw: runId !== undefined, cls: "diagnostic.metadata" },
                     hasNodeId: { raw: nodeId !== undefined, cls: "diagnostic.metadata" },
+                    traceRetained: { raw: traceId !== undefined, cls: "diagnostic.metadata" },
                 },
             });
-            return { opened: false };
+            if (runId && !traceId) {
+                return { opened: false };
+            }
+            await vscode.commands.executeCommand("mssql.openDebugConsole", {
+                page: traceId ? "waterfall" : "overview",
+                ...(traceId ? { traceId } : {}),
+            });
+            return { opened: true };
         });
     }
 

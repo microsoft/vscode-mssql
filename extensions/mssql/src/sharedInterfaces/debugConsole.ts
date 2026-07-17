@@ -609,9 +609,15 @@ export interface SourceOverview {
     anomalies: AnomalySummary[];
 }
 
-/** Deep-link an already-open console to a page (host → webview). */
+/** Deep-link an already-open console to a page (host → webview). Optional
+ *  trace/event focus rides along (Runbook Studio and other feature deep
+ *  links); the webview route already carries both. */
 export namespace DcNavigateNotification {
-    export const type = new NotificationType<{ page: DcPageId }>("dc/navigate");
+    export const type = new NotificationType<{
+        page: DcPageId;
+        traceId?: string;
+        eventId?: string;
+    }>("dc/navigate");
 }
 
 export namespace DcListSourcesRequest {

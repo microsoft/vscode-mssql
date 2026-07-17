@@ -238,8 +238,12 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             setCaptureModeState(change.mode);
             setCaptureExpires(change.expiresEpochMs);
         });
-        rpc.onNotification(DcNavigateNotification.type, ({ page }) => {
-            navigate({ page });
+        rpc.onNotification(DcNavigateNotification.type, ({ page, traceId, eventId }) => {
+            navigate({
+                page,
+                ...(traceId ? { traceId } : {}),
+                ...(eventId ? { eventId } : {}),
+            });
         });
         rpc.onNotification(DcSelfTestProgressNotification.type, (progress) => {
             setSelfTest((current) => {

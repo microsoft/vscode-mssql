@@ -1253,17 +1253,36 @@ export function registerDebugConsole(
         // Optional deep-link arg (WI-1.6): `{ page }` opens the console AT
         // that page — a fresh console gets it as initial state, an open one
         // is steered via dc/navigate before being revealed.
-        vscode.commands.registerCommand("mssql.openDebugConsole", (route?: { page?: DcPageId }) => {
-            const page = route?.page;
-            if (activeConsole && !activeConsole.disposed) {
-                if (page !== undefined) {
-                    void activeConsole.sendNotification(DcNavigateNotification.type, { page });
+        vscode.commands.registerCommand(
+            "mssql.openDebugConsole",
+            (route?: { page?: DcPageId; traceId?: string; eventId?: string }) => {
+                const page = route?.page;
+                const sendRoute = (console: DebugConsoleWebviewController) => {
+                    if (page !== undefined) {
+                        void console.sendNotification(DcNavigateNotification.type, {
+                            page,
+                            ...(route?.traceId ? { traceId: route.traceId } : {}),
+                            ...(route?.eventId ? { eventId: route.eventId } : {}),
+                        });
+                    }
+                };
+                if (activeConsole && !activeConsole.disposed) {
+                    sendRoute(activeConsole);
+                    activeConsole.revealToForeground();
+                    return;
                 }
+                activeConsole = new DebugConsoleWebviewController(context, diagnostics, page);
                 activeConsole.revealToForeground();
-                return;
-            }
-            activeConsole = new DebugConsoleWebviewController(context, diagnostics, page);
-            activeConsole.revealToForeground();
-        }),
+                // A fresh console gets the page via initial state; a trace
+                // focus needs the route notification once the app is live.
+                if (route?.traceId || route?.eventId) {
+                    const fresh = activeConsole;
+                    void fresh
+                        .whenWebviewReady(15_000)
+                        .then(() => sendRoute(fresh))
+                        .catch(() => undefined);
+                }
+            },
+        ),
     );
 }

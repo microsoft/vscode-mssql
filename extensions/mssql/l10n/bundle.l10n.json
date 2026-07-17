@@ -4364,5 +4364,6 @@
     "This run has not produced any typed outputs.": "This run has not produced any typed outputs.",
     "No runs recorded": "No runs recorded",
     "Past runs of this runbook appear here.": "Past runs of this runbook appear here.",
-    "Replay with parameter and model overrides arrives in a later preview.": "Replay with parameter and model overrides arrives in a later preview."
+    "Replay with parameter and model overrides arrives in a later preview.": "Replay with parameter and model overrides arrives in a later preview.",
+    "Open diagnostics": "Open diagnostics"
 }

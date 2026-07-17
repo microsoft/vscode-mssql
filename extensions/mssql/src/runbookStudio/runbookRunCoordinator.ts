@@ -48,4 +48,7 @@ export interface RunbookRunCoordinator {
         model: RunbookStudioDocumentModel,
         page: { handleId: string; startRow: number; rowCount: number },
     ): Promise<OutputPageResult>;
+
+    /** Diagnostics trace for a run this window started (Debug Console link). */
+    traceIdOf(runId: string): string | undefined;
 }

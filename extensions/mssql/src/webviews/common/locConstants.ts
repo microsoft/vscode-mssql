@@ -3619,6 +3619,7 @@ export class LocConstants {
             debugPlaceholderDetail: l10n.t(
                 "Replay with parameter and model overrides arrives in a later preview.",
             ),
+            openDiagnostics: l10n.t("Open diagnostics"),
         };
     }
 }

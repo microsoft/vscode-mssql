@@ -5537,6 +5537,9 @@
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
     </trans-unit>
+    <trans-unit id="++CODE++957dd8792d4ec086fac1eb1635033f395b7daa02ffc03294f9311c0675aea176">
+      <source xml:lang="en">Open diagnostics</source>
+    </trans-unit>
     <trans-unit id="++CODE++cef89448c86ea390bfb9f0953513fd8871c5595cd7e65fc9ef5fc306fe7bfd11">
       <source xml:lang="en">Open filter menu</source>
     </trans-unit>

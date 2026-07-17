@@ -70,6 +70,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly activeByDocument = new Map<string, ActiveRunBinding>();
     private readonly activeByRunId = new Map<string, ActiveRunBinding>();
     private readonly seededModels = new WeakSet<RunbookStudioDocumentModel>();
+    /** runId -> trace, retained past terminal for Debug Console links. */
+    private readonly traceByRunId = new Map<string, string>();
 
     private readonly storageRoot: string;
 
@@ -148,6 +150,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const active: ActiveRunBinding = { runId, model, context: runContext, runEnded: false };
         this.activeByDocument.set(model.uriKey, active);
         this.activeByRunId.set(runId, active);
+        this.rememberTrace(runId, runContext.traceId);
 
         Perf.marker("mssql.runbookStudio.run.begin", "begin", undefined, runContext.traceId);
         emitRunbookEvent(runContext, "runbookStudio.run.accepted", "ok", {
@@ -301,7 +304,22 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return result;
     }
 
+    public traceIdOf(runId: string): string | undefined {
+        return this.traceByRunId.get(runId);
+    }
+
     // -- internals -------------------------------------------------------------
+
+    /** Bounded runId->trace retention (survives terminal for deep links). */
+    private rememberTrace(runId: string, traceId: string): void {
+        this.traceByRunId.set(runId, traceId);
+        if (this.traceByRunId.size > 200) {
+            const first = this.traceByRunId.keys().next().value;
+            if (first !== undefined) {
+                this.traceByRunId.delete(first);
+            }
+        }
+    }
 
     /** Seed a model's history from the durable ledger once per model. */
     private seedHistory(model: RunbookStudioDocumentModel): void {

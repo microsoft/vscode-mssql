@@ -239,7 +239,7 @@ function ParametersPage() {
 }
 
 function RunPage() {
-    const { state } = useRbs();
+    const { state, openDiagnostics } = useRbs();
     const loc = locConstants.runbookStudio;
     if (state?.artifactError) {
         return <InvalidArtifact />;
@@ -258,6 +258,9 @@ function RunPage() {
             <div className="rbs-run-header">
                 <span className={`rbs-chip rbs-state-${run.state}`}>{run.state}</span>
                 <span className="rbs-mono">{run.runId}</span>
+                <button className="rbs-btn" onClick={() => openDiagnostics(run.runId)}>
+                    {loc.openDiagnostics}
+                </button>
             </div>
             <table className="rbs-table">
                 <thead>
