@@ -168,6 +168,14 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
     ) {
         this.logger = logger.withPrefix(viewId ?? "WebviewBaseController");
 
+        // Not every controller awaits whenWebviewReady(); a panel restored by
+        // hot exit can be disposed before its webview ever loads (e.g. tab
+        // context menu "Close All" over never-revealed editors), and the
+        // dispose-time rejection below must not surface as an unhandled
+        // rejection when nobody is waiting. whenWebviewReady() returns the
+        // raw promise, so real waiters still observe the rejection.
+        this._webviewReady.promise.catch(() => undefined);
+
         this._connectionReader = new WebviewControllerMessageReader();
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
         this.connection = createMessageConnection(this._connectionReader, this._connectionWriter);

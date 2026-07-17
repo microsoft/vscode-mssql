@@ -11,6 +11,7 @@ import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
 import { WebviewBaseController } from "../../src/controllers/webviewBaseController";
+import * as LocalizedConstants from "../../src/constants/locConstants";
 import { stubTelemetry } from "./utils";
 import {
     ColorThemeChangeNotification,
@@ -214,6 +215,35 @@ suite("WebviewController Tests", () => {
         (controller as any)._disposables.push(disposable);
         controller.dispose();
         expect(disposable.dispose, "Disposables are not disposed").to.have.been.calledOnce;
+    });
+
+    test("Dispose before webview ready must not surface an unhandled rejection", async () => {
+        // Hot-exit-restored panels can be disposed (tab "Close All") before the
+        // webview ever loads; controllers that never call whenWebviewReady()
+        // (e.g. Query Studio) must not leak the dispose-time rejection.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        try {
+            controller.dispose();
+            // Unhandled-rejection detection requires the microtask queue and a
+            // macrotask tick to drain first.
+            await new Promise((resolve) => setTimeout(resolve, 25));
+            expect(unhandled, "dispose-time ready rejection was unhandled").to.deep.equal([]);
+        } finally {
+            process.removeListener("unhandledRejection", onUnhandled);
+        }
+    });
+
+    test("whenWebviewReady still rejects for waiters when disposed before ready", async () => {
+        controller.dispose();
+        let error: Error | undefined;
+        try {
+            await controller.whenWebviewReady(10);
+        } catch (e) {
+            error = e as Error;
+        }
+        expect(error?.message).to.equal(LocalizedConstants.Webview.webviewDisposedBeforeReady);
     });
 
     test("Should not post message if disposed", () => {
