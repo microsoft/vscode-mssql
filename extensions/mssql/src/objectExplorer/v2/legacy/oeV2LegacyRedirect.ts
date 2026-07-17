@@ -7,7 +7,7 @@
  * The STS v1 connection-redirect library (OE_V1_PARITY_PLAN §2.5, K4): the
  * ONE code path that launches a legacy command from an OE v2 node. It
  * resolves the policy, opens (or reuses) the handoff connection through
- * OeV2ClassicHandoffService — confirmation gate and idle TTL included —
+ * OeV2ClassicHandoffService — silent handoff with idle TTL —
  * adapts the node per handoff level, and invokes the classic command. The
  * legacy handlers never learn how they were launched, and OE v2 never
  * touches the v1 connection object directly.

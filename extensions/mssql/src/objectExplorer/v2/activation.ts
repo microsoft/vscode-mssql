@@ -143,21 +143,10 @@ export function activateObjectExplorerV2(
                   }
                 : {}),
         });
+        // Legacy commands hand off silently — v1/v2 connections coexisting is
+        // the normal state for older features; the Debug Console surfaces both.
         handoff = deps.legacyConnections
-            ? new OeV2ClassicHandoffService(deps.legacyConnections, {
-                  confirm: async (message) => {
-                      if (!oeV2Settings().confirmLegacyHandoff) {
-                          return true;
-                      }
-                      const proceed = "Continue";
-                      const choice = await vscode.window.showWarningMessage(
-                          message,
-                          { modal: true },
-                          proceed,
-                      );
-                      return choice === proceed;
-                  },
-              })
+            ? new OeV2ClassicHandoffService(deps.legacyConnections)
             : undefined;
         const localRegistry = registry;
         const localController = controller;

@@ -5,8 +5,8 @@
 
 /**
  * OE v2 explicit legacy handoff (B20): the policy table drives exposure,
- * the handoff service creates exactly one guarded classic connection per
- * v2 connection (confirmation gate, secret-free owner URIs, idle TTL,
+ * the handoff service silently creates exactly one guarded classic
+ * connection per v2 connection (secret-free owner URIs, idle TTL,
  * close-on-disconnect, failure isolation), and the H2 adapter synthesizes
  * classic nodes only for adaptable kinds.
  */
@@ -85,24 +85,13 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         }
     });
 
-    test("handoff: confirmation gate, one connection per v2 connection, reuse, close", async () => {
+    test("handoff: silent (no prompt), one connection per v2 connection, reuse, close", async () => {
         const { connections, calls } = seam();
-        let prompts = 0;
-        let approve = false;
         const service = new OeV2ClassicHandoffService(connections, {
-            confirm: async () => (prompts++, approve),
             uriNonce: () => "nonce",
         });
 
-        // declined → no classic connection is created
-        expect(
-            await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "profiler"),
-        ).to.equal(undefined);
-        expect(calls.connect).to.have.length(0);
-        expect(prompts).to.equal(1);
-
-        // approved → exactly one connection with a secret-free owner URI
-        approve = true;
+        // handoff is silent — exactly one connection with a secret-free owner URI
         const ownerUri = await service.ensureOwnerUri(
             "p1",
             "sfp_abcdef123456",
@@ -114,12 +103,10 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         expect(ownerUri).to.not.contain("user@example.com");
         expect(calls.connect).to.deep.equal([ownerUri]);
 
-        // second feature on the same connection REUSES (no second connect,
-        // no second prompt)
+        // second feature on the same connection REUSES (no second connect)
         const again = await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "backup");
         expect(again).to.equal(ownerUri);
         expect(calls.connect).to.have.length(1);
-        expect(prompts).to.equal(2); // prompted once before approval, once at approval
 
         expect(service.hasHandoff("p1")).to.equal(true);
         await service.close("p1");

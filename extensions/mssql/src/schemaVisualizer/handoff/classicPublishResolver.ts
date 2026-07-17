@@ -15,7 +15,6 @@
  * createSession; nothing here is cached, keyed, or logged.
  */
 
-import * as vscode from "vscode";
 import { randomUUID } from "crypto";
 import { IConnectionProfile } from "../../models/interfaces";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
@@ -40,16 +39,6 @@ export interface ClassicResolverDeps {
     connections: ClassicConnectionSeam;
     /** The SAVED profile backing this visualizer panel. */
     storedProfile: IConnectionProfile;
-    /** §8.1 explicit-confirmation policy (config-gated by the caller). */
-    confirm?: () => Promise<boolean>;
-}
-
-export class ClassicHandoffDeclinedError extends Error {
-    constructor() {
-        super("classicHandoffDeclined");
-        this.name = "ClassicHandoffDeclinedError";
-        Object.setPrototypeOf(this, ClassicHandoffDeclinedError.prototype);
-    }
 }
 
 export function createClassicPublishResolver(
@@ -57,9 +46,6 @@ export function createClassicPublishResolver(
 ): SchemaVisualizerClassicPublishResolver {
     return {
         async resolve({ database }): Promise<ResolvedClassicConnection> {
-            if (deps.confirm !== undefined && !(await deps.confirm())) {
-                throw new ClassicHandoffDeclinedError();
-            }
             // Re-resolve the STORED profile at command time (§8.1) — never
             // a cached credential; target database set explicitly.
             const profile = {
@@ -86,23 +72,6 @@ export function createClassicPublishResolver(
             };
         },
     };
-}
-
-/** Default §8.1 confirmation prompt (OE v2 legacy-handoff wording family). */
-export async function confirmClassicHandoff(): Promise<boolean> {
-    const configured = vscode.workspace
-        .getConfiguration()
-        .get<boolean>("mssql.schemaVisualizer.confirmLegacyHandoff", true);
-    if (!configured) {
-        return true;
-    }
-    const proceed = "Continue";
-    const choice = await vscode.window.showWarningMessage(
-        "Publishing schema changes creates a classic (SQL Tools Service) connection to generate and apply the DacFx report. Continue?",
-        { modal: true },
-        proceed,
-    );
-    return choice === proceed;
 }
 
 /** Adapter: the machine's fakeable port over the real v1 service client. */

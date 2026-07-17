@@ -248,10 +248,14 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
         expect(arg.nodeType).to.equal("Server");
     });
 
-    test("declined handoff is a quiet no-op; classic failure is a guarded error", async () => {
-        const declined = await redirectToClassic("backupDatabase", databaseNode(), fakeDeps(null));
-        expect(declined.ok).to.equal(false);
-        expect(declined.error).to.equal(undefined);
+    test("unavailable handoff is a quiet no-op; classic failure is a guarded error", async () => {
+        const unavailable = await redirectToClassic(
+            "backupDatabase",
+            databaseNode(),
+            fakeDeps(null),
+        );
+        expect(unavailable.ok).to.equal(false);
+        expect(unavailable.error).to.equal(undefined);
         sinon.assert.notCalled(execute);
 
         execute.rejects(new Error("classic exploded"));

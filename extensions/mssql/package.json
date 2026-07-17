@@ -4431,12 +4431,6 @@
                     "markdownDescription": "Enable the Schema Visualizer preview: a read-only schema diagram served entirely by the SQL Data Plane and MetadataStore (no SQL Tools Service v1 traffic on the read path). Requires `mssql.sqlDataPlane.enabled`.",
                     "scope": "application"
                 },
-                "mssql.schemaVisualizer.confirmLegacyHandoff": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Ask before the Schema Visualizer creates a legacy (SQL Tools Service v1) connection to preview or publish schema changes through DacFx.",
-                    "scope": "application"
-                },
                 "mssql.objectExplorer.viewMode": {
                     "type": "string",
                     "default": "classic",
@@ -4445,12 +4439,6 @@
                         "v2Preview"
                     ],
                     "markdownDescription": "Choose which Object Explorer view is active. `classic` uses the established SQL Tools Service Object Explorer. `v2Preview` additionally shows Object Explorer v2, which browses through the SQL Data Plane and MetadataStore (STS v1 only for explicit legacy feature handoff). Requires `mssql.sqlDataPlane.enabled`.",
-                    "scope": "application"
-                },
-                "mssql.objectExplorer.v2.confirmLegacyHandoff": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Ask before an Object Explorer v2 command creates a legacy (SQL Tools Service v1) connection for a feature handoff.",
                     "scope": "application"
                 },
                 "mssql.objectExplorer.v2.groupBySchema": {
