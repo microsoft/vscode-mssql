@@ -359,12 +359,28 @@ export interface IPackageInfo {
     aiKey: string;
 }
 
-const extensionRootCandidates = Array.from(
-    new Set([path.resolve(__dirname, "..", ".."), path.resolve(__dirname, "..", "..", "..")]),
-);
+/**
+ * Returns candidate extension roots for runtime layouts that load this module.
+ *
+ * Supported examples:
+ * - Bundled VSIX entry: <extension>/dist/extension.js
+ * - Local build output: <extension>/out/src/common/utils.js
+ * - Bundled source output: <extension>/dist/src/common/utils.js
+ *
+ * We intentionally keep only the direct parent and the three-level ancestor,
+ * which map to extension roots for the supported layouts above.
+ */
+function getExtensionRootCandidates(moduleDirectory: string): string[] {
+    return Array.from(
+        new Set([
+            path.resolve(moduleDirectory, ".."),
+            path.resolve(moduleDirectory, "..", "..", ".."),
+        ]),
+    );
+}
 
-function readJsonFromExtensionRoot(relativePath: string): any {
-    for (const candidateRoot of extensionRootCandidates) {
+function readJsonFromExtensionRoot(relativePath: string, moduleDirectory: string): any {
+    for (const candidateRoot of getExtensionRootCandidates(moduleDirectory)) {
         const candidate = path.join(candidateRoot, relativePath);
         if (fse.pathExistsSync(candidate)) {
             try {
@@ -378,9 +394,18 @@ function readJsonFromExtensionRoot(relativePath: string): any {
     return undefined;
 }
 
-export function getPackageInfo(packageJson?: any): IPackageInfo | undefined {
+/**
+ * Returns extension package metadata.
+ *
+ * If `packageJson` is not provided, metadata is discovered from candidate
+ * extension roots derived from `moduleDirectory`.
+ */
+export function getPackageInfo(
+    packageJson?: any,
+    moduleDirectory: string = __dirname,
+): IPackageInfo | undefined {
     if (!packageJson) {
-        packageJson = readJsonFromExtensionRoot("package.json");
+        packageJson = readJsonFromExtensionRoot("package.json", moduleDirectory);
     }
 
     if (!packageJson) {
