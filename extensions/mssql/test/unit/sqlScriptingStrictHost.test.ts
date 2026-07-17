@@ -240,7 +240,14 @@ suite("sqlScripting strict host flow (CACHE-6 §10.3)", () => {
         const operations = harness.service.capabilities({
             ref: refOf(harness.pinned, "Sales", "Orders"),
         });
-        expect(operations).to.deep.equal(["create", "selectTop", "insert", "update", "delete"]);
+        expect(operations).to.deep.equal([
+            "create",
+            "drop",
+            "selectTop",
+            "insert",
+            "update",
+            "delete",
+        ]);
         expect(harness.policies).to.have.length(0);
     });
 

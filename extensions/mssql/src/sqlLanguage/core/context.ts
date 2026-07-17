@@ -330,8 +330,20 @@ export function classifyContext(
                 if (isCurrentSourceAlias(text, tokens, sketch, offset, scopeId)) {
                     return { kind: "none", reason: "declarationSymbol" };
                 }
-                if (isTableSourceSlot(text, tokens, anchorIndex)) {
-                    const afterJoin = isAfterJoinWord(text, tokens, anchorIndex);
+                // While a source name is being typed, anchorIndex is the
+                // current identifier rather than the FROM/JOIN/comma that
+                // opened the slot. Look through that prefix token so exact
+                // schema prefixes (for example `FROM sys|`) remain source
+                // completions instead of being mistaken for join operators.
+                const sourceAnchorIndex =
+                    prefix.length > 0 &&
+                    at !== undefined &&
+                    isNameKind(at.kind) &&
+                    anchorIndex === atIndex
+                        ? prevSignificant(tokens, anchorIndex)
+                        : anchorIndex;
+                if (isTableSourceSlot(text, tokens, sourceAnchorIndex)) {
+                    const afterJoin = isAfterJoinWord(text, tokens, sourceAnchorIndex);
                     return { kind: "tableSource", scopeId, afterJoin, prefix };
                 }
                 return { kind: "joinOperator", scopeId, prefix };
