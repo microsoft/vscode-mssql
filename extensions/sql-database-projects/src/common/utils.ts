@@ -359,12 +359,20 @@ export interface IPackageInfo {
     aiKey: string;
 }
 
-const extensionRootCandidates = Array.from(
-    new Set([path.resolve(__dirname, "..", ".."), path.resolve(__dirname, "..", "..", "..")]),
-);
+function getExtensionRootCandidates(moduleDirectory: string): string[] {
+    return Array.from(
+        new Set([
+            // Bundled VSIX layout: <extension>/dist/extension.js
+            path.resolve(moduleDirectory, ".."),
+            // TypeScript output layouts used by local builds and tests.
+            path.resolve(moduleDirectory, "..", ".."),
+            path.resolve(moduleDirectory, "..", "..", ".."),
+        ]),
+    );
+}
 
-function readJsonFromExtensionRoot(relativePath: string): any {
-    for (const candidateRoot of extensionRootCandidates) {
+function readJsonFromExtensionRoot(relativePath: string, moduleDirectory: string): any {
+    for (const candidateRoot of getExtensionRootCandidates(moduleDirectory)) {
         const candidate = path.join(candidateRoot, relativePath);
         if (fse.pathExistsSync(candidate)) {
             try {
@@ -378,9 +386,12 @@ function readJsonFromExtensionRoot(relativePath: string): any {
     return undefined;
 }
 
-export function getPackageInfo(packageJson?: any): IPackageInfo | undefined {
+export function getPackageInfo(
+    packageJson?: any,
+    moduleDirectory: string = __dirname,
+): IPackageInfo | undefined {
     if (!packageJson) {
-        packageJson = readJsonFromExtensionRoot("package.json");
+        packageJson = readJsonFromExtensionRoot("package.json", moduleDirectory);
     }
 
     if (!packageJson) {
