@@ -356,6 +356,8 @@ export function databaseNode(connectionId: string, info: ServerDatabaseInfo): Oe
             canRefresh: true,
             canOpenQuery: !inaccessible,
             canSearch: !inaccessible,
+            // v1 parity: databases carry Copy Object Name (copies the db name).
+            canCopyQualifiedName: !inaccessible,
         },
         icon: "Database",
     };
@@ -829,6 +831,8 @@ export function objectNode(
             canCopyName: true,
             canCopyQualifiedName: true,
             canGenerateScript: true,
+            // v1 parity: Refresh appears on object nodes too (Table menu).
+            canRefresh: true,
             ...(isTable || objectKind === "view" ? { canSelectTop: true } : {}),
             ...(objectKind === "procedure" ? { canScriptExecute: true } : {}),
         },

@@ -19,9 +19,20 @@ import { OeV2Node } from "../tree/oeV2Node";
 
 const NODE_TYPE_BY_KIND: Partial<Record<OeV2Node["kind"], string>> = {
     connectedServer: "Server",
+    disconnectedConnection: "disconnectedServer",
     database: "Database",
     object: "Table", // policy limits object-kind handoff to tables (editTable)
 };
+
+/**
+ * Minimal SMO-style database URN. Classic nodes carry STS-produced URNs like
+ * `Server[@Name='HOST']/Database[@Name='X']`; the true SMO server NetName is
+ * unknowable here, so the server segment stays unnamed and resolves against
+ * the connected server (rename/drop handlers pass it through to SMO).
+ */
+function databaseUrn(database: string): string {
+    return `Server/Database[@Name='${database.replace(/'/g, "''")}']`;
+}
 
 export function toLegacyTreeNode(
     node: OeV2Node,
@@ -66,7 +77,17 @@ export function toLegacyTreeNode(
                   name: node.objectName,
                   urn: "",
               }
-            : undefined,
+            : nodeType === "Database" && database !== undefined
+              ? {
+                    // Classic handlers read metadata.name for the database and
+                    // metadata.urn for SMO-addressed operations (rename/drop).
+                    metadataType: 0,
+                    metadataTypeName: "Database",
+                    schema: "",
+                    name: database,
+                    urn: databaseUrn(database),
+                }
+              : undefined,
     );
 }
 
@@ -112,7 +133,7 @@ function syntheticDatabaseParent(
             metadataTypeName: "Database",
             schema: "",
             name: database,
-            urn: "",
+            urn: databaseUrn(database),
         },
     );
 }

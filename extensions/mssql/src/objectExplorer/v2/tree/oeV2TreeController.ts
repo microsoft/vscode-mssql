@@ -842,8 +842,21 @@ export class OeV2TreeController {
         connectionId: string,
     ): Promise<{ stored: Record<string, unknown>; fingerprint: string } | undefined> {
         const profile = await this.findProfile(connectionId);
-        const prepared = this.deps.sessions?.get(connectionId)?.prepared;
-        if (!profile || !prepared) {
+        if (!profile) {
+            return undefined;
+        }
+        // h0 features (e.g. Copy Connection String) work on DISCONNECTED
+        // profiles — prepare the saved profile on demand when no live
+        // session exists (no secret is resolved; providers stay lazy).
+        let prepared = this.deps.sessions?.get(connectionId)?.prepared;
+        if (!prepared && this.deps.secrets) {
+            try {
+                prepared = prepareConnection(profile.stored, this.deps.secrets, this.deps.tokens);
+            } catch {
+                return undefined; // unsupported auth type
+            }
+        }
+        if (!prepared) {
             return undefined;
         }
         return {

@@ -38,7 +38,7 @@ import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
 import { OeV2DragAndDropController, registerOeV2GroupCommands } from "./commands/oeV2GroupCommands";
 import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
 import { ConnectionConfig } from "../../connectionconfig/connectionconfig";
-import { Common, LocalContainers } from "../../constants/locConstants";
+import { Common, LocalContainers, ObjectExplorer } from "../../constants/locConstants";
 import { ContainerHostAdapter } from "../../docker/containerHostAdapter";
 import { deleteContainer, stopContainer } from "../../docker/dockerUtils";
 import { restartSqlServerContainer } from "../../deployment/sqlServerContainer";
@@ -62,6 +62,7 @@ export function activateObjectExplorerV2(
     let controller: OeV2TreeController | undefined;
     let registry: OeV2SessionRegistry | undefined;
     let handoff: OeV2ClassicHandoffService | undefined;
+    let activeView: vscode.TreeView<OeV2Node> | undefined;
 
     const removeSavedProfile = async (connectionId: string): Promise<void> => {
         const config = (deps.groupConfig ?? (() => undefined))();
@@ -151,6 +152,7 @@ export function activateObjectExplorerV2(
         const localRegistry = registry;
         const localController = controller;
         const localHandoff = handoff;
+        activeView = view;
         registration = vscode.Disposable.from(view, provider, {
             dispose: () => {
                 localController.dispose();
@@ -172,13 +174,19 @@ export function activateObjectExplorerV2(
         controller = undefined;
         registry = undefined;
         handoff = undefined;
+        activeView = undefined;
     };
 
     if (oeViewMode() === "v2Preview") {
         register();
     }
 
-    registerOeV2NativeCommands(context, () => controller);
+    registerOeV2NativeCommands(
+        context,
+        () => controller,
+        // Ctrl+C keybinding parity: fall back to the focused tree selection.
+        () => activeView?.selection[0],
+    );
 
     // B27: while any connection is opening/closing, tick the tree so the
     // slow-connect elapsed description ("connecting… (12s)") stays live.
@@ -500,6 +508,30 @@ export function activateObjectExplorerV2(
                     await handoff?.close(connectionId);
                     await controller?.disconnectProfile(connectionId);
                 }
+            },
+        ),
+        // v1 parity: Remove Connection deletes the saved profile (classic
+        // removeNode semantics — same confirmation wording, disconnect first).
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.removeConnection",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                if (!connectionId || !node) {
+                    return;
+                }
+                const response = await vscode.window.showInformationMessage(
+                    ObjectExplorer.NodeDeletionConfirmation(node.label),
+                    { modal: true },
+                    ObjectExplorer.NodeDeletionConfirmationYes,
+                    ObjectExplorer.NodeDeletionConfirmationNo,
+                );
+                if (response !== ObjectExplorer.NodeDeletionConfirmationYes) {
+                    return;
+                }
+                await handoff?.close(connectionId);
+                await controller?.disconnectProfile(connectionId);
+                await removeSavedProfile(connectionId);
+                controller?.refresh();
             },
         ),
         // v1 parity: Edit Connection on top-level connection nodes opens the

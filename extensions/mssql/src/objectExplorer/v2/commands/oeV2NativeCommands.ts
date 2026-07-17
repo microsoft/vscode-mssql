@@ -86,6 +86,8 @@ async function scriptObjectFromContext(
 export function registerOeV2NativeCommands(
     context: vscode.ExtensionContext,
     getController: () => OeV2TreeController | undefined,
+    /** Tree-selection fallback for keybinding invocations (no node arg). */
+    getSelectedNode?: () => OeV2Node | undefined,
 ): void {
     context.subscriptions.push(
         vscode.commands.registerCommand(
@@ -101,15 +103,17 @@ export function registerOeV2NativeCommands(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.copyQualifiedName",
             async (node?: OeV2Node) => {
-                if (!node) {
+                // Keybinding invocations (Ctrl+C in the view) carry no node.
+                const target = node ?? getSelectedNode?.();
+                if (!target) {
                     return;
                 }
                 const text =
-                    node.schema && node.objectName
-                        ? qualifiedName(node.schema, node.objectName)
-                        : (node.database ?? node.label);
+                    target.schema && target.objectName
+                        ? qualifiedName(target.schema, target.objectName)
+                        : (target.database ?? target.label);
                 await vscode.env.clipboard.writeText(text);
-                emitCommand("copyQualifiedName", "native", node);
+                emitCommand("copyQualifiedName", "native", target);
             },
         ),
         vscode.commands.registerCommand(

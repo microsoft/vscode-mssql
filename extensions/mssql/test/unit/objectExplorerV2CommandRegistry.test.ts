@@ -57,26 +57,65 @@ function serverNode(database?: string): OeV2Node {
 }
 
 suite("Object Explorer v2 command registry (B25)", () => {
-    test("targeting matrix: backup needs a database identity, restore takes servers too", () => {
+    test("targeting matrix: v1 menu parity per node kind", () => {
+        // Database node = the full v1 database menu (registry order).
         expect(commandFlagsFor({ kind: "database", database: "AppDb" })).to.deep.equal([
+            "oe2:cmd=newQuery",
+            "oe2:cmd=schemaDesigner",
+            "oe2:cmd=buildDataApi",
+            "oe2:cmd=search",
+            "oe2:cmd=profilerDb",
+            "oe2:cmd=renameDatabase",
             "oe2:cmd=backup",
-            "oe2:cmd=restore",
-            "oe2:cmd=profiler",
+            "oe2:cmd=restoreDb",
+            "oe2:cmd=importData",
+            "oe2:cmd=dropDatabase",
+            "oe2:cmd=copilotChat",
+            "oe2:cmd=copilotAgent",
             "oe2:cmd=schemaCompare",
+            "oe2:cmd=dacpac",
+            "oe2:cmd=newNotebook",
         ]);
+        // Server-scoped connection: server-flavor placements, no database
+        // maintenance (backup/rename/drop need a database identity).
         expect(commandFlagsFor({ kind: "connectedServer" })).to.deep.equal([
-            "oe2:cmd=restore",
+            "oe2:cmd=newQuery",
             "oe2:cmd=profiler",
+            "oe2:cmd=restore",
+            "oe2:cmd=importDataSrv",
+            "oe2:cmd=copyConnectionString",
+            "oe2:cmd=copilotChat",
+            "oe2:cmd=copilotAgent",
+            "oe2:cmd=schemaCompare",
+            "oe2:cmd=dacpac",
+            "oe2:cmd=newNotebook",
         ]);
+        // DB-scoped top-level connection IS its database (K4) — database
+        // flavors, plus rename/drop stay database-node-only per v1.
         expect(commandFlagsFor({ kind: "connectedServer", database: "AppDb" })).to.deep.equal([
+            "oe2:cmd=newQuery",
+            "oe2:cmd=schemaDesigner",
+            "oe2:cmd=buildDataApi",
+            "oe2:cmd=search",
+            "oe2:cmd=profilerDb",
             "oe2:cmd=backup",
-            "oe2:cmd=restore",
-            "oe2:cmd=profiler",
+            "oe2:cmd=restoreDb",
+            "oe2:cmd=importData",
+            "oe2:cmd=copyConnectionString",
+            "oe2:cmd=copilotChat",
+            "oe2:cmd=copilotAgent",
+            "oe2:cmd=schemaCompare",
+            "oe2:cmd=dacpac",
+            "oe2:cmd=newNotebook",
         ]);
-        // Modify Table Structure targets TABLE objects only (dogfood #8).
+        // Table objects = the v1 table menu (dogfood #8 + parity batch).
         expect(commandFlagsFor({ kind: "object" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "object", objectKind: "table" })).to.deep.equal([
+            "oe2:cmd=newQuery",
+            "oe2:cmd=editTableData",
             "oe2:cmd=editTable",
+            "oe2:cmd=copilotChat",
+            "oe2:cmd=copilotAgent",
         ]);
         expect(commandFlagsFor({ kind: "object", objectKind: "view" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "databaseFolder", database: "AppDb" })).to.deep.equal([]);
@@ -86,19 +125,23 @@ suite("Object Explorer v2 command registry (B25)", () => {
         // v1 gates: start on stopped, stop on connected, delete on both.
         expect(
             commandFlagsFor({ kind: "disconnectedConnection", isContainer: true }),
-        ).to.deep.equal(["oe2:cmd=startContainer", "oe2:cmd=deleteContainer"]);
+        ).to.deep.equal([
+            "oe2:cmd=copyConnectionString",
+            "oe2:cmd=startContainer",
+            "oe2:cmd=deleteContainer",
+        ]);
         expect(commandFlagsFor({ kind: "lostConnection", isContainer: true })).to.deep.equal([
             "oe2:cmd=startContainer",
             "oe2:cmd=deleteContainer",
         ]);
-        expect(commandFlagsFor({ kind: "connectedServer", isContainer: true })).to.deep.equal([
-            "oe2:cmd=restore",
-            "oe2:cmd=profiler",
-            "oe2:cmd=stopContainer",
-            "oe2:cmd=deleteContainer",
-        ]);
+        const connectedContainer = commandFlagsFor({ kind: "connectedServer", isContainer: true });
+        expect(connectedContainer).to.contain("oe2:cmd=stopContainer");
+        expect(connectedContainer).to.contain("oe2:cmd=deleteContainer");
+        expect(connectedContainer).to.not.contain("oe2:cmd=startContainer");
         // Non-container connections never see container commands.
-        expect(commandFlagsFor({ kind: "disconnectedConnection" })).to.deep.equal([]);
+        for (const flag of commandFlagsFor({ kind: "disconnectedConnection" })) {
+            expect(flag).to.not.contain("Container");
+        }
     });
 
     test("container connections carry docker identity end-to-end (DOCK-2)", () => {
@@ -150,11 +193,25 @@ suite("Object Explorer v2 command registry (B25)", () => {
             };
         };
         const shipped = manifest.contributes.menus["view/item/context"];
-        for (const expected of generateMenuContributions()) {
-            const entry = shipped.find((item) => item.command === expected.command);
-            expect(entry, expected.command).to.not.equal(undefined);
-            expect(entry!.when, expected.command).to.equal(expected.when);
+        const generated = generateMenuContributions();
+        // A command may ship several placements (v1 files the same command
+        // under different groups per node kind) — match on command+when.
+        for (const expected of generated) {
+            const entry = shipped.find(
+                (item) => item.command === expected.command && item.when === expected.when,
+            );
+            expect(entry, `${expected.command} :: ${expected.when}`).to.not.equal(undefined);
             expect(entry!.group, expected.command).to.equal(expected.group);
+        }
+        // ...and the manifest carries no STALE oe2:cmd entries beyond them.
+        const generatedKeys = new Set(generated.map((g) => `${g.command}::${g.when}`));
+        for (const item of shipped) {
+            if (item.command && /oe2:cmd=/.test(item.when ?? "")) {
+                expect(
+                    generatedKeys.has(`${item.command}::${item.when}`),
+                    `stale manifest entry: ${item.command} :: ${item.when}`,
+                ).to.equal(true);
+            }
         }
         // every registry command is declared
         const declared = new Set(manifest.contributes.commands.map((c) => c.command));

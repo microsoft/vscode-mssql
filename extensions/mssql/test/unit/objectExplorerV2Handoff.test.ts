@@ -70,18 +70,34 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         initializeIconUtils(); // TreeNodeInfo resolves icons in its ctor
     });
 
-    test("policy table: exposure by node kind, H1/H2 levels only, no H3", () => {
+    test("policy table: exposure by node kind, H0/H1/H2 levels only, no H3", () => {
         expect(policiesForNode("database").map((p) => p.feature)).to.deep.equal([
             "backupDatabase",
             "restoreDatabase",
             "profiler",
             "schemaCompare",
+            "schemaDesigner",
+            "buildDataApi",
+            "renameDatabase",
+            "dropDatabase",
+            "flatFileImport",
+            "dacpacDialog",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+            "createNotebook",
         ]);
-        expect(policiesForNode("object").map((p) => p.feature)).to.deep.equal(["editTable"]);
+        expect(policiesForNode("object").map((p) => p.feature)).to.deep.equal([
+            "editTable",
+            "tableExplorer",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+        ]);
         expect(policiesForNode("databaseFolder")).to.deep.equal([]);
-        expect(policiesForNode("disconnectedConnection")).to.deep.equal([]);
+        expect(policiesForNode("disconnectedConnection").map((p) => p.feature)).to.deep.equal([
+            "copyConnectionString",
+        ]);
         for (const policy of LEGACY_COMMAND_POLICIES) {
-            expect(["h1", "h2"]).to.contain(policy.level);
+            expect(["h0", "h1", "h2"]).to.contain(policy.level);
         }
     });
 

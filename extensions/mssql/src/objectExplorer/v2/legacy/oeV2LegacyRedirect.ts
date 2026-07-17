@@ -75,14 +75,19 @@ export async function redirectToClassic(
         return { ok: false, error: "Connect this profile in Object Explorer v2 first." };
     }
     const profile = facts.stored as unknown as IConnectionProfile;
-    const ownerUri = await deps.handoff.ensureOwnerUri(
-        node.connectionId,
-        facts.fingerprint,
-        profile,
-        feature,
-    );
-    if (!ownerUri) {
-        return { ok: false }; // declined or connect failed (already surfaced)
+    // h0 features work from the adapted node's profile/metadata alone (or
+    // open their own connection) — no classic handoff connection is created.
+    const ownerUri =
+        policy.level === "h0"
+            ? ""
+            : await deps.handoff.ensureOwnerUri(
+                  node.connectionId,
+                  facts.fingerprint,
+                  profile,
+                  feature,
+              );
+    if (ownerUri === undefined) {
+        return { ok: false }; // handoff connect failed (already surfaced)
     }
     diag.emit({
         feature: "objectExplorer",
