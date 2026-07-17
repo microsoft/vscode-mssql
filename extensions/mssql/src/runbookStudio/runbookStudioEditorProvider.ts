@@ -179,17 +179,27 @@ function registerRunbookStudioFeatures(
             },
         ),
     );
-    registerRunbookStudioPerfProbe(context);
+    registerRunbookStudioPerfProbe(context, provider, coordinatorFactory);
 }
 
 /**
- * PERF_MODE-only probes (A2 §12.2): safe semantic state for scenarios.
- * Outside perf mode the commands do not exist.
+ * PERF_MODE-only probes (A2 §12.2): drive the NORMAL product path (document
+ * model -> coordinator -> ledger -> adapter) and return safe semantic state.
+ * Never secrets, SQL text, rows, or artifacts. Outside perf mode the
+ * commands do not exist.
  */
-function registerRunbookStudioPerfProbe(context: vscode.ExtensionContext): void {
+function registerRunbookStudioPerfProbe(
+    context: vscode.ExtensionContext,
+    provider: RunbookStudioEditorProvider,
+    coordinatorFactory: () => RunbookRunCoordinator | undefined,
+): void {
     if (!Perf.enabled) {
         return;
     }
+    const modelFor = (uri?: string) => {
+        const controller = findRunbookStudioController(uri);
+        return controller ? provider.documents.get(controller.documentUriKey) : undefined;
+    };
     context.subscriptions.push(
         vscode.commands.registerCommand("mssql.perf.runbookStudio.openFixture", async () => {
             const doc = await vscode.workspace.openTextDocument({
@@ -220,7 +230,84 @@ function registerRunbookStudioPerfProbe(context: vscode.ExtensionContext): void 
                     nodeCount: state.artifact?.nodes.length ?? 0,
                     hasLock: state.artifact?.hasLock ?? false,
                     runState: state.run?.state,
+                    runId: state.run?.runId,
+                    verdict: state.run?.verdict,
+                    pendingGateNodeId: state.run?.pendingGate?.nodeId,
+                    nodeStates: state.run?.nodes.map((n) => ({
+                        nodeId: n.nodeId,
+                        state: n.state,
+                        outputCount: n.outputs?.length ?? 0,
+                    })),
                     historyCount: state.history.length,
+                };
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.perf.runbookStudio.startRun",
+            async (args?: {
+                uri?: string;
+                parameterValues?: Record<string, string | number | boolean | null>;
+            }) => {
+                const model = modelFor(args?.uri);
+                const coordinator = coordinatorFactory();
+                if (!model || !coordinator) {
+                    return { error: "no live Runbook Studio document" };
+                }
+                const result = await coordinator.startRun(model, args?.parameterValues ?? {});
+                return { runId: result.runId, errorCode: result.error?.code };
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.perf.runbookStudio.cancelRun",
+            async (args?: { uri?: string; runId?: string }) => {
+                const model = modelFor(args?.uri);
+                const coordinator = coordinatorFactory();
+                if (!model || !coordinator || !args?.runId) {
+                    return { error: "no live run" };
+                }
+                return coordinator.cancelRun(model, args.runId);
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.perf.runbookStudio.respondToGate",
+            async (args?: { uri?: string; runId?: string; nodeId?: string; approve?: boolean }) => {
+                const model = modelFor(args?.uri);
+                const coordinator = coordinatorFactory();
+                if (!model || !coordinator || !args?.runId || !args?.nodeId) {
+                    return { error: "no pending gate" };
+                }
+                const result = await coordinator.respondToGate(
+                    model,
+                    args.runId,
+                    args.nodeId,
+                    args.approve ?? true,
+                );
+                return { accepted: result.accepted, errorCode: result.error?.code };
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.perf.runbookStudio.fetchOutput",
+            async (args?: {
+                uri?: string;
+                handleId?: string;
+                startRow?: number;
+                rowCount?: number;
+            }) => {
+                const model = modelFor(args?.uri);
+                const coordinator = coordinatorFactory();
+                if (!model || !coordinator || !args?.handleId) {
+                    return { error: "no output handle" };
+                }
+                const page = await coordinator.fetchOutputPage(model, {
+                    handleId: args.handleId,
+                    startRow: args.startRow ?? 0,
+                    rowCount: args.rowCount ?? 100,
+                });
+                // Semantic counts only — never row values (A2 §12.2).
+                return {
+                    rows: page.rows?.length ?? 0,
+                    totalRows: page.totalRows,
+                    errorCode: page.error?.code,
                 };
             },
         ),
