@@ -31,6 +31,18 @@ export const inlineCompletionDebugCustomProfileId = "custom";
 export const inlineCompletionConfiguredDefaultProfileId: InlineCompletionDebugProfileId =
     "balanced";
 
+/**
+ * Version of the preset-profile DEFINITIONS below (WI-3.1 / addendum §7.6).
+ * Config groups freeze `baseProfileId` + `baseProfileVersion` into durable
+ * replay runs so a later profile edit cannot silently reinterpret old
+ * evidence.
+ *
+ * BUMP THIS on ANY observable change to `inlineCompletionDebugPresetProfiles`
+ * (ids, labels, model preferences, categories, schema-context defaults,
+ * debounce, token budgets) — additive or not.
+ */
+export const INLINE_COMPLETION_PROFILE_DEFINITIONS_VERSION = 1;
+
 export const defaultInlineCompletionModelVendors = [
     "copilot",
     "anthropic-api",

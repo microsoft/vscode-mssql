@@ -23,7 +23,9 @@ import { getErrorMessage } from "../../../utils/utils";
 import {
     FeatureReplayEngine,
     FeatureReplayHost,
+    FeatureReplayRunObserver,
 } from "../../../diagnostics/featureCapture/replayEngine";
+import { ReplayRunRepository } from "../../../diagnostics/featureCapture/replayRunRepository";
 import {
     buildInlineCompletionPromptMessages,
     collectText,
@@ -78,6 +80,12 @@ import {
     inlineCompletionCategories,
 } from "../../../sharedInterfaces/inlineCompletionDebug";
 import {
+    FeatureReplayCancellationToken,
+    FeatureReplayExecuteResult,
+} from "../../../sharedInterfaces/featureReplay";
+import { createInlineCompletionConfigGroup } from "../inlineCompletionConfigGroups";
+import { createCompletionsReplayRunRepository } from "../completionsReplayRunPersistence";
+import {
     getConfiguredContinuationModelSelector,
     getConfiguredIncludeSqlDiagnostics,
     getConfiguredModelSelector,
@@ -101,6 +109,14 @@ interface ReplaySchemaContextResult {
     schemaForeignKeyCount: number;
 }
 
+/** Per-run lookups the durable item records need (durable ids, group ids). */
+interface ReplayRunPersistLookup {
+    /** ring source event id → durable captureEventId used in the manifest. */
+    sourceCaptureIds: Map<string, string>;
+    /** frozen config digest → config group id. */
+    groupIdsByDigest: Map<string, string>;
+}
+
 export class InlineCompletionReplayService {
     private readonly _logger = logger2.withPrefix("InlineCompletionDebug");
     private readonly _onDidChangeEmitter = new vscode.EventEmitter<void>();
@@ -109,6 +125,9 @@ export class InlineCompletionReplayService {
         InlineCompletionDebugReplayConfig,
         InlineCompletionDebugReplayMatrixCell
     >;
+    /** Durable run persistence (WI-3.3); undefined when the store is unwired. */
+    private readonly _runRepository: ReplayRunRepository | undefined;
+    private readonly _runPersistLookups = new Map<string, ReplayRunPersistLookup>();
     private _replayCartDialogSnapshot: InlineCompletionDebugReplayEventSnapshot[] | undefined;
     private _disposed = false;
 
@@ -116,7 +135,10 @@ export class InlineCompletionReplayService {
     public readonly onDidChange = this._onDidChangeEmitter.event;
 
     constructor(private readonly _deps: InlineCompletionReplayServiceDeps) {
-        this._replayEngine = new FeatureReplayEngine(this.createReplayHost());
+        this._runRepository = createCompletionsReplayRunRepository();
+        this._replayEngine = new FeatureReplayEngine(this.createReplayHost(), {
+            observer: this.createRunObserver(),
+        });
     }
 
     public dispose(): void {
@@ -124,7 +146,12 @@ export class InlineCompletionReplayService {
             return;
         }
         this._disposed = true;
+        // Engine dispose marks interrupted runs `partial` (never silently
+        // lose run evidence) and notifies the observer BEFORE the repository
+        // flushes its final manifests.
         this._replayEngine.dispose();
+        void this._runRepository?.dispose();
+        this._runPersistLookups.clear();
         this._onDidChangeEmitter.dispose();
     }
 
@@ -277,11 +304,20 @@ export class InlineCompletionReplayService {
             overrides?: InlineCompletionDebugReplayConfig;
             tags?: InlineCompletionDebugEventTags;
             showPendingInLive?: boolean;
+            /** Engine-run cancellation (addendum §7.4): threaded into the
+             *  model request and response collection. */
+            cancellation?: FeatureReplayCancellationToken;
         } = {},
     ): Promise<InlineCompletionDebugEvent | undefined> {
         const overrides = options.overrides ?? inlineCompletionDebugStore.getOverrides();
         const tags = options.tags;
         const replayTagLocals = getReplayTagLocals(tags, sourceEvent.id);
+        // Durable identity for the replayed RESULT event (link id = the §7.3
+        // "result capture event ID"), caused by the source event when it has
+        // a durable id of its own.
+        const replayLink = inlineCompletionDebugStore.createEventLink({
+            causeEventId: sourceEvent.link?.captureEventId,
+        });
         const profile = getInlineCompletionDebugPresetProfile(overrides.profileId);
         const linePrefix = asString(sourceEvent.locals.linePrefix);
         const lineSuffix = asString(sourceEvent.locals.lineSuffix);
@@ -298,8 +334,9 @@ export class InlineCompletionReplayService {
         const replayStartedAt = Date.now();
         let pendingEventId: string | undefined;
         const recordReplayEvent = (
-            event: Omit<InlineCompletionDebugEvent, "id">,
+            eventInput: Omit<InlineCompletionDebugEvent, "id">,
         ): InlineCompletionDebugEvent => {
+            const event = { ...eventInput, link: replayLink };
             if (!pendingEventId) {
                 return inlineCompletionDebugStore.addEvent(event);
             }
@@ -312,6 +349,7 @@ export class InlineCompletionReplayService {
         if (options.showPendingInLive) {
             pendingEventId = inlineCompletionDebugStore.addEvent({
                 ...cloneBaseEvent(sourceEvent),
+                link: replayLink,
                 timestamp: replayStartedAt,
                 completionCategory,
                 intentMode,
@@ -477,6 +515,18 @@ export class InlineCompletionReplayService {
             (intentMode ? intentModeMaxTokens : continuationModeMaxTokens);
         const startedAt = replayStartedAt;
         const cancellationTokenSource = new vscode.CancellationTokenSource();
+        // Bridge the engine's webview-free token into the vscode token that
+        // rides the LM request/response APIs (addendum §7.4).
+        let cancellationBridge: { dispose(): void } | undefined;
+        if (options.cancellation) {
+            if (options.cancellation.isCancellationRequested) {
+                cancellationTokenSource.cancel();
+            } else {
+                cancellationBridge = options.cancellation.onCancellationRequested(() =>
+                    cancellationTokenSource.cancel(),
+                );
+            }
+        }
         let replayInputTokens: number | undefined;
         let replayOutputTokens: number | undefined;
         if (pendingEventId) {
@@ -628,6 +678,9 @@ export class InlineCompletionReplayService {
                 },
             });
         } catch (error) {
+            // A cancel that interrupted the request is a "cancelled" result,
+            // not an error (honesty: the model was cut off, it didn't fail).
+            const wasCancelled = cancellationTokenSource.token.isCancellationRequested;
             return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
                 timestamp: Date.now(),
@@ -636,7 +689,7 @@ export class InlineCompletionReplayService {
                 modelFamily: selectedModel.family,
                 modelId: selectedModel.id,
                 modelVendor: selectedModel.vendor,
-                result: "error",
+                result: wasCancelled ? "cancelled" : "error",
                 latencyMs: Date.now() - startedAt,
                 inputTokens: replayInputTokens,
                 outputTokens: replayOutputTokens,
@@ -684,6 +737,7 @@ export class InlineCompletionReplayService {
                 },
             });
         } finally {
+            cancellationBridge?.dispose();
             cancellationTokenSource.dispose();
         }
     }
@@ -720,8 +774,8 @@ export class InlineCompletionReplayService {
                 timestamp: startedAt,
                 result: "pending",
             }),
-            execute: async (event, config, tags) => {
-                await this.replaySourceEvent(event, {
+            execute: async (event, config, tags, cancellation) => {
+                const recorded = await this.replaySourceEvent(event, {
                     overrides: config,
                     tags: {
                         replayTraceId: tags.replayTraceId,
@@ -731,14 +785,199 @@ export class InlineCompletionReplayService {
                             : {}),
                         replaySourceEventId: tags.replaySourceEventId,
                     },
+                    cancellation,
                 });
+                if (!recorded) {
+                    return undefined;
+                }
+                const result: FeatureReplayExecuteResult = {
+                    resultEventId: recorded.id,
+                    ...(recorded.link
+                        ? { resultCaptureEventId: recorded.link.captureEventId }
+                        : {}),
+                    ...(recorded.result === "cancelled"
+                        ? { cancellationOutcome: "cancelledInFlight" as const }
+                        : {}),
+                };
+                return result;
             },
+            // §7.5: pre-queue cost estimate — sources × cells × 1 repetition,
+            // input tokens summed from captured events where present.
+            estimate: (sources, cells, repetitions) => {
+                const reps = repetitions ?? 1;
+                const cellCount = Math.max(cells.length, 1);
+                const totalExecutions = sources.length * cellCount * reps;
+                const knownInputTokens = sources
+                    .map((snapshot) => snapshot.event.inputTokens)
+                    .filter((tokens): tokens is number => typeof tokens === "number");
+                const estimatedInputTokens =
+                    knownInputTokens.length > 0
+                        ? knownInputTokens.reduce((sum, tokens) => sum + tokens, 0) *
+                          cellCount *
+                          reps
+                        : undefined;
+                const warnings: string[] = [];
+                if (totalExecutions > 100) {
+                    // Same threshold as the matrix builder's over-100 warning.
+                    warnings.push(
+                        `Large run: ${totalExecutions} model calls (over the 100-completion warning threshold).`,
+                    );
+                }
+                return {
+                    sourceItems: sources.length,
+                    matrixCells: cells.length,
+                    repetitions: reps,
+                    totalExecutions,
+                    ...(estimatedInputTokens !== undefined ? { estimatedInputTokens } : {}),
+                    warnings,
+                };
+            },
+            classifySafety: () => ({
+                sideEffectClass: "none",
+                targetBinding: "none",
+                requiresConfirmation: false,
+                requiresSandbox: false,
+                reasons: ["model call only"],
+            }),
             onStateChanged: () => {
                 if (!this._disposed) {
                     this._onDidChangeEmitter.fire();
                 }
             },
             isDisposed: () => this._disposed,
+        };
+    }
+
+    /**
+     * Durable-state observer (WI-3.3): forwards run/item lifecycle into the
+     * replay run repository. Everything here is fire-and-forget and
+     * failure-isolated — persistence never affects a run.
+     */
+    private createRunObserver():
+        | FeatureReplayRunObserver<
+              InlineCompletionDebugEvent,
+              InlineCompletionDebugReplayConfig,
+              InlineCompletionDebugReplayMatrixCell
+          >
+        | undefined {
+        const repository = this._runRepository;
+        if (!repository) {
+            return undefined;
+        }
+        return {
+            onRunQueued: (run, items) => {
+                const lookup: ReplayRunPersistLookup = {
+                    sourceCaptureIds: new Map(),
+                    groupIdsByDigest: new Map(),
+                };
+                const configGroups = new Map<
+                    string,
+                    ReturnType<typeof createInlineCompletionConfigGroup>
+                >();
+                const cellGroupIds = new Map<string, string>();
+                const sources = new Map<
+                    string,
+                    {
+                        captureSessionId?: string;
+                        captureEventId: string;
+                        label: string;
+                        snapshotJson: unknown;
+                    }
+                >();
+                for (const item of items) {
+                    if (!configGroups.has(item.configDigest)) {
+                        configGroups.set(
+                            item.configDigest,
+                            createInlineCompletionConfigGroup(
+                                item.config,
+                                item.matrixCellLabel ?? formatConfigGroupLabel(item.config),
+                            ),
+                        );
+                    }
+                    const group = configGroups.get(item.configDigest)!;
+                    lookup.groupIdsByDigest.set(item.configDigest, group.configGroupId);
+                    if (item.matrixCellId && !cellGroupIds.has(item.matrixCellId)) {
+                        cellGroupIds.set(item.matrixCellId, group.configGroupId);
+                    }
+                    if (!sources.has(item.sourceEventId)) {
+                        // Durable identity when the event carries a link;
+                        // ring/display id as the honest fallback for legacy
+                        // captures that never got one.
+                        const captureEventId =
+                            item.sourceEvent.link?.captureEventId ?? item.sourceEventId;
+                        sources.set(item.sourceEventId, {
+                            captureSessionId: item.sourceEvent.link?.captureSessionId,
+                            captureEventId,
+                            label: item.sourceLabel,
+                            snapshotJson: item.sourceEvent,
+                        });
+                        lookup.sourceCaptureIds.set(item.sourceEventId, captureEventId);
+                    }
+                }
+                this._runPersistLookups.set(run.id, lookup);
+                void repository
+                    .beginRun({
+                        replayRunId: run.id,
+                        createdAt: run.startedAt,
+                        sources: [...sources.values()],
+                        configGroups: [...configGroups.values()],
+                        cells: (run.matrixCells ?? []).map((cell) => ({
+                            matrixCellId: cell.cellId,
+                            configGroupId: cellGroupIds.get(cell.cellId) ?? "",
+                            label: `${cell.profileLabel} x ${cell.schemaLabel}`,
+                            ordinal: cell.ordinal,
+                        })),
+                        repetitions: 1,
+                        expectedItems: run.totalEvents,
+                        ...(run.estimate ? { estimate: run.estimate } : {}),
+                        ...(run.safety ? { safety: run.safety } : {}),
+                    })
+                    .then((durable) => {
+                        if (durable && !this._disposed) {
+                            this._replayEngine.setRunDurable(run.id, true);
+                        }
+                    });
+            },
+            onRunUpdated: (run) => {
+                repository.noteRunStatus({ replayRunId: run.id, status: run.status });
+                if (
+                    run.status === "completed" ||
+                    run.status === "cancelled" ||
+                    run.status === "partial" ||
+                    run.status === "failed"
+                ) {
+                    this._runPersistLookups.delete(run.id);
+                }
+            },
+            onItemSettled: (outcome) => {
+                const lookup = this._runPersistLookups.get(outcome.runId);
+                repository.recordItem(outcome.runId, {
+                    replayItemId: outcome.replayItemId,
+                    sourceCaptureEventId:
+                        lookup?.sourceCaptureIds.get(outcome.sourceEventId) ??
+                        outcome.sourceEventId,
+                    ...(outcome.matrixCellId ? { matrixCellId: outcome.matrixCellId } : {}),
+                    ...(lookup?.groupIdsByDigest.has(outcome.configDigest)
+                        ? { configGroupId: lookup.groupIdsByDigest.get(outcome.configDigest)! }
+                        : {}),
+                    repetition: outcome.repetition,
+                    queuedAt: outcome.queuedAt,
+                    ...(outcome.startedAt !== undefined ? { startedAt: outcome.startedAt } : {}),
+                    endedAt: outcome.endedAt,
+                    resolvedConfigDigest: outcome.configDigest,
+                    status: outcome.status,
+                    ...(outcome.resultCaptureEventId
+                        ? { resultCaptureEventId: outcome.resultCaptureEventId }
+                        : {}),
+                    ...(outcome.resultEventId ? { resultEventId: outcome.resultEventId } : {}),
+                    ...(outcome.errorCode ? { errorCode: outcome.errorCode } : {}),
+                    ...(outcome.errorMessage ? { errorMessage: outcome.errorMessage } : {}),
+                    ...(outcome.cancellationOutcome
+                        ? { cancellationOutcome: outcome.cancellationOutcome }
+                        : {}),
+                    attempt: outcome.attempt,
+                });
+            },
         };
     }
 
@@ -896,6 +1135,11 @@ export class InlineCompletionReplayService {
 }
 
 // --- Replay config + queued-event helpers -----------------------------------
+
+/** Config-group label for non-matrix rows (matrix rows use the cell label). */
+function formatConfigGroupLabel(config: InlineCompletionDebugReplayConfig): string {
+    return config.profileId ? `Profile: ${config.profileId}` : "Custom overrides";
+}
 
 export function formatTraceSourceLabel(
     trace: InlineCompletionDebugExportData,

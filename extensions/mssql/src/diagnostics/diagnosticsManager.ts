@@ -13,8 +13,10 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { initializeCompletionsCaptureJournal } from "../copilot/inlineCompletionDebug/completionsJournalBinding";
+import { configureCompletionsReplayRunPersistence } from "../copilot/inlineCompletionDebug/completionsReplayRunPersistence";
 import { CaptureMode, ProvenanceSummary } from "../sharedInterfaces/debugConsole";
 import { diag, newTraceId } from "./diagnosticsCore";
+import { reconcileReplayRunsOnStartup } from "./featureCapture/replayRunRepository";
 import { richStats } from "./richCollection";
 import {
     ObservabilityBundleManager,
@@ -111,6 +113,21 @@ export class DiagnosticsManager implements vscode.Disposable {
             storeRoot: this.store.storeRoot,
             hostSessionId: diag.sessionId,
             bundleManager: this.bundleManager,
+        });
+        // WI-3.3: durable replay-run persistence for the completions Replay
+        // Lab (per-viewer repositories over this store root), plus restart
+        // honesty — runs a dead session left running become `partial`.
+        configureCompletionsReplayRunPersistence({
+            storeRoot: this.store.storeRoot,
+            hostSessionId: diag.sessionId,
+            bundleRegistrar: this.bundleManager,
+            provenance: { ...this.provenance },
+        });
+        void reconcileReplayRunsOnStartup({
+            storeRoot: this.store.storeRoot,
+            currentHostSessionId: diag.sessionId,
+        }).catch(() => {
+            // reconcile reports its own issues; never disturb activation
         });
         this.applySettings();
         this.applyRichSetting();

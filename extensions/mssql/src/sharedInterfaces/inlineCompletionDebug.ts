@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { FeatureReplayRunStatus } from "./featureReplay";
 import { ObservabilityLinkV1 } from "./observabilityLink";
+import { ReplayEstimate, ReplaySafetyAssessment } from "./replaySafety";
 
 export type InlineCompletionResult =
     | "success"
@@ -263,10 +265,16 @@ export interface InlineCompletionDebugReplayRun {
     matrixCells?: InlineCompletionDebugReplayMatrixCell[];
     startedAt: number;
     completedAt?: number;
-    status: "queued" | "running" | "cancelled" | "completed";
+    status: FeatureReplayRunStatus;
     totalEvents: number;
     completedEvents: number;
     activeMatrixCellId?: string;
+    /** WI-3.2 additive fields (rendered by the Replay Lab page, WI-3.5). */
+    cancelRequestedAt?: number;
+    errorMessage?: string;
+    estimate?: ReplayEstimate;
+    safety?: ReplaySafetyAssessment;
+    durable?: boolean;
 }
 
 export interface InlineCompletionDebugReplayQueueRow {
@@ -281,6 +289,10 @@ export interface InlineCompletionDebugReplayQueueRow {
     queuedAt: number;
     startedAt?: number;
     config: InlineCompletionDebugReplayConfig;
+    /** sha256 of the frozen config's canonical JSON (queue-time freeze). */
+    configDigest?: string;
+    /** Repetition ordinal (always 1 until repetitions land). */
+    repetition?: number;
     matrixCellId?: string;
     matrixCellLabel?: string;
     event: InlineCompletionDebugEvent;
