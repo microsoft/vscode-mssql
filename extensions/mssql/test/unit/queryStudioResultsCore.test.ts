@@ -266,9 +266,13 @@ suite("RowStore", () => {
         expect(scan.values[49][0]).to.equal(49);
         expect(store.stats.memoryBytes).to.equal(memoryAfterSpill);
 
-        // The same window for the grid re-admits (viewport warmth wins).
+        // The same window for the grid re-admits and protects viewport pages,
+        // while the hard memory cap can keep total resident bytes unchanged.
+        const spillReadsAfterScan = store.stats.spillReads;
         await store.getRows("rs1", 0, 50, "grid");
-        expect(store.stats.memoryBytes).to.be.greaterThan(memoryAfterSpill);
+        expect(store.stats.spillReads).to.be.greaterThan(spillReadsAfterScan);
+        expect(store.stats.protectedPages).to.be.greaterThan(0);
+        expect(store.stats.memoryBytes).to.be.at.most(2500);
         store.dispose();
     });
 

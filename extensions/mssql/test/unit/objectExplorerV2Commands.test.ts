@@ -50,7 +50,7 @@ suite("Object Explorer v2 command primitives (B19)", () => {
             user: "u",
             authenticationType: "SqlLogin",
         });
-        expect(derived).to.equal("srv|Db|u|SqlLogin");
+        expect(derived).to.equal("srv|Db|u||SqlLogin");
         // The OE v2 profile tree derives the SAME id (open-from-context key)
         const tree = await readProfileTree({
             readAllConnectionGroups: async () => [],
