@@ -359,13 +359,21 @@ export interface IPackageInfo {
     aiKey: string;
 }
 
+/**
+ * Returns candidate extension roots for runtime layouts that load this module.
+ *
+ * Supported examples:
+ * - Bundled VSIX entry: <extension>/dist/extension.js
+ * - Local build output: <extension>/out/src/common/utils.js
+ * - Bundled source output: <extension>/dist/src/common/utils.js
+ *
+ * We intentionally keep only the direct parent and the three-level ancestor,
+ * which map to extension roots for the supported layouts above.
+ */
 function getExtensionRootCandidates(moduleDirectory: string): string[] {
     return Array.from(
         new Set([
-            // Bundled VSIX layout: <extension>/dist/extension.js
             path.resolve(moduleDirectory, ".."),
-            // TypeScript output layouts used by local builds and tests.
-            path.resolve(moduleDirectory, "..", ".."),
             path.resolve(moduleDirectory, "..", "..", ".."),
         ]),
     );
@@ -386,6 +394,12 @@ function readJsonFromExtensionRoot(relativePath: string, moduleDirectory: string
     return undefined;
 }
 
+/**
+ * Returns extension package metadata.
+ *
+ * If `packageJson` is not provided, metadata is discovered from candidate
+ * extension roots derived from `moduleDirectory`.
+ */
 export function getPackageInfo(
     packageJson?: any,
     moduleDirectory: string = __dirname,
