@@ -4,13 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Replay Lab page (final plan WI-3.5, addendum §6.4): the cross-feature run
- * surface — currently one feature (Completions; Query Studio arrives with its
- * safe adapter, WI-3.6). Inline Debug idiom throughout: a dense runs table
- * over a splitter with a per-run detail pane (items, config groups, deep
- * links), a packed one-row toolbar, and the EXISTING ReplayTraceBuilder
- * drawer as the "New replay…" entry point — same cart, same services, same
- * engine as the Completions page.
+ * Replay Lab page (final plan WI-3.5/WI-3.6, addendum §6.4): the
+ * cross-feature run surface — Completions and Query Studio (safe adapter,
+ * §7.8). Inline Debug idiom throughout: a dense runs table over a splitter
+ * with a per-run detail pane (items, config groups, deep links), a packed
+ * one-row toolbar, and the EXISTING ReplayTraceBuilder drawer as the
+ * completions "New replay…" entry point — same cart, same services, same
+ * engine as the Completions page. The Query Studio "New replay…" entry opens
+ * the standalone QS Replay panel (decision documented on
+ * DcOpenQueryStudioReplayRequest): its cart/capture UX stays there, while
+ * its durable runs list HERE through the shared repository/catalog, with a
+ * per-item target column (fingerprint label + database, §7.8.2).
  *
  * Data: durable rows ride dc/replayRunList (manifest-only catalog); live rows
  * come from the SAME completions debug provider the Completions page uses and
@@ -25,6 +29,7 @@ import {
     DcCompletionsStatusRequest,
 } from "../../../sharedInterfaces/debugConsole";
 import {
+    DcOpenQueryStudioReplayRequest,
     DcReplayRunDetailRequest,
     DcReplayRunDetailResult,
     DcReplayRunListRequest,
@@ -48,6 +53,17 @@ const ReplayTraceBuilderDrawer = lazy(() =>
 const SEMANTICS_LABEL = "interactive experiment · results are exploratory, never official";
 
 const ACTIVE_STATUSES = new Set(["queued", "running", "cancelling"]);
+
+type LabFeatureId = "completions" | "queryStudio";
+
+const FEATURE_GLYPHS: Record<string, string> = {
+    completions: "✦",
+    queryStudio: "▤",
+};
+
+function featureGlyph(featureId: string): string {
+    return FEATURE_GLYPHS[featureId] ?? "•";
+}
 
 function statusPillClass(status: string): string {
     switch (status) {
@@ -128,6 +144,7 @@ function ReplayLabContent() {
     const { openReplayBuilder, cancelReplayRun, selectEvent } = useInlineCompletionDebugContext();
     const liveRuns = useInlineCompletionDebugSelector((state) => state.replay.runs);
 
+    const [feature, setFeature] = useState<LabFeatureId>("completions");
     const [durableRows, setDurableRows] = useState<ReplayLabRunRowV1[]>([]);
     const [listLoaded, setListLoaded] = useState(false);
     const [listError, setListError] = useState<string | undefined>(undefined);
@@ -251,8 +268,8 @@ function ReplayLabContent() {
             mergeReplayLabRunRows(
                 liveRuns.map((run) => projectLiveReplayRunRow(run)),
                 durableRows,
-            ),
-        [durableRows, liveRuns],
+            ).filter((row) => row.featureId === feature),
+        [durableRows, feature, liveRuns],
     );
 
     const selectRun = useCallback(
@@ -273,10 +290,29 @@ function ReplayLabContent() {
         [navigate, selectEvent],
     );
 
+    const openQsReplayPanel = useCallback(() => {
+        void rpc.sendRequest(DcOpenQueryStudioReplayRequest.type, undefined);
+    }, [rpc]);
+
+    const selectFeature = useCallback((next: LabFeatureId) => {
+        setFeature(next);
+        // Selection belongs to the previous feature's table.
+        setSelectedRunId(undefined);
+        setDetail(undefined);
+    }, []);
+
     const featureEnabled = status?.featureEnabled === true;
-    const newReplayTitle = featureEnabled
-        ? "Open the replay builder (shared cart with the Completions page)"
-        : "Enable AI completions on the Completions page first";
+    // Per-feature "New replay…" routing: completions opens the shared
+    // ReplayTraceBuilder drawer; Query Studio opens the standalone QS Replay
+    // panel (WI-3.6 decision — cart/capture UX lives there, runs list here).
+    const newReplayEnabled = feature === "queryStudio" || featureEnabled;
+    const newReplayTitle =
+        feature === "queryStudio"
+            ? "Opens the Query Studio Replay panel (capture, cart, and queueing live there; runs list here)"
+            : featureEnabled
+              ? "Open the replay builder (shared cart with the Completions page)"
+              : "Enable AI completions on the Completions page first";
+    const onNewReplay = feature === "queryStudio" ? openQsReplayPanel : openReplayBuilder;
 
     return (
         <>
@@ -300,9 +336,10 @@ function ReplayLabContent() {
                     </label>
                     <select
                         className="dc-session-select"
-                        value="completions"
-                        onChange={() => undefined}>
+                        value={feature}
+                        onChange={(event) => selectFeature(event.target.value as LabFeatureId)}>
                         <option value="completions">✦ Completions</option>
+                        <option value="queryStudio">▤ Query Studio</option>
                     </select>
                     <span className="dc-muted dc-lab-semantics">{SEMANTICS_LABEL}</span>
                     <div style={{ flex: 1 }} />
@@ -318,9 +355,9 @@ function ReplayLabContent() {
                     </button>
                     <button
                         className="dc-btn primary"
-                        disabled={!featureEnabled}
+                        disabled={!newReplayEnabled}
                         title={newReplayTitle}
-                        onClick={openReplayBuilder}>
+                        onClick={onNewReplay}>
                         ▶ New replay…
                     </button>
                 </div>
@@ -335,12 +372,16 @@ function ReplayLabContent() {
                 ) : rows.length === 0 ? (
                     <EmptyState
                         title="No replay runs yet"
-                        body="Queue captured completion events from the cart — runs land here with durable manifests.">
+                        body={
+                            feature === "queryStudio"
+                                ? "Queue captured Query Studio runs from the Query Studio Replay panel — durable runs land here."
+                                : "Queue captured completion events from the cart — runs land here with durable manifests."
+                        }>
                         <button
                             className="dc-btn primary"
-                            disabled={!featureEnabled}
+                            disabled={!newReplayEnabled}
                             title={newReplayTitle}
-                            onClick={openReplayBuilder}>
+                            onClick={onNewReplay}>
                             ▶ New replay…
                         </button>
                     </EmptyState>
@@ -432,7 +473,9 @@ function RunRow({
                     </span>
                 ) : null}
             </td>
-            <td>✦ {row.featureId}</td>
+            <td>
+                {featureGlyph(row.featureId)} {row.featureId}
+            </td>
             <td className="dc-mono">
                 {runLabel(row)}
                 {row.activeCellLabel ? (
@@ -501,7 +544,14 @@ function RunDetailPane({
     }
     const active = row.live && ACTIVE_STATUSES.has(row.status);
     const cancelling = row.status === "cancelling";
-    const canDeepLink = row.currentHostSession;
+    // Deep links route to the Completions page; Query Studio results live in
+    // the Query Studio panel and have no console page yet.
+    const canDeepLink = row.currentHostSession && row.featureId === "completions";
+    // WI-3.6: compact target column (fingerprint label + database) — shown
+    // when any item carries a target (Query Studio runs).
+    const showTargetColumn = (detail?.items ?? []).some(
+        (item) => item.targetLabel !== undefined || item.targetDatabase !== undefined,
+    );
     return (
         <div className="dc-lab-detail">
             <div className="dc-lab-detail-head">
@@ -545,7 +595,7 @@ function RunDetailPane({
                                     <th>cell</th>
                                     <th>status</th>
                                     <th>mode</th>
-                                    <th>schema</th>
+                                    {showTargetColumn ? <th>target</th> : <th>schema</th>}
                                     <th>duration</th>
                                     <th>outcome</th>
                                     <th></th>
@@ -567,9 +617,20 @@ function RunDetailPane({
                                             </span>
                                         </td>
                                         <td className="dc-mono">{item.replayMode ?? ""}</td>
-                                        <td className="dc-mono">
-                                            {item.schemaContextSource ?? ""}
-                                        </td>
+                                        {showTargetColumn ? (
+                                            <td
+                                                className="dc-mono"
+                                                title={item.targetFingerprint ?? ""}>
+                                                {item.targetLabel ?? ""}
+                                                {item.targetDatabase
+                                                    ? `${item.targetLabel ? " · " : ""}${item.targetDatabase}`
+                                                    : ""}
+                                            </td>
+                                        ) : (
+                                            <td className="dc-mono">
+                                                {item.schemaContextSource ?? ""}
+                                            </td>
+                                        )}
                                         <td className="dc-mono">
                                             {item.durationMs !== undefined
                                                 ? formatDuration(item.durationMs)
@@ -594,7 +655,9 @@ function RunDetailPane({
                                                 title={
                                                     canDeepLink
                                                         ? "Select the replayed result event on the Completions page"
-                                                        : "Result events from other host sessions are not in the live ring"
+                                                        : row.featureId === "queryStudio"
+                                                          ? "Query Studio replay results live in the Query Studio panel"
+                                                          : "Result events from other host sessions are not in the live ring"
                                                 }
                                                 onClick={() =>
                                                     onOpenEvent(
@@ -612,7 +675,9 @@ function RunDetailPane({
                                                 title={
                                                     canDeepLink
                                                         ? "Select the source event on the Completions page"
-                                                        : "Source events from other host sessions are not in the live ring"
+                                                        : row.featureId === "queryStudio"
+                                                          ? "Query Studio source records live in the Query Studio Replay panel"
+                                                          : "Source events from other host sessions are not in the live ring"
                                                 }
                                                 onClick={() =>
                                                     onOpenEvent(item.sourceCaptureEventId)

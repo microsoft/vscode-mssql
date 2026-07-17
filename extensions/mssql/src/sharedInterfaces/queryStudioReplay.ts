@@ -111,6 +111,13 @@ export interface QueryStudioReplayWebviewState {
     captureArmed: boolean;
     elevatedCapture: boolean;
     liveTargets: QsReplayTargetInfo[];
+    /**
+     * §7.8.2 explicit target selection: replay binds ONLY to a live document
+     * whose fingerprint matches the record, or to this explicitly selected
+     * document. Unset = fingerprint matching only (no first-document
+     * fallback, ever).
+     */
+    selectedTargetUriKey?: string;
     replay: QsReplayState;
     lastError?: string;
 }
@@ -126,6 +133,8 @@ export interface QueryStudioReplayReducers {
     runMatrix: { databases: string[]; modes: Array<"normal" | "estimatedPlan" | "actualPlan"> };
     cancelRun: { runId?: string };
     saveTraceNow: Record<string, never>;
+    /** §7.8.2: explicit replay target selection (null clears it). */
+    selectReplayTarget: { uriKey: string | null };
 }
 
 export namespace QsReplayListRecordsRequest {

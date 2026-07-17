@@ -14,6 +14,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { initializeCompletionsCaptureJournal } from "../copilot/inlineCompletionDebug/completionsJournalBinding";
 import { configureCompletionsReplayRunPersistence } from "../copilot/inlineCompletionDebug/completionsReplayRunPersistence";
+import { configureQsReplayRunPersistence } from "../queryStudio/replay/qsReplayRunPersistence";
 import { CaptureMode, ProvenanceSummary } from "../sharedInterfaces/debugConsole";
 import { diag, newTraceId } from "./diagnosticsCore";
 import { reconcileReplayRunsOnStartup } from "./featureCapture/replayRunRepository";
@@ -118,6 +119,15 @@ export class DiagnosticsManager implements vscode.Disposable {
         // Lab (per-viewer repositories over this store root), plus restart
         // honesty — runs a dead session left running become `partial`.
         configureCompletionsReplayRunPersistence({
+            storeRoot: this.store.storeRoot,
+            hostSessionId: diag.sessionId,
+            bundleRegistrar: this.bundleManager,
+            provenance: { ...this.provenance },
+        });
+        // WI-3.6: Query Studio replay runs persist through the same durable
+        // repository/catalog, so the Replay Lab lists them next to
+        // completions runs (featureId "queryStudio").
+        configureQsReplayRunPersistence({
             storeRoot: this.store.storeRoot,
             hostSessionId: diag.sessionId,
             bundleRegistrar: this.bundleManager,

@@ -218,14 +218,22 @@ suite("Replay run repository", () => {
         expect(manifest.estimate?.totalExecutions).to.equal(2);
         expect(manifest.safety.sideEffectClass).to.equal("none");
         expect(manifest.provenance).to.deep.equal({ extensionVersion: "1.45.0-test" });
-        // Full frozen config groups persist next to the manifest (§7.6).
+        // Frozen config groups persist next to the manifest, SANITIZED
+        // through the shared allowlist (§7.6): the test feature's unknown
+        // keys ("speed"/"depth") are dropped, while identity and the
+        // ORIGINAL effective digest survive.
         const groupsRaw = memFs.files.get(
             `${runDir("rr-test-1")}/${REPLAY_RUN_CONFIG_GROUPS_FILE}`,
         );
         expect(groupsRaw).to.be.a("string");
-        expect((JSON.parse(groupsRaw!) as ConfigGroupV1[])[0].settingMutability.speed).to.equal(
-            "hot",
+        const persistedGroup = (JSON.parse(groupsRaw!) as ConfigGroupV1[])[0];
+        expect(persistedGroup.configGroupId).to.equal(manifest.configGroups[0].configGroupId);
+        expect(persistedGroup.effectiveConfigDigest).to.equal(
+            manifest.configGroups[0].effectiveConfigDigest,
         );
+        expect(persistedGroup.partialOverrides).to.deep.equal({});
+        expect(persistedGroup.effectiveConfig).to.deep.equal({});
+        expect(persistedGroup.settingMutability).to.deep.equal({});
 
         clock.advance(1000);
         repository.noteRunStatus({ replayRunId: "rr-test-1", status: "running" });

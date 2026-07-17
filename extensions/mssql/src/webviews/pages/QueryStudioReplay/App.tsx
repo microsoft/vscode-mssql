@@ -150,6 +150,45 @@ export function QueryStudioReplayApp() {
                           .join(", ")}
             </div>
 
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontSize: "11px",
+                }}>
+                <span style={{ color: "var(--vscode-descriptionForeground)" }}>Replay target</span>
+                <select
+                    style={{
+                        background: "var(--vscode-dropdown-background)",
+                        color: "var(--vscode-dropdown-foreground)",
+                        border: "1px solid var(--vscode-dropdown-border)",
+                        fontSize: "11px",
+                        padding: "1px 4px",
+                    }}
+                    value={state.selectedTargetUriKey ?? ""}
+                    title="Replay binds to the document whose server\database fingerprint matches the record; select a document here to bind explicitly instead. There is no automatic fallback."
+                    onChange={(event) =>
+                        action("selectReplayTarget", {
+                            uriKey: event.target.value === "" ? null : event.target.value,
+                        })
+                    }>
+                    <option value="">auto — captured fingerprint match only</option>
+                    {state.liveTargets.map((target) => (
+                        <option key={target.uriKey} value={target.uriKey}>
+                            {target.fileName}
+                            {target.matchesRecord ? " (matches a record)" : ""}
+                            {target.connected ? "" : " (disconnected)"}
+                        </option>
+                    ))}
+                </select>
+                <span style={{ color: "var(--vscode-descriptionForeground)" }}>
+                    {state.selectedTargetUriKey
+                        ? "explicit selection — recorded on the run"
+                        : "records without a matching live fingerprint are blocked until a target is selected"}
+                </span>
+            </div>
+
             {state.lastError ? (
                 <div
                     style={{

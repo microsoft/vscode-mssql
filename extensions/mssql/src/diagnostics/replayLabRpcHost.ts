@@ -8,24 +8,25 @@
  * catalog entries → thin run rows, items.jsonl records + live engine queue
  * rows → item rows, and frozen config groups → SANITIZED group summaries.
  *
- * PRIVACY: every projection here is allowlist-based. Config groups on disk
- * carry the full effective config — including a custom system prompt, which
- * is user text — so `sanitizeReplayLabConfigGroup` collapses content-bearing
- * values to flags before anything crosses the webview boundary. Item rows are
- * built field-by-field from the durable record (ids, labels, timestamps,
- * digests); live queue rows never contribute their event bodies.
+ * PRIVACY: every projection here is allowlist-based. The config-group
+ * sanitizer lives in featureCapture/configGroupSanitizer.ts (re-exported
+ * here) so the wire and the durable repository share ONE allowlist —
+ * content-bearing values collapse to flags before anything crosses the
+ * webview boundary OR lands in configGroups.json. Item rows are built
+ * field-by-field from the durable record (ids, labels, timestamps, digests);
+ * live queue rows never contribute their event bodies.
  */
 
 import { ReplayRunCatalogEntry } from "./featureCapture/replayRunCatalog";
 import { ReplayRunItemRecordV1, ReplayRunManifestV1 } from "./featureCapture/replayRunRepository";
-import { ConfigGroupV1 } from "../sharedInterfaces/configGroup";
 import { InlineCompletionDebugReplayQueueRow } from "../sharedInterfaces/inlineCompletionDebug";
+
+export { sanitizeReplayLabConfigGroup } from "./featureCapture/configGroupSanitizer";
 import {
     REPLAY_LAB_ITEMS_DEFAULT_LIMIT,
     REPLAY_LAB_ITEMS_MAX_LIMIT,
     REPLAY_LAB_RUN_LIST_DEFAULT_LIMIT,
     REPLAY_LAB_RUN_LIST_MAX_LIMIT,
-    ReplayLabConfigGroupV1,
     ReplayLabItemRowV1,
     ReplayLabRunRowV1,
     DcReplayRunListParams,
@@ -148,6 +149,11 @@ export function projectDurableReplayItemRow(
         ...(record.cancellationOutcome ? { cancellationOutcome: record.cancellationOutcome } : {}),
         ...(record.replayMode ? { replayMode: record.replayMode } : {}),
         ...(record.schemaContextSource ? { schemaContextSource: record.schemaContextSource } : {}),
+        // WI-3.6: compact target identity (label + database + opaque salted
+        // fingerprint) — ids/labels only, never a connection string.
+        ...(record.target?.label ? { targetLabel: record.target.label } : {}),
+        ...(record.target?.fingerprint ? { targetFingerprint: record.target.fingerprint } : {}),
+        ...(record.targetDatabase ? { targetDatabase: record.targetDatabase } : {}),
         ...(record.configGroupId ? { configGroupId: record.configGroupId } : {}),
         configDigest: record.resolvedConfigDigest,
     };
@@ -172,56 +178,5 @@ export function projectLiveReplayItemRow(
         ...(row.startedAt !== undefined ? { startedAt: row.startedAt } : {}),
         ...(row.config.replayMode ? { replayMode: row.config.replayMode } : {}),
         ...(row.configDigest ? { configDigest: row.configDigest } : {}),
-    };
-}
-
-// ---------------------------------------------------------------------------
-// Config-group sanitization (allowlist)
-// ---------------------------------------------------------------------------
-
-/**
- * Keys of the completions replay config that are safe metadata. Anything not
- * listed here — notably `customSystemPrompt` (user text) and unknown future
- * keys — is DROPPED from the wire projection.
- */
-const SAFE_OVERRIDE_KEYS: ReadonlySet<string> = new Set([
-    "profileId",
-    "modelSelector",
-    "continuationModelSelector",
-    "useSchemaContext",
-    "includeSqlDiagnostics",
-    "debounceMs",
-    "maxTokens",
-    "enabledCategories",
-    "forceIntentMode",
-    "allowAutomaticTriggers",
-    "schemaContext",
-    "replayMode",
-    "schemaFallbackToCaptured",
-]);
-
-export function sanitizeReplayLabConfigGroup(group: ConfigGroupV1): ReplayLabConfigGroupV1 {
-    const overridesSummary: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(group.partialOverrides ?? {})) {
-        if (SAFE_OVERRIDE_KEYS.has(key) && value !== undefined) {
-            overridesSummary[key] = value;
-        }
-    }
-    const effective = group.effectiveConfig ?? {};
-    const replayMode = effective.replayMode ?? group.partialOverrides?.replayMode;
-    return {
-        configGroupId: group.configGroupId,
-        label: group.label,
-        version: group.version,
-        ...(group.baseProfileId ? { baseProfileId: group.baseProfileId } : {}),
-        ...(group.baseProfileVersion !== undefined
-            ? { baseProfileVersion: group.baseProfileVersion }
-            : {}),
-        effectiveConfigDigest: group.effectiveConfigDigest ?? "",
-        ...(typeof replayMode === "string" ? { replayMode } : {}),
-        overridesSummary,
-        customSystemPromptUsed:
-            typeof effective.customSystemPrompt === "string" &&
-            effective.customSystemPrompt.length > 0,
     };
 }

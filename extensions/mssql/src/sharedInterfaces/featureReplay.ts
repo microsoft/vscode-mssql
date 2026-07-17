@@ -14,7 +14,12 @@
  * cancellation, and replay tagging identically for every feature.
  */
 
-import { ReplayCancellationOutcome, ReplayEstimate, ReplaySafetyAssessment } from "./replaySafety";
+import {
+    ReplayCancellationOutcome,
+    ReplayEstimate,
+    ReplaySafetyAssessment,
+    ReplayTargetRef,
+} from "./replaySafety";
 
 /**
  * How a cart row resolves its replay config at queue time:
@@ -158,6 +163,10 @@ export interface FeatureReplayExecuteResult {
     replayMode?: string;
     /** WI-3.4: where the item's schema/context inputs came from (incl. explicit fallback). */
     schemaContextSource?: string;
+    /** WI-3.6 (§7.8.2): the resolved execution target this item ran against. */
+    target?: ReplayTargetRef;
+    /** WI-3.6 (§7.8.2): the database the item actually executed in. */
+    targetDatabase?: string;
 }
 
 export function createEmptyFeatureReplayState<

@@ -84,6 +84,7 @@ import {
     DcIcDebugCommandRequest,
 } from "../sharedInterfaces/completionsDebugRpc";
 import {
+    DcOpenQueryStudioReplayRequest,
     DcReplayRunDetailRequest,
     DcReplayRunListRequest,
     projectLiveReplayRunRow,
@@ -799,6 +800,21 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             }
             await vscode.commands.executeCommand(Constants.cmdOpenInlineCompletionDebug);
             return { ok: true };
+        });
+
+        // WI-3.6 Lab integration: the Query Studio "New replay…" entry opens
+        // the standalone QS Replay panel — its cart/capture UX lives there;
+        // durable QS runs list here via dc/replayRunList.
+        this.onRequest(DcOpenQueryStudioReplayRequest.type, async () => {
+            try {
+                await vscode.commands.executeCommand("mssql.queryStudio.openReplayLab");
+                return { ok: true };
+            } catch (error) {
+                return {
+                    ok: false,
+                    error: error instanceof Error ? error.message : String(error),
+                };
+            }
         });
 
         // Console-hosted Inline Completion Debug: the host wraps the singleton

@@ -133,6 +133,12 @@ export interface ReplayLabItemRowV1 {
     cancellationOutcome?: string;
     replayMode?: string;
     schemaContextSource?: string;
+    /** WI-3.6 (§7.8.2): compact target identity for Query Studio items —
+     *  label + database render in the detail table; the salted fingerprint
+     *  rides only as a tooltip-grade opaque id, never a connection string. */
+    targetLabel?: string;
+    targetDatabase?: string;
+    targetFingerprint?: string;
     configGroupId?: string;
     configDigest?: string;
 }
@@ -173,6 +179,19 @@ export interface DcReplayRunDetailResult {
 export namespace DcReplayRunDetailRequest {
     export const type = new RequestType<DcReplayRunDetailParams, DcReplayRunDetailResult, void>(
         "dc/replayRunDetail",
+    );
+}
+
+/**
+ * WI-3.6 Lab integration decision: the Query Studio "New replay…" entry
+ * OPENS the standalone Query Studio Replay panel (its cart/capture UX stays
+ * there — mounting that panel's reducer-driven state inside the console page
+ * would duplicate the whole webview state provider for no capability gain).
+ * QS runs themselves are durable and listed here via dc/replayRunList.
+ */
+export namespace DcOpenQueryStudioReplayRequest {
+    export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
+        "dc/openQueryStudioReplayPanel",
     );
 }
 

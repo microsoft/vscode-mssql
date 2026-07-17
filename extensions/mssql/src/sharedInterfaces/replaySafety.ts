@@ -60,6 +60,14 @@ export interface ReplayPreflightContext<TConfig = unknown> {
     repetitions: number;
     /** The resolved (frozen) config of every planned item, in queue order. */
     configs: TConfig[];
+    /**
+     * WI-3.6 (additive): the planned (source event, frozen config) pair of
+     * every item, in queue order. Adapters whose safety classification
+     * depends on the SOURCE record — Query Studio's execution mode and SQL
+     * text presence (§7.8) — read these; `sourceEvent` is the frozen cart
+     * snapshot payload, typed by the feature adapter.
+     */
+    pairs?: Array<{ sourceEvent: unknown; config: TConfig }>;
 }
 
 export interface ReplayPreflightResult {

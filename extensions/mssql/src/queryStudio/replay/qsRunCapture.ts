@@ -42,6 +42,24 @@ export const QS_RUN_TRACE_FOLDER_NAME = "querystudio-run-traces";
 export const QS_RUN_TRACE_FILE_PREFIX = "mssql-querystudio-run-";
 export const QS_SPLITTER_VERSION = "lexer-v1";
 
+/**
+ * THE salted server\database identity digest (§7.8.2 exact target binding):
+ * capture stamps it on the record as `profileFingerprint`, and replay target
+ * resolution recomputes it for live sessions through this same function —
+ * one derivation, so match/mismatch is meaningful. Salted per process
+ * session (redaction.ts), so fingerprints from other host sessions can never
+ * silently match; those replays require an explicit target selection.
+ */
+export function computeQsProfileFingerprint(
+    server: string | undefined,
+    database: string | undefined,
+): string | undefined {
+    if (!server && !database) {
+        return undefined;
+    }
+    return digestValue("profile", `${server ?? ""}\\${database ?? ""}`);
+}
+
 const captureLogger = logger2.withPrefix("QueryStudioReplay");
 
 const defaultReplayConfig: QsReplayConfig = {
@@ -162,10 +180,7 @@ export function beginRunRecord(input: BeginRunRecordInput): string | undefined {
         documentUriDigest: digestValue("uri", input.uriKey),
         ...(input.server || input.database
             ? {
-                  profileFingerprint: digestValue(
-                      "profile",
-                      `${input.server ?? ""}\\${input.database ?? ""}`,
-                  ),
+                  profileFingerprint: computeQsProfileFingerprint(input.server, input.database),
               }
             : {}),
         ...(input.database ? { database: input.database } : {}),

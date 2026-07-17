@@ -50,6 +50,7 @@ import {
     ReplayPreflightContext,
     ReplayPreflightResult,
     ReplaySafetyAssessment,
+    ReplayTargetRef,
 } from "../../sharedInterfaces/replaySafety";
 import { sha256OfCanonicalJson } from "./configGroups";
 import { newReplayItemId, newReplayRunId } from "./identity";
@@ -171,6 +172,9 @@ export interface FeatureReplayItemOutcome {
     /** WI-3.4: feature-declared execution provenance dimensions (additive). */
     replayMode?: string;
     schemaContextSource?: string;
+    /** WI-3.6 (§7.8.2): the resolved execution target this item ran against. */
+    target?: ReplayTargetRef;
+    targetDatabase?: string;
     attempt: number;
 }
 
@@ -519,6 +523,12 @@ export class FeatureReplayEngine<
             matrixCells: cells.length,
             repetitions: 1,
             configs: queueRows.map((row) => row.config),
+            // WI-3.6: source-aware gating — adapters like Query Studio
+            // classify per (record, config) pair (§7.8).
+            pairs: planned.map((entry) => ({
+                sourceEvent: entry.item.sourceEvent as unknown,
+                config: entry.row.config,
+            })),
         };
         if (this._host.estimate) {
             try {
@@ -931,6 +941,10 @@ export class FeatureReplayEngine<
                         ...(result?.schemaContextSource
                             ? { schemaContextSource: result.schemaContextSource }
                             : {}),
+                        ...(result?.target ? { target: result.target } : {}),
+                        ...(result?.targetDatabase
+                            ? { targetDatabase: result.targetDatabase }
+                            : {}),
                         endedAt: Date.now(),
                         startedAt,
                     };
@@ -1049,6 +1063,8 @@ export class FeatureReplayEngine<
             ...(info.errorMessage ? { errorMessage: info.errorMessage } : {}),
             ...(info.replayMode ? { replayMode: info.replayMode } : {}),
             ...(info.schemaContextSource ? { schemaContextSource: info.schemaContextSource } : {}),
+            ...(info.target ? { target: info.target } : {}),
+            ...(info.targetDatabase ? { targetDatabase: info.targetDatabase } : {}),
             attempt: 1,
         };
         this.notifyObserver((observer) => observer.onItemSettled?.(outcome, run));
@@ -1106,6 +1122,8 @@ interface ItemOutcomeInfo {
     errorMessage?: string;
     replayMode?: string;
     schemaContextSource?: string;
+    target?: ReplayTargetRef;
+    targetDatabase?: string;
 }
 
 export function createReplayTags<TEvent, TConfig>(

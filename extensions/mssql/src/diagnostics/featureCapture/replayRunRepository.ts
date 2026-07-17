@@ -12,9 +12,12 @@
  *   via temp-file + atomic rename on state transitions (debounced; terminal
  *   transitions flush immediately);
  * - `items.jsonl` — one line per item terminal (§7.3 per-item record);
- * - `configGroups.json` — the FULL frozen `ConfigGroupV1` definitions (§7.6:
- *   profile labels and definitions are frozen into the run; the manifest
- *   carries the normative ref subset).
+ * - `configGroups.json` — the frozen `ConfigGroupV1` definitions, SANITIZED
+ *   through the shared allowlist before they touch disk (§7.6: sensitive
+ *   values never enter a shared config group — the descriptor below claims
+ *   `containsRichPayload: false`, so a custom system prompt collapses to the
+ *   `customSystemPromptUsed` flag and unknown keys are dropped; the manifest
+ *   carries the normative ref subset with the ORIGINAL effective digest).
  *
  * The repository is failure-isolated end to end (§2.3): every write rides a
  * serialized per-run promise chain, failures degrade the repository and are
@@ -32,11 +35,13 @@ import {
     ReplayEstimate,
     ReplayProvenance,
     ReplaySafetyAssessment,
+    ReplayTargetRef,
 } from "../../sharedInterfaces/replaySafety";
 import {
     ObservabilityArtifactDescriptorInputV1,
     ObservabilityArtifactPatchV1,
 } from "../sessionBundle/bundleManager";
+import { sanitizeConfigGroupForPersistence } from "./configGroupSanitizer";
 import { sha256OfCanonicalJson } from "./configGroups";
 import { JournalClock, JournalFsLike, NodeJournalFs, joinPath } from "./journal/journalWriter";
 
@@ -135,6 +140,10 @@ export interface ReplayRunItemRecordV1 {
     replayMode?: string;
     /** WI-3.4 (additive): schema-context source, incl. "explicitFallback". */
     schemaContextSource?: string;
+    /** WI-3.6 (additive, §7.8.2): the resolved execution target this item ran against. */
+    target?: ReplayTargetRef;
+    /** WI-3.6 (additive, §7.8.2): the database the item actually executed in. */
+    targetDatabase?: string;
     attempt: number;
 }
 
@@ -159,6 +168,9 @@ export interface ReplayRunBeginInput {
     expectedItems: number;
     estimate?: ReplayEstimate;
     safety?: ReplaySafetyAssessment;
+    /** Run-specific provenance merged over the repository's static block
+     *  (WI-3.6: e.g. the explicit target selection recorded on the run). */
+    provenance?: ReplayProvenance;
 }
 
 export interface ReplayRunStatusUpdate {
@@ -319,7 +331,7 @@ export class ReplayRunRepository {
                     requiresSandbox: false,
                     reasons: ["host provided no safety classification"],
                 },
-                provenance: { ...(this._options.provenance ?? {}) },
+                provenance: { ...(this._options.provenance ?? {}), ...(input.provenance ?? {}) },
             };
         } catch (error) {
             // Digest/serialization failure: the run stays UI-only, honestly.
@@ -351,9 +363,15 @@ export class ReplayRunRepository {
             await this.writeManifestAtomically(state);
             firstWriteOk = true;
             try {
+                // §7.6 privacy: sanitize BEFORE serialization — prompt text
+                // and unknown keys never reach the metadata-only run dir.
                 await this._fs.writeFile(
                     joinPath(state.dir, REPLAY_RUN_CONFIG_GROUPS_FILE),
-                    JSON.stringify(input.configGroups, null, 2),
+                    JSON.stringify(
+                        input.configGroups.map(sanitizeConfigGroupForPersistence),
+                        null,
+                        2,
+                    ),
                 );
             } catch (error) {
                 // Frozen groups are supplementary; the manifest refs remain.
