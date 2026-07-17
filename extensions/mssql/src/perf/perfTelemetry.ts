@@ -57,6 +57,7 @@ export interface IPerfTelemetry {
 
 /** Marker-name prefix → console feature bucket. */
 export function featureFor(name: string): string {
+    if (name.startsWith("mssql.runbookStudio")) return "runbookStudio";
     if (name.startsWith("mssql.connection") || name.startsWith("mssql.sts")) return "connection";
     if (name.startsWith("mssql.queryResults")) return "queryResults";
     if (name.startsWith("mssql.query")) return "query";
