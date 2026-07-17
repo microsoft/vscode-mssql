@@ -41,6 +41,7 @@ export type RunbookStudioErrorCode =
     | "RunbookStudio.ModelCapabilityUnsupported"
     | "RunbookStudio.ModelDenied"
     | "RunbookStudio.BindingInvalid"
+    | "RunbookStudio.RunActive"
     | "RunbookStudio.TargetChanged"
     | "RunbookStudio.ApprovalInvalid"
     | "RunbookStudio.Cancelled"

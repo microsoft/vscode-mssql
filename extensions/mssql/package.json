@@ -3795,6 +3795,20 @@
                     "description": "Show the Runbook Studio Debug & Replay tools (developer preview).",
                     "scope": "application"
                 },
+                "mssql.runbookStudio.runtime": {
+                    "type": "string",
+                    "enum": [
+                        "fake",
+                        "hobbes"
+                    ],
+                    "default": "fake",
+                    "enumDescriptions": [
+                        "Deterministic in-process preview runtime (no model, no network).",
+                        "The external Hobbes agent runtime (requires the runtime package)."
+                    ],
+                    "description": "Which runbook runtime executes runs (preview).",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.vectorWorkbench.enabled": {
                     "type": "boolean",
                     "default": false,

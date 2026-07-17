@@ -31,6 +31,28 @@
     },
     "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.": "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.",
     "The runbook runtime is not available.": "The runbook runtime is not available.",
+    "This runbook has no compiled plan. Compile it before running.": "This runbook has no compiled plan. Compile it before running.",
+    "A run is already active for this runbook.": "A run is already active for this runbook.",
+    "The runbook runtime failed to start the run.": "The runbook runtime failed to start the run.",
+    "The runbook runtime exited unexpectedly.": "The runbook runtime exited unexpectedly.",
+    "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime./{0} is a configuration value": {
+        "message": "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime.",
+        "comment": ["{0} is a configuration value"]
+    },
+    "This approval is no longer pending.": "This approval is no longer pending.",
+    "The detail data for this output has expired.": "The detail data for this output has expired.",
+    "Parameter '{0}' is required./{0} is a parameter label": {
+        "message": "Parameter '{0}' is required.",
+        "comment": ["{0} is a parameter label"]
+    },
+    "Parameter '{0}' must be an integer./{0} is a parameter label": {
+        "message": "Parameter '{0}' must be an integer.",
+        "comment": ["{0} is a parameter label"]
+    },
+    "Parameter '{0}' must be one of its allowed values./{0} is a parameter label": {
+        "message": "Parameter '{0}' must be one of its allowed values.",
+        "comment": ["{0} is a parameter label"]
+    },
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",

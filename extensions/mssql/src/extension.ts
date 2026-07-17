@@ -34,6 +34,7 @@ import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
 import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
 import { registerQueryStudio } from "./queryStudio/queryStudioEditorProvider";
 import { registerRunbookStudio } from "./runbookStudio/runbookStudioEditorProvider";
+import { getRunbookStudioService } from "./runbookStudio/runbookStudioService";
 import { registerQueryParticipant } from "./queryResults/queryParticipant";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { registerSdkLanguageModelProviders } from "./copilot/sdkLanguageModels";
@@ -76,7 +77,9 @@ async function activateInternal(context: vscode.ExtensionContext): Promise<IExte
     // Query Studio custom editor (preview; gated by mssql.queryStudio.enabled).
     registerQueryStudio(context);
     // Runbook Studio custom editor (preview; gated by mssql.runbookStudio.enabled).
-    registerRunbookStudio(context);
+    // The service (ledger + runtime adapter) constructs on first document
+    // resolve, never at activation.
+    registerRunbookStudio(context, () => getRunbookStudioService(context));
     registerSqlDataPlane(context);
 
     Perf.setActivationState("activating");

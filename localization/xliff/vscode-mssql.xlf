@@ -141,6 +141,9 @@
     <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
       <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9945e065a0da35b71524b2d0b83d84f243d546c369c41928acd577ef54b2e3f1">
+      <source xml:lang="en">A run is already active for this runbook.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>
@@ -5640,6 +5643,18 @@
     <trans-unit id="++CODE++dd066ec1bf1d4485d3597f93a32c2f64b88ccdb6c555428ac4af3d17bf691cc2">
       <source xml:lang="en">Parameter</source>
     </trans-unit>
+    <trans-unit id="++CODE++e0b81564ef0b1b7019a751306dc8b9eee397ff4622178276e19e992d5699c2c0">
+      <source xml:lang="en">Parameter &apos;{0}&apos; is required.</source>
+      <note>{0} is a parameter label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c404a30df21fa44c4c492704018ce33edc6f0a00e0acc7dfbbb01556c7981cc3">
+      <source xml:lang="en">Parameter &apos;{0}&apos; must be an integer.</source>
+      <note>{0} is a parameter label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cf8d9171145257b658897e4b72385c7e32c4b78c54e1fdcc21626a8f0047a3c5">
+      <source xml:lang="en">Parameter &apos;{0}&apos; must be one of its allowed values.</source>
+      <note>{0} is a parameter label</note>
+    </trans-unit>
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
     </trans-unit>
@@ -7795,6 +7810,10 @@
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c8dc7d2b9c93195a2b988af190343d36c73878d4e3d07f74e2736e0504052293">
+      <source xml:lang="en">The configured runbook runtime &apos;{0}&apos; is not available in this build. Set mssql.runbookStudio.runtime to &apos;fake&apos; to use the deterministic preview runtime.</source>
+      <note>{0} is a configuration value</note>
+    </trans-unit>
     <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
       <source xml:lang="en">The connection ID &apos;{0}&apos; set in &apos;mssql.defaultConnectionId&apos; does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
       <note>{0} is the connection ID that was not found</note>
@@ -7817,6 +7836,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58">
       <source xml:lang="en">The description of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++afa41030cc9e7ca60e853725a1f788bd8993bcb46073757fcf32884799f92228">
+      <source xml:lang="en">The detail data for this output has expired.</source>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -7872,6 +7894,12 @@
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++73488d79f1e6119fc881e5d0fb7a3f6025db4abe305fed9f487859769a2771f9">
+      <source xml:lang="en">The runbook runtime exited unexpectedly.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fb6ba3f7cd33be1ab795f419d40b14f941db1c15cd1f3f9585af028e2e319f2e">
+      <source xml:lang="en">The runbook runtime failed to start the run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9312c9d85664607d9901b01b346566f4c8391b799bca91ab40383f8bf70d1d98">
       <source xml:lang="en">The runbook runtime is not available.</source>
     </trans-unit>
@@ -7912,6 +7940,9 @@
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
+    <trans-unit id="++CODE++d04f49712c8ea093b05533c77555647956034e4fea56de641a0ded6fc5fef1e9">
+      <source xml:lang="en">This approval is no longer pending.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
     </trans-unit>
@@ -7939,6 +7970,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0669a8886d1a9356118127c1639eec72ec3b3a68dea6f5b5cb16559acdac69b7">
       <source xml:lang="en">This runbook declares no parameters.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++992ccd023f188f0bb6a839a0f8be4230551359ba8529150d6e2f2f445cc479f5">
+      <source xml:lang="en">This runbook has no compiled plan. Compile it before running.</source>
     </trans-unit>
     <trans-unit id="++CODE++de15064778b830c8aa582193df715ddc175d35b775d8793935d7b05ca1e5db3c">
       <source xml:lang="en">This runbook has not been compiled. Compilation turns the intent into a typed plan of registered activities.</source>

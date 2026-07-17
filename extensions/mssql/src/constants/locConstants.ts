@@ -54,6 +54,39 @@ export class RunbookStudio {
         "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.",
     );
     public static runtimeUnavailable = l10n.t("The runbook runtime is not available.");
+    public static notCompiled = l10n.t(
+        "This runbook has no compiled plan. Compile it before running.",
+    );
+    public static runActive = l10n.t("A run is already active for this runbook.");
+    public static runtimeStartFailed = l10n.t("The runbook runtime failed to start the run.");
+    public static runtimeExited = l10n.t("The runbook runtime exited unexpectedly.");
+    public static runtimeKindUnavailable = (kind: string) =>
+        l10n.t({
+            message:
+                "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime.",
+            args: [kind],
+            comment: ["{0} is a configuration value"],
+        });
+    public static gateNotPending = l10n.t("This approval is no longer pending.");
+    public static dataExpired = l10n.t("The detail data for this output has expired.");
+    public static parameterRequired = (label: string) =>
+        l10n.t({
+            message: "Parameter '{0}' is required.",
+            args: [label],
+            comment: ["{0} is a parameter label"],
+        });
+    public static parameterNotInteger = (label: string) =>
+        l10n.t({
+            message: "Parameter '{0}' must be an integer.",
+            args: [label],
+            comment: ["{0} is a parameter label"],
+        });
+    public static parameterNotInEnum = (label: string) =>
+        l10n.t({
+            message: "Parameter '{0}' must be one of its allowed values.",
+            args: [label],
+            comment: ["{0} is a parameter label"],
+        });
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
