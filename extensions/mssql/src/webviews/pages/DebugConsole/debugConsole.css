@@ -1119,6 +1119,41 @@ body,
     color: var(--dc-replay);
     background: color-mix(in srgb, var(--dc-replay) 13%, transparent);
 }
+/* Session History artifact chips (WI-4.4): tiny muted pills; clickable ones
+   deep-link. No dashboard tiles — chip = one artifact fact. */
+.dc-art-chips {
+    display: inline-flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    vertical-align: middle;
+}
+.dc-art-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 16px;
+    padding: 0 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--dc-muted);
+    border: 1px solid var(--dc-border);
+    background: transparent;
+    font-family: inherit;
+}
+button.dc-art-chip {
+    cursor: pointer;
+}
+button.dc-art-chip:hover {
+    color: var(--dc-text);
+    border-color: var(--dc-focus);
+}
+.dc-art-chip.warn {
+    color: var(--dc-warn);
+    border-color: color-mix(in srgb, var(--dc-warn) 45%, transparent);
+}
 .dc-proc-pill {
     display: inline-flex;
     align-items: center;
@@ -1517,5 +1552,156 @@ pre.dc-json {
     }
     .dc-split {
         height: auto;
+    }
+}
+
+/* --- Replay Lab (WI-3.5) --------------------------------------------- */
+.dc-lab-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--dc-border);
+    background: var(--dc-panel-alt);
+    flex: none;
+    min-width: 0;
+}
+.dc-lab-semantics {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.dc-lab-resize {
+    height: 4px;
+    background: var(--dc-border);
+    cursor: row-resize;
+    flex: none;
+}
+.dc-lab-resize:hover,
+.dc-lab-resize[data-resize-handle-active] {
+    background: var(--dc-focus);
+}
+.dc-lab-detail {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.dc-lab-detail-empty {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+.dc-lab-detail-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--dc-border);
+    background: var(--dc-panel-alt);
+    flex: none;
+    min-width: 0;
+}
+.dc-lab-reason {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40%;
+}
+.dc-lab-detail-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 0;
+}
+.dc-lab-items {
+    border: none;
+    border-radius: 0;
+    overflow: auto;
+    min-height: 0;
+}
+.dc-lab-groups {
+    border-left: 1px solid var(--dc-border);
+    padding: 6px 10px;
+    overflow: auto;
+    min-height: 0;
+}
+.dc-lab-groups-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dc-muted);
+    margin-bottom: 4px;
+}
+.dc-lab-group {
+    padding: 3px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--dc-border) 55%, transparent);
+    min-width: 0;
+}
+.dc-lab-group-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* WI-4.2 run analysis section: dense tables under the items list. */
+.dc-lab-analysis {
+    border-top: 1px solid var(--dc-border);
+}
+.dc-lab-analysis-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: var(--dc-panel-alt);
+    border-bottom: 1px solid var(--dc-border);
+    min-width: 0;
+    white-space: nowrap;
+}
+.dc-lab-analysis-subhead {
+    padding: 4px 10px;
+    font-size: 10.5px;
+    border-top: 1px solid color-mix(in srgb, var(--dc-border) 55%, transparent);
+}
+.dc-lab-skel {
+    height: 14px;
+    margin: 6px 0;
+    border-radius: 4px;
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--dc-muted) 10%, transparent) 25%,
+        color-mix(in srgb, var(--dc-muted) 22%, transparent) 50%,
+        color-mix(in srgb, var(--dc-muted) 10%, transparent) 75%
+    );
+    background-size: 200% 100%;
+    animation: dc-lab-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes dc-lab-shimmer {
+    from {
+        background-position: 200% 0;
+    }
+    to {
+        background-position: -200% 0;
+    }
+}
+.dc-lab-spin {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    border: 1.5px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: dc-lab-rotate 0.9s linear infinite;
+}
+@keyframes dc-lab-rotate {
+    to {
+        transform: rotate(360deg);
     }
 }

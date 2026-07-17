@@ -14,19 +14,46 @@
  * callbacks. The engine also narrates itself into the diag substrate as
  * replay.run / replay.item spans so replays are visible on the Debug Console
  * timeline next to the feature events they re-drive.
+ *
+ * V2 context (final plan WI-3.2 / addendum §7.2, §7.4, §7.5 — additive over
+ * the preserved sequential kernel and per-item containment):
+ * - durable ids from identity.ts (`rr-…` runs, `ri-…` items);
+ * - every config (including "live" mode) resolves and FREEZES at queue time,
+ *   with the frozen config's sha256 digest recorded on the row;
+ * - real cancellation: queued rows removed immediately, the ACTIVE item gets
+ *   a cancellation token, the run holds `cancelling` until the active
+ *   execution settles, and per-item outcomes distinguish
+ *   cancelledBeforeStart / cancelledInFlight / cancelRequestedButCompleted;
+ * - optional host estimate/preflight/classifySafety hooks, a hard item cap
+ *   (default 500/run) that refuses with an honest failed-run state;
+ * - an optional run observer so a durable repository can persist run/item
+ *   evidence without the engine learning about storage or UI.
  */
 
 import { diag, DiagSpan } from "../diagnosticsCore";
 import {
+    FeatureReplayCancellationToken,
     FeatureReplayConfigMode,
+    FeatureReplayExecuteResult,
     FeatureReplayMatrixCellBase,
     FeatureReplayQueueRow,
     FeatureReplayRun,
+    FeatureReplayRunStatus,
     FeatureReplaySnapshot,
     FeatureReplayState,
     FeatureReplayTags,
     createEmptyFeatureReplayState,
 } from "../../sharedInterfaces/featureReplay";
+import {
+    ReplayCancellationOutcome,
+    ReplayEstimate,
+    ReplayPreflightContext,
+    ReplayPreflightResult,
+    ReplaySafetyAssessment,
+    ReplayTargetRef,
+} from "../../sharedInterfaces/replaySafety";
+import { sha256OfCanonicalJson } from "./configGroups";
+import { newReplayItemId, newReplayRunId } from "./identity";
 
 export interface FeatureReplayHost<
     TEvent extends { id: string; timestamp: number },
@@ -62,11 +89,189 @@ export interface FeatureReplayHost<
     ): TEvent;
     /** Flip a queued placeholder to its in-flight shape when its row starts running. */
     markEventRunning(event: TEvent, startedAt: number): TEvent;
-    /** Re-execute one captured event with the resolved config. Errors are contained per row. */
-    execute(event: TEvent, config: TConfig, tags: FeatureReplayTags): Promise<void>;
+    /**
+     * Re-execute one captured event with the resolved (frozen) config.
+     * Errors are contained per row. The cancellation token is signalled when
+     * the user cancels the run while this item is active (addendum §7.4) —
+     * hosts thread it into their underlying operation (model request, SQL
+     * execution). The optional result reference links the replayed output
+     * into the durable item record.
+     */
+    execute(
+        event: TEvent,
+        config: TConfig,
+        tags: FeatureReplayTags,
+        cancellation: FeatureReplayCancellationToken,
+    ): Promise<FeatureReplayExecuteResult | void>;
+    /**
+     * Optional pre-queue cost estimate (addendum §7.5). Computed before
+     * anything queues and exposed on the run state for the UI.
+     */
+    estimate?(
+        sources: FeatureReplaySnapshot<TEvent, TConfig>[],
+        cells: TCell[],
+        repetitions?: number,
+    ): ReplayEstimate;
+    /**
+     * Optional async gate evaluated after the run is announced (status
+     * "queued") but before any item queues; `ok: false` flips the run to an
+     * honest "failed" state with the blocked reason.
+     */
+    preflight?(context: ReplayPreflightContext<TConfig>): Promise<ReplayPreflightResult>;
+    /** Optional adapter safety classification recorded on the run (§7.8). */
+    classifySafety?(context: ReplayPreflightContext<TConfig>): ReplaySafetyAssessment;
     /** State push hook — called after every engine state change. */
     onStateChanged(): void;
     isDisposed(): boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Run observer (durable persistence seam — WI-3.3)
+// ---------------------------------------------------------------------------
+
+/** Everything the repository needs about one planned item, at queue time. */
+export interface FeatureReplayPlannedItem<TEvent, TConfig> {
+    replayItemId: string;
+    runId: string;
+    sourceEventId: string;
+    sourceLabel: string;
+    /** The captured source event (snapshot payload) — digested, never mutated. */
+    sourceEvent: TEvent;
+    position: number;
+    repetition: number;
+    config: TConfig;
+    configDigest: string;
+    matrixCellId?: string;
+    matrixCellLabel?: string;
+    queuedAt: number;
+}
+
+/**
+ * `blocked` (WI-3.4): the item's replay mode required inputs that were
+ * unavailable — nothing executed, honestly distinct from `failed`.
+ */
+export type FeatureReplayItemStatus = "completed" | "failed" | "cancelled" | "blocked";
+
+/** Terminal record of one item (addendum §7.3 per-item fields). */
+export interface FeatureReplayItemOutcome {
+    replayItemId: string;
+    runId: string;
+    sourceEventId: string;
+    matrixCellId?: string;
+    repetition: number;
+    queuedAt: number;
+    startedAt?: number;
+    endedAt: number;
+    configDigest: string;
+    status: FeatureReplayItemStatus;
+    cancellationOutcome?: ReplayCancellationOutcome;
+    resultEventId?: string;
+    resultCaptureEventId?: string;
+    errorCode?: string;
+    errorMessage?: string;
+    /** WI-3.4: feature-declared execution provenance dimensions (additive). */
+    replayMode?: string;
+    schemaContextSource?: string;
+    /** WI-3.6 (§7.8.2): the resolved execution target this item ran against. */
+    target?: ReplayTargetRef;
+    targetDatabase?: string;
+    attempt: number;
+}
+
+/**
+ * Durable-state callback surface. Every callback is failure-isolated: a
+ * throwing observer never affects a run (§2.3 product isolation).
+ */
+export interface FeatureReplayRunObserver<
+    TEvent,
+    TConfig,
+    TCell extends FeatureReplayMatrixCellBase,
+> {
+    /** A run passed its gates and its items entered the queue. */
+    onRunQueued?(
+        run: FeatureReplayRun<TCell>,
+        items: FeatureReplayPlannedItem<TEvent, TConfig>[],
+    ): void;
+    /** Run status/progress changed (running/cancelling/terminal states). */
+    onRunUpdated?(run: FeatureReplayRun<TCell>): void;
+    /** One item reached a terminal state (including cancelledBeforeStart). */
+    onItemSettled?(outcome: FeatureReplayItemOutcome, run: FeatureReplayRun<TCell>): void;
+}
+
+export interface FeatureReplayEngineOptions<
+    TEvent,
+    TConfig,
+    TCell extends FeatureReplayMatrixCellBase,
+> {
+    /** Hard per-run item cap (addendum §7.5); default 500. */
+    maxItemsPerRun?: number;
+    observer?: FeatureReplayRunObserver<TEvent, TConfig, TCell>;
+}
+
+export const REPLAY_ENGINE_DEFAULT_MAX_ITEMS_PER_RUN = 500;
+
+const TERMINAL_RUN_STATUSES: readonly FeatureReplayRunStatus[] = [
+    "cancelled",
+    "completed",
+    "partial",
+    "failed",
+];
+
+function isTerminalRunStatus(status: FeatureReplayRunStatus): boolean {
+    return TERMINAL_RUN_STATUSES.includes(status);
+}
+
+/** Minimal webview-free cancellation source (vscode-token shaped). */
+export class ReplayCancellationSource {
+    private _cancelled = false;
+    private _listeners: Array<() => void> = [];
+    public readonly token: FeatureReplayCancellationToken;
+
+    constructor() {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const self = this;
+        this.token = {
+            get isCancellationRequested(): boolean {
+                return self._cancelled;
+            },
+            onCancellationRequested(listener: () => void): { dispose(): void } {
+                if (self._cancelled) {
+                    try {
+                        listener();
+                    } catch {
+                        // listener failures never propagate into the engine
+                    }
+                    return { dispose: () => undefined };
+                }
+                self._listeners.push(listener);
+                return {
+                    dispose: () => {
+                        self._listeners = self._listeners.filter((entry) => entry !== listener);
+                    },
+                };
+            },
+        };
+    }
+
+    public get isCancellationRequested(): boolean {
+        return this._cancelled;
+    }
+
+    public cancel(): void {
+        if (this._cancelled) {
+            return;
+        }
+        this._cancelled = true;
+        const listeners = this._listeners;
+        this._listeners = [];
+        for (const listener of listeners) {
+            try {
+                listener();
+            } catch {
+                // listener failures never propagate into the engine
+            }
+        }
+    }
 }
 
 export class FeatureReplayEngine<
@@ -75,6 +280,8 @@ export class FeatureReplayEngine<
     TCell extends FeatureReplayMatrixCellBase,
 > {
     private readonly _host: FeatureReplayHost<TEvent, TConfig, TCell>;
+    private _observer: FeatureReplayRunObserver<TEvent, TConfig, TCell> | undefined;
+    private readonly _maxItemsPerRun: number;
     private _state: FeatureReplayState<TEvent, TConfig, TCell> = createEmptyFeatureReplayState<
         TEvent,
         TConfig,
@@ -82,17 +289,40 @@ export class FeatureReplayEngine<
     >();
     private _snapshotCounter = 0;
     private _traceCounter = 0;
-    private _runCounter = 0;
-    private _queueCounter = 0;
     private _drainActive = false;
     private readonly _runSpans = new Map<string, DiagSpan>();
+    /** Per-row cancellation sources, keyed by replay item id. */
+    private readonly _itemCancellations = new Map<string, ReplayCancellationSource>();
 
-    constructor(host: FeatureReplayHost<TEvent, TConfig, TCell>) {
+    constructor(
+        host: FeatureReplayHost<TEvent, TConfig, TCell>,
+        options: FeatureReplayEngineOptions<TEvent, TConfig, TCell> = {},
+    ) {
         this._host = host;
+        this._observer = options.observer;
+        this._maxItemsPerRun = options.maxItemsPerRun ?? REPLAY_ENGINE_DEFAULT_MAX_ITEMS_PER_RUN;
     }
 
     public getState(): FeatureReplayState<TEvent, TConfig, TCell> {
         return this._state;
+    }
+
+    /** Late-bind the durable-state observer (repository wiring, WI-3.3). */
+    public setRunObserver(
+        observer: FeatureReplayRunObserver<TEvent, TConfig, TCell> | undefined,
+    ): void {
+        this._observer = observer;
+    }
+
+    /** Mark a run as durably persisted (set by the repository subscriber). */
+    public setRunDurable(runId: string, durable: boolean): void {
+        if (!this._state.runs.some((run) => run.id === runId && run.durable !== durable)) {
+            return;
+        }
+        this.updateState({
+            ...this._state,
+            runs: this._state.runs.map((run) => (run.id === runId ? { ...run, durable } : run)),
+        });
     }
 
     /** Replace externally-owned display state (builder drawer open/closed). */
@@ -220,7 +450,7 @@ export class FeatureReplayEngine<
 
         const stamp = new Date().toISOString().replace(/[:.]/g, "-");
         const traceId = `trace-${stamp}-${++this._traceCounter}`;
-        const runId = `run-${stamp}-${++this._runCounter}`;
+        const runId = newReplayRunId();
         const cells = kind === "matrix" ? matrixCells : [];
         const total = (cells.length || 1) * runnableSnapshots.length;
         const startedAt = Date.now();
@@ -234,16 +464,48 @@ export class FeatureReplayEngine<
             completedEvents: 0,
             matrixCells: cells.length > 0 ? cells : undefined,
         };
+
+        // Hard cap (addendum §7.5): refuse HONESTLY before anything queues —
+        // the run appears in state as "failed" with the reason, no item runs.
+        if (total > this._maxItemsPerRun) {
+            const refused: FeatureReplayRun<TCell> = {
+                ...run,
+                status: "failed",
+                completedAt: Date.now(),
+                errorMessage:
+                    `Run refused: ${total} items exceed the hard cap of ` +
+                    `${this._maxItemsPerRun} items per run. Reduce sources or matrix cells.`,
+            };
+            diag.emit({
+                feature: this._host.feature,
+                kind: "event",
+                type: "replay.run.refused",
+                status: "warning",
+                fields: {
+                    replayRunId: { raw: runId, cls: "diagnostic.metadata" },
+                    requestedItems: { raw: total, cls: "diagnostic.metadata" },
+                    maxItemsPerRun: { raw: this._maxItemsPerRun, cls: "diagnostic.metadata" },
+                },
+            });
+            this.updateState({ ...this._state, runs: [...this._state.runs, refused] });
+            return;
+        }
+
+        // ALL configs — including "live" mode — resolve and freeze here, at
+        // queue time (honesty invariant §2.2 #4); rows carry the digest.
         let runPosition = 0;
-        const queueRows =
+        const planned: Array<{
+            row: FeatureReplayQueueRow<TEvent, TConfig>;
+            item: FeatureReplayPlannedItem<TEvent, TConfig>;
+        }> =
             kind === "matrix"
                 ? cells.flatMap((cell) =>
                       runnableSnapshots.map((snapshot) =>
-                          this.createQueueRow(snapshot, run, ++runPosition, total, cell),
+                          this.createPlannedRow(snapshot, run, ++runPosition, total, cell),
                       ),
                   )
                 : runnableSnapshots.map((snapshot) =>
-                      this.createQueueRow(
+                      this.createPlannedRow(
                           snapshot,
                           run,
                           ++runPosition,
@@ -252,6 +514,36 @@ export class FeatureReplayEngine<
                           configMode,
                       ),
                   );
+        const queueRows = planned.map((entry) => entry.row);
+        const plannedItems = planned.map((entry) => entry.item);
+
+        const preflightContext: ReplayPreflightContext<TConfig> = {
+            replayRunId: runId,
+            sourceItems: runnableSnapshots.length,
+            matrixCells: cells.length,
+            repetitions: 1,
+            configs: queueRows.map((row) => row.config),
+            // WI-3.6: source-aware gating — adapters like Query Studio
+            // classify per (record, config) pair (§7.8).
+            pairs: planned.map((entry) => ({
+                sourceEvent: entry.item.sourceEvent as unknown,
+                config: entry.row.config,
+            })),
+        };
+        if (this._host.estimate) {
+            try {
+                run.estimate = this._host.estimate(runnableSnapshots, cells, 1);
+            } catch {
+                // an estimator failure never blocks the run — it just has no estimate
+            }
+        }
+        if (this._host.classifySafety) {
+            try {
+                run.safety = this._host.classifySafety(preflightContext);
+            } catch {
+                // classification failure leaves safety honestly absent
+            }
+        }
 
         this._runSpans.set(
             runId,
@@ -269,14 +561,19 @@ export class FeatureReplayEngine<
             }),
         );
 
-        this.updateState({
-            ...this._state,
-            runs: [...this._state.runs, run],
-            queueRows: [...this._state.queueRows, ...queueRows],
-            activeRunId: this._state.activeRunId ?? run.id,
-            builderOpen: false,
-        });
-        this.startDrain();
+        if (this._host.preflight) {
+            // Announce the run (visible "queued"), gate the items on the
+            // async preflight, then commit or refuse.
+            this.updateState({
+                ...this._state,
+                runs: [...this._state.runs, run],
+                builderOpen: false,
+            });
+            void this.finishPreflightAndCommit(run, queueRows, plannedItems, preflightContext);
+            return;
+        }
+
+        this.commitQueuedRun(run, queueRows, plannedItems, false);
     }
 
     public cancelRun(runId: string | undefined): void {
@@ -284,37 +581,159 @@ export class FeatureReplayEngine<
         if (!effectiveRunId) {
             return;
         }
+        const run = this._state.runs.find((item) => item.id === effectiveRunId);
+        if (!run || isTerminalRunStatus(run.status)) {
+            return;
+        }
 
+        const now = Date.now();
+        const removedRows = this._state.queueRows.filter(
+            (row) => row.runId === effectiveRunId && row.status !== "running",
+        );
         const remainingRows = this._state.queueRows.filter(
             (row) => row.runId !== effectiveRunId || row.status === "running",
         );
-        const hasRunningRow = remainingRows.some((row) => row.runId === effectiveRunId);
+        const activeRow = remainingRows.find((row) => row.runId === effectiveRunId);
+        let updatedRun: FeatureReplayRun<TCell> | undefined;
         this.updateState({
             ...this._state,
             queueRows: remainingRows,
             activeRunId: remainingRows[0]?.runId,
-            runs: this._state.runs.map((run) =>
-                run.id === effectiveRunId
-                    ? {
-                          ...run,
-                          status: "cancelled",
-                          completedAt: hasRunningRow ? run.completedAt : Date.now(),
-                      }
-                    : run,
+            runs: this._state.runs.map((item) =>
+                item.id === effectiveRunId
+                    ? (updatedRun = {
+                          ...item,
+                          // §7.4: cancelling until the active execution settles.
+                          status: activeRow ? "cancelling" : "cancelled",
+                          cancelRequestedAt: now,
+                          completedAt: activeRow ? item.completedAt : now,
+                      })
+                    : item,
             ),
         });
-        if (!hasRunningRow) {
+
+        // Queued rows removed immediately: cancelledBeforeStart outcomes.
+        for (const row of removedRows) {
+            this._itemCancellations.delete(row.id);
+            if (updatedRun) {
+                this.notifyItemSettled(row, updatedRun, {
+                    status: "cancelled",
+                    cancellationOutcome: "cancelledBeforeStart",
+                    endedAt: now,
+                });
+            }
+        }
+        if (activeRow) {
+            // Signal the active item's token; the drain settles the run.
+            this._itemCancellations.get(activeRow.id)?.cancel();
+        } else {
             this.settleRunSpan(effectiveRunId, "cancelled");
+        }
+        if (updatedRun) {
+            this.notifyRunUpdated(updatedRun);
         }
     }
 
+    /**
+     * Disposal never silently loses run evidence (WI-3.2 accept): every
+     * non-terminal run flips to the honest "partial" state, the active
+     * item's token is cancelled, and the observer sees the final states.
+     */
     public dispose(): void {
+        const now = Date.now();
+        for (const source of this._itemCancellations.values()) {
+            source.cancel();
+        }
+        this._itemCancellations.clear();
+        const interrupted = this._state.runs.filter((run) => !isTerminalRunStatus(run.status));
+        if (interrupted.length > 0) {
+            const interruptedIds = new Set(interrupted.map((run) => run.id));
+            const runs = this._state.runs.map((run) =>
+                interruptedIds.has(run.id)
+                    ? { ...run, status: "partial" as const, completedAt: now }
+                    : run,
+            );
+            // Host is (being) disposed: update state directly; updateState's
+            // onStateChanged guard would drop the notification anyway.
+            this._state = { ...this._state, runs, queueRows: [], activeRunId: undefined };
+            for (const run of runs) {
+                if (interruptedIds.has(run.id)) {
+                    this.notifyRunUpdated(run);
+                }
+            }
+        }
         for (const [runId] of this._runSpans) {
             this.settleRunSpan(runId, "disposed");
         }
     }
 
     // -------------------------------------------------------------- internal
+
+    private commitQueuedRun(
+        run: FeatureReplayRun<TCell>,
+        queueRows: FeatureReplayQueueRow<TEvent, TConfig>[],
+        plannedItems: FeatureReplayPlannedItem<TEvent, TConfig>[],
+        runAlreadyInState: boolean,
+    ): void {
+        this.updateState({
+            ...this._state,
+            runs: runAlreadyInState
+                ? this._state.runs.map((item) => (item.id === run.id ? run : item))
+                : [...this._state.runs, run],
+            queueRows: [...this._state.queueRows, ...queueRows],
+            activeRunId: this._state.activeRunId ?? run.id,
+            builderOpen: false,
+        });
+        this.notifyObserver((observer) => observer.onRunQueued?.(run, plannedItems));
+        this.startDrain();
+    }
+
+    private async finishPreflightAndCommit(
+        run: FeatureReplayRun<TCell>,
+        queueRows: FeatureReplayQueueRow<TEvent, TConfig>[],
+        plannedItems: FeatureReplayPlannedItem<TEvent, TConfig>[],
+        context: ReplayPreflightContext<TConfig>,
+    ): Promise<void> {
+        let result: ReplayPreflightResult;
+        try {
+            result = await this._host.preflight!(context);
+        } catch (error) {
+            result = {
+                ok: false,
+                blockedReason: `preflight failed: ${error instanceof Error ? error.message : String(error)}`,
+            };
+        }
+        if (this._host.isDisposed()) {
+            return;
+        }
+        const current = this._state.runs.find((item) => item.id === run.id);
+        if (!current || current.status !== "queued") {
+            // Cancelled (or otherwise settled) while preflighting: drop rows.
+            for (const row of queueRows) {
+                this._itemCancellations.delete(row.id);
+            }
+            return;
+        }
+        if (!result.ok) {
+            for (const row of queueRows) {
+                this._itemCancellations.delete(row.id);
+            }
+            const refused: FeatureReplayRun<TCell> = {
+                ...current,
+                status: "failed",
+                completedAt: Date.now(),
+                errorMessage: result.blockedReason ?? "preflight refused the run",
+            };
+            this.updateState({
+                ...this._state,
+                runs: this._state.runs.map((item) => (item.id === run.id ? refused : item)),
+            });
+            this.settleRunSpan(run.id, "refused");
+            this.notifyRunUpdated(refused);
+            return;
+        }
+        this.commitQueuedRun(current, queueRows, plannedItems, true);
+    }
 
     private createSnapshot(
         event: TEvent,
@@ -332,20 +751,26 @@ export class FeatureReplayEngine<
         };
     }
 
-    private createQueueRow(
+    private createPlannedRow(
         snapshot: FeatureReplaySnapshot<TEvent, TConfig>,
         run: FeatureReplayRun<TCell>,
         position: number,
         total: number,
         matrixCell: TCell | undefined,
         configMode?: FeatureReplayConfigMode,
-    ): FeatureReplayQueueRow<TEvent, TConfig> {
-        this._queueCounter++;
+    ): {
+        row: FeatureReplayQueueRow<TEvent, TConfig>;
+        item: FeatureReplayPlannedItem<TEvent, TConfig>;
+    } {
+        const replayItemId = newReplayItemId();
         const config = matrixCell
             ? this._host.resolveMatrixCellConfig(matrixCell)
             : this.resolveSnapshotConfig(snapshot, configMode);
-        return {
-            id: `queue-${this._queueCounter}`,
+        const configDigest = safeConfigDigest(config);
+        const queuedAt = Date.now();
+        this._itemCancellations.set(replayItemId, new ReplayCancellationSource());
+        const row: FeatureReplayQueueRow<TEvent, TConfig> = {
+            id: replayItemId,
             runId: run.id,
             traceId: run.traceId,
             snapshotId: snapshot.id,
@@ -353,12 +778,29 @@ export class FeatureReplayEngine<
             position,
             total,
             status: "queued",
-            queuedAt: Date.now(),
+            queuedAt,
             config,
+            configDigest,
+            repetition: 1,
             matrixCellId: matrixCell?.cellId,
             matrixCellLabel: matrixCell ? this._host.formatCellLabel(matrixCell) : undefined,
             event: this._host.createQueuedEvent(snapshot, config, run, position, total, matrixCell),
         };
+        const item: FeatureReplayPlannedItem<TEvent, TConfig> = {
+            replayItemId,
+            runId: run.id,
+            sourceEventId: snapshot.sourceEventId,
+            sourceLabel: snapshot.sourceLabel,
+            sourceEvent: snapshot.event,
+            position,
+            repetition: 1,
+            config,
+            configDigest,
+            ...(matrixCell ? { matrixCellId: matrixCell.cellId } : {}),
+            ...(matrixCell ? { matrixCellLabel: this._host.formatCellLabel(matrixCell) } : {}),
+            queuedAt,
+        };
+        return { row, item };
     }
 
     private resolveSnapshotConfig(
@@ -398,6 +840,7 @@ export class FeatureReplayEngine<
 
                 const run = this._state.runs.find((item) => item.id === nextRow.runId);
                 if (!run) {
+                    this._itemCancellations.delete(nextRow.id);
                     this.updateState({
                         ...this._state,
                         queueRows: this._state.queueRows.slice(1),
@@ -406,16 +849,21 @@ export class FeatureReplayEngine<
                 }
 
                 const startedAt = Date.now();
+                let runningRun: FeatureReplayRun<TCell> | undefined;
+                const runWasQueued = run.status === "queued";
                 this.updateState({
                     ...this._state,
                     activeRunId: run.id,
                     runs: this._state.runs.map((item) =>
                         item.id === run.id
-                            ? {
+                            ? (runningRun = {
                                   ...item,
-                                  status: item.status === "cancelled" ? "cancelled" : "running",
+                                  status:
+                                      item.status === "cancelled" || item.status === "cancelling"
+                                          ? item.status
+                                          : "running",
                                   activeMatrixCellId: nextRow.matrixCellId,
-                              }
+                              })
                             : item,
                     ),
                     queueRows: this._state.queueRows.map((item) =>
@@ -429,7 +877,12 @@ export class FeatureReplayEngine<
                             : item,
                     ),
                 });
+                if (runWasQueued && runningRun && runningRun.status === "running") {
+                    this.notifyRunUpdated(runningRun);
+                }
 
+                const cancellation =
+                    this._itemCancellations.get(nextRow.id) ?? new ReplayCancellationSource();
                 const tags = createReplayTags(nextRow);
                 const itemSpan = diag.startSpan({
                     feature: this._host.feature,
@@ -438,6 +891,7 @@ export class FeatureReplayEngine<
                     fields: {
                         replayTraceId: { raw: tags.replayTraceId, cls: "diagnostic.metadata" },
                         replayRunId: { raw: tags.replayRunId, cls: "diagnostic.metadata" },
+                        replayItemId: { raw: nextRow.id, cls: "diagnostic.metadata" },
                         replaySourceEventId: {
                             raw: tags.replaySourceEventId,
                             cls: "diagnostic.metadata",
@@ -454,16 +908,64 @@ export class FeatureReplayEngine<
                         total: { raw: nextRow.total, cls: "diagnostic.metadata" },
                     },
                 });
+                let outcomeInfo: ItemOutcomeInfo;
                 try {
-                    await this._host.execute(nextRow.event, nextRow.config, tags);
-                    itemSpan.end("ok");
+                    const result = (await this._host.execute(
+                        nextRow.event,
+                        nextRow.config,
+                        tags,
+                        cancellation.token,
+                    )) as FeatureReplayExecuteResult | undefined;
+                    const cancellationOutcome: ReplayCancellationOutcome | undefined =
+                        result?.cancellationOutcome ??
+                        (cancellation.isCancellationRequested
+                            ? "cancelRequestedButCompleted"
+                            : undefined);
+                    // WI-3.4: a host-reported blockedReason is the honest
+                    // per-item refusal (mode-required input unavailable) —
+                    // recorded as `blocked`, never as an error.
+                    const blocked = result?.blockedReason !== undefined;
+                    outcomeInfo = {
+                        status: blocked
+                            ? "blocked"
+                            : cancellationOutcome === "cancelledInFlight"
+                              ? "cancelled"
+                              : "completed",
+                        ...(blocked ? { errorMessage: result.blockedReason } : {}),
+                        ...(cancellationOutcome && !blocked ? { cancellationOutcome } : {}),
+                        ...(result?.resultEventId ? { resultEventId: result.resultEventId } : {}),
+                        ...(result?.resultCaptureEventId
+                            ? { resultCaptureEventId: result.resultCaptureEventId }
+                            : {}),
+                        ...(result?.replayMode ? { replayMode: result.replayMode } : {}),
+                        ...(result?.schemaContextSource
+                            ? { schemaContextSource: result.schemaContextSource }
+                            : {}),
+                        ...(result?.target ? { target: result.target } : {}),
+                        ...(result?.targetDatabase
+                            ? { targetDatabase: result.targetDatabase }
+                            : {}),
+                        endedAt: Date.now(),
+                        startedAt,
+                    };
+                    itemSpan.end(blocked ? "warning" : "ok");
                 } catch (error) {
                     // A throwing executor must not wedge the drain loop; the
                     // feature records its own error event for the row.
+                    const cancelled = cancellation.isCancellationRequested;
+                    outcomeInfo = {
+                        status: cancelled ? "cancelled" : "failed",
+                        ...(cancelled ? { cancellationOutcome: "cancelledInFlight" as const } : {}),
+                        ...(error instanceof Error && error.name ? { errorCode: error.name } : {}),
+                        errorMessage: error instanceof Error ? error.message : String(error),
+                        endedAt: Date.now(),
+                        startedAt,
+                    };
                     itemSpan.fail(error);
                 }
 
-                this.completeQueueRow(nextRow);
+                this._itemCancellations.delete(nextRow.id);
+                this.completeQueueRow(nextRow, outcomeInfo);
             }
         } finally {
             this._drainActive = false;
@@ -473,19 +975,28 @@ export class FeatureReplayEngine<
         }
     }
 
-    private completeQueueRow(row: FeatureReplayQueueRow<TEvent, TConfig>): void {
+    private completeQueueRow(
+        row: FeatureReplayQueueRow<TEvent, TConfig>,
+        outcomeInfo: ItemOutcomeInfo,
+    ): void {
         const currentRun = this._state.runs.find((run) => run.id === row.runId);
+        // A run dispose() already settled as partial/failed stays settled —
+        // a late-settling execute must not resurrect it.
+        const runAlreadySettled =
+            currentRun !== undefined &&
+            (currentRun.status === "partial" || currentRun.status === "failed");
         const completedEvents = (currentRun?.completedEvents ?? 0) + 1;
         const remainingRows = this._state.queueRows.filter((item) => item.id !== row.id);
         const runHasQueuedRows = remainingRows.some((item) => item.runId === row.runId);
         let settledStatus: "cancelled" | "completed" | undefined;
+        let updatedRun: FeatureReplayRun<TCell> | undefined;
         const updatedRuns = this._state.runs.map((run) => {
-            if (run.id !== row.runId) {
+            if (run.id !== row.runId || runAlreadySettled) {
                 return run;
             }
 
-            const status: FeatureReplayRun<TCell>["status"] =
-                run.status === "cancelled"
+            const status: FeatureReplayRunStatus =
+                run.status === "cancelled" || run.status === "cancelling"
                     ? "cancelled"
                     : runHasQueuedRows
                       ? "running"
@@ -493,13 +1004,19 @@ export class FeatureReplayEngine<
             if (!runHasQueuedRows && (status === "cancelled" || status === "completed")) {
                 settledStatus = status;
             }
-            return {
+            updatedRun = {
                 ...run,
                 completedEvents,
+                // WI-3.4: blocked items count into progress but are surfaced
+                // separately so run rows can say "n blocked" honestly.
+                ...(outcomeInfo.status === "blocked"
+                    ? { blockedEvents: (run.blockedEvents ?? 0) + 1 }
+                    : {}),
                 status,
                 activeMatrixCellId: runHasQueuedRows ? run.activeMatrixCellId : undefined,
                 completedAt: runHasQueuedRows ? run.completedAt : Date.now(),
             };
+            return updatedRun;
         });
 
         this.updateState({
@@ -508,12 +1025,73 @@ export class FeatureReplayEngine<
             runs: updatedRuns,
             activeRunId: remainingRows[0]?.runId,
         });
+        if (updatedRun) {
+            this.notifyItemSettled(row, updatedRun, outcomeInfo);
+            this.notifyRunUpdated(updatedRun);
+        }
         if (settledStatus) {
             this.settleRunSpan(row.runId, settledStatus);
         }
     }
 
-    private settleRunSpan(runId: string, outcome: "completed" | "cancelled" | "disposed"): void {
+    private notifyItemSettled(
+        row: FeatureReplayQueueRow<TEvent, TConfig>,
+        run: FeatureReplayRun<TCell>,
+        info: ItemOutcomeInfo,
+    ): void {
+        const outcome: FeatureReplayItemOutcome = {
+            replayItemId: row.id,
+            runId: row.runId,
+            sourceEventId: row.sourceEventId,
+            ...(row.matrixCellId ? { matrixCellId: row.matrixCellId } : {}),
+            repetition: row.repetition ?? 1,
+            queuedAt: row.queuedAt,
+            ...(info.startedAt !== undefined
+                ? { startedAt: info.startedAt }
+                : row.startedAt !== undefined
+                  ? { startedAt: row.startedAt }
+                  : {}),
+            endedAt: info.endedAt,
+            configDigest: row.configDigest ?? "",
+            status: info.status,
+            ...(info.cancellationOutcome ? { cancellationOutcome: info.cancellationOutcome } : {}),
+            ...(info.resultEventId ? { resultEventId: info.resultEventId } : {}),
+            ...(info.resultCaptureEventId
+                ? { resultCaptureEventId: info.resultCaptureEventId }
+                : {}),
+            ...(info.errorCode ? { errorCode: info.errorCode } : {}),
+            ...(info.errorMessage ? { errorMessage: info.errorMessage } : {}),
+            ...(info.replayMode ? { replayMode: info.replayMode } : {}),
+            ...(info.schemaContextSource ? { schemaContextSource: info.schemaContextSource } : {}),
+            ...(info.target ? { target: info.target } : {}),
+            ...(info.targetDatabase ? { targetDatabase: info.targetDatabase } : {}),
+            attempt: 1,
+        };
+        this.notifyObserver((observer) => observer.onItemSettled?.(outcome, run));
+    }
+
+    private notifyRunUpdated(run: FeatureReplayRun<TCell>): void {
+        this.notifyObserver((observer) => observer.onRunUpdated?.(run));
+    }
+
+    /** Observer failures are contained: persistence never breaks a run. */
+    private notifyObserver(
+        callback: (observer: FeatureReplayRunObserver<TEvent, TConfig, TCell>) => void,
+    ): void {
+        if (!this._observer) {
+            return;
+        }
+        try {
+            callback(this._observer);
+        } catch {
+            // repository/observer failure never affects the run (§2.3)
+        }
+    }
+
+    private settleRunSpan(
+        runId: string,
+        outcome: "completed" | "cancelled" | "disposed" | "refused",
+    ): void {
         const span = this._runSpans.get(runId);
         if (!span) {
             return;
@@ -533,6 +1111,21 @@ export class FeatureReplayEngine<
     }
 }
 
+interface ItemOutcomeInfo {
+    status: FeatureReplayItemStatus;
+    endedAt: number;
+    startedAt?: number;
+    cancellationOutcome?: ReplayCancellationOutcome;
+    resultEventId?: string;
+    resultCaptureEventId?: string;
+    errorCode?: string;
+    errorMessage?: string;
+    replayMode?: string;
+    schemaContextSource?: string;
+    target?: ReplayTargetRef;
+    targetDatabase?: string;
+}
+
 export function createReplayTags<TEvent, TConfig>(
     row: FeatureReplayQueueRow<TEvent, TConfig>,
 ): FeatureReplayTags {
@@ -542,6 +1135,15 @@ export function createReplayTags<TEvent, TConfig>(
         ...(row.matrixCellId ? { replayMatrixCellId: row.matrixCellId } : {}),
         replaySourceEventId: row.sourceEventId,
     };
+}
+
+/** Config digests must never break queueing — a digest failure is recorded as "". */
+function safeConfigDigest(config: unknown): string {
+    try {
+        return sha256OfCanonicalJson(config);
+    } catch {
+        return "";
+    }
 }
 
 function cloneJson<T>(value: T): T {

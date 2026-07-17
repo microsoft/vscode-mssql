@@ -368,6 +368,14 @@ export class SessionDiagSink implements DiagnosticSink {
         captureMode: SessionManifest["captureMode"],
         policyId: string,
         provenance: SessionManifest["provenance"],
+        /**
+         * Bundle-catalog seam (WI-2.3): called after every successful
+         * manifest rewrite — the existing flush path only, never the
+         * emission hot path. Receives the LIVE manifest; the listener must
+         * copy what it keeps, synchronously. Undefined = no-op (legacy
+         * behavior unchanged).
+         */
+        private readonly onManifestWritten?: (manifest: SessionManifest) => void,
     ) {
         this.sessionDir = path.join(storeRoot, "sessions", sessionId);
         this.eventsDir = path.join(this.sessionDir, "events");
@@ -501,6 +509,14 @@ export class SessionDiagSink implements DiagnosticSink {
             );
         } catch {
             this.failed = true;
+            return;
+        }
+        // Notify the bundle catalog (register-or-update the diagStream
+        // artifact). Catalog failures never degrade capture.
+        try {
+            this.onManifestWritten?.(this.manifest);
+        } catch {
+            // isolation: the catalog is observability of observability
         }
     }
 }

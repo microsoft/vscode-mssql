@@ -26,6 +26,8 @@ import {
     DcImportPerfRunRequest,
     DcListSourcesRequest,
     DcLivePushNotification,
+    DcNavigateNotification,
+    DcPageId,
     DcRunSelfTestRequest,
     DcSelfTestProgressNotification,
     DcSetCaptureModeRequest,
@@ -51,26 +53,22 @@ export interface SelfTestState {
     };
 }
 
-export type DcPage =
-    | "overview"
-    | "trace"
-    | "waterfall"
-    | "perf"
-    | "history"
-    | "completions"
-    | "replay"
-    | "sql"
-    | "sqlDataPlane"
-    | "connections"
-    | "query"
-    | "oe"
-    | "exports"
-    | "settings";
+// Routing vocabulary is shared with the host so deep links stay typed.
+export type DcPage = DcPageId;
 
 export interface DcRoute {
     page: DcPage;
     traceId?: string;
     eventId?: string;
+    /**
+     * WI-4.4 deep link (History "Completions n" chip): open the Completions
+     * page on the Sessions tab with this host session's stored capture
+     * sessions included in the dataset and loaded.
+     */
+    completionsDatasetSession?: string;
+    /** WI-4.4 deep link (History "Replay runs n" chip): Replay Lab filtered
+     *  to this host session's runs. */
+    replayHostSession?: string;
 }
 
 interface DcContextValue {
@@ -169,6 +167,17 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     const [dataVersion, setDataVersion] = useState(0);
     const [selfTest, setSelfTest] = useState<SelfTestState | undefined>(undefined);
     const subscribedRef = useRef(false);
+    const initialPageConsumedRef = useRef(false);
+
+    // Deep link (WI-1.6): a fresh console carries the requested page in the
+    // initial state snapshot; an already-open console is steered through the
+    // dc/navigate notification (registered with the others below).
+    useEffect(() => {
+        if (!initialPageConsumedRef.current && state?.initialPage) {
+            initialPageConsumedRef.current = true;
+            navigate({ page: state.initialPage });
+        }
+    }, [state?.initialPage]);
 
     // Live pushes arrive every ~120ms during a run; every dataVersion bump
     // re-queries the visible page (several RPCs). Throttle to 1/sec so a busy
@@ -228,6 +237,9 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
         rpc.onNotification(DcCaptureChangedNotification.type, (change) => {
             setCaptureModeState(change.mode);
             setCaptureExpires(change.expiresEpochMs);
+        });
+        rpc.onNotification(DcNavigateNotification.type, ({ page }) => {
+            navigate({ page });
         });
         rpc.onNotification(DcSelfTestProgressNotification.type, (progress) => {
             setSelfTest((current) => {

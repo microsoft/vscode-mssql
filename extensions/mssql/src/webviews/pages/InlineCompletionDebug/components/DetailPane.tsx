@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Button,
     Tab,
@@ -16,9 +16,14 @@ import {
 } from "@fluentui/react-components";
 import { CopyRegular } from "@fluentui/react-icons";
 import { getEventModelLabel } from "../../../../sharedInterfaces/inlineCompletionAnalysis";
+import { IcDetailSection } from "../../../../sharedInterfaces/completionsDebugRpc";
 import { InlineCompletionDebugEvent } from "../../../../sharedInterfaces/inlineCompletionDebug";
 import { getLatencyBucket } from "../../../../sharedInterfaces/latencyBuckets";
-import { useInlineCompletionDebugContext } from "../inlineCompletionDebugStateProvider";
+import {
+    getPendingDetail,
+    InlineCompletionDebugPendingDetail,
+    useInlineCompletionDebugContext,
+} from "../inlineCompletionDebugStateProvider";
 
 const useStyles = makeStyles({
     root: {
@@ -118,6 +123,16 @@ const useStyles = makeStyles({
         marginBottom: "8px",
         color: "var(--vscode-descriptionForeground)",
     },
+    // Section-lazy loading (thin-transport hosts): the skeleton keeps the
+    // block's footprint so nothing shifts when the content lands.
+    loadingBlock: {
+        minHeight: "96px",
+        color: "var(--vscode-descriptionForeground)",
+    },
+    loadingSummaryBlock: {
+        minHeight: "260px",
+        color: "var(--vscode-descriptionForeground)",
+    },
 });
 
 type DetailTab =
@@ -130,6 +145,32 @@ type DetailTab =
     | "locals"
     | "telemetry";
 
+/**
+ * Sections each tab renders, tagged with the pendingDetail flag that says
+ * whether that content is still host-side only (fetch it lazily then).
+ */
+const detailTabSections: Record<
+    DetailTab,
+    Array<{ section: IcDetailSection; flag: keyof InlineCompletionDebugPendingDetail }>
+> = {
+    summary: [
+        { section: "summary", flag: "summary" },
+        { section: "locals", flag: "locals" },
+        { section: "sanitizedResponse", flag: "sanitizedResponse" },
+    ],
+    system: [{ section: "prompt", flag: "prompt" }],
+    user: [{ section: "prompt", flag: "prompt" }],
+    raw: [{ section: "rawResponse", flag: "rawResponse" }],
+    sanitized: [
+        { section: "sanitizedResponse", flag: "sanitizedResponse" },
+        { section: "rawResponse", flag: "rawResponse" },
+        { section: "locals", flag: "locals" },
+    ],
+    schema: [{ section: "schemaContext", flag: "schema" }],
+    locals: [{ section: "locals", flag: "locals" }],
+    telemetry: [{ section: "summary", flag: "summary" }],
+};
+
 export const InlineCompletionDebugDetailPane = ({
     event,
     onCopyEventPayload,
@@ -141,9 +182,52 @@ export const InlineCompletionDebugDetailPane = ({
     ) => void;
 }) => {
     const classes = useStyles();
-    const { copyEventPayload } = useInlineCompletionDebugContext();
+    const { copyEventPayload, getEventDetail } = useInlineCompletionDebugContext();
     const [activeTab, setActiveTab] = useState<DetailTab>("summary");
+    const [detailError, setDetailError] = useState<string | undefined>(undefined);
     const telemetryRows = useMemo(() => (event ? buildTelemetryRows(event) : []), [event]);
+
+    // Section-lazy hydration: events projected from thin live rows carry
+    // pendingDetail flags; fetch exactly the sections the active tab shows
+    // and let the provider merge the content in (flags clear on merge).
+    const pendingDetail = getPendingDetail(event);
+    const eventId = event?.id;
+    const neededSections = useMemo(() => {
+        if (!eventId || !pendingDetail) {
+            return [] as IcDetailSection[];
+        }
+        const needed = detailTabSections[activeTab]
+            .filter((entry) => pendingDetail[entry.flag])
+            .map((entry) => entry.section);
+        return [...new Set(needed)];
+    }, [eventId, pendingDetail, activeTab]);
+    const neededSectionsKey = neededSections.join("|");
+
+    useEffect(() => {
+        if (!eventId || neededSections.length === 0) {
+            return undefined;
+        }
+        let cancelled = false;
+        setDetailError(undefined);
+        void getEventDetail({ kind: "live" }, eventId, neededSections).then(
+            (result) => {
+                if (!cancelled && !result.found) {
+                    setDetailError(
+                        "Event detail is no longer available (dropped from the live ring).",
+                    );
+                }
+            },
+            () => {
+                if (!cancelled) {
+                    setDetailError("Couldn't load event detail — select the event again to retry.");
+                }
+            },
+        );
+        return () => {
+            cancelled = true;
+        };
+        // neededSectionsKey stands in for the array identity.
+    }, [eventId, activeTab, neededSectionsKey, getEventDetail]);
 
     if (!event) {
         return (
@@ -152,6 +236,14 @@ export const InlineCompletionDebugDetailPane = ({
             </div>
         );
     }
+
+    const sectionLoading = (flag: keyof InlineCompletionDebugPendingDetail): boolean =>
+        !detailError && pendingDetail?.[flag] === true;
+    const loadingBlock = (extraClass?: string) => (
+        <pre className={mergeClasses(classes.monoBlock, extraClass ?? classes.loadingBlock)}>
+            Loading …
+        </pre>
+    );
 
     const systemPrompt = event.promptMessages[0]?.content ?? "";
     const userPrompt = event.promptMessages[1]?.content ?? "";
@@ -228,105 +320,152 @@ export const InlineCompletionDebugDetailPane = ({
             </div>
 
             <div className={classes.content}>
+                {detailError ? <Text className={classes.note}>{detailError}</Text> : null}
                 {activeTab === "summary" ? (
                     <>
-                        <div className={classes.summaryGrid}>
-                            {summaryRow("Event", event.id, classes)}
-                            {summaryRow(
-                                "Time",
-                                new Date(event.timestamp).toLocaleString(),
-                                classes,
-                            )}
-                            {summaryRow(
-                                "Document",
-                                `${event.documentFileName} | Ln ${event.line}, Col ${event.column}`,
-                                classes,
-                            )}
-                            {summaryRow(
-                                "Trigger",
-                                event.explicitFromUser ? "explicit" : "automatic",
-                                classes,
-                            )}
-                            {summaryRow(
-                                "Mode",
-                                `${
-                                    event.completionCategory ??
-                                    (event.intentMode ? "intent" : "continuation")
-                                } | intentMode=${event.intentMode}`,
-                                classes,
-                            )}
-                            {summaryRow("Model", formatEventModel(event), classes)}
-                            {summaryRow("Result", event.result, classes)}
-                            {summaryRow("Latency", formatLatency(event), classes)}
-                            {summaryRow(
-                                "Tokens",
-                                `in=${formatTokenCount(event.inputTokens)} | out=${formatTokenCount(
-                                    event.outputTokens,
-                                )}`,
-                                classes,
-                            )}
-                            {summaryRow("LM Request", formatLanguageModelRequest(event), classes)}
-                            {summaryRow(
-                                "Schema",
-                                `${event.schemaObjectCount} objs | system=${event.schemaSystemObjectCount} | fks=${event.schemaForeignKeyCount}`,
-                                classes,
-                            )}
-                        </div>
+                        {sectionLoading("summary") ? (
+                            loadingBlock(classes.loadingSummaryBlock)
+                        ) : (
+                            <div className={classes.summaryGrid}>
+                                {summaryRow("Event", event.id, classes)}
+                                {summaryRow(
+                                    "Time",
+                                    new Date(event.timestamp).toLocaleString(),
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    "Document",
+                                    `${event.documentFileName} | Ln ${event.line}, Col ${event.column}`,
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    "Trigger",
+                                    event.explicitFromUser ? "explicit" : "automatic",
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    "Mode",
+                                    `${
+                                        event.completionCategory ??
+                                        (event.intentMode ? "intent" : "continuation")
+                                    } | intentMode=${event.intentMode}`,
+                                    classes,
+                                )}
+                                {summaryRow("Model", formatEventModel(event), classes)}
+                                {summaryRow("Result", event.result, classes)}
+                                {summaryRow("Latency", formatLatency(event), classes)}
+                                {summaryRow(
+                                    "Tokens",
+                                    `in=${formatTokenCount(event.inputTokens)} | out=${formatTokenCount(
+                                        event.outputTokens,
+                                    )}`,
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    "LM Request",
+                                    formatLanguageModelRequest(event),
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    "Schema",
+                                    `${event.schemaObjectCount} objs | system=${event.schemaSystemObjectCount} | fks=${event.schemaForeignKeyCount}`,
+                                    classes,
+                                )}
+                            </div>
+                        )}
 
                         <Text className={classes.blockLabel}>User text</Text>
-                        <pre className={classes.monoBlock}>
-                            {String(event.locals.linePrefix ?? "")}
-                        </pre>
+                        {sectionLoading("locals") ? (
+                            loadingBlock()
+                        ) : (
+                            <pre className={classes.monoBlock}>
+                                {String(event.locals.linePrefix ?? "")}
+                            </pre>
+                        )}
 
                         <Text className={classes.blockLabel} style={{ marginTop: "14px" }}>
                             Sanitized response
                         </Text>
-                        <pre className={classes.monoBlock}>
-                            {event.sanitizedResponse ?? event.finalCompletionText ?? "--"}
-                        </pre>
+                        {sectionLoading("sanitizedResponse") ? (
+                            loadingBlock()
+                        ) : (
+                            <pre className={classes.monoBlock}>
+                                {event.sanitizedResponse ?? event.finalCompletionText ?? "--"}
+                            </pre>
+                        )}
                     </>
                 ) : null}
 
                 {activeTab === "system" ? (
-                    <pre className={classes.monoBlock}>{systemPrompt || "--"}</pre>
+                    sectionLoading("prompt") ? (
+                        loadingBlock()
+                    ) : (
+                        <pre className={classes.monoBlock}>{systemPrompt || "--"}</pre>
+                    )
                 ) : null}
                 {activeTab === "user" ? (
-                    <pre className={classes.monoBlock}>{userPrompt || "--"}</pre>
+                    sectionLoading("prompt") ? (
+                        loadingBlock()
+                    ) : (
+                        <pre className={classes.monoBlock}>{userPrompt || "--"}</pre>
+                    )
                 ) : null}
                 {activeTab === "raw" ? (
-                    <pre className={classes.monoBlock}>{event.rawResponse || "--"}</pre>
+                    sectionLoading("rawResponse") ? (
+                        loadingBlock()
+                    ) : (
+                        <pre className={classes.monoBlock}>{event.rawResponse || "--"}</pre>
+                    )
                 ) : null}
                 {activeTab === "sanitized" ? (
-                    <>
-                        <Text className={classes.note}>{sanitizedNote}</Text>
-                        <pre className={classes.monoBlock}>
-                            {event.sanitizedResponse ?? event.finalCompletionText ?? "--"}
-                        </pre>
-                    </>
+                    sectionLoading("sanitizedResponse") || sectionLoading("rawResponse") ? (
+                        loadingBlock()
+                    ) : (
+                        <>
+                            <Text className={classes.note}>{sanitizedNote}</Text>
+                            <pre className={classes.monoBlock}>
+                                {event.sanitizedResponse ?? event.finalCompletionText ?? "--"}
+                            </pre>
+                        </>
+                    )
                 ) : null}
                 {activeTab === "schema" ? (
-                    <pre className={classes.monoBlock}>{event.schemaContextFormatted ?? "--"}</pre>
+                    sectionLoading("schema") ? (
+                        loadingBlock()
+                    ) : (
+                        <pre className={classes.monoBlock}>
+                            {event.schemaContextFormatted ?? "--"}
+                        </pre>
+                    )
                 ) : null}
                 {activeTab === "locals" ? (
-                    <pre className={classes.monoBlock}>
-                        {JSON.stringify(event.locals, undefined, 2)}
-                    </pre>
+                    sectionLoading("locals") ? (
+                        loadingBlock()
+                    ) : (
+                        <pre className={classes.monoBlock}>
+                            {JSON.stringify(event.locals, undefined, 2)}
+                        </pre>
+                    )
                 ) : null}
                 {activeTab === "telemetry" ? (
-                    <div className={classes.keyValueGrid}>
-                        {telemetryRows.map(([label, value]) => (
-                            <React.Fragment key={label}>
-                                <Text
-                                    className={mergeClasses(
-                                        classes.summaryLabel,
-                                        classes.telemetryLabel,
-                                    )}>
-                                    {label}
-                                </Text>
-                                <Text>{value}</Text>
-                            </React.Fragment>
-                        ))}
-                    </div>
+                    sectionLoading("summary") ? (
+                        loadingBlock()
+                    ) : (
+                        <div className={classes.keyValueGrid}>
+                            {telemetryRows.map(([label, value]) => (
+                                <React.Fragment key={label}>
+                                    <Text
+                                        className={mergeClasses(
+                                            classes.summaryLabel,
+                                            classes.telemetryLabel,
+                                        )}>
+                                        {label}
+                                    </Text>
+                                    <Text>{value}</Text>
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    )
                 ) : null}
             </div>
         </div>

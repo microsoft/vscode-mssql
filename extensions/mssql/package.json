@@ -1628,8 +1628,18 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.sessionDiag.clearSensitiveCaptures",
+                "title": "Session Diagnostics: Clear Sensitive Captures",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.sessionDiag.openStorageFolder",
                 "title": "Session Diagnostics: Open Storage Folder",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.completions.journal.reconcile",
+                "title": "Completions: Reconcile Capture Journal (Developer)",
                 "category": "MS SQL"
             },
             {
@@ -4263,6 +4273,12 @@
                     "description": "Keep recording inline completion debug events while the debug panel is closed.",
                     "scope": "window"
                 },
+                "mssql.copilot.inlineCompletions.debug.standalonePanel": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Open the legacy standalone Copilot Completion Debug panel instead of the Debug Console Completions page.",
+                    "scope": "window"
+                },
                 "mssql.copilot.inlineCompletions.trace.captureEnabled": {
                     "type": "boolean",
                     "default": false,
@@ -4286,6 +4302,12 @@
                     "default": 50,
                     "minimum": 1,
                     "description": "Maximum inline completion trace file size in megabytes. Older events are dropped first and the trace is marked truncated when needed.",
+                    "scope": "window"
+                },
+                "mssql.copilot.inlineCompletions.trace.journalPrimary": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Experimental (observability-lab workflow): treat the local capture journal as the primary trace record. Explicit save/export assembles a v2 trace from the journal, and the legacy deactivate trace file is skipped when the journal stream is healthy. Requires trace.captureEnabled.",
                     "scope": "window"
                 },
                 "mssql.sqlDataPlane.enabled": {

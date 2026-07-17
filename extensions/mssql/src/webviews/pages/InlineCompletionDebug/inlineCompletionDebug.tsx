@@ -79,12 +79,28 @@ const useStyles = makeStyles({
             "color-mix(in srgb, var(--vscode-button-foreground) 55%, transparent)",
         ),
     },
+    // Honest partial-stream state (addendum §2.2): oldest events fell out of
+    // the bounded live ring — a compact inline notice, not a dialog.
+    truncationStrip: {
+        display: "flex",
+        alignItems: "center",
+        minHeight: "22px",
+        flexShrink: 0,
+        color: "var(--vscode-descriptionForeground)",
+        fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
+        fontSize: "11px",
+        ...shorthands.padding("0", "12px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
 });
 
 export const InlineCompletionDebugPage = () => {
     const classes = useStyles();
     const { cancelReplayRun, selectEvent } = useInlineCompletionDebugContext();
     const events = useInlineCompletionDebugSelector((state) => state.events);
+    const liveEvictedCount = useInlineCompletionDebugSelector(
+        (state) => state.liveEvictedCount ?? 0,
+    );
     const replay = useInlineCompletionDebugSelector((state) => state.replay);
     const selectedEventId = useInlineCompletionDebugSelector((state) => state.selectedEventId);
     const toolbarState = useInlineCompletionDebugSelector((state) => state);
@@ -128,8 +144,15 @@ export const InlineCompletionDebugPage = () => {
         };
     }, [filteredEvents]);
     const activeRun = replay.runs.find((run) => run.id === replay.activeRunId);
+    // "cancelling" stays visible: the active item is still settling and the
+    // user must see that the cancel is in progress (honesty, WI-3.5 fix —
+    // the strip previously vanished the moment cancel was pressed).
     const activeRunIsVisible =
-        !!activeRun && (activeRun.status === "queued" || activeRun.status === "running");
+        !!activeRun &&
+        (activeRun.status === "queued" ||
+            activeRun.status === "running" ||
+            activeRun.status === "cancelling");
+    const activeRunCancelling = activeRun?.status === "cancelling";
     const activeMatrixCell = activeRun?.matrixCells?.find(
         (cell) => cell.cellId === activeRun.activeMatrixCellId,
     );
@@ -233,9 +256,19 @@ export const InlineCompletionDebugPage = () => {
                                     className={classes.cancelRunButton}
                                     appearance="outline"
                                     size="small"
+                                    disabled={activeRunCancelling}
                                     onClick={() => cancelReplayRun(activeRun.id)}>
-                                    Cancel queue
+                                    {activeRunCancelling
+                                        ? "Cancelling — waiting for the active item…"
+                                        : "Cancel queue"}
                                 </Button>
+                            </div>
+                        ) : null}
+                        {liveEvictedCount > 0 ? (
+                            <div className={classes.truncationStrip}>
+                                {liveEvictedCount.toLocaleString()} older event
+                                {liveEvictedCount === 1 ? "" : "s"} dropped from the live ring
+                                (bounded buffer) — save or export sooner to keep them.
                             </div>
                         ) : null}
                         <InlineCompletionDebugEventGrid

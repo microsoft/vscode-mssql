@@ -3,9 +3,32 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, ReactNode, useCallback, useContext } from "react";
+/**
+ * The ONE provider contract every Inline Completion Debug component consumes
+ * (final plan WI-1.4): a state store (snapshot + subscribe, read through
+ * useInlineCompletionDebugSelector) plus an actions context (dispatch + the
+ * async section-lazy getEventDetail accessor). Two implementations exist:
+ *
+ * - InlineCompletionDebugStateProvider (this file): the standalone panel —
+ *   full local state via the reducer-framework webview snapshot, actions via
+ *   extensionRpc.action, detail resolved synchronously from local state.
+ * - ConsoleCompletionsDebugStateProvider (DebugConsole/completionsDebug/):
+ *   the Debug Console page — thin typed RPC transport, live rows + lazy
+ *   detail, commands over dc/icDebugCommand.
+ *
+ * Components import ONLY from here and from the selector module, so there are
+ * no forked component copies anywhere.
+ */
+
+import { createContext, ReactNode, useContext, useMemo } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
+    DcCompletionEventDetailResult,
+    DcCompletionEventDetailSource,
+    IcDetailSection,
+} from "../../../sharedInterfaces/completionsDebugRpc";
+import {
+    CompletionReplayMode,
     InlineCompletionDebugEvent,
     InlineCompletionDebugProfileId,
     InlineCompletionDebugReplayCartAddItem,
@@ -15,6 +38,68 @@ import {
     InlineCompletionSchemaBudgetProfileId,
     InlineCompletionDebugWebviewState,
 } from "../../../sharedInterfaces/inlineCompletionDebug";
+
+/** WI-3.4: mode selection frozen into a queue/matrix run at queue time. */
+export interface InlineCompletionReplayModeSelection {
+    replayMode: CompletionReplayMode;
+    schemaFallbackToCaptured?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// View-model marker for thin-transport hosts
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-content-family "exists host-side but not in this projection" flags. A
+ * host that composes events from thin live rows stamps these on its view
+ * models; components fetch the missing sections through getEventDetail and
+ * the host clears the flags as content merges in. Events that carry full
+ * bodies (the standalone panel, loaded session traces) never set this.
+ */
+export interface InlineCompletionDebugPendingDetail {
+    summary: boolean;
+    prompt: boolean;
+    rawResponse: boolean;
+    sanitizedResponse: boolean;
+    schema: boolean;
+    locals: boolean;
+    error: boolean;
+}
+
+export type InlineCompletionDebugEventVm = InlineCompletionDebugEvent & {
+    pendingDetail?: InlineCompletionDebugPendingDetail;
+};
+
+export function getPendingDetail(
+    event: InlineCompletionDebugEvent | undefined,
+): InlineCompletionDebugPendingDetail | undefined {
+    return (event as InlineCompletionDebugEventVm | undefined)?.pendingDetail;
+}
+
+// ---------------------------------------------------------------------------
+// State store contract (read via useInlineCompletionDebugSelector)
+// ---------------------------------------------------------------------------
+
+export interface IcDebugStateStore {
+    getSnapshot: () => InlineCompletionDebugWebviewState;
+    subscribe: (listener: () => void) => () => void;
+}
+
+const IcDebugStateStoreContext = createContext<IcDebugStateStore | undefined>(undefined);
+
+export function useIcDebugStateStore(): IcDebugStateStore {
+    const store = useContext(IcDebugStateStoreContext);
+    if (!store) {
+        throw new Error(
+            "useIcDebugStateStore must be used within an Inline Completion Debug provider",
+        );
+    }
+    return store;
+}
+
+// ---------------------------------------------------------------------------
+// Actions context (dispatch + async detail accessor)
+// ---------------------------------------------------------------------------
 
 export interface InlineCompletionDebugContextProps {
     clearEvents: () => void;
@@ -58,10 +143,14 @@ export interface InlineCompletionDebugContextProps {
         snapshotId: string,
         configMode: InlineCompletionDebugReplayCartConfigMode,
     ) => void;
-    queueReplayCart: (configMode?: InlineCompletionDebugReplayCartConfigMode) => void;
+    queueReplayCart: (
+        configMode?: InlineCompletionDebugReplayCartConfigMode,
+        modeSelection?: InlineCompletionReplayModeSelection,
+    ) => void;
     runReplayMatrix: (
         profileIds: InlineCompletionDebugProfileId[],
         schemaBudgetProfileIds: InlineCompletionSchemaBudgetProfileId[],
+        modeSelection?: InlineCompletionReplayModeSelection,
     ) => void;
     cancelReplayRun: (runId?: string) => void;
     copyEventPayload: (
@@ -75,304 +164,239 @@ export interface InlineCompletionDebugContextProps {
             | "rawResponse"
             | "sanitizedResponse",
     ) => void;
+    /**
+     * Section-lazy event detail. Thin-transport hosts fetch over
+     * dc/completionEventDetail (and merge the content into their view models
+     * so pendingDetail flags clear); the standalone host resolves
+     * synchronously from local state.
+     */
+    getEventDetail: (
+        source: DcCompletionEventDetailSource,
+        eventId: string,
+        sections: IcDetailSection[],
+    ) => Promise<DcCompletionEventDetailResult>;
 }
 
 const InlineCompletionDebugContext = createContext<InlineCompletionDebugContextProps | undefined>(
     undefined,
 );
 
-export const InlineCompletionDebugStateProvider = ({ children }: { children: ReactNode }) => {
-    const { extensionRpc } = useVscodeWebview<
-        InlineCompletionDebugWebviewState,
-        InlineCompletionDebugReducers
-    >();
-
-    const clearEvents = useCallback(() => {
-        extensionRpc.action("clearEvents", {});
-    }, [extensionRpc]);
-
-    const selectEvent = useCallback(
-        (eventId?: string) => {
-            extensionRpc.action("selectEvent", { eventId });
-        },
-        [extensionRpc],
-    );
-
-    const updateOverrides = useCallback(
-        (overrides: Partial<InlineCompletionDebugWebviewState["overrides"]>) => {
-            extensionRpc.action("updateOverrides", { overrides });
-        },
-        [extensionRpc],
-    );
-
-    const selectProfile = useCallback(
-        (profileId: InlineCompletionDebugProfileId) => {
-            extensionRpc.action("selectProfile", { profileId });
-        },
-        [extensionRpc],
-    );
-
-    const setRecordWhenClosed = useCallback(
-        (enabled: boolean) => {
-            extensionRpc.action("setRecordWhenClosed", { enabled });
-        },
-        [extensionRpc],
-    );
-
-    const openCustomPromptDialog = useCallback(() => {
-        extensionRpc.action("openCustomPromptDialog", {});
-    }, [extensionRpc]);
-
-    const closeCustomPromptDialog = useCallback(() => {
-        extensionRpc.action("closeCustomPromptDialog", {});
-    }, [extensionRpc]);
-
-    const saveCustomPrompt = useCallback(
-        (value: string) => {
-            extensionRpc.action("saveCustomPrompt", { value });
-        },
-        [extensionRpc],
-    );
-
-    const resetCustomPrompt = useCallback(() => {
-        extensionRpc.action("resetCustomPrompt", {});
-    }, [extensionRpc]);
-
-    const refreshSchemaContext = useCallback(() => {
-        extensionRpc.action("refreshSchemaContext", {});
-    }, [extensionRpc]);
-
-    const importSession = useCallback(() => {
-        extensionRpc.action("importSession", {});
-    }, [extensionRpc]);
-
-    const exportSession = useCallback(() => {
-        extensionRpc.action("exportSession", {});
-    }, [extensionRpc]);
-
-    const saveTraceNow = useCallback(() => {
-        extensionRpc.action("saveTraceNow", {});
-    }, [extensionRpc]);
-
-    const sessionsActivated = useCallback(() => {
-        extensionRpc.action("sessionsActivated", {});
-    }, [extensionRpc]);
-
-    const sessionsRefresh = useCallback(() => {
-        extensionRpc.action("sessionsRefresh", {});
-    }, [extensionRpc]);
-
-    const sessionsToggleTrace = useCallback(
-        (fileKey: string, included: boolean) => {
-            extensionRpc.action("sessionsToggleTrace", { fileKey, included });
-        },
-        [extensionRpc],
-    );
-
-    const sessionsSetAllTraces = useCallback(
-        (included: boolean) => {
-            extensionRpc.action("sessionsSetAllTraces", { included });
-        },
-        [extensionRpc],
-    );
-
-    const sessionsLoadIncluded = useCallback(() => {
-        extensionRpc.action("sessionsLoadIncluded", {});
-    }, [extensionRpc]);
-
-    const sessionsAddFile = useCallback(() => {
-        extensionRpc.action("sessionsAddFile", {});
-    }, [extensionRpc]);
-
-    const sessionsChangeFolder = useCallback(() => {
-        extensionRpc.action("sessionsChangeFolder", {});
-    }, [extensionRpc]);
-
-    const sessionsEnableTraceCollection = useCallback(() => {
-        extensionRpc.action("sessionsEnableTraceCollection", {});
-    }, [extensionRpc]);
-
-    const sessionsSyncToDatabase = useCallback(() => {
-        extensionRpc.action("sessionsSyncToDatabase", {});
-    }, [extensionRpc]);
-
-    const replayEvent = useCallback(
-        (eventId: string) => {
-            extensionRpc.action("replayEvent", { eventId });
-        },
-        [extensionRpc],
-    );
-
-    const replaySessionEvent = useCallback(
-        (event: InlineCompletionDebugEvent) => {
-            extensionRpc.action("replaySessionEvent", { event });
-        },
-        [extensionRpc],
-    );
-
-    const openReplayBuilder = useCallback(() => {
-        extensionRpc.action("openReplayBuilder", {});
-    }, [extensionRpc]);
-
-    const closeReplayBuilder = useCallback(
-        (restoreCart: boolean) => {
-            extensionRpc.action("closeReplayBuilder", { restoreCart });
-        },
-        [extensionRpc],
-    );
-
-    const addEventsToReplayCart = useCallback(
-        (items: InlineCompletionDebugReplayCartAddItem[]) => {
-            extensionRpc.action("addEventsToReplayCart", { items });
-        },
-        [extensionRpc],
-    );
-
-    const addSessionToReplayCart = useCallback(
-        (fileKey: string) => {
-            extensionRpc.action("addSessionToReplayCart", { fileKey });
-        },
-        [extensionRpc],
-    );
-
-    const replaySessionNow = useCallback(
-        (fileKey: string) => {
-            extensionRpc.action("replaySessionNow", { fileKey });
-        },
-        [extensionRpc],
-    );
-
-    const removeFromReplayCart = useCallback(
-        (snapshotId: string) => {
-            extensionRpc.action("removeFromReplayCart", { snapshotId });
-        },
-        [extensionRpc],
-    );
-
-    const reorderReplayCart = useCallback(
-        (fromIndex: number, toIndex: number) => {
-            extensionRpc.action("reorderReplayCart", { fromIndex, toIndex });
-        },
-        [extensionRpc],
-    );
-
-    const clearReplayCart = useCallback(() => {
-        extensionRpc.action("clearReplayCart", {});
-    }, [extensionRpc]);
-
-    const reverseReplayCart = useCallback(() => {
-        extensionRpc.action("reverseReplayCart", {});
-    }, [extensionRpc]);
-
-    const setReplayCartOverride = useCallback(
-        (snapshotId: string, override: Partial<InlineCompletionDebugReplayConfig> | null) => {
-            extensionRpc.action("setReplayCartOverride", { snapshotId, override });
-        },
-        [extensionRpc],
-    );
-
-    const setReplayCartConfigMode = useCallback(
-        (snapshotId: string, configMode: InlineCompletionDebugReplayCartConfigMode) => {
-            extensionRpc.action("setReplayCartConfigMode", { snapshotId, configMode });
-        },
-        [extensionRpc],
-    );
-
-    const queueReplayCart = useCallback(
-        (configMode?: InlineCompletionDebugReplayCartConfigMode) => {
-            extensionRpc.action("queueReplayCart", configMode ? { configMode } : {});
-        },
-        [extensionRpc],
-    );
-
-    const runReplayMatrix = useCallback(
-        (
-            profileIds: InlineCompletionDebugProfileId[],
-            schemaBudgetProfileIds: InlineCompletionSchemaBudgetProfileId[],
-        ) => {
-            extensionRpc.action("runReplayMatrix", { profileIds, schemaBudgetProfileIds });
-        },
-        [extensionRpc],
-    );
-
-    const cancelReplayRun = useCallback(
-        (runId?: string) => {
-            extensionRpc.action("cancelReplayRun", { runId });
-        },
-        [extensionRpc],
-    );
-
-    const copyEventPayload = useCallback(
-        (
-            eventId: string,
-            kind:
-                | "id"
-                | "json"
-                | "prompt"
-                | "systemPrompt"
-                | "userPrompt"
-                | "rawResponse"
-                | "sanitizedResponse",
-        ) => {
-            extensionRpc.action("copyEventPayload", { eventId, kind });
-        },
-        [extensionRpc],
-    );
-
-    return (
-        <InlineCompletionDebugContext.Provider
-            value={{
-                clearEvents,
-                selectEvent,
-                updateOverrides,
-                selectProfile,
-                setRecordWhenClosed,
-                openCustomPromptDialog,
-                closeCustomPromptDialog,
-                saveCustomPrompt,
-                resetCustomPrompt,
-                refreshSchemaContext,
-                importSession,
-                exportSession,
-                saveTraceNow,
-                sessionsActivated,
-                sessionsRefresh,
-                sessionsToggleTrace,
-                sessionsSetAllTraces,
-                sessionsLoadIncluded,
-                sessionsAddFile,
-                sessionsChangeFolder,
-                sessionsEnableTraceCollection,
-                sessionsSyncToDatabase,
-                replayEvent,
-                replaySessionEvent,
-                openReplayBuilder,
-                closeReplayBuilder,
-                addEventsToReplayCart,
-                addSessionToReplayCart,
-                replaySessionNow,
-                removeFromReplayCart,
-                reorderReplayCart,
-                clearReplayCart,
-                reverseReplayCart,
-                setReplayCartOverride,
-                setReplayCartConfigMode,
-                queueReplayCart,
-                runReplayMatrix,
-                cancelReplayRun,
-                copyEventPayload,
-            }}>
-            {children}
-        </InlineCompletionDebugContext.Provider>
-    );
-};
-
 export function useInlineCompletionDebugContext(): InlineCompletionDebugContextProps {
     const context = useContext(InlineCompletionDebugContext);
     if (!context) {
         throw new Error(
-            "useInlineCompletionDebugContext must be used within InlineCompletionDebugStateProvider",
+            "useInlineCompletionDebugContext must be used within an Inline Completion Debug provider",
         );
     }
     return context;
 }
+
+/**
+ * Bridge both contexts for an implementation. Providers (standalone below,
+ * console in DebugConsole/completionsDebug/consoleStateProvider.tsx) render
+ * this around the shared component tree.
+ */
+export function InlineCompletionDebugProviderBridge({
+    store,
+    actions,
+    children,
+}: {
+    store: IcDebugStateStore;
+    actions: InlineCompletionDebugContextProps;
+    children: ReactNode;
+}) {
+    return (
+        <IcDebugStateStoreContext.Provider value={store}>
+            <InlineCompletionDebugContext.Provider value={actions}>
+                {children}
+            </InlineCompletionDebugContext.Provider>
+        </IcDebugStateStoreContext.Provider>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Local (webview-side) section projection — the standalone detail accessor
+// ---------------------------------------------------------------------------
+
+/**
+ * Mirror of the host's per-section slices for events already held in full in
+ * this webview. Used by the standalone provider (whose events always carry
+ * full bodies) so getEventDetail behaves identically across hosts.
+ */
+export function projectLocalEventDetailSections(
+    event: InlineCompletionDebugEvent,
+    sections: IcDetailSection[],
+): Partial<Record<IcDetailSection, unknown>> {
+    const result: Partial<Record<IcDetailSection, unknown>> = {};
+    for (const section of new Set(sections)) {
+        switch (section) {
+            case "summary":
+                result[section] = {
+                    modelVendor: event.modelVendor,
+                    modelId: event.modelId,
+                    modelFamily: event.modelFamily,
+                    explicitFromUser: event.explicitFromUser,
+                    inferredSystemQuery: event.inferredSystemQuery,
+                    usedSchemaContext: event.usedSchemaContext,
+                    schemaObjectCount: event.schemaObjectCount,
+                    schemaSystemObjectCount: event.schemaSystemObjectCount,
+                    schemaForeignKeyCount: event.schemaForeignKeyCount,
+                    link: event.link,
+                    tags: event.tags,
+                };
+                break;
+            case "prompt":
+                result[section] = event.promptMessages;
+                break;
+            case "rawResponse":
+                result[section] = event.rawResponse;
+                break;
+            case "sanitizedResponse":
+                result[section] = {
+                    sanitizedResponse: event.sanitizedResponse,
+                    finalCompletionText: event.finalCompletionText,
+                };
+                break;
+            case "schemaContext":
+                result[section] = event.schemaContextFormatted;
+                break;
+            case "locals":
+                result[section] = event.locals;
+                break;
+            case "telemetry":
+                result[section] = {
+                    latencyMs: event.latencyMs,
+                    inputTokens: event.inputTokens,
+                    outputTokens: event.outputTokens,
+                };
+                break;
+            case "error":
+                result[section] = event.error;
+                break;
+            case "overrides":
+                result[section] = event.overridesApplied;
+                break;
+        }
+    }
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+// Standalone implementation (the legacy panel — unchanged behavior)
+// ---------------------------------------------------------------------------
+
+export const InlineCompletionDebugStateProvider = ({ children }: { children: ReactNode }) => {
+    const ctx = useVscodeWebview<
+        InlineCompletionDebugWebviewState,
+        InlineCompletionDebugReducers
+    >();
+    const { extensionRpc } = ctx;
+
+    const store = useMemo<IcDebugStateStore>(
+        () => ({
+            getSnapshot: () => ctx.getSnapshot() || ({} as InlineCompletionDebugWebviewState),
+            subscribe: (listener) => ctx.subscribe(listener),
+        }),
+        [ctx],
+    );
+
+    const actions = useMemo<InlineCompletionDebugContextProps>(
+        () => ({
+            clearEvents: () => extensionRpc.action("clearEvents", {}),
+            selectEvent: (eventId) => extensionRpc.action("selectEvent", { eventId }),
+            updateOverrides: (overrides) => extensionRpc.action("updateOverrides", { overrides }),
+            selectProfile: (profileId) => extensionRpc.action("selectProfile", { profileId }),
+            setRecordWhenClosed: (enabled) =>
+                extensionRpc.action("setRecordWhenClosed", { enabled }),
+            openCustomPromptDialog: () => extensionRpc.action("openCustomPromptDialog", {}),
+            closeCustomPromptDialog: () => extensionRpc.action("closeCustomPromptDialog", {}),
+            saveCustomPrompt: (value) => extensionRpc.action("saveCustomPrompt", { value }),
+            resetCustomPrompt: () => extensionRpc.action("resetCustomPrompt", {}),
+            refreshSchemaContext: () => extensionRpc.action("refreshSchemaContext", {}),
+            importSession: () => extensionRpc.action("importSession", {}),
+            exportSession: () => extensionRpc.action("exportSession", {}),
+            saveTraceNow: () => extensionRpc.action("saveTraceNow", {}),
+            sessionsActivated: () => extensionRpc.action("sessionsActivated", {}),
+            sessionsRefresh: () => extensionRpc.action("sessionsRefresh", {}),
+            sessionsToggleTrace: (fileKey, included) =>
+                extensionRpc.action("sessionsToggleTrace", { fileKey, included }),
+            sessionsSetAllTraces: (included) =>
+                extensionRpc.action("sessionsSetAllTraces", { included }),
+            sessionsLoadIncluded: () => extensionRpc.action("sessionsLoadIncluded", {}),
+            sessionsAddFile: () => extensionRpc.action("sessionsAddFile", {}),
+            sessionsChangeFolder: () => extensionRpc.action("sessionsChangeFolder", {}),
+            sessionsEnableTraceCollection: () =>
+                extensionRpc.action("sessionsEnableTraceCollection", {}),
+            sessionsSyncToDatabase: () => extensionRpc.action("sessionsSyncToDatabase", {}),
+            replayEvent: (eventId) => extensionRpc.action("replayEvent", { eventId }),
+            replaySessionEvent: (event) => extensionRpc.action("replaySessionEvent", { event }),
+            openReplayBuilder: () => extensionRpc.action("openReplayBuilder", {}),
+            closeReplayBuilder: (restoreCart) =>
+                extensionRpc.action("closeReplayBuilder", { restoreCart }),
+            addEventsToReplayCart: (items) =>
+                extensionRpc.action("addEventsToReplayCart", { items }),
+            addSessionToReplayCart: (fileKey) =>
+                extensionRpc.action("addSessionToReplayCart", { fileKey }),
+            replaySessionNow: (fileKey) => extensionRpc.action("replaySessionNow", { fileKey }),
+            removeFromReplayCart: (snapshotId) =>
+                extensionRpc.action("removeFromReplayCart", { snapshotId }),
+            reorderReplayCart: (fromIndex, toIndex) =>
+                extensionRpc.action("reorderReplayCart", { fromIndex, toIndex }),
+            clearReplayCart: () => extensionRpc.action("clearReplayCart", {}),
+            reverseReplayCart: () => extensionRpc.action("reverseReplayCart", {}),
+            setReplayCartOverride: (snapshotId, override) =>
+                extensionRpc.action("setReplayCartOverride", { snapshotId, override }),
+            setReplayCartConfigMode: (snapshotId, configMode) =>
+                extensionRpc.action("setReplayCartConfigMode", { snapshotId, configMode }),
+            queueReplayCart: (configMode, modeSelection) =>
+                extensionRpc.action("queueReplayCart", {
+                    ...(configMode ? { configMode } : {}),
+                    ...(modeSelection ?? {}),
+                }),
+            runReplayMatrix: (profileIds, schemaBudgetProfileIds, modeSelection) =>
+                extensionRpc.action("runReplayMatrix", {
+                    profileIds,
+                    schemaBudgetProfileIds,
+                    ...(modeSelection ?? {}),
+                }),
+            cancelReplayRun: (runId) => extensionRpc.action("cancelReplayRun", { runId }),
+            copyEventPayload: (eventId, kind) =>
+                extensionRpc.action("copyEventPayload", { eventId, kind }),
+            // Full bodies are always local here: resolve synchronously from
+            // the snapshot (live events, replay queue rows, loaded traces).
+            getEventDetail: (source, eventId, sections) => {
+                const state = store.getSnapshot();
+                const event =
+                    source.kind === "trace"
+                        ? state.sessions?.loadedTraces
+                              ?.find((loaded) => loaded.fileKey === source.fileKey)
+                              ?.trace.events.find(
+                                  (candidate) =>
+                                      candidate.id === eventId ||
+                                      candidate.link?.captureEventId === eventId,
+                              )
+                        : (state.events?.find(
+                              (candidate) =>
+                                  candidate.id === eventId ||
+                                  candidate.link?.captureEventId === eventId,
+                          ) ??
+                          state.replay?.queueRows?.find((row) => row.event.id === eventId)?.event);
+                if (!event) {
+                    return Promise.resolve({ found: false, revision: 0, sections: {} });
+                }
+                return Promise.resolve({
+                    found: true,
+                    revision: 0,
+                    sections: projectLocalEventDetailSections(event, sections),
+                });
+            },
+        }),
+        [extensionRpc, store],
+    );
+
+    return (
+        <InlineCompletionDebugProviderBridge store={store} actions={actions}>
+            {children}
+        </InlineCompletionDebugProviderBridge>
+    );
+};

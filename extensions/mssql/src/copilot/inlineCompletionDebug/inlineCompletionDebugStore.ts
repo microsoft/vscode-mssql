@@ -53,6 +53,7 @@ class InlineCompletionDebugStore extends FeatureCaptureStore<
     constructor() {
         super({
             logName: "InlineCompletionDebug",
+            featureId: "completions",
             defaultOverrides,
             normalizeOverrides,
             normalizePartialOverrides,
@@ -71,14 +72,20 @@ class InlineCompletionDebugStore extends FeatureCaptureStore<
     }
 
     public markAccepted(eventId: string): void {
-        this.mutateEvent(eventId, (event) => {
-            if (event.result !== "success") {
-                return false;
-            }
+        // "acceptance" is the mutation-kind hint the journal binding maps to
+        // an acceptance.changed lifecycle record (WI-2.4).
+        this.mutateEvent(
+            eventId,
+            (event) => {
+                if (event.result !== "success") {
+                    return false;
+                }
 
-            event.result = "accepted";
-            return true;
-        });
+                event.result = "accepted";
+                return true;
+            },
+            "acceptance",
+        );
     }
 
     public importSession(data: InlineCompletionDebugExportData): void {

@@ -20,15 +20,25 @@ import {
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import {
+    CompletionReplayMode,
     InlineCompletionDebugProfileId,
     InlineCompletionDebugReplayConfig,
     InlineCompletionDebugReplayEventSnapshot,
     InlineCompletionDebugWebviewState,
     InlineCompletionSchemaBudgetProfileId,
+    completionReplayModeOptions,
+    getReplayAxisDisabledReason,
+    isReplayAxisEnabledForMode,
 } from "../../../../sharedInterfaces/inlineCompletionDebug";
 import { useInlineCompletionDebugSelector } from "../inlineCompletionDebugSelector";
-import { useInlineCompletionDebugContext } from "../inlineCompletionDebugStateProvider";
+import {
+    InlineCompletionReplayModeSelection,
+    useInlineCompletionDebugContext,
+} from "../inlineCompletionDebugStateProvider";
 import { schemaProfileOptions } from "./Toolbar";
+
+/** The WI-3.4 default mapping — the pre-explicit-modes replay behavior. */
+const DEFAULT_REPLAY_MODE: CompletionReplayMode = "rebuildCurrentSchema";
 
 const CAPTURED_VALUE = "__captured__";
 const DEFAULT_MODEL_VALUE = "__default__";
@@ -111,6 +121,27 @@ const useStyles = makeStyles({
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
         },
+    },
+    modeDropdown: {
+        minWidth: "190px",
+        maxWidth: "220px",
+        "& button": {
+            minWidth: 0,
+            overflowX: "hidden",
+        },
+    },
+    modeHint: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase100,
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    modeOptionDescription: {
+        display: "block",
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase100,
     },
     tableWrap: {
         flex: 1,
@@ -475,11 +506,31 @@ export function ReplayTraceBuilder() {
     );
     const [matrixConfirmed, setMatrixConfirmed] = useState(false);
     const [useLiveForRun, setUseLiveForRun] = useState(false);
+    // WI-3.4 explicit replay mode — frozen into the run at queue time.
+    const [replayMode, setReplayMode] = useState<CompletionReplayMode>(DEFAULT_REPLAY_MODE);
+    const [fallbackToCaptured, setFallbackToCaptured] = useState(true);
 
     const cart = replay.cart;
     const activeRun = replay.runs.find((run) => run.id === replay.activeRunId);
+    // "cancelling" is active too: the run still owns the engine until its
+    // in-flight item settles (queue controls stay paused, cancel stays real).
     const runIsActive =
-        !!activeRun && (activeRun.status === "queued" || activeRun.status === "running");
+        !!activeRun &&
+        (activeRun.status === "queued" ||
+            activeRun.status === "running" ||
+            activeRun.status === "cancelling");
+    const modeOption =
+        completionReplayModeOptions.find((option) => option.id === replayMode) ??
+        completionReplayModeOptions[0];
+    const profileAxisEnabled = isReplayAxisEnabledForMode("profile", replayMode);
+    const schemaAxisEnabled = isReplayAxisEnabledForMode("schemaBudget", replayMode);
+    const axisDisabledReason = getReplayAxisDisabledReason(replayMode);
+    const modeSelection: InlineCompletionReplayModeSelection = {
+        replayMode,
+        ...(replayMode === "rebuildCurrentSchema"
+            ? { schemaFallbackToCaptured: fallbackToCaptured }
+            : {}),
+    };
     const selectedSnapshot = useMemo(
         () => cart.find((snapshot) => snapshot.id === selectedSnapshotId) ?? cart[0],
         [cart, selectedSnapshotId],
@@ -497,21 +548,28 @@ export function ReplayTraceBuilder() {
         () => schemaProfileOptions.filter((schema) => schema.id !== "custom"),
         [],
     );
-    const matrixCells = useMemo(
-        () =>
-            selectedProfiles.flatMap((profileId, profileIndex) =>
-                selectedSchemas.map((schemaId, schemaIndex) => {
-                    const profile = presetProfiles.find((item) => item.id === profileId);
-                    const schema = presetSchemas.find((item) => item.id === schemaId);
-                    return {
-                        ordinal: profileIndex * selectedSchemas.length + schemaIndex + 1,
-                        profileLabel: profile?.label ?? profileId,
-                        schemaLabel: schema?.label ?? schemaId,
-                    };
-                }),
-            ),
-        [presetProfiles, presetSchemas, selectedProfiles, selectedSchemas],
-    );
+    const matrixCells = useMemo(() => {
+        if (!schemaAxisEnabled) {
+            // Mode pins the schema axis: one captured-schema column (§7.7).
+            return selectedProfiles.map((profileId, profileIndex) => ({
+                ordinal: profileIndex + 1,
+                profileLabel:
+                    presetProfiles.find((item) => item.id === profileId)?.label ?? profileId,
+                schemaLabel: "Captured schema",
+            }));
+        }
+        return selectedProfiles.flatMap((profileId, profileIndex) =>
+            selectedSchemas.map((schemaId, schemaIndex) => {
+                const profile = presetProfiles.find((item) => item.id === profileId);
+                const schema = presetSchemas.find((item) => item.id === schemaId);
+                return {
+                    ordinal: profileIndex * selectedSchemas.length + schemaIndex + 1,
+                    profileLabel: profile?.label ?? profileId,
+                    schemaLabel: schema?.label ?? schemaId,
+                };
+            }),
+        );
+    }, [presetProfiles, presetSchemas, schemaAxisEnabled, selectedProfiles, selectedSchemas]);
     const matrixTotal = matrixCells.length * cart.length;
     const matrixEstimateLabel = formatDuration(matrixTotal * averageLatency);
     const matrixOverBudget = matrixTotal > MATRIX_WARNING_THRESHOLD;
@@ -523,6 +581,8 @@ export function ReplayTraceBuilder() {
             setDragSnapshotId(undefined);
             setMatrixConfirmed(false);
             setUseLiveForRun(false);
+            setReplayMode(DEFAULT_REPLAY_MODE);
+            setFallbackToCaptured(true);
             return;
         }
 
@@ -648,8 +708,24 @@ export function ReplayTraceBuilder() {
             return;
         }
 
-        runReplayMatrix(selectedProfiles, selectedSchemas);
-    }, [matrixConfirmed, matrixOverBudget, runReplayMatrix, selectedProfiles, selectedSchemas]);
+        // A mode-disabled schema axis sends NO schema selection — the
+        // service builds captured-schema cells (§7.7 axis compatibility).
+        runReplayMatrix(selectedProfiles, schemaAxisEnabled ? selectedSchemas : [], {
+            replayMode,
+            ...(replayMode === "rebuildCurrentSchema"
+                ? { schemaFallbackToCaptured: fallbackToCaptured }
+                : {}),
+        });
+    }, [
+        fallbackToCaptured,
+        matrixConfirmed,
+        matrixOverBudget,
+        replayMode,
+        runReplayMatrix,
+        schemaAxisEnabled,
+        selectedProfiles,
+        selectedSchemas,
+    ]);
     const handleClearCart = useCallback(() => {
         clearReplayCart();
         setSelectedSnapshotId(undefined);
@@ -708,12 +784,20 @@ export function ReplayTraceBuilder() {
                                     }))}
                                 />
                                 <MatrixOptionList
-                                    title={`Schemas · ${selectedSchemas.length} selected`}
+                                    title={
+                                        schemaAxisEnabled
+                                            ? `Schemas · ${selectedSchemas.length} selected`
+                                            : "Schemas · captured (axis disabled)"
+                                    }
+                                    disabled={!schemaAxisEnabled}
+                                    disabledReason={axisDisabledReason}
                                     options={presetSchemas.map((schema) => ({
                                         id: schema.id,
                                         label: schema.label,
                                         description: schema.description,
-                                        checked: selectedSchemas.includes(schema.id),
+                                        checked:
+                                            schemaAxisEnabled &&
+                                            selectedSchemas.includes(schema.id),
                                         onChange: (checked) => toggleSchema(schema.id, checked),
                                     }))}
                                 />
@@ -741,8 +825,11 @@ export function ReplayTraceBuilder() {
                                     <span className={classes.metricLabel}>Matrix cells</span>
                                 </div>
                                 <Text className={classes.mono}>
-                                    {selectedProfiles.length} profiles x {selectedSchemas.length}{" "}
-                                    schemas x {cart.length} events = {matrixTotal}
+                                    {selectedProfiles.length} profiles x{" "}
+                                    {schemaAxisEnabled
+                                        ? `${selectedSchemas.length} schemas`
+                                        : "captured schema"}{" "}
+                                    x {cart.length} events = {matrixTotal} · mode {modeOption.label}
                                     {matrixOverBudget && matrixConfirmed
                                         ? " · over 100 completions"
                                         : ""}
@@ -797,6 +884,47 @@ export function ReplayTraceBuilder() {
                     <div className={classes.content}>
                         <div className={classes.toolbar}>
                             <div className={classes.toolbarGroup}>
+                                <Text className={classes.label}>Mode</Text>
+                                <Dropdown
+                                    className={classes.modeDropdown}
+                                    size="small"
+                                    selectedOptions={[replayMode]}
+                                    value={modeOption.label}
+                                    onOptionSelect={(_, data) => {
+                                        if (data.optionValue) {
+                                            setReplayMode(data.optionValue as CompletionReplayMode);
+                                        }
+                                    }}>
+                                    {completionReplayModeOptions.map((option) => (
+                                        <Option
+                                            key={option.id}
+                                            value={option.id}
+                                            text={option.label}>
+                                            <span>
+                                                {option.label}
+                                                <span className={classes.modeOptionDescription}>
+                                                    {option.description}
+                                                </span>
+                                            </span>
+                                        </Option>
+                                    ))}
+                                </Dropdown>
+                                {replayMode === "rebuildCurrentSchema" ? (
+                                    <Tooltip
+                                        content="When required current schema is unavailable, fall back to the captured schema context (recorded as explicitFallback). Unchecked: those items are blocked."
+                                        relationship="label">
+                                        <Checkbox
+                                            label="Captured fallback"
+                                            checked={fallbackToCaptured}
+                                            onChange={(_, data) =>
+                                                setFallbackToCaptured(data.checked === true)
+                                            }
+                                        />
+                                    </Tooltip>
+                                ) : null}
+                                <Text className={classes.modeHint} title={modeOption.description}>
+                                    {axisDisabledReason ?? modeOption.description}
+                                </Text>
                                 {runIsActive ? (
                                     <Text className={classes.subtitle}>
                                         Another run is active; queue controls are paused.
@@ -1062,18 +1190,31 @@ export function ReplayTraceBuilder() {
                                 toolbar.
                             </Text>
                             <div className={classes.footerGroup}>
-                                <Button
-                                    className={classes.footerWideButton}
-                                    disabled={cart.length === 0 || runIsActive}
-                                    onClick={openMatrix}>
-                                    Matrix...
-                                </Button>
+                                <Tooltip
+                                    content={
+                                        profileAxisEnabled
+                                            ? "Run the cart across a profile x schema config matrix."
+                                            : (axisDisabledReason ?? "")
+                                    }
+                                    relationship="description">
+                                    <Button
+                                        className={classes.footerWideButton}
+                                        disabled={
+                                            cart.length === 0 || runIsActive || !profileAxisEnabled
+                                        }
+                                        onClick={openMatrix}>
+                                        Matrix...
+                                    </Button>
+                                </Tooltip>
                                 <Button
                                     className={classes.footerActionButton}
                                     appearance="primary"
                                     disabled={cart.length === 0 || runIsActive}
                                     onClick={() =>
-                                        queueReplayCart(useLiveForRun ? "live" : undefined)
+                                        queueReplayCart(
+                                            useLiveForRun ? "live" : undefined,
+                                            modeSelection,
+                                        )
                                     }>
                                     Queue
                                 </Button>
@@ -1253,6 +1394,8 @@ function OverrideDropdown({
 function MatrixOptionList({
     title,
     options,
+    disabled,
+    disabledReason,
 }: {
     title: string;
     options: Array<{
@@ -1262,11 +1405,19 @@ function MatrixOptionList({
         checked: boolean;
         onChange: (checked: boolean) => void;
     }>;
+    /** WI-3.4: axis disabled by the selected replay mode. */
+    disabled?: boolean;
+    disabledReason?: string;
 }) {
     const classes = useStyles();
     return (
         <div className={classes.matrixColumn}>
             <Text className={classes.label}>{title}</Text>
+            {disabled && disabledReason ? (
+                <Text className={classes.modeHint} title={disabledReason}>
+                    {disabledReason}
+                </Text>
+            ) : null}
             <div className={classes.optionList}>
                 {options.map((option) => (
                     <div key={option.id} className={classes.optionRow}>
@@ -1274,6 +1425,7 @@ function MatrixOptionList({
                             <Checkbox
                                 aria-label={option.label}
                                 checked={option.checked}
+                                disabled={disabled}
                                 onChange={(_, data) => option.onChange(data.checked === true)}
                             />
                             <Text className={mergeClasses(classes.mono, classes.optionLabel)}>

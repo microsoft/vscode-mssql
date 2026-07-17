@@ -325,6 +325,26 @@ export interface AnomalySummary {
 // Webview protocol (requests are vscode-webview RPC; live events are pushes)
 // ---------------------------------------------------------------------------
 
+/**
+ * Console page ids — the shell's routing vocabulary. Kept here so the host
+ * can deep-link a page (initialPage / dc/navigate) without stringly names.
+ */
+export type DcPageId =
+    | "overview"
+    | "trace"
+    | "waterfall"
+    | "perf"
+    | "history"
+    | "completions"
+    | "replay"
+    | "sql"
+    | "sqlDataPlane"
+    | "connections"
+    | "query"
+    | "oe"
+    | "exports"
+    | "settings";
+
 export interface DebugConsoleState {
     /** Initial snapshot pushed to the webview. */
     sources: DebugSource[];
@@ -333,6 +353,8 @@ export interface DebugConsoleState {
     captureExpiresEpochMs?: number;
     provenance: ProvenanceSummary;
     fixtureMode: boolean;
+    /** Deep-link: page the shell shows on first load (default: overview). */
+    initialPage?: DcPageId;
 }
 
 export interface LiveTailPushEvent {
@@ -587,6 +609,11 @@ export interface SourceOverview {
     anomalies: AnomalySummary[];
 }
 
+/** Deep-link an already-open console to a page (host → webview). */
+export namespace DcNavigateNotification {
+    export const type = new NotificationType<{ page: DcPageId }>("dc/navigate");
+}
+
 export namespace DcListSourcesRequest {
     export const type = new RequestType<void, DebugSource[], void>("dc/listSources");
 }
@@ -685,9 +712,35 @@ export interface StoreHealth {
     /** Integrity findings across persisted sessions (empty = clean). */
     issues: string[];
 }
+/**
+ * One observability-bundle catalog row (WI-2.3): per-bundle status, write
+ * queue depth, last write, and recorded issues. Catalog degradation is
+ * visible here, never silent — and never fails capture.
+ */
+export interface BundleHealthRow {
+    hostSessionId: string;
+    bundleId: string;
+    status: "active" | "closed" | "partial";
+    artifacts: number;
+    /** Catalog changes not yet written (debounce window or write failure). */
+    dirty: boolean;
+    queueDepth: number;
+    writesCompleted: number;
+    consecutiveWriteFailures: number;
+    lastWriteUtc?: string;
+    /**
+     * Latest ring↔journal reconciliation outcome for the session (WI-2.8;
+     * absent until the reconcile command has run). Health-only — never
+     * persisted into bundle.json.
+     */
+    lastReconciliation?: { atUtc: string; matches: boolean; mismatchCount: number };
+    issues: string[];
+}
 export interface DiagHealthSnapshot {
     sinks: SinkHealth[];
     store: StoreHealth;
+    /** Bundle catalog rows (absent when the bundle manager is not running). */
+    bundles?: BundleHealthRow[];
 }
 export namespace DcGetHealthRequest {
     export const type = new RequestType<void, DiagHealthSnapshot, void>("dc/getHealth");
@@ -820,17 +873,27 @@ export namespace DcOpenCompletionsViewerRequest {
     );
 }
 
-// Console-hosted Inline Completion Debug (forked Live experience) -----------
-// The Completions page hosts a fork of the standalone viewer's Live tab. State
-// is pull-based: the webview requests the full InlineCompletionDebugWebviewState
-// snapshot, dispatches reducer-named actions over dc/icDebugAction (the fresh
-// state comes back on the response), and re-pulls when the host pokes it with
-// dc/icDebugChanged.
+// Console-hosted Inline Completion Debug --------------------------------------
+// The Completions page hosts the full shared Inline Completion Debug app. The
+// config/sessions/replay slices ride this pull-based state request — with
+// `omitEvents: true` the live event bodies are stripped and the page reads
+// live rows over the thin dc/completionLiveRows transport instead (WI-1.4).
+// Legacy callers that pass no params keep getting the unmodified full state.
+// dc/icDebugAction (reducer-named actions, full state on the response) and
+// the dc/icDebugChanged poke remain for compatibility; the typed surface
+// lives in completionsDebugRpc.ts.
+
+export interface DcIcDebugStateParams {
+    /** Strip live event bodies; read live rows via dc/completionLiveRows. */
+    omitEvents?: boolean;
+}
 
 export namespace DcIcDebugStateRequest {
-    export const type = new RequestType<void, InlineCompletionDebugWebviewState, void>(
-        "dc/icDebugState",
-    );
+    export const type = new RequestType<
+        DcIcDebugStateParams | undefined,
+        InlineCompletionDebugWebviewState,
+        void
+    >("dc/icDebugState");
 }
 
 export namespace DcIcDebugActionRequest {
@@ -847,8 +910,31 @@ export namespace DcIcDebugChangedNotification {
 
 // History (cross-session) ---------------------------------------------------
 
+/**
+ * Per-session artifact chips (WI-4.4, addendum §6.4) — counts derived from
+ * the session's bundle catalog DESCRIPTORS only (no segment is ever parsed
+ * for a chip). Zero counts are omitted (no "0" noise); a session without a
+ * bundle carries NO chips object at all (legacy sessions — honest absence).
+ */
+export interface HistoryArtifactChips {
+    /** Plane-A diag events cataloged for the session (diagStream artifacts). */
+    diagEvents?: number;
+    /** Rich completion capture events across the session's streams. */
+    completionEvents?: number;
+    /** Captured Query Studio runs (queryStudio featureCapture events). */
+    qsRuns?: number;
+    /** Durable replay runs (any feature). */
+    replayRuns?: number;
+    /** Artifacts in `invalid`/`missing` state — rendered as a "!" chip. */
+    invalidArtifacts?: number;
+    /** Labels for the invalid artifacts (tooltip detail, bounded). */
+    invalidArtifactLabels?: string[];
+}
+
 export interface HistorySessionRow {
     sourceId: string;
+    /** The session directory / bundle identity (deep-link key, WI-4.4). */
+    hostSessionId: string;
     label: string;
     createdUtc: string;
     live: boolean;
@@ -857,6 +943,8 @@ export interface HistorySessionRow {
     gaps: number;
     captureMode: CaptureMode;
     actionCount: number;
+    /** Absent = the session has no bundle catalog (legacy) — chips hidden. */
+    artifacts?: HistoryArtifactChips;
 }
 
 export interface HistoryActionTrend {

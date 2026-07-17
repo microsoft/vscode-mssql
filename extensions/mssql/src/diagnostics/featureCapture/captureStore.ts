@@ -17,15 +17,66 @@
 
 import * as vscode from "vscode";
 import { logger2 } from "../../models/logger2";
+import { diag } from "../diagnosticsCore";
+import {
+    ObservabilityEditorSurface,
+    ObservabilityLinkV1,
+} from "../../sharedInterfaces/observabilityLink";
+import { createObservabilityLink, newCaptureSessionId, newLeaseId } from "./identity";
 
 export interface FeatureCaptureEventBase {
+    /**
+     * Ring-local display ordinal (`${idPrefix}-${counter}`). NOT durable —
+     * collides across restarts/imports. Durable identity is
+     * `link.captureEventId` (final plan WI-0.1).
+     */
     id: string;
     timestamp: number;
+    /** Cross-plane identity block; present on events captured with a link. */
+    link?: ObservabilityLinkV1;
+}
+
+/**
+ * A named viewer lease on the capture store (final plan WI-0.4 / addendum
+ * §3.4): capture is armed while at least one lease is held. Disposal is
+ * idempotent; one viewer closing never affects another viewer's lease.
+ */
+export interface FeatureCaptureLease {
+    id: string;
+    owner: string;
+    acquiredAt: number;
+    dispose(): void;
+}
+
+export type FeatureCaptureEpochChangeReason = "clear" | "import";
+
+/**
+ * Typed lifecycle hooks (WI-2.4): observers of the ring's event lifecycle —
+ * the seam the journal binding rides. Hooks fire synchronously on the
+ * completion hot path, so implementations must be allocation-light and must
+ * never perform file I/O (§2.3); every callback is invoked inside a
+ * try/catch, so a throwing hook can never affect the store or the product.
+ */
+export interface FeatureCaptureLifecycleHooks<TEvent> {
+    /** addEvent landed a new ring event (pending OR directly terminal). */
+    onEventAdded?(event: TEvent): void;
+    /** updateEvent replaced an existing ring event in place. */
+    onEventReplaced?(event: TEvent): void;
+    /**
+     * mutateEvent changed an event. `mutationKind` is the caller-supplied
+     * hint threaded through mutateEvent (completions' markAccepted passes
+     * "acceptance"); "other" when the caller gave none.
+     */
+    onEventMutated?(event: TEvent, mutationKind: string): void;
+    /** The capture epoch renewed (ring cleared or replaced by an import). */
+    onEpochChanged?(reason: FeatureCaptureEpochChangeReason, captureSessionId: string): void;
 }
 
 export interface FeatureCaptureStoreOptions<TEvent extends FeatureCaptureEventBase, TOverrides> {
     /** Log prefix, e.g. "InlineCompletionDebug". */
     logName: string;
+    /** Feature-capture tenant id, e.g. "completions" | "queryStudio". */
+    featureId: string;
     /** Ring capacity; oldest events are trimmed past this. */
     capacity?: number;
     /** Event id prefix; ids are `${idPrefix}-${counter}`. */
@@ -52,7 +103,10 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
     private _events: TEvent[] = [];
     private _overrides: TOverrides;
     private _eventCounter = 0;
-    private _panelOpen = false;
+    private _evictedEventCount = 0;
+    private _captureSessionId = newCaptureSessionId();
+    private readonly _viewerLeases = new Map<string, { owner: string; acquiredAt: number }>();
+    private readonly _lifecycleHooks = new Set<FeatureCaptureLifecycleHooks<TEvent>>();
 
     public readonly onDidChange;
 
@@ -63,6 +117,52 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
         this._idPrefix = options.idPrefix ?? "E";
         this._overrides = options.normalizeOverrides({ ...options.defaultOverrides });
         this.onDidChange = this._onDidChange.event;
+    }
+
+    public get featureId(): string {
+        return this._options.featureId;
+    }
+
+    /**
+     * The current rich-capture epoch. Renewed when the ring is cleared or
+     * replaced by an import — a capture session is one continuous epoch.
+     */
+    public get captureSessionId(): string {
+        return this._captureSessionId;
+    }
+
+    /**
+     * Allocate a durable logical-event identity within the current capture
+     * epoch. Call BEFORE recording the pending event or emitting any Plane-A
+     * reverse link (emission-ordering rule, final plan WI-0.3).
+     */
+    public createEventLink(options?: {
+        traceId?: string;
+        causeEventId?: string;
+        editorSurface?: ObservabilityEditorSurface;
+    }): ObservabilityLinkV1 {
+        return createObservabilityLink({
+            featureId: this._options.featureId,
+            hostSessionId: diag.sessionId,
+            captureSessionId: this._captureSessionId,
+            traceId: options?.traceId,
+            causeEventId: options?.causeEventId,
+            editorSurface: options?.editorSurface,
+        });
+    }
+
+    /** Durable lookup — the ring id is only a display ordinal. */
+    public findByCaptureEventId(captureEventId: string): TEvent | undefined {
+        return this._events.find((event) => event.link?.captureEventId === captureEventId);
+    }
+
+    /**
+     * Live-ring evictions during the current capture epoch (resets with
+     * clear/import). Lets read models say honestly that earlier live records
+     * fell out of the ring (addendum §3.8).
+     */
+    public get evictedEventCount(): number {
+        return this._evictedEventCount;
     }
 
     public getOverrides(): TOverrides {
@@ -98,9 +198,12 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
 
         this._events.push(storedEvent);
         if (this._events.length > this._capacity) {
-            this._events.splice(0, this._events.length - this._capacity);
+            const overflow = this._events.length - this._capacity;
+            this._events.splice(0, overflow);
+            this._evictedEventCount += overflow;
         }
 
+        this.notifyHooks((hooks) => hooks.onEventAdded?.(storedEvent));
         this._onDidChange.fire();
         return storedEvent;
     }
@@ -117,6 +220,7 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
         } as TEvent;
 
         this._events[index] = storedEvent;
+        this.notifyHooks((hooks) => hooks.onEventReplaced?.(storedEvent));
         this._onDidChange.fire();
         return storedEvent;
     }
@@ -124,14 +228,21 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
     /**
      * In-place mutation escape hatch for small state flips (e.g. marking a
      * completion accepted). The mutator returns true when it changed the event.
+     * `mutationKind` is a hint threaded to lifecycle hooks so observers can
+     * type the mutation (completions' markAccepted passes "acceptance").
      */
-    public mutateEvent(eventId: string, mutator: (event: TEvent) => boolean): void {
+    public mutateEvent(
+        eventId: string,
+        mutator: (event: TEvent) => boolean,
+        mutationKind: string = "other",
+    ): void {
         const event = this.getEvent(eventId);
         if (!event) {
             return;
         }
 
         if (mutator(event)) {
+            this.notifyHooks((hooks) => hooks.onEventMutated?.(event, mutationKind));
             this._onDidChange.fire();
         }
     }
@@ -142,6 +253,9 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
         }
 
         this._events = [];
+        this._evictedEventCount = 0;
+        this._captureSessionId = newCaptureSessionId();
+        this.notifyHooks((hooks) => hooks.onEpochChanged?.("clear", this._captureSessionId));
         this._onDidChange.fire();
     }
 
@@ -150,6 +264,10 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
         const importedEvents = [...(events ?? [])].slice(-this._capacity).map(prepare);
 
         this._events = importedEvents;
+        this._evictedEventCount = 0;
+        // Imported events keep their original link blocks (external identity);
+        // the live epoch renews so new captures never share an imported epoch.
+        this._captureSessionId = newCaptureSessionId();
         this._eventCounter = this.getHighestImportedCounter(importedEvents);
         const migrated = this._options.normalizeImportedOverrides
             ? this._options.normalizeImportedOverrides(overrides)
@@ -158,20 +276,86 @@ export class FeatureCaptureStore<TEvent extends FeatureCaptureEventBase, TOverri
             migrated ?? { ...this._options.defaultOverrides },
         );
         this._logger.info(`Imported ${importedEvents.length} events into the capture store.`);
+        this.notifyHooks((hooks) => hooks.onEpochChanged?.("import", this._captureSessionId));
         this._onDidChange.fire();
     }
 
-    public setPanelOpen(isOpen: boolean): void {
-        this._panelOpen = isOpen;
+    /**
+     * Register typed lifecycle hooks (WI-2.4). Multiple observers may
+     * register; disposal is idempotent. Hook exceptions are swallowed —
+     * observability failure never fails the product operation (§2.3).
+     */
+    public registerLifecycleHooks(hooks: FeatureCaptureLifecycleHooks<TEvent>): {
+        dispose(): void;
+    } {
+        this._lifecycleHooks.add(hooks);
+        return {
+            dispose: () => {
+                this._lifecycleHooks.delete(hooks);
+            },
+        };
     }
 
-    public isPanelOpen(): boolean {
-        return this._panelOpen;
+    private notifyHooks(invoke: (hooks: FeatureCaptureLifecycleHooks<TEvent>) => void): void {
+        for (const hooks of this._lifecycleHooks) {
+            try {
+                invoke(hooks);
+            } catch (error) {
+                // Never let an observer break capture or the product; log once
+                // per store instance would hide repeat offenders — warn each.
+                this._logger.warn(
+                    `Capture lifecycle hook failed (isolated): ${error instanceof Error ? error.message : String(error)}`,
+                );
+            }
+        }
     }
 
-    /** Capture is live while the feature's panel is open, or when the feature's record-when-closed setting says so. */
+    /**
+     * Acquire a named viewer lease. Capture is armed while any lease is held;
+     * disposal is idempotent and one viewer never affects another (final plan
+     * WI-0.4). Owners: e.g. "standalonePanel", "debugConsole.completions",
+     * "queryStudio.replayLab".
+     */
+    public acquireViewer(owner: string): FeatureCaptureLease {
+        const id = newLeaseId();
+        this._viewerLeases.set(id, { owner, acquiredAt: Date.now() });
+        this._logger.info(
+            `Viewer lease acquired by "${owner}" (${this._viewerLeases.size} active).`,
+        );
+        let disposed = false;
+        return {
+            id,
+            owner,
+            acquiredAt: this._viewerLeases.get(id)!.acquiredAt,
+            dispose: () => {
+                if (disposed) {
+                    return;
+                }
+                disposed = true;
+                this._viewerLeases.delete(id);
+                this._logger.info(
+                    `Viewer lease released by "${owner}" (${this._viewerLeases.size} active).`,
+                );
+            },
+        };
+    }
+
+    public getActiveViewerCount(): number {
+        return this._viewerLeases.size;
+    }
+
+    public getActiveViewerOwners(): readonly string[] {
+        return [...this._viewerLeases.values()].map((lease) => lease.owner);
+    }
+
+    /** Health surface: active leases with acquisition times (leak diagnosis). */
+    public viewerLeaseSnapshot(): ReadonlyArray<{ owner: string; acquiredAt: number }> {
+        return [...this._viewerLeases.values()].map((lease) => ({ ...lease }));
+    }
+
+    /** Capture is live while any viewer lease is held, or when the feature's record-when-closed setting says so. */
     public shouldCapture(recordWhenClosed: boolean): boolean {
-        return this._panelOpen || recordWhenClosed;
+        return this._viewerLeases.size > 0 || recordWhenClosed;
     }
 
     private getHighestImportedCounter(events: TEvent[]): number {

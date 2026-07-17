@@ -22,6 +22,7 @@ import {
     FeatureReplayTags,
 } from "./featureReplay";
 import { QueryTuningOverrides, QueryTuningSnapshot } from "./queryTuning";
+import { ObservabilityLinkV1 } from "./observabilityLink";
 
 export const QS_RUN_RECORD_VERSION = 1;
 
@@ -45,8 +46,11 @@ export interface QsRunOutcome {
 }
 
 export interface QsRunRecord {
+    /** Ring-local display ordinal; durable identity is link.captureEventId. */
     id: string;
     timestamp: number;
+    /** Cross-plane identity block (mssql.observabilityLink/1); absent on legacy traces. */
+    link?: ObservabilityLinkV1;
     /** Run status doubles as the replay-engine runnable gate ("pending" while executing). */
     result: string;
     recordVersion: typeof QS_RUN_RECORD_VERSION;
@@ -107,6 +111,13 @@ export interface QueryStudioReplayWebviewState {
     captureArmed: boolean;
     elevatedCapture: boolean;
     liveTargets: QsReplayTargetInfo[];
+    /**
+     * §7.8.2 explicit target selection: replay binds ONLY to a live document
+     * whose fingerprint matches the record, or to this explicitly selected
+     * document. Unset = fingerprint matching only (no first-document
+     * fallback, ever).
+     */
+    selectedTargetUriKey?: string;
     replay: QsReplayState;
     lastError?: string;
 }
@@ -122,6 +133,8 @@ export interface QueryStudioReplayReducers {
     runMatrix: { databases: string[]; modes: Array<"normal" | "estimatedPlan" | "actualPlan"> };
     cancelRun: { runId?: string };
     saveTraceNow: Record<string, never>;
+    /** §7.8.2: explicit replay target selection (null clears it). */
+    selectReplayTarget: { uriKey: string | null };
 }
 
 export namespace QsReplayListRecordsRequest {

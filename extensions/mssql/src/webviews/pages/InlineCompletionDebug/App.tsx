@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useMemo, useState } from "react";
-import { makeStyles, shorthands } from "@fluentui/react-components";
+import { useEffect, useMemo, useState } from "react";
+import { makeStyles, mergeClasses, shorthands } from "@fluentui/react-components";
 import { InlineCompletionDebugPage } from "./inlineCompletionDebug";
 import { InlineCompletionDebugTab, InlineCompletionDebugTabBar } from "./TabBar";
 import { SessionsTab } from "./sessions/SessionsTab";
@@ -21,6 +21,11 @@ const useStyles = makeStyles({
         color: "var(--vscode-foreground)",
         ...shorthands.overflow("hidden"),
     },
+    // Hosted inside another shell (Debug Console page): fill the container,
+    // never the viewport — the shell owns the page chrome.
+    rootFill: {
+        height: "100%",
+    },
     content: {
         ...shorthands.flex(1),
         minHeight: 0,
@@ -30,9 +35,29 @@ const useStyles = makeStyles({
     },
 });
 
-export function InlineCompletionDebugApp() {
+export function InlineCompletionDebugApp({
+    layout = "viewport",
+    sessionsDatasetHint,
+}: {
+    /** "viewport" = standalone panel (100vh); "fill" = hosted in a shell. */
+    layout?: "viewport" | "fill";
+    /**
+     * WI-4.4 deep link: a host session id whose stored capture sessions
+     * should be included+loaded in the Sessions dataset. Setting it also
+     * switches to the Sessions tab.
+     */
+    sessionsDatasetHint?: string;
+}) {
     const classes = useStyles();
     const [activeTab, setActiveTab] = useState<InlineCompletionDebugTab>("live");
+
+    // Deep link → Sessions tab. The hint value changing (a different chip)
+    // re-routes; plain tab switches by the user are otherwise untouched.
+    useEffect(() => {
+        if (sessionsDatasetHint !== undefined) {
+            setActiveTab("sessions");
+        }
+    }, [sessionsDatasetHint]);
     const liveCount = useInlineCompletionDebugSelector((state) => state.events.length);
     const sessions = useInlineCompletionDebugSelector((state) => state.sessions);
     const includedTraceCount = useMemo(
@@ -50,7 +75,10 @@ export function InlineCompletionDebugApp() {
         sessions.lastRefreshedAt !== undefined || sessions.traceIndex.length > 0;
 
     return (
-        <div className={classes.root}>
+        <div
+            className={
+                layout === "fill" ? mergeClasses(classes.root, classes.rootFill) : classes.root
+            }>
             <InlineCompletionDebugTabBar
                 activeTab={activeTab}
                 liveCount={liveCount}
@@ -64,7 +92,10 @@ export function InlineCompletionDebugApp() {
                 <InlineCompletionDebugPage />
             </div>
             <div className={activeTab === "sessions" ? classes.content : classes.hidden}>
-                <SessionsTab active={activeTab === "sessions"} />
+                <SessionsTab
+                    active={activeTab === "sessions"}
+                    datasetSessionHint={sessionsDatasetHint}
+                />
             </div>
             <ReplayTraceBuilder />
         </div>

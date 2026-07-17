@@ -816,7 +816,10 @@ export function SettingsPage() {
                     </span>
                     <span className="k">Replay Lab</span>
                     <span className="v">
-                        <span className="dc-pill blocked">gated · completions adapter first</span>
+                        <span className="dc-pill ok">completions live</span>{" "}
+                        <span className="dc-pill blocked">
+                            Query Studio gated · safe adapter first
+                        </span>
                     </span>
                     <span className="k">Fixture mode</span>
                     <span className="v">{state?.fixtureMode ? "on" : "off"}</span>

@@ -494,6 +494,8 @@ export const configCopilotInlineCompletionsTraceRedactPrompts =
     "mssql.copilot.inlineCompletions.trace.redactPrompts";
 export const configCopilotInlineCompletionsTraceMaxFileSizeMB =
     "mssql.copilot.inlineCompletions.trace.maxFileSizeMB";
+export const configCopilotInlineCompletionsTraceJournalPrimary =
+    "mssql.copilot.inlineCompletions.trace.journalPrimary";
 export const configCopilotSdkProvidersAnthropicEnabled =
     "mssql.copilot.sdkProviders.anthropic.enabled";
 export const configCopilotSdkProvidersAnthropicAdditionalModels =

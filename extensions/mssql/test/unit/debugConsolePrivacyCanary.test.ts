@@ -18,7 +18,9 @@ import * as path from "path";
 import { classifyPayload, CAPTURE_POLICIES } from "../../src/diagnostics/redaction";
 import { PerfModeSink, SessionDiagSink } from "../../src/diagnostics/sinks";
 import { diagnosticErrorClass } from "../../src/diagnostics/diagnosticsCore";
+import { FeatureCaptureJournalWriter } from "../../src/diagnostics/featureCapture/journal/journalWriter";
 import { DIAG_SCHEMA_VERSION, DiagEvent } from "../../src/sharedInterfaces/debugConsole";
+import { MemJournalFs } from "./support/memJournalFs";
 
 const CANARY = {
     password: "CANARY-password-7f3a9",
@@ -168,6 +170,84 @@ suite("Privacy canary corpus", () => {
         // Serialize exactly what would go on the wire.
         const queued = (sink as unknown as { queue: unknown[] }).queue;
         assertNoCanary(JSON.stringify(queued));
+    });
+
+    test("default Plane-A export carries no rich content or rich file references while journals exist (WI-2.8)", async () => {
+        // A rich capture journal holding sentinel content exists locally...
+        const memFs = new MemJournalFs();
+        const streamDir = "C:/dc-export-canary/sessions/hs-1/rich/completions/cs-1";
+        const writer = new FeatureCaptureJournalWriter({
+            directory: streamDir,
+            header: {
+                featureId: "completions",
+                hostSessionId: "hs-1",
+                captureSessionId: "cs-1",
+                eventSchema: "mssql.inlineCompletionDebugEvent/1",
+                overridesSchema: "mssql.inlineCompletionDebugOverrides/1",
+                capturePolicy: {
+                    schema: "mssql.richCapturePolicy/1",
+                    policyId: "completions.trace/1:localJournal:fullLocal",
+                    featureId: "completions",
+                    fidelity: "fullLocal",
+                    persistence: "localJournal",
+                    source: "test",
+                    activatedAt: 1,
+                    replayPayloadAvailable: true,
+                },
+            },
+            fs: memFs,
+        });
+        writer.tryWrite({
+            kind: "event.created",
+            eventRevision: 1,
+            captureEventId: "ce-canary",
+            at: 1,
+            value: {
+                promptMessages: [{ role: "user", content: CANARY.sqlText }],
+                rawResponse: CANARY.rowData,
+            },
+        });
+        await writer.close();
+        const journalText = [...memFs.files.values()].join("\n");
+        expect(journalText.includes(CANARY.sqlText)).to.equal(true); // canary is real
+
+        // ...while Plane A carries only classified metadata plus link IDs.
+        const policy = CAPTURE_POLICIES.redacted;
+        const { payload, maxClassification, redactedFields } = classifyPayload(
+            {
+                ...CANARY_FIELDS,
+                latencyMs: { raw: 42, cls: "diagnostic.metadata" as const },
+                captureFeatureId: { raw: "completions", cls: "diagnostic.metadata" as const },
+                captureSessionId: { raw: "cs-1", cls: "diagnostic.metadata" as const },
+                captureEventId: { raw: "ce-canary", cls: "diagnostic.metadata" as const },
+            },
+            policy,
+        );
+        const events: DiagEvent[] = [
+            {
+                schemaVersion: DIAG_SCHEMA_VERSION,
+                eventId: "evt_export",
+                sessionId: "hs-1",
+                seq: 1,
+                epochMs: Date.now(),
+                process: "extensionHost",
+                feature: "completions",
+                kind: "event",
+                type: "mssql.completions.result",
+                status: "ok",
+                cls: { max: maxClassification, redactedFields, policyId: policy.policyId },
+                payload,
+            },
+        ];
+        // Exactly what DcExport writes: the events as redacted JSONL.
+        const exported = events.map((event) => JSON.stringify(event)).join("\n") + "\n";
+        assertNoCanary(exported);
+        // Plane-A identifiers may POINT at rich artifacts (§2.1)...
+        expect(exported.includes("ce-canary")).to.equal(true);
+        // ...but never contain rich content or rich file references.
+        expect(exported.includes("segment-")).to.equal(false);
+        expect(exported.includes("rich/")).to.equal(false);
+        expect(exported.includes(streamDir)).to.equal(false);
     });
 
     test("store integrity: validateStore is clean on a healthy journal and flags a truncated one", () => {

@@ -15,6 +15,7 @@ import * as vscode from "vscode";
 import {
     DcGetHistoryRequest,
     HistoryActionTrend,
+    HistoryArtifactChips,
     HistorySessionRow,
     DebugConsoleState,
     DebugSource,
@@ -47,7 +48,9 @@ import {
     DcIcDebugActionRequest,
     DcIcDebugChangedNotification,
     DcIcDebugStateRequest,
+    DcNavigateNotification,
     DcOpenCompletionsViewerRequest,
+    DcPageId,
     DcCentralPreviewRequest,
     DcCentralUploadProgressNotification,
     DcCentralUploadRequest,
@@ -68,7 +71,45 @@ import {
     ConsoleCompletionsDebugHost,
     createConsoleCompletionsDebugHost,
     createEmptyConsoleCompletionsDebugState,
+    createGateOffCompletionEventDetailResult,
+    createGateOffCompletionLiveRowsResult,
+    createGateOffIcDebugCapabilities,
+    createGateOffIcDebugCommandResult,
+    projectIcDebugStateResult,
 } from "../diagnostics/completionsDebugConsoleHost";
+import {
+    DcCompletionEventDetailRequest,
+    DcCompletionLiveRowsRequest,
+    DcIcDebugCapabilitiesRequest,
+    DcIcDebugChanged2Notification,
+    DcIcDebugCommandRequest,
+} from "../sharedInterfaces/completionsDebugRpc";
+import {
+    DcOpenQueryStudioReplayRequest,
+    DcReplayRunAnalysisRequest,
+    DcReplayRunDetailRequest,
+    DcReplayRunListRequest,
+    projectLiveReplayRunRow,
+} from "../sharedInterfaces/replayLabRpc";
+import {
+    listReplayRunManifests,
+    readReplayRunDetail,
+} from "../diagnostics/featureCapture/replayRunCatalog";
+import {
+    buildLiveReplayAnalysisItemInput,
+    buildReplayAnalysisItemInput,
+    buildReplayRunListResult,
+    clampReplayLabItemsLimit,
+    projectDurableReplayItemRow,
+    projectDurableReplayRunRow,
+    projectLiveReplayItemRow,
+    sanitizeReplayLabConfigGroup,
+} from "../diagnostics/replayLabRpcHost";
+import { computeReplayRunAnalysis } from "../sharedInterfaces/inlineCompletionReplayAnalysis";
+import {
+    hasHistoryArtifactChips,
+    projectHistoryArtifactChips,
+} from "../diagnostics/sessionBundle/historyChips";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
 import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
@@ -119,6 +160,8 @@ import {
 import { WebviewPanelController } from "./webviewPanelController";
 
 const LIVE_ARCHIVE_CAP = 100_000;
+/** WI-4.2: items considered per run analysis (aggregates only leave the host). */
+const REPLAY_ANALYSIS_MAX_ITEMS = 10_000;
 
 export class DebugConsoleWebviewController extends WebviewPanelController<
     DebugConsoleState,
@@ -139,6 +182,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         private readonly diagnostics: DiagnosticsManager,
+        initialPage?: DcPageId,
     ) {
         super(
             context,
@@ -153,6 +197,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     : {}),
                 provenance: diagnostics.provenance,
                 fixtureMode: false,
+                ...(initialPage !== undefined ? { initialPage } : {}),
             },
             {
                 title: "MSSQL Debug Console",
@@ -511,6 +556,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 enabled: this.diagnostics.storeActive,
                 ...this.diagnostics.store.validateStore(),
             },
+            bundles: this.diagnostics.bundleManager.healthSnapshot(),
         }));
         // Trace Identity V1 lint: how well-stitched is this source (or one
         // trace)? Fog is reported, never painted over.
@@ -606,19 +652,39 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             >();
             let totalEvents = 0;
             let totalActions = 0;
+            // WI-4.4: per-session artifact chips from the bundle catalog
+            // (descriptor counts only — no child manifest or segment is
+            // opened here). No bundle → no chips object (legacy honesty).
+            const chipsFor = async (
+                hostSessionId: string,
+            ): Promise<HistoryArtifactChips | undefined> => {
+                try {
+                    const bundle = await this.diagnostics.bundleManager.getBundle(hostSessionId);
+                    if (!bundle) {
+                        return undefined;
+                    }
+                    const chips = projectHistoryArtifactChips(bundle);
+                    return hasHistoryArtifactChips(chips) ? chips : undefined;
+                } catch {
+                    return undefined; // catalog trouble never fails History
+                }
+            };
             const analyze = (
                 sourceId: string,
+                hostSessionId: string,
                 label: string,
                 createdUtc: string,
                 live: boolean,
                 captureMode: HistorySessionRow["captureMode"],
                 events: DiagEvent[],
                 gaps: number,
+                artifacts: HistoryArtifactChips | undefined,
             ) => {
                 const actions = userActions(events);
                 const errors = events.filter((e) => e.status === "error").length;
                 sessions.push({
                     sourceId,
+                    hostSessionId,
                     label,
                     createdUtc,
                     live,
@@ -627,6 +693,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     gaps,
                     captureMode,
                     actionCount: actions.length,
+                    ...(artifacts !== undefined ? { artifacts } : {}),
                 });
                 totalEvents += events.length;
                 totalActions += actions.length;
@@ -671,22 +738,26 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 const sourceId = `store:${manifest.sessionId}`;
                 analyze(
                     sourceId,
+                    manifest.sessionId,
                     `Session ${manifest.createdUtc.slice(0, 16).replace("T", " ")}`,
                     manifest.createdUtc,
                     false,
                     manifest.captureMode,
                     this.diagnostics.store.eventsForSource(sourceId),
                     manifest.gapCount,
+                    await chipsFor(manifest.sessionId),
                 );
             }
             analyze(
                 this.liveSourceId,
+                diag.sessionId,
                 "Current session",
                 new Date().toISOString(),
                 true,
                 diag.captureMode,
                 this.liveArchive,
                 this.liveGaps.length,
+                await chipsFor(diag.sessionId),
             );
             sessions.sort((a, b) => a.createdUtc.localeCompare(b.createdUtc));
             const trends: HistoryActionTrend[] = [...trendMap.entries()]
@@ -767,13 +838,32 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             return { ok: true };
         });
 
-        // Console-hosted Inline Completion Debug (forked Live experience): the
-        // host wraps the singleton capture store; it comes up lazily on the
-        // first state pull and only while the feature gate is on. When gated
-        // off, the page gets the honest empty default state instead.
-        this.onRequest(DcIcDebugStateRequest.type, async () => {
+        // WI-3.6 Lab integration: the Query Studio "New replay…" entry opens
+        // the standalone QS Replay panel — its cart/capture UX lives there;
+        // durable QS runs list here via dc/replayRunList.
+        this.onRequest(DcOpenQueryStudioReplayRequest.type, async () => {
+            try {
+                await vscode.commands.executeCommand("mssql.queryStudio.openReplayLab");
+                return { ok: true };
+            } catch (error) {
+                return {
+                    ok: false,
+                    error: error instanceof Error ? error.message : String(error),
+                };
+            }
+        });
+
+        // Console-hosted Inline Completion Debug: the host wraps the singleton
+        // capture store; it comes up lazily on the first state pull and only
+        // while the feature gate is on. When gated off, the page gets the
+        // honest empty default state instead. omitEvents (WI-1.4) strips live
+        // event bodies — the page reads those over dc/completionLiveRows.
+        this.onRequest(DcIcDebugStateRequest.type, async (params) => {
             const host = this.ensureIcDebugHost();
-            return host ? host.getState() : createEmptyConsoleCompletionsDebugState();
+            return projectIcDebugStateResult(
+                host ? host.getState() : createEmptyConsoleCompletionsDebugState(),
+                params,
+            );
         });
 
         this.onRequest(DcIcDebugActionRequest.type, async ({ name, payload }) => {
@@ -781,6 +871,188 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             return host
                 ? host.dispatchAction(name, payload)
                 : createEmptyConsoleCompletionsDebugState();
+        });
+
+        // Typed, versioned Inline Completion Debug RPC (WI-1.2/WI-1.3):
+        // capabilities handshake, validated command dispatch, thin cursor-paged
+        // live rows, and section-lazy event detail. Additive — the legacy
+        // state/action/changed trio above keeps working until the webview
+        // migrates. Gate-off mirrors the state handler: honest empties.
+        this.onRequest(DcIcDebugCapabilitiesRequest.type, async () => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getCapabilities() : createGateOffIcDebugCapabilities();
+        });
+
+        this.onRequest(DcIcDebugCommandRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.dispatchCommand(params) : createGateOffIcDebugCommandResult();
+        });
+
+        this.onRequest(DcCompletionLiveRowsRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getLiveRows(params) : createGateOffCompletionLiveRowsResult();
+        });
+
+        this.onRequest(DcCompletionEventDetailRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getEventDetail(params) : createGateOffCompletionEventDetailResult();
+        });
+
+        // Replay Lab (WI-3.5): durable run catalog + lazy per-run detail. The
+        // LIST is durable-rows-only (manifest-only enumeration; the page
+        // merges its live engine rows client-side); the DETAIL combines the
+        // durable manifest/items with this console's live queue rows so
+        // queued/running items are visible before they settle. Both work with
+        // the feature gate off — durable evidence outlives the gate.
+        this.onRequest(DcReplayRunListRequest.type, async (params) => {
+            const catalog = await listReplayRunManifests({
+                storeRoot: this.diagnostics.store.storeRoot,
+                currentHostSessionId: diag.sessionId,
+            });
+            return buildReplayRunListResult({
+                entries: catalog.entries,
+                issues: catalog.issues,
+                params,
+                currentHostSessionId: diag.sessionId,
+                storeAvailable: this.diagnostics.storeActive || catalog.entries.length > 0,
+            });
+        });
+
+        this.onRequest(DcReplayRunDetailRequest.type, async (params) => {
+            const hostSessionId = params.hostSessionId ?? diag.sessionId;
+            const itemsOffset = Math.max(0, params.itemsOffset ?? 0);
+            const itemsLimit = clampReplayLabItemsLimit(params.itemsLimit);
+            const durable = await readReplayRunDetail({
+                storeRoot: this.diagnostics.store.storeRoot,
+                hostSessionId,
+                replayRunId: params.replayRunId,
+                itemsOffset,
+                itemsLimit,
+            });
+            // This console's live engine state (never created here — the Lab
+            // page's provider brings the host up when the gate is on).
+            const liveState =
+                hostSessionId === diag.sessionId ? this.icDebugHost?.getReplayState() : undefined;
+            const liveRun = liveState?.runs.find((run) => run.id === params.replayRunId);
+            if (!durable.manifest && !liveRun) {
+                return { found: false, items: [], itemsTotal: 0, itemsOffset };
+            }
+            const items = durable.items.map((record) =>
+                projectDurableReplayItemRow(record, durable.manifest),
+            );
+            // Live queued/running rows append after the settled page (they
+            // have no durable record yet).
+            const liveItems = (liveState?.queueRows ?? [])
+                .filter((row) => row.runId === params.replayRunId)
+                .map(projectLiveReplayItemRow);
+            const row = liveRun
+                ? {
+                      ...projectLiveReplayRunRow(liveRun),
+                      ...(durable.manifest
+                          ? {
+                                hostSessionId,
+                                sourceCount: durable.manifest.sources.length,
+                                completedItems: durable.manifest.completedItems,
+                                failedItems: durable.manifest.failedItems,
+                                cancelledItems: durable.manifest.cancelledItems,
+                                blockedItems: durable.manifest.blockedItems ?? 0,
+                                durable: true,
+                            }
+                          : {}),
+                  }
+                : projectDurableReplayRunRow(
+                      { hostSessionId, manifest: durable.manifest! },
+                      diag.sessionId,
+                  );
+            return {
+                found: true,
+                row,
+                ...(durable.manifest
+                    ? {
+                          sources: durable.manifest.sources.map((source) => ({
+                              captureEventId: source.captureEventId,
+                              label: source.label,
+                          })),
+                      }
+                    : {}),
+                ...(durable.configGroups
+                    ? { configGroups: durable.configGroups.map(sanitizeReplayLabConfigGroup) }
+                    : {}),
+                items: [...items, ...liveItems],
+                itemsTotal: durable.itemsTotal + liveItems.length,
+                itemsOffset,
+            };
+        });
+
+        // WI-4.2: per-run paired analysis — thin aggregates only, computed
+        // host-side by the pure functions in inlineCompletionReplayAnalysis.
+        // Token/output-presence stats exist only for items whose result
+        // events THIS console can resolve from its live ring; everything
+        // else is honest missingness (analysis.unresolvedResultStats).
+        this.onRequest(DcReplayRunAnalysisRequest.type, async (params) => {
+            const hostSessionId = params.hostSessionId ?? diag.sessionId;
+            const durable = await readReplayRunDetail({
+                storeRoot: this.diagnostics.store.storeRoot,
+                hostSessionId,
+                replayRunId: params.replayRunId,
+                itemsOffset: 0,
+                itemsLimit: REPLAY_ANALYSIS_MAX_ITEMS,
+            });
+            const liveState =
+                hostSessionId === diag.sessionId ? this.icDebugHost?.getReplayState() : undefined;
+            const liveRun = liveState?.runs.find((run) => run.id === params.replayRunId);
+            if (!durable.manifest && !liveRun) {
+                return { found: false };
+            }
+            const ringEvents =
+                hostSessionId === diag.sessionId ? (this.icDebugHost?.getState().events ?? []) : [];
+            const byRingId = new Map(ringEvents.map((event) => [event.id, event]));
+            const byCaptureId = new Map(
+                ringEvents
+                    .filter((event) => event.link !== undefined)
+                    .map((event) => [event.link!.captureEventId, event]),
+            );
+            const items = durable.items.map((record) =>
+                buildReplayAnalysisItemInput(
+                    record,
+                    (record.resultEventId !== undefined
+                        ? byRingId.get(record.resultEventId)
+                        : undefined) ??
+                        (record.resultCaptureEventId !== undefined
+                            ? byCaptureId.get(record.resultCaptureEventId)
+                            : undefined),
+                ),
+            );
+            for (const row of liveState?.queueRows ?? []) {
+                if (row.runId === params.replayRunId) {
+                    items.push(buildLiveReplayAnalysisItemInput(row));
+                }
+            }
+            const cells = durable.manifest
+                ? durable.manifest.cells.map((cell) => ({
+                      cellId: cell.matrixCellId,
+                      label: cell.label,
+                      ordinal: cell.ordinal,
+                  }))
+                : (liveRun?.matrixCells ?? []).map((cell) => ({
+                      cellId: cell.cellId,
+                      label: `${cell.profileLabel} x ${cell.schemaLabel}`,
+                      ordinal: cell.ordinal,
+                  }));
+            return {
+                found: true,
+                analysis: computeReplayRunAnalysis({
+                    cells,
+                    sourceCaptureEventIds: (durable.manifest?.sources ?? []).map(
+                        (source) => source.captureEventId,
+                    ),
+                    repetitions: durable.manifest?.repetitions ?? 1,
+                    items,
+                    ...(params.baselineCellId !== undefined
+                        ? { baselineCellId: params.baselineCellId }
+                        : {}),
+                }),
+            };
         });
 
         // Central observability upload (central design §8.3): preview is the
@@ -881,6 +1153,13 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                         void this.sendNotification(DcIcDebugChangedNotification.type, undefined);
                     }
                 });
+                // Typed sibling (WI-1.2): revision + changed domains on the
+                // same throttle; the legacy void poke above keeps firing.
+                host.onDidChange2((payload) => {
+                    if (!this.disposed) {
+                        void this.sendNotification(DcIcDebugChanged2Notification.type, payload);
+                    }
+                });
                 this.icDebugHost = host;
             }
         }
@@ -971,12 +1250,19 @@ export function registerDebugConsole(
     diagnostics: DiagnosticsManager,
 ): void {
     context.subscriptions.push(
-        vscode.commands.registerCommand("mssql.openDebugConsole", () => {
+        // Optional deep-link arg (WI-1.6): `{ page }` opens the console AT
+        // that page — a fresh console gets it as initial state, an open one
+        // is steered via dc/navigate before being revealed.
+        vscode.commands.registerCommand("mssql.openDebugConsole", (route?: { page?: DcPageId }) => {
+            const page = route?.page;
             if (activeConsole && !activeConsole.disposed) {
+                if (page !== undefined) {
+                    void activeConsole.sendNotification(DcNavigateNotification.type, { page });
+                }
                 activeConsole.revealToForeground();
                 return;
             }
-            activeConsole = new DebugConsoleWebviewController(context, diagnostics);
+            activeConsole = new DebugConsoleWebviewController(context, diagnostics, page);
             activeConsole.revealToForeground();
         }),
     );

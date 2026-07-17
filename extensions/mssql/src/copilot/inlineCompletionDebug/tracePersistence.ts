@@ -30,7 +30,12 @@ const CUSTOM_PROMPT_SAVED_AT_MEMENTO_KEY =
 
 export interface SaveInlineCompletionTraceResult {
     filePath?: string;
-    skipped?: "captureDisabled" | "empty";
+    /**
+     * "journalPrimary" (WI-2.7): the deactivate save was deliberately skipped
+     * because the journal-primary flag is on and the capture journal is the
+     * healthy durable record for the epoch.
+     */
+    skipped?: "captureDisabled" | "empty" | "journalPrimary";
     error?: string;
 }
 
@@ -110,6 +115,20 @@ export function getTraceRedactPromptsSetting(): boolean {
         vscode.workspace
             .getConfiguration()
             .get<boolean>(Constants.configCopilotInlineCompletionsTraceRedactPrompts, false) ??
+        false
+    );
+}
+
+/**
+ * WI-2.7: the experimental journal-primary flag (observability-lab
+ * workflow). Default FALSE — with it off, every persistence path below is
+ * byte-identical to the pre-flag behavior (the addendum's rollback posture).
+ */
+export function getTraceJournalPrimarySetting(): boolean {
+    return (
+        vscode.workspace
+            .getConfiguration()
+            .get<boolean>(Constants.configCopilotInlineCompletionsTraceJournalPrimary, false) ??
         false
     );
 }

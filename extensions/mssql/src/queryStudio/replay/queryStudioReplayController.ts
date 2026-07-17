@@ -4,30 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Query Studio Replay Lab (design 04 §17.3): the second production
- * instantiation of the generic feature-replay engine. Replays captured
- * QsRunRecords through the SQL Data Plane's normal API (the live document's
- * ExecutionHost) with config overrides (database / mode / stopOnError),
- * sequential and matrix runs, and Trace Identity replay tags.
- *
- * Honesty rules: records captured WITHOUT elevated capture carry no SQL
- * text and are refused at replay time (the row fails with the reason);
- * replays need a live Query Studio document — preferring one whose URI
- * digest matches the record.
+ * Query Studio Replay Lab panel (design 04 §17.3, hardened by WI-3.6 §7.8):
+ * the standalone webview over the SAFE Query Studio replay adapter
+ * (qsReplayAdapter.ts). The adapter enforces the safety contract — parse-only
+ * and estimated-plan replay with exact target binding (fingerprint match or
+ * explicit selection, never the first live document), the WI-3.7 mutating
+ * gate, a host-side confirmation modal for estimated-plan runs, and real
+ * cancellation into the execution host. This controller owns only the panel
+ * chrome: state projection, reducers, the vscode modal seam, and the durable
+ * run repository wiring (same ReplayRunRepository the completions Lab uses,
+ * so QS runs are cataloged and listed in the Debug Console Replay Lab).
  */
 
 import * as path from "path";
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../../controllers/webviewPanelController";
-import { diag } from "../../diagnostics/diagnosticsCore";
-import { digestValue } from "../../diagnostics/redaction";
-import {
-    FeatureReplayEngine,
-    FeatureReplayHost,
-} from "../../diagnostics/featureCapture/replayEngine";
-import { logger2 } from "../../models/logger2";
-import { FeatureReplayTags } from "../../sharedInterfaces/featureReplay";
-import { queryTuningParamsToOverrides } from "../../sharedInterfaces/queryTuning";
+import { FeatureCaptureLease } from "../../diagnostics/featureCapture/captureStore";
+import { FeatureReplayEngine } from "../../diagnostics/featureCapture/replayEngine";
+import { ReplayRunRepository } from "../../diagnostics/featureCapture/replayRunRepository";
 import {
     QsReplayConfig,
     QsReplayMatrixCell,
@@ -37,27 +31,48 @@ import {
 } from "../../sharedInterfaces/queryStudioReplay";
 import { QueryStudioDocumentModel } from "../queryStudioDocumentModel";
 import {
-    isElevatedCaptureActive,
     qsRunCaptureStore,
+    isElevatedCaptureActive,
     saveQsRunTraceNow,
     shouldCaptureQsRuns,
 } from "./qsRunCapture";
+import {
+    createQsReplayHost,
+    createQsReplayRunObserver,
+    explicitQsTargetRef,
+    liveTargetFingerprint,
+} from "./qsReplayAdapter";
+import { createQsReplayRunRepository } from "./qsReplayRunPersistence";
 
 export class QueryStudioReplayController extends WebviewPanelController<
     QueryStudioReplayWebviewState,
     QueryStudioReplayReducers
 > {
-    private readonly _logger = logger2.withPrefix("QueryStudioReplay");
     private readonly _replayEngine: FeatureReplayEngine<
         QsRunRecord,
         QsReplayConfig,
         QsReplayMatrixCell
-    > = new FeatureReplayEngine(this.createReplayHost());
+    >;
+    private readonly _runRepository: ReplayRunRepository | undefined;
     private _lastError: string | undefined;
+    private _selectedTargetUriKey: string | undefined;
+    private readonly _viewerLease: FeatureCaptureLease;
 
     constructor(
         private readonly _extensionContext: vscode.ExtensionContext,
         private readonly _listModels: () => QueryStudioDocumentModel[],
+        /** §7.8.3 dialog seam — a vscode modal in the product, a fake in tests. */
+        private readonly _confirmReadOnlyRun: (message: string) => Promise<boolean> = async (
+            message,
+        ) => {
+            const proceed = "Run estimated-plan replay";
+            const choice = await vscode.window.showWarningMessage(
+                message,
+                { modal: true },
+                proceed,
+            );
+            return choice === proceed;
+        },
     ) {
         super(
             _extensionContext,
@@ -82,7 +97,40 @@ export class QueryStudioReplayController extends WebviewPanelController<
             },
         );
 
-        qsRunCaptureStore.setPanelOpen(true);
+        this._replayEngine = new FeatureReplayEngine(
+            createQsReplayHost({
+                listTargets: () => this._listModels(),
+                getSelectedTargetUriKey: () => this._selectedTargetUriKey,
+                confirmReadOnlyRun: (message) => this._confirmReadOnlyRun(message),
+                getLiveOverrides: () => qsRunCaptureStore.getOverrides(),
+                onExecuteError: (message) => {
+                    this._lastError = message;
+                },
+                onStateChanged: () => {
+                    if (!this.isDisposed) {
+                        this.updateState(this.createState());
+                    }
+                },
+                isDisposed: () => this.isDisposed,
+            }),
+        );
+        // Durable run persistence (WI-3.6): QS runs land in the same
+        // ReplayRunRepository store the completions Lab uses, so they are
+        // cataloged, listed via dc/replayRunList, and survive restarts.
+        this._runRepository = createQsReplayRunRepository();
+        if (this._runRepository) {
+            this._replayEngine.setRunObserver(
+                createQsReplayRunObserver(this._runRepository, {
+                    setRunDurable: (runId, durable) =>
+                        this._replayEngine.setRunDurable(runId, durable),
+                    isDisposed: () => this.isDisposed,
+                    getExplicitTarget: () =>
+                        explicitQsTargetRef(this._listModels(), this._selectedTargetUriKey),
+                }),
+            );
+        }
+
+        this._viewerLease = qsRunCaptureStore.acquireViewer("queryStudio.replayLab");
         this.registerDisposable(
             qsRunCaptureStore.onDidChange(() => {
                 if (!this.isDisposed) {
@@ -96,7 +144,8 @@ export class QueryStudioReplayController extends WebviewPanelController<
 
     public override dispose(): void {
         this._replayEngine.dispose();
-        qsRunCaptureStore.setPanelOpen(false);
+        void this._runRepository?.dispose();
+        this._viewerLease.dispose();
         super.dispose();
     }
 
@@ -155,11 +204,17 @@ export class QueryStudioReplayController extends WebviewPanelController<
                     });
                 }
             }
+            // §7.8.5: user-entered databases are explicit selections, and the
+            // WI-3.7 preflight gate refuses any normal/actualPlan cell.
             this._replayEngine.runMatrix(cells);
             return this.createState();
         });
         this.registerReducer("cancelRun", (_state, payload) => {
             this._replayEngine.cancelRun(payload.runId);
+            return this.createState();
+        });
+        this.registerReducer("selectReplayTarget", (_state, payload) => {
+            this._selectedTargetUriKey = payload.uriKey ?? undefined;
             return this.createState();
         });
         this.registerReducer("saveTraceNow", async () => {
@@ -176,155 +231,35 @@ export class QueryStudioReplayController extends WebviewPanelController<
     }
 
     private createState(): QueryStudioReplayWebviewState {
+        const models = this._listModels();
+        // Fingerprints of the records currently on screen — a live target is
+        // "matching" when at least one captured record binds to it (§7.8.2).
+        const recordFingerprints = new Set(
+            qsRunCaptureStore
+                .getEvents()
+                .map((record) => record.profileFingerprint)
+                .filter((fingerprint): fingerprint is string => fingerprint !== undefined),
+        );
         return {
             records: qsRunCaptureStore.getEvents().slice().reverse(),
             captureArmed: shouldCaptureQsRuns(),
             elevatedCapture: isElevatedCaptureActive(),
-            liveTargets: this._listModels().map((model) => ({
-                uriKey: model.uriKey,
-                fileName: path.basename(model.backingDocument?.fileName ?? model.uriKey),
-                connected: model.sessionBinding.activeSession !== undefined,
-            })),
+            liveTargets: models.map((model) => {
+                const fingerprint = liveTargetFingerprint(model);
+                return {
+                    uriKey: model.uriKey,
+                    fileName: path.basename(model.backingDocument?.fileName ?? model.uriKey),
+                    connected: model.sessionBinding.activeSession !== undefined,
+                    ...(fingerprint !== undefined
+                        ? { matchesRecord: recordFingerprints.has(fingerprint) }
+                        : {}),
+                };
+            }),
+            ...(this._selectedTargetUriKey !== undefined
+                ? { selectedTargetUriKey: this._selectedTargetUriKey }
+                : {}),
             replay: this._replayEngine.getState(),
             ...(this._lastError ? { lastError: this._lastError } : {}),
         };
-    }
-
-    private createReplayHost(): FeatureReplayHost<QsRunRecord, QsReplayConfig, QsReplayMatrixCell> {
-        return {
-            feature: "queryStudio",
-            isRunnable: (record) => record.result !== "pending" && record.result !== "queued",
-            captureConfig: (record) => ({
-                database: record.database ?? null,
-                mode: record.mode,
-                stopOnError: null,
-                // Snapshot mode replays with the CAPTURED tuning params (QO-1)
-                // so a faithful replay reproduces the run's parameter set.
-                tuning: record.tuning ? queryTuningParamsToOverrides(record.tuning) : null,
-            }),
-            resolveLiveConfig: () => qsRunCaptureStore.getOverrides(),
-            compactConfig: (config) => ({
-                database: config.database ?? null,
-                mode: config.mode ?? null,
-                stopOnError: config.stopOnError ?? null,
-                tuning: config.tuning ?? null,
-            }),
-            compactPartialConfig: (partial) => ({ ...(partial ?? {}) }),
-            resolveMatrixCellConfig: (cell) => ({
-                ...qsRunCaptureStore.getOverrides(),
-                database: cell.database ?? null,
-                mode: cell.mode ?? null,
-                // Tuning axis for parameter-sweep experiments (QO-1).
-                ...(cell.tuning ? { tuning: cell.tuning } : {}),
-            }),
-            formatCellLabel: (cell) => cell.label,
-            formatSourceLabel: (record) =>
-                `${record.database ?? "unknown db"} · ${new Date(record.timestamp).toLocaleTimeString()}`,
-            createQueuedEvent: (snapshot) => ({
-                ...snapshot.event,
-                result: "queued",
-            }),
-            markEventRunning: (record, startedAt) => ({
-                ...record,
-                timestamp: startedAt,
-                result: "pending",
-            }),
-            execute: (record, config, tags) => this.replayRunRecord(record, config, tags),
-            onStateChanged: () => {
-                if (!this.isDisposed) {
-                    this.updateState(this.createState());
-                }
-            },
-            isDisposed: () => this.isDisposed,
-        };
-    }
-
-    /** Re-drive one captured run through the live document's execution host. */
-    private async replayRunRecord(
-        record: QsRunRecord,
-        config: QsReplayConfig,
-        tags: FeatureReplayTags,
-    ): Promise<void> {
-        try {
-            if (!record.scriptText) {
-                throw new Error(
-                    "record has no SQL text — captured without elevated capture (digest-only)",
-                );
-            }
-            const target = this.pickTarget(record);
-            if (!target) {
-                throw new Error("no live Query Studio document to replay against");
-            }
-            if (!target.sessionBinding.activeSession) {
-                throw new Error(`replay target ${target.uriKey} is not connected`);
-            }
-            if (config.database && config.database !== record.database) {
-                const changed = await target.executionHost.setDatabase(config.database);
-                if (!changed) {
-                    throw new Error(`could not switch replay database to ${config.database}`);
-                }
-            }
-            const outcome = target.executionHost.execute(record.scriptText, {
-                selectionStartLine: 0,
-                scope: record.scope,
-                mode: config.mode ?? record.mode,
-                ...(config.tuning ? { tuningOverrides: config.tuning } : {}),
-                replayTags: tags,
-            });
-            if (!outcome.started) {
-                throw new Error(outcome.reason ?? "replay execution refused");
-            }
-            await this.waitForRunCompletion(target);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            this._lastError = `Replay of ${record.id} failed: ${message}`;
-            this._logger.warn(this._lastError);
-            diag.emit({
-                feature: "queryStudio",
-                kind: "event",
-                type: "queryStudio.runRecord.captured",
-                status: "warning",
-                fields: {
-                    batches: { raw: record.batches.length, cls: "diagnostic.metadata" },
-                    elevated: { raw: record.elevated, cls: "diagnostic.metadata" },
-                    replay: { raw: true, cls: "diagnostic.metadata" },
-                    refused: { raw: true, cls: "diagnostic.metadata" },
-                },
-            });
-            throw error;
-        }
-    }
-
-    private pickTarget(record: QsRunRecord): QueryStudioDocumentModel | undefined {
-        const models = this._listModels();
-        return (
-            models.find((model) => digestValue("uri", model.uriKey) === record.documentUriDigest) ??
-            models[0]
-        );
-    }
-
-    private waitForRunCompletion(target: QueryStudioDocumentModel): Promise<void> {
-        return new Promise<void>((resolve) => {
-            const check = () => {
-                const kind = target.executionHost.executionState.kind;
-                return kind !== "executing" && kind !== "cancelRequested";
-            };
-            if (check()) {
-                resolve();
-                return;
-            }
-            const subscription = target.executionHost.attach({
-                onResultSetStarted: () => undefined,
-                onRowsAppended: () => undefined,
-                onResultSetEnded: () => undefined,
-                onMessages: () => undefined,
-                onExecutionStateChanged: () => {
-                    if (check()) {
-                        subscription.dispose();
-                        resolve();
-                    }
-                },
-            });
-        });
     }
 }

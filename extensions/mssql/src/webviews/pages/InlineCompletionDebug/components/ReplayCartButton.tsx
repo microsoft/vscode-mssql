@@ -48,11 +48,17 @@ export function ReplayCartButton() {
     const replay = useInlineCompletionDebugSelector((state) => state.replay);
     const { openReplayBuilder } = useInlineCompletionDebugContext();
     const activeRun = replay.runs.find((run) => run.id === replay.activeRunId);
+    // "cancelling" is still active: the in-flight item is settling.
     const runIsActive =
-        !!activeRun && (activeRun.status === "queued" || activeRun.status === "running");
+        !!activeRun &&
+        (activeRun.status === "queued" ||
+            activeRun.status === "running" ||
+            activeRun.status === "cancelling");
     const disabled = replay.cart.length === 0 && !runIsActive;
     const label = runIsActive
-        ? `Replay running ${activeRun.completedEvents}/${activeRun.totalEvents}`
+        ? activeRun.status === "cancelling"
+            ? `Replay cancelling ${activeRun.completedEvents}/${activeRun.totalEvents}`
+            : `Replay running ${activeRun.completedEvents}/${activeRun.totalEvents}`
         : "Replay";
     const tooltip = runIsActive
         ? "Open the replay trace builder while the current run continues"

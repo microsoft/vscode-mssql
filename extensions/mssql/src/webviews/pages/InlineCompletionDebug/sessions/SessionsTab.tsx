@@ -43,16 +43,22 @@ import {
 import {
     InlineCompletionAnalysisDimension,
     InlineCompletionAnalysisFilters,
+    InlineCompletionCohortSelection,
     InlineCompletionPivotRow,
+    InlineCompletionRateMetric,
     computeInlineCompletionMetrics,
+    computeInlineCompletionRateMetrics,
     createFacetCounts,
     filterInlineCompletionEvents,
+    filterInlineCompletionEventsByCohort,
     getEventDimension,
+    inlineCompletionCohortSelectionOptions,
     pivotInlineCompletionEvents,
 } from "../../../../sharedInterfaces/inlineCompletionAnalysis";
 import {
     InlineCompletionDebugEvent,
     InlineCompletionDebugTraceIndexEntry,
+    storedSessionFileKeysForHostSession,
 } from "../../../../sharedInterfaces/inlineCompletionDebug";
 import { useInlineCompletionDebugContext } from "../inlineCompletionDebugStateProvider";
 import { useInlineCompletionDebugSelector } from "../inlineCompletionDebugSelector";
@@ -74,7 +80,9 @@ const dimensions: Array<{ key: InlineCompletionAnalysisDimension; label: string 
     { key: "replayRun", label: "Replay run" },
     { key: "replayMatrixCell", label: "Matrix cell" },
     { key: "replaySourceEvent", label: "Replay source" },
+    { key: "replayMode", label: "Replay mode" },
     { key: "replayTrace", label: "Replay trace" },
+    { key: "provenanceCohort", label: "Cohort" },
 ];
 const visibleDimensions = dimensions.filter((dimension) => dimension.key !== "language");
 
@@ -172,10 +180,21 @@ const useStyles = makeStyles({
     },
     datasetTable: {
         display: "grid",
-        gridTemplateColumns: "34px minmax(260px, 1fr) 180px 72px 82px 108px 108px 152px",
+        gridTemplateColumns: "34px minmax(230px, 1fr) 66px 180px 72px 82px 108px 108px 152px",
         maxHeight: "176px",
         overflowY: "auto",
         ...shorthands.borderTop("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    sourceBadge: {
+        display: "inline-block",
+        fontSize: tokens.fontSizeBase100,
+        lineHeight: "14px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: "var(--vscode-descriptionForeground)",
+        ...shorthands.border("1px", "solid", "var(--vscode-panel-border)"),
+        ...shorthands.borderRadius("2px"),
+        ...shorthands.padding("0", "4px"),
     },
     tableHeader: {
         position: "sticky",
@@ -236,6 +255,41 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
         fontSize: tokens.fontSizeBase200,
         lineHeight: "16px",
+    },
+    metricsStrip: {
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        minHeight: "22px",
+        overflowX: "auto",
+        overflowY: "hidden",
+        whiteSpace: "nowrap",
+        fontSize: tokens.fontSizeBase200,
+        fontVariantNumeric: "tabular-nums",
+        ...shorthands.padding("2px", "10px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    metricChip: {
+        flexShrink: 0,
+    },
+    metricChipLabel: {
+        color: "var(--vscode-descriptionForeground)",
+        textTransform: "uppercase",
+        fontSize: tokens.fontSizeBase100,
+        letterSpacing: "0.04em",
+    },
+    metricChipCounts: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase100,
+    },
+    cohortRow: {
+        display: "flex",
+        gap: "3px",
+    },
+    cohortButton: {
+        minWidth: 0,
+        height: "22px",
+        ...shorthands.padding("0", "8px"),
     },
     body: {
         ...shorthands.flex(1),
@@ -598,7 +652,14 @@ const useStyles = makeStyles({
     },
 });
 
-export function SessionsTab({ active }: { active: boolean }) {
+export function SessionsTab({
+    active,
+    datasetSessionHint,
+}: {
+    active: boolean;
+    /** WI-4.4 deep link: include+load this host session's stored captures. */
+    datasetSessionHint?: string;
+}) {
     const classes = useStyles();
     const sessions = useInlineCompletionDebugSelector((state) => state.sessions);
     const {
@@ -614,6 +675,10 @@ export function SessionsTab({ active }: { active: boolean }) {
         addEventsToReplayCart,
     } = useInlineCompletionDebugContext();
     const [filters, setFilters] = useState<InlineCompletionAnalysisFilters>({});
+    // WI-4.1 default cohort: Live (liveUser only) — replay results are never
+    // counted as user acceptance by construction, imports never pollute
+    // quality rates. Switching cohort is explicit and visible, never silent.
+    const [cohort, setCohort] = useState<InlineCompletionCohortSelection>("live");
     const [primaryDimension, setPrimaryDimension] =
         useState<InlineCompletionAnalysisDimension>("model");
     const [secondaryDimension, setSecondaryDimension] = useState<
@@ -623,12 +688,49 @@ export function SessionsTab({ active }: { active: boolean }) {
     const [selectedEventKey, setSelectedEventKey] = useState<string | undefined>();
     const [filtersCollapsed, setFiltersCollapsed] = useState(false);
     const [gridResizeToken, setGridResizeToken] = useState(0);
+    const [appliedDatasetHint, setAppliedDatasetHint] = useState<string | undefined>();
 
     useEffect(() => {
         if (active) {
             sessionsActivated();
         }
     }, [active, sessionsActivated]);
+
+    // WI-4.4 deep link: once the trace index is available, include every
+    // stored-session entry that belongs to the hinted host session; the
+    // auto-load effect below then loads them. Applied once per hint value.
+    useEffect(() => {
+        if (
+            !active ||
+            datasetSessionHint === undefined ||
+            datasetSessionHint === appliedDatasetHint
+        ) {
+            return;
+        }
+        if (sessions.loading || sessions.traceIndex.length === 0) {
+            return; // wait for the index scan the activation triggered
+        }
+        const fileKeys = storedSessionFileKeysForHostSession(
+            sessions.traceIndex,
+            datasetSessionHint,
+        );
+        for (const fileKey of fileKeys) {
+            const entry = sessions.traceIndex.find((candidate) => candidate.fileKey === fileKey);
+            if (entry && !entry.included) {
+                sessionsToggleTrace(fileKey, true);
+            }
+        }
+        // No matching entries = the session has no stored captures (or they
+        // were retained away) — honest no-op; the tab still opened.
+        setAppliedDatasetHint(datasetSessionHint);
+    }, [
+        active,
+        appliedDatasetHint,
+        datasetSessionHint,
+        sessions.loading,
+        sessions.traceIndex,
+        sessionsToggleTrace,
+    ]);
 
     useEffect(() => {
         if (!active) {
@@ -656,11 +758,20 @@ export function SessionsTab({ active }: { active: boolean }) {
         const eventKeys = new WeakMap<InlineCompletionDebugEvent, string>();
         const eventSources = new WeakMap<InlineCompletionDebugEvent, string>();
         const sessionEvents: InlineCompletionDebugEvent[] = [];
+        const entryByFileKey = new Map(
+            sessions.traceIndex.map((entry) => [entry.fileKey, entry] as const),
+        );
 
         for (const loaded of sessions.loadedTraces) {
             if (!includedFileKeys.has(loaded.fileKey)) {
                 continue;
             }
+            // WI-4.1: stamp the trace entry's source kind onto each event so
+            // cohort derivation can classify imported files as externalImport
+            // (§8.1) without the analysis functions reaching for the index.
+            const entry = entryByFileKey.get(loaded.fileKey);
+            const traceSourceKind =
+                entry?.sourceKind ?? (entry?.imported === true ? "imported" : "folder");
 
             loaded.trace.events.forEach((event, index) => {
                 const sourceLabel = loaded.trace._savedAt ?? loaded.fileKey;
@@ -669,6 +780,7 @@ export function SessionsTab({ active }: { active: boolean }) {
                     locals: {
                         ...event.locals,
                         replaySessionSourceLabel: sourceLabel,
+                        traceSourceKind,
                     },
                 };
                 eventKeys.set(
@@ -681,8 +793,15 @@ export function SessionsTab({ active }: { active: boolean }) {
         }
 
         return { events: sessionEvents, eventKeys, eventSources };
-    }, [includedFileKeys, sessions.loadedTraces]);
-    const events = sessionEventDataset.events;
+    }, [includedFileKeys, sessions.loadedTraces, sessions.traceIndex]);
+    // WI-4.1: the cohort applies BEFORE filters/facets/pivots/summary — the
+    // whole tab sees one cohort at a time, selected explicitly in the rail.
+    const allEvents = sessionEventDataset.events;
+    const events = useMemo(
+        () => filterInlineCompletionEventsByCohort(allEvents, cohort),
+        [allEvents, cohort],
+    );
+    const cohortExcludedCount = allEvents.length - events.length;
     const getSessionEventKey = useCallback(
         (event: InlineCompletionDebugEvent, index: number) =>
             sessionEventDataset.eventKeys.get(event) ??
@@ -697,6 +816,14 @@ export function SessionsTab({ active }: { active: boolean }) {
         () => computeInlineCompletionMetrics(filteredEvents),
         [filteredEvents],
     );
+    // The §8.2 named metric table over the current cohort+filters (WI-4.1).
+    const rateMetrics = useMemo(
+        () => computeInlineCompletionRateMetrics(filteredEvents),
+        [filteredEvents],
+    );
+    const cohortLabel =
+        inlineCompletionCohortSelectionOptions.find((option) => option.id === cohort)?.label ??
+        cohort;
     const pivotRows = useMemo(
         () =>
             pivotInlineCompletionEvents(
@@ -808,9 +935,12 @@ export function SessionsTab({ active }: { active: boolean }) {
                 <>
                     <SummaryTiles
                         metrics={summaryMetrics}
+                        rateMetrics={rateMetrics}
+                        cohortLabel={cohortLabel}
                         traceCount={sessions.traceIndex.filter((entry) => entry.included).length}
                         configCount={countConfigs(filteredEvents)}
                     />
+                    <MetricsStrip rateMetrics={rateMetrics} cohortLabel={cohortLabel} />
                     <PanelGroup
                         direction="vertical"
                         className={classes.body}
@@ -841,6 +971,9 @@ export function SessionsTab({ active }: { active: boolean }) {
                                                 <FilterRail
                                                     events={events}
                                                     filters={filters}
+                                                    cohort={cohort}
+                                                    cohortExcludedCount={cohortExcludedCount}
+                                                    onCohortChange={setCohort}
                                                     onFacetChange={updateFacet}
                                                     onClear={() => setFilters({})}
                                                     onCollapse={() => setFiltersCollapsed(true)}
@@ -1118,15 +1251,23 @@ function DatasetSelector({
             </div>
             {fileListOpen ? (
                 <div className={classes.datasetTable}>
-                    {["", "Filename", "Saved", "Events", "Size", "Profile", "Schema", "Replay"].map(
-                        (label) => (
-                            <div
-                                key={label || "checkbox"}
-                                className={mergeClasses(classes.datasetCell, classes.tableHeader)}>
-                                {label}
-                            </div>
-                        ),
-                    )}
+                    {[
+                        "",
+                        "Filename",
+                        "Source",
+                        "Saved",
+                        "Events",
+                        "Size",
+                        "Profile",
+                        "Schema",
+                        "Replay",
+                    ].map((label) => (
+                        <div
+                            key={label || "checkbox"}
+                            className={mergeClasses(classes.datasetCell, classes.tableHeader)}>
+                            {label}
+                        </div>
+                    ))}
                     {entries.map((entry) => (
                         <TraceRow key={entry.fileKey} entry={entry} onToggleTrace={onToggleTrace} />
                     ))}
@@ -1161,6 +1302,11 @@ function TraceRow({
                     addSessionToReplayCart(entry.fileKey);
                 }}>
                 {entry.filename}
+            </div>
+            <div className={classes.datasetCell}>
+                <span className={classes.sourceBadge} title={traceSourceTitle(entry)}>
+                    {traceSourceLabel(entry)}
+                </span>
             </div>
             <div className={mergeClasses(classes.datasetCell, classes.mono, classes.savedCell)}>
                 {entry.savedAt ? formatShortDate(entry.savedAt) : "--"}
@@ -1201,20 +1347,26 @@ function TraceRow({
 
 function SummaryTiles({
     metrics,
+    rateMetrics,
+    cohortLabel,
     traceCount,
     configCount,
 }: {
     metrics: ReturnType<typeof computeInlineCompletionMetrics>;
+    rateMetrics: InlineCompletionRateMetric[];
+    cohortLabel: string;
     traceCount: number;
     configCount: number;
 }) {
     const classes = useStyles();
+    const acceptance = rateMetrics.find((metric) => metric.id === "acceptanceRate");
     return (
         <div className={classes.summary}>
             <StatTile
                 label="Events"
                 value={metrics.count.toLocaleString()}
                 hint={`${traceCount} traces`}
+                title={`Cohort: ${cohortLabel} · ${metrics.terminalCount.toLocaleString()} terminal · ${metrics.nonTerminalCount.toLocaleString()} pending/queued/blocked (excluded from every rate)`}
             />
             <StatTile
                 label="Latency mean"
@@ -1228,8 +1380,9 @@ function SummaryTiles({
             />
             <StatTile
                 label="Accept rate"
-                value={formatPercent(metrics.acceptRate)}
-                hint={`${metrics.acceptedCount}/${metrics.count}`}
+                value={acceptance?.rate !== undefined ? formatPercent(acceptance.rate) : "—"}
+                hint={`${metrics.acceptedCount}/${metrics.shownCount} shown`}
+                title={formatRateMetricTitle(acceptance, cohortLabel)}
             />
             <StatTile
                 label="Input tokens"
@@ -1250,10 +1403,20 @@ function SummaryTiles({
     );
 }
 
-function StatTile({ label, value, hint }: { label: string; value: string; hint: string }) {
+function StatTile({
+    label,
+    value,
+    hint,
+    title,
+}: {
+    label: string;
+    value: string;
+    hint: string;
+    title?: string;
+}) {
     const classes = useStyles();
     return (
-        <div className={classes.statTile}>
+        <div className={classes.statTile} title={title}>
             <Text className={classes.statLabel}>{label}</Text>
             <Text className={classes.statValue}>
                 {value}
@@ -1263,9 +1426,60 @@ function StatTile({ label, value, hint }: { label: string; value: string; hint: 
     );
 }
 
+function formatRateMetricTitle(
+    metric: InlineCompletionRateMetric | undefined,
+    cohortLabel: string,
+): string | undefined {
+    if (!metric) {
+        return undefined;
+    }
+    return `${metric.label}: ${metric.numeratorLabel} / ${metric.denominatorLabel} = ${metric.numerator}/${metric.denominator} · cohort: ${cohortLabel}`;
+}
+
+/**
+ * The full §8.2 metric table as one dense strip (WI-4.1). Every chip shows
+ * numerator/denominator inline and its exact populations + cohort in the
+ * tooltip; an empty denominator renders "—", never a fabricated 0%.
+ */
+function MetricsStrip({
+    rateMetrics,
+    cohortLabel,
+}: {
+    rateMetrics: InlineCompletionRateMetric[];
+    cohortLabel: string;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.metricsStrip} onWheel={scrollHorizontallyOnWheel}>
+            {/* The active cohort stays visible even when the rail collapses. */}
+            <span
+                className={classes.metricChip}
+                title="§8.1 provenance cohort applied to every metric, facet, and pivot on this tab (selector in the filter rail)">
+                <span className={classes.metricChipLabel}>Cohort</span> {cohortLabel}
+            </span>
+            {rateMetrics.map((metric) => (
+                <span
+                    key={metric.id}
+                    className={classes.metricChip}
+                    title={formatRateMetricTitle(metric, cohortLabel)}>
+                    <span className={classes.metricChipLabel}>{metric.label}</span>{" "}
+                    {metric.rate !== undefined ? formatPercent(metric.rate) : "—"}
+                    <span className={classes.metricChipCounts}>
+                        {" "}
+                        {metric.numerator}/{metric.denominator}
+                    </span>
+                </span>
+            ))}
+        </div>
+    );
+}
+
 function FilterRail({
     events,
     filters,
+    cohort,
+    cohortExcludedCount,
+    onCohortChange,
     onFacetChange,
     onClear,
     onCollapse,
@@ -1273,6 +1487,9 @@ function FilterRail({
 }: {
     events: InlineCompletionDebugEvent[];
     filters: InlineCompletionAnalysisFilters;
+    cohort: InlineCompletionCohortSelection;
+    cohortExcludedCount: number;
+    onCohortChange: (cohort: InlineCompletionCohortSelection) => void;
     onFacetChange: (
         dimension: InlineCompletionAnalysisDimension,
         value: string,
@@ -1301,6 +1518,11 @@ function FilterRail({
                     </FluentTooltip>
                 </div>
             </div>
+            <CohortSelector
+                cohort={cohort}
+                excludedCount={cohortExcludedCount}
+                onChange={onCohortChange}
+            />
             {visibleDimensions.map((dimension) => (
                 <Facet
                     key={dimension.key}
@@ -1331,6 +1553,52 @@ function FilterRail({
                         />
                     </Field>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * WI-4.1 cohort selector (§8.1): a compact segmented control at the top of
+ * the filter rail — the default is Live (liveUser only); Replay and All are
+ * explicit, visible choices, never silent. The excluded count keeps the
+ * cohort's effect honest at a glance.
+ */
+function CohortSelector({
+    cohort,
+    excludedCount,
+    onChange,
+}: {
+    cohort: InlineCompletionCohortSelection;
+    excludedCount: number;
+    onChange: (cohort: InlineCompletionCohortSelection) => void;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.facet}>
+            <div className={classes.facetTitle}>
+                <span>Cohort</span>
+                {excludedCount > 0 ? (
+                    <span title="Events hidden by the current cohort selection">
+                        {excludedCount.toLocaleString()} excluded
+                    </span>
+                ) : null}
+            </div>
+            <div className={classes.cohortRow}>
+                {inlineCompletionCohortSelectionOptions.map((option) => (
+                    <FluentTooltip
+                        key={option.id}
+                        content={option.description}
+                        relationship="description">
+                        <Button
+                            className={classes.cohortButton}
+                            size="small"
+                            appearance={cohort === option.id ? "primary" : "secondary"}
+                            onClick={() => onChange(option.id)}>
+                            {option.label}
+                        </Button>
+                    </FluentTooltip>
+                ))}
             </div>
         </div>
     );
@@ -1471,8 +1739,16 @@ function PivotTable({
                     <th className={classes.pivotHeaderCell}>Lat mean</th>
                     <th className={classes.pivotHeaderCell}>Lat p95</th>
                     <th className={classes.pivotHeaderCell}>Lat p99</th>
-                    <th className={classes.pivotHeaderCell}>Accept</th>
-                    <th className={classes.pivotHeaderCell}>Errors</th>
+                    <th
+                        className={classes.pivotHeaderCell}
+                        title="accepted / (accepted + shown-not-accepted) — §8.2 corrected denominator; pending/queued/blocked never counted">
+                        Accept
+                    </th>
+                    <th
+                        className={classes.pivotHeaderCell}
+                        title="error terminals / all terminal requests">
+                        Errors
+                    </th>
                     <th className={classes.pivotHeaderCell}>In tok</th>
                     <th className={classes.pivotHeaderCell}>Out tok</th>
                     <th className={classes.pivotHeaderCell}>Schema chars</th>
@@ -1797,6 +2073,10 @@ function getSelectedFacetValues(
             return filters.replayMatrixCells ?? [];
         case "replaySourceEvent":
             return filters.replaySourceEvents ?? [];
+        case "replayMode":
+            return filters.replayModes ?? [];
+        case "provenanceCohort":
+            return filters.provenanceCohorts ?? [];
     }
 }
 
@@ -1832,6 +2112,10 @@ function getFilterKey(
             return "replayMatrixCells";
         case "replaySourceEvent":
             return "replaySourceEvents";
+        case "replayMode":
+            return "replayModes";
+        case "provenanceCohort":
+            return "provenanceCohorts";
     }
 }
 
@@ -1985,6 +2269,27 @@ function getDatasetRange(entries: InlineCompletionDebugTraceIndexEntry[]): strin
         return undefined;
     }
     return `${formatDateOnly(Math.min(...starts))} -> ${formatDateOnly(Math.max(...ends))}`;
+}
+
+/** Compact source badge text (WI-2.5); older entries fall back to the imported flag. */
+function traceSourceLabel(entry: InlineCompletionDebugTraceIndexEntry): string {
+    if (entry.sourceKind === "storedSession") {
+        return "session";
+    }
+    if (entry.sourceKind === "imported" || (entry.sourceKind === undefined && entry.imported)) {
+        return "import";
+    }
+    return "file";
+}
+
+function traceSourceTitle(entry: InlineCompletionDebugTraceIndexEntry): string {
+    if (entry.sourceKind === "storedSession") {
+        return "Journal-backed capture session from the local observability store (read-only; retention owns deletion)";
+    }
+    if (entry.sourceKind === "imported" || (entry.sourceKind === undefined && entry.imported)) {
+        return "Trace file added explicitly";
+    }
+    return "Trace file from the configured trace folder";
 }
 
 function formatShortDate(value: string): string {

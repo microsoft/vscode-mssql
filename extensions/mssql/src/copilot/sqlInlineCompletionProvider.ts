@@ -185,6 +185,10 @@ export class SqlInlineCompletionProvider
                 languageId: { raw: document.languageId, cls: "diagnostic.metadata" },
             },
         });
+        // Reverse-link out-slot: core sets it when a rich record exists so the
+        // span end can carry the capture-event id (final plan WI-0.3). The span
+        // cannot carry fields added after end — this is the documented seam.
+        const linkOut: { captureEventId?: string } = {};
         try {
             const result = await this.provideInlineCompletionItemsCore(
                 document,
@@ -192,10 +196,19 @@ export class SqlInlineCompletionProvider
                 context,
                 token,
                 requestSpan.traceId,
+                linkOut,
             );
             const itemCount = Array.isArray(result) ? result.length : result.items.length;
             requestSpan.end("ok", {
                 itemCount: { raw: itemCount, cls: "diagnostic.metadata" },
+                ...(linkOut.captureEventId
+                    ? {
+                          captureEventId: {
+                              raw: linkOut.captureEventId,
+                              cls: "diagnostic.metadata",
+                          },
+                      }
+                    : {}),
             });
             return result;
         } catch (error) {
@@ -210,6 +223,7 @@ export class SqlInlineCompletionProvider
         context: vscode.InlineCompletionContext,
         token: vscode.CancellationToken,
         requestTraceId: string,
+        linkOut: { captureEventId?: string },
     ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
         if (!this.isEnabledForDocument(document) || context.selectedCompletionInfo) {
             return [];
@@ -286,6 +300,13 @@ export class SqlInlineCompletionProvider
         const shouldCaptureDebug = inlineCompletionDebugStore.shouldCapture(
             this.getRecordWhenClosedSetting(),
         );
+        // Durable identity is reserved BEFORE the pending record or any Plane-A
+        // reverse link (emission-ordering rule, final plan WI-0.3). No rich
+        // record ⇒ no capture-event id is ever emitted.
+        const eventLink = shouldCaptureDebug
+            ? inlineCompletionDebugStore.createEventLink({ traceId: requestTraceId })
+            : undefined;
+        linkOut.captureEventId = eventLink?.captureEventId;
         const schemaContextOverrides = getInlineCompletionProfileSchemaContextOverrides(
             profile,
             overrides.schemaContext,
@@ -328,6 +349,7 @@ export class SqlInlineCompletionProvider
             timestamp: number = Date.now(),
         ): Omit<InlineCompletionDebugEvent, "id"> => ({
             timestamp,
+            ...(eventLink ? { link: eventLink } : {}),
             documentUri: document.uri.toString(),
             documentFileName: path.basename(document.fileName || document.uri.fsPath),
             line: position.line + 1,
@@ -448,6 +470,8 @@ export class SqlInlineCompletionProvider
         ): InlineCompletionDebugEvent | undefined => {
             if (result !== "pending") {
                 // Substrate result event — fires regardless of debug capture.
+                // Reverse-link IDs (opaque, diagnostic.metadata) point at the
+                // rich record when one exists; never content (WI-0.2).
                 diag.emit({
                     feature: "completions",
                     kind: "event",
@@ -457,6 +481,22 @@ export class SqlInlineCompletionProvider
                     fields: {
                         result: { raw: result, cls: "diagnostic.metadata" },
                         latencyMs: { raw: Date.now() - modelStartedAt, cls: "diagnostic.metadata" },
+                        ...(eventLink
+                            ? {
+                                  captureFeatureId: {
+                                      raw: eventLink.featureId,
+                                      cls: "diagnostic.metadata",
+                                  },
+                                  captureSessionId: {
+                                      raw: eventLink.captureSessionId,
+                                      cls: "diagnostic.metadata",
+                                  },
+                                  captureEventId: {
+                                      raw: eventLink.captureEventId,
+                                      cls: "diagnostic.metadata",
+                                  },
+                              }
+                            : {}),
                     },
                 });
             }
@@ -1184,6 +1224,18 @@ export function applyCustomSystemPromptTemplate(
 
     return result;
 }
+
+/**
+ * Version of the PROMPT BUILDER (WI-3.4 / addendum §7.7: replay provenance
+ * captures the prompt-builder version so rebuilt-prompt replays are
+ * comparable across builder generations).
+ *
+ * BUMP THIS on ANY observable change to the prompt construction pipeline —
+ * `resolveInlineCompletionRules`, `applyCustomSystemPromptTemplate`,
+ * `buildCompletionRules`, `buildInlineCompletionPromptMessages`,
+ * `buildPromptDataMessage`, or the context-window extraction they consume.
+ */
+export const INLINE_COMPLETION_PROMPT_BUILDER_VERSION = "1";
 
 export function buildInlineCompletionPromptMessages(
     options: InlineCompletionPromptBuildOptions,
@@ -2172,6 +2224,61 @@ function getSuffixWindow(
     return suffix.slice(0, maxChars);
 }
 
+/** The document/editor context slice one completion request is built from. */
+export interface InlineCompletionDocumentContext {
+    documentUri: string;
+    documentFileName: string;
+    languageId: string;
+    line: number;
+    column: number;
+    linePrefix: string;
+    lineSuffix: string;
+    statementPrefix: string;
+    recentPrefix: string;
+    suffix: string;
+    inferredSystemQuery: boolean;
+    detectedIntentMode: boolean;
+    sqlDiagnosticsText: string;
+}
+
+/**
+ * Extract the SAME context windows the live completion provider builds, for
+ * an arbitrary document + position (WI-3.4 `liveDocumentScenario`: replay
+ * re-executes against the current active document state through exactly the
+ * production extraction path — same window sizes, same statement-boundary
+ * logic, same diagnostics formatting).
+ */
+export function extractInlineCompletionDocumentContext(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+): InlineCompletionDocumentContext {
+    const line = document.lineAt(position.line);
+    const linePrefix = line.text.slice(0, position.character);
+    const lineSuffix = line.text.slice(position.character);
+    const statementPrefix = getStatementAwarePrefixWindow(
+        document,
+        position,
+        statementPrefixWindowChars,
+    );
+    const recentPrefix = getRecentDocumentPrefixWindow(document, position, recentPrefixWindowChars);
+    const suffix = getSuffixWindow(document, position, suffixWindowChars);
+    return {
+        documentUri: document.uri.toString(),
+        documentFileName: document.fileName.split(/[\\/]/).pop() ?? document.fileName,
+        languageId: document.languageId,
+        line: position.line,
+        column: position.character,
+        linePrefix,
+        lineSuffix,
+        statementPrefix,
+        recentPrefix,
+        suffix,
+        inferredSystemQuery: inferSystemQuery(statementPrefix, linePrefix),
+        detectedIntentMode: detectIntentMode(statementPrefix, linePrefix),
+        sqlDiagnosticsText: formatNearbySqlDiagnosticsForPrompt(document, position),
+    };
+}
+
 function formatNearbySqlDiagnosticsForPrompt(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -2296,6 +2403,17 @@ export function detectIntentComment(statementPrefix: string, linePrefix: string)
 function detectIntentMode(statementPrefix: string, linePrefix: string): boolean {
     return detectIntentComment(statementPrefix, linePrefix);
 }
+
+/**
+ * Version of the response SANITIZER (WI-3.4 / addendum §7.7: replay
+ * provenance captures the sanitizer version so response-handling comparisons
+ * are honest across sanitizer generations).
+ *
+ * BUMP THIS on ANY observable change to `sanitizeInlineCompletionText` or any
+ * helper it calls (fence/reasoning/preamble stripping, echo removal, meta
+ * detection, truncation rules, sentinel handling).
+ */
+export const INLINE_COMPLETION_SANITIZER_VERSION = "1";
 
 export function sanitizeInlineCompletionText(
     completionText: string,

@@ -46,7 +46,10 @@ import {
     makeCentralProbeSession,
     queryCentralRows,
 } from "../diagnostics/centralUpload";
-import { configureCompletionsDebugHost } from "../diagnostics/completionsDebugConsoleHost";
+import {
+    configureCompletionsDebugHost,
+    resolveCompletionsDebugLaunchTarget,
+} from "../diagnostics/completionsDebugConsoleHost";
 import { assertUploadable, projectDiagSession } from "../sharedInterfaces/centralContract";
 import * as os from "os";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
@@ -114,10 +117,9 @@ import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuar
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import { InlineCompletionDebugController } from "../copilot/inlineCompletionDebug/inlineCompletionDebugController";
-import {
-    getConfiguredTraceFolder,
-    saveInlineCompletionTraceOnDeactivate,
-} from "../copilot/inlineCompletionDebug/tracePersistence";
+import { getConfiguredTraceFolder } from "../copilot/inlineCompletionDebug/tracePersistence";
+import { saveInlineCompletionTraceOnDeactivateJournalAware } from "../copilot/inlineCompletionDebug/journalPrimaryPersistence";
+import { flushCompletionsCaptureJournalOnDeactivate } from "../copilot/inlineCompletionDebug/completionsJournalBinding";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
@@ -311,7 +313,13 @@ export default class MainController implements vscode.Disposable {
         }
         this._deactivated = true;
         this._logger.debug("Extension de-activated.");
-        await saveInlineCompletionTraceOnDeactivate(this._context);
+        // Dual-write (M2) by default: the legacy trace save runs first and
+        // the journal flush barrier (WI-2.4) right after it. Under the
+        // experimental journalPrimary flag (WI-2.7) the legacy save is
+        // skipped when the journal is the healthy durable record — the
+        // decision ladder logs which rung applied.
+        await saveInlineCompletionTraceOnDeactivateJournalAware(this._context);
+        await flushCompletionsCaptureJournalOnDeactivate();
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();
         this._shortcutsConfigurationController = undefined;
@@ -551,7 +559,26 @@ export default class MainController implements vscode.Disposable {
             );
             this.registerCommand(Constants.cmdOpenInlineCompletionDebug);
             this._event.on(Constants.cmdOpenInlineCompletionDebug, () => {
-                if (!isInlineCompletionFeatureEnabled()) {
+                // WI-1.6 deep link: the command is a permanent alias — by
+                // default it lands on the Debug Console's Completions page;
+                // the standalonePanel setting is the rollback to the legacy
+                // panel (unchanged behavior, including its feature-gate check).
+                const target = resolveCompletionsDebugLaunchTarget({
+                    standalonePanelFlag: vscode.workspace
+                        .getConfiguration()
+                        .get<boolean>(
+                            "mssql.copilot.inlineCompletions.debug.standalonePanel",
+                            false,
+                        ),
+                    featureEnabled: isInlineCompletionFeatureEnabled(),
+                });
+                if (target.kind === "none") {
+                    return;
+                }
+                if (target.kind === "console") {
+                    void vscode.commands.executeCommand("mssql.openDebugConsole", {
+                        page: target.page,
+                    });
                     return;
                 }
                 if (

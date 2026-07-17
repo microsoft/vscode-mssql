@@ -13,6 +13,7 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import { normalizeFeatureTraceFile } from "../../diagnostics/featureCapture/traceCodec";
+import { DEFAULT_FEATURE_TRACE_LIMITS } from "../../sharedInterfaces/featureTrace";
 import {
     FeatureTraceIndexEntryBase,
     createFeatureTraceFolderWatcher,
@@ -44,12 +45,15 @@ const SCAN_OPTIONS = {
         trace: InlineCompletionDebugExportData,
     ): InlineCompletionDebugTraceIndexEntry => ({
         ...base,
+        sourceKind: base.imported ? "imported" : "folder",
         profile: inferProfile(trace),
         schemaMode: inferSchemaMode(trace.events[0]),
         schemaSizeKind: inferSchemaSizeKind(trace.events[0]),
     }),
-    createErrorEntry: (base: FeatureTraceIndexEntryBase): InlineCompletionDebugTraceIndexEntry =>
-        base,
+    createErrorEntry: (base: FeatureTraceIndexEntryBase): InlineCompletionDebugTraceIndexEntry => ({
+        ...base,
+        sourceKind: base.imported ? "imported" : "folder",
+    }),
 };
 
 export async function scanTraceFolder(
@@ -73,6 +77,15 @@ export async function indexTraceFile(
 }
 
 export async function loadTraceFile(filePath: string): Promise<InlineCompletionDebugExportData> {
+    // Untrusted-import byte cap enforced BEFORE reading (WI-0.5 / addendum §9.3).
+    const stat = await fs.promises.stat(filePath);
+    if (stat.size > DEFAULT_FEATURE_TRACE_LIMITS.maxFileBytes) {
+        throw new Error(
+            `${filePath} is ${stat.size} bytes — over the ` +
+                `${DEFAULT_FEATURE_TRACE_LIMITS.maxFileBytes}-byte trace import limit.`,
+        );
+    }
+
     const contents = await fs.promises.readFile(filePath, "utf8");
     return normalizeTraceFile(JSON.parse(contents), filePath);
 }
@@ -86,6 +99,7 @@ export function normalizeTraceFile(
         source,
         {
             featureLabel: "an inline completion",
+            expectedFeatureId: "completions",
             normalizeExtra: (raw) => ({
                 customPromptLastSavedAt:
                     typeof raw.customPromptLastSavedAt === "number"

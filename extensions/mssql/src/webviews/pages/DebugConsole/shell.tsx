@@ -12,13 +12,13 @@ import { OverviewPage, TracePage, WaterfallPage } from "./pagesCore";
 import {
     ConnectionsPage,
     ExportsPage,
-    GatedPage,
     ObjectExplorerPage,
     QueryResultsPage,
     SettingsPage,
     SqlActivityPage,
 } from "./pagesMore";
 import { CompletionsPage } from "./completionsPage";
+import { ReplayLabPage } from "./replayLabPage";
 import { SqlDataPlanePage } from "./pagesSqlDataPlane";
 import { HistoryPage } from "./pagesPerf";
 import { PerfHistoryPage } from "./pagesPerfHistory";
@@ -368,12 +368,7 @@ export function DebugConsoleApp() {
             page = <CompletionsPage />;
             break;
         case "replay":
-            page = (
-                <GatedPage
-                    title="Replay Lab"
-                    body="Replay-drive re-submits captured events with original or overridden config. It is gated until the completions replay adapter migrates into the host and STS2 replay hardening lands for service-backed features. Honest gating beats fake replay fidelity."
-                />
-            );
+            page = <ReplayLabPage />;
             break;
         default:
             page = <OverviewPage />;

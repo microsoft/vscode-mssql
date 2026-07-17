@@ -13,6 +13,107 @@ export type InlineCompletionAnalysisResult =
     | "error"
     | "unknown";
 
+// ---------------------------------------------------------------------------
+// Provenance cohorts (addendum §8.1 / WI-4.1 — NORMATIVE)
+//
+// Every event belongs to exactly one cohort. Default quality views EXCLUDE
+// replay and fixtures; replay analysis starts from a run or an explicit
+// replay filter. The union is typed fully; only the cohorts that exist today
+// (liveUser, interactiveReplay, externalImport) are ever derived — harness
+// and fixture events arrive later with an explicit stamp.
+// ---------------------------------------------------------------------------
+
+export const inlineCompletionProvenanceCohorts = [
+    "liveUser",
+    "interactiveReplay",
+    "controlledHarness",
+    "externalImport",
+    "generatedFixture",
+] as const;
+
+export type InlineCompletionProvenanceCohort = (typeof inlineCompletionProvenanceCohorts)[number];
+
+/**
+ * Derive an event's provenance cohort:
+ * 1. an explicit cohort stamp (tags/locals) wins — future harness/fixture
+ *    emitters use this;
+ * 2. replay evidence (WI-3.4 provenance block or any replay tag) →
+ *    `interactiveReplay`;
+ * 3. a trace-entry `sourceKind: "imported"` stamp (applied by the dataset
+ *    assembly) → `externalImport`;
+ * 4. else `liveUser`.
+ */
+export function getEventProvenanceCohort(
+    event: InlineCompletionDebugEvent,
+): InlineCompletionProvenanceCohort {
+    const stamped = getEventTag(event, "provenanceCohort");
+    if (
+        stamped !== undefined &&
+        (inlineCompletionProvenanceCohorts as readonly string[]).includes(stamped)
+    ) {
+        return stamped as InlineCompletionProvenanceCohort;
+    }
+    if (
+        event.replayProvenance !== undefined ||
+        getEventTag(event, "replayRunId") !== undefined ||
+        getEventTag(event, "replayTraceId") !== undefined ||
+        getEventTag(event, "replaySourceEventId") !== undefined ||
+        getEventTag(event, "replayMatrixCellId") !== undefined ||
+        asString(event.locals.replayMode) !== undefined
+    ) {
+        return "interactiveReplay";
+    }
+    if (asString(event.locals.traceSourceKind) === "imported") {
+        return "externalImport";
+    }
+    return "liveUser";
+}
+
+/**
+ * The compact cohort selector vocabulary (Sessions filter rail). "live" is
+ * the DEFAULT view: liveUser ONLY — replay results are never counted as user
+ * acceptance (§2.2.6) by construction, and imports/fixtures never pollute
+ * live quality rates.
+ */
+export type InlineCompletionCohortSelection = "live" | "replay" | "all";
+
+export const inlineCompletionCohortSelectionOptions: ReadonlyArray<{
+    id: InlineCompletionCohortSelection;
+    label: string;
+    description: string;
+}> = [
+    {
+        id: "live",
+        label: "Live",
+        description:
+            "liveUser cohort only — replay, imports, harness and fixture events excluded (default quality view, §8.1).",
+    },
+    {
+        id: "replay",
+        label: "Replay",
+        description:
+            "interactiveReplay cohort only — replayed executions; outputs are exploratory and never user acceptance.",
+    },
+    {
+        id: "all",
+        label: "All",
+        description:
+            "Every cohort together — mixed provenance; quality rates are not comparable across cohorts.",
+    },
+];
+
+export function filterInlineCompletionEventsByCohort(
+    events: InlineCompletionDebugEvent[],
+    selection: InlineCompletionCohortSelection,
+): InlineCompletionDebugEvent[] {
+    if (selection === "all") {
+        return events;
+    }
+    const wanted: InlineCompletionProvenanceCohort =
+        selection === "live" ? "liveUser" : "interactiveReplay";
+    return events.filter((event) => getEventProvenanceCohort(event) === wanted);
+}
+
 export type InlineCompletionAnalysisDimension =
     | "model"
     | "profile"
@@ -27,7 +128,11 @@ export type InlineCompletionAnalysisDimension =
     | "replayTrace"
     | "replayRun"
     | "replayMatrixCell"
-    | "replaySourceEvent";
+    | "replaySourceEvent"
+    /** WI-3.4: the explicit replay mode from event provenance; "n/a" for live events. */
+    | "replayMode"
+    /** WI-4.1: the §8.1 provenance cohort (liveUser | interactiveReplay | ...). */
+    | "provenanceCohort";
 
 export interface InlineCompletionAnalysisFilters {
     models?: string[];
@@ -51,10 +156,22 @@ export interface InlineCompletionAnalysisFilters {
     replayRuns?: string[];
     replayMatrixCells?: string[];
     replaySourceEvents?: string[];
+    replayModes?: string[];
+    provenanceCohorts?: string[];
 }
 
 export interface InlineCompletionAnalysisMetrics {
+    /** Every event in the group, including non-terminal records. */
     count: number;
+    /**
+     * §8.2 base population: terminal requests only. Pending, queued and
+     * blocked records NEVER enter terminal denominators.
+     */
+    terminalCount: number;
+    /** pending | queued | blocked records (excluded from every rate). */
+    nonTerminalCount: number;
+    /** Suggestions actually shown: result success | accepted. */
+    shownCount: number;
     latencyMean: number;
     latencyMedian: number;
     latencyP50: number;
@@ -167,6 +284,18 @@ export function filterInlineCompletionEvents(
         ) {
             return false;
         }
+        if (
+            filters.replayModes?.length &&
+            !filters.replayModes.includes(getEventDimension(event, "replayMode"))
+        ) {
+            return false;
+        }
+        if (
+            filters.provenanceCohorts?.length &&
+            !filters.provenanceCohorts.includes(getEventDimension(event, "provenanceCohort"))
+        ) {
+            return false;
+        }
         if (filters.dateRange?.start !== undefined && event.timestamp < filters.dateRange.start) {
             return false;
         }
@@ -245,13 +374,20 @@ export function computeInlineCompletionMetrics(
     const schemaObjectCounts = events
         .map((event) => event.schemaObjectCount)
         .filter(isFiniteNumber);
-    const denominator = events.length || 1;
+    const populations = countResultPopulations(events);
 
-    // Acceptance rates use every trace event in the group as the denominator. A successful
-    // model response that never receives an accept notification remains "rejected" here; explicit
-    // cancellations and model errors are still visible as separate rates.
+    // §8.2 corrected denominators (WI-4.1). The old implementation divided
+    // every rate by every event in the group; the corrected populations are:
+    // - acceptance = accepted / shown (shown = success | accepted — the
+    //   suggestions a user could actually evaluate);
+    // - cancellation = cancelled / started (terminal minus skipped);
+    // - skip / error rates = count / terminal requests;
+    // - pending, queued and blocked records never enter any denominator.
     return {
         count: events.length,
+        terminalCount: populations.terminal,
+        nonTerminalCount: events.length - populations.terminal,
+        shownCount: populations.shown,
         latencyMean: mean(latencies),
         latencyMedian: percentile(latencies, 50),
         latencyP50: percentile(latencies, 50),
@@ -265,11 +401,11 @@ export function computeInlineCompletionMetrics(
         outputTokensMean: mean(outputTokens),
         outputTokensMedian: percentile(outputTokens, 50),
         outputTokensSum: sum(outputTokens),
-        acceptRate: resultCounts.accepted / denominator,
-        cancelRate: resultCounts.cancelled / denominator,
-        rejectRate: resultCounts.rejected / denominator,
-        skipRate: resultCounts.skipped / denominator,
-        errorRate: resultCounts.error / denominator,
+        acceptRate: safeRate(resultCounts.accepted, populations.shown),
+        cancelRate: safeRate(resultCounts.cancelled, populations.started),
+        rejectRate: safeRate(resultCounts.rejected, populations.terminal),
+        skipRate: safeRate(resultCounts.skipped, populations.terminal),
+        errorRate: safeRate(resultCounts.error, populations.terminal),
         acceptedCount: resultCounts.accepted,
         cancelledCount: resultCounts.cancelled,
         rejectedCount: resultCounts.rejected,
@@ -280,6 +416,304 @@ export function computeInlineCompletionMetrics(
         meanSchemaContextChars: mean(schemaContextLengths),
         meanSchemaObjectCount: mean(schemaObjectCounts),
     };
+}
+
+// ---------------------------------------------------------------------------
+// §8.2 corrected metric table (WI-4.1 — NORMATIVE)
+// ---------------------------------------------------------------------------
+
+/**
+ * Result-population membership for one raw terminal result (§8.2). Pending,
+ * queued and blocked records are non-terminal: nothing settled (blocked =
+ * a replay item refused before execution), so they belong to NO population.
+ */
+export interface InlineCompletionResultPopulations {
+    /** The request settled (any §8.2 terminal outcome). */
+    terminal: boolean;
+    /** The request proceeded past the skip gate (terminal minus skipped). */
+    started: boolean;
+    /** A model call actually happened (excludes noModel/noPermission; a
+     *  cancelled request may or may not have reached the model — counted in
+     *  `started` but conservatively NOT in `modelCalled`). */
+    modelCalled: boolean;
+    /** A nonempty suggestion was shown (success | accepted). */
+    shown: boolean;
+    /** The raw model response was nonempty (shown + emptyFromSanitizer). */
+    rawNonempty: boolean;
+}
+
+export function classifyInlineCompletionResult(
+    result: string | undefined,
+): InlineCompletionResultPopulations {
+    switch (result) {
+        case "success":
+        case "accepted":
+            return {
+                terminal: true,
+                started: true,
+                modelCalled: true,
+                shown: true,
+                rawNonempty: true,
+            };
+        case "emptyFromModel":
+            return {
+                terminal: true,
+                started: true,
+                modelCalled: true,
+                shown: false,
+                rawNonempty: false,
+            };
+        case "emptyFromSanitizer":
+            return {
+                terminal: true,
+                started: true,
+                modelCalled: true,
+                shown: false,
+                rawNonempty: true,
+            };
+        case "error":
+            return {
+                terminal: true,
+                started: true,
+                modelCalled: true,
+                shown: false,
+                rawNonempty: false,
+            };
+        case "noModel":
+        case "noPermission":
+            return {
+                terminal: true,
+                started: true,
+                modelCalled: false,
+                shown: false,
+                rawNonempty: false,
+            };
+        case "cancelled":
+            return {
+                terminal: true,
+                started: true,
+                modelCalled: false,
+                shown: false,
+                rawNonempty: false,
+            };
+        case "skipped":
+            return {
+                terminal: true,
+                started: false,
+                modelCalled: false,
+                shown: false,
+                rawNonempty: false,
+            };
+        default:
+            // pending | queued | blocked | unknown future values
+            return {
+                terminal: false,
+                started: false,
+                modelCalled: false,
+                shown: false,
+                rawNonempty: false,
+            };
+    }
+}
+
+export type InlineCompletionRateMetricId =
+    | "requestErrorRate"
+    | "skipRate"
+    | "modelCallRate"
+    | "suggestionYieldRate"
+    | "acceptanceRate"
+    | "cancellationRate"
+    | "sanitizerEmptyRate"
+    | "unavailableRate"
+    | "replayProductionRate"
+    | "replayManualPreference";
+
+/**
+ * One §8.2 metric with its honest numerator/denominator. `rate` is undefined
+ * when the denominator is empty — never fabricated as 0.
+ */
+export interface InlineCompletionRateMetric {
+    id: InlineCompletionRateMetricId;
+    label: string;
+    numerator: number;
+    denominator: number;
+    rate: number | undefined;
+    numeratorLabel: string;
+    denominatorLabel: string;
+}
+
+/**
+ * Compute the full §8.2 metric table over a set of events. The caller owns
+ * the cohort: the default Sessions view passes the liveUser cohort, so the
+ * acceptance metric excludes interactiveReplay BY CONSTRUCTION (§2.2.6). The
+ * two replay metrics are computed over the interactiveReplay subset of the
+ * given events (they read as 0/0 → undefined in a pure live view — honest).
+ */
+export function computeInlineCompletionRateMetrics(
+    events: InlineCompletionDebugEvent[],
+): InlineCompletionRateMetric[] {
+    let terminal = 0;
+    let started = 0;
+    let modelCalled = 0;
+    let shown = 0;
+    let rawNonempty = 0;
+    let accepted = 0;
+    let cancelled = 0;
+    let skipped = 0;
+    let errors = 0;
+    let sanitizerEmpty = 0;
+    let unavailable = 0;
+    let replayProduced = 0;
+    let replayCompleted = 0;
+    for (const event of events) {
+        const populations = classifyInlineCompletionResult(event.result);
+        if (populations.terminal) terminal++;
+        if (populations.started) started++;
+        if (populations.modelCalled) modelCalled++;
+        if (populations.shown) shown++;
+        if (populations.rawNonempty) rawNonempty++;
+        switch (event.result) {
+            case "accepted":
+                accepted++;
+                break;
+            case "cancelled":
+                cancelled++;
+                break;
+            case "skipped":
+                skipped++;
+                break;
+            case "error":
+                errors++;
+                break;
+            case "emptyFromSanitizer":
+                sanitizerEmpty++;
+                break;
+            case "noModel":
+            case "noPermission":
+                unavailable++;
+                break;
+        }
+        if (getEventProvenanceCohort(event) === "interactiveReplay") {
+            // "Completed" replay execution = the model call settled
+            // (success/accepted/empty results); failed/cancelled/blocked
+            // items do not fabricate the production denominator.
+            if (
+                event.result === "success" ||
+                event.result === "accepted" ||
+                event.result === "emptyFromModel" ||
+                event.result === "emptyFromSanitizer"
+            ) {
+                replayCompleted++;
+                if (populations.shown) {
+                    replayProduced++;
+                }
+            }
+        }
+    }
+    const metric = (
+        id: InlineCompletionRateMetricId,
+        label: string,
+        numerator: number,
+        denominator: number,
+        numeratorLabel: string,
+        denominatorLabel: string,
+    ): InlineCompletionRateMetric => ({
+        id,
+        label,
+        numerator,
+        denominator,
+        rate: denominator > 0 ? numerator / denominator : undefined,
+        numeratorLabel,
+        denominatorLabel,
+    });
+    return [
+        metric(
+            "requestErrorRate",
+            "Error rate",
+            errors,
+            terminal,
+            "error terminals",
+            "all terminal requests",
+        ),
+        metric(
+            "skipRate",
+            "Skip rate",
+            skipped,
+            terminal,
+            "skipped terminals",
+            "all terminal requests",
+        ),
+        metric(
+            "modelCallRate",
+            "Model-call rate",
+            modelCalled,
+            started,
+            "requests that called a model",
+            "eligible (non-skipped) terminal requests",
+        ),
+        metric(
+            "suggestionYieldRate",
+            "Yield rate",
+            shown,
+            modelCalled,
+            "nonempty suggestions shown",
+            "model calls",
+        ),
+        metric(
+            "acceptanceRate",
+            "Accept rate",
+            accepted,
+            shown,
+            "accepted suggestions",
+            "accepted + shown-not-accepted suggestions",
+        ),
+        metric(
+            "cancellationRate",
+            "Cancel rate",
+            cancelled,
+            started,
+            "cancelled requests",
+            "started requests",
+        ),
+        metric(
+            "sanitizerEmptyRate",
+            "Sanitizer-empty rate",
+            sanitizerEmpty,
+            rawNonempty,
+            "empty after sanitizer",
+            "nonempty raw model responses",
+        ),
+        metric(
+            "unavailableRate",
+            "Unavailable rate",
+            unavailable,
+            terminal,
+            "noModel + noPermission outcomes",
+            "all terminal requests",
+        ),
+        metric(
+            "replayProductionRate",
+            "Replay production",
+            replayProduced,
+            replayCompleted,
+            "replay items producing output",
+            "completed replay items (interactiveReplay cohort)",
+        ),
+        // Placeholder: manual replay evaluation does not exist yet — 0/0
+        // stays honestly undefined until explicitly rated pairs arrive.
+        metric(
+            "replayManualPreference",
+            "Replay manual preference",
+            0,
+            0,
+            "preferred replay outputs",
+            "explicitly evaluated replay pairs (none yet — placeholder)",
+        ),
+    ];
+}
+
+function safeRate(numerator: number, denominator: number): number {
+    return denominator > 0 ? numerator / denominator : 0;
 }
 
 export function getEventDimension(
@@ -323,6 +757,13 @@ export function getEventDimension(
             );
         case "replaySourceEvent":
             return getEventTag(event, "replaySourceEventId") ?? "none";
+        case "replayMode":
+            // Provenance is authoritative (WI-3.4); the locals value covers
+            // replays recorded between the locals and provenance fields
+            // landing. Live (non-replay) events are honestly "n/a".
+            return event.replayProvenance?.mode ?? asString(event.locals.replayMode) ?? "n/a";
+        case "provenanceCohort":
+            return getEventProvenanceCohort(event);
     }
 }
 
@@ -395,6 +836,23 @@ function countResults(events: InlineCompletionDebugEvent[]) {
     return counts;
 }
 
+function countResultPopulations(events: InlineCompletionDebugEvent[]): {
+    terminal: number;
+    started: number;
+    shown: number;
+} {
+    let terminal = 0;
+    let started = 0;
+    let shown = 0;
+    for (const event of events) {
+        const populations = classifyInlineCompletionResult(event.result);
+        if (populations.terminal) terminal++;
+        if (populations.started) started++;
+        if (populations.shown) shown++;
+    }
+    return { terminal, started, shown };
+}
+
 function inferSchemaMode(event: InlineCompletionDebugEvent): string {
     const overrideProfile = event.overridesApplied.schemaContext?.budgetProfile;
     if (overrideProfile) {
@@ -407,7 +865,16 @@ function inferSchemaMode(event: InlineCompletionDebugEvent): string {
     return formattedProfile?.[1] ?? asString(event.locals.schemaBudgetProfile) ?? "unknown";
 }
 
-function percentile(values: number[], p: number): number {
+// ---------------------------------------------------------------------------
+// Distribution primitives — exported (WI-4.3): the Replay Lab paired analysis
+// (inlineCompletionReplayAnalysis.ts) is the second real consumer of these
+// helpers, so they graduate to module exports. Deliberately NOT an
+// `analysisKit/` directory: both consumers are completions-owned modules and
+// no second FEATURE provider needs them yet (§8.4 restraint).
+// ---------------------------------------------------------------------------
+
+/** Nearest-rank percentile over a PRE-SORTED ascending array (0 when empty). */
+export function percentile(values: number[], p: number): number {
     if (values.length === 0) {
         return 0;
     }
@@ -416,12 +883,40 @@ function percentile(values: number[], p: number): number {
     return values[index] ?? 0;
 }
 
-function mean(values: number[]): number {
+export function mean(values: number[]): number {
     return values.length === 0 ? 0 : sum(values) / values.length;
 }
 
-function sum(values: number[]): number {
+export function sum(values: number[]): number {
     return values.reduce((total, value) => total + value, 0);
+}
+
+/** Compact distribution summary shared by the pivot and the paired analysis. */
+export interface NumberDistributionSummary {
+    n: number;
+    mean: number;
+    p50: number;
+    p95: number;
+    min: number;
+    max: number;
+}
+
+/** undefined when there are no samples — never a fabricated zero row. */
+export function summarizeNumberDistribution(
+    values: number[],
+): NumberDistributionSummary | undefined {
+    const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+    if (sorted.length === 0) {
+        return undefined;
+    }
+    return {
+        n: sorted.length,
+        mean: mean(sorted),
+        p50: percentile(sorted, 50),
+        p95: percentile(sorted, 95),
+        min: sorted[0] ?? 0,
+        max: sorted[sorted.length - 1] ?? 0,
+    };
 }
 
 function compareNumber(left: number, right: number): number {

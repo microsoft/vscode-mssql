@@ -51,6 +51,7 @@ interface TestOverrides {
 function createStore(capacity?: number) {
     return new FeatureCaptureStore<TestEvent, TestOverrides>({
         logName: "FeatureCaptureTest",
+        featureId: "featureCaptureTest",
         capacity,
         defaultOverrides: { name: null, flag: null },
         normalizeOverrides: (overrides) => ({
@@ -122,12 +123,46 @@ suite("Feature capture store", () => {
         expect(store.getEvent(event.id)?.result).to.equal("accepted");
     });
 
-    test("shouldCapture honors panel-open OR record-when-closed", () => {
+    test("shouldCapture honors viewer leases OR record-when-closed", () => {
         const store = createStore();
         expect(store.shouldCapture(false)).to.equal(false);
         expect(store.shouldCapture(true)).to.equal(true);
-        store.setPanelOpen(true);
+        const lease = store.acquireViewer("test");
         expect(store.shouldCapture(false)).to.equal(true);
+        lease.dispose();
+        expect(store.shouldCapture(false)).to.equal(false);
+    });
+
+    test("viewer leases are independent and idempotent in every disposal order", () => {
+        const store = createStore();
+        const panel = store.acquireViewer("standalonePanel");
+        const console = store.acquireViewer("debugConsole.completions");
+        expect(store.getActiveViewerCount()).to.equal(2);
+        expect([...store.getActiveViewerOwners()].sort()).to.deep.equal([
+            "debugConsole.completions",
+            "standalonePanel",
+        ]);
+
+        // Closing one viewer never affects the other (addendum §3.4).
+        console.dispose();
+        expect(store.getActiveViewerCount()).to.equal(1);
+        expect(store.shouldCapture(false)).to.equal(true);
+
+        // Idempotent disposal.
+        console.dispose();
+        expect(store.getActiveViewerCount()).to.equal(1);
+
+        panel.dispose();
+        expect(store.getActiveViewerCount()).to.equal(0);
+        expect(store.shouldCapture(false)).to.equal(false);
+
+        // Reverse order on a fresh pair.
+        const first = store.acquireViewer("a");
+        const second = store.acquireViewer("b");
+        first.dispose();
+        expect(store.shouldCapture(false)).to.equal(true);
+        second.dispose();
+        expect(store.shouldCapture(false)).to.equal(false);
     });
 
     test("import recovers the id counter and normalizes overrides", () => {
