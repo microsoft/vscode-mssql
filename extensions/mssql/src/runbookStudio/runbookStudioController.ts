@@ -18,8 +18,10 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import {
     RbsArtifactSummary,
+    RbsCompileRequest,
     RbsError,
     RbsFetchOutputPageRequest,
+    RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
     RbsRespondToGateRequest,
@@ -127,6 +129,21 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 source: { ...artifact.source, intent },
             });
             return { applied };
+        });
+
+        this.onRequest(RbsCompileRequest.type, async ({ intent }) => {
+            if (!vscode.workspace.isTrusted) {
+                return { ok: false, error: this.untrustedError() };
+            }
+            if (!this.coordinator) {
+                return { ok: false, error: this.runtimeUnavailableError() };
+            }
+            return this.coordinator.compileIntent(this.model, intent);
+        });
+
+        this.onRequest(RbsListConnectionsRequest.type, async () => {
+            const profiles = (await this.coordinator?.listConnectionProfiles()) ?? [];
+            return { profiles };
         });
 
         this.onRequest(RbsStartRunRequest.type, async ({ parameterValues }) => {
@@ -250,6 +267,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 parameters: artifact.source.parameters,
                 hasLock: artifact.lock !== undefined,
                 ...(artifact.lock ? { planRevision: artifact.lock.planRevision } : {}),
+                ...(artifact.lock ? { entryNodeId: artifact.lock.entryNodeId } : {}),
                 nodes: artifact.lock?.nodes ?? [],
                 edges: artifact.lock?.edges ?? [],
             };

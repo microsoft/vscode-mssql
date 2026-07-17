@@ -336,6 +336,153 @@
     border-color: currentColor;
 }
 
+/* Authoring */
+.rbs-steps {
+    display: flex;
+    gap: 6px;
+}
+
+.rbs-step-pill {
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    border: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-step-pill.active {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: transparent;
+}
+
+.rbs-step-pill.done {
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    border-color: currentColor;
+}
+
+.rbs-intent-input {
+    max-width: 720px;
+    min-height: 72px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.rbs-examples {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.rbs-author-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.rbs-spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid var(--vscode-panel-border);
+    border-top-color: var(--vscode-button-background);
+    border-radius: 50%;
+    animation: rbs-spin 0.9s linear infinite;
+}
+
+@keyframes rbs-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Plan stepper */
+.rbs-stepper {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 640px;
+}
+
+.rbs-step-connector {
+    width: 2px;
+    height: 14px;
+    margin-left: 22px;
+    background: var(--vscode-panel-border);
+}
+
+.rbs-step-card {
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    border-left-width: 3px;
+    border-radius: 5px;
+    padding: 7px 11px;
+    background: var(--vscode-editorWidget-background, transparent);
+}
+
+.rbs-step-card.rbs-step-running {
+    border-left-color: var(--vscode-charts-blue);
+}
+
+.rbs-step-card.rbs-step-succeeded {
+    border-left-color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+}
+
+.rbs-step-card.rbs-step-failed {
+    border-left-color: var(--vscode-errorForeground);
+}
+
+.rbs-step-card.rbs-step-awaitingApproval {
+    border-left-color: var(--vscode-editorWarning-foreground);
+}
+
+.rbs-step-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbs-step-icon {
+    width: 16px;
+    text-align: center;
+}
+
+.rbs-step-label {
+    font-weight: 600;
+    flex: 1;
+}
+
+.rbs-step-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-step-message {
+    margin-top: 4px;
+}
+
+/* Approval gate banner */
+.rbs-gate-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    border: 1px solid var(--vscode-editorWarning-foreground);
+    border-radius: 5px;
+    padding: 8px 12px;
+    background: var(--vscode-inputValidation-warningBackground, transparent);
+}
+
+.rbs-gate-title {
+    font-weight: 600;
+}
+
 /* Run/node state chips ride theme status colors. */
 .rbs-state-running,
 .rbs-state-accepted,

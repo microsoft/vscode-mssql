@@ -119,8 +119,12 @@ class MssqlActivation {
         registerQueryStudio(context);
         // Runbook Studio custom editor (preview; gated by mssql.runbookStudio.enabled).
         // The service (ledger + runtime adapter) constructs on first document
-        // resolve, never at activation.
-        registerRunbookStudio(context, () => getRunbookStudioService(context));
+        // resolve, never at activation. The connection accessor is a lazy
+        // closure over the module-scoped controller (assigned later in
+        // activation, well before any document can resolve).
+        registerRunbookStudio(context, () =>
+            getRunbookStudioService(context, () => controller?.connectionManager),
+        );
         registerSqlDataPlane(context);
 
         Perf.setActivationState("activating");

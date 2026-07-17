@@ -3648,6 +3648,51 @@ export class LocConstants {
                     args: [shown, total],
                     comment: ["{0} and {1} are row counts"],
                 }),
+            describeHeading: l10n.t("What should this runbook do?"),
+            describePlaceholder: l10n.t(
+                'Describe the check, validation, or investigation in plain language — e.g. "verify the Orders table has no rows with a NULL customer id and stays under 1M rows".',
+            ),
+            generatePlan: l10n.t("Generate plan"),
+            regeneratePlan: l10n.t("Regenerate plan"),
+            generating: l10n.t("Generating plan…"),
+            tryExample: l10n.t("Try an example:"),
+            exampleRowCount: l10n.t("Warn me when a table grows past a limit"),
+            exampleOrphans: l10n.t("Check a table for orphaned rows"),
+            exampleFreshness: l10n.t("Verify data was loaded today"),
+            exampleRowCountIntent: l10n.t(
+                "Check that the dbo.Orders table stays under 1,000,000 rows and fail the run if it does not.",
+            ),
+            exampleOrphansIntent: l10n.t(
+                "Verify there are no OrderItems rows whose OrderId does not exist in the Orders table; fail if any orphans are found.",
+            ),
+            exampleFreshnessIntent: l10n.t(
+                "Verify that the dbo.ImportLog table has at least one row created today; fail the run if the last import is older than one day.",
+            ),
+            planReady: l10n.t("Plan ready — bind parameters and run it."),
+            continueToParameters: l10n.t("Continue to Parameters"),
+            stepDescribe: l10n.t("Describe"),
+            stepGenerate: l10n.t("Generate"),
+            stepBindRun: l10n.t("Bind & run"),
+            approvalRequired: l10n.t("Approval required"),
+            approve: l10n.t("Approve"),
+            reject: l10n.t("Reject"),
+            cancelRun: l10n.t("Cancel run"),
+            selectConnection: l10n.t("Select a connection…"),
+            noSavedConnections: l10n.t(
+                "No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.",
+            ),
+            onFailure: (target: string) =>
+                l10n.t({
+                    message: "on failure → {0}",
+                    args: [target],
+                    comment: ["{0} is a plan step name"],
+                }),
+            onRejected: (target: string) =>
+                l10n.t({
+                    message: "if rejected → {0}",
+                    args: [target],
+                    comment: ["{0} is a plan step name"],
+                }),
         };
     }
 }

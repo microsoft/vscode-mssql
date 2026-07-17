@@ -18,7 +18,7 @@ import type {
 import type { RunbookOperationContext } from "../runbookDiag";
 
 export interface RuntimeCapabilities {
-    runtimeKind: "fake" | "hobbes";
+    runtimeKind: "fake" | "hobbes" | "local";
     runtimeVersion: string;
     protocolVersion: string;
     supportsCancellation: boolean;

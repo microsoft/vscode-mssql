@@ -13,12 +13,9 @@
 import { useEffect, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
-import {
-    RbsRoute,
-    RunbookParameterDefinition,
-    RunbookPlanNode,
-} from "../../../sharedInterfaces/runbookStudio";
+import { RbsRoute, RunbookParameterDefinition } from "../../../sharedInterfaces/runbookStudio";
 import { useRbs } from "./state";
+import { PlanStepper } from "./planStepper";
 import { ResolvedWidgetView } from "./widgets";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
@@ -120,74 +117,107 @@ function InvalidArtifact() {
     );
 }
 
-function AuthorPage() {
-    const { state } = useRbs();
+function StepsBanner({ stage }: { stage: 1 | 2 | 3 }) {
     const loc = locConstants.runbookStudio;
+    const steps = [loc.stepDescribe, loc.stepGenerate, loc.stepBindRun];
+    return (
+        <div className="rbs-steps" aria-hidden>
+            {steps.map((label, index) => (
+                <span
+                    key={label}
+                    className={`rbs-step-pill ${index + 1 === stage ? "active" : index + 1 < stage ? "done" : ""}`}>
+                    {index + 1}. {label}
+                </span>
+            ))}
+        </div>
+    );
+}
+
+function AuthorPage() {
+    const { state, compile, compiling, navigate } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const [intentDraft, setIntentDraft] = useState<string | undefined>(undefined);
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
     if (!state?.artifact) {
         return <EmptyState title={loc.loading} detail="" />;
     }
+    const artifact = state.artifact;
+    const intent = intentDraft ?? artifact.intent;
+    const stage: 1 | 2 | 3 = artifact.hasLock ? 3 : intent.trim() ? 2 : 1;
+    const examples: Array<{ label: string; intent: string }> = [
+        { label: loc.exampleRowCount, intent: loc.exampleRowCountIntent },
+        { label: loc.exampleOrphans, intent: loc.exampleOrphansIntent },
+        { label: loc.exampleFreshness, intent: loc.exampleFreshnessIntent },
+    ];
+    const onGenerate = async () => {
+        const compiled = await compile(intent.trim());
+        if (compiled) {
+            setIntentDraft(undefined);
+        }
+    };
     return (
         <div className="rbs-page-body">
+            <StepsBanner stage={stage} />
             <section className="rbs-section">
-                <h2 className="rbs-section-title">{loc.intent}</h2>
-                {state.artifact.intent ? (
-                    <p className="rbs-intent">{state.artifact.intent}</p>
-                ) : (
-                    <p className="rbs-muted">{loc.noIntent}</p>
-                )}
+                <h2 className="rbs-section-title">{loc.describeHeading}</h2>
+                <textarea
+                    className="rbs-input rbs-intent-input"
+                    aria-label={loc.describeHeading}
+                    placeholder={loc.describePlaceholder}
+                    value={intent}
+                    rows={4}
+                    onChange={(e) => setIntentDraft(e.target.value)}
+                    disabled={compiling}
+                />
+                {!intent.trim() ? (
+                    <div className="rbs-examples">
+                        <span className="rbs-muted">{loc.tryExample}</span>
+                        {examples.map((example) => (
+                            <button
+                                key={example.label}
+                                className="rbs-btn"
+                                onClick={() => setIntentDraft(example.intent)}>
+                                {example.label}
+                            </button>
+                        ))}
+                    </div>
+                ) : null}
+                <div className="rbs-author-actions">
+                    <button
+                        className="rbs-btn rbs-btn-primary"
+                        disabled={compiling || !intent.trim() || !state.workspaceTrusted}
+                        title={!state.workspaceTrusted ? loc.untrustedDetail : undefined}
+                        onClick={() => void onGenerate()}>
+                        {compiling
+                            ? loc.generating
+                            : artifact.hasLock
+                              ? loc.regeneratePlan
+                              : loc.generatePlan}
+                    </button>
+                    {compiling ? <span className="rbs-spinner" aria-hidden /> : null}
+                </div>
             </section>
-            <section className="rbs-section">
-                <h2 className="rbs-section-title">{loc.compiledPlan}</h2>
-                {state.artifact.hasLock ? (
-                    <NodeList nodes={state.artifact.nodes} />
-                ) : (
-                    <p className="rbs-muted">{loc.notCompiledDetail}</p>
-                )}
-            </section>
+            {artifact.hasLock ? (
+                <section className="rbs-section">
+                    <h2 className="rbs-section-title">{loc.compiledPlan}</h2>
+                    <PlanStepper
+                        entryNodeId={artifact.entryNodeId ?? artifact.nodes[0]?.id ?? ""}
+                        nodes={artifact.nodes}
+                        edges={artifact.edges}
+                    />
+                    <div className="rbs-author-actions">
+                        <span className="rbs-muted">{loc.planReady}</span>
+                        <button
+                            className="rbs-btn rbs-btn-primary"
+                            onClick={() => navigate("parameters")}>
+                            {loc.continueToParameters} →
+                        </button>
+                    </div>
+                </section>
+            ) : null}
         </div>
-    );
-}
-
-function blastRadiusLabel(node: RunbookPlanNode): string | undefined {
-    const radius = node.blastRadius;
-    if (!radius) {
-        return undefined;
-    }
-    return `${radius.operation}:${radius.resource}@${radius.targetEnvironment}`;
-}
-
-function NodeList({ nodes }: { nodes: RunbookPlanNode[] }) {
-    const loc = locConstants.runbookStudio;
-    return (
-        <table className="rbs-table">
-            <thead>
-                <tr>
-                    <th>{loc.step}</th>
-                    <th>{loc.kind}</th>
-                    <th>{loc.activity}</th>
-                    <th>{loc.blastRadius}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {nodes.map((node) => (
-                    <tr key={node.id}>
-                        <td>{node.label}</td>
-                        <td>
-                            <span className={`rbs-chip rbs-kind-${node.kind}`}>{node.kind}</span>
-                        </td>
-                        <td className="rbs-mono">
-                            {node.activityKind
-                                ? `${node.activityKind}@${node.activityVersion ?? 1}`
-                                : "—"}
-                        </td>
-                        <td className="rbs-mono">{blastRadiusLabel(node) ?? "—"}</td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
     );
 }
 
@@ -207,6 +237,27 @@ function ParameterValueEditor({
     value: string;
     onChange: (next: string) => void;
 }) {
+    const { connections } = useRbs();
+    const loc = locConstants.runbookStudio;
+    if (parameter.type === "connection") {
+        if (connections.length === 0) {
+            return <span className="rbs-muted">{loc.noSavedConnections}</span>;
+        }
+        return (
+            <select
+                className="rbs-input"
+                aria-label={parameter.label}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}>
+                <option value="">{loc.selectConnection}</option>
+                {connections.map((connection) => (
+                    <option key={connection.id} value={connection.id}>
+                        {connection.label}
+                    </option>
+                ))}
+            </select>
+        );
+    }
     if (parameter.type === "boolean") {
         return (
             <input
@@ -336,7 +387,7 @@ function ParametersPage() {
 }
 
 function RunPage() {
-    const { state, openDiagnostics } = useRbs();
+    const { state, openDiagnostics, cancelRun, respondToGate } = useRbs();
     const loc = locConstants.runbookStudio;
     if (state?.artifactError) {
         return <InvalidArtifact />;
@@ -350,15 +401,44 @@ function RunPage() {
             />
         );
     }
+    const runActive = !["succeeded", "failed", "cancelled"].includes(run.state);
     return (
         <div className="rbs-page-body">
             <div className="rbs-run-header">
                 <span className={`rbs-chip rbs-state-${run.state}`}>{run.state}</span>
+                {run.verdict ? (
+                    <span className={`rbs-chip rbs-verdict-${run.verdict}`}>{run.verdict}</span>
+                ) : null}
                 <span className="rbs-mono">{run.runId}</span>
+                {runActive ? (
+                    <button className="rbs-btn" onClick={() => void cancelRun(run.runId)}>
+                        {loc.cancelRun}
+                    </button>
+                ) : null}
                 <button className="rbs-btn" onClick={() => openDiagnostics(run.runId)}>
                     {loc.openDiagnostics}
                 </button>
             </div>
+            {run.pendingGate ? (
+                <div className="rbs-gate-banner" role="alert">
+                    <span className="rbs-gate-title">⏸ {loc.approvalRequired}</span>
+                    <span>{run.pendingGate.impactSummary}</span>
+                    <button
+                        className="rbs-btn rbs-btn-primary"
+                        onClick={() =>
+                            void respondToGate(run.runId, run.pendingGate!.nodeId, true)
+                        }>
+                        {loc.approve}
+                    </button>
+                    <button
+                        className="rbs-btn"
+                        onClick={() =>
+                            void respondToGate(run.runId, run.pendingGate!.nodeId, false)
+                        }>
+                        {loc.reject}
+                    </button>
+                </div>
+            ) : null}
             <table className="rbs-table">
                 <thead>
                     <tr>
@@ -401,18 +481,12 @@ function PlanPage() {
     }
     return (
         <div className="rbs-page-body">
-            <NodeList nodes={artifact.nodes} />
-            <section className="rbs-section">
-                <h2 className="rbs-section-title">{loc.edges}</h2>
-                <ul className="rbs-edge-list rbs-mono">
-                    {artifact.edges.map((edge, index) => (
-                        <li key={index}>
-                            {edge.from} → {edge.to}
-                            {edge.when ? ` [${edge.when}]` : ""}
-                        </li>
-                    ))}
-                </ul>
-            </section>
+            <PlanStepper
+                entryNodeId={artifact.entryNodeId ?? artifact.nodes[0]?.id ?? ""}
+                nodes={artifact.nodes}
+                edges={artifact.edges}
+                run={state?.run}
+            />
         </div>
     );
 }

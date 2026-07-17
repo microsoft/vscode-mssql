@@ -56,13 +56,33 @@ function tick(): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, 1));
 }
 
+/**
+ * Optional per-activity override consulted BEFORE the built-in deterministic
+ * behavior. The "local" runtime lane injects a delegate that executes
+ * sql.query.read against a real extension-owned connection; every other
+ * activity keeps the shared deterministic semantics. Returning undefined
+ * falls through to the built-in execution.
+ */
+export interface ActivityExecutionDelegate {
+    readonly runtimeKind: "fake" | "hobbes" | "local";
+    executeActivity(
+        node: RunbookPlanNode,
+        binding: {
+            parameterValues: Record<string, string | number | boolean | null>;
+            resolveBind: (input: unknown) => unknown;
+        },
+    ): Promise<NodeExecution | undefined>;
+}
+
 export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
     private readonly activeRuns = new Map<string, ActiveRun>();
     private disposed = false;
 
+    constructor(private readonly delegate?: ActivityExecutionDelegate) {}
+
     public initialize(_context: RunbookOperationContext): Promise<RuntimeCapabilities> {
         return Promise.resolve({
-            runtimeKind: "fake",
+            runtimeKind: this.delegate?.runtimeKind ?? "fake",
             runtimeVersion: "0.1.0",
             protocolVersion: "1",
             supportsCancellation: true,
@@ -255,7 +275,26 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                     return;
                 }
             } else {
-                const result = executeNode(current, request.parameterValues, nodeValues);
+                // Delegate-first (local lane real SQL); built-in deterministic
+                // semantics otherwise. A delegate throw fails the node, never
+                // the walker.
+                let result: NodeExecution | undefined;
+                if (this.delegate && current.kind === "activity") {
+                    try {
+                        result = await this.delegate.executeActivity(current, {
+                            parameterValues: request.parameterValues,
+                            resolveBind: (input) =>
+                                resolveBind(input, request.parameterValues, nodeValues),
+                        });
+                    } catch (error) {
+                        result = {
+                            success: false,
+                            message: error instanceof Error ? error.message : "activity failed",
+                            errorCode: "RunbookStudio.ActivityFailed",
+                        };
+                    }
+                }
+                result ??= executeNode(current, request.parameterValues, nodeValues);
                 if (result.values) {
                     nodeValues.set(current.id, result.values);
                 }
@@ -302,7 +341,7 @@ function isKnownActivity(kind: string | undefined): boolean {
     return kind === "sql.query.read" || kind === "assert.threshold";
 }
 
-interface NodeExecution {
+export interface NodeExecution {
     success: boolean;
     message?: string;
     output?: RuntimeOutputPayload;

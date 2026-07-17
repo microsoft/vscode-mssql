@@ -4028,12 +4028,14 @@
                 "mssql.runbookStudio.runtime": {
                     "type": "string",
                     "enum": [
+                        "local",
                         "fake",
                         "hobbes"
                     ],
-                    "default": "fake",
+                    "default": "local",
                     "enumDescriptions": [
-                        "Deterministic in-process preview runtime (no model, no network).",
+                        "In-process runtime executing read-only SQL through this extension's connections.",
+                        "Deterministic in-process preview runtime (no model, no network, fixture data).",
                         "The external Hobbes agent runtime (requires the runtime package)."
                     ],
                     "description": "Which runbook runtime executes runs (preview).",

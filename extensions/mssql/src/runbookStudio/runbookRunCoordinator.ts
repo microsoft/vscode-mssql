@@ -51,4 +51,13 @@ export interface RunbookRunCoordinator {
 
     /** Diagnostics trace for a run this window started (Debug Console link). */
     traceIdOf(runId: string): string | undefined;
+
+    /** Intent -> compiled plan written into the document (WorkspaceEdit). */
+    compileIntent(
+        model: RunbookStudioDocumentModel,
+        intent: string,
+    ): Promise<{ ok: boolean; error?: RbsError }>;
+
+    /** Saved connections as opaque {id, label} handles (parameter sheet). */
+    listConnectionProfiles(): Promise<Array<{ id: string; label: string }>>;
 }

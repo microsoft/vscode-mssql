@@ -38,14 +38,26 @@ import { RunbookRunLedger } from "./runbookRunLedger";
 
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
+import { compileIntentWithModel } from "./models/planCompiler";
 import { FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
 import { HobbesRuntimeAdapter } from "./runtime/hobbesRuntimeAdapter";
+import { LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
 import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
     RuntimeBoundaryEvent,
     RuntimeCapabilities,
 } from "./runtime/runtimeAdapterTypes";
+import { RequestType } from "vscode-languageclient";
+import type * as mssql from "vscode-mssql";
+import type ConnectionManager from "../controllers/connectionManager";
+import SqlToolsServerClient from "../languageservice/serviceclient";
+
+const SimpleExecuteRequestType = new RequestType<
+    { ownerUri: string; queryString: string },
+    mssql.SimpleExecuteResult,
+    void
+>("query/simpleexecute");
 
 let runCounter = 0;
 
@@ -75,7 +87,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
 
     private readonly storageRoot: string;
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(
+        context: vscode.ExtensionContext,
+        /** Lazy — MainController constructs after feature registration. */
+        private readonly connectionAccess: () => ConnectionManager | undefined,
+    ) {
         this.storageRoot = path.join(
             (context.storageUri ?? context.globalStorageUri).fsPath,
             "runbookStudio",
@@ -308,6 +324,57 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return this.traceByRunId.get(runId);
     }
 
+    /** Intent -> catalog-constrained compiled plan, written into the
+     *  document via WorkspaceEdit (dirty/undo-safe). */
+    public async compileIntent(
+        model: RunbookStudioDocumentModel,
+        intent: string,
+    ): Promise<{ ok: boolean; error?: RbsError }> {
+        const base = model.artifact;
+        if (!base) {
+            return { ok: false, error: invalidArtifactError(model) };
+        }
+        const context = newRunbookRootContext("compile");
+        const result = await compileIntentWithModel(base, intent, context);
+        if (result.error || !result.artifact) {
+            return { ok: false, ...(result.error ? { error: result.error } : {}) };
+        }
+        const applied = await model.applyArtifactEdit(result.artifact);
+        if (!applied) {
+            return {
+                ok: false,
+                error: {
+                    code: "RunbookStudio.Internal",
+                    message: LocRunbookStudio.compileApplyFailed,
+                },
+            };
+        }
+        return { ok: true };
+    }
+
+    /** Saved connection profiles as opaque {id, label} handles for the
+     *  parameter sheet — never connection strings or credentials. */
+    public async listConnectionProfiles(): Promise<Array<{ id: string; label: string }>> {
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            return [];
+        }
+        try {
+            const profiles = await connectionManager.connectionStore.readAllConnections(false);
+            return profiles
+                .filter((p) => typeof p.id === "string" && p.id.length > 0)
+                .map((p) => ({
+                    id: p.id,
+                    label:
+                        p.profileName ||
+                        `${p.server}${p.database ? ` · ${p.database}` : ""}` ||
+                        p.id,
+                }));
+        } catch {
+            return [];
+        }
+    }
+
     // -- internals -------------------------------------------------------------
 
     /** Bounded runId->trace retention (survives terminal for deep links). */
@@ -341,10 +408,43 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
         const runtimeKind = vscode.workspace
             .getConfiguration()
-            .get<string>("mssql.runbookStudio.runtime", "fake");
+            .get<string>("mssql.runbookStudio.runtime", "local");
         let adapter: RunbookRuntimeAdapter;
         if (runtimeKind === "fake") {
             adapter = new FakeRuntimeAdapter();
+        } else if (runtimeKind === "local") {
+            // In-process plan walker + REAL SQL through the extension's own
+            // connections (read-only guarded). Same deterministic semantics
+            // for every non-SQL activity.
+            adapter = new FakeRuntimeAdapter(
+                new LocalSqlActivityDelegate({
+                    connect: async (profileId, ownerUri) => {
+                        const connectionManager = this.connectionAccess();
+                        if (!connectionManager) {
+                            return false;
+                        }
+                        const profiles =
+                            await connectionManager.connectionStore.readAllConnections(false);
+                        const profile = profiles.find((p) => p.id === profileId);
+                        if (!profile) {
+                            throw new Error(LocRunbookStudio.connectionProfileNotFound(profileId));
+                        }
+                        return connectionManager.connect(ownerUri, profile, {
+                            connectionSource: "runbookStudio",
+                        });
+                    },
+                    execute: (ownerUri, queryString) =>
+                        Promise.resolve(
+                            SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+                                ownerUri,
+                                queryString,
+                            }),
+                        ),
+                    disconnect: async (ownerUri) => {
+                        await this.connectionAccess()?.disconnect(ownerUri);
+                    },
+                }),
+            );
         } else if (runtimeKind === "hobbes") {
             // The runtime is a pinned black-box package (A2 §3.3); the
             // executable is resolved from explicit configuration or env —
@@ -595,9 +695,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
 let serviceInstance: RunbookStudioService | undefined;
 
 /** Lazy singleton (first document resolve — never activation). */
-export function getRunbookStudioService(context: vscode.ExtensionContext): RunbookStudioService {
+export function getRunbookStudioService(
+    context: vscode.ExtensionContext,
+    connectionAccess: () => ConnectionManager | undefined = () => undefined,
+): RunbookStudioService {
     if (!serviceInstance) {
-        serviceInstance = new RunbookStudioService(context);
+        serviceInstance = new RunbookStudioService(context, connectionAccess);
         context.subscriptions.push({
             dispose: () => {
                 serviceInstance?.dispose();

@@ -18,7 +18,10 @@ import {
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     RbsCancelRunRequest,
+    RbsCompileRequest,
+    RbsConnectionProfileRef,
     RbsError,
+    RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
     RbsRespondToGateRequest,
@@ -39,6 +42,10 @@ interface RbsContextValue {
     runEvents: RunbookRunEvent[];
     lastError: RbsError | undefined;
     dismissError: () => void;
+    compiling: boolean;
+    compile: (intent: string) => Promise<boolean>;
+    connections: RbsConnectionProfileRef[];
+    refreshConnections: () => void;
     updateIntent: (intent: string) => Promise<boolean>;
     startRun: (
         parameterValues: Record<string, string | number | boolean | null>,
@@ -93,6 +100,34 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const dismissError = useCallback(() => setLastError(undefined), []);
+
+    const [compiling, setCompiling] = useState(false);
+    const compile = useCallback(
+        async (intent: string): Promise<boolean> => {
+            setLastError(undefined);
+            setCompiling(true);
+            try {
+                const result = await rpc.sendRequest(RbsCompileRequest.type, { intent });
+                if (result.error) {
+                    setLastError(result.error);
+                }
+                return result.ok;
+            } finally {
+                setCompiling(false);
+            }
+        },
+        [rpc],
+    );
+
+    const [connections, setConnections] = useState<RbsConnectionProfileRef[]>([]);
+    const refreshConnections = useCallback(() => {
+        void rpc
+            .sendRequest(RbsListConnectionsRequest.type)
+            .then((result) => setConnections(result.profiles));
+    }, [rpc]);
+    useEffect(() => {
+        refreshConnections();
+    }, []);
 
     const updateIntent = useCallback(
         async (intent: string): Promise<boolean> => {
@@ -155,6 +190,10 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             runEvents,
             lastError,
             dismissError,
+            compiling,
+            compile,
+            connections,
+            refreshConnections,
             updateIntent,
             startRun,
             cancelRun,
@@ -168,6 +207,10 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             runEvents,
             lastError,
             dismissError,
+            compiling,
+            compile,
+            connections,
+            refreshConnections,
             updateIntent,
             startRun,
             cancelRun,

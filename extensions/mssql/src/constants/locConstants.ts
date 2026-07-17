@@ -68,6 +68,32 @@ export class RunbookStudio {
             comment: ["{0} is a configuration value"],
         });
     public static gateNotPending = l10n.t("This approval is no longer pending.");
+    public static compileModelUnavailable = l10n.t(
+        "No language model is available to compile this runbook. Install and sign in to GitHub Copilot (or another VS Code language model provider), then try again.",
+    );
+    public static compileModelDenied = l10n.t(
+        "Language model access was declined. Grant this extension access to your language models to compile runbooks.",
+    );
+    public static compileInvalid = (detail: string) =>
+        l10n.t({
+            message:
+                "The model could not produce a valid plan from this intent ({0}). Try rephrasing the intent.",
+            args: [detail],
+            comment: ["{0} is a technical validation detail"],
+        });
+    public static sqlNotReadOnly = l10n.t(
+        "This activity only runs read-only SELECT statements; the generated SQL was refused.",
+    );
+    public static connectionProfileNotFound = (id: string) =>
+        l10n.t({
+            message: "Connection profile '{0}' was not found.",
+            args: [id],
+            comment: ["{0} is a connection profile id"],
+        });
+    public static connectFailed = l10n.t("Could not connect to the selected connection.");
+    public static compileApplyFailed = l10n.t(
+        "The compiled plan could not be written into the document.",
+    );
     public static hobbesRuntimePathMissing = l10n.t(
         "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.",
     );

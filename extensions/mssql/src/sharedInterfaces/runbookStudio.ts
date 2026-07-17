@@ -43,6 +43,7 @@ export type RunbookStudioErrorCode =
     | "RunbookStudio.ModelDenied"
     | "RunbookStudio.BindingInvalid"
     | "RunbookStudio.RunActive"
+    | "RunbookStudio.CompileInvalid"
     | "RunbookStudio.TargetChanged"
     | "RunbookStudio.ApprovalInvalid"
     | "RunbookStudio.Cancelled"
@@ -288,6 +289,7 @@ export interface RbsArtifactSummary {
     parameters: RunbookParameterDefinition[];
     hasLock: boolean;
     planRevision?: string;
+    entryNodeId?: string;
     nodes: RunbookPlanNode[];
     edges: RunbookPlanEdge[];
 }
@@ -319,6 +321,27 @@ export interface RbsState {
 export namespace RbsUpdateIntentRequest {
     export const type = new RequestType<{ intent: string }, { applied: boolean }, void>(
         "rbs/updateIntent",
+    );
+}
+
+/** Compile the intent into a plan (model-backed; catalog-constrained). */
+export namespace RbsCompileRequest {
+    export const type = new RequestType<
+        { intent: string },
+        { ok: boolean; error?: RbsError },
+        void
+    >("rbs/compile");
+}
+
+export interface RbsConnectionProfileRef {
+    id: string;
+    label: string;
+}
+
+/** Saved connections as opaque handles for connection-typed parameters. */
+export namespace RbsListConnectionsRequest {
+    export const type = new RequestType<void, { profiles: RbsConnectionProfileRef[] }, void>(
+        "rbs/listConnections",
     );
 }
 

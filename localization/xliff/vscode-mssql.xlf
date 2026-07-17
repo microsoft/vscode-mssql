@@ -471,6 +471,9 @@
     <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
       <source xml:lang="en">Applying changes, this might take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++ef677f59f01b2a51731f0cb0af349d7fa718b787d4cc8db79d7f3cc306e97869">
+      <source xml:lang="en">Approval required</source>
+    </trans-unit>
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
     </trans-unit>
@@ -761,6 +764,9 @@
     <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
       <source xml:lang="en">Between</source>
     </trans-unit>
+    <trans-unit id="++CODE++cc20324356afbc48b0007e75f3298ae883acafc626511c5fbea05370ce861129">
+      <source xml:lang="en">Bind &amp; run</source>
+    </trans-unit>
     <trans-unit id="++CODE++ee8b49c03f6e7beb6c00080fd72847d6a71af8722fd7e426e21d5d32f370f838">
       <source xml:lang="en">Bind parameters and start a run to see live progress here.</source>
     </trans-unit>
@@ -871,6 +877,9 @@
     <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
       <source xml:lang="en">Cancel failed: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++56bccd9d49b0317a1cae086940cdf68aa26a521fc4b1b640b17b1751840aa3cc">
+      <source xml:lang="en">Cancel run</source>
     </trans-unit>
     <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
       <source xml:lang="en">Cancel schema compare failed: &apos;{0}&apos;</source>
@@ -1043,6 +1052,12 @@
     </trans-unit>
     <trans-unit id="++CODE++4a41af1285aa71f4e677bc3fa729070b3c3c0af177cb4e9f12e34f1e21045894">
       <source xml:lang="en">Check Constraints</source>
+    </trans-unit>
+    <trans-unit id="++CODE++751964221301ecba898752df37067be0761a03f6668871a4933327defb5b0b2c">
+      <source xml:lang="en">Check a table for orphaned rows</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c53e128952037c4ead60c30ad2f97941bb80c9f493241427b5df85e95b05b24">
+      <source xml:lang="en">Check that the dbo.Orders table stays under 1,000,000 rows and fail the run if it does not.</source>
     </trans-unit>
     <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
       <source xml:lang="en">Checking Docker Engine Configuration</source>
@@ -1651,6 +1666,10 @@
       <source xml:lang="en">Connection profile &apos;{0}&apos; not found.</source>
       <note>{0} is the profile ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++2e9d19b415f1640cb28651a10ece84fca3ba153b439ad50122b55eab7669d87d">
+      <source xml:lang="en">Connection profile &apos;{0}&apos; was not found.</source>
+      <note>{0} is a connection profile id</note>
+    </trans-unit>
     <trans-unit id="++CODE++56417c812e9849fa389e329e3239fd0a5abc5778b3ff738ce7c6d3c49f8739df">
       <source xml:lang="en">Connection profile not found. Please create a new connection using the Connection Dialog.</source>
     </trans-unit>
@@ -1734,6 +1753,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
       <source xml:lang="en">Continue on error</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4ae31914ce6cc08b30d953a6617a8ef8caa6a5c4976eb57e5f51b96242cb00d6">
+      <source xml:lang="en">Continue to Parameters</source>
     </trans-unit>
     <trans-unit id="++CODE++36788a4bbad501fe2c69d37d0d7ce128868a41848663752a28c886a54df70752">
       <source xml:lang="en">Continue using for additional charges</source>
@@ -1886,6 +1908,9 @@
     <trans-unit id="++CODE++8e37fe747290a9e6bd0f4c835aa52f83374d72f86dcb2401289668294314aab6">
       <source xml:lang="en">Could not connect to database: {0}</source>
       <note>{0} is the database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++99e77183aa418243b5e37afb09c50936ac84553b1f199b4b378f33856c10b822">
+      <source xml:lang="en">Could not connect to the selected connection.</source>
     </trans-unit>
     <trans-unit id="++CODE++03c0e95da7ae52bf9392b845b82870dbf28db813a7fd4a72085f8a544de37916">
       <source xml:lang="en">Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.</source>
@@ -2310,6 +2335,12 @@
     </trans-unit>
     <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
       <source xml:lang="en">Deployment in progress</source>
+    </trans-unit>
+    <trans-unit id="++CODE++00f7e8c272e77d2652568b950f67d2d6e43b6713b557e23441e767f1bf9ddf98">
+      <source xml:lang="en">Describe</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e744ebeb598a707b7d515da53db63476e0f48cc2e04810e29666b9233e21d3db">
+      <source xml:lang="en">Describe the check, validation, or investigation in plain language — e.g. &quot;verify the Orders table has no rows with a NULL customer id and stays under 1M rows&quot;.</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -3818,6 +3849,9 @@
     <trans-unit id="++CODE++fe9fa5778e6299904ef31d5f6e87aed494f00eb96d5aba3ab8b23beed99759c9">
       <source xml:lang="en">General Purpose</source>
     </trans-unit>
+    <trans-unit id="++CODE++49e49bb4401e67bd54ffe1e9ab6c2af87ddad0cdc8ca1c84ba1b4e94234438ba">
+      <source xml:lang="en">Generate</source>
+    </trans-unit>
     <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
       <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
     </trans-unit>
@@ -3829,6 +3863,9 @@
     </trans-unit>
     <trans-unit id="++CODE++733db825a41becaf624d0bcff31bacf744e7bcdb3412fffbb0fb12afdd89a1a8">
       <source xml:lang="en">Generate mock data and seed scripts to support testing and development environments</source>
+    </trans-unit>
+    <trans-unit id="++CODE++307cfb37244e94795e51f234274438ac9e42bbd117440a736e1e2e547c6a72d5">
+      <source xml:lang="en">Generate plan</source>
     </trans-unit>
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
@@ -3846,6 +3883,9 @@
     <trans-unit id="++CODE++477df2f898333747408b1de0e018c9395e977dede103a99aa0babeffc68398e1">
       <source xml:lang="en">Generating SAS key failed: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++01c856d8b31bb017cd3733cc0f575f6321c7d886a4de97959a60bf0aa26e0938">
+      <source xml:lang="en">Generating plan…</source>
     </trans-unit>
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
@@ -4269,6 +4309,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0e66373f45dcf3dd656151e519f7ee5e3d558d9c22cb87df339bbdd2b6c6a3c1">
       <source xml:lang="en">Label</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a299cd418dc170ce2da61f4d1b23fd256348c78736c79fc94efebdc043216e5c">
+      <source xml:lang="en">Language model access was declined. Grant this extension access to your language models to compile runbooks.</source>
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
@@ -5213,6 +5256,9 @@
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
+    <trans-unit id="++CODE++07b6af5657c53b4959c0f0fc72f165e21e3a7e552994f930b3931ebfeb35f415">
+      <source xml:lang="en">No language model is available to compile this runbook. Install and sign in to GitHub Copilot (or another VS Code language model provider), then try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
       <source xml:lang="en">No log entries yet.</source>
     </trans-unit>
@@ -5297,6 +5343,9 @@
     </trans-unit>
     <trans-unit id="++CODE++86147502503bfa8f5f4b25b018362f8a6990334ff839907a0c3008e98d4d7125">
       <source xml:lang="en">No saved connections found. Please create a connection first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++888283ba2a42e1c07343cf71f33fa8147854d1a7b41eff48cfa4075f6ff83838">
+      <source xml:lang="en">No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.</source>
     </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
@@ -5735,6 +5784,9 @@
     <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
       <source xml:lang="en">Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++8d19859245c00061252d8a93c22cb761b50cd554b41fb192d6ba65009cb2d1de">
+      <source xml:lang="en">Plan ready — bind parameters and run it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++cca5a81704ac9175322dcad61b697e520cf5a6091ca6849ff5aad3725c700c70">
       <source xml:lang="en">Plan revision</source>
     </trans-unit>
@@ -6168,6 +6220,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
       <source xml:lang="en">Refresh dataset</source>
+    </trans-unit>
+    <trans-unit id="++CODE++91a85e3fa052e9c8fe16372a45d70b9f224dbe6c13ba201462ac2201ece61683">
+      <source xml:lang="en">Regenerate plan</source>
     </trans-unit>
     <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
       <source xml:lang="en">Region</source>
@@ -6912,6 +6967,9 @@
     </trans-unit>
     <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
       <source xml:lang="en">Select a connection to use as the default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c0e4e2086ae90a77a9711da8e422ce668d2c817235baa7cc21285f9e4c3a884d">
+      <source xml:lang="en">Select a connection…</source>
     </trans-unit>
     <trans-unit id="++CODE++4e6644fdcf104792709d58c5309c2a4ec5a14b58e94a40bdd9da2af532e8e534">
       <source xml:lang="en">Select a data source</source>
@@ -7834,6 +7892,9 @@
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dd58f7c11046de13e610340db756ed3359784293faa0f658421b023a00a70952">
+      <source xml:lang="en">The compiled plan could not be written into the document.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8dc7d2b9c93195a2b988af190343d36c73878d4e3d07f74e2736e0504052293">
       <source xml:lang="en">The configured runbook runtime &apos;{0}&apos; is not available in this build. Set mssql.runbookStudio.runtime to &apos;fake&apos; to use the deterministic preview runtime.</source>
       <note>{0} is a configuration value</note>
@@ -7896,6 +7957,10 @@
     </trans-unit>
     <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
       <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++828c5945f21d90c2bccc1b0fb342a18c982139a430a47526ed9a9adb7d5a163f">
+      <source xml:lang="en">The model could not produce a valid plan from this intent ({0}). Try rephrasing the intent.</source>
+      <note>{0} is a technical validation detail</note>
     </trans-unit>
     <trans-unit id="++CODE++c368a965891e9479b44218cb42c8cddde404740e364b53367e897dcb17ef1d6b">
       <source xml:lang="en">The name of the check constraint.</source>
@@ -7969,6 +8034,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0671520880ad429f44a81a94840911e91bc283633ebe9c5b977c7c4205a0799">
+      <source xml:lang="en">This activity only runs read-only SELECT statements; the generated SQL was refused.</source>
     </trans-unit>
     <trans-unit id="++CODE++d04f49712c8ea093b05533c77555647956034e4fea56de641a0ded6fc5fef1e9">
       <source xml:lang="en">This approval is no longer pending.</source>
@@ -8130,6 +8198,9 @@
     </trans-unit>
     <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
       <source xml:lang="en">Try adjusting your search or filters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5b0caddc524f61e458b72da9f9c0e9677209b34f7f3875342006f124f2b2d794">
+      <source xml:lang="en">Try an example:</source>
     </trans-unit>
     <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
       <source xml:lang="en">Try it</source>
@@ -8382,6 +8453,15 @@
     <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
       <source xml:lang="en">Verify backup when finished</source>
     </trans-unit>
+    <trans-unit id="++CODE++34912e3c660aa26a4f85dcf4ed63a218d7c54ea4ad94f4e3868bd7f21cf4ecee">
+      <source xml:lang="en">Verify data was loaded today</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c749407c976e728a49496f47ad0a8dc65e9a8f498d46d57955f7e0925098b1f">
+      <source xml:lang="en">Verify that the dbo.ImportLog table has at least one row created today; fail the run if the last import is older than one day.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++553c28233a42c645869c6be298ab235a9d06b72eec75e4f04bfacccce12a6318">
+      <source xml:lang="en">Verify there are no OrderItems rows whose OrderId does not exist in the Orders table; fail if any orphans are found.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c3c67860a7ed33d60abb06ff29ebf03be5f1db11b3ed71566467dc8a55add424">
       <source xml:lang="en">Verifying Docker engine is ready</source>
     </trans-unit>
@@ -8470,6 +8550,9 @@
     <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
       <source xml:lang="en">Warehouse</source>
     </trans-unit>
+    <trans-unit id="++CODE++4bf9808b6816b70ea6be89fb1304327fb44b5e127640bc77d2423d8155ce2482">
+      <source xml:lang="en">Warn me when a table grows past a limit</source>
+    </trans-unit>
     <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
       <source xml:lang="en">Warning</source>
     </trans-unit>
@@ -8512,6 +8595,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e1f100b8451fb73b3566cb257546c3a29de2c84c51898bc96fef91e7e459f4f3">
+      <source xml:lang="en">What should this runbook do?</source>
     </trans-unit>
     <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
       <source xml:lang="en">What&apos;s next?</source>
@@ -8696,6 +8782,10 @@
     <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
       <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
     </trans-unit>
+    <trans-unit id="++CODE++e6aed5aa842688d86cf6e2eff8002c365c028fd3cec051c1cf285e599b4bc2db">
+      <source xml:lang="en">if rejected → {0}</source>
+      <note>{0} is a plan step name</note>
+    </trans-unit>
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
     </trans-unit>
@@ -8737,6 +8827,10 @@
     </trans-unit>
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dda7eca381b0c1a9d118574034feff02206f9320b5cec40500ef012d62b67ea1">
+      <source xml:lang="en">on failure → {0}</source>
+      <note>{0} is a plan step name</note>
     </trans-unit>
     <trans-unit id="++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6">
       <source xml:lang="en">or</source>
