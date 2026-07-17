@@ -25,6 +25,7 @@ import {
     InlineCompletionCategory,
     InlineCompletionDebugEventResult,
     InlineCompletionDebugReducers,
+    completionReplayModes,
     inlineCompletionCategories,
     inlineCompletionDebugProfileIds,
     inlineCompletionSchemaBudgetProfileIds,
@@ -378,6 +379,9 @@ const partialOverridesShape: FieldCheck = (value) => {
         customSystemPrompt: nullOr(aString),
         allowAutomaticTriggers: nullOr(aBoolean),
         schemaContext: nullOr(aRecord),
+        // WI-3.4 additive mode policy fields (optional on override objects).
+        replayMode: oneOf(completionReplayModes),
+        schemaFallbackToCaptured: aBoolean,
     };
     for (const [key, fieldValue] of Object.entries(value)) {
         const check = spec[key];
@@ -466,10 +470,16 @@ const commandPayloadChecks: Record<keyof InlineCompletionDebugReducers, PayloadC
         snapshotId: aString,
         configMode: oneOf(replayCartConfigModes),
     }),
-    queueReplayCart: fields({ configMode: optional(oneOf(replayCartConfigModes)) }),
+    queueReplayCart: fields({
+        configMode: optional(oneOf(replayCartConfigModes)),
+        replayMode: optional(oneOf(completionReplayModes)),
+        schemaFallbackToCaptured: optional(aBoolean),
+    }),
     runReplayMatrix: fields({
         profileIds: arrayOf(oneOf(inlineCompletionDebugProfileIds)),
         schemaBudgetProfileIds: arrayOf(oneOf(inlineCompletionSchemaBudgetProfileIds)),
+        replayMode: optional(oneOf(completionReplayModes)),
+        schemaFallbackToCaptured: optional(aBoolean),
     }),
     cancelReplayRun: fields({ runId: optional(aString) }),
     copyEventPayload: fields({ eventId: aString, kind: oneOf(copyEventPayloadKinds) }),

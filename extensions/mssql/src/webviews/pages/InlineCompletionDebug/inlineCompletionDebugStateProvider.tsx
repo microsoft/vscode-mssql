@@ -28,6 +28,7 @@ import {
     IcDetailSection,
 } from "../../../sharedInterfaces/completionsDebugRpc";
 import {
+    CompletionReplayMode,
     InlineCompletionDebugEvent,
     InlineCompletionDebugProfileId,
     InlineCompletionDebugReplayCartAddItem,
@@ -37,6 +38,12 @@ import {
     InlineCompletionSchemaBudgetProfileId,
     InlineCompletionDebugWebviewState,
 } from "../../../sharedInterfaces/inlineCompletionDebug";
+
+/** WI-3.4: mode selection frozen into a queue/matrix run at queue time. */
+export interface InlineCompletionReplayModeSelection {
+    replayMode: CompletionReplayMode;
+    schemaFallbackToCaptured?: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // View-model marker for thin-transport hosts
@@ -136,10 +143,14 @@ export interface InlineCompletionDebugContextProps {
         snapshotId: string,
         configMode: InlineCompletionDebugReplayCartConfigMode,
     ) => void;
-    queueReplayCart: (configMode?: InlineCompletionDebugReplayCartConfigMode) => void;
+    queueReplayCart: (
+        configMode?: InlineCompletionDebugReplayCartConfigMode,
+        modeSelection?: InlineCompletionReplayModeSelection,
+    ) => void;
     runReplayMatrix: (
         profileIds: InlineCompletionDebugProfileId[],
         schemaBudgetProfileIds: InlineCompletionSchemaBudgetProfileId[],
+        modeSelection?: InlineCompletionReplayModeSelection,
     ) => void;
     cancelReplayRun: (runId?: string) => void;
     copyEventPayload: (
@@ -337,10 +348,17 @@ export const InlineCompletionDebugStateProvider = ({ children }: { children: Rea
                 extensionRpc.action("setReplayCartOverride", { snapshotId, override }),
             setReplayCartConfigMode: (snapshotId, configMode) =>
                 extensionRpc.action("setReplayCartConfigMode", { snapshotId, configMode }),
-            queueReplayCart: (configMode) =>
-                extensionRpc.action("queueReplayCart", configMode ? { configMode } : {}),
-            runReplayMatrix: (profileIds, schemaBudgetProfileIds) =>
-                extensionRpc.action("runReplayMatrix", { profileIds, schemaBudgetProfileIds }),
+            queueReplayCart: (configMode, modeSelection) =>
+                extensionRpc.action("queueReplayCart", {
+                    ...(configMode ? { configMode } : {}),
+                    ...(modeSelection ?? {}),
+                }),
+            runReplayMatrix: (profileIds, schemaBudgetProfileIds, modeSelection) =>
+                extensionRpc.action("runReplayMatrix", {
+                    profileIds,
+                    schemaBudgetProfileIds,
+                    ...(modeSelection ?? {}),
+                }),
             cancelReplayRun: (runId) => extensionRpc.action("cancelReplayRun", { runId }),
             copyEventPayload: (eventId, kind) =>
                 extensionRpc.action("copyEventPayload", { eventId, kind }),

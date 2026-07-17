@@ -578,15 +578,22 @@ export const ConsoleCompletionsDebugStateProvider = ({ children }: { children: R
                 io.send({ name: "setReplayCartOverride", payload: { snapshotId, override } }),
             setReplayCartConfigMode: (snapshotId, configMode) =>
                 io.send({ name: "setReplayCartConfigMode", payload: { snapshotId, configMode } }),
-            queueReplayCart: (configMode) =>
+            queueReplayCart: (configMode, modeSelection) =>
                 io.send({
                     name: "queueReplayCart",
-                    payload: configMode ? { configMode } : {},
+                    payload: {
+                        ...(configMode ? { configMode } : {}),
+                        ...(modeSelection ?? {}),
+                    },
                 }),
-            runReplayMatrix: (profileIds, schemaBudgetProfileIds) =>
+            runReplayMatrix: (profileIds, schemaBudgetProfileIds, modeSelection) =>
                 io.send({
                     name: "runReplayMatrix",
-                    payload: { profileIds, schemaBudgetProfileIds },
+                    payload: {
+                        profileIds,
+                        schemaBudgetProfileIds,
+                        ...(modeSelection ?? {}),
+                    },
                 }),
             cancelReplayRun: (runId) => io.send({ name: "cancelReplayRun", payload: { runId } }),
             copyEventPayload: (eventId, kind) =>

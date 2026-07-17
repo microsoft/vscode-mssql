@@ -102,6 +102,8 @@ export interface ReplayRunManifestV1 {
     completedItems: number;
     failedItems: number;
     cancelledItems: number;
+    /** WI-3.4 (additive): items refused because mode-required inputs were unavailable. */
+    blockedItems?: number;
     estimate?: ReplayEstimate;
     actual?: ReplayActualCost;
     safety: ReplaySafetyAssessment;
@@ -120,7 +122,7 @@ export interface ReplayRunItemRecordV1 {
     startedAt?: number;
     endedAt: number;
     resolvedConfigDigest: string;
-    status: "completed" | "failed" | "cancelled";
+    status: "completed" | "failed" | "cancelled" | "blocked";
     /** Durable link id of the replayed result event, when the host recorded one. */
     resultCaptureEventId?: string;
     /** Ring-local display id of the result event. */
@@ -129,6 +131,10 @@ export interface ReplayRunItemRecordV1 {
     /** Redacted/short error detail — never payload content. */
     errorMessage?: string;
     cancellationOutcome?: ReplayCancellationOutcome;
+    /** WI-3.4 (additive): the explicit replay mode this item executed under. */
+    replayMode?: string;
+    /** WI-3.4 (additive): schema-context source, incl. "explicitFallback". */
+    schemaContextSource?: string;
     attempt: number;
 }
 
@@ -410,6 +416,9 @@ export class ReplayRunRepository {
             case "cancelled":
                 state.manifest.cancelledItems++;
                 break;
+            case "blocked":
+                state.manifest.blockedItems = (state.manifest.blockedItems ?? 0) + 1;
+                break;
         }
         let line: string;
         try {
@@ -581,7 +590,8 @@ export class ReplayRunRepository {
                         events:
                             manifest.completedItems +
                             manifest.failedItems +
-                            manifest.cancelledItems,
+                            manifest.cancelledItems +
+                            (manifest.blockedItems ?? 0),
                         bytes: state.itemsBytes,
                     });
                     return;
@@ -592,7 +602,8 @@ export class ReplayRunRepository {
                         events:
                             manifest.completedItems +
                             manifest.failedItems +
-                            manifest.cancelledItems,
+                            manifest.cancelledItems +
+                            (manifest.blockedItems ?? 0),
                         bytes: state.itemsBytes,
                     });
                 }

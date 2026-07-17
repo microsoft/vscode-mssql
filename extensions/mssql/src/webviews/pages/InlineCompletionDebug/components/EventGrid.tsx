@@ -694,6 +694,9 @@ function resultTone(result: string): "success" | "warning" | "danger" | "neutral
         case "cancelled":
         case "skipped":
             return "neutral";
+        case "blocked":
+            // WI-3.4: replay-mode inputs unavailable — a refusal, not an error.
+            return "warning";
         default:
             return "warning";
     }

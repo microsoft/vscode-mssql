@@ -145,7 +145,11 @@ export interface FeatureReplayPlannedItem<TEvent, TConfig> {
     queuedAt: number;
 }
 
-export type FeatureReplayItemStatus = "completed" | "failed" | "cancelled";
+/**
+ * `blocked` (WI-3.4): the item's replay mode required inputs that were
+ * unavailable — nothing executed, honestly distinct from `failed`.
+ */
+export type FeatureReplayItemStatus = "completed" | "failed" | "cancelled" | "blocked";
 
 /** Terminal record of one item (addendum §7.3 per-item fields). */
 export interface FeatureReplayItemOutcome {
@@ -164,6 +168,9 @@ export interface FeatureReplayItemOutcome {
     resultCaptureEventId?: string;
     errorCode?: string;
     errorMessage?: string;
+    /** WI-3.4: feature-declared execution provenance dimensions (additive). */
+    replayMode?: string;
+    schemaContextSource?: string;
     attempt: number;
 }
 
@@ -904,18 +911,30 @@ export class FeatureReplayEngine<
                         (cancellation.isCancellationRequested
                             ? "cancelRequestedButCompleted"
                             : undefined);
+                    // WI-3.4: a host-reported blockedReason is the honest
+                    // per-item refusal (mode-required input unavailable) —
+                    // recorded as `blocked`, never as an error.
+                    const blocked = result?.blockedReason !== undefined;
                     outcomeInfo = {
-                        status:
-                            cancellationOutcome === "cancelledInFlight" ? "cancelled" : "completed",
-                        ...(cancellationOutcome ? { cancellationOutcome } : {}),
+                        status: blocked
+                            ? "blocked"
+                            : cancellationOutcome === "cancelledInFlight"
+                              ? "cancelled"
+                              : "completed",
+                        ...(blocked ? { errorMessage: result.blockedReason } : {}),
+                        ...(cancellationOutcome && !blocked ? { cancellationOutcome } : {}),
                         ...(result?.resultEventId ? { resultEventId: result.resultEventId } : {}),
                         ...(result?.resultCaptureEventId
                             ? { resultCaptureEventId: result.resultCaptureEventId }
                             : {}),
+                        ...(result?.replayMode ? { replayMode: result.replayMode } : {}),
+                        ...(result?.schemaContextSource
+                            ? { schemaContextSource: result.schemaContextSource }
+                            : {}),
                         endedAt: Date.now(),
                         startedAt,
                     };
-                    itemSpan.end("ok");
+                    itemSpan.end(blocked ? "warning" : "ok");
                 } catch (error) {
                     // A throwing executor must not wedge the drain loop; the
                     // feature records its own error event for the row.
@@ -974,6 +993,11 @@ export class FeatureReplayEngine<
             updatedRun = {
                 ...run,
                 completedEvents,
+                // WI-3.4: blocked items count into progress but are surfaced
+                // separately so run rows can say "n blocked" honestly.
+                ...(outcomeInfo.status === "blocked"
+                    ? { blockedEvents: (run.blockedEvents ?? 0) + 1 }
+                    : {}),
                 status,
                 activeMatrixCellId: runHasQueuedRows ? run.activeMatrixCellId : undefined,
                 completedAt: runHasQueuedRows ? run.completedAt : Date.now(),
@@ -1023,6 +1047,8 @@ export class FeatureReplayEngine<
                 : {}),
             ...(info.errorCode ? { errorCode: info.errorCode } : {}),
             ...(info.errorMessage ? { errorMessage: info.errorMessage } : {}),
+            ...(info.replayMode ? { replayMode: info.replayMode } : {}),
+            ...(info.schemaContextSource ? { schemaContextSource: info.schemaContextSource } : {}),
             attempt: 1,
         };
         this.notifyObserver((observer) => observer.onItemSettled?.(outcome, run));
@@ -1078,6 +1104,8 @@ interface ItemOutcomeInfo {
     resultCaptureEventId?: string;
     errorCode?: string;
     errorMessage?: string;
+    replayMode?: string;
+    schemaContextSource?: string;
 }
 
 export function createReplayTags<TEvent, TConfig>(

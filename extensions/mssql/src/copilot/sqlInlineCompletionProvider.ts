@@ -1225,6 +1225,18 @@ export function applyCustomSystemPromptTemplate(
     return result;
 }
 
+/**
+ * Version of the PROMPT BUILDER (WI-3.4 / addendum §7.7: replay provenance
+ * captures the prompt-builder version so rebuilt-prompt replays are
+ * comparable across builder generations).
+ *
+ * BUMP THIS on ANY observable change to the prompt construction pipeline —
+ * `resolveInlineCompletionRules`, `applyCustomSystemPromptTemplate`,
+ * `buildCompletionRules`, `buildInlineCompletionPromptMessages`,
+ * `buildPromptDataMessage`, or the context-window extraction they consume.
+ */
+export const INLINE_COMPLETION_PROMPT_BUILDER_VERSION = "1";
+
 export function buildInlineCompletionPromptMessages(
     options: InlineCompletionPromptBuildOptions,
 ): vscode.LanguageModelChatMessage[] {
@@ -2212,6 +2224,61 @@ function getSuffixWindow(
     return suffix.slice(0, maxChars);
 }
 
+/** The document/editor context slice one completion request is built from. */
+export interface InlineCompletionDocumentContext {
+    documentUri: string;
+    documentFileName: string;
+    languageId: string;
+    line: number;
+    column: number;
+    linePrefix: string;
+    lineSuffix: string;
+    statementPrefix: string;
+    recentPrefix: string;
+    suffix: string;
+    inferredSystemQuery: boolean;
+    detectedIntentMode: boolean;
+    sqlDiagnosticsText: string;
+}
+
+/**
+ * Extract the SAME context windows the live completion provider builds, for
+ * an arbitrary document + position (WI-3.4 `liveDocumentScenario`: replay
+ * re-executes against the current active document state through exactly the
+ * production extraction path — same window sizes, same statement-boundary
+ * logic, same diagnostics formatting).
+ */
+export function extractInlineCompletionDocumentContext(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+): InlineCompletionDocumentContext {
+    const line = document.lineAt(position.line);
+    const linePrefix = line.text.slice(0, position.character);
+    const lineSuffix = line.text.slice(position.character);
+    const statementPrefix = getStatementAwarePrefixWindow(
+        document,
+        position,
+        statementPrefixWindowChars,
+    );
+    const recentPrefix = getRecentDocumentPrefixWindow(document, position, recentPrefixWindowChars);
+    const suffix = getSuffixWindow(document, position, suffixWindowChars);
+    return {
+        documentUri: document.uri.toString(),
+        documentFileName: document.fileName.split(/[\\/]/).pop() ?? document.fileName,
+        languageId: document.languageId,
+        line: position.line,
+        column: position.character,
+        linePrefix,
+        lineSuffix,
+        statementPrefix,
+        recentPrefix,
+        suffix,
+        inferredSystemQuery: inferSystemQuery(statementPrefix, linePrefix),
+        detectedIntentMode: detectIntentMode(statementPrefix, linePrefix),
+        sqlDiagnosticsText: formatNearbySqlDiagnosticsForPrompt(document, position),
+    };
+}
+
 function formatNearbySqlDiagnosticsForPrompt(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -2336,6 +2403,17 @@ export function detectIntentComment(statementPrefix: string, linePrefix: string)
 function detectIntentMode(statementPrefix: string, linePrefix: string): boolean {
     return detectIntentComment(statementPrefix, linePrefix);
 }
+
+/**
+ * Version of the response SANITIZER (WI-3.4 / addendum §7.7: replay
+ * provenance captures the sanitizer version so response-handling comparisons
+ * are honest across sanitizer generations).
+ *
+ * BUMP THIS on ANY observable change to `sanitizeInlineCompletionText` or any
+ * helper it calls (fence/reasoning/preamble stripping, echo removal, meta
+ * detection, truncation rules, sentinel handling).
+ */
+export const INLINE_COMPLETION_SANITIZER_VERSION = "1";
 
 export function sanitizeInlineCompletionText(
     completionText: string,

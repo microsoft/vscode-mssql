@@ -27,7 +27,9 @@ export type InlineCompletionAnalysisDimension =
     | "replayTrace"
     | "replayRun"
     | "replayMatrixCell"
-    | "replaySourceEvent";
+    | "replaySourceEvent"
+    /** WI-3.4: the explicit replay mode from event provenance; "n/a" for live events. */
+    | "replayMode";
 
 export interface InlineCompletionAnalysisFilters {
     models?: string[];
@@ -51,6 +53,7 @@ export interface InlineCompletionAnalysisFilters {
     replayRuns?: string[];
     replayMatrixCells?: string[];
     replaySourceEvents?: string[];
+    replayModes?: string[];
 }
 
 export interface InlineCompletionAnalysisMetrics {
@@ -164,6 +167,12 @@ export function filterInlineCompletionEvents(
         if (
             filters.replaySourceEvents?.length &&
             !filters.replaySourceEvents.includes(getEventDimension(event, "replaySourceEvent"))
+        ) {
+            return false;
+        }
+        if (
+            filters.replayModes?.length &&
+            !filters.replayModes.includes(getEventDimension(event, "replayMode"))
         ) {
             return false;
         }
@@ -323,6 +332,11 @@ export function getEventDimension(
             );
         case "replaySourceEvent":
             return getEventTag(event, "replaySourceEventId") ?? "none";
+        case "replayMode":
+            // Provenance is authoritative (WI-3.4); the locals value covers
+            // replays recorded between the locals and provenance fields
+            // landing. Live (non-replay) events are honestly "n/a".
+            return event.replayProvenance?.mode ?? asString(event.locals.replayMode) ?? "n/a";
     }
 }
 

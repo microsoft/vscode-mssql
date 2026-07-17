@@ -83,6 +83,23 @@ import {
     DcIcDebugChanged2Notification,
     DcIcDebugCommandRequest,
 } from "../sharedInterfaces/completionsDebugRpc";
+import {
+    DcReplayRunDetailRequest,
+    DcReplayRunListRequest,
+    projectLiveReplayRunRow,
+} from "../sharedInterfaces/replayLabRpc";
+import {
+    listReplayRunManifests,
+    readReplayRunDetail,
+} from "../diagnostics/featureCapture/replayRunCatalog";
+import {
+    buildReplayRunListResult,
+    clampReplayLabItemsLimit,
+    projectDurableReplayItemRow,
+    projectDurableReplayRunRow,
+    projectLiveReplayItemRow,
+    sanitizeReplayLabConfigGroup,
+} from "../diagnostics/replayLabRpcHost";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
 import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
@@ -827,6 +844,92 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         this.onRequest(DcCompletionEventDetailRequest.type, async (params) => {
             const host = this.ensureIcDebugHost();
             return host ? host.getEventDetail(params) : createGateOffCompletionEventDetailResult();
+        });
+
+        // Replay Lab (WI-3.5): durable run catalog + lazy per-run detail. The
+        // LIST is durable-rows-only (manifest-only enumeration; the page
+        // merges its live engine rows client-side); the DETAIL combines the
+        // durable manifest/items with this console's live queue rows so
+        // queued/running items are visible before they settle. Both work with
+        // the feature gate off — durable evidence outlives the gate.
+        this.onRequest(DcReplayRunListRequest.type, async (params) => {
+            const catalog = await listReplayRunManifests({
+                storeRoot: this.diagnostics.store.storeRoot,
+                currentHostSessionId: diag.sessionId,
+            });
+            return buildReplayRunListResult({
+                entries: catalog.entries,
+                issues: catalog.issues,
+                params,
+                currentHostSessionId: diag.sessionId,
+                storeAvailable: this.diagnostics.storeActive || catalog.entries.length > 0,
+            });
+        });
+
+        this.onRequest(DcReplayRunDetailRequest.type, async (params) => {
+            const hostSessionId = params.hostSessionId ?? diag.sessionId;
+            const itemsOffset = Math.max(0, params.itemsOffset ?? 0);
+            const itemsLimit = clampReplayLabItemsLimit(params.itemsLimit);
+            const durable = await readReplayRunDetail({
+                storeRoot: this.diagnostics.store.storeRoot,
+                hostSessionId,
+                replayRunId: params.replayRunId,
+                itemsOffset,
+                itemsLimit,
+            });
+            // This console's live engine state (never created here — the Lab
+            // page's provider brings the host up when the gate is on).
+            const liveState =
+                hostSessionId === diag.sessionId ? this.icDebugHost?.getReplayState() : undefined;
+            const liveRun = liveState?.runs.find((run) => run.id === params.replayRunId);
+            if (!durable.manifest && !liveRun) {
+                return { found: false, items: [], itemsTotal: 0, itemsOffset };
+            }
+            const items = durable.items.map((record) =>
+                projectDurableReplayItemRow(record, durable.manifest),
+            );
+            // Live queued/running rows append after the settled page (they
+            // have no durable record yet).
+            const liveItems = (liveState?.queueRows ?? [])
+                .filter((row) => row.runId === params.replayRunId)
+                .map(projectLiveReplayItemRow);
+            const row = liveRun
+                ? {
+                      ...projectLiveReplayRunRow(liveRun),
+                      ...(durable.manifest
+                          ? {
+                                hostSessionId,
+                                sourceCount: durable.manifest.sources.length,
+                                completedItems: durable.manifest.completedItems,
+                                failedItems: durable.manifest.failedItems,
+                                cancelledItems: durable.manifest.cancelledItems,
+                                blockedItems: durable.manifest.blockedItems ?? 0,
+                                durable: true,
+                            }
+                          : {}),
+                  }
+                : projectDurableReplayRunRow(
+                      { hostSessionId, manifest: durable.manifest! },
+                      diag.sessionId,
+                  );
+            return {
+                found: true,
+                row,
+                ...(durable.manifest
+                    ? {
+                          sources: durable.manifest.sources.map((source) => ({
+                              captureEventId: source.captureEventId,
+                              label: source.label,
+                          })),
+                      }
+                    : {}),
+                ...(durable.configGroups
+                    ? { configGroups: durable.configGroups.map(sanitizeReplayLabConfigGroup) }
+                    : {}),
+                items: [...items, ...liveItems],
+                itemsTotal: durable.itemsTotal + liveItems.length,
+                itemsOffset,
+            };
         });
 
         // Central observability upload (central design §8.3): preview is the

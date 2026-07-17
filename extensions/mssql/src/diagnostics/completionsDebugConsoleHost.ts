@@ -284,6 +284,15 @@ export class ConsoleCompletionsDebugHost {
     }
 
     /**
+     * Live replay engine state for the Replay Lab RPCs (WI-3.5). HOST-SIDE
+     * ONLY: queue rows carry full event bodies — the controller projects them
+     * through replayLabRpcHost before anything crosses the webview boundary.
+     */
+    public getReplayState() {
+        return this._services.replayService.getState();
+    }
+
+    /**
      * Dispatch a reducer-named action from the console webview (legacy
      * dc/icDebugAction path — kept for contract compatibility). Every command
      * rides the shared command handler; validation happens in-band so a bad

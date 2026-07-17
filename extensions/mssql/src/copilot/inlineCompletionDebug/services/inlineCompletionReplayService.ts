@@ -31,10 +31,14 @@ import {
     collectText,
     continuationModeMaxTokens,
     createLanguageModelMaxTokenOptions,
+    extractInlineCompletionDocumentContext,
     fixLeadingWhitespace,
     formatSchemaContextForPrompt,
     getEffectiveMaxCompletionChars,
     getInlineCompletionCategory,
+    INLINE_COMPLETION_PROMPT_BUILDER_VERSION,
+    INLINE_COMPLETION_SANITIZER_VERSION,
+    InlineCompletionDocumentContext,
     intentModeMaxTokens,
     resolveInlineCompletionRules,
     sanitizeInlineCompletionText,
@@ -61,6 +65,10 @@ import {
 } from "../inlineCompletionDebugProfiles";
 import { inlineCompletionDebugStore } from "../inlineCompletionDebugStore";
 import {
+    COMPLETION_REPLAY_PROVENANCE_SCHEMA,
+    CompletionReplayMode,
+    CompletionReplayProvenanceV1,
+    CompletionReplaySchemaContextSource,
     InlineCompletionCategory,
     InlineCompletionDebugEvent,
     InlineCompletionDebugEventTags,
@@ -78,11 +86,16 @@ import {
     InlineCompletionDebugSchemaContextOverrides,
     InlineCompletionSchemaBudgetProfileId,
     inlineCompletionCategories,
+    isCompletionReplayMode,
+    isReplayAxisEnabledForMode,
+    resolveCompletionReplayModePolicy,
 } from "../../../sharedInterfaces/inlineCompletionDebug";
 import {
     FeatureReplayCancellationToken,
     FeatureReplayExecuteResult,
 } from "../../../sharedInterfaces/featureReplay";
+import { sha256OfCanonicalJson } from "../../../diagnostics/featureCapture/configGroups";
+import { COMPLETIONS_JOURNAL_EVENT_SCHEMA } from "../completionsJournalProjection";
 import { createInlineCompletionConfigGroup } from "../inlineCompletionConfigGroups";
 import { createCompletionsReplayRunRepository } from "../completionsReplayRunPersistence";
 import {
@@ -98,15 +111,34 @@ export interface InlineCompletionReplayServiceDeps {
     extensionContext: vscode.ExtensionContext;
     schemaContextService: CompletionSchemaContextService | undefined;
     captureService: InlineCompletionCaptureService;
+    /**
+     * Test seam: replaces live model selection (vscode.lm-backed by default)
+     * so mode semantics are testable without a configured language model.
+     */
+    selectModel?: (
+        modelSelectorOverride: string | undefined,
+        modelPreference: InlineCompletionModelPreference | undefined,
+    ) => Promise<vscode.LanguageModelChat | undefined>;
+    /**
+     * Test seam: replaces active-editor context resolution for
+     * `liveDocumentScenario` (defaults to the active SQL text editor).
+     */
+    getLiveDocumentContext?: () => InlineCompletionDocumentContext | undefined;
 }
 
 interface ReplaySchemaContextResult {
     schemaContext: SqlInlineCompletionSchemaContext | undefined;
     schemaContextText: string;
-    schemaContextSource: "current" | "captured" | "unavailable" | "disabled";
+    schemaContextSource: CompletionReplaySchemaContextSource;
     schemaObjectCount: number;
     schemaSystemObjectCount: number;
     schemaForeignKeyCount: number;
+}
+
+/** WI-3.4: mode policy stamped onto every config frozen for one queue/matrix run. */
+interface ReplayQueueModePolicy {
+    replayMode: CompletionReplayMode;
+    schemaFallbackToCaptured?: boolean;
 }
 
 /** Per-run lookups the durable item records need (durable ids, group ids). */
@@ -129,6 +161,14 @@ export class InlineCompletionReplayService {
     private readonly _runRepository: ReplayRunRepository | undefined;
     private readonly _runPersistLookups = new Map<string, ReplayRunPersistLookup>();
     private _replayCartDialogSnapshot: InlineCompletionDebugReplayEventSnapshot[] | undefined;
+    /**
+     * WI-3.4: the mode policy for the queue/matrix call currently freezing
+     * its configs. Set around the SYNCHRONOUS engine queue call only — every
+     * row config the engine resolves during that call gets the policy stamped
+     * before compaction, so mode + fallback are frozen at queue time and ride
+     * the config digest.
+     */
+    private _queueModePolicy: ReplayQueueModePolicy | undefined;
     private _disposed = false;
 
     /** Fires after every replay engine state change (cart/queue/run progress). */
@@ -234,14 +274,19 @@ export class InlineCompletionReplayService {
 
     // ----------------------------------------------------------------- runs
 
-    public queueCart(configMode?: InlineCompletionDebugReplayCartConfigMode): void {
-        this._replayEngine.queueCart(configMode);
+    public queueCart(
+        configMode?: InlineCompletionDebugReplayCartConfigMode,
+        modePolicy?: ReplayQueueModePolicy,
+    ): void {
+        this.withQueueModePolicy(modePolicy, () => this._replayEngine.queueCart(configMode));
     }
 
     public runMatrix(
         profileIds: InlineCompletionDebugProfileId[],
         schemaBudgetProfileIds: InlineCompletionSchemaBudgetProfileId[],
+        modePolicy?: ReplayQueueModePolicy,
     ): void {
+        const mode = modePolicy?.replayMode ?? resolveCompletionReplayModePolicy({}).mode;
         const profiles = profileIds
             .map((profileId) => ({
                 id: profileId,
@@ -250,12 +295,19 @@ export class InlineCompletionReplayService {
                         ?.label ?? profileId,
             }))
             .filter((profile) => profile.id !== inlineCompletionDebugCustomProfileId);
-        const schemaProfiles = schemaBudgetProfileIds
-            .map((schemaBudgetProfileId) => ({
-                id: schemaBudgetProfileId,
-                label: getSchemaBudgetProfileLabel(schemaBudgetProfileId),
-            }))
-            .filter((schema) => schema.id !== "custom");
+        // WI-3.4 axis-mode compatibility: a mode that disables the
+        // schema-budget axis pins every cell to the captured schema (one
+        // sentinel column) instead of a schema cartesian product; the
+        // profile-axis rule is enforced by the preflight refusal below.
+        const schemaAxisEnabled = isReplayAxisEnabledForMode("schemaBudget", mode);
+        const schemaProfiles = schemaAxisEnabled
+            ? schemaBudgetProfileIds
+                  .map((schemaBudgetProfileId) => ({
+                      id: schemaBudgetProfileId,
+                      label: getSchemaBudgetProfileLabel(schemaBudgetProfileId),
+                  }))
+                  .filter((schema) => schema.id !== "custom")
+            : [{ id: CAPTURED_SCHEMA_CELL_SENTINEL, label: "Captured schema" }];
         if (profiles.length === 0 || schemaProfiles.length === 0) {
             return;
         }
@@ -274,7 +326,7 @@ export class InlineCompletionReplayService {
             }
         }
 
-        this._replayEngine.runMatrix(cells);
+        this.withQueueModePolicy(modePolicy, () => this._replayEngine.runMatrix(cells));
     }
 
     public cancelRun(runId: string | undefined): void {
@@ -292,11 +344,27 @@ export class InlineCompletionReplayService {
     }
 
     /**
-     * Re-execute one captured completion event against the live model with
-     * the given config: rebuilds the prompt from captured locals, refreshes
-     * schema context when the schema service can (falling back to the
-     * captured text), and records pending/terminal events into the shared
-     * store with replay tags.
+     * Re-execute one captured completion event against the live model under
+     * an EXPLICIT replay mode (WI-3.4 / addendum §7.7 — no implicit mode
+     * switch, no implicit fallback):
+     *
+     * - `frozenPrompt`: the captured prompt messages are sent verbatim (no
+     *   prompt rebuild; schema already embedded);
+     * - `rebuildCapturedContext`: prompt rebuilt with the CURRENT builder
+     *   over the captured editor context and the captured schema text;
+     * - `rebuildCurrentSchema`: prompt rebuilt over the captured editor
+     *   context with CURRENT schema — required; when unavailable the item is
+     *   `blocked` unless the config carries the explicit
+     *   `schemaFallbackToCaptured` policy (a used fallback is recorded as
+     *   provenance `schemaContextSource: "explicitFallback"`);
+     * - `liveDocumentScenario`: prompt rebuilt against the CURRENT active
+     *   document state and current schema (scenario re-execution, not strict
+     *   pairing) — blocked when no active SQL editor exists.
+     *
+     * A config without an explicit mode resolves through the default mapping
+     * (`rebuildCurrentSchema` + fallback) — exactly the pre-WI-3.4 behavior,
+     * now explicit and recorded. Every recorded event carries an Appendix D
+     * `CompletionReplayProvenanceV1` block.
      */
     public async replaySourceEvent(
         sourceEvent: InlineCompletionDebugEvent,
@@ -309,7 +377,15 @@ export class InlineCompletionReplayService {
             cancellation?: FeatureReplayCancellationToken;
         } = {},
     ): Promise<InlineCompletionDebugEvent | undefined> {
-        const overrides = options.overrides ?? inlineCompletionDebugStore.getOverrides();
+        // Compaction stamps the explicit mode policy, so the digest below is
+        // identical to the queue-time row digest for engine-driven items.
+        const overrides = compactReplayConfig(
+            options.overrides ?? inlineCompletionDebugStore.getOverrides(),
+        );
+        const modePolicy = resolveCompletionReplayModePolicy(overrides);
+        const replayMode = modePolicy.mode;
+        const rebuildPrompt = replayMode !== "frozenPrompt";
+        const effectiveConfigDigest = safeCanonicalDigest(overrides);
         const tags = options.tags;
         const replayTagLocals = getReplayTagLocals(tags, sourceEvent.id);
         // Durable identity for the replayed RESULT event (link id = the §7.3
@@ -319,24 +395,93 @@ export class InlineCompletionReplayService {
             causeEventId: sourceEvent.link?.captureEventId,
         });
         const profile = getInlineCompletionDebugPresetProfile(overrides.profileId);
-        const linePrefix = asString(sourceEvent.locals.linePrefix);
-        const lineSuffix = asString(sourceEvent.locals.lineSuffix);
-        const recentPrefix = asString(sourceEvent.locals.recentPrefix);
-        const statementPrefix = asString(sourceEvent.locals.statementPrefix);
-        const suffix = asString(sourceEvent.locals.suffix);
+
+        // liveDocumentScenario replays against the CURRENT active document
+        // state; every other mode replays the captured editor context.
+        const liveContext =
+            replayMode === "liveDocumentScenario" ? this.resolveLiveDocumentContext() : undefined;
+        const linePrefix = liveContext?.linePrefix ?? asString(sourceEvent.locals.linePrefix);
+        const lineSuffix = liveContext?.lineSuffix ?? asString(sourceEvent.locals.lineSuffix);
+        const recentPrefix = liveContext?.recentPrefix ?? asString(sourceEvent.locals.recentPrefix);
+        const statementPrefix =
+            liveContext?.statementPrefix ?? asString(sourceEvent.locals.statementPrefix);
+        const suffix = liveContext?.suffix ?? asString(sourceEvent.locals.suffix);
+        const inferredSystemQuery =
+            liveContext?.inferredSystemQuery ?? sourceEvent.inferredSystemQuery;
         const intentMode =
-            overrides.forceIntentMode ?? profile?.forceIntentMode ?? sourceEvent.intentMode;
+            overrides.forceIntentMode ??
+            profile?.forceIntentMode ??
+            (liveContext ? liveContext.detectedIntentMode : sourceEvent.intentMode);
         const completionCategory = getInlineCompletionCategory(intentMode);
         const modelPreference = getInlineCompletionModelPreferenceForCategory(
             profile,
             completionCategory,
         );
+        // Live-scenario events carry the LIVE document identity + context;
+        // other modes keep the captured source fields from cloneBaseEvent.
+        const docOverride = liveContext
+            ? {
+                  documentUri: liveContext.documentUri,
+                  documentFileName: liveContext.documentFileName,
+                  line: liveContext.line,
+                  column: liveContext.column,
+                  inferredSystemQuery,
+              }
+            : {};
+        const contextLocals: Record<string, unknown> = liveContext
+            ? {
+                  linePrefix,
+                  lineSuffix,
+                  recentPrefix,
+                  statementPrefix,
+                  suffix,
+                  "document.languageId": liveContext.languageId,
+              }
+            : {};
         const replayStartedAt = Date.now();
+
+        // Appendix D provenance — attached to EVERY recorded replay event
+        // (pending and terminal). Model + schema facts refine as they settle.
+        let provenanceModel: CompletionReplayProvenanceV1["model"] = {};
+        let schemaContextSource: CompletionReplaySchemaContextSource =
+            replayMode === "frozenPrompt" ? "captured" : "unavailable";
+        let replaySchemaContextText: string | undefined;
+        const buildProvenance = (): CompletionReplayProvenanceV1 => ({
+            schema: COMPLETION_REPLAY_PROVENANCE_SCHEMA,
+            mode: replayMode,
+            ...(rebuildPrompt
+                ? { promptBuilderVersion: INLINE_COMPLETION_PROMPT_BUILDER_VERSION }
+                : {}),
+            sanitizerVersion: INLINE_COMPLETION_SANITIZER_VERSION,
+            sourceEventSchema: COMPLETIONS_JOURNAL_EVENT_SCHEMA,
+            ...(sourceEvent.promptMessages.length > 0
+                ? { sourcePromptDigest: safeCanonicalDigest(sourceEvent.promptMessages) }
+                : {}),
+            ...(sourceEvent.schemaContextFormatted
+                ? {
+                      sourceSchemaContextDigest: safeCanonicalDigest(
+                          sourceEvent.schemaContextFormatted,
+                      ),
+                  }
+                : {}),
+            ...(replaySchemaContextText !== undefined
+                ? { replaySchemaContextDigest: safeCanonicalDigest(replaySchemaContextText) }
+                : {}),
+            schemaContextSource,
+            extensionVersion: this.getExtensionVersion(),
+            model: { ...provenanceModel },
+            effectiveConfigDigest,
+        });
+
         let pendingEventId: string | undefined;
         const recordReplayEvent = (
             eventInput: Omit<InlineCompletionDebugEvent, "id">,
         ): InlineCompletionDebugEvent => {
-            const event = { ...eventInput, link: replayLink };
+            const event = {
+                ...eventInput,
+                link: replayLink,
+                replayProvenance: buildProvenance(),
+            };
             if (!pendingEventId) {
                 return inlineCompletionDebugStore.addEvent(event);
             }
@@ -346,10 +491,37 @@ export class InlineCompletionReplayService {
                 inlineCompletionDebugStore.addEvent(event)
             );
         };
+
+        // liveDocumentScenario without an active SQL editor: nothing to run
+        // against — the item is blocked (visible refusal), never guessed.
+        if (replayMode === "liveDocumentScenario" && !liveContext) {
+            return recordReplayEvent(
+                createBlockedReplayEvent(
+                    sourceEvent,
+                    {
+                        completionCategory,
+                        intentMode,
+                        overridesApplied: getOverridesApplied(overrides),
+                        tags,
+                        replayStartedAt,
+                    },
+                    {
+                        ...sourceEvent.locals,
+                        completionCategory,
+                        intentMode,
+                        ...replayTagLocals,
+                        replayMode,
+                        replayBlockedReason: LIVE_DOCUMENT_UNAVAILABLE_REASON,
+                    },
+                ),
+            );
+        }
         if (options.showPendingInLive) {
             pendingEventId = inlineCompletionDebugStore.addEvent({
                 ...cloneBaseEvent(sourceEvent),
+                ...docOverride,
                 link: replayLink,
+                replayProvenance: buildProvenance(),
                 timestamp: replayStartedAt,
                 completionCategory,
                 intentMode,
@@ -370,26 +542,30 @@ export class InlineCompletionReplayService {
                 tags,
                 locals: {
                     ...sourceEvent.locals,
+                    ...contextLocals,
                     profileId: overrides.profileId,
                     completionCategory,
                     intentMode,
                     ...replayTagLocals,
+                    replayMode,
                     replayedAt: new Date(replayStartedAt).toISOString(),
                 },
             }).id;
         }
 
-        const selectedModel = await this.selectReplayModel(
-            getModelSelectorForCompletionCategory(
-                overrides,
-                completionCategory,
-                getConfiguredContinuationModelSelector(),
-            ),
-            modelPreference,
+        const requestedSelector = getModelSelectorForCompletionCategory(
+            overrides,
+            completionCategory,
+            getConfiguredContinuationModelSelector(),
         );
+        if (requestedSelector !== undefined) {
+            provenanceModel = { ...provenanceModel, requestedSelector };
+        }
+        const selectedModel = await this.selectReplayModel(requestedSelector, modelPreference);
         if (!selectedModel) {
             return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
+                ...docOverride,
                 timestamp: Date.now(),
                 completionCategory,
                 intentMode,
@@ -411,12 +587,20 @@ export class InlineCompletionReplayService {
                 tags,
                 locals: {
                     ...sourceEvent.locals,
+                    ...contextLocals,
                     completionCategory,
                     intentMode,
                     ...replayTagLocals,
+                    replayMode,
                 },
             });
         }
+        provenanceModel = {
+            ...provenanceModel,
+            resolvedVendor: selectedModel.vendor,
+            resolvedFamily: selectedModel.family,
+            resolvedId: selectedModel.id,
+        };
 
         const canSendRequest =
             this._deps.extensionContext.languageModelAccessInformation?.canSendRequest(
@@ -425,6 +609,7 @@ export class InlineCompletionReplayService {
         if (canSendRequest === false) {
             return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
+                ...docOverride,
                 timestamp: Date.now(),
                 completionCategory,
                 intentMode,
@@ -446,9 +631,11 @@ export class InlineCompletionReplayService {
                 tags,
                 locals: {
                     ...sourceEvent.locals,
+                    ...contextLocals,
                     completionCategory,
                     intentMode,
                     ...replayTagLocals,
+                    replayMode,
                 },
             });
         }
@@ -460,7 +647,7 @@ export class InlineCompletionReplayService {
         const includeSqlDiagnostics =
             overrides.includeSqlDiagnostics ?? getConfiguredIncludeSqlDiagnostics();
         const sqlDiagnosticsText = includeSqlDiagnostics
-            ? asString(sourceEvent.locals.sqlDiagnostics)
+            ? (liveContext?.sqlDiagnosticsText ?? asString(sourceEvent.locals.sqlDiagnostics))
             : "";
         const schemaContextOverrides = getInlineCompletionProfileSchemaContextOverrides(
             profile,
@@ -470,45 +657,115 @@ export class InlineCompletionReplayService {
             selectedModel.maxInputTokens,
             schemaContextOverrides,
         );
-        const replaySchemaContext = useSchemaContext
-            ? await this.getReplaySchemaContext(
-                  sourceEvent,
-                  statementPrefix,
-                  selectedModel.maxInputTokens,
-                  schemaContextOverrides,
-              )
-            : {
-                  schemaContext: undefined,
-                  schemaContextText: "-- unavailable",
-                  schemaContextSource: "disabled" as const,
-                  schemaObjectCount: 0,
-                  schemaSystemObjectCount: 0,
-                  schemaForeignKeyCount: 0,
-              };
+        // §7.7 mode/schema matrix. `frozenPrompt` performs NO schema work —
+        // the captured prompt already embeds whatever schema it had.
+        const replaySchemaContext =
+            replayMode === "frozenPrompt"
+                ? capturedSchemaContextResult(sourceEvent, "captured")
+                : await this.resolveModeSchemaContext({
+                      mode: replayMode,
+                      fallbackToCaptured: modePolicy.fallbackToCaptured,
+                      useSchemaContext,
+                      sourceEvent,
+                      ownerUri: liveContext?.documentUri ?? sourceEvent.documentUri,
+                      statementPrefix,
+                      inferredSystemQuery,
+                      modelMaxInputTokens: selectedModel.maxInputTokens,
+                      schemaContextOverrides,
+                  });
+        schemaContextSource = replaySchemaContext.schemaContextSource;
+        if (
+            replayMode !== "frozenPrompt" &&
+            replaySchemaContext.schemaContextText !== "-- unavailable"
+        ) {
+            replaySchemaContextText = replaySchemaContext.schemaContextText;
+        }
+
+        // rebuildCurrentSchema REQUIRES current schema: unavailable without
+        // the explicit fallback policy blocks the item (§7.7 rules).
+        if (
+            replayMode === "rebuildCurrentSchema" &&
+            useSchemaContext &&
+            schemaContextSource === "unavailable" &&
+            !modePolicy.fallbackToCaptured
+        ) {
+            return recordReplayEvent(
+                createBlockedReplayEvent(
+                    sourceEvent,
+                    {
+                        completionCategory,
+                        intentMode,
+                        overridesApplied: getOverridesApplied(overrides),
+                        tags,
+                        replayStartedAt,
+                        model: selectedModel,
+                    },
+                    {
+                        ...sourceEvent.locals,
+                        ...contextLocals,
+                        completionCategory,
+                        intentMode,
+                        ...replayTagLocals,
+                        replayMode,
+                        replaySchemaContextSource: schemaContextSource,
+                        replayBlockedReason: CURRENT_SCHEMA_UNAVAILABLE_REASON,
+                    },
+                ),
+            );
+        }
+
         const schemaContextText = replaySchemaContext.schemaContextText;
-        const rulesText = resolveInlineCompletionRules({
-            customSystemPrompt: overrides.customSystemPrompt,
-            inferredSystemQuery: sourceEvent.inferredSystemQuery,
-            intentMode,
-            schemaContextText,
-            linePrefix,
-            recentPrefix,
-            statementPrefix,
-            sqlDiagnosticsText,
-        });
-        const promptMessages = buildInlineCompletionPromptMessages({
-            rulesText,
-            intentMode,
-            recentPrefix,
-            statementPrefix,
-            suffix,
-            linePrefix,
-            lineSuffix,
-            sqlDiagnosticsText,
-            schemaContextText,
-            messageOrder: schemaContextSettings.messageOrder,
-            schemaContextChannel: schemaContextSettings.schemaContextChannel,
-        });
+        // frozenPrompt: captured exact messages, NO prompt rebuild (§7.7).
+        const languageModelMessages = rebuildPrompt
+            ? buildInlineCompletionPromptMessages({
+                  rulesText: resolveInlineCompletionRules({
+                      customSystemPrompt: overrides.customSystemPrompt,
+                      inferredSystemQuery,
+                      intentMode,
+                      schemaContextText,
+                      linePrefix,
+                      recentPrefix,
+                      statementPrefix,
+                      sqlDiagnosticsText,
+                  }),
+                  intentMode,
+                  recentPrefix,
+                  statementPrefix,
+                  suffix,
+                  linePrefix,
+                  lineSuffix,
+                  sqlDiagnosticsText,
+                  schemaContextText,
+                  messageOrder: schemaContextSettings.messageOrder,
+                  schemaContextChannel: schemaContextSettings.schemaContextChannel,
+              })
+            : toLanguageModelChatMessages(sourceEvent.promptMessages);
+        const promptMessages = languageModelMessages;
+        const recordedPromptMessages = rebuildPrompt
+            ? promptMessages.map(toDebugPromptMessage)
+            : sourceEvent.promptMessages;
+        // Schema facts recorded on the result rows: frozenPrompt keeps the
+        // SOURCE's schema facts (embedded); rebuild modes record what the
+        // rebuilt prompt actually used.
+        const recordedSchemaFields =
+            replayMode === "frozenPrompt"
+                ? {
+                      usedSchemaContext: sourceEvent.usedSchemaContext,
+                      schemaObjectCount: sourceEvent.schemaObjectCount,
+                      schemaSystemObjectCount: sourceEvent.schemaSystemObjectCount,
+                      schemaForeignKeyCount: sourceEvent.schemaForeignKeyCount,
+                      schemaContextFormatted: sourceEvent.schemaContextFormatted,
+                  }
+                : {
+                      usedSchemaContext: useSchemaContext && schemaContextText !== "-- unavailable",
+                      schemaObjectCount: replaySchemaContext.schemaObjectCount,
+                      schemaSystemObjectCount: replaySchemaContext.schemaSystemObjectCount,
+                      schemaForeignKeyCount: replaySchemaContext.schemaForeignKeyCount,
+                      schemaContextFormatted:
+                          useSchemaContext && schemaContextText !== "-- unavailable"
+                              ? schemaContextText
+                              : undefined,
+                  };
         const maxTokens =
             overrides.maxTokens ??
             profile?.maxTokens ??
@@ -529,9 +786,34 @@ export class InlineCompletionReplayService {
         }
         let replayInputTokens: number | undefined;
         let replayOutputTokens: number | undefined;
+        // Locals shared by every record from here on: effective knobs, mode,
+        // and the resolved schema-context provenance dimensions.
+        const runtimeLocals: Record<string, unknown> = {
+            ...sourceEvent.locals,
+            ...contextLocals,
+            profileId: overrides.profileId,
+            completionCategory,
+            intentMode,
+            useSchemaContext,
+            includeSqlDiagnostics,
+            effectiveMaxTokens: maxTokens,
+            sqlDiagnostics: sqlDiagnosticsText,
+            "sqlDiagnostics.length": sqlDiagnosticsText.length,
+            ...replayTagLocals,
+            replayMode,
+            replaySchemaContextSource: replaySchemaContext.schemaContextSource,
+            schemaBudgetProfile: schemaContextSettings.budgetProfile,
+            schemaSizeKind: replaySchemaContext.schemaContext?.selectionMetadata?.schemaSizeKind,
+            schemaDegradationSteps:
+                replaySchemaContext.schemaContext?.selectionMetadata?.degradationSteps.join(",") ??
+                "",
+            schemaMessageOrder: schemaContextSettings.messageOrder,
+            schemaContextChannel: schemaContextSettings.schemaContextChannel,
+        };
         if (pendingEventId) {
             recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
+                ...docOverride,
                 timestamp: startedAt,
                 completionCategory,
                 intentMode,
@@ -542,41 +824,15 @@ export class InlineCompletionReplayService {
                 latencyMs: 0,
                 inputTokens: undefined,
                 outputTokens: undefined,
-                usedSchemaContext: useSchemaContext && schemaContextText !== "-- unavailable",
-                schemaObjectCount: replaySchemaContext.schemaObjectCount,
-                schemaSystemObjectCount: replaySchemaContext.schemaSystemObjectCount,
-                schemaForeignKeyCount: replaySchemaContext.schemaForeignKeyCount,
+                ...recordedSchemaFields,
                 overridesApplied: getOverridesApplied(overrides),
-                promptMessages: promptMessages.map(toDebugPromptMessage),
+                promptMessages: recordedPromptMessages,
                 rawResponse: "",
                 sanitizedResponse: undefined,
                 finalCompletionText: undefined,
-                schemaContextFormatted:
-                    useSchemaContext && schemaContextText !== "-- unavailable"
-                        ? schemaContextText
-                        : undefined,
                 tags,
                 locals: {
-                    ...sourceEvent.locals,
-                    profileId: overrides.profileId,
-                    completionCategory,
-                    intentMode,
-                    useSchemaContext,
-                    includeSqlDiagnostics,
-                    effectiveMaxTokens: maxTokens,
-                    sqlDiagnostics: sqlDiagnosticsText,
-                    "sqlDiagnostics.length": sqlDiagnosticsText.length,
-                    ...replayTagLocals,
-                    replaySchemaContextSource: replaySchemaContext.schemaContextSource,
-                    schemaBudgetProfile: schemaContextSettings.budgetProfile,
-                    schemaSizeKind:
-                        replaySchemaContext.schemaContext?.selectionMetadata?.schemaSizeKind,
-                    schemaDegradationSteps:
-                        replaySchemaContext.schemaContext?.selectionMetadata?.degradationSteps.join(
-                            ",",
-                        ) ?? "",
-                    schemaMessageOrder: schemaContextSettings.messageOrder,
-                    schemaContextChannel: schemaContextSettings.schemaContextChannel,
+                    ...runtimeLocals,
                     replayedAt: new Date(startedAt).toISOString(),
                 },
             });
@@ -629,6 +885,7 @@ export class InlineCompletionReplayService {
 
             return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
+                ...docOverride,
                 timestamp: Date.now(),
                 completionCategory,
                 intentMode,
@@ -639,41 +896,15 @@ export class InlineCompletionReplayService {
                 latencyMs: Date.now() - startedAt,
                 inputTokens: replayInputTokens,
                 outputTokens: replayOutputTokens,
-                usedSchemaContext: useSchemaContext && schemaContextText !== "-- unavailable",
-                schemaObjectCount: replaySchemaContext.schemaObjectCount,
-                schemaSystemObjectCount: replaySchemaContext.schemaSystemObjectCount,
-                schemaForeignKeyCount: replaySchemaContext.schemaForeignKeyCount,
+                ...recordedSchemaFields,
                 overridesApplied: getOverridesApplied(overrides),
-                promptMessages: promptMessages.map(toDebugPromptMessage),
+                promptMessages: recordedPromptMessages,
                 rawResponse,
                 sanitizedResponse,
                 finalCompletionText,
-                schemaContextFormatted:
-                    useSchemaContext && schemaContextText !== "-- unavailable"
-                        ? schemaContextText
-                        : undefined,
                 tags,
                 locals: {
-                    ...sourceEvent.locals,
-                    profileId: overrides.profileId,
-                    completionCategory,
-                    intentMode,
-                    useSchemaContext,
-                    includeSqlDiagnostics,
-                    effectiveMaxTokens: maxTokens,
-                    sqlDiagnostics: sqlDiagnosticsText,
-                    "sqlDiagnostics.length": sqlDiagnosticsText.length,
-                    ...replayTagLocals,
-                    replaySchemaContextSource: replaySchemaContext.schemaContextSource,
-                    schemaBudgetProfile: schemaContextSettings.budgetProfile,
-                    schemaSizeKind:
-                        replaySchemaContext.schemaContext?.selectionMetadata?.schemaSizeKind,
-                    schemaDegradationSteps:
-                        replaySchemaContext.schemaContext?.selectionMetadata?.degradationSteps.join(
-                            ",",
-                        ) ?? "",
-                    schemaMessageOrder: schemaContextSettings.messageOrder,
-                    schemaContextChannel: schemaContextSettings.schemaContextChannel,
+                    ...runtimeLocals,
                     replayedAt: new Date().toISOString(),
                 },
             });
@@ -683,6 +914,7 @@ export class InlineCompletionReplayService {
             const wasCancelled = cancellationTokenSource.token.isCancellationRequested;
             return recordReplayEvent({
                 ...cloneBaseEvent(sourceEvent),
+                ...docOverride,
                 timestamp: Date.now(),
                 completionCategory,
                 intentMode,
@@ -693,41 +925,15 @@ export class InlineCompletionReplayService {
                 latencyMs: Date.now() - startedAt,
                 inputTokens: replayInputTokens,
                 outputTokens: replayOutputTokens,
-                usedSchemaContext: useSchemaContext && schemaContextText !== "-- unavailable",
-                schemaObjectCount: replaySchemaContext.schemaObjectCount,
-                schemaSystemObjectCount: replaySchemaContext.schemaSystemObjectCount,
-                schemaForeignKeyCount: replaySchemaContext.schemaForeignKeyCount,
+                ...recordedSchemaFields,
                 overridesApplied: getOverridesApplied(overrides),
-                promptMessages: promptMessages.map(toDebugPromptMessage),
+                promptMessages: recordedPromptMessages,
                 rawResponse: "",
                 sanitizedResponse: undefined,
                 finalCompletionText: undefined,
-                schemaContextFormatted:
-                    useSchemaContext && schemaContextText !== "-- unavailable"
-                        ? schemaContextText
-                        : undefined,
                 tags,
                 locals: {
-                    ...sourceEvent.locals,
-                    profileId: overrides.profileId,
-                    completionCategory,
-                    intentMode,
-                    useSchemaContext,
-                    includeSqlDiagnostics,
-                    effectiveMaxTokens: maxTokens,
-                    sqlDiagnostics: sqlDiagnosticsText,
-                    "sqlDiagnostics.length": sqlDiagnosticsText.length,
-                    ...replayTagLocals,
-                    replaySchemaContextSource: replaySchemaContext.schemaContextSource,
-                    schemaBudgetProfile: schemaContextSettings.budgetProfile,
-                    schemaSizeKind:
-                        replaySchemaContext.schemaContext?.selectionMetadata?.schemaSizeKind,
-                    schemaDegradationSteps:
-                        replaySchemaContext.schemaContext?.selectionMetadata?.degradationSteps.join(
-                            ",",
-                        ) ?? "",
-                    schemaMessageOrder: schemaContextSettings.messageOrder,
-                    schemaContextChannel: schemaContextSettings.schemaContextChannel,
+                    ...runtimeLocals,
                     replayedAt: new Date().toISOString(),
                 },
                 error: {
@@ -754,17 +960,30 @@ export class InlineCompletionReplayService {
             isRunnable: (event) => event.result !== "pending" && event.result !== "queued",
             captureConfig: (event) => this.createCapturedReplayConfig(event),
             resolveLiveConfig: () => this.getCurrentReplayConfig(),
-            compactConfig: (config) => compactReplayConfig(config),
+            // Queue-time freeze point (WI-3.4): the active queue call's mode
+            // policy is stamped BEFORE compaction, so mode + fallback ride
+            // the frozen row config and its digest.
+            compactConfig: (config) => compactReplayConfig(this.stampQueueModePolicy(config)),
             compactPartialConfig: (partial) => compactPartialReplayConfig(partial),
             resolveMatrixCellConfig: (cell) =>
-                compactReplayConfig({
-                    ...this.getCurrentReplayConfig(),
-                    ...createInlineCompletionDebugPresetOverrides(cell.profileId),
-                    profileId: cell.profileId,
-                    schemaContext: {
-                        budgetProfile: cell.schemaBudgetProfileId,
-                    },
-                }),
+                compactReplayConfig(
+                    this.stampQueueModePolicy({
+                        ...this.getCurrentReplayConfig(),
+                        ...createInlineCompletionDebugPresetOverrides(cell.profileId),
+                        profileId: cell.profileId,
+                        // The captured-schema sentinel cell (schema axis
+                        // disabled by mode) keeps the base schema config —
+                        // the mode replays captured schema text anyway.
+                        ...(cell.schemaBudgetProfileId === CAPTURED_SCHEMA_CELL_SENTINEL &&
+                        cell.schemaLabel === CAPTURED_SCHEMA_CELL_LABEL
+                            ? {}
+                            : {
+                                  schemaContext: {
+                                      budgetProfile: cell.schemaBudgetProfileId,
+                                  },
+                              }),
+                    }),
+                ),
             formatCellLabel: (cell) => `${cell.profileLabel} x ${cell.schemaLabel}`,
             formatSourceLabel: (event) => `Live · ${formatReplayTime(event.timestamp)}`,
             createQueuedEvent: (snapshot, config, run, position, total, cell) =>
@@ -798,8 +1017,43 @@ export class InlineCompletionReplayService {
                     ...(recorded.result === "cancelled"
                         ? { cancellationOutcome: "cancelledInFlight" as const }
                         : {}),
+                    // WI-3.4: blocked items are the honest per-item refusal;
+                    // mode + schema source ride into the durable item record.
+                    ...(recorded.result === "blocked"
+                        ? {
+                              blockedReason:
+                                  asString(recorded.locals.replayBlockedReason) ||
+                                  "replay mode inputs unavailable",
+                          }
+                        : {}),
+                    ...(recorded.replayProvenance
+                        ? {
+                              replayMode: recorded.replayProvenance.mode,
+                              schemaContextSource: recorded.replayProvenance.schemaContextSource,
+                          }
+                        : {}),
                 };
                 return result;
+            },
+            // WI-3.4 axis-mode compatibility backstop: the drawer disables
+            // incompatible axes, and this refuses honestly anything that
+            // reaches the queue anyway (run flips to `failed` with reason).
+            preflight: async (context) => {
+                if (context.matrixCells > 0) {
+                    const modes = new Set(
+                        context.configs.map(
+                            (config) => resolveCompletionReplayModePolicy(config).mode,
+                        ),
+                    );
+                    if (modes.has("frozenPrompt")) {
+                        return {
+                            ok: false,
+                            blockedReason:
+                                "Matrix axes are incompatible with the frozenPrompt mode: the captured prompt is replayed verbatim, so profile and schema-budget axes cannot apply. Choose a rebuild mode or queue without a matrix.",
+                        };
+                    }
+                }
+                return { ok: true };
             },
             // §7.5: pre-queue cost estimate — sources × cells × 1 repetition,
             // input tokens summed from captured events where present.
@@ -975,6 +1229,10 @@ export class InlineCompletionReplayService {
                     ...(outcome.cancellationOutcome
                         ? { cancellationOutcome: outcome.cancellationOutcome }
                         : {}),
+                    ...(outcome.replayMode ? { replayMode: outcome.replayMode } : {}),
+                    ...(outcome.schemaContextSource
+                        ? { schemaContextSource: outcome.schemaContextSource }
+                        : {}),
                     attempt: outcome.attempt,
                 });
             },
@@ -1052,74 +1310,166 @@ export class InlineCompletionReplayService {
         return compactReplayConfig(inlineCompletionDebugStore.getOverrides());
     }
 
-    private async getReplaySchemaContext(
-        sourceEvent: InlineCompletionDebugEvent,
-        statementPrefix: string,
-        modelMaxInputTokens: number | undefined,
-        schemaContextOverrides: InlineCompletionDebugSchemaContextOverrides | null | undefined,
-    ): Promise<ReplaySchemaContextResult> {
-        if (this._deps.schemaContextService) {
-            try {
-                const refreshedContext =
-                    await this._deps.schemaContextService.getSchemaContextForOwnerUri(
-                        sourceEvent.documentUri,
-                        statementPrefix,
-                        modelMaxInputTokens,
-                        schemaContextOverrides,
-                    );
-                if (refreshedContext) {
-                    const schemaContext = {
-                        ...refreshedContext,
-                        inferredSystemQuery: sourceEvent.inferredSystemQuery,
-                    };
-                    return {
-                        schemaContext,
-                        schemaContextText: formatSchemaContextForPrompt(
-                            schemaContext,
-                            sourceEvent.inferredSystemQuery,
-                        ),
-                        schemaContextSource: "current",
-                        schemaObjectCount: schemaContext.tables.length + schemaContext.views.length,
-                        schemaSystemObjectCount:
-                            (schemaContext.systemObjects?.length ?? 0) +
-                            schemaContext.masterSymbols.length,
-                        schemaForeignKeyCount: getForeignKeyCount(schemaContext),
-                    };
-                }
-            } catch (error) {
-                this._logger.warn(
-                    `Failed to refresh schema context for inline completion replay: ${getErrorMessage(
-                        error,
-                    )}`,
-                );
-            }
-        }
-
-        if (sourceEvent.schemaContextFormatted) {
+    /**
+     * WI-3.4 mode/schema matrix (§7.7). One source resolution per mode, no
+     * implicit switching:
+     * - disabled config ⇒ "disabled" for every mode;
+     * - `rebuildCapturedContext` ⇒ captured text or "unavailable" — the
+     *   schema service is NEVER consulted;
+     * - `rebuildCurrentSchema` ⇒ current required; unavailable resolves
+     *   "explicitFallback" (captured, when the policy allows and a capture
+     *   exists), or "unavailable" (the caller blocks unless the policy is on);
+     * - `liveDocumentScenario` ⇒ current for the LIVE document or
+     *   "unavailable" (proceeds — the live scenario has nothing captured to
+     *   fall back to).
+     */
+    private async resolveModeSchemaContext(options: {
+        mode: Exclude<CompletionReplayMode, "frozenPrompt">;
+        fallbackToCaptured: boolean;
+        useSchemaContext: boolean;
+        sourceEvent: InlineCompletionDebugEvent;
+        ownerUri: string;
+        statementPrefix: string;
+        inferredSystemQuery: boolean;
+        modelMaxInputTokens: number | undefined;
+        schemaContextOverrides: InlineCompletionDebugSchemaContextOverrides | null | undefined;
+    }): Promise<ReplaySchemaContextResult> {
+        if (!options.useSchemaContext) {
             return {
                 schemaContext: undefined,
-                schemaContextText: sourceEvent.schemaContextFormatted,
-                schemaContextSource: "captured",
-                schemaObjectCount: sourceEvent.schemaObjectCount,
-                schemaSystemObjectCount: sourceEvent.schemaSystemObjectCount,
-                schemaForeignKeyCount: sourceEvent.schemaForeignKeyCount,
+                schemaContextText: "-- unavailable",
+                schemaContextSource: "disabled",
+                schemaObjectCount: 0,
+                schemaSystemObjectCount: 0,
+                schemaForeignKeyCount: 0,
             };
         }
 
+        if (options.mode === "rebuildCapturedContext") {
+            return options.sourceEvent.schemaContextFormatted
+                ? capturedSchemaContextResult(options.sourceEvent, "captured")
+                : unavailableSchemaContextResult();
+        }
+
+        const current = await this.fetchCurrentSchemaContext(options);
+        if (current) {
+            return current;
+        }
+        if (
+            options.mode === "rebuildCurrentSchema" &&
+            options.fallbackToCaptured &&
+            options.sourceEvent.schemaContextFormatted
+        ) {
+            // The RECORDED fallback dimension (§7.7): current was required,
+            // unavailable, and the user's explicit policy fell back.
+            return capturedSchemaContextResult(options.sourceEvent, "explicitFallback");
+        }
+        return unavailableSchemaContextResult();
+    }
+
+    private async fetchCurrentSchemaContext(options: {
+        ownerUri: string;
+        statementPrefix: string;
+        inferredSystemQuery: boolean;
+        modelMaxInputTokens: number | undefined;
+        schemaContextOverrides: InlineCompletionDebugSchemaContextOverrides | null | undefined;
+    }): Promise<ReplaySchemaContextResult | undefined> {
+        if (!this._deps.schemaContextService) {
+            return undefined;
+        }
+        try {
+            const refreshedContext =
+                await this._deps.schemaContextService.getSchemaContextForOwnerUri(
+                    options.ownerUri,
+                    options.statementPrefix,
+                    options.modelMaxInputTokens,
+                    options.schemaContextOverrides,
+                );
+            if (!refreshedContext) {
+                return undefined;
+            }
+            const schemaContext = {
+                ...refreshedContext,
+                inferredSystemQuery: options.inferredSystemQuery,
+            };
+            return {
+                schemaContext,
+                schemaContextText: formatSchemaContextForPrompt(
+                    schemaContext,
+                    options.inferredSystemQuery,
+                ),
+                schemaContextSource: "current",
+                schemaObjectCount: schemaContext.tables.length + schemaContext.views.length,
+                schemaSystemObjectCount:
+                    (schemaContext.systemObjects?.length ?? 0) + schemaContext.masterSymbols.length,
+                schemaForeignKeyCount: getForeignKeyCount(schemaContext),
+            };
+        } catch (error) {
+            this._logger.warn(
+                `Failed to refresh schema context for inline completion replay: ${getErrorMessage(
+                    error,
+                )}`,
+            );
+            return undefined;
+        }
+    }
+
+    /** Active SQL editor context for `liveDocumentScenario` (or the test seam). */
+    private resolveLiveDocumentContext(): InlineCompletionDocumentContext | undefined {
+        if (this._deps.getLiveDocumentContext) {
+            return this._deps.getLiveDocumentContext();
+        }
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.languageId !== "sql") {
+            return undefined;
+        }
+        return extractInlineCompletionDocumentContext(editor.document, editor.selection.active);
+    }
+
+    /** Apply the active queue call's mode policy (see _queueModePolicy). */
+    private stampQueueModePolicy(
+        config: InlineCompletionDebugReplayConfig,
+    ): InlineCompletionDebugReplayConfig {
+        const policy = this._queueModePolicy;
+        if (!policy) {
+            return config;
+        }
         return {
-            schemaContext: undefined,
-            schemaContextText: "-- unavailable",
-            schemaContextSource: "unavailable",
-            schemaObjectCount: 0,
-            schemaSystemObjectCount: 0,
-            schemaForeignKeyCount: 0,
+            ...config,
+            replayMode: policy.replayMode,
+            ...(policy.replayMode === "rebuildCurrentSchema"
+                ? { schemaFallbackToCaptured: policy.schemaFallbackToCaptured ?? true }
+                : { schemaFallbackToCaptured: undefined }),
         };
+    }
+
+    /** Scope the mode policy to one SYNCHRONOUS engine queue call. */
+    private withQueueModePolicy(
+        policy: ReplayQueueModePolicy | undefined,
+        queue: () => void,
+    ): void {
+        this._queueModePolicy = policy;
+        try {
+            queue();
+        } finally {
+            this._queueModePolicy = undefined;
+        }
+    }
+
+    private getExtensionVersion(): string {
+        const packageJson = this._deps.extensionContext.extension?.packageJSON as
+            | { version?: string }
+            | undefined;
+        return packageJson?.version ?? "unknown";
     }
 
     private async selectReplayModel(
         modelSelectorOverride: string | undefined,
         modelPreference: InlineCompletionModelPreference | undefined,
     ): Promise<vscode.LanguageModelChat | undefined> {
+        if (this._deps.selectModel) {
+            return this._deps.selectModel(modelSelectorOverride, modelPreference);
+        }
         const effectiveSelector =
             modelSelectorOverride ?? (modelPreference ? undefined : getConfiguredModelSelector());
         const all = await selectConfiguredLanguageModels();
@@ -1139,6 +1489,107 @@ export class InlineCompletionReplayService {
 /** Config-group label for non-matrix rows (matrix rows use the cell label). */
 function formatConfigGroupLabel(config: InlineCompletionDebugReplayConfig): string {
     return config.profileId ? `Profile: ${config.profileId}` : "Custom overrides";
+}
+
+// --- WI-3.4 mode helpers -----------------------------------------------------
+
+/**
+ * Sentinel cell id used when a mode disables the schema-budget axis: the
+ * matrix keeps ONE schema column pinned to the captured schema context.
+ * "custom" is safe as the sentinel because runMatrix filters real "custom"
+ * selections out of enabled-axis cells; the label disambiguates.
+ */
+export const CAPTURED_SCHEMA_CELL_SENTINEL: InlineCompletionSchemaBudgetProfileId = "custom";
+export const CAPTURED_SCHEMA_CELL_LABEL = "Captured schema";
+
+export const CURRENT_SCHEMA_UNAVAILABLE_REASON =
+    "Current schema context is required by rebuildCurrentSchema and was unavailable (no schema service result for the source document). Queue with the captured-schema fallback policy to proceed.";
+export const LIVE_DOCUMENT_UNAVAILABLE_REASON =
+    "liveDocumentScenario needs an active SQL editor to re-run against — none was open.";
+
+function capturedSchemaContextResult(
+    sourceEvent: InlineCompletionDebugEvent,
+    schemaContextSource: "captured" | "explicitFallback",
+): ReplaySchemaContextResult {
+    return {
+        schemaContext: undefined,
+        schemaContextText: sourceEvent.schemaContextFormatted ?? "-- unavailable",
+        schemaContextSource,
+        schemaObjectCount: sourceEvent.schemaObjectCount,
+        schemaSystemObjectCount: sourceEvent.schemaSystemObjectCount,
+        schemaForeignKeyCount: sourceEvent.schemaForeignKeyCount,
+    };
+}
+
+function unavailableSchemaContextResult(): ReplaySchemaContextResult {
+    return {
+        schemaContext: undefined,
+        schemaContextText: "-- unavailable",
+        schemaContextSource: "unavailable",
+        schemaObjectCount: 0,
+        schemaSystemObjectCount: 0,
+        schemaForeignKeyCount: 0,
+    };
+}
+
+/** frozenPrompt: the captured debug messages sent verbatim (no rebuild). */
+function toLanguageModelChatMessages(
+    messages: InlineCompletionDebugPromptMessage[],
+): vscode.LanguageModelChatMessage[] {
+    return messages.map((message) =>
+        message.role === "assistant"
+            ? vscode.LanguageModelChatMessage.Assistant(message.content)
+            : vscode.LanguageModelChatMessage.User(message.content),
+    );
+}
+
+/** Terminal shape of a per-item mode refusal (result: "blocked"). */
+function createBlockedReplayEvent(
+    sourceEvent: InlineCompletionDebugEvent,
+    context: {
+        completionCategory: InlineCompletionCategory;
+        intentMode: boolean;
+        overridesApplied: InlineCompletionDebugEvent["overridesApplied"];
+        tags: InlineCompletionDebugEventTags | undefined;
+        replayStartedAt: number;
+        model?: vscode.LanguageModelChat;
+    },
+    locals: Record<string, unknown>,
+): Omit<InlineCompletionDebugEvent, "id"> {
+    return {
+        ...cloneBaseEvent(sourceEvent),
+        timestamp: Date.now(),
+        completionCategory: context.completionCategory,
+        intentMode: context.intentMode,
+        result: "blocked",
+        latencyMs: Date.now() - context.replayStartedAt,
+        inputTokens: undefined,
+        outputTokens: undefined,
+        modelFamily: context.model?.family,
+        modelId: context.model?.id,
+        modelVendor: context.model?.vendor,
+        usedSchemaContext: false,
+        schemaObjectCount: 0,
+        schemaSystemObjectCount: 0,
+        schemaForeignKeyCount: 0,
+        overridesApplied: context.overridesApplied,
+        promptMessages: sourceEvent.promptMessages,
+        rawResponse: "",
+        sanitizedResponse: undefined,
+        finalCompletionText: undefined,
+        schemaContextFormatted: undefined,
+        tags: context.tags,
+        locals,
+    };
+}
+
+/** Digest failures must never break a replay — recorded as "" honestly. */
+function safeCanonicalDigest(value: unknown): string {
+    try {
+        return sha256OfCanonicalJson(value);
+    } catch {
+        return "";
+    }
 }
 
 export function formatTraceSourceLabel(
@@ -1165,9 +1616,19 @@ function getModelSelectorForCompletionCategory(
     return overrides.modelSelector ?? undefined;
 }
 
-function compactReplayConfig(
+export function compactReplayConfig(
     config: Partial<InlineCompletionDebugReplayConfig>,
 ): InlineCompletionDebugReplayConfig {
+    // WI-3.4: normalization makes the mode policy EXPLICIT on every compact
+    // config (the default mapping resolves absent modes), so the mode is part
+    // of the effective-config digest input and of config-group identity. The
+    // fallback flag exists only where it means something (rebuildCurrentSchema).
+    const modePolicy = resolveCompletionReplayModePolicy({
+        replayMode: isCompletionReplayMode(config.replayMode) ? config.replayMode : undefined,
+        ...(typeof config.schemaFallbackToCaptured === "boolean"
+            ? { schemaFallbackToCaptured: config.schemaFallbackToCaptured }
+            : {}),
+    });
     return {
         profileId: getInlineCompletionDebugProfileId(config.profileId) ?? null,
         modelSelector: normalizeStringOrNull(config.modelSelector),
@@ -1187,6 +1648,10 @@ function compactReplayConfig(
         schemaContext: isRecord(config.schemaContext)
             ? (cloneJson(config.schemaContext) as InlineCompletionDebugSchemaContextOverrides)
             : null,
+        replayMode: modePolicy.mode,
+        ...(modePolicy.mode === "rebuildCurrentSchema"
+            ? { schemaFallbackToCaptured: modePolicy.fallbackToCaptured }
+            : {}),
     };
 }
 

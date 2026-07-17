@@ -61,7 +61,15 @@ export class InlineCompletionDebugCommandHandler {
             this._selectedEventId = undefined;
         },
         selectEvent: (payload) => {
-            this._selectedEventId = payload?.eventId;
+            // Deep links (Replay Lab, WI-3.5) may address an event by its
+            // DURABLE captureEventId; resolve it to the ring display id the
+            // grids key on. Unresolvable ids are kept verbatim (no-op
+            // highlight) — never a throw.
+            const eventId = payload?.eventId;
+            this._selectedEventId =
+                eventId !== undefined && !inlineCompletionDebugStore.getEvent(eventId)
+                    ? (inlineCompletionDebugStore.findByCaptureEventId(eventId)?.id ?? eventId)
+                    : eventId;
         },
         updateOverrides: (payload) => {
             inlineCompletionDebugStore.updateOverrides(
@@ -216,10 +224,31 @@ export class InlineCompletionDebugCommandHandler {
             this._deps.replayService.setCartConfigMode(payload.snapshotId, payload.configMode);
         },
         queueReplayCart: (payload) => {
-            this._deps.replayService.queueCart(payload.configMode);
+            this._deps.replayService.queueCart(
+                payload.configMode,
+                payload.replayMode
+                    ? {
+                          replayMode: payload.replayMode,
+                          ...(payload.schemaFallbackToCaptured !== undefined
+                              ? { schemaFallbackToCaptured: payload.schemaFallbackToCaptured }
+                              : {}),
+                      }
+                    : undefined,
+            );
         },
         runReplayMatrix: (payload) => {
-            this._deps.replayService.runMatrix(payload.profileIds, payload.schemaBudgetProfileIds);
+            this._deps.replayService.runMatrix(
+                payload.profileIds,
+                payload.schemaBudgetProfileIds,
+                payload.replayMode
+                    ? {
+                          replayMode: payload.replayMode,
+                          ...(payload.schemaFallbackToCaptured !== undefined
+                              ? { schemaFallbackToCaptured: payload.schemaFallbackToCaptured }
+                              : {}),
+                      }
+                    : undefined,
+            );
         },
         cancelReplayRun: (payload) => {
             this._deps.replayService.cancelRun(payload.runId);

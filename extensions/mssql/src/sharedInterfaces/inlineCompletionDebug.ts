@@ -21,7 +21,14 @@ export type InlineCompletionDebugEventResult =
     | InlineCompletionResult
     | "cancelled"
     | "pending"
-    | "queued";
+    | "queued"
+    /**
+     * WI-3.4: a replay item whose mode required inputs that were unavailable
+     * (rebuildCurrentSchema without current schema and without a fallback
+     * policy; liveDocumentScenario without an active SQL editor). Nothing
+     * executed — the honest per-item refusal state, never an "error".
+     */
+    | "blocked";
 
 export const inlineCompletionCategories = ["continuation", "intent"] as const;
 
@@ -110,6 +117,166 @@ export interface InlineCompletionDebugSchemaContextOverrides {
     [key: string]: unknown;
 }
 
+// ---------------------------------------------------------------------------
+// Explicit completion replay modes (final plan WI-3.4 / addendum §7.7 —
+// NORMATIVE). No implicit mode switch: every replay execution resolves ONE of
+// these modes, and the resolved mode + fallback policy are frozen into the
+// row config at queue time and recorded as provenance on the result event.
+// ---------------------------------------------------------------------------
+
+export const completionReplayModes = [
+    "frozenPrompt",
+    "rebuildCapturedContext",
+    "rebuildCurrentSchema",
+    "liveDocumentScenario",
+] as const;
+
+export type CompletionReplayMode = (typeof completionReplayModes)[number];
+
+export function isCompletionReplayMode(value: unknown): value is CompletionReplayMode {
+    return (
+        typeof value === "string" && (completionReplayModes as readonly string[]).includes(value)
+    );
+}
+
+/**
+ * The addendum §7.7 mode table, one line per mode — rendered by the drawer's
+ * mode selector and the Replay Lab.
+ */
+export const completionReplayModeOptions: ReadonlyArray<{
+    id: CompletionReplayMode;
+    label: string;
+    description: string;
+}> = [
+    {
+        id: "frozenPrompt",
+        label: "Frozen prompt",
+        description: "Captured exact prompt messages; no rebuild — compare models or sanitizer.",
+    },
+    {
+        id: "rebuildCapturedContext",
+        label: "Rebuild · captured context",
+        description:
+            "Rebuild with the current prompt builder over captured editor + schema context.",
+    },
+    {
+        id: "rebuildCurrentSchema",
+        label: "Rebuild · current schema",
+        description:
+            "Rebuild over captured editor context with CURRENT schema (required unless fallback).",
+    },
+    {
+        id: "liveDocumentScenario",
+        label: "Live document scenario",
+        description:
+            "Re-run against the current active document state and schema — not strict pairing.",
+    },
+];
+
+/**
+ * Matrix axes the completions replay matrix offers, and which modes each axis
+ * is compatible with (§7.7: matrix axes declare which modes they affect).
+ * - `profile` changes prompt construction → meaningless under `frozenPrompt`;
+ * - `schemaBudget` changes schema retrieval → meaningless under `frozenPrompt`
+ *   (schema embedded in the frozen prompt) and `rebuildCapturedContext`
+ *   (captured schema text replayed verbatim).
+ * Queue-time enforcement lives in the completions replay service (preflight
+ * refusal); this table is the single data source both the UI and the service
+ * consult.
+ */
+export const completionReplayMatrixAxes = ["profile", "schemaBudget"] as const;
+
+export type CompletionReplayMatrixAxis = (typeof completionReplayMatrixAxes)[number];
+
+export const completionReplayAxisCompatibility: Record<
+    CompletionReplayMatrixAxis,
+    readonly CompletionReplayMode[]
+> = {
+    profile: ["rebuildCapturedContext", "rebuildCurrentSchema", "liveDocumentScenario"],
+    schemaBudget: ["rebuildCurrentSchema", "liveDocumentScenario"],
+};
+
+export function isReplayAxisEnabledForMode(
+    axis: CompletionReplayMatrixAxis,
+    mode: CompletionReplayMode,
+): boolean {
+    return completionReplayAxisCompatibility[axis].includes(mode);
+}
+
+/** One-line UI explanation for a mode's disabled axes (dense, not a banner). */
+export function getReplayAxisDisabledReason(mode: CompletionReplayMode): string | undefined {
+    switch (mode) {
+        case "frozenPrompt":
+            return "Frozen prompt replays the captured messages verbatim — no prompt-construction axis applies.";
+        case "rebuildCapturedContext":
+            return "Schema-budget axis disabled — this mode replays the captured schema context verbatim.";
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * Default mapping (WI-3.4): a config with NO explicit mode behaves like the
+ * pre-WI-3.4 implicit replay — fresh schema when available, captured schema
+ * otherwise — which is exactly `rebuildCurrentSchema` with the explicit
+ * fallback policy on. Every legacy entry point (single-event replay, session
+ * replay, queue/matrix without a mode selection) resolves through here, so
+ * behavior is preserved while becoming explicit and recorded.
+ */
+export function resolveCompletionReplayModePolicy(config: {
+    replayMode?: CompletionReplayMode;
+    schemaFallbackToCaptured?: boolean;
+}): { mode: CompletionReplayMode; fallbackToCaptured: boolean } {
+    const mode = isCompletionReplayMode(config.replayMode) ? config.replayMode : DEFAULT_MODE;
+    return {
+        mode,
+        fallbackToCaptured:
+            typeof config.schemaFallbackToCaptured === "boolean"
+                ? config.schemaFallbackToCaptured
+                : true,
+    };
+}
+
+const DEFAULT_MODE: CompletionReplayMode = "rebuildCurrentSchema";
+
+/** Frozen schema id (addendum Appendix D — normative). */
+export const COMPLETION_REPLAY_PROVENANCE_SCHEMA = "mssql.completionsReplayProvenance/1";
+
+/**
+ * Where the replayed request's schema context came from (§7.7 rules):
+ * `explicitFallback` = current schema was required but unavailable AND the
+ * run was queued with `fallbackToCaptured` — a recorded dimension, never an
+ * implicit switch.
+ */
+export type CompletionReplaySchemaContextSource =
+    | "captured"
+    | "current"
+    | "disabled"
+    | "unavailable"
+    | "explicitFallback";
+
+/** Addendum Appendix D — normative. Attached to every replayed result event. */
+export interface CompletionReplayProvenanceV1 {
+    schema: typeof COMPLETION_REPLAY_PROVENANCE_SCHEMA;
+    mode: CompletionReplayMode;
+    promptBuilderVersion?: string;
+    sanitizerVersion?: string;
+    sourceEventSchema: string;
+    sourcePromptDigest?: string;
+    sourceSchemaContextDigest?: string;
+    replaySchemaContextDigest?: string;
+    schemaContextSource: CompletionReplaySchemaContextSource;
+    extensionVersion: string;
+    extensionCommit?: string;
+    model: {
+        requestedSelector?: string;
+        resolvedVendor?: string;
+        resolvedFamily?: string;
+        resolvedId?: string;
+    };
+    effectiveConfigDigest: string;
+}
+
 export interface InlineCompletionDebugEventTags {
     replayTraceId?: string;
     replayRunId?: string;
@@ -151,6 +318,13 @@ export interface InlineCompletionDebugEvent {
     finalCompletionText: string | undefined;
     schemaContextFormatted: string | undefined;
     tags?: InlineCompletionDebugEventTags;
+    /**
+     * WI-3.4 (additive): replay executions attach their Appendix D provenance
+     * — mode, prompt-builder/sanitizer versions, schema-context source (incl.
+     * explicit fallback), resolved model, effective config digest. Absent on
+     * live (non-replay) events and on captures made before the field existed.
+     */
+    replayProvenance?: CompletionReplayProvenanceV1;
     locals: {
         [key: string]: unknown;
     };
@@ -217,7 +391,24 @@ export interface InlineCompletionDebugCustomPromptState {
     lastSavedAt?: number;
 }
 
-export type InlineCompletionDebugReplayConfig = InlineCompletionDebugOverrides;
+/**
+ * The frozen per-row replay configuration: the overrides surface plus the
+ * WI-3.4 mode policy. Both additive fields are OPTIONAL so every
+ * `InlineCompletionDebugOverrides` value remains assignable (legacy captures,
+ * live toolbar overrides); `compactReplayConfig` stamps them explicitly when
+ * a config freezes at queue time, which makes the mode part of the
+ * effective-config digest input (and therefore of config-group identity).
+ */
+export interface InlineCompletionDebugReplayConfig extends InlineCompletionDebugOverrides {
+    /** Explicit replay mode; absent = the default mapping (rebuildCurrentSchema + fallback). */
+    replayMode?: CompletionReplayMode;
+    /**
+     * rebuildCurrentSchema only: when required current schema is unavailable,
+     * fall back to the captured schema context (recorded as provenance
+     * `schemaContextSource: "explicitFallback"`) instead of blocking the item.
+     */
+    schemaFallbackToCaptured?: boolean;
+}
 
 export type InlineCompletionDebugReplayCartConfigMode = "snapshot" | "override" | "live";
 
@@ -275,6 +466,8 @@ export interface InlineCompletionDebugReplayRun {
     estimate?: ReplayEstimate;
     safety?: ReplaySafetyAssessment;
     durable?: boolean;
+    /** WI-3.4: items refused because mode-required inputs were unavailable. */
+    blockedEvents?: number;
 }
 
 export interface InlineCompletionDebugReplayQueueRow {
@@ -409,10 +602,17 @@ export interface InlineCompletionDebugReducers {
     };
     queueReplayCart: {
         configMode?: InlineCompletionDebugReplayCartConfigMode;
+        /** WI-3.4: explicit mode selection; absent = the default mapping. */
+        replayMode?: CompletionReplayMode;
+        schemaFallbackToCaptured?: boolean;
     };
     runReplayMatrix: {
         profileIds: InlineCompletionDebugProfileId[];
+        /** Empty when the mode disables the schema-budget axis (captured schema cells). */
         schemaBudgetProfileIds: InlineCompletionSchemaBudgetProfileId[];
+        /** WI-3.4: explicit mode selection; absent = the default mapping. */
+        replayMode?: CompletionReplayMode;
+        schemaFallbackToCaptured?: boolean;
     };
     cancelReplayRun: {
         runId?: string;

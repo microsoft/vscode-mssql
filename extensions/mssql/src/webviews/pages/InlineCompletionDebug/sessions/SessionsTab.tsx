@@ -74,6 +74,7 @@ const dimensions: Array<{ key: InlineCompletionAnalysisDimension; label: string 
     { key: "replayRun", label: "Replay run" },
     { key: "replayMatrixCell", label: "Matrix cell" },
     { key: "replaySourceEvent", label: "Replay source" },
+    { key: "replayMode", label: "Replay mode" },
     { key: "replayTrace", label: "Replay trace" },
 ];
 const visibleDimensions = dimensions.filter((dimension) => dimension.key !== "language");
@@ -1821,6 +1822,8 @@ function getSelectedFacetValues(
             return filters.replayMatrixCells ?? [];
         case "replaySourceEvent":
             return filters.replaySourceEvents ?? [];
+        case "replayMode":
+            return filters.replayModes ?? [];
     }
 }
 
@@ -1856,6 +1859,8 @@ function getFilterKey(
             return "replayMatrixCells";
         case "replaySourceEvent":
             return "replaySourceEvents";
+        case "replayMode":
+            return "replayModes";
     }
 }
 

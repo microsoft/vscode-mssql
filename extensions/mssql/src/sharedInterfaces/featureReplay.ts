@@ -73,6 +73,12 @@ export interface FeatureReplayRun<TCell extends FeatureReplayMatrixCellBase> {
     cancelRequestedAt?: number;
     /** Honest reason for a "failed" run that never queued (cap/preflight). */
     errorMessage?: string;
+    /**
+     * WI-3.4: items whose mode-required inputs were unavailable and that were
+     * therefore refused per-item (they count into completedEvents progress
+     * but executed nothing). Absent/0 when nothing blocked.
+     */
+    blockedEvents?: number;
     /** Pre-queue cost estimate when the host provides one (addendum §7.5). */
     estimate?: ReplayEstimate;
     /** Adapter safety classification when the host provides one (§7.8). */
@@ -142,6 +148,16 @@ export interface FeatureReplayExecuteResult {
     resultCaptureEventId?: string;
     /** Host-observed cancellation outcome, overriding engine inference. */
     cancellationOutcome?: ReplayCancellationOutcome;
+    /**
+     * WI-3.4: set when the item was refused because its replay mode required
+     * inputs that were unavailable (e.g. required current schema). The engine
+     * records the item as `blocked` — a visible state, never an error.
+     */
+    blockedReason?: string;
+    /** WI-3.4: the feature-declared replay mode this item executed under. */
+    replayMode?: string;
+    /** WI-3.4: where the item's schema/context inputs came from (incl. explicit fallback). */
+    schemaContextSource?: string;
 }
 
 export function createEmptyFeatureReplayState<

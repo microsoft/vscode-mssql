@@ -144,8 +144,15 @@ export const InlineCompletionDebugPage = () => {
         };
     }, [filteredEvents]);
     const activeRun = replay.runs.find((run) => run.id === replay.activeRunId);
+    // "cancelling" stays visible: the active item is still settling and the
+    // user must see that the cancel is in progress (honesty, WI-3.5 fix —
+    // the strip previously vanished the moment cancel was pressed).
     const activeRunIsVisible =
-        !!activeRun && (activeRun.status === "queued" || activeRun.status === "running");
+        !!activeRun &&
+        (activeRun.status === "queued" ||
+            activeRun.status === "running" ||
+            activeRun.status === "cancelling");
+    const activeRunCancelling = activeRun?.status === "cancelling";
     const activeMatrixCell = activeRun?.matrixCells?.find(
         (cell) => cell.cellId === activeRun.activeMatrixCellId,
     );
@@ -249,8 +256,11 @@ export const InlineCompletionDebugPage = () => {
                                     className={classes.cancelRunButton}
                                     appearance="outline"
                                     size="small"
+                                    disabled={activeRunCancelling}
                                     onClick={() => cancelReplayRun(activeRun.id)}>
-                                    Cancel queue
+                                    {activeRunCancelling
+                                        ? "Cancelling — waiting for the active item…"
+                                        : "Cancel queue"}
                                 </Button>
                             </div>
                         ) : null}
