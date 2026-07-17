@@ -41,7 +41,7 @@ function Pill({ on, labelOn, labelOff }: { on: boolean; labelOn: string; labelOf
 }
 
 export function CompletionsPage() {
-    const { rpc, activeSourceId, dataVersion } = useDc();
+    const { rpc, activeSourceId, dataVersion, route } = useDc();
     const [status, setStatus] = useState<CompletionsStatusInfo | undefined>(undefined);
     const [events, setEvents] = useState<DiagEvent[]>([]);
     const [busy, setBusy] = useState(false);
@@ -206,7 +206,13 @@ export function CompletionsPage() {
                                     loading debug tools…
                                 </div>
                             }>
-                            <InlineCompletionDebugApp layout="fill" />
+                            {/* WI-4.4 deep link: a History "Completions n"
+                                chip routes here with the host session whose
+                                stored captures should join the dataset. */}
+                            <InlineCompletionDebugApp
+                                layout="fill"
+                                sessionsDatasetHint={route.completionsDatasetSession}
+                            />
                         </Suspense>
                     </ConsoleCompletionsDebugStateProvider>
                 </div>

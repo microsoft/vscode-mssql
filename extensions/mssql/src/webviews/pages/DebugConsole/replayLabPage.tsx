@@ -30,13 +30,20 @@ import {
 } from "../../../sharedInterfaces/debugConsole";
 import {
     DcOpenQueryStudioReplayRequest,
+    DcReplayRunAnalysisRequest,
     DcReplayRunDetailRequest,
     DcReplayRunDetailResult,
     DcReplayRunListRequest,
     ReplayLabRunRowV1,
+    filterReplayLabRunRowsByHostSession,
     mergeReplayLabRunRows,
     projectLiveReplayRunRow,
 } from "../../../sharedInterfaces/replayLabRpc";
+import {
+    ReplayCellAggregateV1,
+    ReplayPairedCellDeltaV1,
+    ReplayRunAnalysisV1,
+} from "../../../sharedInterfaces/inlineCompletionReplayAnalysis";
 import { EmptyState, PageHeader, formatDuration, formatTime } from "./common";
 import { ConsoleCompletionsDebugStateProvider } from "./completionsDebug/consoleStateProvider";
 import { useInlineCompletionDebugSelector } from "../InlineCompletionDebug/inlineCompletionDebugSelector";
@@ -140,7 +147,7 @@ export function ReplayLabPage() {
 }
 
 function ReplayLabContent() {
-    const { rpc, navigate } = useDc();
+    const { rpc, navigate, route, state } = useDc();
     const { openReplayBuilder, cancelReplayRun, selectEvent } = useInlineCompletionDebugContext();
     const liveRuns = useInlineCompletionDebugSelector((state) => state.replay.runs);
 
@@ -153,8 +160,26 @@ function ReplayLabContent() {
     const [selectedRunId, setSelectedRunId] = useState<string | undefined>(undefined);
     const [detail, setDetail] = useState<DcReplayRunDetailResult | undefined>(undefined);
     const [detailLoading, setDetailLoading] = useState(false);
+    // WI-4.2: per-run paired analysis (thin aggregates; lazy per selection).
+    const [analysis, setAnalysis] = useState<ReplayRunAnalysisV1 | undefined>(undefined);
+    const [analysisLoading, setAnalysisLoading] = useState(false);
+    const [analysisBaseline, setAnalysisBaseline] = useState<string | undefined>(undefined);
+    // WI-4.4: History "Replay runs n" chip filter (clearable in the toolbar).
+    const [hostSessionFilter, setHostSessionFilter] = useState<string | undefined>(
+        route.replayHostSession,
+    );
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const mountedRef = useRef(true);
+    // The initial snapshot's activeSourceId is always `live:<hostSessionId>`.
+    const currentHostSessionId = state?.activeSourceId?.startsWith("live:")
+        ? state.activeSourceId.slice("live:".length)
+        : undefined;
+
+    useEffect(() => {
+        if (route.replayHostSession !== undefined) {
+            setHostSessionFilter(route.replayHostSession);
+        }
+    }, [route.replayHostSession]);
 
     const fetchList = useCallback(async () => {
         try {
@@ -216,6 +241,35 @@ function ReplayLabContent() {
         [rpc],
     );
 
+    const fetchAnalysis = useCallback(
+        async (
+            runId: string,
+            hostSessionId: string | undefined,
+            baselineCellId: string | undefined,
+        ) => {
+            setAnalysisLoading(true);
+            try {
+                const result = await rpc.sendRequest(DcReplayRunAnalysisRequest.type, {
+                    replayRunId: runId,
+                    ...(hostSessionId !== undefined ? { hostSessionId } : {}),
+                    ...(baselineCellId !== undefined ? { baselineCellId } : {}),
+                });
+                if (mountedRef.current) {
+                    setAnalysis(result.found ? result.analysis : undefined);
+                }
+            } catch {
+                if (mountedRef.current) {
+                    setAnalysis(undefined);
+                }
+            } finally {
+                if (mountedRef.current) {
+                    setAnalysisLoading(false);
+                }
+            }
+        },
+        [rpc],
+    );
+
     useEffect(() => {
         mountedRef.current = true;
         void fetchList();
@@ -256,28 +310,53 @@ function ReplayLabContent() {
             void fetchList();
             if (selectedRunId) {
                 void fetchDetail(selectedRunId, selectedRow?.hostSessionId);
+                void fetchAnalysis(selectedRunId, selectedRow?.hostSessionId, analysisBaseline);
             }
         }, 600);
         // liveSignature is the real trigger (run state changed in the
         // engine); selection deps keep a pending timer from refreshing a
         // previously selected run's detail over the current one.
-    }, [liveSignature, selectedRunId, selectedRow?.hostSessionId, fetchList, fetchDetail]);
+    }, [
+        liveSignature,
+        selectedRunId,
+        selectedRow?.hostSessionId,
+        analysisBaseline,
+        fetchList,
+        fetchDetail,
+        fetchAnalysis,
+    ]);
 
     const rows = useMemo(
         () =>
-            mergeReplayLabRunRows(
-                liveRuns.map((run) => projectLiveReplayRunRow(run)),
-                durableRows,
+            filterReplayLabRunRowsByHostSession(
+                mergeReplayLabRunRows(
+                    liveRuns.map((run) => projectLiveReplayRunRow(run)),
+                    durableRows,
+                ),
+                hostSessionFilter,
+                currentHostSessionId,
             ).filter((row) => row.featureId === feature),
-        [durableRows, feature, liveRuns],
+        [durableRows, feature, liveRuns, hostSessionFilter, currentHostSessionId],
     );
 
     const selectRun = useCallback(
         (row: ReplayLabRunRowV1) => {
             setSelectedRunId(row.replayRunId);
+            setAnalysisBaseline(undefined); // baseline is per-run
             void fetchDetail(row.replayRunId, row.hostSessionId);
+            void fetchAnalysis(row.replayRunId, row.hostSessionId, undefined);
         },
-        [fetchDetail],
+        [fetchDetail, fetchAnalysis],
+    );
+
+    const changeAnalysisBaseline = useCallback(
+        (baselineCellId: string) => {
+            setAnalysisBaseline(baselineCellId);
+            if (selectedRunId) {
+                void fetchAnalysis(selectedRunId, selectedRow?.hostSessionId, baselineCellId);
+            }
+        },
+        [fetchAnalysis, selectedRunId, selectedRow?.hostSessionId],
     );
 
     const openInCompletions = useCallback(
@@ -299,6 +378,8 @@ function ReplayLabContent() {
         // Selection belongs to the previous feature's table.
         setSelectedRunId(undefined);
         setDetail(undefined);
+        setAnalysis(undefined);
+        setAnalysisBaseline(undefined);
     }, []);
 
     const featureEnabled = status?.featureEnabled === true;
@@ -342,6 +423,20 @@ function ReplayLabContent() {
                         <option value="queryStudio">▤ Query Studio</option>
                     </select>
                     <span className="dc-muted dc-lab-semantics">{SEMANTICS_LABEL}</span>
+                    {hostSessionFilter !== undefined ? (
+                        <span
+                            className="dc-pill diag"
+                            title={`Showing only runs from host session ${hostSessionFilter} (History deep link)`}>
+                            session {hostSessionFilter.slice(0, 11)}…
+                            <button
+                                className="dc-btn"
+                                style={{ marginLeft: 4, padding: "0 3px", height: 14 }}
+                                title="Clear the session filter"
+                                onClick={() => setHostSessionFilter(undefined)}>
+                                ✕
+                            </button>
+                        </span>
+                    ) : null}
                     <div style={{ flex: 1 }} />
                     {issueCount > 0 ? (
                         <span
@@ -430,6 +525,9 @@ function ReplayLabContent() {
                                 row={selectedRow}
                                 detail={detail}
                                 loading={detailLoading}
+                                analysis={analysis}
+                                analysisLoading={analysisLoading}
+                                onBaselineChange={changeAnalysisBaseline}
                                 onCancel={cancelReplayRun}
                                 onOpenEvent={openInCompletions}
                             />
@@ -526,12 +624,18 @@ function RunDetailPane({
     row,
     detail,
     loading,
+    analysis,
+    analysisLoading,
+    onBaselineChange,
     onCancel,
     onOpenEvent,
 }: {
     row: ReplayLabRunRowV1 | undefined;
     detail: DcReplayRunDetailResult | undefined;
     loading: boolean;
+    analysis: ReplayRunAnalysisV1 | undefined;
+    analysisLoading: boolean;
+    onBaselineChange: (baselineCellId: string) => void;
     onCancel: (runId: string) => void;
     onOpenEvent: (eventId: string) => void;
 }) {
@@ -703,6 +807,11 @@ function RunDetailPane({
                                 showing {detail.items.length} of {detail.itemsTotal} items
                             </div>
                         ) : null}
+                        <RunAnalysisSection
+                            analysis={analysis}
+                            loading={analysisLoading}
+                            onBaselineChange={onBaselineChange}
+                        />
                     </div>
                     <div className="dc-lab-groups">
                         <div className="dc-lab-groups-title">
@@ -734,6 +843,244 @@ function RunDetailPane({
             )}
         </div>
     );
+}
+
+/**
+ * WI-4.2 "Analysis" section (addendum §8.3): per-cell aggregates + source-
+ * paired deltas versus a selectable baseline cell. Dense, table-first, with
+ * the exploratory label as a fixed subtitle. n=1 cells and paired sets are
+ * marked "n=1" — a single call per cell is debugging evidence, not a stable
+ * quality conclusion; no confidence intervals are shown anywhere.
+ */
+function RunAnalysisSection({
+    analysis,
+    loading,
+    onBaselineChange,
+}: {
+    analysis: ReplayRunAnalysisV1 | undefined;
+    loading: boolean;
+    onBaselineChange: (baselineCellId: string) => void;
+}) {
+    if (!analysis) {
+        return (
+            <div className="dc-lab-analysis">
+                <div className="dc-lab-analysis-head">
+                    <span className="dc-lab-groups-title">analysis</span>
+                    <span className="dc-muted" style={{ fontSize: 10.5 }}>
+                        {loading ? "computing…" : "no settled item records to analyze"}
+                    </span>
+                </div>
+            </div>
+        );
+    }
+    const hasSettled = analysis.cells.some((cell) => cell.settledItems > 0);
+    return (
+        <div className="dc-lab-analysis">
+            <div className="dc-lab-analysis-head">
+                <span className="dc-lab-groups-title">analysis</span>
+                <span
+                    className="dc-muted"
+                    style={{ fontSize: 10.5, minWidth: 0, overflow: "hidden" }}
+                    title={analysis.exploratoryLabel}>
+                    {analysis.exploratoryLabel}
+                </span>
+                <div style={{ flex: 1 }} />
+                {analysis.cells.length > 1 ? (
+                    <>
+                        <label className="dc-muted" style={{ fontSize: 11 }}>
+                            baseline
+                        </label>
+                        <select
+                            className="dc-session-select"
+                            value={analysis.baselineCellId}
+                            onChange={(event) => onBaselineChange(event.target.value)}>
+                            {analysis.cells.map((cell) => (
+                                <option key={cell.cellId} value={cell.cellId}>
+                                    {cell.label}
+                                </option>
+                            ))}
+                        </select>
+                    </>
+                ) : null}
+            </div>
+            <table className="dc-table">
+                <thead>
+                    <tr>
+                        <th>cell</th>
+                        <th title="settled of expected (sources × repetitions)">n</th>
+                        <th title="completed / failed / cancelled / blocked">c/f/x/b</th>
+                        <th title="missing = expected − settled − pending; never imputed">miss</th>
+                        <th title="latency over completed items (p50 / p95, n)">lat p50/p95</th>
+                        <th title="token sums over completed items whose result events resolved (sample count)">
+                            tok in/out
+                        </th>
+                        <th title="items producing nonempty output / items with known output (result event resolved)">
+                            out
+                        </th>
+                        <th title="replay mode · schema-context sources (explicit fallbacks counted)">
+                            mode · schema
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {analysis.cells.map((cell) => (
+                        <AnalysisCellRow
+                            key={cell.cellId}
+                            cell={cell}
+                            baseline={cell.cellId === analysis.baselineCellId}
+                        />
+                    ))}
+                </tbody>
+            </table>
+            {analysis.pairedDeltas.length > 0 ? (
+                <>
+                    <div className="dc-lab-analysis-subhead dc-muted">
+                        source-paired deltas vs baseline · same sources on both sides only
+                    </div>
+                    <table className="dc-table">
+                        <thead>
+                            <tr>
+                                <th>cell</th>
+                                <th title="sources with a completed item in BOTH this cell and the baseline">
+                                    paired
+                                </th>
+                                <th title="sources missing a completed item on either side — never imputed">
+                                    miss
+                                </th>
+                                <th title="per-source latency delta (cell − baseline): mean / p50">
+                                    Δlat mean/p50
+                                </th>
+                                <th title="per-source mean token deltas (cell − baseline)">
+                                    Δtok in/out
+                                </th>
+                                <th title="output-presence rate delta over pairs with known presence on both sides">
+                                    Δout
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {analysis.pairedDeltas.map((delta) => (
+                                <AnalysisDeltaRow key={delta.cellId} delta={delta} />
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            ) : hasSettled && analysis.cells.length <= 1 ? (
+                <div className="dc-lab-analysis-subhead dc-muted">
+                    single-cell run — no paired comparison
+                </div>
+            ) : null}
+            {analysis.unresolvedResultStats > 0 ? (
+                <div className="dc-lab-analysis-subhead dc-muted">
+                    token/output stats unavailable for {analysis.unresolvedResultStats} completed
+                    item(s) — result events are not in this console&apos;s live ring
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function AnalysisCellRow({ cell, baseline }: { cell: ReplayCellAggregateV1; baseline: boolean }) {
+    return (
+        <tr style={{ cursor: "default" }}>
+            <td className="dc-mono" title={cell.cellId}>
+                {cell.label}
+                {baseline ? <span className="dc-muted"> · baseline</span> : null}
+            </td>
+            <td className="dc-mono">
+                {cell.settledItems}/{cell.expectedItems}
+            </td>
+            <td className="dc-mono">
+                {cell.completed}/{cell.failed}/{cell.cancelled}/{cell.blocked}
+                {cell.pending > 0 ? (
+                    <span className="dc-muted"> +{cell.pending} pending</span>
+                ) : null}
+            </td>
+            <td className="dc-mono">{cell.missingItems > 0 ? cell.missingItems : ""}</td>
+            <td className="dc-mono">
+                {cell.latency
+                    ? `${formatDuration(cell.latency.p50)} / ${formatDuration(cell.latency.p95)} (n=${cell.latency.n})`
+                    : "—"}
+            </td>
+            <td className="dc-mono">
+                {cell.inputTokensSum !== undefined || cell.outputTokensSum !== undefined
+                    ? `${cell.inputTokensSum ?? 0}/${cell.outputTokensSum ?? 0} (n=${cell.tokenSampleCount})`
+                    : "—"}
+            </td>
+            <td className="dc-mono">
+                {cell.outputPresence.rate !== undefined
+                    ? `${Math.round(cell.outputPresence.rate * 100)}% (${cell.outputPresence.produced}/${cell.outputPresence.known})`
+                    : "—"}
+            </td>
+            <td className="dc-mono" title={cell.schemaContextSources.join(", ")}>
+                {cell.replayModes.join(",") || "—"}
+                {cell.fallbackCount > 0 ? (
+                    <span className="dc-muted"> · {cell.fallbackCount} fallback</span>
+                ) : null}
+            </td>
+            <td>
+                {cell.singleSample ? (
+                    <span
+                        className="dc-pill diag"
+                        title="At most one completed sample — debugging evidence, not a distribution">
+                        n=1
+                    </span>
+                ) : null}
+            </td>
+        </tr>
+    );
+}
+
+function AnalysisDeltaRow({ delta }: { delta: ReplayPairedCellDeltaV1 }) {
+    return (
+        <tr style={{ cursor: "default" }}>
+            <td className="dc-mono" title={delta.cellId}>
+                {delta.label}
+            </td>
+            <td className="dc-mono">{delta.pairedSources}</td>
+            <td className="dc-mono">{delta.missingPairs > 0 ? delta.missingPairs : ""}</td>
+            <td className="dc-mono">
+                {delta.latencyDelta
+                    ? `${formatSignedDuration(delta.latencyDelta.mean)} / ${formatSignedDuration(delta.latencyDelta.p50)}`
+                    : "—"}
+            </td>
+            <td className="dc-mono">
+                {delta.inputTokensDeltaMean !== undefined ||
+                delta.outputTokensDeltaMean !== undefined
+                    ? `${formatSigned(delta.inputTokensDeltaMean)}/${formatSigned(delta.outputTokensDeltaMean)}`
+                    : "—"}
+            </td>
+            <td className="dc-mono">
+                {delta.outputPresenceDelta !== undefined
+                    ? `${delta.outputPresenceDelta >= 0 ? "+" : ""}${Math.round(delta.outputPresenceDelta * 100)}% (${delta.presencePairs} pairs)`
+                    : "—"}
+            </td>
+            <td>
+                {delta.singleSample ? (
+                    <span
+                        className="dc-pill diag"
+                        title="At most one paired source — debugging evidence, not a distribution">
+                        n=1
+                    </span>
+                ) : null}
+            </td>
+        </tr>
+    );
+}
+
+function formatSigned(value: number | undefined): string {
+    if (value === undefined) {
+        return "—";
+    }
+    const rounded = Math.round(value);
+    return rounded > 0 ? `+${rounded}` : `${rounded}`;
+}
+
+function formatSignedDuration(value: number): string {
+    const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+    return `${sign}${formatDuration(Math.abs(value))}`;
 }
 
 function SkeletonRows() {

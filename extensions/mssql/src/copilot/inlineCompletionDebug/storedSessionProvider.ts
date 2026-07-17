@@ -51,11 +51,14 @@ import {
 import {
     InlineCompletionDebugExportData,
     InlineCompletionDebugTraceIndexEntry,
+    STORED_SESSION_FILE_KEY_PREFIX,
 } from "../../sharedInterfaces/inlineCompletionDebug";
 import { inlineCompletionDebugDefaultOverrides } from "./inlineCompletionDebugStore";
 import { projectJournalToCompletionEvents } from "./completionsJournalProjection";
 
-export const STORED_SESSION_FILE_KEY_PREFIX = "storedSession:";
+// The prefix is defined in the shared interface (webview-safe deep links);
+// re-exported here for existing extension-side importers.
+export { STORED_SESSION_FILE_KEY_PREFIX } from "../../sharedInterfaces/inlineCompletionDebug";
 
 export interface CompletionsStoredSessionLocator {
     /** The session-diag store root (DiagnosticsManager's SessionStore root). */

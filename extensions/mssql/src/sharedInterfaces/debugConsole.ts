@@ -910,8 +910,31 @@ export namespace DcIcDebugChangedNotification {
 
 // History (cross-session) ---------------------------------------------------
 
+/**
+ * Per-session artifact chips (WI-4.4, addendum §6.4) — counts derived from
+ * the session's bundle catalog DESCRIPTORS only (no segment is ever parsed
+ * for a chip). Zero counts are omitted (no "0" noise); a session without a
+ * bundle carries NO chips object at all (legacy sessions — honest absence).
+ */
+export interface HistoryArtifactChips {
+    /** Plane-A diag events cataloged for the session (diagStream artifacts). */
+    diagEvents?: number;
+    /** Rich completion capture events across the session's streams. */
+    completionEvents?: number;
+    /** Captured Query Studio runs (queryStudio featureCapture events). */
+    qsRuns?: number;
+    /** Durable replay runs (any feature). */
+    replayRuns?: number;
+    /** Artifacts in `invalid`/`missing` state — rendered as a "!" chip. */
+    invalidArtifacts?: number;
+    /** Labels for the invalid artifacts (tooltip detail, bounded). */
+    invalidArtifactLabels?: string[];
+}
+
 export interface HistorySessionRow {
     sourceId: string;
+    /** The session directory / bundle identity (deep-link key, WI-4.4). */
+    hostSessionId: string;
     label: string;
     createdUtc: string;
     live: boolean;
@@ -920,6 +943,8 @@ export interface HistorySessionRow {
     gaps: number;
     captureMode: CaptureMode;
     actionCount: number;
+    /** Absent = the session has no bundle catalog (legacy) — chips hidden. */
+    artifacts?: HistoryArtifactChips;
 }
 
 export interface HistoryActionTrend {

@@ -1119,6 +1119,41 @@ body,
     color: var(--dc-replay);
     background: color-mix(in srgb, var(--dc-replay) 13%, transparent);
 }
+/* Session History artifact chips (WI-4.4): tiny muted pills; clickable ones
+   deep-link. No dashboard tiles — chip = one artifact fact. */
+.dc-art-chips {
+    display: inline-flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    vertical-align: middle;
+}
+.dc-art-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 16px;
+    padding: 0 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--dc-muted);
+    border: 1px solid var(--dc-border);
+    background: transparent;
+    font-family: inherit;
+}
+button.dc-art-chip {
+    cursor: pointer;
+}
+button.dc-art-chip:hover {
+    color: var(--dc-text);
+    border-color: var(--dc-focus);
+}
+.dc-art-chip.warn {
+    color: var(--dc-warn);
+    border-color: color-mix(in srgb, var(--dc-warn) 45%, transparent);
+}
 .dc-proc-pill {
     display: inline-flex;
     align-items: center;
@@ -1614,6 +1649,25 @@ pre.dc-json {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+/* WI-4.2 run analysis section: dense tables under the items list. */
+.dc-lab-analysis {
+    border-top: 1px solid var(--dc-border);
+}
+.dc-lab-analysis-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: var(--dc-panel-alt);
+    border-bottom: 1px solid var(--dc-border);
+    min-width: 0;
+    white-space: nowrap;
+}
+.dc-lab-analysis-subhead {
+    padding: 4px 10px;
+    font-size: 10.5px;
+    border-top: 1px solid color-mix(in srgb, var(--dc-border) 55%, transparent);
 }
 .dc-lab-skel {
     height: 14px;

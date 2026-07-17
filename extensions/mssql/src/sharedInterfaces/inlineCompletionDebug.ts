@@ -654,6 +654,29 @@ export interface InlineCompletionDebugExportData {
  */
 export type InlineCompletionDebugTraceSourceKind = "folder" | "imported" | "storedSession";
 
+/**
+ * Stored-session dataset entries use fileKey
+ * `storedSession:<hostSessionId>/<streamDirName>` (WI-2.5). Kept here
+ * (webview-safe) so deep links can match a host session's entries without
+ * importing the Node-side provider.
+ */
+export const STORED_SESSION_FILE_KEY_PREFIX = "storedSession:";
+
+/**
+ * WI-4.4 deep-link matcher: the dataset entries that belong to one host
+ * session's stored completion captures (the History "Completions n" chip
+ * target). Pure; used by the Sessions tab and unit tests.
+ */
+export function storedSessionFileKeysForHostSession(
+    entries: ReadonlyArray<Pick<InlineCompletionDebugTraceIndexEntry, "fileKey" | "sourceKind">>,
+    hostSessionId: string,
+): string[] {
+    const prefix = `${STORED_SESSION_FILE_KEY_PREFIX}${hostSessionId}/`;
+    return entries
+        .filter((entry) => entry.sourceKind === "storedSession" && entry.fileKey.startsWith(prefix))
+        .map((entry) => entry.fileKey);
+}
+
 export interface InlineCompletionDebugTraceIndexEntry {
     fileKey: string;
     filename: string;

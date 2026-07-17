@@ -26,6 +26,7 @@
 import { RequestType } from "vscode-jsonrpc";
 import { FeatureReplayRunStatus } from "./featureReplay";
 import { InlineCompletionDebugReplayRun } from "./inlineCompletionDebug";
+import { ReplayRunAnalysisV1 } from "./inlineCompletionReplayAnalysis";
 import { ReplayEstimate, ReplaySideEffectClass } from "./replaySafety";
 
 export const REPLAY_LAB_RUN_LIST_DEFAULT_LIMIT = 50;
@@ -182,6 +183,36 @@ export namespace DcReplayRunDetailRequest {
     );
 }
 
+// ---------------------------------------------------------------------------
+// Run analysis (WI-4.2 — thin aggregates only, computed host-side)
+// ---------------------------------------------------------------------------
+
+export interface DcReplayRunAnalysisParams {
+    replayRunId: string;
+    /** Defaults to the current host session. */
+    hostSessionId?: string;
+    /** Baseline for source-paired deltas; default = first cell by ordinal. */
+    baselineCellId?: string;
+}
+
+/**
+ * Per-cell aggregates + source-paired deltas for one run (§8.3). The
+ * response carries ONLY the `ReplayRunAnalysisV1` aggregate shape — no item
+ * lists, no event bodies. Token/output-presence stats exist only for items
+ * whose result events this console could resolve (its live ring);
+ * `analysis.unresolvedResultStats` is the honest gap count.
+ */
+export interface DcReplayRunAnalysisResult {
+    found: boolean;
+    analysis?: ReplayRunAnalysisV1;
+}
+
+export namespace DcReplayRunAnalysisRequest {
+    export const type = new RequestType<DcReplayRunAnalysisParams, DcReplayRunAnalysisResult, void>(
+        "dc/replayRunAnalysis",
+    );
+}
+
 /**
  * WI-3.6 Lab integration decision: the Query Studio "New replay…" entry
  * OPENS the standalone Query Studio Replay panel (its cart/capture UX stays
@@ -247,6 +278,28 @@ export function projectLiveReplayRunRow(
  * (they are this session's active work), then the durable rows in catalog
  * order.
  */
+/**
+ * WI-4.4 (History "Replay runs n" deep link): filter merged Lab rows to one
+ * host session. Live-only rows carry no hostSessionId yet — they belong to
+ * the CURRENT host session, so they match when the filter targets it.
+ */
+export function filterReplayLabRunRowsByHostSession(
+    rows: ReplayLabRunRowV1[],
+    hostSessionId: string | undefined,
+    currentHostSessionId: string | undefined,
+): ReplayLabRunRowV1[] {
+    if (hostSessionId === undefined) {
+        return rows;
+    }
+    return rows.filter(
+        (row) =>
+            row.hostSessionId === hostSessionId ||
+            (row.hostSessionId === undefined &&
+                row.currentHostSession &&
+                hostSessionId === currentHostSessionId),
+    );
+}
+
 export function mergeReplayLabRunRows(
     liveRows: ReplayLabRunRowV1[],
     durableRows: ReplayLabRunRowV1[],

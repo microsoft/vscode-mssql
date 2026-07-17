@@ -15,6 +15,7 @@ import * as vscode from "vscode";
 import {
     DcGetHistoryRequest,
     HistoryActionTrend,
+    HistoryArtifactChips,
     HistorySessionRow,
     DebugConsoleState,
     DebugSource,
@@ -85,6 +86,7 @@ import {
 } from "../sharedInterfaces/completionsDebugRpc";
 import {
     DcOpenQueryStudioReplayRequest,
+    DcReplayRunAnalysisRequest,
     DcReplayRunDetailRequest,
     DcReplayRunListRequest,
     projectLiveReplayRunRow,
@@ -94,6 +96,8 @@ import {
     readReplayRunDetail,
 } from "../diagnostics/featureCapture/replayRunCatalog";
 import {
+    buildLiveReplayAnalysisItemInput,
+    buildReplayAnalysisItemInput,
     buildReplayRunListResult,
     clampReplayLabItemsLimit,
     projectDurableReplayItemRow,
@@ -101,6 +105,11 @@ import {
     projectLiveReplayItemRow,
     sanitizeReplayLabConfigGroup,
 } from "../diagnostics/replayLabRpcHost";
+import { computeReplayRunAnalysis } from "../sharedInterfaces/inlineCompletionReplayAnalysis";
+import {
+    hasHistoryArtifactChips,
+    projectHistoryArtifactChips,
+} from "../diagnostics/sessionBundle/historyChips";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
 import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
@@ -151,6 +160,8 @@ import {
 import { WebviewPanelController } from "./webviewPanelController";
 
 const LIVE_ARCHIVE_CAP = 100_000;
+/** WI-4.2: items considered per run analysis (aggregates only leave the host). */
+const REPLAY_ANALYSIS_MAX_ITEMS = 10_000;
 
 export class DebugConsoleWebviewController extends WebviewPanelController<
     DebugConsoleState,
@@ -641,19 +652,39 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             >();
             let totalEvents = 0;
             let totalActions = 0;
+            // WI-4.4: per-session artifact chips from the bundle catalog
+            // (descriptor counts only — no child manifest or segment is
+            // opened here). No bundle → no chips object (legacy honesty).
+            const chipsFor = async (
+                hostSessionId: string,
+            ): Promise<HistoryArtifactChips | undefined> => {
+                try {
+                    const bundle = await this.diagnostics.bundleManager.getBundle(hostSessionId);
+                    if (!bundle) {
+                        return undefined;
+                    }
+                    const chips = projectHistoryArtifactChips(bundle);
+                    return hasHistoryArtifactChips(chips) ? chips : undefined;
+                } catch {
+                    return undefined; // catalog trouble never fails History
+                }
+            };
             const analyze = (
                 sourceId: string,
+                hostSessionId: string,
                 label: string,
                 createdUtc: string,
                 live: boolean,
                 captureMode: HistorySessionRow["captureMode"],
                 events: DiagEvent[],
                 gaps: number,
+                artifacts: HistoryArtifactChips | undefined,
             ) => {
                 const actions = userActions(events);
                 const errors = events.filter((e) => e.status === "error").length;
                 sessions.push({
                     sourceId,
+                    hostSessionId,
                     label,
                     createdUtc,
                     live,
@@ -662,6 +693,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     gaps,
                     captureMode,
                     actionCount: actions.length,
+                    ...(artifacts !== undefined ? { artifacts } : {}),
                 });
                 totalEvents += events.length;
                 totalActions += actions.length;
@@ -706,22 +738,26 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 const sourceId = `store:${manifest.sessionId}`;
                 analyze(
                     sourceId,
+                    manifest.sessionId,
                     `Session ${manifest.createdUtc.slice(0, 16).replace("T", " ")}`,
                     manifest.createdUtc,
                     false,
                     manifest.captureMode,
                     this.diagnostics.store.eventsForSource(sourceId),
                     manifest.gapCount,
+                    await chipsFor(manifest.sessionId),
                 );
             }
             analyze(
                 this.liveSourceId,
+                diag.sessionId,
                 "Current session",
                 new Date().toISOString(),
                 true,
                 diag.captureMode,
                 this.liveArchive,
                 this.liveGaps.length,
+                await chipsFor(diag.sessionId),
             );
             sessions.sort((a, b) => a.createdUtc.localeCompare(b.createdUtc));
             const trends: HistoryActionTrend[] = [...trendMap.entries()]
@@ -945,6 +981,77 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 items: [...items, ...liveItems],
                 itemsTotal: durable.itemsTotal + liveItems.length,
                 itemsOffset,
+            };
+        });
+
+        // WI-4.2: per-run paired analysis — thin aggregates only, computed
+        // host-side by the pure functions in inlineCompletionReplayAnalysis.
+        // Token/output-presence stats exist only for items whose result
+        // events THIS console can resolve from its live ring; everything
+        // else is honest missingness (analysis.unresolvedResultStats).
+        this.onRequest(DcReplayRunAnalysisRequest.type, async (params) => {
+            const hostSessionId = params.hostSessionId ?? diag.sessionId;
+            const durable = await readReplayRunDetail({
+                storeRoot: this.diagnostics.store.storeRoot,
+                hostSessionId,
+                replayRunId: params.replayRunId,
+                itemsOffset: 0,
+                itemsLimit: REPLAY_ANALYSIS_MAX_ITEMS,
+            });
+            const liveState =
+                hostSessionId === diag.sessionId ? this.icDebugHost?.getReplayState() : undefined;
+            const liveRun = liveState?.runs.find((run) => run.id === params.replayRunId);
+            if (!durable.manifest && !liveRun) {
+                return { found: false };
+            }
+            const ringEvents =
+                hostSessionId === diag.sessionId ? (this.icDebugHost?.getState().events ?? []) : [];
+            const byRingId = new Map(ringEvents.map((event) => [event.id, event]));
+            const byCaptureId = new Map(
+                ringEvents
+                    .filter((event) => event.link !== undefined)
+                    .map((event) => [event.link!.captureEventId, event]),
+            );
+            const items = durable.items.map((record) =>
+                buildReplayAnalysisItemInput(
+                    record,
+                    (record.resultEventId !== undefined
+                        ? byRingId.get(record.resultEventId)
+                        : undefined) ??
+                        (record.resultCaptureEventId !== undefined
+                            ? byCaptureId.get(record.resultCaptureEventId)
+                            : undefined),
+                ),
+            );
+            for (const row of liveState?.queueRows ?? []) {
+                if (row.runId === params.replayRunId) {
+                    items.push(buildLiveReplayAnalysisItemInput(row));
+                }
+            }
+            const cells = durable.manifest
+                ? durable.manifest.cells.map((cell) => ({
+                      cellId: cell.matrixCellId,
+                      label: cell.label,
+                      ordinal: cell.ordinal,
+                  }))
+                : (liveRun?.matrixCells ?? []).map((cell) => ({
+                      cellId: cell.cellId,
+                      label: `${cell.profileLabel} x ${cell.schemaLabel}`,
+                      ordinal: cell.ordinal,
+                  }));
+            return {
+                found: true,
+                analysis: computeReplayRunAnalysis({
+                    cells,
+                    sourceCaptureEventIds: (durable.manifest?.sources ?? []).map(
+                        (source) => source.captureEventId,
+                    ),
+                    repetitions: durable.manifest?.repetitions ?? 1,
+                    items,
+                    ...(params.baselineCellId !== undefined
+                        ? { baselineCellId: params.baselineCellId }
+                        : {}),
+                }),
             };
         });
 

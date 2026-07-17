@@ -60,6 +60,15 @@ export interface DcRoute {
     page: DcPage;
     traceId?: string;
     eventId?: string;
+    /**
+     * WI-4.4 deep link (History "Completions n" chip): open the Completions
+     * page on the Sessions tab with this host session's stored capture
+     * sessions included in the dataset and loaded.
+     */
+    completionsDatasetSession?: string;
+    /** WI-4.4 deep link (History "Replay runs n" chip): Replay Lab filtered
+     *  to this host session's runs. */
+    replayHostSession?: string;
 }
 
 interface DcContextValue {

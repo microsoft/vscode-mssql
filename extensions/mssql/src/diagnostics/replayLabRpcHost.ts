@@ -19,7 +19,11 @@
 
 import { ReplayRunCatalogEntry } from "./featureCapture/replayRunCatalog";
 import { ReplayRunItemRecordV1, ReplayRunManifestV1 } from "./featureCapture/replayRunRepository";
-import { InlineCompletionDebugReplayQueueRow } from "../sharedInterfaces/inlineCompletionDebug";
+import {
+    InlineCompletionDebugEvent,
+    InlineCompletionDebugReplayQueueRow,
+} from "../sharedInterfaces/inlineCompletionDebug";
+import { ReplayAnalysisItemInputV1 } from "../sharedInterfaces/inlineCompletionReplayAnalysis";
 
 export { sanitizeReplayLabConfigGroup } from "./featureCapture/configGroupSanitizer";
 import {
@@ -178,5 +182,59 @@ export function projectLiveReplayItemRow(
         ...(row.startedAt !== undefined ? { startedAt: row.startedAt } : {}),
         ...(row.config.replayMode ? { replayMode: row.config.replayMode } : {}),
         ...(row.configDigest ? { configDigest: row.configDigest } : {}),
+    };
+}
+
+// ---------------------------------------------------------------------------
+// Run analysis inputs (WI-4.2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Reduce one durable item record (+ its result event, when this console can
+ * resolve it from the live ring) to analysis-grade stats. Token counts and
+ * output presence stay undefined when the result event is unavailable —
+ * undefined is missingness, never zero.
+ */
+export function buildReplayAnalysisItemInput(
+    record: ReplayRunItemRecordV1,
+    resultEvent: InlineCompletionDebugEvent | undefined,
+): ReplayAnalysisItemInputV1 {
+    return {
+        replayItemId: record.replayItemId,
+        sourceCaptureEventId: record.sourceCaptureEventId,
+        ...(record.matrixCellId ? { matrixCellId: record.matrixCellId } : {}),
+        repetition: record.repetition,
+        status: record.status,
+        ...(record.startedAt !== undefined
+            ? { latencyMs: Math.max(0, record.endedAt - record.startedAt) }
+            : {}),
+        ...(resultEvent?.inputTokens !== undefined ? { inputTokens: resultEvent.inputTokens } : {}),
+        ...(resultEvent?.outputTokens !== undefined
+            ? { outputTokens: resultEvent.outputTokens }
+            : {}),
+        // Output presence mirrors the §8.2 "shown" population: a nonempty
+        // suggestion came back (success/accepted). Unknown without the event.
+        ...(resultEvent !== undefined
+            ? {
+                  outputPresent:
+                      resultEvent.result === "success" || resultEvent.result === "accepted",
+              }
+            : {}),
+        ...(record.replayMode ? { replayMode: record.replayMode } : {}),
+        ...(record.schemaContextSource ? { schemaContextSource: record.schemaContextSource } : {}),
+    };
+}
+
+/** LIVE queue rows (queued/running) → pending analysis inputs, stat-free. */
+export function buildLiveReplayAnalysisItemInput(
+    row: InlineCompletionDebugReplayQueueRow,
+): ReplayAnalysisItemInputV1 {
+    return {
+        replayItemId: row.id,
+        sourceCaptureEventId: row.event.link?.captureEventId ?? row.sourceEventId,
+        ...(row.matrixCellId ? { matrixCellId: row.matrixCellId } : {}),
+        repetition: row.repetition ?? 1,
+        status: row.status,
+        ...(row.config.replayMode ? { replayMode: row.config.replayMode } : {}),
     };
 }
