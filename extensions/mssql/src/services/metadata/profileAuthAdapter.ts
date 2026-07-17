@@ -114,6 +114,10 @@ export function buildProfileRef(stored: StoredConnectionProfile): SqlConnectionP
             ? { trustServerCertificate: stored.trustServerCertificate }
             : {}),
         ...(stored.profileName ? { displayName: stored.profileName } : {}),
+        // Entra identity rides along for host-side ARM checks (serverless
+        // pause status on open timeouts); never serialized to a backend wire.
+        ...(authKind === "aad" && stored.accountId ? { accountId: stored.accountId } : {}),
+        ...(authKind === "aad" && stored.tenantId ? { tenantId: stored.tenantId } : {}),
     };
 }
 

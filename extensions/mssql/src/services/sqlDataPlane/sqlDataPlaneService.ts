@@ -66,6 +66,7 @@ import {
     resolveCapabilityFallback,
 } from "./providerSuggestions";
 import { FakeBackend, FAKE_CAPABILITIES } from "./fakeBackend";
+import { openWithServerlessWake } from "./serverlessWake";
 import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/sts2Backend";
 // Pure parsing module (driver-port types only — no tedious in this graph).
 import {
@@ -631,7 +632,10 @@ export class SqlDataPlaneService {
             );
         }
         const service = await this.service(opts);
-        return service.openSession(params);
+        // Azure serverless auto-pause: eligible profiles get an ARM status
+        // check in parallel with the open and a bounded silent retry while
+        // the database reports Paused/Pausing/Resuming (classic-path parity).
+        return openWithServerlessWake(params.profile, () => service.openSession(params));
     }
 
     /**
