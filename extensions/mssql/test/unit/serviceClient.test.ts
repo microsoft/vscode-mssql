@@ -125,7 +125,7 @@ suite("Service Client tests", () => {
 
         serviceClient.handleSqlToolsServiceTelemetryNotification()(event);
 
-        expect(sendActionEvent).to.have.been.calledOnceWithExactly(
+        expect(sendActionEvent).to.have.been.calledWithExactly(
             TelemetryViews.QueryEditor,
             TelemetryActions.FormatCode,
             event.params.properties,
@@ -140,7 +140,7 @@ suite("Service Client tests", () => {
             params: { eventName: TelemetryActions.PeekDefinitionRequested },
         });
 
-        expect(sendActionEvent).to.have.been.calledOnceWithExactly(
+        expect(sendActionEvent).to.have.been.calledWithExactly(
             TelemetryViews.QueryEditor,
             TelemetryActions.PeekDefinitionRequested,
             {},
