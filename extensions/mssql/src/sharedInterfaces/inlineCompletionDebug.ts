@@ -309,6 +309,13 @@ export interface InlineCompletionDebugWebviewState {
     availableModels: InlineCompletionDebugModelOption[];
     selectedEventId?: string;
     recordWhenClosed: boolean;
+    /**
+     * True while an ACTIVE capture stream persists full-fidelity content
+     * (prompts, responses) to the local journal — the toolbar shows a
+     * persistent "full capture" marker (addendum §9.4). Optional additive
+     * field; absent means unknown/off.
+     */
+    sensitiveCaptureActive?: boolean;
     customPrompt: InlineCompletionDebugCustomPromptState;
     sessions: InlineCompletionDebugSessionsState;
     replay: InlineCompletionDebugReplayState;

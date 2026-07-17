@@ -104,6 +104,15 @@ export interface CaptureJournalBundleRegistrar {
             gaps: number;
         },
     ): Promise<boolean>;
+    /**
+     * Optional (WI-2.8): surface the latest ring↔journal reconciliation
+     * outcome on the bundle's health row. Health-only — never persisted
+     * into bundle.json.
+     */
+    noteReconciliation?(
+        hostSessionId: string,
+        info: { atUtc: string; matches: boolean; mismatchCount: number },
+    ): void;
 }
 
 export interface FeatureCaptureJournalBindingOptions<
@@ -165,6 +174,13 @@ export interface FeatureCaptureJournalBindingHealth {
     linklessSkipped: number;
     /** Streams opened this epoch (>1 after a mid-epoch policy change). */
     epochPhase: number;
+    /**
+     * Cumulative dropped records across ALL streams of the CURRENT epoch
+     * (closed policy phases + the open writer) — the journal-primary
+     * deactivate decision needs epoch-wide honesty, not just the open
+     * writer's counters (WI-2.7).
+     */
+    epochDroppedRecords: number;
     lastError?: string;
     lastReconciliation?: { atUtc: string; matches: boolean; mismatchCount: number };
 }
@@ -223,6 +239,8 @@ export class FeatureCaptureJournalBinding<TEvent extends FeatureCaptureEventBase
     private readonly _revisions = new Map<string, number>();
     /** Stream directories opened this epoch (phase rolls append here). */
     private _epochStreamDirectories: string[] = [];
+    /** Drops accumulated from streams already closed this epoch. */
+    private _closedStreamDrops = 0;
     private _linklessSkipped = 0;
     private _lastError: string | undefined;
     private _lastReconciliation:
@@ -254,6 +272,11 @@ export class FeatureCaptureJournalBinding<TEvent extends FeatureCaptureEventBase
 
     public get activePolicy(): RichCapturePolicySnapshot | undefined {
         return this._currentPolicy;
+    }
+
+    /** The host session every stream of this binding belongs to. */
+    public get hostSessionId(): string {
+        return this._options.hostSessionId;
     }
 
     /** The epoch this binding is currently journaling. */
@@ -328,6 +351,15 @@ export class FeatureCaptureJournalBinding<TEvent extends FeatureCaptureEventBase
             matches: report.matches,
             mismatchCount: report.mismatches.length,
         };
+        // WI-2.8: the bundle catalog's health rows carry the same outcome.
+        try {
+            this._options.bundleRegistrar?.noteReconciliation?.(
+                this._options.hostSessionId,
+                this._lastReconciliation,
+            );
+        } catch (error) {
+            this.noteError("forwarding the reconciliation outcome", error);
+        }
     }
 
     public health(): FeatureCaptureJournalBindingHealth {
@@ -340,6 +372,8 @@ export class FeatureCaptureJournalBinding<TEvent extends FeatureCaptureEventBase
             ...(this._writer ? { writer: this._writer.health() } : {}),
             linklessSkipped: this._linklessSkipped,
             epochPhase: this._epochPhase,
+            epochDroppedRecords:
+                this._closedStreamDrops + (this._writer?.statsSnapshot().droppedRecords ?? 0),
             ...(this._lastError ? { lastError: this._lastError } : {}),
             ...(this._lastReconciliation ? { lastReconciliation: this._lastReconciliation } : {}),
         };
@@ -485,6 +519,7 @@ export class FeatureCaptureJournalBinding<TEvent extends FeatureCaptureEventBase
         this._epochPhase = 1;
         this._revisions.clear();
         this._epochStreamDirectories = [];
+        this._closedStreamDrops = 0;
         this._linklessSkipped = 0;
         // The next stream opens lazily on the first event of the new epoch.
     }
@@ -549,6 +584,10 @@ export class FeatureCaptureJournalBinding<TEvent extends FeatureCaptureEventBase
             return;
         }
         this._writer = undefined;
+        // Snapshot drops synchronously so epoch-wide accounting stays honest
+        // even before the async close settles (post-close drops still reach
+        // the manifest; this counter is the fast-path summary).
+        this._closedStreamDrops += writer.statsSnapshot().droppedRecords;
         this.cancelBundleTimer();
         const artifactId = this.artifactIdFor(writer.directory);
         this._closeChain = this._closeChain

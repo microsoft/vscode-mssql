@@ -117,10 +117,8 @@ import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuar
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
 import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import { InlineCompletionDebugController } from "../copilot/inlineCompletionDebug/inlineCompletionDebugController";
-import {
-    getConfiguredTraceFolder,
-    saveInlineCompletionTraceOnDeactivate,
-} from "../copilot/inlineCompletionDebug/tracePersistence";
+import { getConfiguredTraceFolder } from "../copilot/inlineCompletionDebug/tracePersistence";
+import { saveInlineCompletionTraceOnDeactivateJournalAware } from "../copilot/inlineCompletionDebug/journalPrimaryPersistence";
 import { flushCompletionsCaptureJournalOnDeactivate } from "../copilot/inlineCompletionDebug/completionsJournalBinding";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
@@ -315,9 +313,12 @@ export default class MainController implements vscode.Disposable {
         }
         this._deactivated = true;
         this._logger.debug("Extension de-activated.");
-        // M2 dual-write: the legacy trace save stays authoritative for the
-        // Live UI; the journal flush barrier (WI-2.4) runs right after it.
-        await saveInlineCompletionTraceOnDeactivate(this._context);
+        // Dual-write (M2) by default: the legacy trace save runs first and
+        // the journal flush barrier (WI-2.4) right after it. Under the
+        // experimental journalPrimary flag (WI-2.7) the legacy save is
+        // skipped when the journal is the healthy durable record — the
+        // decision ladder logs which rung applied.
+        await saveInlineCompletionTraceOnDeactivateJournalAware(this._context);
         await flushCompletionsCaptureJournalOnDeactivate();
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();

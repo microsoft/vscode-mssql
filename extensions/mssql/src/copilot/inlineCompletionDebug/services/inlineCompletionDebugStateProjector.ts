@@ -23,6 +23,7 @@ import {
     getInlineCompletionDebugPresetProfile,
     inlineCompletionDebugProfileOptions,
 } from "../inlineCompletionDebugProfiles";
+import { getCompletionsJournalBinding } from "../completionsJournalBinding";
 import { inlineCompletionDebugStore } from "../inlineCompletionDebugStore";
 import { getTraceCaptureEnabledSetting } from "../tracePersistence";
 import {
@@ -146,6 +147,7 @@ function createState(options: {
         availableModels: options.availableModels,
         selectedEventId: options.selectedEventId,
         recordWhenClosed: getRecordWhenClosedSetting(),
+        sensitiveCaptureActive: isSensitiveCaptureActive(),
         customPrompt: {
             dialogOpen: options.customPromptDialogOpen,
             savedValue: options.customPromptValue,
@@ -155,4 +157,15 @@ function createState(options: {
         sessions: options.sessions,
         replay: options.replay,
     };
+}
+
+/**
+ * §9.4 sensitive-capture badge groundwork (WI-2.8): true while the capture
+ * journal is actively persisting FULL-fidelity content (prompts, responses)
+ * for the live stream. contentRedacted/digestOnly streams — and a journal
+ * that is off — never claim it.
+ */
+function isSensitiveCaptureActive(): boolean {
+    const binding = getCompletionsJournalBinding();
+    return binding?.isActive === true && binding.activePolicy?.fidelity === "fullLocal";
 }

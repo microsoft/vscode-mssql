@@ -350,6 +350,24 @@ const useStyles = makeStyles({
         fontWeight: tokens.fontWeightSemibold,
         textTransform: "uppercase",
     },
+    fullCaptureBadge: {
+        display: "inline-flex",
+        alignItems: "center",
+        flexShrink: 0,
+        color: "var(--vscode-errorForeground)",
+        fontSize: tokens.fontSizeBase100,
+        fontWeight: tokens.fontWeightSemibold,
+        textTransform: "uppercase",
+        letterSpacing: "0.4px",
+        ...shorthands.border(
+            "1px",
+            "solid",
+            "color-mix(in srgb, var(--vscode-errorForeground) 55%, transparent)",
+        ),
+        ...shorthands.borderRadius("3px"),
+        ...shorthands.padding("0", "5px"),
+        lineHeight: "15px",
+    },
     statusDivider: {
         width: "1px",
         height: "16px",
@@ -1016,6 +1034,15 @@ export const InlineCompletionDebugToolbar = ({
                         <span className={`${classes.recordDot} ${classes.recordDotActive}`} />
                         Recording
                     </span>
+                    {state.sensitiveCaptureActive ? (
+                        // §9.4: persistent marker while full-fidelity local
+                        // capture (prompts + responses to the journal) is on.
+                        <Tooltip
+                            content="Full capture: prompts and model responses are being persisted to the local capture journal."
+                            relationship="description">
+                            <span className={classes.fullCaptureBadge}>Full capture</span>
+                        </Tooltip>
+                    ) : null}
                     <span className={classes.statusDivider} />
                     <span
                         className={`${classes.statusToken} ${classes.statusTokenStrong}`}

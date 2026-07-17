@@ -604,6 +604,94 @@ suite("Session bundle rebuild and startup repair (WI-2.3)", () => {
         expect(report.legacySessions).to.equal(1);
         expect(memFs.files.has(bundlePath("hs-old-legacy"))).to.equal(false);
     });
+
+    test("startup repair removes abandoned .tmp files from dead sessions and touches nothing else (WI-2.8)", async () => {
+        // A dead session with atomic-rename residue at every writer site.
+        seedJson("sessions/hs-dead/bundle.json", {
+            ...GOLDEN_BUNDLE,
+            hostSessionId: "hs-dead",
+        });
+        memFs.files.set(`${STORE}/sessions/hs-dead/bundle.json.7.tmp`, "{torn bundle}");
+        memFs.files.set(
+            `${STORE}/sessions/hs-dead/rich/completions/cs-x/manifest.json`,
+            '{"real":"journal manifest"}',
+        );
+        memFs.files.set(
+            `${STORE}/sessions/hs-dead/rich/completions/cs-x/manifest.json.3.tmp`,
+            "{torn journal manifest}",
+        );
+        memFs.files.set(
+            `${STORE}/sessions/hs-dead/rich/completions/cs-x/segment-000001.jsonl`,
+            '{"never":"deleted"}\n',
+        );
+        memFs.files.set(
+            `${STORE}/sessions/hs-dead/replay/run-1/manifest.json.9.tmp`,
+            "{torn replay manifest}",
+        );
+        // A legacy dead session whose ONLY residue is a torn first bundle write.
+        memFs.files.set(`${STORE}/sessions/hs-legacy-torn/bundle.json.1.tmp`, "{torn}");
+        memFs.files.set(`${STORE}/sessions/hs-legacy-torn/manifest.json`, "{}");
+        // The CURRENT session may have in-flight temp files: untouched.
+        memFs.files.set(`${STORE}/sessions/${CURRENT_HOST}/bundle.json.2.tmp`, "{in flight}");
+        seedJson(`sessions/${CURRENT_HOST}/bundle.json`, {
+            ...GOLDEN_BUNDLE,
+            hostSessionId: CURRENT_HOST,
+        });
+
+        const manager = makeManager(memFs, clock);
+        const report = await manager.reconcileOnStartup();
+
+        expect(report.tempFilesRemoved).to.equal(4);
+        expect(memFs.files.has(`${STORE}/sessions/hs-dead/bundle.json.7.tmp`)).to.equal(false);
+        expect(
+            memFs.files.has(`${STORE}/sessions/hs-dead/rich/completions/cs-x/manifest.json.3.tmp`),
+        ).to.equal(false);
+        expect(
+            memFs.files.has(`${STORE}/sessions/hs-dead/replay/run-1/manifest.json.9.tmp`),
+        ).to.equal(false);
+        expect(memFs.files.has(`${STORE}/sessions/hs-legacy-torn/bundle.json.1.tmp`)).to.equal(
+            false,
+        );
+        // Cleanup never touches non-tmp files (real evidence is sacred)...
+        expect(
+            memFs.files.get(`${STORE}/sessions/hs-dead/rich/completions/cs-x/manifest.json`),
+        ).to.equal('{"real":"journal manifest"}');
+        expect(
+            memFs.files.get(`${STORE}/sessions/hs-dead/rich/completions/cs-x/segment-000001.jsonl`),
+        ).to.equal('{"never":"deleted"}\n');
+        expect(memFs.files.has(bundlePath("hs-dead"))).to.equal(true);
+        expect(memFs.files.get(`${STORE}/sessions/hs-legacy-torn/manifest.json`)).to.equal("{}");
+        // ...and never reaches into the live session.
+        expect(memFs.files.get(`${STORE}/sessions/${CURRENT_HOST}/bundle.json.2.tmp`)).to.equal(
+            "{in flight}",
+        );
+        // Every delete targeted a .tmp name — proven from the fs op log.
+        for (const removed of memFs.removed) {
+            expect(removed.endsWith(".tmp"), `unexpected delete target ${removed}`).to.equal(true);
+        }
+    });
+
+    test("noteReconciliation surfaces on the bundle health row (WI-2.8)", async () => {
+        const manager = makeManager(memFs, clock);
+        await manager.ensureBundle(CURRENT_HOST);
+        expect(manager.healthSnapshot()[0].lastReconciliation).to.equal(undefined);
+        manager.noteReconciliation(CURRENT_HOST, {
+            atUtc: "2026-07-16T02:00:00.000Z",
+            matches: false,
+            mismatchCount: 2,
+        });
+        const row = manager.healthSnapshot().find((entry) => entry.hostSessionId === CURRENT_HOST)!;
+        expect(row.lastReconciliation).to.deep.equal({
+            atUtc: "2026-07-16T02:00:00.000Z",
+            matches: false,
+            mismatchCount: 2,
+        });
+        // Health-only: the reconciliation outcome is never persisted into
+        // bundle.json (the full report lives beside the journal stream).
+        await manager.flushBarrier(CURRENT_HOST);
+        const persisted = memFs.files.get(bundlePath(CURRENT_HOST));
+        expect(persisted === undefined || !persisted.includes("lastReconciliation")).to.equal(true);
+    });
 });
 
 // ---------------------------------------------------------------------------

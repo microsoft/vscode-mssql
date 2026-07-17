@@ -273,6 +273,65 @@ suite("Completions stored session provider (WI-2.5)", () => {
         expect(deepEqual(trace.events[0], ringEvents[0])).to.equal(true);
         expect(deepEqual(trace.events[1], ringEvents[1])).to.equal(true);
     });
+
+    test("epoch-boundary freshness: a just-closed epoch is listable immediately after clear (WI-2.7)", async () => {
+        const fs = new MemJournalFs();
+        const store = new FeatureCaptureStore<InlineCompletionDebugEvent, { note: string | null }>({
+            logName: "EpochBoundaryTest",
+            featureId: "completions",
+            defaultOverrides: { note: null },
+            normalizeOverrides: (overrides) => ({ note: overrides.note ?? null }),
+            normalizePartialOverrides: (overrides) => overrides,
+        });
+        const binding = new FeatureCaptureJournalBinding<
+            InlineCompletionDebugEvent,
+            { note: string | null }
+        >({
+            store,
+            storeRoot: STORE_ROOT,
+            hostSessionId: diag.sessionId,
+            eventSchema: COMPLETIONS_JOURNAL_EVENT_SCHEMA,
+            overridesSchema: COMPLETIONS_JOURNAL_OVERRIDES_SCHEMA,
+            policyProvider: () =>
+                buildCompletionsCapturePolicy({
+                    traceCaptureEnabled: true,
+                    redactPrompts: false,
+                    viewerArmed: true,
+                    activatedAt: 1_000,
+                }),
+            redactEventValue: redactCompletionEventForJournal,
+            isTerminal: (event) => isTerminalCompletionResult(event.result),
+            fs,
+            clock: new ManualClock(),
+            writerOptions: { flushIntervalMs: 60_000 },
+        });
+
+        const link = store.createEventLink();
+        store.addEvent(makeEvent(link, "success"));
+        const closedEpochId = store.captureSessionId;
+        const closedStreamDir = binding.currentEpochStreamDirectories[0];
+
+        // Clear = epoch boundary. The binding closes the old epoch's stream;
+        // the flush barrier waits for its manifest checkpoint. The provider
+        // excludes only the NEW live epoch, so the just-closed epoch appears
+        // in the very next scan — no restart required.
+        store.clearEvents();
+        await binding.flushBarrier();
+        expect(store.captureSessionId).to.not.equal(closedEpochId);
+
+        configureCompletionsStoredSessions({
+            storeRoot: STORE_ROOT,
+            isCurrentEpoch: (captureSessionId) => captureSessionId === store.captureSessionId,
+            fs,
+        });
+        const entries = await listStoredCompletionSessionEntries();
+        expect(entries.map((entry) => entry.sessionId)).to.deep.equal([closedEpochId]);
+        expect(entries[0].path).to.equal(closedStreamDir);
+        const trace = await loadStoredCompletionSessionTrace(entries[0]);
+        expect(trace.events).to.have.length(1);
+        expect(trace.events[0].result).to.equal("success");
+        await binding.dispose();
+    });
 });
 
 suite("Stored session store admission (WI-2.5 / WI-2.3 gap fix)", () => {

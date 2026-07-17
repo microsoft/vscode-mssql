@@ -87,6 +87,15 @@ export function getCompletionsJournalBinding(): CompletionsJournalBinding | unde
 }
 
 /**
+ * The filesystem the active binding writes through (tests inject a fake via
+ * initializeCompletionsCaptureJournal). WI-2.7 journal-primary reads must go
+ * through the SAME seam or test journals would be invisible to the export.
+ */
+export function getCompletionsJournalFs(): JournalFsLike | undefined {
+    return activeFs;
+}
+
+/**
  * Wire the completions journal binding (idempotent per activation). Never
  * throws — a failure leaves the binding off and the product unaffected.
  */

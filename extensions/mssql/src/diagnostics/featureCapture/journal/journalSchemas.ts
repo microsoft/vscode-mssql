@@ -243,6 +243,7 @@ export type JournalValidationCode =
     | "record.unknownSchema"
     | "record.outOfOrder"
     | "record.seqGap"
+    | "record.tooDeep"
     // event lifecycle
     | "event.duplicateCreated"
     | "event.staleRevision"
@@ -257,7 +258,9 @@ export type JournalValidationCode =
     | "segment.unreadable"
     | "segment.digestMismatch"
     | "segment.tornTailLine"
-    | "segment.recordCountMismatch";
+    | "segment.recordCountMismatch"
+    | "segment.invalidName"
+    | "segment.lineTooLong";
 
 export interface JournalValidationIssue {
     severity: JournalValidationSeverity;

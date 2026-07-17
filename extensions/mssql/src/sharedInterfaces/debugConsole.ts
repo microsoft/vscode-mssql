@@ -728,6 +728,12 @@ export interface BundleHealthRow {
     writesCompleted: number;
     consecutiveWriteFailures: number;
     lastWriteUtc?: string;
+    /**
+     * Latest ring↔journal reconciliation outcome for the session (WI-2.8;
+     * absent until the reconcile command has run). Health-only — never
+     * persisted into bundle.json.
+     */
+    lastReconciliation?: { atUtc: string; matches: boolean; mismatchCount: number };
     issues: string[];
 }
 export interface DiagHealthSnapshot {

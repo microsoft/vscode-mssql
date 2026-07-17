@@ -11,6 +11,16 @@
  * manifest), feeds the lifecycle reducer, and returns the read model with
  * every anomaly as an explicit validation issue — recoverability or an
  * honest `partial`, never a crash (fault-injection contract §13.5).
+ *
+ * Untrusted-input hardening (WI-2.8 / addendum §9.3 — a stream directory on
+ * disk is parsed like an import, not trusted because "we" wrote it):
+ * - a manifest segment `file` that is not a plain `segment-NNNNNN.jsonl`
+ *   name (path separators, `..`, absolute paths) is REFUSED — the reader
+ *   never follows a manifest outside the stream directory;
+ * - a single segment line over the line-length limit is skipped with an
+ *   honest issue instead of being parsed (giant-string protection);
+ * - a parsed record nested deeper than the depth limit is skipped
+ *   (zip-bomb-shaped nesting protection; checked iteratively, no recursion).
  */
 
 import { createHash } from "crypto";
@@ -32,12 +42,25 @@ import { JOURNAL_MANIFEST_FILE, JournalFsLike, NodeJournalFs, joinPath } from ".
 
 const SEGMENT_FILE_PATTERN = /^segment-\d{6}\.jsonl$/;
 
+/**
+ * Untrusted-input limits (WI-2.8). The line cap is 2× the writer's queue
+ * byte cap (a legitimate single record can never exceed the queue cap, so
+ * anything past this is hostile or corrupt); the depth cap matches the
+ * trace-import limit (DEFAULT_FEATURE_TRACE_LIMITS.maxDepth).
+ */
+export const JOURNAL_READER_LIMITS = {
+    maxLineLength: 8 * 1024 * 1024,
+    maxDepth: 64,
+} as const;
+
 export interface ReadFeatureCaptureJournalOptions {
     fs?: JournalFsLike;
     /** Verify closed-segment sha256 digests; on by default. */
     verifyDigests?: boolean;
     /** Passed through to the reducer (content keys, redaction token). */
     reducer?: Omit<JournalReducerOptions, "expectedGaps">;
+    /** Untrusted-input caps; JOURNAL_READER_LIMITS when omitted. */
+    limits?: Partial<typeof JOURNAL_READER_LIMITS>;
 }
 
 export interface FeatureCaptureJournalReadResult<TCreated, TFinal, TAcceptance, TAnnotation> {
@@ -59,6 +82,8 @@ export async function readFeatureCaptureJournal<
 ): Promise<FeatureCaptureJournalReadResult<TCreated, TFinal, TAcceptance, TAnnotation>> {
     const fs = options.fs ?? new NodeJournalFs();
     const verifyDigests = options.verifyDigests ?? true;
+    const maxLineLength = options.limits?.maxLineLength ?? JOURNAL_READER_LIMITS.maxLineLength;
+    const maxDepth = options.limits?.maxDepth ?? JOURNAL_READER_LIMITS.maxDepth;
     const storageIssues: JournalValidationIssue[] = [];
 
     const manifest = await readManifest(fs, directory, storageIssues);
@@ -72,6 +97,17 @@ export async function readFeatureCaptureJournal<
     const state = createJournalReducerState<TCreated, TFinal, TAcceptance, TAnnotation>();
 
     for (const segment of segments) {
+        if (!SEGMENT_FILE_PATTERN.test(segment.file)) {
+            // Refuse anything that is not a plain segment file name — a
+            // hostile manifest must never steer reads outside the stream
+            // directory (traversal like "..\\evil" lands here).
+            storageIssues.push({
+                severity: "error",
+                code: "segment.invalidName",
+                message: `Manifest names a segment "${String(segment.file).slice(0, 80)}" that is not a plain segment file; the entry was refused.`,
+            });
+            continue;
+        }
         const path = joinPath(directory, segment.file);
         let content: string;
         try {
@@ -106,6 +142,14 @@ export async function readFeatureCaptureJournal<
             if (line.length === 0) {
                 continue;
             }
+            if (line.length > maxLineLength) {
+                storageIssues.push({
+                    severity: "error",
+                    code: "segment.lineTooLong",
+                    message: `Segment ${segment.file} line ${lineIndex + 1} is ${line.length} characters — over the ${maxLineLength}-character limit; the line was skipped.`,
+                });
+                continue;
+            }
             let value: unknown;
             try {
                 value = JSON.parse(line);
@@ -132,6 +176,14 @@ export async function readFeatureCaptureJournal<
                     severity: "error",
                     code: "record.malformed",
                     message: `Segment ${segment.file} line ${lineIndex + 1} is not a journal record; the line was skipped.`,
+                });
+                continue;
+            }
+            if (valueDepthExceeds(value, maxDepth)) {
+                storageIssues.push({
+                    severity: "error",
+                    code: "record.tooDeep",
+                    message: `Segment ${segment.file} line ${lineIndex + 1} nests objects deeper than the ${maxDepth}-level limit; the record was skipped.`,
                 });
                 continue;
             }
@@ -211,6 +263,26 @@ async function readManifest(
         });
         return undefined;
     }
+}
+
+/** Iterative (no recursion) depth check over a parsed JSON value. */
+function valueDepthExceeds(value: unknown, maxDepth: number): boolean {
+    let frontier: unknown[] = [value];
+    for (let depth = 0; frontier.length > 0; depth++) {
+        if (depth > maxDepth) {
+            return true;
+        }
+        const next: unknown[] = [];
+        for (const item of frontier) {
+            if (Array.isArray(item)) {
+                next.push(...item);
+            } else if (typeof item === "object" && item !== null) {
+                next.push(...Object.values(item));
+            }
+        }
+        frontier = next;
+    }
+    return false;
 }
 
 /** Manifest-less fallback: discover segments by name, in order. */

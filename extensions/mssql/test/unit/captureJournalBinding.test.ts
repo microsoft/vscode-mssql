@@ -184,6 +184,45 @@ function manifestAt(fs: MemJournalFs, directory: string): FeatureCaptureManifest
 }
 
 suite("Feature capture journal binding (WI-2.4)", () => {
+    test("noteReconciliation forwards to the bundle registrar health seam (WI-2.8)", async () => {
+        const store = makeStore();
+        const fs = new MemJournalFs();
+        const policyRef = { current: makePolicy("fullLocal") };
+        const forwarded: Array<{
+            hostSessionId: string;
+            info: { atUtc: string; matches: boolean; mismatchCount: number };
+        }> = [];
+        const binding = new FeatureCaptureJournalBinding<InlineCompletionDebugEvent, TestOverrides>(
+            {
+                store,
+                storeRoot: STORE_ROOT,
+                hostSessionId: HOST_SESSION,
+                eventSchema: COMPLETIONS_JOURNAL_EVENT_SCHEMA,
+                overridesSchema: COMPLETIONS_JOURNAL_OVERRIDES_SCHEMA,
+                policyProvider: () => policyRef.current,
+                redactEventValue: redactCompletionEventForJournal,
+                isTerminal: (event) => isTerminalCompletionResult(event.result),
+                bundleRegistrar: {
+                    registerArtifact: async () => undefined,
+                    closeArtifact: async () => true,
+                    noteReconciliation: (hostSessionId, info) => {
+                        forwarded.push({ hostSessionId, info });
+                    },
+                },
+                fs,
+                clock: new ManualClock(),
+                writerOptions: { flushIntervalMs: 60_000 },
+            },
+        );
+        binding.noteReconciliation({ matches: false, mismatches: ["a", "b"] });
+        expect(forwarded).to.have.length(1);
+        expect(forwarded[0].hostSessionId).to.equal(HOST_SESSION);
+        expect(forwarded[0].info.matches).to.equal(false);
+        expect(forwarded[0].info.mismatchCount).to.equal(2);
+        expect(binding.health().lastReconciliation?.mismatchCount).to.equal(2);
+        await binding.dispose();
+    });
+
     test("pending -> finalized -> accepted round trip: journal projection matches the ring", async () => {
         const store = makeStore();
         const fs = new MemJournalFs();

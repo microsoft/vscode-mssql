@@ -32,11 +32,11 @@ import {
     normalizeTraceFile,
     scanTraceFolder,
 } from "../traceLoader";
+import { getConfiguredTraceFolder, getTraceCaptureEnabledSetting } from "../tracePersistence";
 import {
-    getConfiguredTraceFolder,
-    getTraceCaptureEnabledSetting,
-    saveInlineCompletionTraceNow,
-} from "../tracePersistence";
+    saveInlineCompletionTraceNowJournalAware,
+    tryAssembleJournalPrimarySessionExport,
+} from "../journalPrimaryPersistence";
 import {
     completionsStoredSessionsConfigured,
     listStoredCompletionSessionEntries,
@@ -370,7 +370,10 @@ export class InlineCompletionTraceRepository {
     }
 
     public async saveTraceNow(): Promise<void> {
-        await saveInlineCompletionTraceNow(this._deps.extensionContext);
+        // WI-2.7: with journalPrimary on (and the journal healthy) this
+        // writes a v2 trace assembled from the journal snapshot; otherwise
+        // it is exactly the legacy v1 save.
+        await saveInlineCompletionTraceNowJournalAware(this._deps.extensionContext);
     }
 
     /** Export the current live session to a user-chosen JSON file. */
@@ -391,11 +394,20 @@ export class InlineCompletionTraceRepository {
             return;
         }
 
-        const exportData = inlineCompletionDebugStore.exportSession(
-            getRecordWhenClosedSetting(),
-            getExtensionVersion(this._deps.extensionContext),
+        // WI-2.7: journalPrimary assembles the export from the journal
+        // snapshot (v2 envelope); undefined = flag off or any doubt → the
+        // legacy v1 export exactly as before.
+        const journalExport = await tryAssembleJournalPrimarySessionExport(
+            this._deps.extensionContext,
             customPromptLastSavedAt,
         );
+        const exportData =
+            journalExport ??
+            inlineCompletionDebugStore.exportSession(
+                getRecordWhenClosedSetting(),
+                getExtensionVersion(this._deps.extensionContext),
+                customPromptLastSavedAt,
+            );
         await this._deps.hostServices.writeFile(
             fileUri,
             new TextEncoder().encode(JSON.stringify(exportData, undefined, 2)),

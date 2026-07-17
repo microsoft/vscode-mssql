@@ -92,6 +92,14 @@ export const BUNDLE_MANAGER_DEFAULTS = {
 
 const MAX_ISSUES_PER_BUNDLE = 20;
 
+/**
+ * Atomic-rename residue our writers can leave behind on a crash: the bundle
+ * manager writes `bundle.json.<nonce>.tmp` and every journal writer writes
+ * `manifest.json.<nonce>.tmp` before renaming. Nothing else is ever matched —
+ * cleanup must not be able to touch real evidence (WI-2.8).
+ */
+const TEMP_FILE_PATTERN = /^(bundle|manifest)\.json\..+\.tmp$/;
+
 // ---------------------------------------------------------------------------
 // Inputs and results
 // ---------------------------------------------------------------------------
@@ -129,6 +137,12 @@ export interface BundleReconcileReport {
     /** Corrupt bundle.json files reconstructed from child manifests. */
     bundlesRebuilt: number;
     artifactsMarkedPartial: number;
+    /**
+     * Abandoned atomic-rename residue removed from DEAD sessions (WI-2.8):
+     * `bundle.json.*.tmp` and journal `manifest.json.*.tmp` files a crashed
+     * writer left behind. Never touches anything else.
+     */
+    tempFilesRemoved: number;
     issues: string[];
 }
 
@@ -181,6 +195,11 @@ export class ObservabilityBundleManager {
     private readonly _states = new Map<string, Promise<BundleState>>();
     /** Resolved states for synchronous health snapshots. */
     private readonly _resolved = new Map<string, BundleState>();
+    /** Latest ring↔journal reconciliation per session (health-only, WI-2.8). */
+    private readonly _reconciliations = new Map<
+        string,
+        { atUtc: string; matches: boolean; mismatchCount: number }
+    >();
 
     constructor(options: ObservabilityBundleManagerOptions) {
         this._storeRoot = options.storeRoot;
@@ -355,6 +374,7 @@ export class ObservabilityBundleManager {
             bundlesRepaired: 0,
             bundlesRebuilt: 0,
             artifactsMarkedPartial: 0,
+            tempFilesRemoved: 0,
             issues: [],
         };
         let names: string[] = [];
@@ -375,6 +395,11 @@ export class ObservabilityBundleManager {
                     continue; // not a session directory (or an empty one)
                 }
                 report.sessionsScanned++;
+                // WI-2.8: the session is dead, so any bundle/journal .tmp file
+                // is abandoned atomic-rename residue — remove it (real files
+                // are never matched). Runs for legacy sessions too: a session
+                // whose very first bundle write tore leaves only the residue.
+                await this.cleanupSessionTempFiles(name, children, report);
                 if (!children.includes(OBSERVABILITY_BUNDLE_FILE)) {
                     report.legacySessions++;
                     continue;
@@ -412,13 +437,71 @@ export class ObservabilityBundleManager {
                 );
             }
         }
-        if (report.bundlesRepaired > 0 || report.bundlesRebuilt > 0) {
+        if (
+            report.bundlesRepaired > 0 ||
+            report.bundlesRebuilt > 0 ||
+            report.tempFilesRemoved > 0
+        ) {
             this._logger.info(
                 `Startup reconciliation: ${report.bundlesRepaired} bundle(s) repaired, ` +
-                    `${report.bundlesRebuilt} rebuilt, ${report.artifactsMarkedPartial} stale artifact(s) marked partial.`,
+                    `${report.bundlesRebuilt} rebuilt, ${report.artifactsMarkedPartial} stale artifact(s) marked partial, ` +
+                    `${report.tempFilesRemoved} abandoned temp file(s) removed.`,
             );
         }
         return report;
+    }
+
+    /**
+     * Remove abandoned `bundle.json.*.tmp` / `manifest.json.*.tmp` files from
+     * one DEAD session directory (WI-2.8). Only the session root, journal
+     * stream directories (`rich/<feature>/<stream>/`), and replay run
+     * directories are examined; only names matching TEMP_FILE_PATTERN are
+     * ever deleted. Errors are recorded, never thrown.
+     */
+    private async cleanupSessionTempFiles(
+        sessionName: string,
+        rootChildren: readonly string[],
+        report: BundleReconcileReport,
+    ): Promise<void> {
+        const sessionDir = joinPath(this._storeRoot, `sessions/${sessionName}`);
+        const remove = async (directory: string, fileName: string): Promise<void> => {
+            try {
+                await this._fs.rmrf(joinPath(directory, fileName));
+                report.tempFilesRemoved++;
+            } catch (error) {
+                report.issues.push(
+                    `${sessionName}: failed to remove temp file ${fileName} (${error instanceof Error ? error.message : String(error)})`,
+                );
+            }
+        };
+        for (const child of rootChildren) {
+            if (TEMP_FILE_PATTERN.test(child)) {
+                await remove(sessionDir, child);
+            }
+        }
+        if (rootChildren.includes("rich")) {
+            for (const featureId of await this._fs.readdir(joinPath(sessionDir, "rich"))) {
+                const featureDir = joinPath(sessionDir, `rich/${featureId}`);
+                for (const streamName of await this._fs.readdir(featureDir)) {
+                    const streamDir = joinPath(featureDir, streamName);
+                    for (const child of await this._fs.readdir(streamDir)) {
+                        if (TEMP_FILE_PATTERN.test(child)) {
+                            await remove(streamDir, child);
+                        }
+                    }
+                }
+            }
+        }
+        if (rootChildren.includes("replay")) {
+            for (const runId of await this._fs.readdir(joinPath(sessionDir, "replay"))) {
+                const runDir = joinPath(sessionDir, `replay/${runId}`);
+                for (const child of await this._fs.readdir(runDir)) {
+                    if (TEMP_FILE_PATTERN.test(child)) {
+                        await remove(runDir, child);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -519,22 +602,39 @@ export class ObservabilityBundleManager {
         return result;
     }
 
+    /**
+     * Latest ring↔journal reconciliation outcome for a session's health row
+     * (WI-2.8, the deferred WI-2.4 column). In-memory only — reconciliation
+     * evidence is health, not catalog state; the full report lives beside
+     * the journal stream.
+     */
+    public noteReconciliation(
+        hostSessionId: string,
+        info: { atUtc: string; matches: boolean; mismatchCount: number },
+    ): void {
+        this._reconciliations.set(hostSessionId, { ...info });
+    }
+
     /** Per-bundle health: status, queue depth, last write, issues. */
     public healthSnapshot(): BundleHealthRow[] {
-        return [...this._resolved.values()].map((state) => ({
-            hostSessionId: state.hostSessionId,
-            bundleId: state.bundle.bundleId,
-            status: state.bundle.status,
-            artifacts: state.bundle.artifacts.length,
-            dirty: state.dirty,
-            queueDepth: state.queueDepth,
-            writesCompleted: state.writesCompleted,
-            consecutiveWriteFailures: state.consecutiveWriteFailures,
-            ...(state.lastWriteAt !== undefined
-                ? { lastWriteUtc: new Date(state.lastWriteAt).toISOString() }
-                : {}),
-            issues: [...state.issues],
-        }));
+        return [...this._resolved.values()].map((state) => {
+            const lastReconciliation = this._reconciliations.get(state.hostSessionId);
+            return {
+                hostSessionId: state.hostSessionId,
+                bundleId: state.bundle.bundleId,
+                status: state.bundle.status,
+                artifacts: state.bundle.artifacts.length,
+                dirty: state.dirty,
+                queueDepth: state.queueDepth,
+                writesCompleted: state.writesCompleted,
+                consecutiveWriteFailures: state.consecutiveWriteFailures,
+                ...(state.lastWriteAt !== undefined
+                    ? { lastWriteUtc: new Date(state.lastWriteAt).toISOString() }
+                    : {}),
+                ...(lastReconciliation ? { lastReconciliation: { ...lastReconciliation } } : {}),
+                issues: [...state.issues],
+            };
+        });
     }
 
     /**

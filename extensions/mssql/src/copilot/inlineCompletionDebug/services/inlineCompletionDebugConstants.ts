@@ -51,6 +51,8 @@ export const COMPLETIONS_SETTINGS_SPEC: FeatureSettingsSpec = {
         { key: Constants.configCopilotInlineCompletionsTraceFolder, cls: "source.path" },
         Constants.configCopilotInlineCompletionsTraceRedactPrompts,
         Constants.configCopilotInlineCompletionsTraceMaxFileSizeMB,
+        // WI-2.7: boolean → diagnostic.metadata by the spec default.
+        Constants.configCopilotInlineCompletionsTraceJournalPrimary,
     ],
 };
 
