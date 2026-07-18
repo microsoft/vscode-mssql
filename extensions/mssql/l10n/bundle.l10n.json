@@ -4619,6 +4619,8 @@
     "Bind & run": "Bind & run",
     "Approval required": "Approval required",
     "Cancel run": "Cancel run",
+    "Cancel generation": "Cancel generation",
+    "Run status": "Run status",
     "Select a connection…": "Select a connection…",
     "No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.": "No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.",
     "on failure → {0}/{0} is a plan step name": {

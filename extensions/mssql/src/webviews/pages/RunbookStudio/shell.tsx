@@ -5,9 +5,11 @@
 
 /**
  * Runbook Studio document shell (A2 §5.2): compact top bar + product route
- * rail (Author | Parameters | Run | Plan | Results | History [| Debug]).
- * Every route renders an explicit state — empty, invalid, untrusted, or
- * populated — never a blank panel (rendering-spec total-layout rule).
+ * rail (Author | Run | Plan | Results | History). The Run page merges the
+ * former Parameters page as a collapsible section; "parameters" and
+ * "debug" routes alias to it (deep links stay valid). Every route renders
+ * an explicit state — empty, invalid, untrusted, or populated — never a
+ * blank panel (rendering-spec total-layout rule).
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -28,7 +30,6 @@ import { ResolvedWidgetView } from "./widgets";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
     { id: "author", label: () => locConstants.runbookStudio.author, icon: "✎" },
-    { id: "parameters", label: () => locConstants.runbookStudio.parameters, icon: "⛭" },
     { id: "run", label: () => locConstants.runbookStudio.run, icon: "▶" },
     { id: "plan", label: () => locConstants.runbookStudio.plan, icon: "⬡" },
     { id: "results", label: () => locConstants.runbookStudio.results, icon: "▤" },
@@ -77,24 +78,17 @@ function TopBar() {
 }
 
 function NavRail() {
-    const { state, route, navigate } = useRbs();
-    const routes = state?.debugEnabled
-        ? [
-              ...ROUTES,
-              {
-                  id: "debug" as RbsRoute,
-                  label: () => locConstants.runbookStudio.debugReplay,
-                  icon: "⟳",
-              },
-          ]
-        : ROUTES;
+    const { route, navigate } = useRbs();
+    // "parameters" and "debug" are aliases of the merged Run page (their
+    // rail items are gone) — highlight Run for them.
+    const effectiveRoute: RbsRoute = route === "parameters" || route === "debug" ? "run" : route;
     return (
         <nav className="rbs-rail" aria-label={locConstants.runbookStudio.sectionsAriaLabel}>
-            {routes.map((item) => (
+            {ROUTES.map((item) => (
                 <button
                     key={item.id}
-                    className={`rbs-rail-item ${route === item.id ? "active" : ""}`}
-                    aria-current={route === item.id ? "page" : undefined}
+                    className={`rbs-rail-item ${effectiveRoute === item.id ? "active" : ""}`}
+                    aria-current={effectiveRoute === item.id ? "page" : undefined}
                     onClick={() => navigate(item.id)}>
                     <span aria-hidden className="rbs-rail-icon">
                         {item.icon}
@@ -374,9 +368,16 @@ function GenerationConsole() {
 }
 
 function AuthorPage() {
-    const { state, compile, compiling, navigate, updateIntent } = useRbs();
+    const { state, compile, cancelCompile, compiling, navigate, updateIntent } = useRbs();
     const loc = locConstants.runbookStudio;
     const [intentDraft, setIntentDraft] = useState<string | undefined>(undefined);
+    // Cancel disables itself once clicked; re-arms for the next compile.
+    const [cancelPending, setCancelPending] = useState(false);
+    useEffect(() => {
+        if (!compiling) {
+            setCancelPending(false);
+        }
+    }, [compiling]);
     // Persist the typed intent into the DOCUMENT as the user pauses —
     // otherwise a window reload (hot exit) restores the document without
     // the prompt, because the draft lived only in webview memory.
@@ -448,6 +449,17 @@ function AuthorPage() {
                               ? loc.regeneratePlan
                               : loc.generatePlan}
                     </button>
+                    {compiling ? (
+                        <button
+                            className="rbs-btn"
+                            disabled={cancelPending}
+                            onClick={() => {
+                                setCancelPending(true);
+                                void cancelCompile();
+                            }}>
+                            {loc.cancelGeneration}
+                        </button>
+                    ) : null}
                 </div>
                 <GenerationConsole />
             </section>
@@ -548,16 +560,16 @@ function ParameterValueEditor({
     );
 }
 
-function ParametersPage() {
+/** Parameter bind form (connection dropdown + parameter inputs + Run
+ *  button) — the body of the merged Run page's collapsible Parameters
+ *  section. */
+function ParametersSection() {
     const { state, startRun, parameterDraft, setParameterDraft } = useRbs();
     const loc = locConstants.runbookStudio;
     // Draft lives in the provider so navigating away (or starting a run)
     // never wipes what the user configured.
     const values = parameterDraft;
     const [starting, setStarting] = useState(false);
-    if (state?.artifactError) {
-        return <InvalidArtifact />;
-    }
     const parameters = state?.artifact?.parameters ?? [];
     const runActive =
         state?.run !== undefined && !["succeeded", "failed", "cancelled"].includes(state.run.state);
@@ -580,7 +592,7 @@ function ParametersPage() {
         }
     };
     return (
-        <div className="rbs-page-body">
+        <>
             {parameters.length === 0 ? (
                 <p className="rbs-muted">{loc.noParametersDetail}</p>
             ) : (
@@ -631,69 +643,158 @@ function ParametersPage() {
                     {runActive ? loc.runActiveLabel : loc.runButton}
                 </button>
             </div>
-        </div>
+        </>
     );
 }
 
+/** Collapsible page section: chevron + title header (rbs-event-log-style
+ *  affordance) with optional header extras that stay visible while the
+ *  body is collapsed. Controlled — the merged Run page auto-collapses
+ *  Parameters when a run starts. */
+function CollapsibleSection({
+    title,
+    expanded,
+    onToggle,
+    headerExtras,
+    children,
+}: {
+    title: string;
+    expanded: boolean;
+    onToggle: () => void;
+    headerExtras?: React.ReactNode;
+    children: React.ReactNode;
+}) {
+    return (
+        <section className={`rbs-collapse ${expanded ? "rbs-collapse-open" : ""}`}>
+            <div className="rbs-collapse-header">
+                <button
+                    type="button"
+                    className="rbs-collapse-toggle"
+                    aria-expanded={expanded}
+                    onClick={onToggle}>
+                    <span aria-hidden className="rbs-collapse-chevron">
+                        {expanded ? "▾" : "▸"}
+                    </span>
+                    <span className="rbs-collapse-title">{title}</span>
+                </button>
+                {headerExtras}
+            </div>
+            {expanded ? <div className="rbs-collapse-body">{children}</div> : null}
+        </section>
+    );
+}
+
+/**
+ * Merged Run page: a collapsible Parameters section (the bind form) on top
+ * — auto-collapsed once a run starts, expandable any time — and a
+ * collapsible Run status section (state chips + cancel/diagnostics in its
+ * header; gate banner, tiles, timeline, event log in its body) that
+ * appears once a run exists. Routes "parameters" and "debug" alias here.
+ */
 function RunPage() {
-    const { state, openDiagnostics, cancelRun, respondToGate } = useRbs();
+    const { state, route, openDiagnostics, cancelRun, respondToGate } = useRbs();
     const loc = locConstants.runbookStudio;
+    const run = state?.run;
+    const [paramsExpanded, setParamsExpanded] = useState(true);
+    const [statusExpanded, setStatusExpanded] = useState(true);
+    const lastRunIdRef = useRef<string | undefined>(undefined);
+    const routeRef = useRef(route);
+    routeRef.current = route;
+
+    // Auto-collapse Parameters when a run starts (a new runId appears; a
+    // restored run arriving in a fresh webview counts too) — unless a
+    // "parameters" deep link is active, which explicitly asks for the form.
+    useEffect(() => {
+        const runId = run?.runId;
+        if (runId !== undefined && runId !== lastRunIdRef.current) {
+            lastRunIdRef.current = runId;
+            if (routeRef.current !== "parameters") {
+                setParamsExpanded(false);
+            }
+        }
+    }, [run?.runId]);
+
+    // "parameters" deep links land on the merged page with the form open.
+    useEffect(() => {
+        if (route === "parameters") {
+            setParamsExpanded(true);
+        }
+    }, [route]);
+
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
-    const run = state?.run;
-    if (!run) {
-        return (
-            <EmptyState
-                title={loc.noRunTitle}
-                detail={state?.workspaceTrusted ? loc.noRunDetail : loc.untrustedDetail}
-            />
-        );
-    }
-    const runActive = !["succeeded", "failed", "cancelled"].includes(run.state);
-    const completed = run.nodes.filter((n) =>
-        ["succeeded", "failed", "skipped", "cancelled"].includes(n.state),
-    ).length;
+    const runActive =
+        run !== undefined && !["succeeded", "failed", "cancelled"].includes(run.state);
+    const completed =
+        run?.nodes.filter((n) => ["succeeded", "failed", "skipped", "cancelled"].includes(n.state))
+            .length ?? 0;
     return (
         <div className="rbs-page-body">
-            <div className="rbs-run-header">
-                <span className={`rbs-chip rbs-state-${run.state}`}>{run.state}</span>
-                {run.verdict ? (
-                    <span className={`rbs-chip rbs-verdict-${run.verdict}`}>{run.verdict}</span>
-                ) : null}
-                <span className="rbs-muted">{loc.stepsComplete(completed, run.nodes.length)}</span>
-                {runActive ? (
-                    <button className="rbs-btn" onClick={() => void cancelRun(run.runId)}>
-                        {loc.cancelRun}
-                    </button>
-                ) : null}
-                <button className="rbs-btn" onClick={() => openDiagnostics(run.runId)}>
-                    {loc.openDiagnostics}
-                </button>
-            </div>
-            {run.pendingGate ? (
-                <div className="rbs-gate-banner" role="alert">
-                    <span className="rbs-gate-title">⏸ {loc.approvalRequired}</span>
-                    <span>{run.pendingGate.impactSummary}</span>
-                    <button
-                        className="rbs-btn rbs-btn-primary"
-                        onClick={() =>
-                            void respondToGate(run.runId, run.pendingGate!.nodeId, true)
-                        }>
-                        {loc.approve}
-                    </button>
-                    <button
-                        className="rbs-btn"
-                        onClick={() =>
-                            void respondToGate(run.runId, run.pendingGate!.nodeId, false)
-                        }>
-                        {loc.reject}
-                    </button>
-                </div>
-            ) : null}
-            <RunMetricTiles run={run} />
-            <RunTimeline run={run} artifact={state?.artifact} />
-            <RunEventLog />
+            <CollapsibleSection
+                title={loc.parameters}
+                expanded={paramsExpanded}
+                onToggle={() => setParamsExpanded((current) => !current)}>
+                <ParametersSection />
+            </CollapsibleSection>
+            {run ? (
+                <CollapsibleSection
+                    title={loc.runStatus}
+                    expanded={statusExpanded}
+                    onToggle={() => setStatusExpanded((current) => !current)}
+                    headerExtras={
+                        <>
+                            <span className={`rbs-chip rbs-state-${run.state}`}>{run.state}</span>
+                            {run.verdict ? (
+                                <span className={`rbs-chip rbs-verdict-${run.verdict}`}>
+                                    {run.verdict}
+                                </span>
+                            ) : null}
+                            <span className="rbs-muted">
+                                {loc.stepsComplete(completed, run.nodes.length)}
+                            </span>
+                            <div className="rbs-spacer" />
+                            {runActive ? (
+                                <button
+                                    className="rbs-btn"
+                                    onClick={() => void cancelRun(run.runId)}>
+                                    {loc.cancelRun}
+                                </button>
+                            ) : null}
+                            <button className="rbs-btn" onClick={() => openDiagnostics(run.runId)}>
+                                {loc.openDiagnostics}
+                            </button>
+                        </>
+                    }>
+                    {run.pendingGate ? (
+                        <div className="rbs-gate-banner" role="alert">
+                            <span className="rbs-gate-title">⏸ {loc.approvalRequired}</span>
+                            <span>{run.pendingGate.impactSummary}</span>
+                            <button
+                                className="rbs-btn rbs-btn-primary"
+                                onClick={() =>
+                                    void respondToGate(run.runId, run.pendingGate!.nodeId, true)
+                                }>
+                                {loc.approve}
+                            </button>
+                            <button
+                                className="rbs-btn"
+                                onClick={() =>
+                                    void respondToGate(run.runId, run.pendingGate!.nodeId, false)
+                                }>
+                                {loc.reject}
+                            </button>
+                        </div>
+                    ) : null}
+                    <RunMetricTiles run={run} />
+                    <RunTimeline run={run} artifact={state?.artifact} />
+                    <RunEventLog />
+                </CollapsibleSection>
+            ) : (
+                <p className="rbs-muted">
+                    {state?.workspaceTrusted ? loc.noRunDetail : loc.untrustedDetail}
+                </p>
+            )}
         </div>
     );
 }
@@ -702,6 +803,18 @@ function RunPage() {
  *  (handle metadata — no payload pulls). Blank dash until data exists. */
 function RunMetricTiles({ run }: { run: RunbookRunSnapshot }) {
     const loc = locConstants.runbookStudio;
+    const runActive = !["succeeded", "failed", "cancelled"].includes(run.state);
+    // Smooth the Elapsed tile: state pushes arrive irregularly, so tick a
+    // local 1s re-render while the run is active; the interval stops at a
+    // terminal state and elapsed freezes on its final value.
+    const [, setElapsedTick] = useState(0);
+    useEffect(() => {
+        if (!runActive) {
+            return;
+        }
+        const timer = setInterval(() => setElapsedTick((tick) => tick + 1), 1000);
+        return () => clearInterval(timer);
+    }, [runActive]);
     const completed = run.nodes.filter((n) =>
         ["succeeded", "failed", "skipped", "cancelled"].includes(n.state),
     ).length;
@@ -1144,11 +1257,6 @@ function HistoryPage() {
     );
 }
 
-function DebugPage() {
-    const loc = locConstants.runbookStudio;
-    return <EmptyState title={loc.debugReplay} detail={loc.debugPlaceholderDetail} />;
-}
-
 export function RunbookStudioApp() {
     const { route, state } = useRbs();
 
@@ -1165,10 +1273,12 @@ export function RunbookStudioApp() {
         case "author":
             page = <AuthorPage />;
             break;
+        // "parameters" is an alias for the merged Run page (form expanded);
+        // "debug" (page removed) falls back there too. RbsRoute keeps both
+        // members so deep links stay valid.
         case "parameters":
-            page = <ParametersPage />;
-            break;
         case "run":
+        case "debug":
             page = <RunPage />;
             break;
         case "plan":
@@ -1179,9 +1289,6 @@ export function RunbookStudioApp() {
             break;
         case "history":
             page = <HistoryPage />;
-            break;
-        case "debug":
-            page = <DebugPage />;
             break;
         default:
             page = <AuthorPage />;

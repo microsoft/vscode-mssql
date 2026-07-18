@@ -3792,6 +3792,8 @@ export class LocConstants {
             approve: l10n.t("Approve"),
             reject: l10n.t("Reject"),
             cancelRun: l10n.t("Cancel run"),
+            cancelGeneration: l10n.t("Cancel generation"),
+            runStatus: l10n.t("Run status"),
             selectConnection: l10n.t("Select a connection…"),
             noSavedConnections: l10n.t(
                 "No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.",

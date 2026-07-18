@@ -1362,3 +1362,76 @@
     color: var(--vscode-errorForeground);
     font-weight: 500;
 }
+
+/* Collapsible page sections (merged Run page: Parameters + Run status).
+   Header stays visible while collapsed and carries the run-state chips and
+   cancel/diagnostics actions for the Run status section. */
+
+.rbs-collapse {
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    border-radius: 5px;
+    background: var(--vscode-editorWidget-background, transparent);
+    overflow: hidden;
+}
+
+.rbs-collapse-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 5px 10px;
+    background: var(--vscode-sideBar-background);
+}
+
+.rbs-collapse-open > .rbs-collapse-header {
+    border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+}
+
+.rbs-collapse-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.rbs-collapse-toggle:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 1px;
+}
+
+.rbs-collapse-chevron {
+    flex: none;
+    width: 10px;
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-collapse-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-collapse-toggle:hover .rbs-collapse-title {
+    color: var(--vscode-foreground);
+}
+
+.rbs-collapse-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 10px;
+}
+
+/* The collapse header owns the right-aligned actions via .rbs-spacer. */
+.rbs-collapse-header .rbs-spacer {
+    flex: 1;
+}

@@ -905,6 +905,9 @@
       <source xml:lang="en">Cancel failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++12ad4ee6d948e230233564ea283c58ffd456dfb23114e8ce0493d3c1abca49b8">
+      <source xml:lang="en">Cancel generation</source>
+    </trans-unit>
     <trans-unit id="++CODE++56bccd9d49b0317a1cae086940cdf68aa26a521fc4b1b640b17b1751840aa3cc">
       <source xml:lang="en">Cancel run</source>
     </trans-unit>
@@ -6694,6 +6697,9 @@
     </trans-unit>
     <trans-unit id="++CODE++93cfaeb39957c7f919bde29e6b067e9b8c24b4f7ae2d80627a04ea2b32fca5f8">
       <source xml:lang="en">Run runbook</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b75c8793470c1283b3b7e9f5491c4c5ada22ddb25e7ecfb0a83a7dc4ea2c78a">
+      <source xml:lang="en">Run status</source>
     </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>

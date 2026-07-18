@@ -18,6 +18,7 @@ import {
 } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
+    RbsCancelCompileRequest,
     RbsCancelRunRequest,
     RbsCompileProgressNotification,
     RbsCompileRequest,
@@ -109,7 +110,15 @@ function plannerConsoleReducer(
     if (action.type === "finish") {
         return state.startedAt === undefined
             ? state
-            : { ...state, endedAt: Date.now(), outcome: action.ok ? "ok" : "error" };
+            : {
+                  ...state,
+                  endedAt: Date.now(),
+                  outcome: action.ok ? "ok" : "error",
+                  // No "working…" row may survive completion/failure — mark
+                  // every turn done; turns without a duration show the check
+                  // alone.
+                  turns: state.turns.map((turn) => (turn.done ? turn : { ...turn, done: true })),
+              };
     }
     if (state.startedAt === undefined) {
         // Stray event outside a compile (e.g. late arrival) — ignore.
@@ -184,6 +193,9 @@ interface RbsContextValue {
     /** Generation console accumulated from planner progress events. */
     plannerConsole: PlannerConsoleState;
     compile: (intent: string) => Promise<boolean>;
+    /** Abort an in-flight plan generation; the compile promise settles via
+     *  its normal error path ("cancelled" arrives as the compile error). */
+    cancelCompile: () => Promise<boolean>;
     connections: RbsConnectionProfileRef[];
     refreshConnections: () => void;
     updateIntent: (intent: string) => Promise<boolean>;
@@ -274,6 +286,11 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         },
         [rpc],
     );
+
+    const cancelCompile = useCallback(async (): Promise<boolean> => {
+        const result = await rpc.sendRequest(RbsCancelCompileRequest.type, {});
+        return result.cancelled;
+    }, [rpc]);
 
     const [connections, setConnections] = useState<RbsConnectionProfileRef[]>([]);
     const refreshConnections = useCallback(() => {
@@ -368,6 +385,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             compiling,
             plannerConsole,
             compile,
+            cancelCompile,
             connections,
             refreshConnections,
             updateIntent,
@@ -389,6 +407,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             compiling,
             plannerConsole,
             compile,
+            cancelCompile,
             connections,
             refreshConnections,
             updateIntent,
