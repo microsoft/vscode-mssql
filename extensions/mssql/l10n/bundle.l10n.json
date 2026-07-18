@@ -4397,6 +4397,16 @@
     "Run in progress…": "Run in progress…",
     "Step inputs": "Step inputs",
     "Hide details": "Hide details",
+    "Status timeline — what happened": "Status timeline — what happened",
+    "{0} of {1} steps complete/{0} completed count, {1} total count": {
+        "message": "{0} of {1} steps complete",
+        "comment": ["{0} completed count, {1} total count"]
+    },
+    "read-only": "read-only",
+    "mutating": "mutating",
+    "approval": "approval",
+    "Queued.": "Queued.",
+    "Event log": "Event log",
     "Waiting for this step to produce output…": "Waiting for this step to produce output…",
     "The step this widget was bound to no longer exists.": "The step this widget was bound to no longer exists.",
     "The detail data for this output has expired. The run record remains available.": "The detail data for this output has expired. The run record remains available.",

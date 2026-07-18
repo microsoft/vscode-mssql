@@ -13,9 +13,15 @@
 import { useEffect, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
-import { RbsRoute, RunbookParameterDefinition } from "../../../sharedInterfaces/runbookStudio";
+import {
+    RbsArtifactSummary,
+    RbsRoute,
+    RunbookParameterDefinition,
+    RunbookPlanNode,
+    RunbookRunSnapshot,
+} from "../../../sharedInterfaces/runbookStudio";
 import { useRbs } from "./state";
-import { PlanStepper } from "./planStepper";
+import { displayOrder, PlanStepper } from "./planStepper";
 import { ResolvedWidgetView } from "./widgets";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
@@ -402,6 +408,9 @@ function RunPage() {
         );
     }
     const runActive = !["succeeded", "failed", "cancelled"].includes(run.state);
+    const completed = run.nodes.filter((n) =>
+        ["succeeded", "failed", "skipped", "cancelled"].includes(n.state),
+    ).length;
     return (
         <div className="rbs-page-body">
             <div className="rbs-run-header">
@@ -409,7 +418,7 @@ function RunPage() {
                 {run.verdict ? (
                     <span className={`rbs-chip rbs-verdict-${run.verdict}`}>{run.verdict}</span>
                 ) : null}
-                <span className="rbs-mono">{run.runId}</span>
+                <span className="rbs-muted">{loc.stepsComplete(completed, run.nodes.length)}</span>
                 {runActive ? (
                     <button className="rbs-btn" onClick={() => void cancelRun(run.runId)}>
                         {loc.cancelRun}
@@ -439,33 +448,136 @@ function RunPage() {
                     </button>
                 </div>
             ) : null}
-            <table className="rbs-table">
-                <thead>
-                    <tr>
-                        <th>{loc.step}</th>
-                        <th>{loc.state}</th>
-                        <th>{loc.duration}</th>
-                        <th>{loc.result}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {run.nodes.map((node) => (
-                        <tr key={node.nodeId}>
-                            <td className="rbs-mono">{node.nodeId}</td>
-                            <td>
-                                <span className={`rbs-chip rbs-state-${node.state}`}>
-                                    {node.state}
-                                </span>
-                            </td>
-                            <td className="rbs-mono">
-                                {node.durationMs !== undefined ? `${node.durationMs} ms` : "—"}
-                            </td>
-                            <td>{node.message ?? "—"}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <RunTimeline run={run} artifact={state?.artifact} />
+            <RunEventLog />
         </div>
+    );
+}
+
+function timelineIcon(state: string): string {
+    switch (state) {
+        case "succeeded":
+            return "✓";
+        case "failed":
+            return "✕";
+        case "running":
+            return "⟳";
+        case "cancelled":
+        case "skipped":
+            return "⊘";
+        case "awaitingApproval":
+            return "⏸";
+        default:
+            return "○";
+    }
+}
+
+/** Mockup chip: gates say approval; activities say read-only vs mutating
+ *  from the CATALOG-stamped blast radius (never model-claimed). */
+function stepImpactChip(node: RunbookPlanNode | undefined): string | undefined {
+    const loc = locConstants.runbookStudio;
+    if (!node) {
+        return undefined;
+    }
+    if (node.kind === "gate") {
+        return loc.approvalChip;
+    }
+    if (!node.blastRadius) {
+        return undefined;
+    }
+    return node.blastRadius.operation === "read" ? loc.readOnlyChip : loc.mutatingChip;
+}
+
+/** The mockup's "status timeline — what happened": plan-ordered step rows
+ *  with state icon, impact chip, outcome one-liner, and duration. */
+function RunTimeline({
+    run,
+    artifact,
+}: {
+    run: RunbookRunSnapshot;
+    artifact: RbsArtifactSummary | undefined;
+}) {
+    const loc = locConstants.runbookStudio;
+    const planNodes = new Map((artifact?.nodes ?? []).map((n) => [n.id, n]));
+    const ordered =
+        artifact && artifact.nodes.length > 0
+            ? displayOrder(
+                  artifact.entryNodeId ?? artifact.nodes[0].id,
+                  artifact.nodes,
+                  artifact.edges,
+              ).map((n) => n.id)
+            : run.nodes.map((n) => n.nodeId);
+    const snapshots = new Map(run.nodes.map((n) => [n.nodeId, n]));
+    return (
+        <section aria-label={loc.statusTimeline}>
+            <div className="rbs-timeline-title">{loc.statusTimeline}</div>
+            <ol className="rbs-timeline">
+                {ordered.map((nodeId) => {
+                    const snapshot = snapshots.get(nodeId);
+                    const plan = planNodes.get(nodeId);
+                    const nodeState = snapshot?.state ?? "pending";
+                    const chip = stepImpactChip(plan);
+                    return (
+                        <li className={`rbs-timeline-row rbs-tl-${nodeState}`} key={nodeId}>
+                            <span aria-hidden className={`rbs-tl-icon rbs-tl-icon-${nodeState}`}>
+                                {timelineIcon(nodeState)}
+                            </span>
+                            <div className="rbs-tl-body">
+                                <div className="rbs-tl-head">
+                                    <span className="rbs-tl-label">{plan?.label ?? nodeId}</span>
+                                    {chip ? <span className="rbs-chip">{chip}</span> : null}
+                                    <span className="rbs-tl-duration rbs-mono">
+                                        {snapshot?.durationMs !== undefined
+                                            ? `${snapshot.durationMs} ms`
+                                            : nodeState === "pending"
+                                              ? ""
+                                              : "—"}
+                                    </span>
+                                </div>
+                                <div className="rbs-muted">
+                                    {snapshot?.message ??
+                                        (nodeState === "pending" ? loc.queuedLabel : nodeState)}
+                                </div>
+                            </div>
+                        </li>
+                    );
+                })}
+            </ol>
+        </section>
+    );
+}
+
+/** Raw boundary-event log (collapsed by default) — the "what did the
+ *  runtime actually say" view for debugging a run in progress. */
+function RunEventLog() {
+    const { runEvents } = useRbs();
+    const loc = locConstants.runbookStudio;
+    if (runEvents.length === 0) {
+        return null;
+    }
+    return (
+        <details className="rbs-event-log">
+            <summary>
+                {loc.eventLog} ({runEvents.length})
+            </summary>
+            <div className="rbs-widget-scroll">
+                <table className="rbs-table">
+                    <tbody>
+                        {runEvents.map((event) => (
+                            <tr key={event.seq}>
+                                <td className="rbs-mono rbs-muted">{event.seq}</td>
+                                <td className="rbs-mono rbs-muted">
+                                    {new Date(event.epochMs).toLocaleTimeString()}
+                                </td>
+                                <td className="rbs-mono">{event.type}</td>
+                                <td className="rbs-mono">{event.nodeId ?? ""}</td>
+                                <td>{event.nodeState ?? event.runState ?? event.outcome ?? ""}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </details>
     );
 }
 

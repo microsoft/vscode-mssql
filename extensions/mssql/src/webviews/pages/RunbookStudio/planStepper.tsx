@@ -34,7 +34,7 @@ function kindIcon(kind: RunbookPlanNode["kind"]): string {
 
 /** Order nodes for display: entry first, then walk the default-path edges;
  *  anything unreachable renders afterward in lock order (total display). */
-function displayOrder(
+export function displayOrder(
     entryNodeId: string,
     nodes: RunbookPlanNode[],
     edges: RunbookPlanEdge[],

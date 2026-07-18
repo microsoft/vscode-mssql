@@ -3626,6 +3626,18 @@ export class LocConstants {
             stepDetails: l10n.t("Details"),
             stepInputs: l10n.t("Step inputs"),
             hideStepDetails: l10n.t("Hide details"),
+            statusTimeline: l10n.t("Status timeline — what happened"),
+            stepsComplete: (done: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} steps complete",
+                    args: [done, total],
+                    comment: ["{0} completed count, {1} total count"],
+                }),
+            readOnlyChip: l10n.t("read-only"),
+            mutatingChip: l10n.t("mutating"),
+            approvalChip: l10n.t("approval"),
+            queuedLabel: l10n.t("Queued."),
+            eventLog: l10n.t("Event log"),
             widgetPending: l10n.t("Waiting for this step to produce output…"),
             widgetSourceMissing: l10n.t("The step this widget was bound to no longer exists."),
             dataExpiredDetail: l10n.t(

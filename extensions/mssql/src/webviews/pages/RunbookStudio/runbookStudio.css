@@ -376,6 +376,117 @@
     word-break: break-word;
 }
 
+.rbs-timeline-title {
+    margin: 12px 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.rbs-timeline-row {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+    position: relative;
+}
+
+.rbs-timeline-row:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 9px;
+    top: 26px;
+    bottom: -6px;
+    width: 2px;
+    background: var(--vscode-widget-border, var(--vscode-editorWidget-border, #444));
+}
+
+.rbs-tl-succeeded:not(:last-child)::before {
+    background: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+}
+
+.rbs-tl-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border: 1.5px solid var(--vscode-descriptionForeground);
+    color: var(--vscode-descriptionForeground);
+    background: var(--vscode-editor-background);
+    z-index: 1;
+}
+
+.rbs-tl-icon-succeeded {
+    border-color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+}
+
+.rbs-tl-icon-failed {
+    border-color: var(--vscode-errorForeground);
+    color: var(--vscode-errorForeground);
+}
+
+.rbs-tl-icon-running {
+    border-color: var(--vscode-progressBar-background, var(--vscode-textLink-foreground));
+    color: var(--vscode-progressBar-background, var(--vscode-textLink-foreground));
+    animation: rbs-spin 1.2s linear infinite;
+}
+
+@keyframes rbs-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rbs-tl-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.rbs-tl-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbs-tl-label {
+    font-weight: 600;
+}
+
+.rbs-tl-pending .rbs-tl-label {
+    color: var(--vscode-descriptionForeground);
+    font-weight: 400;
+}
+
+.rbs-tl-duration {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-event-log {
+    margin-top: 16px;
+}
+
+.rbs-event-log summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
 .rbs-verdict-pass {
     color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
     background: transparent;

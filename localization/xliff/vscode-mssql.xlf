@@ -2953,6 +2953,9 @@
       <source xml:lang="en">Event details for {0}</source>
       <note>{0} is the name of the profiler event</note>
     </trans-unit>
+    <trans-unit id="++CODE++7b7a677926b494d6f9241be78bd1d7968fea22ac8b08b058d1376c034a3c18f6">
+      <source xml:lang="en">Event log</source>
+    </trans-unit>
     <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
       <source xml:lang="en">Event properties list</source>
     </trans-unit>
@@ -6118,6 +6121,9 @@
       <note>{0} is the query number
 {1} is the query cost</note>
     </trans-unit>
+    <trans-unit id="++CODE++a104f0e95730e171d42c2ff48c3806546e19a9e3e5ff51604e8d7bad954fe3ff">
+      <source xml:lang="en">Queued.</source>
+    </trans-unit>
     <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
       <source xml:lang="en">Quick Queries</source>
     </trans-unit>
@@ -7580,6 +7586,9 @@
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
     </trans-unit>
+    <trans-unit id="++CODE++8bee18993308753704ed66188797842a1dfb336133bda45cfc1cee2c07bef3b8">
+      <source xml:lang="en">Status timeline — what happened</source>
+    </trans-unit>
     <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
       <source xml:lang="en">Status: {0}</source>
       <note>{0} is the task status</note>
@@ -8770,6 +8779,9 @@
     <trans-unit id="++CODE++6201111b83a0cb5b0922cb37cc442b9a40e24e3b1ce100a4bb204f4c63fd2ac0">
       <source xml:lang="en">and</source>
     </trans-unit>
+    <trans-unit id="++CODE++9deb65b8788f41ff94a217842017db2f843954fc0eb46110835903908e5a265f">
+      <source xml:lang="en">approval</source>
+    </trans-unit>
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
     </trans-unit>
@@ -8845,6 +8857,9 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c9c36397f4b088a0b8dfac0bb41c6ed7ab1f032112bb1b7f87a030836792554b">
+      <source xml:lang="en">mutating</source>
+    </trans-unit>
     <trans-unit id="++CODE++9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59">
       <source xml:lang="en">no</source>
     </trans-unit>
@@ -8869,6 +8884,9 @@
     </trans-unit>
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4fed3970dcc0d31dccddbf69ef55b00f32d2ca787f1757894914bc0365ea7aa5">
+      <source xml:lang="en">read-only</source>
     </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
@@ -9056,6 +9074,10 @@
     <trans-unit id="++CODE++0a5386056b438f9a10684f843b73fdbfb59ebd88cfb1f936900d1528da2844ea">
       <source xml:lang="en">{0} of {1} rules</source>
       <note>{0} is the filtered count, {1} is the total count</note>
+    </trans-unit>
+    <trans-unit id="++CODE++60ae1558c591d9a057b94562e62283ff25bd6dbe943686222e43171dec675561">
+      <source xml:lang="en">{0} of {1} steps complete</source>
+      <note>{0} completed count, {1} total count</note>
     </trans-unit>
     <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
       <source xml:lang="en">{0} of {1} tenants</source>
