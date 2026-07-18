@@ -15,6 +15,7 @@ import {
     launchRefusalError,
     mapRegionStatus,
     mapTerminalStatus,
+    ReasoningCoalescer,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
 import { findFreePort } from "../../src/runbookStudio/runtime/runtimeSupervisor";
 
@@ -65,5 +66,55 @@ suite("hobbesRuntimeAdapter", () => {
         expect(port).to.be.lessThan(65536);
         const second = await findFreePort();
         expect(second).to.be.greaterThan(0);
+    });
+
+    suite("ReasoningCoalescer", () => {
+        test("flushes one combined run when the size ceiling is reached", () => {
+            const emitted: string[] = [];
+            const coalescer = new ReasoningCoalescer((text) => emitted.push(text));
+            const fragment = "x".repeat(60);
+            coalescer.append(fragment, 0);
+            coalescer.append(fragment, 1);
+            coalescer.append(fragment, 2);
+            expect(emitted).to.have.length(0);
+            coalescer.append(fragment, 3); // 240 chars → size flush
+            expect(emitted).to.deep.equal([fragment.repeat(4)]);
+        });
+
+        test("boundary flush emits the partial buffer and empty flush is a no-op", () => {
+            const emitted: string[] = [];
+            const coalescer = new ReasoningCoalescer((text) => emitted.push(text));
+            coalescer.append("thinking ", 0);
+            coalescer.append("aloud", 10);
+            coalescer.flush(); // tool-call / status / turn boundary
+            expect(emitted).to.deep.equal(["thinking aloud"]);
+            coalescer.flush(); // nothing buffered → no emission
+            expect(emitted).to.have.length(1);
+        });
+
+        test("deadline poke flushes only once the first buffered char is 500ms old", () => {
+            const emitted: string[] = [];
+            const coalescer = new ReasoningCoalescer((text) => emitted.push(text));
+            coalescer.append("slow", 1000);
+            coalescer.poke(1499); // under the deadline: still buffering
+            expect(emitted).to.have.length(0);
+            coalescer.poke(1500); // 500ms since FIRST char → flush
+            expect(emitted).to.deep.equal(["slow"]);
+            // The deadline re-arms from the next first buffered char.
+            coalescer.append("next", 2000);
+            coalescer.poke(2100);
+            expect(emitted).to.have.length(1);
+            coalescer.poke(2500);
+            expect(emitted).to.deep.equal(["slow", "next"]);
+        });
+
+        test("empty deltas never arm the deadline", () => {
+            const emitted: string[] = [];
+            const coalescer = new ReasoningCoalescer((text) => emitted.push(text));
+            coalescer.append("", 0);
+            coalescer.poke(10_000);
+            coalescer.flush();
+            expect(emitted).to.have.length(0);
+        });
     });
 });

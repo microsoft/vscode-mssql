@@ -11,6 +11,7 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useReducer,
     useRef,
     useState,
     useSyncExternalStore,
@@ -25,6 +26,7 @@ import {
     RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
+    RbsPlannerProgressEvent,
     RbsRespondToGateRequest,
     RbsRoute,
     RbsRunEventNotification,
@@ -36,6 +38,127 @@ import {
 } from "../../../sharedInterfaces/runbookStudio";
 import { ViewKind } from "../../../sharedInterfaces/runbookPresentation";
 
+/** One WORKFLOW STEPS row of the generation console (planner build turn). */
+export interface PlannerConsoleTurn {
+    seq: number;
+    label: string;
+    turnKind?: string;
+    durationMs?: number;
+    done: boolean;
+}
+
+/** One LIVE THINKING feed entry (stable id for list keys under capping). */
+export interface PlannerFeedEntry {
+    id: number;
+    event: RbsPlannerProgressEvent;
+}
+
+/**
+ * Generation-console state accumulated from planner progress events. Reset
+ * on each compile start; kept (collapsed to a summary) after completion or
+ * failure until the next compile.
+ */
+export interface PlannerConsoleState {
+    /** Undefined until the first compile in this panel starts. */
+    startedAt?: number;
+    endedAt?: number;
+    outcome?: "ok" | "error";
+    turns: PlannerConsoleTurn[];
+    /** Bounded LIVE THINKING feed (reasoning / tool calls / turn summaries). */
+    feed: PlannerFeedEntry[];
+    toolCalls: number;
+    /** Latest coarse phase one-liner (localized at source). */
+    phase?: string;
+    /** Comma-joined proposed input names, once proposed. */
+    inputs?: string;
+    nextFeedId: number;
+}
+
+const PLANNER_FEED_CAP = 300;
+
+const emptyPlannerConsole: PlannerConsoleState = {
+    turns: [],
+    feed: [],
+    toolCalls: 0,
+    nextFeedId: 0,
+};
+
+type PlannerConsoleAction =
+    | { type: "start" }
+    | { type: "event"; event: RbsPlannerProgressEvent }
+    | { type: "finish"; ok: boolean };
+
+function pushFeed(state: PlannerConsoleState, event: RbsPlannerProgressEvent): PlannerConsoleState {
+    const feed = state.feed.concat({ id: state.nextFeedId, event });
+    return {
+        ...state,
+        feed: feed.length > PLANNER_FEED_CAP ? feed.slice(feed.length - PLANNER_FEED_CAP) : feed,
+        nextFeedId: state.nextFeedId + 1,
+    };
+}
+
+function plannerConsoleReducer(
+    state: PlannerConsoleState,
+    action: PlannerConsoleAction,
+): PlannerConsoleState {
+    if (action.type === "start") {
+        return { ...emptyPlannerConsole, startedAt: Date.now() };
+    }
+    if (action.type === "finish") {
+        return state.startedAt === undefined
+            ? state
+            : { ...state, endedAt: Date.now(), outcome: action.ok ? "ok" : "error" };
+    }
+    if (state.startedAt === undefined) {
+        // Stray event outside a compile (e.g. late arrival) — ignore.
+        return state;
+    }
+    const event = action.event;
+    switch (event.kind) {
+        case "turn-started": {
+            const seq = event.seq ?? state.turns.length + 1;
+            const turn: PlannerConsoleTurn = {
+                seq,
+                label: event.label ?? "",
+                ...(event.turnKind ? { turnKind: event.turnKind } : {}),
+                done: false,
+            };
+            const index = state.turns.findIndex((t) => t.seq === seq);
+            // A revision attempt restarts an existing turn row in place.
+            const turns =
+                index >= 0
+                    ? state.turns.map((t, i) => (i === index ? turn : t))
+                    : state.turns.concat(turn);
+            return { ...state, turns };
+        }
+        case "turn-completed": {
+            const turns = state.turns.map((t) =>
+                t.seq === event.seq
+                    ? {
+                          ...t,
+                          done: true,
+                          ...(event.durationMs !== undefined
+                              ? { durationMs: event.durationMs }
+                              : {}),
+                      }
+                    : t,
+            );
+            const base = event.text ? pushFeed(state, event) : state;
+            return { ...base, turns };
+        }
+        case "reasoning":
+            return event.text ? pushFeed(state, event) : state;
+        case "tool-call":
+            return { ...pushFeed(state, event), toolCalls: state.toolCalls + 1 };
+        case "inputs-proposed":
+            return { ...state, inputs: event.text ?? "" };
+        case "phase":
+            return event.text ? { ...state, phase: event.text } : state;
+        default:
+            return state;
+    }
+}
+
 interface RbsContextValue {
     state: RbsState | undefined;
     rpc: ReturnType<typeof useVscodeWebview<RbsState, void>>["extensionRpc"];
@@ -46,8 +169,8 @@ interface RbsContextValue {
     lastError: RbsError | undefined;
     dismissError: () => void;
     compiling: boolean;
-    /** Latest planner phase label while compiling ("Workflow shape", ...). */
-    compileProgress: string | undefined;
+    /** Generation console accumulated from planner progress events. */
+    plannerConsole: PlannerConsoleState;
     compile: (intent: string) => Promise<boolean>;
     connections: RbsConnectionProfileRef[];
     refreshConnections: () => void;
@@ -99,8 +222,8 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         rpc.onNotification(RbsNavigateNotification.type, ({ route: target }) => {
             navigate(target);
         });
-        rpc.onNotification(RbsCompileProgressNotification.type, ({ label }) => {
-            setCompileProgress(label);
+        rpc.onNotification(RbsCompileProgressNotification.type, (event) => {
+            dispatchPlannerConsole({ type: "event", event });
         });
         rpc.onNotification(RbsRunEventNotification.type, (event) => {
             setRunEvents((current) => {
@@ -115,21 +238,26 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     const dismissError = useCallback(() => setLastError(undefined), []);
 
     const [compiling, setCompiling] = useState(false);
-    const [compileProgress, setCompileProgress] = useState<string | undefined>(undefined);
+    const [plannerConsole, dispatchPlannerConsole] = useReducer(
+        plannerConsoleReducer,
+        emptyPlannerConsole,
+    );
     const compile = useCallback(
         async (intent: string): Promise<boolean> => {
             setLastError(undefined);
             setCompiling(true);
-            setCompileProgress(undefined);
+            dispatchPlannerConsole({ type: "start" });
+            let ok = false;
             try {
                 const result = await rpc.sendRequest(RbsCompileRequest.type, { intent });
                 if (result.error) {
                     setLastError(result.error);
                 }
+                ok = result.ok;
                 return result.ok;
             } finally {
                 setCompiling(false);
-                setCompileProgress(undefined);
+                dispatchPlannerConsole({ type: "finish", ok });
             }
         },
         [rpc],
@@ -173,12 +301,16 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             // A fresh run must never wear the previous attempt's error.
             setLastError(undefined);
             setRunEvents([]);
+            // Switch to the Run page IMMEDIATELY — publish/launch can take
+            // seconds and the user should watch the run queue up, not wait
+            // on the Parameters page. Errors surface in the top bar either
+            // way.
+            navigate("run");
             const result = await rpc.sendRequest(RbsStartRunRequest.type, { parameterValues });
             if (result.error) {
                 setLastError(result.error);
                 return undefined;
             }
-            navigate("run");
             return result.runId;
         },
         [rpc],
@@ -222,7 +354,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             lastError,
             dismissError,
             compiling,
-            compileProgress,
+            plannerConsole,
             compile,
             connections,
             refreshConnections,
@@ -243,7 +375,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             lastError,
             dismissError,
             compiling,
-            compileProgress,
+            plannerConsole,
             compile,
             connections,
             refreshConnections,

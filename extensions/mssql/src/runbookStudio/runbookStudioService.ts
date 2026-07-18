@@ -22,6 +22,7 @@ import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { Perf } from "../perf/perfTelemetry";
 import {
     RbsError,
+    RbsPlannerProgressEvent,
     RunbookArtifactFile,
     RunbookParameterDefinition,
     RunbookRunSnapshot,
@@ -34,7 +35,7 @@ import {
     RunbookOperationContext,
 } from "./runbookDiag";
 import { removeStash, writeStash } from "./libraryStash";
-import { canonicalizeRunbookArtifact } from "./runbookArtifact";
+import { canonicalizeRunbookArtifact, deriveRunbookName } from "./runbookArtifact";
 import { activeLibraryAssetId, LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger } from "./runbookRunLedger";
@@ -379,7 +380,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     public async compileIntent(
         model: RunbookStudioDocumentModel,
         intent: string,
-        onProgress?: (label: string) => void,
+        onProgress?: (event: RbsPlannerProgressEvent) => void,
     ): Promise<{ ok: boolean; error?: RbsError }> {
         const base = model.artifact;
         if (!base) {
@@ -399,6 +400,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 return { ok: false, ...(result.error ? { error: result.error } : {}) };
             }
             artifact = result.artifact;
+        }
+        // A generated plan deserves a real name: when the document still
+        // wears the New-Runbook placeholder, derive one from the intent
+        // (the planner path may have already adopted the asset title).
+        if (artifact.name === LocRunbookStudio.newRunbookName) {
+            artifact = { ...artifact, name: deriveRunbookName(intent) };
         }
         const applied = await model.applyArtifactEdit(artifact);
         if (!applied) {
@@ -421,7 +428,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         base: RunbookArtifactFile,
         intent: string,
         context: RunbookOperationContext,
-        onProgress?: (label: string) => void,
+        onProgress?: (event: RbsPlannerProgressEvent) => void,
     ): Promise<RunbookArtifactFile | undefined> {
         const ensured = this.ensureHobbesAdapter();
         if ("error" in ensured) {
@@ -440,7 +447,34 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 });
                 return undefined;
             }
-            return built.artifact;
+            let artifact = built.artifact;
+            // Adopt the planner's asset title while the document still wears
+            // the New-Runbook placeholder — tree and document then match.
+            if (artifact.name === LocRunbookStudio.newRunbookName && planned.title) {
+                artifact = { ...artifact, name: planned.title };
+            }
+            // The planner saved its OWN library asset; a placeholder draft
+            // from "New Runbook" is now orphaned. Remove it (draft-only,
+            // never a book with history) and refresh the tree badges.
+            const oldRef = base.lock?.libraryAssetRef?.assetId;
+            const newRef = artifact.lock?.libraryAssetRef?.assetId;
+            if (
+                oldRef &&
+                newRef &&
+                oldRef !== newRef &&
+                base.name === LocRunbookStudio.newRunbookName
+            ) {
+                void this.getLibraryRunbook(oldRef).then((found) => {
+                    const state = (found.asset as { state?: string } | undefined)?.state;
+                    if (state === "draft") {
+                        return this.deleteLibraryRunbookPermanently(oldRef).then(() =>
+                            this.activeRunsEmitter.fire(),
+                        );
+                    }
+                    return undefined;
+                });
+            }
+            return artifact;
         } catch (error) {
             emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {
                 errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),

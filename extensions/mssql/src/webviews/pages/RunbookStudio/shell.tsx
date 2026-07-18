@@ -10,7 +10,7 @@
  * populated — never a blank panel (rendering-spec total-layout rule).
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -20,7 +20,7 @@ import {
     RunbookPlanNode,
     RunbookRunSnapshot,
 } from "../../../sharedInterfaces/runbookStudio";
-import { useRbs } from "./state";
+import { PlannerConsoleTurn, PlannerFeedEntry, useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
@@ -140,8 +140,235 @@ function StepsBanner({ stage }: { stage: 1 | 2 | 3 }) {
     );
 }
 
+/** "1m 43s" / "59s" elapsed formatting for the generation console. */
+function formatElapsed(ms: number): string {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+/** Decorative glyph per planner turn kind (mirrors the standalone rail). */
+function turnKindGlyph(turnKind: string | undefined): string {
+    switch (turnKind) {
+        case "workflow-shape":
+            return "◇";
+        case "gather-detail":
+            return "✚";
+        case "decide-detail":
+            return "◈";
+        case "summarize-detail":
+            return "≡";
+        case "recommend-detail":
+            return "✦";
+        case "report-outline":
+            return "▤";
+        default:
+            return "•";
+    }
+}
+
+/** One WORKFLOW STEPS row: number badge -> spinner while working -> ✓ +
+ *  duration (seconds, 1 decimal) once the turn completes. */
+function ConsoleStepRow({ turn }: { turn: PlannerConsoleTurn }) {
+    const loc = locConstants.runbookStudio;
+    return (
+        <li className={`rbs-console-step ${turn.done ? "rbs-console-step-done" : ""}`}>
+            <span
+                aria-hidden
+                className={`rbs-console-step-badge ${turn.done ? "done" : "working"}`}>
+                {turn.done ? "✓" : turn.seq}
+            </span>
+            <div className="rbs-console-step-body">
+                <div className="rbs-console-step-label">
+                    <span aria-hidden className="rbs-console-step-glyph">
+                        {turnKindGlyph(turn.turnKind)}
+                    </span>
+                    {turn.label || String(turn.seq)}
+                </div>
+                <div className="rbs-console-step-meta rbs-muted rbs-mono">
+                    {turn.done ? (
+                        turn.durationMs !== undefined ? (
+                            `${(turn.durationMs / 1000).toFixed(1)}s`
+                        ) : null
+                    ) : (
+                        <>
+                            <span className="rbs-spinner rbs-spinner-sm" aria-hidden />
+                            <span>{loc.consoleWorking}…</span>
+                        </>
+                    )}
+                </div>
+            </div>
+        </li>
+    );
+}
+
+/** One LIVE THINKING feed entry: a coalesced reasoning run, a tool-call
+ *  chip, or a turn summary (slightly emphasized). */
+function ConsoleFeedEntry({ entry }: { entry: PlannerFeedEntry }) {
+    const event = entry.event;
+    if (event.kind === "tool-call") {
+        return (
+            <div className="rbs-console-entry rbs-console-toolcall">
+                <span className="rbs-console-tool-chip rbs-mono">
+                    <span aria-hidden className="rbs-console-tool-glyph">
+                        ⚒
+                    </span>
+                    {event.toolName ?? ""}
+                </span>
+                {event.text ? <span className="rbs-muted">{event.text}</span> : null}
+            </div>
+        );
+    }
+    if (event.kind === "turn-completed") {
+        return <div className="rbs-console-entry rbs-console-turn-summary">{event.text}</div>;
+    }
+    return <div className="rbs-console-entry rbs-console-reasoning">{event.text}</div>;
+}
+
+/**
+ * Generation console (mirrors the standalone planner experience): header
+ * with elapsed ticker + tool-call count + latest phase, a LIVE THINKING
+ * feed of coalesced reasoning / tool calls / turn summaries, and a
+ * WORKFLOW STEPS rail that fills in as planner turns start and complete.
+ * Stays visible after completion/failure, collapsed to a summary line,
+ * until the next compile resets it.
+ */
+function GenerationConsole() {
+    const { compiling, plannerConsole } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const [expanded, setExpanded] = useState(false);
+    const [now, setNow] = useState(() => Date.now());
+    const feedRef = useRef<HTMLDivElement | null>(null);
+    const atBottomRef = useRef(true);
+
+    // 1s elapsed ticker while compiling only.
+    useEffect(() => {
+        if (!compiling) {
+            return;
+        }
+        setNow(Date.now());
+        const timer = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(timer);
+    }, [compiling]);
+
+    // Autoscroll the feed — only when the user is already at the bottom
+    // (scrolling up pins the view; returning to the bottom re-arms it).
+    useEffect(() => {
+        const el = feedRef.current;
+        if (el && atBottomRef.current) {
+            el.scrollTop = el.scrollHeight;
+        }
+    }, [plannerConsole.feed.length, compiling, expanded]);
+
+    if (plannerConsole.startedAt === undefined) {
+        return null;
+    }
+    const endMs = compiling ? now : (plannerConsole.endedAt ?? now);
+    const elapsed = formatElapsed(endMs - plannerConsole.startedAt);
+    const open = compiling || expanded;
+    const succeeded = plannerConsole.outcome === "ok";
+
+    if (!open) {
+        return (
+            <button
+                className="rbs-console-summary-line"
+                aria-expanded={false}
+                onClick={() => setExpanded(true)}>
+                <span
+                    aria-hidden
+                    className={succeeded ? "rbs-console-mark-ok" : "rbs-console-mark-fail"}>
+                    {succeeded ? "✓" : "✕"}
+                </span>
+                <span>{succeeded ? loc.planGeneratedIn(elapsed) : loc.planGenerationFailed}</span>
+                <span className="rbs-muted">· {loc.toolCallCount(plannerConsole.toolCalls)}</span>
+                <span aria-hidden className="rbs-muted rbs-console-chevron">
+                    ▸
+                </span>
+            </button>
+        );
+    }
+
+    const inputNames = (plannerConsole.inputs ?? "")
+        .split(",")
+        .map((name) => name.trim())
+        .filter((name) => name.length > 0);
+
+    const onFeedScroll = () => {
+        const el = feedRef.current;
+        if (el) {
+            atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+        }
+    };
+
+    return (
+        <section className="rbs-console" aria-label={loc.generationConsoleAria}>
+            <div className="rbs-console-header">
+                {compiling ? <span aria-hidden className="rbs-console-live-dot" /> : null}
+                <span className="rbs-mono">{elapsed}</span>
+                <span aria-hidden className="rbs-muted">
+                    ·
+                </span>
+                <span className="rbs-muted">{loc.toolCallCount(plannerConsole.toolCalls)}</span>
+                {plannerConsole.phase ? (
+                    <>
+                        <span aria-hidden className="rbs-muted">
+                            ·
+                        </span>
+                        <span className="rbs-muted" role="status">
+                            {plannerConsole.phase}
+                        </span>
+                    </>
+                ) : null}
+                <div className="rbs-spacer" />
+                {!compiling ? (
+                    <button
+                        className="rbs-btn rbs-btn-quiet"
+                        aria-expanded={true}
+                        onClick={() => setExpanded(false)}>
+                        ▾
+                    </button>
+                ) : null}
+            </div>
+            {inputNames.length > 0 ? (
+                <div className="rbs-console-inputs">
+                    <span className="rbs-muted">{loc.inputsChipLabel}</span>
+                    {inputNames.map((name) => (
+                        <span key={name} className="rbs-chip rbs-mono">
+                            {name}
+                        </span>
+                    ))}
+                </div>
+            ) : null}
+            <div className="rbs-console-grid">
+                <div className="rbs-console-pane">
+                    <div className="rbs-console-pane-title">{loc.liveThinking}</div>
+                    <div
+                        className="rbs-console-feed"
+                        ref={feedRef}
+                        onScroll={onFeedScroll}
+                        role="log"
+                        aria-label={loc.liveThinking}>
+                        {plannerConsole.feed.map((entry) => (
+                            <ConsoleFeedEntry key={entry.id} entry={entry} />
+                        ))}
+                    </div>
+                </div>
+                <div className="rbs-console-pane">
+                    <div className="rbs-console-pane-title">{loc.workflowSteps}</div>
+                    <ol className="rbs-console-steps">
+                        {plannerConsole.turns.map((turn) => (
+                            <ConsoleStepRow key={turn.seq} turn={turn} />
+                        ))}
+                    </ol>
+                </div>
+            </div>
+        </section>
+    );
+}
+
 function AuthorPage() {
-    const { state, compile, compiling, compileProgress, navigate } = useRbs();
+    const { state, compile, compiling, navigate } = useRbs();
     const loc = locConstants.runbookStudio;
     const [intentDraft, setIntentDraft] = useState<string | undefined>(undefined);
     if (state?.artifactError) {
@@ -203,13 +430,8 @@ function AuthorPage() {
                               ? loc.regeneratePlan
                               : loc.generatePlan}
                     </button>
-                    {compiling ? <span className="rbs-spinner" aria-hidden /> : null}
-                    {compiling && compileProgress ? (
-                        <span className="rbs-muted" role="status">
-                            {compileProgress}…
-                        </span>
-                    ) : null}
                 </div>
+                <GenerationConsole />
             </section>
             {artifact.hasLock ? (
                 <section className="rbs-section">

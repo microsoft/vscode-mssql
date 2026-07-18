@@ -288,6 +288,12 @@ export class RunbookLibraryProvider
         if (!service) {
             return [{ kind: "message", message: LocRunbookStudio.runtimeUnavailable }];
         }
+        // Drafts have never been published, so they cannot have runs — say so
+        // directly instead of fetching (which would also spawn the runtime
+        // just to expand a tree node, and surfaced an abort error live).
+        if (asset.state === "draft") {
+            return [{ kind: "message", message: LocRunbookStudio.libraryNoRuns }];
+        }
         const result = await service.getLibraryRunHistory(asset.id);
         if (result.error) {
             return [{ kind: "message", message: result.error.message }];

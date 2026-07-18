@@ -11,7 +11,11 @@
  * before any runtime exists.
  */
 
-import { RbsError, RunbookRunSnapshot } from "../sharedInterfaces/runbookStudio";
+import {
+    RbsError,
+    RbsPlannerProgressEvent,
+    RunbookRunSnapshot,
+} from "../sharedInterfaces/runbookStudio";
 import type { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 
 export interface OutputPageResult {
@@ -53,12 +57,13 @@ export interface RunbookRunCoordinator {
     traceIdOf(runId: string): string | undefined;
 
     /** Intent -> compiled plan written into the document (WorkspaceEdit).
-     *  onProgress receives coarse phase labels while a slow compiler (the
-     *  runtime planner) works — display-only, never persisted. */
+     *  onProgress receives typed planner console events while a slow
+     *  compiler (the runtime planner) works — display-only, never
+     *  persisted; reasoning deltas are already coalesced at the source. */
     compileIntent(
         model: RunbookStudioDocumentModel,
         intent: string,
-        onProgress?: (label: string) => void,
+        onProgress?: (event: RbsPlannerProgressEvent) => void,
     ): Promise<{ ok: boolean; error?: RbsError }>;
 
     /** Saved connections as opaque {id, label} handles (parameter sheet). */

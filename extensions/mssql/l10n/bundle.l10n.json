@@ -66,6 +66,9 @@
         "comment": ["{0} is a technical detail string"]
     },
     "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.": "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.",
+    "Planning session started": "Planning session started",
+    "Plan synthesized": "Plan synthesized",
+    "Dry-run passed": "Dry-run passed",
     "Target connection": "Target connection",
     "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.": "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.": "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
@@ -4574,6 +4577,21 @@
     "Generate plan": "Generate plan",
     "Regenerate plan": "Regenerate plan",
     "Generating plan…": "Generating plan…",
+    "Live thinking": "Live thinking",
+    "Workflow steps": "Workflow steps",
+    "Plan generation console": "Plan generation console",
+    "{0} tool calls/{0} is a count of tool invocations": {
+        "message": "{0} tool calls",
+        "comment": ["{0} is a count of tool invocations"]
+    },
+    "Inputs:": "Inputs:",
+    "working": "working",
+    "Plan generated in {0}/{0} is an elapsed time like 1m 43s": {
+        "message": "Plan generated in {0}",
+        "comment": ["{0} is an elapsed time like 1m 43s"]
+    },
+    "Plan generation did not complete": "Plan generation did not complete",
+    "Generation details": "Generation details",
     "Try an example:": "Try an example:",
     "Warn me when a table grows past a limit": "Warn me when a table grows past a limit",
     "Check a table for orphaned rows": "Check a table for orphaned rows",

@@ -147,8 +147,10 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             if (!this.coordinator) {
                 return { ok: false, error: this.runtimeUnavailableError() };
             }
-            return this.coordinator.compileIntent(this.model, intent, (label) => {
-                void this.sendNotification(RbsCompileProgressNotification.type, { label });
+            // Forward each planner console event as-is — the adapter already
+            // coalesces reasoning deltas, so no extra throttling here.
+            return this.coordinator.compileIntent(this.model, intent, (event) => {
+                void this.sendNotification(RbsCompileProgressNotification.type, event);
             });
         });
 

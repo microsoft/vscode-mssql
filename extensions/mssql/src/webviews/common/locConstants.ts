@@ -3733,6 +3733,25 @@ export class LocConstants {
             generatePlan: l10n.t("Generate plan"),
             regeneratePlan: l10n.t("Regenerate plan"),
             generating: l10n.t("Generating plan…"),
+            liveThinking: l10n.t("Live thinking"),
+            workflowSteps: l10n.t("Workflow steps"),
+            generationConsoleAria: l10n.t("Plan generation console"),
+            toolCallCount: (count: number) =>
+                l10n.t({
+                    message: "{0} tool calls",
+                    args: [count],
+                    comment: ["{0} is a count of tool invocations"],
+                }),
+            inputsChipLabel: l10n.t("Inputs:"),
+            consoleWorking: l10n.t("working"),
+            planGeneratedIn: (elapsed: string) =>
+                l10n.t({
+                    message: "Plan generated in {0}",
+                    args: [elapsed],
+                    comment: ["{0} is an elapsed time like 1m 43s"],
+                }),
+            planGenerationFailed: l10n.t("Plan generation did not complete"),
+            showGenerationDetails: l10n.t("Generation details"),
             tryExample: l10n.t("Try an example:"),
             exampleRowCount: l10n.t("Warn me when a table grows past a limit"),
             exampleOrphans: l10n.t("Check a table for orphaned rows"),

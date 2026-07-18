@@ -326,6 +326,24 @@ export function computePlanHash(
 // ---------------------------------------------------------------------------
 
 /** Fresh-document template for `Runbook Studio: New Runbook`. */
+/** Derive a display name from the authored intent: the first sentence (or
+ *  clause) capped at 60 chars on a word boundary, first letter uppercased,
+ *  trailing punctuation stripped. Pure and deterministic — used when a plan
+ *  compiles while the document still wears the New-Runbook placeholder. */
+export function deriveRunbookName(intent: string): string {
+    const firstSentence = intent.trim().split(/[.?!\n]/, 1)[0] ?? "";
+    let name = firstSentence.trim().replace(/[\s,;:-]+$/, "");
+    if (name.length > 60) {
+        const cut = name.slice(0, 60);
+        const lastSpace = cut.lastIndexOf(" ");
+        name = (lastSpace > 20 ? cut.slice(0, lastSpace) : cut).trimEnd();
+    }
+    if (name.length === 0) {
+        return intent.trim().slice(0, 60) || "Runbook";
+    }
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 export function createNewRunbookArtifact(name: string, id: string): RunbookArtifactFile {
     return {
         schemaVersion: 1,

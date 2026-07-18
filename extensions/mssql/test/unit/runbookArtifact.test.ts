@@ -17,6 +17,7 @@ import {
     computeContentHash,
     createFixtureRunbookArtifact,
     createNewRunbookArtifact,
+    deriveRunbookName,
     isArtifactParseFailure,
     parseRunbookArtifact,
 } from "../../src/runbookStudio/runbookArtifact";
@@ -173,6 +174,27 @@ suite("runbookArtifact", () => {
             const b = createFixtureRunbookArtifact();
             expect(a.lock!.planHash).to.equal(b.lock!.planHash);
             expect(a.lock!.planHash).to.match(/^sha256:[0-9a-f]{64}$/);
+        });
+    });
+
+    suite("deriveRunbookName", () => {
+        test("first sentence, capitalized, punctuation stripped", () => {
+            expect(deriveRunbookName("why is CPU high on my server?")).to.equal(
+                "Why is CPU high on my server",
+            );
+            expect(deriveRunbookName("check blocking. then plans.")).to.equal("Check blocking");
+        });
+        test("caps at a word boundary under 60 chars", () => {
+            const long =
+                "find every query that regressed in the last week and compare their plans against the baseline";
+            const name = deriveRunbookName(long);
+            expect(name.length).to.be.at.most(60);
+            expect(name.endsWith(" ")).to.equal(false);
+            expect(long.startsWith(name.charAt(0).toLowerCase() + name.slice(1))).to.equal(true);
+        });
+        test("degenerate input still yields a name", () => {
+            expect(deriveRunbookName("   ")).to.equal("Runbook");
+            expect(deriveRunbookName("?!")).to.equal("Runbook");
         });
     });
 });

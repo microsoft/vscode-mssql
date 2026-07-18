@@ -26,7 +26,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
-import { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
+import { RbsPlannerProgressEvent, RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
 import { PlannedRunbook, PlannerPlanNode } from "../models/plannerMapping";
 import {
     LibraryRunRef,
@@ -73,15 +73,91 @@ interface HobbesRunRecord {
 }
 
 /** One NDJSON line of a `/api/runbooks/from-prompt` planner session. Only
- *  the fields the bridge reads; hundreds of thinking deltas are ignored. */
+ *  the fields the bridge reads (wire shapes captured live). */
 interface PlannerStreamEvent {
     type?: string;
     turnSeq?: number;
     turnLabel?: string;
+    /** Turn taxonomy, e.g. "workflow-shape" | "gather-detail" (turn events). */
+    turnKind?: string;
+    /** Turn duration (build-turn-completed). */
+    durationMs?: number;
+    /** Turn summary prose — can be long (build-turn-completed). */
+    response?: string;
+    /** sql-expert-thinking taxonomy: "reasoning"|"tool-call"|"status"|"prompt". */
+    kind?: string;
+    /** sql-expert-thinking text delta (reasoning arrives as tiny fragments). */
+    delta?: string;
+    /** Invoked tool (sql-expert-thinking kind "tool-call"). */
+    toolName?: string | null;
+    /** Proposed inputs (planner-input-schema-proposed). */
+    inputs?: Array<{ name?: string; kind?: string }>;
     /** Present on `error` events. */
     message?: string;
     /** Present on the terminal `runbook-asset` event. */
     asset?: PlannerAssetPayload;
+}
+
+/** Reasoning deltas over the flush ceiling emit as one run this size. */
+const REASONING_FLUSH_CHARS = 240;
+/** A partially filled buffer flushes once this old (checked as later
+ *  stream events arrive — the NDJSON session streams continuously, so a
+ *  timestamp check needs no timers). */
+const REASONING_FLUSH_MS = 500;
+/** Turn-completed summaries are truncated to this many chars for the UI. */
+const TURN_SUMMARY_MAX_CHARS = 400;
+
+/**
+ * Pure reasoning-delta coalescer (exported for unit tests): the planner
+ * streams hundreds of tiny `reasoning` deltas per turn; the UI wants a few
+ * readable runs. Buffered text flushes as ONE emission when:
+ *   - the buffer reaches REASONING_FLUSH_CHARS, or
+ *   - a boundary arrives (tool-call/status delta, turn start/end, stream
+ *     end) via flush(), or
+ *   - poke(now) finds the first buffered char older than REASONING_FLUSH_MS.
+ * Callers supply timestamps — no timers, fully deterministic under test.
+ */
+export class ReasoningCoalescer {
+    private buffer = "";
+    private firstBufferedAt: number | undefined;
+
+    constructor(private readonly emit: (text: string) => void) {}
+
+    /** Buffer one delta; flushes when the size ceiling is reached. */
+    public append(delta: string, now: number): void {
+        if (!delta) {
+            return;
+        }
+        if (this.buffer.length === 0) {
+            this.firstBufferedAt = now;
+        }
+        this.buffer += delta;
+        if (this.buffer.length >= REASONING_FLUSH_CHARS) {
+            this.flush();
+        }
+    }
+
+    /** Deadline check — call as any later stream event passes by. */
+    public poke(now: number): void {
+        if (
+            this.firstBufferedAt !== undefined &&
+            now - this.firstBufferedAt >= REASONING_FLUSH_MS
+        ) {
+            this.flush();
+        }
+    }
+
+    /** Boundary flush: emits the buffered run, if any. */
+    public flush(): void {
+        if (this.buffer.length === 0) {
+            this.firstBufferedAt = undefined;
+            return;
+        }
+        const text = this.buffer;
+        this.buffer = "";
+        this.firstBufferedAt = undefined;
+        this.emit(text);
+    }
 }
 
 /** The slice of the saved library asset the planner bridge maps. */
@@ -627,11 +703,15 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
     public async planFromPrompt(
         promptText: string,
         context: RunbookOperationContext,
-        onProgress?: (label: string) => void,
+        onProgress?: (event: RbsPlannerProgressEvent) => void,
     ): Promise<PlannedRunbook> {
         const runtime = await this.supervisor.ensureRunning(context);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), PLANNER_TIMEOUT_MS);
+        const coalescer = new ReasoningCoalescer((text) =>
+            onProgress?.({ kind: "reasoning", text }),
+        );
+        let inputsProposed = false;
         try {
             const response = await fetch(`${runtime.baseUrl}/api/runbooks/from-prompt`, {
                 method: "POST",
@@ -676,16 +756,80 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                         // Malformed line: skip (thinking deltas can be huge).
                         continue;
                     }
+                    // Deadline flush: a partially filled reasoning buffer
+                    // rides out on the next event past the 500ms mark.
+                    coalescer.poke(Date.now());
                     if (event.type === "build-turn-started") {
+                        coalescer.flush();
                         emitRunbookEvent(context, "runbookStudio.planner.turn", "ok", {
                             turnLabel: metaField(event.turnLabel ?? String(event.turnSeq ?? "")),
                         });
-                        if (event.turnLabel) {
-                            onProgress?.(event.turnLabel);
+                        onProgress?.({
+                            kind: "turn-started",
+                            ...(event.turnSeq !== undefined ? { seq: event.turnSeq } : {}),
+                            ...(event.turnLabel ? { label: event.turnLabel } : {}),
+                            ...(event.turnKind ? { turnKind: event.turnKind } : {}),
+                        });
+                    } else if (event.type === "build-turn-completed") {
+                        coalescer.flush();
+                        onProgress?.({
+                            kind: "turn-completed",
+                            ...(event.turnSeq !== undefined ? { seq: event.turnSeq } : {}),
+                            ...(event.turnLabel ? { label: event.turnLabel } : {}),
+                            ...(event.turnKind ? { turnKind: event.turnKind } : {}),
+                            ...(event.durationMs !== undefined
+                                ? { durationMs: event.durationMs }
+                                : {}),
+                            ...(event.response
+                                ? { text: event.response.slice(0, TURN_SUMMARY_MAX_CHARS) }
+                                : {}),
+                        });
+                    } else if (event.type === "sql-expert-thinking") {
+                        if (event.kind === "reasoning") {
+                            coalescer.append(event.delta ?? "", Date.now());
+                        } else if (event.kind === "tool-call") {
+                            coalescer.flush();
+                            onProgress?.({
+                                kind: "tool-call",
+                                ...(event.toolName ? { toolName: event.toolName } : {}),
+                                ...(event.delta ? { text: event.delta } : {}),
+                            });
+                        } else if (event.kind === "status") {
+                            // Status is a coalescing boundary only.
+                            coalescer.flush();
                         }
+                        // "prompt" carries multi-KB prompt text: skipped
+                        // entirely (the Debug Console covers deep inspection).
+                    } else if (event.type === "planner-elicitation-session-started") {
+                        onProgress?.({
+                            kind: "phase",
+                            text: LocRunbookStudio.plannerPhaseSessionStarted,
+                        });
+                    } else if (event.type === "planner-input-schema-proposed") {
+                        if (!inputsProposed) {
+                            inputsProposed = true;
+                            const names = (event.inputs ?? [])
+                                .map((input) => input?.name)
+                                .filter(
+                                    (name): name is string =>
+                                        typeof name === "string" && name.length > 0,
+                                );
+                            onProgress?.({ kind: "inputs-proposed", text: names.join(", ") });
+                        }
+                    } else if (event.type === "plan-synthesized") {
+                        onProgress?.({
+                            kind: "phase",
+                            text: LocRunbookStudio.plannerPhasePlanSynthesized,
+                        });
+                    } else if (event.type === "plan-dry-run-passed") {
+                        onProgress?.({
+                            kind: "phase",
+                            text: LocRunbookStudio.plannerPhaseDryRunPassed,
+                        });
                     } else if (event.type === "error") {
                         throw plannerRefusedError(event.message ?? "planner-error");
                     } else if (event.type === "runbook-asset" && event.asset) {
+                        coalescer.flush();
                         const planned = mapPlannerAsset(event.asset);
                         emitRunbookEvent(context, "runbookStudio.planner.end", "ok", {
                             nodeCount: metaField(planned.plan.nodes.length),
@@ -693,10 +837,10 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                         });
                         return planned;
                     }
-                    // All other event kinds (sql-expert-thinking, dry-run,
-                    // schema proposals, ...) are progress-only: ignored.
+                    // All other event kinds are progress-only: ignored.
                 }
                 if (done) {
+                    coalescer.flush();
                     throw plannerRefusedError("stream-ended-without-asset");
                 }
             }

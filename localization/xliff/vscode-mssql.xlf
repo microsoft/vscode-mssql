@@ -2552,6 +2552,9 @@
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ad0e8a3fde9fd3cbccf2d83de0b1ee3118f943e8c4381a62b8cfd7c79c744ff">
+      <source xml:lang="en">Dry-run passed</source>
+    </trans-unit>
     <trans-unit id="++CODE++4fc52a3c4c558b517c463b22d86d0e3b9cfd4255c98fe3510f9075b37ab419c9">
       <source xml:lang="en">Duration</source>
     </trans-unit>
@@ -3947,6 +3950,9 @@
     <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
       <source xml:lang="en">Generating script...</source>
     </trans-unit>
+    <trans-unit id="++CODE++85ad3d53e78e799016d2a2b19fe4236456e088abeff0255a2e3d8ac64ee55462">
+      <source xml:lang="en">Generation details</source>
+    </trans-unit>
     <trans-unit id="++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac">
       <source xml:lang="en">Geo-redundant backup storage</source>
     </trans-unit>
@@ -4238,6 +4244,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
       <source xml:lang="en">Initializing comparison, this might take a while...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a37d19387acddca0984515a6653983df0cd3e221dfcbad16d0ec7b13c0e6d4b2">
+      <source xml:lang="en">Inputs:</source>
     </trans-unit>
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
@@ -4533,6 +4542,9 @@
       <source xml:lang="en">Listing views for connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5211db1ff5932d3ddd2d5ee0873de428f87b688754eb6aa7e2015971c39b92ef">
+      <source xml:lang="en">Live thinking</source>
     </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
@@ -5883,17 +5895,33 @@
     <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
       <source xml:lang="en">Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++23c4317e6530a8ee120a120f235a8ca60b5e2725de28ff84aa0543e98971bddb">
+      <source xml:lang="en">Plan generated in {0}</source>
+      <note>{0} is an elapsed time like 1m 43s</note>
+    </trans-unit>
+    <trans-unit id="++CODE++067b48c9c0081fa8850737e6de85721aedc40a916eea7a8342c898669e07a5a1">
+      <source xml:lang="en">Plan generation console</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2dc33e3e123876d63207f99bae974dab6112ff182b514b3485059e9454cb0788">
+      <source xml:lang="en">Plan generation did not complete</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d19859245c00061252d8a93c22cb761b50cd554b41fb192d6ba65009cb2d1de">
       <source xml:lang="en">Plan ready — bind parameters and run it.</source>
     </trans-unit>
     <trans-unit id="++CODE++cca5a81704ac9175322dcad61b697e520cf5a6091ca6849ff5aad3725c700c70">
       <source xml:lang="en">Plan revision</source>
     </trans-unit>
+    <trans-unit id="++CODE++9de664c241f82cb5f38f6686d0f0b53b5de4b60a546987866d6ed1c63110055c">
+      <source xml:lang="en">Plan synthesized</source>
+    </trans-unit>
     <trans-unit id="++CODE++3523a6beb7bd63797f5fac1f4a6c8b26f48ba7d74aa76f7b96ee94850c679c93">
       <source xml:lang="en">Plan view</source>
     </trans-unit>
     <trans-unit id="++CODE++cce7bf6763cfce9709f80c013a1e6132132f8c74486587a2b249761a0320522f">
       <source xml:lang="en">Planner (generates the runbook plan)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b1290600e1b792005e8f60c1da240f6b09ae5c1064d1ea8604fa54561c34e0af">
+      <source xml:lang="en">Planning session started</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -8864,6 +8892,9 @@
       <source xml:lang="en">Workflow graph: {0} steps, {1} edges</source>
       <note>{0} is a step count, {1} is an edge count</note>
     </trans-unit>
+    <trans-unit id="++CODE++dda379c1b90e63c1090d0ee8893f3eee47834358e1e1c8b9413cbd73cf992f17">
+      <source xml:lang="en">Workflow steps</source>
+    </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
     </trans-unit>
@@ -9145,6 +9176,9 @@
     <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
       <source xml:lang="en">value</source>
     </trans-unit>
+    <trans-unit id="++CODE++dd5ace9e018dbd62336cbe039916ad7c817d0e9bc9934f70d67f3ff75544da88">
+      <source xml:lang="en">working</source>
+    </trans-unit>
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>
     </trans-unit>
@@ -9370,6 +9404,10 @@
     <trans-unit id="++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3">
       <source xml:lang="en">{0} stopped successfully.</source>
       <note>{0} stopped successfully.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++70fc40577928e7aeca339e09fafa32d05fdac3668c09f7b2a15cc41954d2998e">
+      <source xml:lang="en">{0} tool calls</source>
+      <note>{0} is a count of tool invocations</note>
     </trans-unit>
     <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
       <source xml:lang="en">{0} warnings</source>

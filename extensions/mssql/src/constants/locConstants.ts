@@ -121,6 +121,9 @@ export class RunbookStudio {
     public static hobbesPlannerTimeout = l10n.t(
         "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.",
     );
+    public static plannerPhaseSessionStarted = l10n.t("Planning session started");
+    public static plannerPhasePlanSynthesized = l10n.t("Plan synthesized");
+    public static plannerPhaseDryRunPassed = l10n.t("Dry-run passed");
     public static targetConnectionLabel = l10n.t("Target connection");
     public static hobbesRunStalledAfterFailure = l10n.t(
         "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",

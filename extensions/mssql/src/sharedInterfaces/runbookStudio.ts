@@ -329,9 +329,44 @@ export namespace RbsUpdateIntentRequest {
     );
 }
 
-/** Coarse compile-phase progress (runtime planner turns) — display only. */
+/**
+ * One typed planner event streamed while the runtime planner compiles an
+ * intent (display only — never persisted). Kinds:
+ *  - "turn-started":    a planner build turn began (seq, label, turnKind).
+ *  - "turn-completed":  that turn finished (durationMs; text carries the
+ *                       turn's summary prose, truncated at the source).
+ *  - "reasoning":       a coalesced run of live model reasoning deltas (text).
+ *  - "tool-call":       the planner invoked a tool (toolName; text is the
+ *                       runtime's one-line call description).
+ *  - "inputs-proposed": the proposed input schema (text = comma-joined names).
+ *  - "phase":           coarse one-liner phases (session started, plan
+ *                       synthesized, dry-run passed) — localized at source.
+ */
+export interface RbsPlannerProgressEvent {
+    kind:
+        | "turn-started"
+        | "turn-completed"
+        | "reasoning"
+        | "tool-call"
+        | "inputs-proposed"
+        | "phase";
+    /** Planner turn sequence number (turn events). */
+    seq?: number;
+    /** Turn label, e.g. "Gather — Confirm sustained CPU pressure". */
+    label?: string;
+    /** Turn kind, e.g. "workflow-shape" | "gather-detail" (turn events). */
+    turnKind?: string;
+    /** Turn duration in milliseconds (turn-completed only). */
+    durationMs?: number;
+    /** Event text payload (see kind docs above). */
+    text?: string;
+    /** Invoked tool name (tool-call only). */
+    toolName?: string;
+}
+
+/** Compile-phase progress stream (runtime planner console) — display only. */
 export namespace RbsCompileProgressNotification {
-    export const type = new NotificationType<{ label: string }>("rbs/compileProgress");
+    export const type = new NotificationType<RbsPlannerProgressEvent>("rbs/compileProgress");
 }
 
 /** Pin (or clear) the output view for a plan node — writes a pinned widget
