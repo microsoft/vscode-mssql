@@ -1221,6 +1221,23 @@ table.dc-table tbody tr.selected td {
     background: var(--dc-selected-bg);
     color: var(--dc-selected-fg);
 }
+/* Error rows (Runbooks page): failures pop without opening each row. */
+table.dc-table tbody tr.dc-row-error td {
+    background: color-mix(in srgb, var(--dc-error) 8%, transparent);
+}
+/* Inline details row under an expanded event row. */
+table.dc-table tbody tr.dc-expand-row {
+    cursor: default;
+}
+table.dc-table tbody tr.dc-expand-row td {
+    white-space: normal;
+    height: auto;
+    padding: 8px 10px;
+    background: var(--dc-panel);
+}
+table.dc-table tbody tr.dc-expand-row:hover td {
+    background: var(--dc-panel);
+}
 .dc-mono {
     font-family: var(--dc-mono);
     font-size: 11.5px;

@@ -19,11 +19,21 @@ import {
 } from "./pagesMore";
 import { CompletionsPage } from "./completionsPage";
 import { ReplayLabPage } from "./replayLabPage";
+import { RunbooksPage } from "./runbooksPage";
 import { SqlDataPlanePage } from "./pagesSqlDataPlane";
 import { HistoryPage } from "./pagesPerf";
 import { PerfHistoryPage } from "./pagesPerfHistory";
 
-const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon: string }> }> = [
+const NAV: Array<{
+    group: string;
+    items: Array<{
+        id: DcPage;
+        label: string;
+        icon: string;
+        /** Shown only while mssql.runbookStudio.enabled is on. */
+        requiresRunbookStudio?: boolean;
+    }>;
+}> = [
     {
         group: "Common",
         items: [
@@ -44,6 +54,7 @@ const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon
             { id: "connections", label: "Connections", icon: "⌁" },
             { id: "query", label: "Query & Results", icon: "▶" },
             { id: "oe", label: "Object Explorer", icon: "⌥" },
+            { id: "runbooks", label: "Runbooks", icon: "▤", requiresRunbookStudio: true },
         ],
     },
     {
@@ -284,23 +295,26 @@ function LeftNav() {
             return !current;
         });
     };
+    const runbookStudioEnabled = state?.runbookStudioEnabled === true;
     return (
         <nav className={`dc-leftnav ${collapsed ? "collapsed" : ""}`}>
             {NAV.map((group) => (
                 <div className="dc-nav-group" key={group.group}>
                     {!collapsed ? <div className="dc-nav-group-label">{group.group}</div> : null}
-                    {group.items.map((item) => (
-                        <button
-                            key={item.id}
-                            className={`dc-nav-item ${route.page === item.id ? "active" : ""}`}
-                            title={item.label}
-                            onClick={() => navigate({ page: item.id })}>
-                            <span aria-hidden style={{ width: 15, textAlign: "center" }}>
-                                {item.icon}
-                            </span>
-                            {!collapsed ? item.label : null}
-                        </button>
-                    ))}
+                    {group.items
+                        .filter((item) => !item.requiresRunbookStudio || runbookStudioEnabled)
+                        .map((item) => (
+                            <button
+                                key={item.id}
+                                className={`dc-nav-item ${route.page === item.id ? "active" : ""}`}
+                                title={item.label}
+                                onClick={() => navigate({ page: item.id })}>
+                                <span aria-hidden style={{ width: 15, textAlign: "center" }}>
+                                    {item.icon}
+                                </span>
+                                {!collapsed ? item.label : null}
+                            </button>
+                        ))}
                 </div>
             ))}
             <div style={{ flex: 1 }} />
@@ -369,6 +383,11 @@ export function DebugConsoleApp() {
             break;
         case "replay":
             page = <ReplayLabPage />;
+            break;
+        case "runbooks":
+            // The page itself renders the honest gated state when the
+            // Runbook Studio feature is off (deep links stay safe).
+            page = <RunbooksPage />;
             break;
         default:
             page = <OverviewPage />;

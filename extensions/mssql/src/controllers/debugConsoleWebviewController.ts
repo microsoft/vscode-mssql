@@ -50,6 +50,7 @@ import {
     DcIcDebugStateRequest,
     DcNavigateNotification,
     DcOpenCompletionsViewerRequest,
+    DcOpenRunbookRuntimeLogRequest,
     DcPageId,
     DcCentralPreviewRequest,
     DcCentralUploadProgressNotification,
@@ -197,6 +198,9 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     : {}),
                 provenance: diagnostics.provenance,
                 fixtureMode: false,
+                runbookStudioEnabled: vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>("mssql.runbookStudio.enabled", false),
                 ...(initialPage !== undefined ? { initialPage } : {}),
             },
             {
@@ -836,6 +840,21 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             }
             await vscode.commands.executeCommand(Constants.cmdOpenInlineCompletionDebug);
             return { ok: true };
+        });
+
+        // Runbooks page: open the newest Hobbes runtime session log. Log
+        // discovery lives with the feature (the command only exists while the
+        // Runbook Studio gate is on — a disabled gate returns an honest error).
+        this.onRequest(DcOpenRunbookRuntimeLogRequest.type, async () => {
+            try {
+                await vscode.commands.executeCommand("mssql.runbookStudio.openRuntimeLog");
+                return { ok: true };
+            } catch (error) {
+                return {
+                    ok: false,
+                    error: error instanceof Error ? error.message : String(error),
+                };
+            }
         });
 
         // WI-3.6 Lab integration: the Query Studio "New replay…" entry opens

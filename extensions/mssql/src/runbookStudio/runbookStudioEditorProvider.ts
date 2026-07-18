@@ -14,6 +14,8 @@
  * webview bundle — heavy services construct on first document resolve.
  */
 
+import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
 import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { diag } from "../diagnostics/diagnosticsCore";
@@ -186,6 +188,51 @@ function registerRunbookStudioFeatures(
                 return { opened: true };
             },
         ),
+        // Debug Console "Runbooks" page action (also palette-visible while
+        // the gate is on): open the newest Hobbes runtime session log from
+        // the runtime's isolated data directory. The path mirrors
+        // RunbookStudioService.storageRoot -> RuntimeSupervisor.dataDir.
+        vscode.commands.registerCommand("mssql.runbookStudio.openRuntimeLog", async () => {
+            const logsDir = path.join(
+                (context.storageUri ?? context.globalStorageUri).fsPath,
+                "runbookStudio",
+                "hobbes-data",
+                "logs",
+            );
+            let newest: { file: string; mtimeMs: number } | undefined;
+            try {
+                for (const entry of await fs.promises.readdir(logsDir)) {
+                    if (!entry.startsWith("runtime-session-") || !entry.endsWith(".log")) {
+                        continue;
+                    }
+                    const filePath = path.join(logsDir, entry);
+                    const stat = await fs.promises.stat(filePath);
+                    if (!newest || stat.mtimeMs > newest.mtimeMs) {
+                        newest = { file: filePath, mtimeMs: stat.mtimeMs };
+                    }
+                }
+            } catch {
+                // no logs directory yet — same honest outcome as zero matches
+            }
+            diag.emit({
+                feature: "runbookStudio",
+                kind: "event",
+                type: "runbookStudio.runtimeLog.open",
+                status: newest ? "ok" : "info",
+                fields: {
+                    found: { raw: newest !== undefined, cls: "diagnostic.metadata" },
+                },
+            });
+            if (!newest) {
+                void vscode.window.showInformationMessage(
+                    "No Hobbes runtime log found yet — start a runbook run with the Hobbes runtime to create one.",
+                );
+                return;
+            }
+            await vscode.window.showTextDocument(vscode.Uri.file(newest.file), {
+                preview: true,
+            });
+        }),
     );
     // Runbook Library tree (R3): the runtime library next to Object
     // Explorer, sharing the lazily constructed service. The coordinator

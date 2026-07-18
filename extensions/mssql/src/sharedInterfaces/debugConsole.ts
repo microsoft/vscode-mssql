@@ -342,6 +342,7 @@ export type DcPageId =
     | "connections"
     | "query"
     | "oe"
+    | "runbooks"
     | "exports"
     | "settings";
 
@@ -353,6 +354,9 @@ export interface DebugConsoleState {
     captureExpiresEpochMs?: number;
     provenance: ProvenanceSummary;
     fixtureMode: boolean;
+    /** Runbook Studio gate (mssql.runbookStudio.enabled) — the Runbooks page
+     *  only appears in the nav while the feature is on. */
+    runbookStudioEnabled: boolean;
     /** Deep-link: page the shell shows on first load (default: overview). */
     initialPage?: DcPageId;
 }
@@ -876,6 +880,14 @@ export namespace DcCompletionsEnableRequest {
 export namespace DcOpenCompletionsViewerRequest {
     export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
         "dc/openCompletionsViewer",
+    );
+}
+
+// Runbooks page (Debug Console): open the newest Hobbes runtime session log --
+
+export namespace DcOpenRunbookRuntimeLogRequest {
+    export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
+        "dc/openRunbookRuntimeLog",
     );
 }
 
