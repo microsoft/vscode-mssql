@@ -339,7 +339,9 @@ export function deriveRunbookName(intent: string): string {
         name = (lastSpace > 20 ? cut.slice(0, lastSpace) : cut).trimEnd();
     }
     if (name.length === 0) {
-        return intent.trim().slice(0, 60) || "Runbook";
+        const fallback = intent.trim().slice(0, 60);
+        // Punctuation-only intents ("?!") make no name at all.
+        return /\w/.test(fallback) ? fallback : "Runbook";
     }
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
