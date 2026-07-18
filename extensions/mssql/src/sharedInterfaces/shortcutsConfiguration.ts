@@ -14,42 +14,8 @@ export interface QuickQuerySlot {
     query: string;
 }
 
-export enum QuickQueryNoActiveEditorBehavior {
-    Open = "open",
-    OpenAndRun = "openAndRun",
-    DoNothing = "doNothing",
-}
-
-export function normalizeQuickQueryNoActiveEditorBehavior(
-    value: unknown,
-): QuickQueryNoActiveEditorBehavior {
-    return Object.values(QuickQueryNoActiveEditorBehavior).includes(
-        value as QuickQueryNoActiveEditorBehavior,
-    )
-        ? (value as QuickQueryNoActiveEditorBehavior)
-        : QuickQueryNoActiveEditorBehavior.Open;
-}
-
-export function resolveQuickQueryNoActiveEditorBehavior(
-    explicitlyConfiguredValue: unknown,
-    quickQueries: unknown,
-    slotNumber: number,
-): QuickQueryNoActiveEditorBehavior {
-    if (explicitlyConfiguredValue !== undefined) {
-        return normalizeQuickQueryNoActiveEditorBehavior(explicitlyConfiguredValue);
-    }
-
-    const slots = Array.isArray(quickQueries) ? quickQueries : [];
-    const legacyMode = (slots[slotNumber - 1] as { executionMode?: unknown } | undefined)
-        ?.executionMode;
-    return legacyMode === QuickQueryNoActiveEditorBehavior.OpenAndRun
-        ? QuickQueryNoActiveEditorBehavior.OpenAndRun
-        : QuickQueryNoActiveEditorBehavior.Open;
-}
-
 export interface ShortcutsConfigurationData {
     quickQueries: QuickQuerySlot[];
-    quickQueryNoActiveEditorBehavior?: QuickQueryNoActiveEditorBehavior;
     webviewShortcuts: Record<string, string>;
 }
 
@@ -83,13 +49,11 @@ export interface ShortcutsConfigurationWebviewState {
 
 export interface SaveShortcutsConfigurationChangedSections {
     quickQueries?: boolean;
-    quickQueryNoActiveEditorBehavior?: boolean;
     webviewShortcuts?: boolean;
 }
 
 export interface SaveShortcutsConfigurationPayload {
     quickQueries: QuickQuerySlot[];
-    quickQueryNoActiveEditorBehavior?: QuickQueryNoActiveEditorBehavior;
     webviewShortcuts: Record<string, string>;
     changedSections?: SaveShortcutsConfigurationChangedSections;
 }

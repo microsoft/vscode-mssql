@@ -13,9 +13,6 @@ import {
     getQuickQueryCommandId,
     getQuickQuerySlotName,
     normalizeQuickQueries,
-    normalizeQuickQueryNoActiveEditorBehavior,
-    QuickQueryNoActiveEditorBehavior,
-    resolveQuickQueryNoActiveEditorBehavior,
     QuickQuerySlot,
     quickQueryCount,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
@@ -63,9 +60,6 @@ suite("Quick Query Service", () => {
     ): QuickQueryService {
         quickQueryService.configure({
             readQuickQueries: () => normalizeQuickQueries(undefined),
-            readNoActiveEditorBehavior: sandbox
-                .stub()
-                .returns(QuickQueryNoActiveEditorBehavior.Open),
             openConfiguration: sandbox.stub(),
             getActiveSqlEditor: sandbox.stub().returns(undefined),
             ensureSqlEditorConnected: sandbox.stub().resolves(true),
@@ -139,29 +133,6 @@ suite("Quick Query Service", () => {
         });
     });
 
-    test("defaults invalid no-active-editor behavior to open only", () => {
-        expect(normalizeQuickQueryNoActiveEditorBehavior(undefined)).to.equal(
-            QuickQueryNoActiveEditorBehavior.Open,
-        );
-    });
-
-    test("preserves legacy auto-execute until the new behavior is explicitly configured", () => {
-        const legacySlots = [{ executionMode: "openAndRun" }, { executionMode: "open" }];
-        expect(resolveQuickQueryNoActiveEditorBehavior(undefined, legacySlots, 1)).to.equal(
-            QuickQueryNoActiveEditorBehavior.OpenAndRun,
-        );
-        expect(resolveQuickQueryNoActiveEditorBehavior(undefined, legacySlots, 2)).to.equal(
-            QuickQueryNoActiveEditorBehavior.Open,
-        );
-        expect(
-            resolveQuickQueryNoActiveEditorBehavior(
-                QuickQueryNoActiveEditorBehavior.DoNothing,
-                legacySlots,
-                1,
-            ),
-        ).to.equal(QuickQueryNoActiveEditorBehavior.DoNothing);
-    });
-
     test("returns the singleton instance", () => {
         expect(QuickQueryService.getInstance()).to.equal(quickQueryService);
     });
@@ -185,7 +156,6 @@ suite("Quick Query Service", () => {
                 normalizeQuickQueries([{ name: "Rows", query: "select * from {arg}" }]),
             getActiveSqlEditor: sandbox.stub().returns(editor),
             createSqlEditor,
-            readNoActiveEditorBehavior: () => QuickQueryNoActiveEditorBehavior.OpenAndRun,
             runSqlEditorQueryString,
         });
 
@@ -270,7 +240,6 @@ suite("Quick Query Service", () => {
         const runSqlEditorQuery = sandbox.stub().resolves();
         const service = configureService({
             readQuickQueries: () => normalizeQuickQueries([{ name: "Run", query: "select 1" }]),
-            readNoActiveEditorBehavior: () => QuickQueryNoActiveEditorBehavior.OpenAndRun,
             createSqlEditor,
             isSqlEditorConnected: sandbox.stub().returns(true),
             runSqlEditorQuery,
@@ -292,7 +261,6 @@ suite("Quick Query Service", () => {
         const service = configureService({
             readQuickQueries: () => normalizeQuickQueries([{ name: "Run", query: "select 1" }]),
             createSqlEditor: sandbox.stub().resolves(editor),
-            readNoActiveEditorBehavior: () => QuickQueryNoActiveEditorBehavior.OpenAndRun,
             isSqlEditorConnected: sandbox.stub().returns(false),
             runSqlEditorQuery,
         });
@@ -301,32 +269,6 @@ suite("Quick Query Service", () => {
 
         expect(result).to.equal(QuickQueryRunResult.OpenedWithoutConnection);
         expect(runSqlEditorQuery).to.not.have.been.called;
-    });
-
-    test("opens without running when configured to open only", async () => {
-        const editor = createEditor();
-        const runSqlEditorQuery = sandbox.stub().resolves();
-        const service = configureService({
-            readQuickQueries: () => normalizeQuickQueries([{ name: "Run", query: "select 1" }]),
-            createSqlEditor: sandbox.stub().resolves(editor),
-            isSqlEditorConnected: sandbox.stub().returns(true),
-            runSqlEditorQuery,
-        });
-
-        expect(await service.run(1)).to.equal(QuickQueryRunResult.Opened);
-        expect(runSqlEditorQuery).to.not.have.been.called;
-    });
-
-    test("does nothing when configured not to open an editor", async () => {
-        const createSqlEditor = sandbox.stub();
-        const service = configureService({
-            readQuickQueries: () => normalizeQuickQueries([{ name: "Run", query: "select 1" }]),
-            readNoActiveEditorBehavior: () => QuickQueryNoActiveEditorBehavior.DoNothing,
-            createSqlEditor,
-        });
-
-        expect(await service.run(1)).to.equal(QuickQueryRunResult.NoActiveEditor);
-        expect(createSqlEditor).to.not.have.been.called;
     });
 
     test("package Quick Query contributions match the execution-only slot model", () => {
@@ -366,10 +308,5 @@ suite("Quick Query Service", () => {
         expect(quickQueryConfiguration.items.properties.executionMode.deprecationMessage).to.equal(
             "%mssql.quickQueries.executionMode.deprecationMessage%",
         );
-        const noActiveEditorConfiguration = packageJson.contributes.configuration.properties[
-            "mssql.quickQueries.noActiveEditorBehavior"
-        ] as unknown as { default: string; enum: string[] };
-        expect(noActiveEditorConfiguration.default).to.equal("open");
-        expect(noActiveEditorConfiguration.enum).to.deep.equal(["open", "openAndRun", "doNothing"]);
     });
 });

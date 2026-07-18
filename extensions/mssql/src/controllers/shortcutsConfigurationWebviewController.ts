@@ -27,7 +27,6 @@ import {
     ShortcutsConfigurationReducers,
     ShortcutsConfigurationWebviewState,
     normalizeQuickQueries,
-    normalizeQuickQueryNoActiveEditorBehavior,
     quickQueryCount,
     WriteClipboardTextRequest,
 } from "../sharedInterfaces/shortcutsConfiguration";
@@ -118,18 +117,10 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
         payload: SaveShortcutsConfigurationPayload,
     ): Promise<SaveShortcutsConfigurationResult> {
         this.state = { ...this.state, errorMessage: undefined };
-        const quickQueries = preserveLegacyExecutionModes(
-            normalizeQuickQueries(payload.quickQueries),
-            vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
-        );
+        const quickQueries = normalizeQuickQueries(payload.quickQueries);
         const webviewShortcuts = sanitizeWebviewShortcuts(payload.webviewShortcuts ?? {});
-        const quickQueryNoActiveEditorBehavior = normalizeQuickQueryNoActiveEditorBehavior(
-            payload.quickQueryNoActiveEditorBehavior,
-        );
         const changedSections = payload.changedSections ?? {
             quickQueries: true,
-            quickQueryNoActiveEditorBehavior:
-                payload.quickQueryNoActiveEditorBehavior !== undefined,
             webviewShortcuts: true,
         };
 
@@ -140,15 +131,6 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
                     .update(
                         Constants.configQuickQueries,
                         quickQueries,
-                        vscode.ConfigurationTarget.Global,
-                    );
-            }
-            if (changedSections.quickQueryNoActiveEditorBehavior) {
-                await vscode.workspace
-                    .getConfiguration()
-                    .update(
-                        Constants.configQuickQueryNoActiveEditorBehavior,
-                        quickQueryNoActiveEditorBehavior,
                         vscode.ConfigurationTarget.Global,
                     );
             }
@@ -180,11 +162,6 @@ export class ShortcutsConfigurationWebviewController extends WebviewPanelControl
         return {
             quickQueries: normalizeQuickQueries(
                 vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
-            ),
-            quickQueryNoActiveEditorBehavior: normalizeQuickQueryNoActiveEditorBehavior(
-                vscode.workspace
-                    .getConfiguration()
-                    .get(Constants.configQuickQueryNoActiveEditorBehavior),
             ),
             webviewShortcuts:
                 vscode.workspace
@@ -250,20 +227,6 @@ function sanitizeWebviewShortcuts(value: Record<string, string>): Record<string,
         }
         return result;
     }, {});
-}
-
-function preserveLegacyExecutionModes(
-    quickQueries: ReturnType<typeof normalizeQuickQueries>,
-    existingValue: unknown,
-): ReturnType<typeof normalizeQuickQueries> {
-    const existingSlots = Array.isArray(existingValue) ? existingValue : [];
-    return quickQueries.map((slot, index) => {
-        const executionMode = (existingSlots[index] as { executionMode?: unknown } | undefined)
-            ?.executionMode;
-        return executionMode === "open" || executionMode === "openAndRun"
-            ? { ...slot, executionMode }
-            : slot;
-    });
 }
 
 function getConfigurationTarget(section: string): vscode.ConfigurationTarget {

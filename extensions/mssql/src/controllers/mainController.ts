@@ -135,7 +135,6 @@ import { quickQueryService } from "../quickQueries/quickQueryService";
 import {
     getQuickQueryCommandId,
     normalizeQuickQueries,
-    resolveQuickQueryNoActiveEditorBehavior,
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
@@ -2955,18 +2954,6 @@ export default class MainController implements vscode.Disposable {
                 normalizeQuickQueries(
                     vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
                 ),
-            readNoActiveEditorBehavior: (slotNumber) => {
-                const configuration = vscode.workspace.getConfiguration();
-                const configuredBehavior = configuration.inspect<string>(
-                    Constants.configQuickQueryNoActiveEditorBehavior,
-                );
-                const explicitBehavior =
-                    configuredBehavior?.globalValue ??
-                    configuredBehavior?.workspaceValue ??
-                    configuredBehavior?.workspaceFolderValue;
-                const slots = configuration.get<unknown[]>(Constants.configQuickQueries);
-                return resolveQuickQueryNoActiveEditorBehavior(explicitBehavior, slots, slotNumber);
-            },
             openConfiguration: (focusedQuickQuerySlot) =>
                 this.openShortcutsConfiguration(focusedQuickQuerySlot),
             getActiveSqlEditor: () => {

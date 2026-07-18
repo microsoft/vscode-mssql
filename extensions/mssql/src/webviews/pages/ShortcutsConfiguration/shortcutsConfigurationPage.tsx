@@ -6,15 +6,12 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     Button,
-    Dropdown,
-    Field,
     Input,
     Link,
     makeStyles,
     mergeClasses,
     MessageBar,
     MessageBarBody,
-    Option,
     Tab,
     TabList,
     tokens,
@@ -35,8 +32,6 @@ import {
     ConfigurableKeyCommand,
     configurableKeyCommands,
     getQuickQueryCommandId,
-    normalizeQuickQueryNoActiveEditorBehavior,
-    QuickQueryNoActiveEditorBehavior,
     quickQueryCount,
 } from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutsConfigurationContext } from "./shortcutsConfigurationStateProvider";
@@ -114,13 +109,13 @@ const useStyles = makeStyles({
     },
     quickQueryGridCard: {
         borderRadius: 0,
-        height: "calc(100vh - 260px)",
-        minHeight: "360px",
+        height: "432px",
         width: "100%",
     },
     quickQueryGridScroller: {
         height: "100%",
         overflowX: "auto",
+        overflowY: "hidden",
     },
     quickQueryGridContainer: {
         "--slick-border-color": "var(--vscode-editorWidget-border)",
@@ -563,10 +558,6 @@ const useStyles = makeStyles({
     webviewShortcuts: {
         padding: "0 16px",
     },
-    advancedQuickQueryDropdown: {
-        maxWidth: "420px",
-        width: "100%",
-    },
 });
 
 export const ShortcutsConfigurationPage = () => {
@@ -591,14 +582,12 @@ export const ShortcutsConfigurationPage = () => {
 
     const {
         quickQueries,
-        quickQueryNoActiveEditorBehavior,
         webviewShortcuts,
         saveState,
         errorMessage: saveErrorMessage,
         updateQuickQuery,
         clearQuickQueryValues,
         updateWebviewShortcut,
-        updateQuickQueryNoActiveEditorBehavior,
         saveAndClose,
     } = useShortcutsConfigurationSave({
         context,
@@ -662,7 +651,9 @@ export const ShortcutsConfigurationPage = () => {
     const quickQueryGridOptions = useMemo<GridOption>(
         () => ({
             ...baseFluentReadOnlyGridOption,
+            alwaysShowVerticalScroll: false,
             autoCommitEdit: true,
+            autoHeight: true,
             autoResize: createFluentAutoResizeOptions(`#${quickQueryGridContainerId}`),
             autoEdit: true,
             autoEditByKeypress: true,
@@ -737,30 +728,6 @@ export const ShortcutsConfigurationPage = () => {
                         </div>
                     </div>
                 </div>
-                <CollapsibleSection title={loc.advancedOptions}>
-                    <Field
-                        label={loc.noActiveEditorBehaviorLabel}
-                        hint={loc.noActiveEditorBehaviorDescription}>
-                        <Dropdown
-                            className={classes.advancedQuickQueryDropdown}
-                            aria-label={loc.noActiveEditorBehaviorLabel}
-                            value={
-                                loc.noActiveEditorBehaviorOptions[quickQueryNoActiveEditorBehavior]
-                            }
-                            selectedOptions={[quickQueryNoActiveEditorBehavior]}
-                            onOptionSelect={(_event, data) => {
-                                updateQuickQueryNoActiveEditorBehavior(
-                                    normalizeQuickQueryNoActiveEditorBehavior(data.optionValue),
-                                );
-                            }}>
-                            {Object.values(QuickQueryNoActiveEditorBehavior).map((behavior) => (
-                                <Option key={behavior} value={behavior}>
-                                    {loc.noActiveEditorBehaviorOptions[behavior]}
-                                </Option>
-                            ))}
-                        </Dropdown>
-                    </Field>
-                </CollapsibleSection>
                 {editingQuery && editingQueryIndex !== undefined && (
                     <QuickQueryEditorDialog
                         slot={editingQuery}

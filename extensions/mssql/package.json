@@ -2252,22 +2252,6 @@
                     },
                     "scope": "application"
                 },
-                "mssql.quickQueries.noActiveEditorBehavior": {
-                    "type": "string",
-                    "enum": [
-                        "open",
-                        "openAndRun",
-                        "doNothing"
-                    ],
-                    "enumDescriptions": [
-                        "%mssql.quickQueries.noActiveEditorBehavior.open%",
-                        "%mssql.quickQueries.noActiveEditorBehavior.openAndRun%",
-                        "%mssql.quickQueries.noActiveEditorBehavior.doNothing%"
-                    ],
-                    "default": "open",
-                    "description": "%mssql.quickQueries.noActiveEditorBehavior%",
-                    "scope": "application"
-                },
                 "mssql.shortcuts": {
                     "type": "object",
                     "description": "%mssql.shortcuts%",

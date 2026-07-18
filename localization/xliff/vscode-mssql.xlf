@@ -1092,9 +1092,6 @@
     <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
       <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
     </trans-unit>
-    <trans-unit id="++CODE++35097bb98527ad83c4a5ba8af0ac01550e95b4f631aa1f48b73ba32b2d0997f5">
-      <source xml:lang="en">Choose whether to open the Quick Query in a new SQL editor and whether to run it.</source>
-    </trans-unit>
     <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
       <source xml:lang="en">Circular reference detected: &apos;{0}&apos; → &apos;{1}&apos; creates a cycle</source>
       <note>{0} is source table
@@ -2356,9 +2353,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c6f902ac30a459d53f79efa0c1d45fc2d272ebbfe609ada31ebb309eec06ed7c">
       <source xml:lang="en">Do not connect</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e66b291192aa84ad61215ab4088c33788f16cced0023f7701058f98d10c9c104">
-      <source xml:lang="en">Do nothing</source>
     </trans-unit>
     <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
       <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -5313,9 +5307,6 @@
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
     </trans-unit>
-    <trans-unit id="++CODE++9e4c9ebec5f1181fa486ac03b365c0660be572842760e5c805cbfaa56ebb0fd5">
-      <source xml:lang="en">Open and run query</source>
-    </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
     </trans-unit>
@@ -5336,9 +5327,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8aee9274d23ae999a48821c73c1f93cc31da17f54dbf089e957b56046a062e71">
-      <source xml:lang="en">Open query</source>
     </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
@@ -7572,9 +7560,6 @@
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
-    <trans-unit id="++CODE++bea2a38a47f82bb4b0ecab350a10dd11c5bf23f35152ab7b72f7200f4279106e">
-      <source xml:lang="en">This Quick Query requires selected text. Select some text in the SQL editor, then try again.</source>
-    </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
     </trans-unit>
@@ -7598,6 +7583,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a">
       <source xml:lang="en">This server supports Microsoft Entra ID and SQL Authentication.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8">
+      <source xml:lang="en">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</source>
     </trans-unit>
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
@@ -8076,9 +8064,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
       <source xml:lang="en">What&apos;s next?</source>
-    </trans-unit>
-    <trans-unit id="++CODE++4ce547bb5ead69516ae5e3b167a7acb16723117a803582a9776204daef4f625c">
-      <source xml:lang="en">When no SQL editor is active</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -8775,9 +8760,6 @@
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior">
-      <source xml:lang="en">Controls what a Quick Query does when no SQL editor is active.</source>
-    </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
@@ -8843,9 +8825,6 @@
     </trans-unit>
     <trans-unit id="mssql.newEditorConnectionBehavior.none.description">
       <source xml:lang="en">Do not auto-connect. You must connect each SQL file manually.</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior.doNothing">
-      <source xml:lang="en">Do not open or execute the query.</source>
     </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -9004,7 +8983,7 @@
       <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.executionMode">
-      <source xml:lang="en">Legacy behavior used when no SQL editor is active.</source>
+      <source xml:lang="en">Legacy execution behavior. Quick Queries now always open and execute when no SQL editor is active.</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.executionMode.open">
       <source xml:lang="en">Legacy open mode.</source>
@@ -9114,12 +9093,6 @@
     <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
       <source xml:lang="en">Open in MSSQL extension</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior.openAndRun">
-      <source xml:lang="en">Open the query in a new SQL editor and execute it after connecting.</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior.open">
-      <source xml:lang="en">Open the query in a new SQL editor without executing it.</source>
-    </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
@@ -9141,6 +9114,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
       <source xml:lang="en">Query plan visualization</source>
     </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode.deprecationMessage">
+      <source xml:lang="en">Quick Queries now always open and execute when no SQL editor is active. This setting is ignored and can be removed.</source>
+    </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>
     </trans-unit>
@@ -9155,9 +9131,6 @@
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
       <source xml:lang="en">Rename Database...</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.deprecationMessage">
-      <source xml:lang="en">Replaced by the advanced no-active-editor behavior. This value is preserved until you explicitly configure the new setting.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>

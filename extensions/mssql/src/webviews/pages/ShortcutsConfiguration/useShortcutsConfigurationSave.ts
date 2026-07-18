@@ -8,8 +8,6 @@ import debounce from "lodash/debounce";
 import { getErrorMessage } from "../../common/utils";
 import {
     normalizeQuickQueries,
-    normalizeQuickQueryNoActiveEditorBehavior,
-    QuickQueryNoActiveEditorBehavior,
     QuickQuerySlot,
     SaveShortcutsConfigurationChangedSections,
     SaveShortcutsConfigurationPayload,
@@ -21,13 +19,11 @@ import { SaveState } from "./shortcutComponents";
 function buildPayload(
     quickQueries: QuickQuerySlot[],
     webviewShortcuts: Record<string, string>,
-    quickQueryNoActiveEditorBehavior: QuickQueryNoActiveEditorBehavior,
     changedSections?: SaveShortcutsConfigurationChangedSections,
 ): SaveShortcutsConfigurationPayload {
     return {
         quickQueries,
         webviewShortcuts,
-        quickQueryNoActiveEditorBehavior,
         changedSections,
     };
 }
@@ -41,10 +37,6 @@ function getPayloadDataKey(payload: SaveShortcutsConfigurationPayload): string {
             !changedSections || changedSections.webviewShortcuts
                 ? payload.webviewShortcuts
                 : undefined,
-        quickQueryNoActiveEditorBehavior:
-            !changedSections || changedSections.quickQueryNoActiveEditorBehavior
-                ? payload.quickQueryNoActiveEditorBehavior
-                : undefined,
     });
 }
 
@@ -55,13 +47,11 @@ export interface UseShortcutsConfigurationSaveParams {
 export interface UseShortcutsConfigurationSaveResult {
     quickQueries: QuickQuerySlot[];
     webviewShortcuts: Record<string, string>;
-    quickQueryNoActiveEditorBehavior: QuickQueryNoActiveEditorBehavior;
     saveState: SaveState;
     errorMessage: string | undefined;
     updateQuickQuery: (index: number, value: QuickQuerySlot) => void;
     clearQuickQueryValues: (index: number, commandId: string) => void;
     updateWebviewShortcut: (action: WebviewAction, value: string) => void;
-    updateQuickQueryNoActiveEditorBehavior: (value: QuickQueryNoActiveEditorBehavior) => void;
     saveAndClose: () => Promise<void>;
 }
 
@@ -78,8 +68,6 @@ export function useShortcutsConfigurationSave({
         normalizeQuickQueries(undefined),
     );
     const [webviewShortcuts, setWebviewShortcuts] = useState<Record<string, string>>({});
-    const [quickQueryNoActiveEditorBehavior, setQuickQueryNoActiveEditorBehavior] =
-        useState<QuickQueryNoActiveEditorBehavior>(QuickQueryNoActiveEditorBehavior.Open);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const lastSavedPayloadRef = useRef("");
@@ -105,15 +93,11 @@ export function useShortcutsConfigurationSave({
 
                 const normalizedQuickQueries = normalizeQuickQueries(configuration.quickQueries);
                 const normalizedShortcuts = configuration.webviewShortcuts ?? {};
-                const normalizedBehavior = normalizeQuickQueryNoActiveEditorBehavior(
-                    configuration.quickQueryNoActiveEditorBehavior,
-                );
                 setQuickQueries(normalizedQuickQueries);
                 setWebviewShortcuts(normalizedShortcuts);
-                setQuickQueryNoActiveEditorBehavior(normalizedBehavior);
                 setErrorMessage(undefined);
                 lastSavedPayloadRef.current = getPayloadDataKey(
-                    buildPayload(normalizedQuickQueries, normalizedShortcuts, normalizedBehavior),
+                    buildPayload(normalizedQuickQueries, normalizedShortcuts),
                 );
             })
             .catch((error) => {
@@ -267,19 +251,11 @@ export function useShortcutsConfigurationSave({
         (
             nextQuickQueries = quickQueries,
             nextWebviewShortcuts = webviewShortcuts,
-            nextQuickQueryNoActiveEditorBehavior = quickQueryNoActiveEditorBehavior,
             changedSections?: SaveShortcutsConfigurationChangedSections,
         ) => {
-            scheduleSave(
-                buildPayload(
-                    nextQuickQueries,
-                    nextWebviewShortcuts,
-                    nextQuickQueryNoActiveEditorBehavior,
-                    changedSections,
-                ),
-            );
+            scheduleSave(buildPayload(nextQuickQueries, nextWebviewShortcuts, changedSections));
         },
-        [quickQueries, quickQueryNoActiveEditorBehavior, scheduleSave, webviewShortcuts],
+        [quickQueries, scheduleSave, webviewShortcuts],
     );
 
     const markLocalChange = useCallback(() => {
@@ -294,17 +270,11 @@ export function useShortcutsConfigurationSave({
             );
             setQuickQueries(nextQuickQueries);
             markLocalChange();
-            saveWith(nextQuickQueries, webviewShortcuts, quickQueryNoActiveEditorBehavior, {
+            saveWith(nextQuickQueries, webviewShortcuts, {
                 quickQueries: true,
             });
         },
-        [
-            markLocalChange,
-            quickQueries,
-            quickQueryNoActiveEditorBehavior,
-            saveWith,
-            webviewShortcuts,
-        ],
+        [markLocalChange, quickQueries, saveWith, webviewShortcuts],
     );
 
     const clearQuickQueryValues = useCallback(
@@ -325,17 +295,11 @@ export function useShortcutsConfigurationSave({
 
             setQuickQueries(nextQuickQueries);
             markLocalChange();
-            saveWith(nextQuickQueries, webviewShortcuts, quickQueryNoActiveEditorBehavior, {
+            saveWith(nextQuickQueries, webviewShortcuts, {
                 quickQueries: true,
             });
         },
-        [
-            markLocalChange,
-            quickQueries,
-            quickQueryNoActiveEditorBehavior,
-            saveWith,
-            webviewShortcuts,
-        ],
+        [markLocalChange, quickQueries, saveWith, webviewShortcuts],
     );
 
     const updateWebviewShortcut = useCallback(
@@ -346,25 +310,8 @@ export function useShortcutsConfigurationSave({
             };
             setWebviewShortcuts(nextShortcuts);
             markLocalChange();
-            saveWith(quickQueries, nextShortcuts, quickQueryNoActiveEditorBehavior, {
+            saveWith(quickQueries, nextShortcuts, {
                 webviewShortcuts: true,
-            });
-        },
-        [
-            markLocalChange,
-            quickQueries,
-            quickQueryNoActiveEditorBehavior,
-            saveWith,
-            webviewShortcuts,
-        ],
-    );
-
-    const updateQuickQueryNoActiveEditorBehavior = useCallback(
-        (value: QuickQueryNoActiveEditorBehavior) => {
-            setQuickQueryNoActiveEditorBehavior(value);
-            markLocalChange();
-            saveWith(quickQueries, webviewShortcuts, value, {
-                quickQueryNoActiveEditorBehavior: true,
             });
         },
         [markLocalChange, quickQueries, saveWith, webviewShortcuts],
@@ -373,13 +320,11 @@ export function useShortcutsConfigurationSave({
     return {
         quickQueries,
         webviewShortcuts,
-        quickQueryNoActiveEditorBehavior,
         saveState,
         errorMessage,
         updateQuickQuery,
         clearQuickQueryValues,
         updateWebviewShortcut,
-        updateQuickQueryNoActiveEditorBehavior,
         saveAndClose,
     };
 }

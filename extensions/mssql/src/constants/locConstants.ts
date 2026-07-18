@@ -50,7 +50,7 @@ export let quickQuerySlotOutOfRange = (maxSlot: number) =>
         comment: ["{0} is the maximum Quick Query slot number"],
     });
 export let quickQuerySelectedTextRequired = l10n.t(
-    "This Quick Query requires selected text. Select some text in the SQL editor, then try again.",
+    "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.",
 );
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",

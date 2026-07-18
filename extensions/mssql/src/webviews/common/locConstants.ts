@@ -4,10 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
-import {
-    ConfigurableKeyCommandId,
-    QuickQueryNoActiveEditorBehavior,
-} from "../../sharedInterfaces/shortcutsConfiguration";
+import { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
@@ -364,16 +361,6 @@ export class LocConstants {
             quickQueriesKeyboardShortcutsBanner: l10n.t(
                 "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
             ),
-            advancedOptions: l10n.t("Advanced"),
-            noActiveEditorBehaviorLabel: l10n.t("When no SQL editor is active"),
-            noActiveEditorBehaviorDescription: l10n.t(
-                "Choose whether to open the Quick Query in a new SQL editor and whether to run it.",
-            ),
-            noActiveEditorBehaviorOptions: {
-                [QuickQueryNoActiveEditorBehavior.Open]: l10n.t("Open query"),
-                [QuickQueryNoActiveEditorBehavior.OpenAndRun]: l10n.t("Open and run query"),
-                [QuickQueryNoActiveEditorBehavior.DoNothing]: l10n.t("Do nothing"),
-            } satisfies Record<QuickQueryNoActiveEditorBehavior, string>,
             openKeyboardShortcutsEditor: l10n.t("Open Keyboard Shortcuts editor."),
             webviewShortcuts: l10n.t("Extension Shortcuts"),
             webviewShortcutsDescription: l10n.t(

@@ -17,7 +17,6 @@ import {
     SaveShortcutsConfigurationResult,
     ShortcutsConfigurationData,
     normalizeQuickQueries,
-    QuickQueryNoActiveEditorBehavior,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../src/sharedInterfaces/webview";
 import { stubTelemetry, stubWebviewPanel } from "./utils";
@@ -31,7 +30,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
     let updateConfigurationStub: sinon.SinonStub;
     let quickQueriesSetting: unknown;
     let webviewShortcutsSetting: Record<string, string>;
-    let noActiveEditorBehaviorSetting: unknown;
     let shortcutsInspectValue: Partial<vscode.WorkspaceConfiguration>;
     let webviewPanel: vscode.WebviewPanel;
     let executeCommandStub: sinon.SinonStub;
@@ -48,7 +46,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
 
         quickQueriesSetting = normalizeQuickQueries(undefined);
         webviewShortcutsSetting = {};
-        noActiveEditorBehaviorSetting = QuickQueryNoActiveEditorBehavior.Open;
         shortcutsInspectValue = {};
         updateConfigurationStub = sandbox.stub().callsFake((section: string, value: unknown) => {
             if (section === Constants.configQuickQueries) {
@@ -56,9 +53,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
             }
             if (section === Constants.configShortcuts) {
                 webviewShortcutsSetting = value as Record<string, string>;
-            }
-            if (section === Constants.configQuickQueryNoActiveEditorBehavior) {
-                noActiveEditorBehaviorSetting = value;
             }
             return Promise.resolve();
         });
@@ -70,9 +64,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
                 }
                 if (section === Constants.configShortcuts) {
                     return webviewShortcutsSetting;
-                }
-                if (section === Constants.configQuickQueryNoActiveEditorBehavior) {
-                    return noActiveEditorBehaviorSetting;
                 }
                 return undefined;
             }),
@@ -127,17 +118,11 @@ suite("shortcutsConfiguration Webview Controller", () => {
             webviewShortcuts: {
                 [WebviewAction.ResultGridSelectAll]: "ctrl+shift+a",
             },
-            quickQueryNoActiveEditorBehavior: QuickQueryNoActiveEditorBehavior.DoNothing,
         });
 
         expect(updateConfigurationStub).to.have.been.calledWith(
             Constants.configQuickQueries,
             sinon.match.array,
-            vscode.ConfigurationTarget.Global,
-        );
-        expect(updateConfigurationStub).to.have.been.calledWith(
-            Constants.configQuickQueryNoActiveEditorBehavior,
-            QuickQueryNoActiveEditorBehavior.DoNothing,
             vscode.ConfigurationTarget.Global,
         );
         expect(updateConfigurationStub).to.have.been.calledWith(
@@ -278,12 +263,9 @@ suite("shortcutsConfiguration Webview Controller", () => {
             query: "select 1",
         });
         expect(result.webviewShortcuts).to.deep.equal(webviewShortcutsSetting);
-        expect(result.quickQueryNoActiveEditorBehavior).to.equal(
-            QuickQueryNoActiveEditorBehavior.Open,
-        );
     });
 
-    test("preserves legacy execution modes when saving Quick Query edits", async () => {
+    test("removes ignored legacy execution modes when saving Quick Query edits", async () => {
         quickQueriesSetting = [
             { name: "Legacy auto run", query: "select 1", executionMode: "openAndRun" },
         ];
@@ -295,13 +277,9 @@ suite("shortcutsConfiguration Webview Controller", () => {
             changedSections: { quickQueries: true },
         });
 
-        expect((quickQueriesSetting as Array<Record<string, unknown>>)[0]).to.include({
+        expect((quickQueriesSetting as Array<Record<string, unknown>>)[0]).to.deep.equal({
             name: "Updated",
             query: "select 2",
-            executionMode: "openAndRun",
         });
-        expect(updateConfigurationStub).not.to.have.been.calledWith(
-            Constants.configQuickQueryNoActiveEditorBehavior,
-        );
     });
 });

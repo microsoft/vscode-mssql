@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import {
     normalizeQuickQueries,
-    QuickQueryNoActiveEditorBehavior,
     quickQueryCount,
     QuickQuerySlot,
 } from "../sharedInterfaces/shortcutsConfiguration";
@@ -21,13 +20,10 @@ export enum QuickQueryRunResult {
     ConnectionUnavailable = "connectionUnavailable",
     MultipleSelectionsNotSupported = "multipleSelectionsNotSupported",
     SelectedTextRequired = "selectedTextRequired",
-    Opened = "opened",
-    NoActiveEditor = "noActiveEditor",
 }
 
 export interface QuickQueryExecutionDependencies {
     readQuickQueries: () => QuickQuerySlot[];
-    readNoActiveEditorBehavior: (slotNumber: number) => QuickQueryNoActiveEditorBehavior;
     openConfiguration: (focusedQuickQuerySlot?: number) => void;
     getActiveSqlEditor: () => vscode.TextEditor | undefined;
     ensureSqlEditorConnected: (editor: vscode.TextEditor) => Promise<boolean>;
@@ -128,19 +124,10 @@ export class QuickQueryService {
             return QuickQueryRunResult.SelectedTextRequired;
         }
 
-        const noActiveEditorBehavior = dependencies.readNoActiveEditorBehavior(slotNumber);
-        if (noActiveEditorBehavior === QuickQueryNoActiveEditorBehavior.DoNothing) {
-            return QuickQueryRunResult.NoActiveEditor;
-        }
-
         const editor = await dependencies.createSqlEditor({
             content: composeQuickQuery(slot.query, ""),
             ...resolveQuickQueryConnectionOptions(),
         });
-
-        if (noActiveEditorBehavior === QuickQueryNoActiveEditorBehavior.Open) {
-            return QuickQueryRunResult.Opened;
-        }
 
         if (!dependencies.isSqlEditorConnected(editor)) {
             return QuickQueryRunResult.OpenedWithoutConnection;
