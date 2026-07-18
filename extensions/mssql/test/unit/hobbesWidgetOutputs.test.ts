@@ -64,6 +64,24 @@ suite("hobbesWidgetOutputs", () => {
         expect(output?.text).to.contain("threshold");
     });
 
+    test("chart-typed widgets translate like tables (same schema+rows shape)", () => {
+        // Verified live: the runtime emits line-chart widgets for time+measure
+        // rowsets; the data shape is identical to table widgets.
+        const output = translateWidgetToOutput({
+            id: "w-chart",
+            typeId: "line-chart",
+            dataSource: {
+                data: {
+                    schema: [{ name: "creation_time" }, { name: "total_elapsed_ms" }],
+                    rows: [{ creation_time: "2026-07-18T17:45:04", total_elapsed_ms: "3" }],
+                },
+            },
+        });
+        expect(output?.contract).to.equal("rowset/1");
+        expect(output?.columns).to.deep.equal(["creation_time", "total_elapsed_ms"]);
+        expect(output?.rows?.[0]).to.deep.equal(["2026-07-18T17:45:04", "3"]);
+    });
+
     test("unknown widget types and empty payloads skip honestly", () => {
         expect(
             translateWidgetToOutput({ id: "w4", typeId: "finding-card", dataSource: { data: {} } }),

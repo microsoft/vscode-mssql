@@ -155,6 +155,14 @@ export function translateWidgetToOutput(
         return undefined;
     }
     switch (widget.typeId) {
+        // Chart-typed widgets carry the SAME schema+rows shape as tables
+        // (verified live: line-chart with time-role column + measures) —
+        // translate them all to rowset/1 so the extension's grid/bar/
+        // timeseries renderers can chart the data.
+        case "line-chart":
+        case "bar-chart":
+        case "pie-chart":
+        case "data-grid":
         case "table": {
             const columns = (data.schema ?? [])
                 .map((column) => column.name)
