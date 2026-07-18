@@ -129,6 +129,10 @@
     <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
       <source xml:lang="en">A firewall rule is required to access this server.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7db3d88d15ee059b92c104eb323a0f2abaa41adf4d13089e2c20f40a605b8199">
+      <source xml:lang="en">A folder named &apos;{0}&apos; already exists.</source>
+      <note>{0} is the folder name</note>
+    </trans-unit>
     <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
       <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
     </trans-unit>
@@ -489,6 +493,9 @@
     <trans-unit id="++CODE++11e461129b4d4d5a950797b69aea99807d51efe03e530e8dad53a46c193f581f">
       <source xml:lang="en">Archive runbook &apos;{0}&apos;? Archived runbooks can be restored from the runtime library.</source>
       <note>{0} is the runbook title</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bdb86505f8062d15f152cef71dd4ca89609d5bf8e98771dcd2c9f70d247403da">
+      <source xml:lang="en">Archived</source>
     </trans-unit>
     <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
       <source xml:lang="en">Are you sure you want to cancel this background task?</source>
@@ -2711,6 +2718,9 @@
     <trans-unit id="++CODE++a1afcfa3e45c63a614a4d0646298473382e20d077466ce245a0f991dbe7f0a22">
       <source xml:lang="en">Enter a date...</source>
     </trans-unit>
+    <trans-unit id="++CODE++bc159cd6384ac3d883e44cc6355391719963621fba4eb1a2a7c608459395e83b">
+      <source xml:lang="en">Enter a folder name.</source>
+    </trans-unit>
     <trans-unit id="++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171">
       <source xml:lang="en">Enter a name for the new profiler session</source>
     </trans-unit>
@@ -2722,6 +2732,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
       <source xml:lang="en">Enter a number...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b087b08703bd320b834441fe8a53c79e763f0d4d699e393fbb3ed87e450d35c7">
+      <source xml:lang="en">Enter a runbook name.</source>
     </trans-unit>
     <trans-unit id="++CODE++6086fe9511daa7a6fa39f0af8abaf8b553c8292375dfd76bc8d583b28ce3c808">
       <source xml:lang="en">Enter admin password</source>
@@ -3776,14 +3789,26 @@
     <trans-unit id="++CODE++8f6024d9c9e1ced78c0be59ae6cf30a96420a90976cf31394bcd75abe7c19adb">
       <source xml:lang="en">Focus the Results tab in the query results panel</source>
     </trans-unit>
+    <trans-unit id="++CODE++e5f53ac4c06cdfbdb80048561e53cbe48b4807d9f1bba8784e3ac3ab269b3a67">
+      <source xml:lang="en">Folder &apos;{0}&apos; renamed to &apos;{1}&apos;.</source>
+      <note>{0} is the old folder name
+{1} is the new folder name</note>
+    </trans-unit>
     <trans-unit id="++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50">
       <source xml:lang="en">Folder Path</source>
     </trans-unit>
     <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
       <source xml:lang="en">Folder Structure</source>
     </trans-unit>
+    <trans-unit id="++CODE++5bf0eacff32293f23129e18a83839be437abfc38eada7895ee916622f197e478">
+      <source xml:lang="en">Folder contains {0} runbooks — move them to another folder first.</source>
+      <note>{0} is the number of runbooks in the folder</note>
+    </trans-unit>
     <trans-unit id="++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3">
       <source xml:lang="en">Folder is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++14d34edf50ef6c8738db97eb3fc56d0d5c8521b4555404b3ad456cedbb0c815d">
+      <source xml:lang="en">Folder name</source>
     </trans-unit>
     <trans-unit id="++CODE++98bca2fab915abe0541e612db447c6cf9ad18d1aaa595f052c5d1bf6a697995b">
       <source xml:lang="en">Folder path</source>
@@ -4991,6 +5016,9 @@
     <trans-unit id="++CODE++6fe0dad1261929f0cdda4d6bd309f42a6f17272b4135246f2be62eea84b0edac">
       <source xml:lang="en">Move to Schema...</source>
     </trans-unit>
+    <trans-unit id="++CODE++91d631e150a39784af97883c492d6b3291cd70dc21b1274898155d9795458f7b">
+      <source xml:lang="en">Move to folder</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a27763b5955826a714f69acc938b88a67ed38cc9845144d2119cf34c95292e5">
       <source xml:lang="en">Move to row end</source>
     </trans-unit>
@@ -5099,6 +5127,12 @@
     </trans-unit>
     <trans-unit id="++CODE++4f892896fe4d51df804e3c51630936afa5e8326e519f40158b4c60800a8d85fb">
       <source xml:lang="en">New database name must be different from the current name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++489b9f7c7b087a397fb65afa3a67668e200fce61faa40f03984576085bae8f43">
+      <source xml:lang="en">New folder name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c535b601b4a8934d8179c3acacef6243c19f306000dca56b8ce468234d2621c8">
+      <source xml:lang="en">New folder…</source>
     </trans-unit>
     <trans-unit id="++CODE++48f1dcb4a6002e872ccadde9ece53ebc6da7168299656a635450ec7d66fcfbee">
       <source xml:lang="en">New media set description</source>
@@ -5832,6 +5866,10 @@
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
     </trans-unit>
+    <trans-unit id="++CODE++a3025307f064a728423a683cfe530767ab08447c698e8757235d89f2b3ab2c16">
+      <source xml:lang="en">Permanently delete runbook &apos;{0}&apos; and all of its run history? This cannot be undone.</source>
+      <note>{0} is the runbook title</note>
+    </trans-unit>
     <trans-unit id="++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e">
       <source xml:lang="en">Permissions</source>
     </trans-unit>
@@ -6363,6 +6401,11 @@
     <trans-unit id="++CODE++b406ebedeaa86f8565a4faaca1dc07e2f53a0179f6c4a15f5340124aecb9e453">
       <source xml:lang="en">Rename request failed: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++b88d76d764560ebe038a8dc7298d4b1fc24d363839639eddc79f7f1878ae7eae">
+      <source xml:lang="en">Renamed the folder for {0} runbooks, but {1} could not be moved. Refresh and retry the remaining runbooks.</source>
+      <note>{0} is the number of runbooks moved successfully
+{1} is the number of runbooks that failed to move</note>
+    </trans-unit>
     <trans-unit id="++CODE++765f920dea2bbe32e15041c0045002e4888642f0e6e49e5888275518cb3f9a97">
       <source xml:lang="en">Renaming database</source>
     </trans-unit>
@@ -6617,8 +6660,21 @@
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
     </trans-unit>
+    <trans-unit id="++CODE++88e8e90af4c101a3cd57319a60a15cce412316d3b0f647fbac16aab227e9f875">
+      <source xml:lang="en">Runbook &apos;{0}&apos; and its run history were deleted.</source>
+      <note>{0} is the runbook title</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0601dc3b9c41d00f5a156fa7e2dbaf12385cb0eefd8d781d2a4c8c869b4ab564">
+      <source xml:lang="en">Runbook &apos;{0}&apos; moved to &apos;{1}&apos;.</source>
+      <note>{0} is the runbook title
+{1} is the folder name</note>
+    </trans-unit>
     <trans-unit id="++CODE++60b832c840f91be4200151e75d67955e435b232c7fb4d4dc4ca5ff6f5f14a2a2">
       <source xml:lang="en">Runbook &apos;{0}&apos; was archived.</source>
+      <note>{0} is the runbook title</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9c3a036a037cc7518529c14a2deb40622a777a4bdea22d86cceb65e838c39c01">
+      <source xml:lang="en">Runbook &apos;{0}&apos; was restored.</source>
       <note>{0} is the runbook title</note>
     </trans-unit>
     <trans-unit id="++CODE++7c9357d64f8546bb53af1530f388b0796f3fa51ee878d96445d463ff185e142a">
@@ -6638,6 +6694,13 @@
     <trans-unit id="++CODE++bcbd8f247b5bb8cc9f0e5645b0989d50bea62303db08270c34e3f82845b4ee82">
       <source xml:lang="en">Runbook exported to {0}.</source>
       <note>{0} is the exported file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++70105bc21bf41fbf5a5ab0ef2211608b4f4e36ed417e443ab85d5f838ba412b9">
+      <source xml:lang="en">Runbook name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d6c2baffc15f36d0da7a339feb70e8efa2fdf7c53cb2af3a34149e927547063">
+      <source xml:lang="en">Runbook renamed to &apos;{0}&apos;.</source>
+      <note>{0} is the new runbook title</note>
     </trans-unit>
     <trans-unit id="++CODE++0547536658b98237b894a93846eac11726bd0cd5555dd90fd9c11bfd13af433f">
       <source xml:lang="en">Runbook run</source>
@@ -9036,6 +9099,9 @@
     <trans-unit id="++CODE++6cafaf08af081ad1a1babc81642848df104d44cf4a8b77723b80c186bf3fcd85">
       <source xml:lang="en">restricted mode</source>
     </trans-unit>
+    <trans-unit id="++CODE++c071cf5f5ed6f884cc70155b6f05f755fd46a302d05e4261b7e92ce878bbfed8">
+      <source xml:lang="en">running</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
       <source xml:lang="en">server</source>
     </trans-unit>
@@ -9601,6 +9667,12 @@
     <trans-unit id="mssql.connectionGroups.delete">
       <source xml:lang="en">Delete Connection Group</source>
     </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.deleteFolder">
+      <source xml:lang="en">Delete Folder</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.delete">
+      <source xml:lang="en">Delete Runbook...</source>
+    </trans-unit>
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete SQL Container</source>
     </trans-unit>
@@ -9853,17 +9925,26 @@
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Modify Table Structure...</source>
     </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.moveToFolder">
+      <source xml:lang="en">Move to Folder...</source>
+    </trans-unit>
     <trans-unit id="mssql.createDatabase">
       <source xml:lang="en">New Database...</source>
     </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
     </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.newFolder">
+      <source xml:lang="en">New Folder...</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorerNewQuery">
       <source xml:lang="en">New Query</source>
     </trans-unit>
     <trans-unit id="mssql.newQuery">
       <source xml:lang="en">New Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.newRunbook">
+      <source xml:lang="en">New Runbook</source>
     </trans-unit>
     <trans-unit id="mssql.notebooks.createNotebook">
       <source xml:lang="en">New SQL Notebook</source>
@@ -9973,11 +10054,20 @@
     <trans-unit id="mssql.renameDatabase">
       <source xml:lang="en">Rename Database...</source>
     </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.renameFolder">
+      <source xml:lang="en">Rename Folder...</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.rename">
+      <source xml:lang="en">Rename Runbook...</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
     </trans-unit>
     <trans-unit id="mssql.restoreDatabase">
       <source xml:lang="en">Restore Database...</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.restore">
+      <source xml:lang="en">Restore Runbook</source>
     </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
       <source xml:lang="en">Reveal Query Result (MSSQL)</source>
@@ -10023,6 +10113,9 @@
     </trans-unit>
     <trans-unit id="mssql.runbookLibrary.viewName">
       <source xml:lang="en">Runbook Library</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookStudio.openRuntimeLog">
+      <source xml:lang="en">Runbook Studio: Open Runtime Log</source>
     </trans-unit>
     <trans-unit id="mssql.runbookStudio.saveToLibrary">
       <source xml:lang="en">Runbook Studio: Save to Library</source>

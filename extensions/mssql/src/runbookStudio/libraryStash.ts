@@ -57,3 +57,13 @@ export async function readStash(
         return undefined;
     }
 }
+
+/** Delete the stashed artifact file; a missing stash is a silent no-op
+ *  (delete-runbook must succeed for assets that never had one). */
+export async function removeStash(globalStorageUri: vscode.Uri, assetId: string): Promise<void> {
+    try {
+        await vscode.workspace.fs.delete(stashUri(globalStorageUri, assetId));
+    } catch {
+        // Already absent — nothing to remove.
+    }
+}

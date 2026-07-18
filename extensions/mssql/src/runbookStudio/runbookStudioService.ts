@@ -33,9 +33,9 @@ import {
     newRunbookRootContext,
     RunbookOperationContext,
 } from "./runbookDiag";
-import { writeStash } from "./libraryStash";
+import { removeStash, writeStash } from "./libraryStash";
 import { canonicalizeRunbookArtifact } from "./runbookArtifact";
-import { LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
+import { activeLibraryAssetId, LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger } from "./runbookRunLedger";
 
@@ -97,6 +97,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     /** One active run per document (v1 concurrency policy, plan §4 P6). */
     private readonly activeByDocument = new Map<string, ActiveRunBinding>();
     private readonly activeByRunId = new Map<string, ActiveRunBinding>();
+    /** Fires when a run is accepted or reaches terminal — the library tree
+     *  subscribes to keep its "running" badges honest without polling. */
+    private readonly activeRunsEmitter = new vscode.EventEmitter<void>();
+    public readonly onDidChangeActiveRuns: vscode.Event<void> = this.activeRunsEmitter.event;
     private readonly seededModels = new WeakSet<RunbookStudioDocumentModel>();
     /** runId -> trace, retained past terminal for Debug Console links. */
     private readonly traceByRunId = new Map<string, string>();
@@ -119,11 +123,27 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     }
 
     public dispose(): void {
+        this.activeRunsEmitter.dispose();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
         }
         this.hobbesAdapter = undefined;
+    }
+
+    /** Library asset ids with a currently active (non-terminal) run. */
+    public activeLibraryAssetIds(): Set<string> {
+        const ids = new Set<string>();
+        for (const binding of this.activeByRunId.values()) {
+            if (binding.runEnded) {
+                continue;
+            }
+            const artifact = binding.model.artifact;
+            if (artifact) {
+                ids.add(activeLibraryAssetId(artifact));
+            }
+        }
+        return ids;
     }
 
     // -- RunbookRunCoordinator ------------------------------------------------
@@ -206,6 +226,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             epochMs: Date.now(),
         });
         model.setActiveRun(accepted);
+        this.activeRunsEmitter.fire();
 
         try {
             await adapter.startRun(
@@ -654,6 +675,136 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
     }
 
+    /** Create an EMPTY draft asset in the runtime library (library-first
+     *  New Runbook). The caller supplies the id so the local stash artifact
+     *  can share it — open-from-library then round-trips exactly. */
+    public async createLibraryRunbook(request: {
+        id: string;
+        title: string;
+        category?: string;
+    }): Promise<{ ok: boolean; error?: RbsError }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.create", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { ok: false, error: ensured.error };
+        }
+        try {
+            await ensured.adapter.createLibraryAsset(
+                {
+                    id: request.id,
+                    title: request.title,
+                    description: "",
+                    ...(request.category ? { category: request.category } : {}),
+                },
+                context,
+            );
+            emitRunbookEvent(context, "runbookStudio.library.create", "ok", {
+                hasCategory: metaField(request.category !== undefined),
+            });
+            return { ok: true };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.create", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { ok: false, error: libraryError(error) };
+        }
+    }
+
+    /** Update ONLY the given metadata fields (title -> Rename, category ->
+     *  Move to Folder) via the adapter's GET+PUT If-Match round-trip. */
+    public async updateLibraryRunbook(
+        id: string,
+        changes: { title?: string; category?: string },
+    ): Promise<{ ok: boolean; error?: RbsError }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.update", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { ok: false, error: ensured.error };
+        }
+        try {
+            await ensured.adapter.updateLibraryAssetFields(id, changes, context);
+            emitRunbookEvent(context, "runbookStudio.library.update", "ok", {
+                titleChanged: metaField(changes.title !== undefined),
+                categoryChanged: metaField(changes.category !== undefined),
+            });
+            return { ok: true };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.update", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { ok: false, error: libraryError(error) };
+        }
+    }
+
+    /** Restore an archived library runbook back to draft. */
+    public async restoreLibraryRunbook(id: string): Promise<{ ok: boolean; error?: RbsError }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.restore", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { ok: false, error: ensured.error };
+        }
+        try {
+            await ensured.adapter.restoreLibraryAsset(id, context);
+            emitRunbookEvent(context, "runbookStudio.library.restore", "ok", {});
+            return { ok: true };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.restore", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { ok: false, error: libraryError(error) };
+        }
+    }
+
+    /** Permanently delete a runbook AND all its run history: run history
+     *  first (idempotent), then the asset purge (the runtime hard-deletes
+     *  only archived assets, so non-archived ones are archived on the way),
+     *  and finally the local stash file. A runbook already missing from the
+     *  runtime still clears history remnants and the stash — the goal state
+     *  is "gone", not "was present to delete". */
+    public async deleteLibraryRunbookPermanently(
+        id: string,
+    ): Promise<{ ok: boolean; error?: RbsError }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.delete", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { ok: false, error: ensured.error };
+        }
+        try {
+            const deletedRuns = await ensured.adapter.deleteLibraryRunHistory(id, context);
+            const asset = await ensured.adapter.getLibraryAsset(id, context);
+            if (asset !== undefined) {
+                const state = typeof asset.state === "string" ? asset.state.toLowerCase() : "";
+                if (state !== "archived") {
+                    await ensured.adapter.archiveLibraryAsset(id, context);
+                }
+                await ensured.adapter.purgeLibraryAsset(id, context);
+            }
+            await removeStash(this.globalStorageUri, id);
+            emitRunbookEvent(context, "runbookStudio.library.delete", "ok", {
+                deletedRuns: metaField(deletedRuns),
+                assetFound: metaField(asset !== undefined),
+            });
+            return { ok: true };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.delete", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { ok: false, error: libraryError(error) };
+        }
+    }
+
     // -- internals -------------------------------------------------------------
 
     /** Library-lane adapter: reuse the run adapter when it already IS the
@@ -1020,6 +1171,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         if (current === active) {
             this.activeByDocument.delete(active.model.uriKey);
         }
+        this.activeRunsEmitter.fire();
     }
 
     private onRuntimeExit(active: ActiveRunBinding, unexpected: boolean): void {

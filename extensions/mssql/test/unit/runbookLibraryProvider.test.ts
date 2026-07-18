@@ -11,13 +11,20 @@
 
 import { expect } from "chai";
 import {
+    activeLibraryAssetId,
+    collectLibraryGroups,
     groupLibraryItems,
+    isArchivedLibraryAsset,
+    knownLibraryCategories,
+    LIBRARY_ARCHIVED_STATE,
     LIBRARY_FALLBACK_CATEGORY,
     libraryCategoryLabel,
+    libraryFamilyFromCategory,
     libraryItemDescription,
     libraryRunDescription,
     parseLibraryDetailResponse,
     parseLibraryListResponse,
+    remainingPendingFolders,
     RunbookLibraryAsset,
 } from "../../src/runbookStudio/runbookLibraryModel";
 
@@ -111,6 +118,139 @@ suite("runbookLibraryModel", () => {
         });
     });
 
+    suite("collectLibraryGroups", () => {
+        test("archived assets land in one dedicated group strictly last", () => {
+            const groups = collectLibraryGroups([
+                asset({ id: "a", category: "validate" }),
+                asset({ id: "b", category: "investigate", state: "archived" }),
+                asset({ id: "c" }),
+                asset({ id: "d", category: "validate", state: "Archived" }),
+            ]);
+            expect(groups.map((g) => g.category)).to.deep.equal([
+                "validate",
+                LIBRARY_FALLBACK_CATEGORY,
+                LIBRARY_ARCHIVED_STATE,
+            ]);
+            const archived = groups[2];
+            expect(archived.archived).to.equal(true);
+            expect(archived.items.map((i) => i.id)).to.deep.equal(["b", "d"]);
+        });
+
+        test("pending folders render as empty groups merged alphabetically", () => {
+            const groups = collectLibraryGroups(
+                [asset({ id: "a", category: "validate" }), asset({ id: "b" })],
+                ["Alerts", "zeta"],
+            );
+            expect(groups.map((g) => g.category)).to.deep.equal([
+                "Alerts",
+                "validate",
+                "zeta",
+                LIBRARY_FALLBACK_CATEGORY,
+            ]);
+            expect(groups[0].pending).to.equal(true);
+            expect(groups[0].items).to.deep.equal([]);
+            expect(groups[2].pending).to.equal(true);
+        });
+
+        test("pending names drop once materialized or duplicated (case-insensitive)", () => {
+            const groups = collectLibraryGroups(
+                [asset({ id: "a", category: "validate" })],
+                ["Validate", "alerts", "ALERTS", "  ", "alerts"],
+            );
+            expect(groups.map((g) => g.category)).to.deep.equal(["alerts", "validate"]);
+            expect(groups.filter((g) => g.pending).map((g) => g.category)).to.deep.equal([
+                "alerts",
+            ]);
+        });
+
+        test("only archived assets still yields the archived group alone", () => {
+            const groups = collectLibraryGroups([
+                asset({ id: "a", state: "archived", category: "validate" }),
+            ]);
+            expect(groups).to.have.length(1);
+            expect(groups[0].archived).to.equal(true);
+        });
+
+        test("empty input with no pending folders produces no groups", () => {
+            expect(collectLibraryGroups([], [])).to.deep.equal([]);
+        });
+    });
+
+    suite("remainingPendingFolders", () => {
+        test("drops names whose category now holds a non-archived asset", () => {
+            const remaining = remainingPendingFolders(
+                ["alerts", "reports"],
+                [asset({ id: "a", category: "Alerts" })],
+            );
+            expect(remaining).to.deep.equal(["reports"]);
+        });
+
+        test("archived assets do NOT materialize a pending folder", () => {
+            const remaining = remainingPendingFolders(
+                ["alerts"],
+                [asset({ id: "a", category: "alerts", state: "archived" })],
+            );
+            expect(remaining).to.deep.equal(["alerts"]);
+        });
+
+        test("blank and duplicate names collapse (first spelling wins)", () => {
+            expect(remainingPendingFolders(["  ", "Ops", "ops", "OPS"], [])).to.deep.equal(["Ops"]);
+        });
+    });
+
+    suite("knownLibraryCategories", () => {
+        test("merges asset categories and pending folders, sorted, deduped", () => {
+            const categories = knownLibraryCategories(
+                [
+                    asset({ id: "a", category: "validate" }),
+                    asset({ id: "b", category: "Alerts" }),
+                    asset({ id: "c", category: "archivedCat", state: "archived" }),
+                    asset({ id: "d" }),
+                ],
+                ["zeta", "VALIDATE"],
+            );
+            expect(categories).to.deep.equal(["Alerts", "validate", "zeta"]);
+        });
+    });
+
+    suite("isArchivedLibraryAsset", () => {
+        test("matches the archived state case-insensitively", () => {
+            expect(isArchivedLibraryAsset(asset({ id: "a", state: "archived" }))).to.equal(true);
+            expect(isArchivedLibraryAsset(asset({ id: "a", state: " Archived " }))).to.equal(true);
+            expect(isArchivedLibraryAsset(asset({ id: "a", state: "approved" }))).to.equal(false);
+            expect(isArchivedLibraryAsset(asset({ id: "a" }))).to.equal(false);
+        });
+    });
+
+    suite("activeLibraryAssetId", () => {
+        test("prefers the lock's library asset reference", () => {
+            expect(
+                activeLibraryAssetId({
+                    id: "artifact-1",
+                    lock: { libraryAssetRef: { assetId: "asset-9" } },
+                }),
+            ).to.equal("asset-9");
+        });
+
+        test("falls back to the artifact id when no reference exists", () => {
+            expect(activeLibraryAssetId({ id: "artifact-1" })).to.equal("artifact-1");
+            expect(activeLibraryAssetId({ id: "artifact-1", lock: {} })).to.equal("artifact-1");
+            expect(
+                activeLibraryAssetId({ id: "artifact-1", lock: { libraryAssetRef: {} } }),
+            ).to.equal("artifact-1");
+        });
+    });
+
+    suite("libraryFamilyFromCategory", () => {
+        test("maps only the closed family values (case-insensitive)", () => {
+            expect(libraryFamilyFromCategory("validate")).to.equal("validate");
+            expect(libraryFamilyFromCategory(" Investigate ")).to.equal("investigate");
+            expect(libraryFamilyFromCategory("BUILD")).to.equal("build");
+            expect(libraryFamilyFromCategory("alerts")).to.equal(undefined);
+            expect(libraryFamilyFromCategory(undefined)).to.equal(undefined);
+        });
+    });
+
     suite("libraryItemDescription", () => {
         test("joins state and version with a separator", () => {
             expect(
@@ -124,6 +264,16 @@ suite("runbookLibraryModel", () => {
                 "1.00",
             );
             expect(libraryItemDescription(asset({ id: "x" }))).to.equal("");
+        });
+
+        test("appends the caller-localized running badge last", () => {
+            expect(
+                libraryItemDescription(
+                    asset({ id: "x", state: "approved", versionLabel: "1.02" }),
+                    "running",
+                ),
+            ).to.equal("approved · 1.02 · running");
+            expect(libraryItemDescription(asset({ id: "x" }), "running")).to.equal("running");
         });
     });
 

@@ -212,6 +212,75 @@ export class RunbookStudio {
         });
     public static libraryExportFilterLabel = l10n.t("Runbook JSON");
     public static libraryNoRuns = l10n.t("No runs yet");
+    public static libraryArchivedGroup = l10n.t("Archived");
+    public static libraryRunningBadge = l10n.t("running");
+    public static libraryDeleteConfirm = (title: string) =>
+        l10n.t({
+            message:
+                "Permanently delete runbook '{0}' and all of its run history? This cannot be undone.",
+            args: [title],
+            comment: ["{0} is the runbook title"],
+        });
+    public static libraryDeleteAction = l10n.t("Delete");
+    public static libraryDeleted = (title: string) =>
+        l10n.t({
+            message: "Runbook '{0}' and its run history were deleted.",
+            args: [title],
+            comment: ["{0} is the runbook title"],
+        });
+    public static libraryRestored = (title: string) =>
+        l10n.t({
+            message: "Runbook '{0}' was restored.",
+            args: [title],
+            comment: ["{0} is the runbook title"],
+        });
+    public static libraryNewFolderPrompt = l10n.t("New folder name");
+    public static libraryFolderNameEmpty = l10n.t("Enter a folder name.");
+    public static libraryFolderExists = (name: string) =>
+        l10n.t({
+            message: "A folder named '{0}' already exists.",
+            args: [name],
+            comment: ["{0} is the folder name"],
+        });
+    public static libraryMovePickPlaceholder = l10n.t("Move to folder");
+    public static libraryMoveNewFolderItem = l10n.t("New folder…");
+    public static libraryMoved = (title: string, folder: string) =>
+        l10n.t({
+            message: "Runbook '{0}' moved to '{1}'.",
+            args: [title, folder],
+            comment: ["{0} is the runbook title", "{1} is the folder name"],
+        });
+    public static libraryRenamePrompt = l10n.t("Runbook name");
+    public static libraryRunbookNameEmpty = l10n.t("Enter a runbook name.");
+    public static libraryRenamed = (title: string) =>
+        l10n.t({
+            message: "Runbook renamed to '{0}'.",
+            args: [title],
+            comment: ["{0} is the new runbook title"],
+        });
+    public static libraryRenameFolderPrompt = l10n.t("Folder name");
+    public static libraryFolderRenamed = (from: string, to: string) =>
+        l10n.t({
+            message: "Folder '{0}' renamed to '{1}'.",
+            args: [from, to],
+            comment: ["{0} is the old folder name", "{1} is the new folder name"],
+        });
+    public static libraryFolderRenamePartial = (succeeded: number, failed: number) =>
+        l10n.t({
+            message:
+                "Renamed the folder for {0} runbooks, but {1} could not be moved. Refresh and retry the remaining runbooks.",
+            args: [succeeded, failed],
+            comment: [
+                "{0} is the number of runbooks moved successfully",
+                "{1} is the number of runbooks that failed to move",
+            ],
+        });
+    public static libraryFolderNotEmpty = (count: number) =>
+        l10n.t({
+            message: "Folder contains {0} runbooks — move them to another folder first.",
+            args: [count],
+            comment: ["{0} is the number of runbooks in the folder"],
+        });
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");

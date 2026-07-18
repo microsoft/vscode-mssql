@@ -35,9 +35,16 @@ export interface LibraryRunRef {
 /** Grouping fallback for assets without a category. */
 export const LIBRARY_FALLBACK_CATEGORY = "other";
 
+/** The lifecycle state the runtime stamps on archived assets. */
+export const LIBRARY_ARCHIVED_STATE = "archived";
+
 export interface RunbookLibraryGroup {
     category: string;
     items: RunbookLibraryAsset[];
+    /** The dedicated archived bucket — always rendered last. */
+    archived?: boolean;
+    /** A pending (still empty) folder from the New Folder command. */
+    pending?: boolean;
 }
 
 /**
@@ -158,6 +165,22 @@ export function libraryRunDescription(run: LibraryRunRef): string {
     return parts.join(" · ");
 }
 
+/** True when the asset's lifecycle state marks it archived. */
+export function isArchivedLibraryAsset(asset: RunbookLibraryAsset): boolean {
+    return (asset.state ?? "").trim().toLowerCase() === LIBRARY_ARCHIVED_STATE;
+}
+
+function sortAssetsByTitle(items: RunbookLibraryAsset[]): RunbookLibraryAsset[] {
+    return items.sort((a, b) => {
+        const left = a.title.toLowerCase();
+        const right = b.title.toLowerCase();
+        if (left !== right) {
+            return left < right ? -1 : 1;
+        }
+        return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    });
+}
+
 /**
  * Deterministic grouping for the tree: group by category (fallback
  * "other"), categories alphabetical with the fallback bucket last, items
@@ -176,14 +199,7 @@ export function groupLibraryItems(assets: RunbookLibraryAsset[]): RunbookLibrary
     }
     const groups: RunbookLibraryGroup[] = [];
     for (const [category, items] of byCategory) {
-        items.sort((a, b) => {
-            const left = a.title.toLowerCase();
-            const right = b.title.toLowerCase();
-            if (left !== right) {
-                return left < right ? -1 : 1;
-            }
-            return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
-        });
+        sortAssetsByTitle(items);
         groups.push({ category, items });
     }
     groups.sort((a, b) => {
@@ -204,9 +220,150 @@ export function groupLibraryItems(assets: RunbookLibraryAsset[]): RunbookLibrary
     return groups;
 }
 
-/** Tree item description, e.g. "approved · 1.02" (either part optional). */
-export function libraryItemDescription(asset: RunbookLibraryAsset): string {
-    return [asset.state, asset.versionLabel]
+/**
+ * The full file-explorer projection: non-archived assets grouped by
+ * category, pending (still empty) folders merged alphabetically among the
+ * named groups, the "other" fallback bucket after the named groups, and a
+ * single archived bucket (all archived assets regardless of category)
+ * strictly last. Pending names that duplicate a real category (or each
+ * other, case-insensitively) are dropped — they have materialized.
+ */
+export function collectLibraryGroups(
+    assets: RunbookLibraryAsset[],
+    pendingFolders: string[] = [],
+): RunbookLibraryGroup[] {
+    const activeAssets: RunbookLibraryAsset[] = [];
+    const archivedAssets: RunbookLibraryAsset[] = [];
+    for (const asset of assets) {
+        (isArchivedLibraryAsset(asset) ? archivedAssets : activeAssets).push(asset);
+    }
+    const grouped = groupLibraryItems(activeAssets);
+    const known = new Set(grouped.map((group) => group.category.toLowerCase()));
+    const pendingGroups: RunbookLibraryGroup[] = [];
+    for (const name of remainingPendingFolders(pendingFolders, activeAssets)) {
+        if (known.has(name.toLowerCase())) {
+            continue;
+        }
+        pendingGroups.push({ category: name, items: [], pending: true });
+    }
+    const named = [
+        ...grouped.filter((group) => group.category !== LIBRARY_FALLBACK_CATEGORY),
+        ...pendingGroups,
+    ];
+    named.sort((a, b) => {
+        const left = a.category.toLowerCase();
+        const right = b.category.toLowerCase();
+        return left < right ? -1 : left > right ? 1 : 0;
+    });
+    const groups = [
+        ...named,
+        ...grouped.filter((group) => group.category === LIBRARY_FALLBACK_CATEGORY),
+    ];
+    if (archivedAssets.length > 0) {
+        groups.push({
+            category: LIBRARY_ARCHIVED_STATE,
+            items: sortAssetsByTitle(archivedAssets),
+            archived: true,
+        });
+    }
+    return groups;
+}
+
+/**
+ * Pending folders that are STILL empty: names whose category now holds at
+ * least one non-archived asset drop out (they materialized), as do blank
+ * and duplicate names (case-insensitive; first spelling wins).
+ */
+export function remainingPendingFolders(
+    pendingFolders: string[],
+    assets: RunbookLibraryAsset[],
+): string[] {
+    const materialized = new Set<string>();
+    for (const asset of assets) {
+        if (isArchivedLibraryAsset(asset)) {
+            continue;
+        }
+        const category = asset.category?.trim();
+        if (category) {
+            materialized.add(category.toLowerCase());
+        }
+    }
+    const seen = new Set<string>();
+    const remaining: string[] = [];
+    for (const raw of pendingFolders) {
+        const name = raw.trim();
+        const key = name.toLowerCase();
+        if (!name || materialized.has(key) || seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        remaining.push(name);
+    }
+    return remaining;
+}
+
+/**
+ * Every folder name a runbook can move to: categories of non-archived
+ * assets plus pending folders, deduplicated case-insensitively (first
+ * spelling wins — asset-derived spellings first) and sorted alphabetically.
+ */
+export function knownLibraryCategories(
+    assets: RunbookLibraryAsset[],
+    pendingFolders: string[] = [],
+): string[] {
+    const byKey = new Map<string, string>();
+    for (const asset of assets) {
+        if (isArchivedLibraryAsset(asset)) {
+            continue;
+        }
+        const name = asset.category?.trim();
+        if (name && !byKey.has(name.toLowerCase())) {
+            byKey.set(name.toLowerCase(), name);
+        }
+    }
+    for (const raw of pendingFolders) {
+        const name = raw.trim();
+        if (name && !byKey.has(name.toLowerCase())) {
+            byKey.set(name.toLowerCase(), name);
+        }
+    }
+    return [...byKey.values()].sort((a, b) => {
+        const left = a.toLowerCase();
+        const right = b.toLowerCase();
+        return left < right ? -1 : left > right ? 1 : 0;
+    });
+}
+
+/**
+ * The library asset id a run counts against for the running badge: the
+ * lock's library asset reference when the plan launched a library asset,
+ * else the artifact's own id (publish path reuses it as the asset id).
+ */
+export function activeLibraryAssetId(artifact: {
+    id: string;
+    lock?: { libraryAssetRef?: { assetId?: string } };
+}): string {
+    const refId = artifact.lock?.libraryAssetRef?.assetId;
+    return typeof refId === "string" && refId.length > 0 ? refId : artifact.id;
+}
+
+/** Runtime library category -> the artifact's CLOSED family enum, only
+ *  when the category names one of its values (case-insensitive); anything
+ *  else is undefined — the family is never guessed. */
+export function libraryFamilyFromCategory(
+    category: string | undefined,
+): "build" | "validate" | "investigate" | undefined {
+    const normalized = category?.trim().toLowerCase();
+    return normalized === "build" || normalized === "validate" || normalized === "investigate"
+        ? normalized
+        : undefined;
+}
+
+/** Tree item description, e.g. "approved · 1.02 · running" (every part
+ *  optional; the running badge label is caller-localized — this module
+ *  stays vscode-free). */
+export function libraryItemDescription(asset: RunbookLibraryAsset, runningLabel?: string): string {
+    return [asset.state, asset.versionLabel, runningLabel]
         .filter((part): part is string => typeof part === "string" && part.length > 0)
         .join(" · ");
 }

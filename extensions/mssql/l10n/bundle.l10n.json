@@ -124,6 +124,54 @@
     },
     "Runbook JSON": "Runbook JSON",
     "No runs yet": "No runs yet",
+    "Archived": "Archived",
+    "running": "running",
+    "Permanently delete runbook '{0}' and all of its run history? This cannot be undone./{0} is the runbook title": {
+        "message": "Permanently delete runbook '{0}' and all of its run history? This cannot be undone.",
+        "comment": ["{0} is the runbook title"]
+    },
+    "Runbook '{0}' and its run history were deleted./{0} is the runbook title": {
+        "message": "Runbook '{0}' and its run history were deleted.",
+        "comment": ["{0} is the runbook title"]
+    },
+    "Runbook '{0}' was restored./{0} is the runbook title": {
+        "message": "Runbook '{0}' was restored.",
+        "comment": ["{0} is the runbook title"]
+    },
+    "New folder name": "New folder name",
+    "Enter a folder name.": "Enter a folder name.",
+    "A folder named '{0}' already exists./{0} is the folder name": {
+        "message": "A folder named '{0}' already exists.",
+        "comment": ["{0} is the folder name"]
+    },
+    "Move to folder": "Move to folder",
+    "New folder…": "New folder…",
+    "Runbook '{0}' moved to '{1}'./{0} is the runbook title{1} is the folder name": {
+        "message": "Runbook '{0}' moved to '{1}'.",
+        "comment": ["{0} is the runbook title", "{1} is the folder name"]
+    },
+    "Runbook name": "Runbook name",
+    "Enter a runbook name.": "Enter a runbook name.",
+    "Runbook renamed to '{0}'./{0} is the new runbook title": {
+        "message": "Runbook renamed to '{0}'.",
+        "comment": ["{0} is the new runbook title"]
+    },
+    "Folder name": "Folder name",
+    "Folder '{0}' renamed to '{1}'./{0} is the old folder name{1} is the new folder name": {
+        "message": "Folder '{0}' renamed to '{1}'.",
+        "comment": ["{0} is the old folder name", "{1} is the new folder name"]
+    },
+    "Renamed the folder for {0} runbooks, but {1} could not be moved. Refresh and retry the remaining runbooks./{0} is the number of runbooks moved successfully{1} is the number of runbooks that failed to move": {
+        "message": "Renamed the folder for {0} runbooks, but {1} could not be moved. Refresh and retry the remaining runbooks.",
+        "comment": [
+            "{0} is the number of runbooks moved successfully",
+            "{1} is the number of runbooks that failed to move"
+        ]
+    },
+    "Folder contains {0} runbooks — move them to another folder first./{0} is the number of runbooks in the folder": {
+        "message": "Folder contains {0} runbooks — move them to another folder first.",
+        "comment": ["{0} is the number of runbooks in the folder"]
+    },
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",

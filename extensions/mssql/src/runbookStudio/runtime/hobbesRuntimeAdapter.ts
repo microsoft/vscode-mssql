@@ -416,18 +416,129 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         return this.publishArtifact(artifact, {}, context);
     }
 
-    /** List the runtime library's non-archived runbook assets. */
+    /** List the runtime library's runbook assets INCLUDING archived ones —
+     *  the tree renders archived assets in a dedicated bottom group with a
+     *  Restore command (the state field distinguishes them). */
     public async listLibrary(context: RunbookOperationContext): Promise<RunbookLibraryAsset[]> {
         const runtime = await this.supervisor.ensureRunning(context);
         const response = await this.request(
             runtime.baseUrl,
             "GET",
-            "/api/runbooks?includeArchived=false",
+            "/api/runbooks?includeArchived=true",
         );
         if (!response.ok) {
             throw new Error(`library list failed (HTTP ${response.status})`);
         }
         return parseLibraryListResponse(await response.json());
+    }
+
+    /** Create an EMPTY draft asset in the runtime library (library-first
+     *  New Runbook). The runtime honors the caller-supplied id, so the
+     *  local stash artifact can share it for an exact open round-trip. */
+    public async createLibraryAsset(
+        request: { id: string; title: string; description?: string; category?: string },
+        context: RunbookOperationContext,
+    ): Promise<void> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(runtime.baseUrl, "POST", "/api/runbooks", {
+            id: request.id,
+            title: request.title,
+            description: request.description ?? "",
+            ...(request.category ? { category: request.category } : {}),
+        });
+        if (!response.ok) {
+            throw new Error(`library create failed (HTTP ${response.status})`);
+        }
+    }
+
+    /** Update ONLY the given metadata fields (title/category) of a library
+     *  asset: GET the full record for its revisionId, then PUT the full
+     *  asset back with If-Match and just those fields changed. NOTE the
+     *  runtime's save semantics: any PUT on an approved asset reverts it to
+     *  draft with a minor version bump (RevertToDraftOnEdit) — the launch
+     *  path re-approves drafts automatically, so this stays runnable. */
+    public async updateLibraryAssetFields(
+        id: string,
+        changes: { title?: string; category?: string },
+        context: RunbookOperationContext,
+    ): Promise<void> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const read = await this.request(
+            runtime.baseUrl,
+            "GET",
+            `/api/runbooks/${encodeURIComponent(id)}`,
+        );
+        if (read.status === 404) {
+            throw new Error(`library update failed (runbook '${id}' not found)`);
+        }
+        if (!read.ok) {
+            throw new Error(`library update failed (read HTTP ${read.status})`);
+        }
+        const asset = (await read.json()) as Record<string, unknown>;
+        const put = await this.request(
+            runtime.baseUrl,
+            "PUT",
+            `/api/runbooks/${encodeURIComponent(id)}`,
+            {
+                ...asset,
+                ...(changes.title !== undefined ? { title: changes.title } : {}),
+                ...(changes.category !== undefined ? { category: changes.category } : {}),
+            },
+            String(asset.revisionId ?? ""),
+        );
+        if (!put.ok) {
+            throw new Error(`library update failed (HTTP ${put.status})`);
+        }
+    }
+
+    /** Restore an archived library asset back to draft. */
+    public async restoreLibraryAsset(id: string, context: RunbookOperationContext): Promise<void> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "POST",
+            `/api/runbooks/${encodeURIComponent(id)}/restore`,
+            {},
+        );
+        if (!response.ok) {
+            throw new Error(`library restore failed (HTTP ${response.status})`);
+        }
+    }
+
+    /** Delete ALL persisted run history for a library runbook; returns the
+     *  number of runs removed (0 when there was none — idempotent). */
+    public async deleteLibraryRunHistory(
+        id: string,
+        context: RunbookOperationContext,
+    ): Promise<number> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "DELETE",
+            `/api/library/content/runbook/${encodeURIComponent(id)}/runs`,
+        );
+        if (!response.ok) {
+            throw new Error(`library run-history delete failed (HTTP ${response.status})`);
+        }
+        const body = (await response.json().catch(() => undefined)) as
+            | { deletedCount?: number }
+            | undefined;
+        return typeof body?.deletedCount === "number" ? body.deletedCount : 0;
+    }
+
+    /** Permanently delete a library asset. The runtime only hard-deletes
+     *  ARCHIVED assets (409 otherwise) — the caller archives first. A 404
+     *  is tolerated: the asset is already gone, which is the goal state. */
+    public async purgeLibraryAsset(id: string, context: RunbookOperationContext): Promise<void> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "DELETE",
+            `/api/runbooks/${encodeURIComponent(id)}`,
+        );
+        if (!response.ok && response.status !== 404) {
+            throw new Error(`library delete failed (HTTP ${response.status})`);
+        }
     }
 
     /** Full library asset record by id; undefined when it does not exist. */
@@ -1237,7 +1348,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
 
     private async request(
         baseUrl: string,
-        method: "GET" | "POST" | "PUT",
+        method: "GET" | "POST" | "PUT" | "DELETE",
         pathAndQuery: string,
         body?: unknown,
         ifMatch?: string,
