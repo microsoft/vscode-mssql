@@ -155,10 +155,13 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
      *  revert-to-draft -> update -> approve); returns the version label. */
     private async publishArtifact(
         artifact: RunbookArtifactFile,
+        parameterValues: Record<string, string | number | boolean | null>,
         _context: RunbookOperationContext,
     ): Promise<string> {
         const runtime = await this.supervisor.ensureRunning(_context);
-        const translation = translateArtifactToHobbesPlan(artifact);
+        // Publish happens per run, so substituting this run's parameter
+        // values into thresholds is exact (not a cached approximation).
+        const translation = translateArtifactToHobbesPlan(artifact, parameterValues);
         if (!translation.plan) {
             throw new RuntimeStartRefusedError(
                 {
@@ -233,8 +236,12 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         return approved.versionLabel ?? "1.00";
     }
 
-    /** POST the workflow-control "continue" turn and stream region lifecycle
-     *  events back as boundary observations (verified AG-UI input shape). */
+    /** POST the workflow.continue COMMAND turn and stream region lifecycle
+     *  events back as boundary observations. The envelope kind matters: only
+     *  the command path (RuntimeCommandDispatcher) performs the lazy MCP
+     *  connection bootstrap before kicking off the workflow — the
+     *  workflow-control envelope skips it, and every SQL region then fails
+     *  with "no connection was established for input 'database'". */
     private async kickoffAndStream(
         baseUrl: string,
         request: RuntimeStartRequest,
@@ -256,13 +263,16 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                     runId: `vscode-${Date.now().toString(36)}`,
                     messages: [
                         {
-                            id: `workflow-control:continue:${Date.now().toString(36)}`,
+                            id: `command:workflow.continue:${Date.now().toString(36)}`,
                             role: "user",
                             content: JSON.stringify({
-                                hobbesKind: "workflow-control",
+                                hobbesKind: "command",
                                 regionId: null,
                                 nodeId: null,
-                                payload: { action: "continue" },
+                                payload: {
+                                    action: "workflow.continue",
+                                    payload: { regionId: null },
+                                },
                             }),
                         },
                     ],
@@ -425,7 +435,11 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // 2. Publish: translate the compiled lock into the runtime's plan IR
         // and register it in the library via the studio API (create/update ->
         // approve). Untranslatable plans refuse with exact reasons.
-        const versionLabel = await this.publishArtifact(request.artifact, context);
+        const versionLabel = await this.publishArtifact(
+            request.artifact,
+            request.parameterValues ?? {},
+            context,
+        );
 
         // The connection bridge may have RESTARTED the runtime onto a new
         // port — re-resolve before every post-bridge call (a stale base URL
@@ -459,9 +473,10 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             throw launchRefusalError(`confirm-http-${confirm.status}`);
         }
 
-        // 4. AG-UI kickoff: mounted runs execute only when a workflow-control
-        // "continue" envelope arrives on the investigation thread (verified
-        // live — probe P2). The SSE stream carries region lifecycle events.
+        // 4. AG-UI kickoff: mounted runs execute only when the
+        // workflow.continue command arrives on the investigation thread; the
+        // command dispatcher also establishes the MCP SQL connections. The
+        // SSE stream carries region lifecycle events.
         const poll: ActivePoll = { stop: false };
         this.polls.set(request.runId, poll);
         void this.kickoffAndStream(activeBaseUrl, request, hobbesRunId, poll, observer);
@@ -591,23 +606,23 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                         return;
                     }
                 }
-                // The run record's status never finalizes on this runtime
-                // (verified live) — the investigation state's executionStatus
-                // is the honest terminal signal.
+                // The run record's status never finalizes on this runtime and
+                // its regionResults stay empty (verified live) — the honest
+                // terminal is the investigation record's execution.status
+                // ("completed"/"failed"; "paused" is the pre-kickoff state).
+                // NOTE: /api/investigations/{id}/state is a summary card with
+                // NO execution field — polling it froze runs at "running".
                 try {
                     const stateResponse = await this.request(
                         baseUrl,
                         "GET",
-                        `/api/investigations/${encodeURIComponent(hobbesRunId)}/state`,
+                        `/api/investigations/${encodeURIComponent(hobbesRunId)}`,
                     );
                     if (stateResponse.ok) {
                         const state = (await stateResponse.json()) as {
-                            investigation?: { runtime?: { executionStatus?: string } };
-                            runtime?: { executionStatus?: string };
+                            execution?: { status?: string };
                         };
-                        const executionStatus =
-                            state.investigation?.runtime?.executionStatus ??
-                            state.runtime?.executionStatus;
+                        const executionStatus = state.execution?.status;
                         if (executionStatus === "completed" || executionStatus === "failed") {
                             poll.stop = true;
                             observer.onEvent({

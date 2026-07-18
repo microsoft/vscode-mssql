@@ -115,29 +115,54 @@ suite("hobbesPlanTranslator", () => {
         ]);
     });
 
-    test("refuses gates, conditional edges, and bind-expression thresholds with reasons", () => {
+    test("substitutes $params thresholds from bound run values", () => {
+        const artifact = publishableArtifact();
+        artifact.lock!.nodes.find((n) => n.id === "limit")!.inputs = {
+            value: 5,
+            max: "$params.maxCount",
+        };
+        const bound = translateArtifactToHobbesPlan(artifact, { maxCount: "25" });
+        expect(bound.issues).to.deep.equal([]);
+        // String-typed form values coerce to numbers for the primitive.
+        expect(bound.plan!.nodes[1].primitiveArgs?.threshold).to.equal(25);
+
+        // Without a bound value there is nothing to substitute — refuse.
+        const unbound = translateArtifactToHobbesPlan(artifact);
+        expect(unbound.plan).to.equal(undefined);
+        expect(unbound.issues.join(" ")).to.contain("parameter 'maxCount' has no bound value");
+    });
+
+    test("maps $nodes binds to the runtime's $regions bind grammar", () => {
+        const artifact = publishableArtifact();
+        artifact.lock!.nodes.find((n) => n.id === "limit")!.inputs = {
+            value: "$nodes.query.rowCount",
+            max: 100,
+        };
+        const result = translateArtifactToHobbesPlan(artifact);
+        expect(result.issues).to.deep.equal([]);
+        // Verified against the runtime's PrimitivePlanSmokeTests: cross-node
+        // reads are $regions.<id>.data.<path>.
+        expect(result.plan!.nodes[1].primitiveArgs?.metric).to.equal(
+            "$regions.query.data.rowCount",
+        );
+    });
+
+    test("refuses gates and conditional edges with reasons", () => {
         const artifact = publishableArtifact();
         artifact.lock!.nodes.splice(1, 0, { id: "approve", label: "Approve", kind: "gate" });
         artifact.lock!.edges.push({ from: "approve", to: "report", when: "approved" });
-        artifact.lock!.nodes.find((n) => n.id === "limit")!.inputs = {
-            value: "$nodes.query.rowCount",
-            max: "$params.maxCount",
-        };
         const result = translateArtifactToHobbesPlan(artifact);
         expect(result.plan).to.equal(undefined);
         const joined = result.issues.join(" | ");
         expect(joined).to.contain("gate node 'approve'");
         expect(joined).to.contain("conditional edge");
-        expect(joined).to.contain("bind expressions");
     });
 
-    test("the local fixture refuses honestly (its threshold binds node outputs)", () => {
-        // The fake-lane fixture asserts on $nodes.query.rowCount — cross-node
-        // bind translation is not built yet, so publish must refuse with the
-        // exact reason rather than silently publishing a broken plan.
+    test("the local fixture publishes (its row-count bind maps to $regions)", () => {
         const result = translateArtifactToHobbesPlan(createFixtureRunbookArtifact());
-        expect(result.plan).to.equal(undefined);
-        expect(result.issues.join(" ")).to.contain("bind expressions");
+        expect(result.issues).to.deep.equal([]);
+        const assert = result.plan!.nodes.find((n) => n.strategy === "primitive:assert.threshold");
+        expect(assert?.primitiveArgs?.metric).to.equal("$regions.query.data.rowCount");
     });
 
     test("mergeConnectionEntry preserves PascalCase, merges by Name, and never writes credentials", () => {

@@ -11,10 +11,12 @@
  * Deliberately supports the DETERMINISTIC SUBSET today and refuses the rest
  * with exact reasons (never silent downgrades):
  *   - sql.query.read  -> primitive:sql.execute-query { query }
- *   - assert.threshold (literal inputs) -> primitive:assert.threshold
+ *   - assert.threshold -> primitive:assert.threshold (literals pass through,
+ *     $params.<id> substitutes the bound run value, $nodes.<id>.<key> maps
+ *     to the runtime's $regions.<id>.data.<key> bind grammar)
  *   - report          -> Report node with deterministic reportSections
- *   - gates, conditional edges, and cross-node bind expressions are not
- *     translated yet (issues returned; publish is refused).
+ *   - gates and conditional edges are not translated yet (issues returned;
+ *     publish is refused).
  * Pure module — no vscode imports; unit-tested.
  */
 
@@ -76,11 +78,65 @@ function isLiteral(value: unknown): value is string | number | boolean {
     return typeof value === "string" && !value.startsWith("$");
 }
 
-export function translateArtifactToHobbesPlan(artifact: RunbookArtifactFile): TranslationResult {
+/**
+ * Resolve one assert input for publishing:
+ *  - literals pass through;
+ *  - `$params.<id>` substitutes the bound run value (publish happens per
+ *    run, so per-run substitution is exact);
+ *  - `$nodes.<id>.<key>` maps to the runtime's cross-node bind grammar
+ *    `$regions.<id>.data.<key>` (verified against the runtime's own
+ *    PrimitivePlanSmokeTests; sql.execute-query data carries rowCount).
+ */
+function resolveAssertInput(
+    value: unknown,
+    parameterValues: Record<string, string | number | boolean | null>,
+): { ok: true; value: unknown } | { ok: false; detail: string } {
+    if (isLiteral(value)) {
+        return { ok: true, value };
+    }
+    if (typeof value !== "string") {
+        return { ok: false, detail: `unsupported input ${JSON.stringify(value)}` };
+    }
+    const param = /^\$params\.([A-Za-z0-9_-]+)$/.exec(value);
+    if (param) {
+        const bound = parameterValues[param[1]];
+        if (bound === undefined || bound === null) {
+            return { ok: false, detail: `parameter '${param[1]}' has no bound value` };
+        }
+        const numeric = typeof bound === "string" ? Number(bound) : bound;
+        return {
+            ok: true,
+            value: typeof numeric === "number" && !Number.isNaN(numeric) ? numeric : bound,
+        };
+    }
+    const node = /^\$nodes\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_.-]+)$/.exec(value);
+    if (node) {
+        return { ok: true, value: `$regions.${node[1]}.data.${node[2]}` };
+    }
+    return { ok: false, detail: `bind expression '${value}' has no Hobbes translation` };
+}
+
+export function translateArtifactToHobbesPlan(
+    artifact: RunbookArtifactFile,
+    parameterValues: Record<string, string | number | boolean | null> = {},
+): TranslationResult {
     const issues: string[] = [];
     const lock = artifact.lock;
     if (!lock) {
         return { issues: ["artifact has no compiled lock"] };
+    }
+    // Effective values = declared parameter defaults overlaid by this run's
+    // bound values (secrets never declare defaults, enforced at parse time).
+    const effectiveValues: Record<string, string | number | boolean | null> = {};
+    for (const parameter of artifact.source.parameters) {
+        if (parameter.default !== undefined) {
+            effectiveValues[parameter.id] = parameter.default;
+        }
+    }
+    for (const [key, value] of Object.entries(parameterValues)) {
+        if (value !== undefined && value !== null) {
+            effectiveValues[key] = value;
+        }
     }
     for (const edge of lock.edges) {
         if (edge.when !== undefined && edge.when !== "success") {
@@ -138,11 +194,14 @@ export function translateArtifactToHobbesPlan(artifact: RunbookArtifactFile): Tr
                 break;
             }
             case "assert.threshold": {
-                const value = node.inputs?.value;
-                const max = node.inputs?.max;
-                if (!isLiteral(value) || !isLiteral(max)) {
+                const value = resolveAssertInput(node.inputs?.value, effectiveValues);
+                const max = resolveAssertInput(node.inputs?.max, effectiveValues);
+                if (!value.ok || !max.ok) {
                     issues.push(
-                        `node '${node.id}' uses bind expressions; only literal thresholds publish today`,
+                        `node '${node.id}': ${[value, max]
+                            .filter((r): r is { ok: false; detail: string } => !r.ok)
+                            .map((r) => r.detail)
+                            .join("; ")}`,
                     );
                     continue;
                 }
@@ -151,8 +210,8 @@ export function translateArtifactToHobbesPlan(artifact: RunbookArtifactFile): Tr
                     type: "Observation",
                     strategy: "primitive:assert.threshold",
                     primitiveArgs: {
-                        metric: value,
-                        threshold: max,
+                        metric: value.value,
+                        threshold: max.value,
                         operator: "<=",
                         trueLabel: "pass",
                         falseLabel: "fail",
