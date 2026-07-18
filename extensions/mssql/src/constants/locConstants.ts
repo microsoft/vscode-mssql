@@ -132,6 +132,9 @@ export class RunbookStudio {
         "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     );
     public static approvalRequired = l10n.t("Approval required to continue.");
+    public static plannerCancelled = l10n.t(
+        "Plan generation was cancelled. Edit the prompt and generate again.",
+    );
     public static modelConfigUnavailable = l10n.t(
         "The runtime's active provider profile does not expose configurable models.",
     );

@@ -5905,6 +5905,9 @@
     <trans-unit id="++CODE++2dc33e3e123876d63207f99bae974dab6112ff182b514b3485059e9454cb0788">
       <source xml:lang="en">Plan generation did not complete</source>
     </trans-unit>
+    <trans-unit id="++CODE++91123f66b71cea76bf2cfb3722d529e579bbd0e90c4e53dd07148a58596d61f7">
+      <source xml:lang="en">Plan generation was cancelled. Edit the prompt and generate again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d19859245c00061252d8a93c22cb761b50cd554b41fb192d6ba65009cb2d1de">
       <source xml:lang="en">Plan ready — bind parameters and run it.</source>
     </trans-unit>

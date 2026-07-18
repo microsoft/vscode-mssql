@@ -66,6 +66,9 @@ export interface RunbookRunCoordinator {
         onProgress?: (event: RbsPlannerProgressEvent) => void,
     ): Promise<{ ok: boolean; error?: RbsError }>;
 
+    /** Abort an in-flight plan generation; false when none was active. */
+    cancelCompile(): boolean;
+
     /** Saved connections as opaque {id, label} handles (parameter sheet). */
     listConnectionProfiles(): Promise<Array<{ id: string; label: string }>>;
 }

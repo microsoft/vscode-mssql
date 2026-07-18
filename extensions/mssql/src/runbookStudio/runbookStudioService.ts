@@ -392,7 +392,19 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             .get<string>("mssql.runbookStudio.runtime", "local");
         let artifact: RunbookArtifactFile | undefined;
         if (runtimeKind === "hobbes") {
-            artifact = await this.compileWithRuntimePlanner(base, intent, context, onProgress);
+            try {
+                artifact = await this.compileWithRuntimePlanner(base, intent, context, onProgress);
+            } catch (error) {
+                // A USER cancellation ends compilation outright — falling
+                // through to the catalog compiler would un-cancel it.
+                if (
+                    error instanceof RuntimeStartRefusedError &&
+                    error.rbsError.code === "RunbookStudio.Cancelled"
+                ) {
+                    return { ok: false, error: error.rbsError };
+                }
+                throw error;
+            }
         }
         if (!artifact) {
             const result = await compileIntentWithModel(base, intent, context);
@@ -409,11 +421,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
         // Keep the LIBRARY title in sync (AI-chat naming model, owner ask):
         // when compilation produced a real name for a library-backed book,
-        // push it to the asset so the tree matches the document. Best
-        // effort — a plain-file doc simply 404s and stays untouched.
+        // push it to the asset so the tree matches the document. The name
+        // dedupes against OTHER library titles first — similar prompts
+        // generate similar names ("Memory Pressure" twice, autonames.png).
+        // Best effort — a plain-file doc simply 404s and stays untouched.
         if (isPlaceholderRunbookName(base.name) && artifact.name !== base.name) {
             const assetId = artifact.lock?.libraryAssetRef?.assetId ?? artifact.id;
-            void this.updateLibraryRunbook(assetId, { title: artifact.name }).then(() =>
+            const unique = await this.dedupeTitleAgainstLibrary(artifact.name, assetId);
+            if (unique !== artifact.name) {
+                artifact = { ...artifact, name: unique };
+            }
+            void this.updateLibraryRunbook(assetId, { title: unique }).then(() =>
                 this.activeRunsEmitter.fire(),
             );
         }
@@ -481,10 +499,46 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             return artifact;
         } catch (error) {
+            // User cancellation propagates — it must not trigger fallback.
+            if (
+                error instanceof RuntimeStartRefusedError &&
+                error.rbsError.code === "RunbookStudio.Cancelled"
+            ) {
+                throw error;
+            }
             emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {
                 errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
             });
             return undefined;
+        }
+    }
+
+    /** Abort an in-flight planner generation (user cancel). */
+    public cancelCompile(): boolean {
+        return this.hobbesAdapter?.cancelActivePlanner() ?? false;
+    }
+
+    /** "Name (2)"-style dedupe against every OTHER library title. Listing
+     *  failures degrade to the wanted name — a duplicate is not fatal. */
+    private async dedupeTitleAgainstLibrary(want: string, ownAssetId: string): Promise<string> {
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            return want;
+        }
+        try {
+            const context = newRunbookRootContext("library");
+            const taken = new Set(
+                (await ensured.adapter.listLibrary(context))
+                    .filter((a) => a.id !== ownAssetId)
+                    .map((a) => a.title.toLowerCase()),
+            );
+            let title = want;
+            for (let n = 2; taken.has(title.toLowerCase()); n++) {
+                title = `${want} (${n})`;
+            }
+            return title;
+        } catch {
+            return want;
         }
     }
 

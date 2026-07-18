@@ -373,6 +373,13 @@ export namespace RbsCompileProgressNotification {
     export const type = new NotificationType<RbsPlannerProgressEvent>("rbs/compileProgress");
 }
 
+/** Abort an in-flight plan generation (the Author page's Cancel). */
+export namespace RbsCancelCompileRequest {
+    export const type = new RequestType<Record<string, never>, { cancelled: boolean }, void>(
+        "rbs/cancelCompile",
+    );
+}
+
 /** Pin (or clear) the output view for a plan node — writes a pinned widget
  *  into the artifact's presentation definition (mockup "Set by you"). */
 export namespace RbsSetOutputViewRequest {

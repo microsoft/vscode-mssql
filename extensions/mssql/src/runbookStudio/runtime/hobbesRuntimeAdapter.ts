@@ -297,6 +297,9 @@ export interface BridgeableConnectionProfile {
 
 export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
     private readonly polls = new Map<string, ActivePoll>();
+    /** In-flight planner session abort (one planner session at a time). */
+    private activePlannerAbort: AbortController | undefined;
+    private plannerCancelRequested = false;
 
     constructor(
         private readonly supervisor: RuntimeSupervisor,
@@ -727,6 +730,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
     ): Promise<PlannedRunbook> {
         const runtime = await this.supervisor.ensureRunning(context);
         const controller = new AbortController();
+        // Exposed for user cancellation (single planner session at a time).
+        this.activePlannerAbort = controller;
+        this.plannerCancelRequested = false;
         const timer = setTimeout(() => controller.abort(), PLANNER_TIMEOUT_MS);
         const coalescer = new ReasoningCoalescer((text) =>
             onProgress?.({ kind: "reasoning", text }),
@@ -872,6 +878,15 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                 throw error;
             }
             if (error instanceof Error && error.name === "AbortError") {
+                if (this.plannerCancelRequested) {
+                    throw new RuntimeStartRefusedError(
+                        {
+                            code: "RunbookStudio.Cancelled",
+                            message: LocRunbookStudio.plannerCancelled,
+                        },
+                        "planner-cancelled",
+                    );
+                }
                 throw new RuntimeStartRefusedError(
                     {
                         code: "RunbookStudio.Timeout",
@@ -883,6 +898,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             }
             throw plannerRefusedError(error instanceof Error ? error.message : String(error));
         } finally {
+            this.activePlannerAbort = undefined;
             clearTimeout(timer);
             // Release the stream on early exits (error event / mapping
             // refusal) — the runtime would otherwise keep streaming into a
@@ -1276,7 +1292,27 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             `/api/investigations/runs/${encodeURIComponent(hobbesRunId)}/cancel`,
             { reason: "user-cancelled" },
         );
-        return response.ok ? "cancelled" : "failed";
+        if (!response.ok) {
+            return "failed";
+        }
+        // The runtime accepts the cancel but neither the run record nor the
+        // investigation's executionStatus reflects it (observed live: the
+        // Cancel button "did nothing" — the poll spun on forever). The
+        // boundary terminalizes honestly itself: cancellation was requested
+        // and accepted; stop observing.
+        poll.stop = true;
+        poll.observer?.onEvent({ kind: "terminal", state: "cancelled" });
+        return "cancelled";
+    }
+
+    /** Abort an in-flight planner session (user cancelled generation). */
+    public cancelActivePlanner(): boolean {
+        if (!this.activePlannerAbort) {
+            return false;
+        }
+        this.plannerCancelRequested = true;
+        this.activePlannerAbort.abort();
+        return true;
     }
 
     /** Gates publish as wait.signal suspensions; approve = persist a resume

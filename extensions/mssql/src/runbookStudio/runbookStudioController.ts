@@ -18,6 +18,7 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import {
     RbsArtifactSummary,
+    RbsCancelCompileRequest,
     RbsCompileProgressNotification,
     RbsCompileRequest,
     RbsError,
@@ -155,6 +156,10 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             return this.coordinator.compileIntent(this.model, intent, (event) => {
                 void this.sendNotification(RbsCompileProgressNotification.type, event);
             });
+        });
+
+        this.onRequest(RbsCancelCompileRequest.type, async () => {
+            return { cancelled: this.coordinator?.cancelCompile() ?? false };
         });
 
         this.onRequest(RbsSetOutputViewRequest.type, async ({ nodeId, view }) => {
