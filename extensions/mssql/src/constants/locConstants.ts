@@ -58,6 +58,9 @@ export class RunbookStudio {
         "This runbook has no compiled plan. Compile it before running.",
     );
     public static runActive = l10n.t("A run is already active for this runbook.");
+    public static runtimeSwitchBlocked = l10n.t(
+        "The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.",
+    );
     public static runtimeStartFailed = l10n.t("The runbook runtime failed to start the run.");
     public static runtimeExited = l10n.t("The runbook runtime exited unexpectedly.");
     public static runtimeKindUnavailable = (kind: string) =>

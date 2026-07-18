@@ -8002,6 +8002,9 @@
     <trans-unit id="++CODE++9312c9d85664607d9901b01b346566f4c8391b799bca91ab40383f8bf70d1d98">
       <source xml:lang="en">The runbook runtime is not available.</source>
     </trans-unit>
+    <trans-unit id="++CODE++81fd64bc0eb4031b13583f84bfc60440dc11e1065a194b1fff7692cc794765b5">
+      <source xml:lang="en">The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter

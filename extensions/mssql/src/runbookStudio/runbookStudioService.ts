@@ -78,6 +78,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly ledger: RunbookRunLedger;
     private readonly resultStore = new RunbookResultStore();
     private adapter: RunbookRuntimeAdapter | undefined;
+    /** The configured kind this.adapter was built for (hot-swap detection). */
+    private adapterKind: string | undefined;
     private capabilities: RuntimeCapabilities | undefined;
     /** One active run per document (v1 concurrency policy, plan §4 P6). */
     private readonly activeByDocument = new Map<string, ActiveRunBinding>();
@@ -408,12 +410,32 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private async ensureAdapter(
         context: RunbookOperationContext,
     ): Promise<{ adapter: RunbookRuntimeAdapter } | { error: RbsError }> {
-        if (this.adapter) {
-            return { adapter: this.adapter };
-        }
         const runtimeKind = vscode.workspace
             .getConfiguration()
             .get<string>("mssql.runbookStudio.runtime", "local");
+        if (this.adapter && this.adapterKind === runtimeKind) {
+            return { adapter: this.adapter };
+        }
+        if (this.adapter) {
+            // The setting changed mid-session: hot-swap the adapter. Never
+            // yank a runtime out from under active runs — finish or cancel
+            // them first (honest refusal beats a silent split-brain).
+            if (this.activeByRunId.size > 0) {
+                return {
+                    error: {
+                        code: "RunbookStudio.RunActive",
+                        message: LocRunbookStudio.runtimeSwitchBlocked,
+                    },
+                };
+            }
+            emitRunbookEvent(context, "runbookStudio.runtime.swapped", "ok", {
+                fromKind: metaField(this.adapterKind ?? "none"),
+                toKind: metaField(runtimeKind),
+            });
+            await this.adapter.dispose();
+            this.adapter = undefined;
+            this.capabilities = undefined;
+        }
         let adapter: RunbookRuntimeAdapter;
         if (runtimeKind === "fake") {
             adapter = new FakeRuntimeAdapter();
@@ -520,6 +542,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             runtimeVersion: metaField(this.capabilities.runtimeVersion),
         });
         this.adapter = adapter;
+        this.adapterKind = runtimeKind;
         return { adapter };
     }
 

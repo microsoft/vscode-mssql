@@ -33,6 +33,7 @@
     "The runbook runtime is not available.": "The runbook runtime is not available.",
     "This runbook has no compiled plan. Compile it before running.": "This runbook has no compiled plan. Compile it before running.",
     "A run is already active for this runbook.": "A run is already active for this runbook.",
+    "The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.": "The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.",
     "The runbook runtime failed to start the run.": "The runbook runtime failed to start the run.",
     "The runbook runtime exited unexpectedly.": "The runbook runtime exited unexpectedly.",
     "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime./{0} is a configuration value": {
