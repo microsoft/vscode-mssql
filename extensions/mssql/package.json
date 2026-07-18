@@ -1373,6 +1373,10 @@
                     "when": "config.mssql.runbookStudio.enabled"
                 },
                 {
+                    "command": "mssql.runbookStudio.configureModels",
+                    "when": "config.mssql.runbookStudio.enabled"
+                },
+                {
                     "command": "mssql.runbookLibrary.refresh",
                     "when": "config.mssql.runbookStudio.enabled"
                 },
@@ -2584,6 +2588,11 @@
             {
                 "command": "mssql.runbookStudio.openRuntimeLog",
                 "title": "%mssql.runbookStudio.openRuntimeLog%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.runbookStudio.configureModels",
+                "title": "%mssql.runbookStudio.configureModels%",
                 "category": "MS SQL"
             },
             {

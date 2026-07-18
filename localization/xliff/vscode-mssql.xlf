@@ -4938,6 +4938,10 @@
     <trans-unit id="++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed">
       <source xml:lang="en">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ac983643653985914b015e5943810fbff9fc4cb032de643cb3b012859642a02">
+      <source xml:lang="en">Model id for {0} on provider {1}</source>
+      <note>{0} model role name, {1} provider label</note>
+    </trans-unit>
     <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
       <source xml:lang="en">Modified</source>
     </trans-unit>
@@ -5887,6 +5891,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3523a6beb7bd63797f5fac1f4a6c8b26f48ba7d74aa76f7b96ee94850c679c93">
       <source xml:lang="en">Plan view</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cce7bf6763cfce9709f80c013a1e6132132f8c74486587a2b249761a0320522f">
+      <source xml:lang="en">Planner (generates the runbook plan)</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -8068,6 +8075,9 @@
       <source xml:lang="en">The Hobbes runtime refused to start the run ({0}).</source>
       <note>{0} is a stable error code from the runtime</note>
     </trans-unit>
+    <trans-unit id="++CODE++edeb0ed9b613df7eb059d28ce913e332c0fdbeede07bea268a4c9b35407ca827">
+      <source xml:lang="en">The Hobbes runtime reported no progress for 10 minutes; the run has been marked failed. Open the runtime log for details.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3fea7047e326ced3a2bea06a903143dc4fd6b140d7e9c551fe56ddb06962ca4a">
       <source xml:lang="en">The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.</source>
     </trans-unit>
@@ -8209,6 +8219,9 @@
     </trans-unit>
     <trans-unit id="++CODE++81fd64bc0eb4031b13583f84bfc60440dc11e1065a194b1fff7692cc794765b5">
       <source xml:lang="en">The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d4264a01a18abb343b9d61223a43e5483da0927048f1f2b86b08c184ab5e94e6">
+      <source xml:lang="en">The runtime&apos;s active provider profile does not expose configurable models.</source>
     </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -8844,6 +8857,9 @@
     <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
       <source xml:lang="en">Windows Authentication</source>
     </trans-unit>
+    <trans-unit id="++CODE++306d8a977fa805451410d501bb524ff87671f33eee93689be624b4a1bc3d8f83">
+      <source xml:lang="en">Workflow (executes plan steps)</source>
+    </trans-unit>
     <trans-unit id="++CODE++b80fca299939e1de06beabd7c5e8eddd1431470b12a3a0555c130ea6933cc5d6">
       <source xml:lang="en">Workflow graph: {0} steps, {1} edges</source>
       <note>{0} is a step count, {1} is an edge count</note>
@@ -9246,6 +9262,10 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9036be410595c4d0fe76e148babe0f758e2912c78d4f8bfe95819982c171e5b2">
+      <source xml:lang="en">{0} model set to {1}.</source>
+      <note>{0} model role name, {1} model id</note>
     </trans-unit>
     <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
       <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
@@ -10113,6 +10133,9 @@
     </trans-unit>
     <trans-unit id="mssql.runbookLibrary.viewName">
       <source xml:lang="en">Runbook Library</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookStudio.configureModels">
+      <source xml:lang="en">Runbook Studio: Configure Models</source>
     </trans-unit>
     <trans-unit id="mssql.runbookStudio.openRuntimeLog">
       <source xml:lang="en">Runbook Studio: Open Runtime Log</source>

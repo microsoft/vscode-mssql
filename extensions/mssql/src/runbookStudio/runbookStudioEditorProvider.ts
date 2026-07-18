@@ -233,6 +233,59 @@ function registerRunbookStudioFeatures(
                 preview: true,
             });
         }),
+        // Model configuration (global, runtime-side): planner + workflow
+        // model ids on the ACTIVE provider profile via the runtime's own
+        // settings round-trip. Free-text ids — the runtime does not expose
+        // a model catalog to enumerate.
+        vscode.commands.registerCommand("mssql.runbookStudio.configureModels", async () => {
+            const coordinator = coordinatorFactory();
+            const service = coordinator instanceof RunbookStudioService ? coordinator : undefined;
+            if (!service) {
+                void vscode.window.showErrorMessage(LocRunbookStudio.modelConfigUnavailable);
+                return;
+            }
+            const config = await service.getModelConfiguration();
+            if ("error" in config) {
+                void vscode.window.showErrorMessage(config.error.message);
+                return;
+            }
+            const pick = await vscode.window.showQuickPick(
+                [
+                    {
+                        label: LocRunbookStudio.modelRolePlanner,
+                        description: config.plannerModelId ?? "",
+                        role: "planner" as const,
+                    },
+                    {
+                        label: LocRunbookStudio.modelRoleWorkflow,
+                        description: config.workflowModelId ?? "",
+                        role: "workflow" as const,
+                    },
+                ],
+                { title: config.providerLabel },
+            );
+            if (!pick) {
+                return;
+            }
+            const modelId = await vscode.window.showInputBox({
+                prompt: LocRunbookStudio.modelIdPrompt(pick.label, config.providerLabel),
+                value:
+                    pick.role === "planner"
+                        ? (config.plannerModelId ?? "")
+                        : (config.workflowModelId ?? ""),
+            });
+            if (!modelId) {
+                return;
+            }
+            const refusal = await service.setModelConfiguration(pick.role, modelId.trim());
+            if (refusal) {
+                void vscode.window.showErrorMessage(refusal);
+            } else {
+                void vscode.window.showInformationMessage(
+                    LocRunbookStudio.modelConfigSaved(pick.label, modelId.trim()),
+                );
+            }
+        }),
     );
     // Runbook Library tree (R3): the runtime library next to Object
     // Explorer, sharing the lazily constructed service. The coordinator

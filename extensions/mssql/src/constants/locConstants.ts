@@ -129,6 +129,26 @@ export class RunbookStudio {
         "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     );
     public static approvalRequired = l10n.t("Approval required to continue.");
+    public static modelConfigUnavailable = l10n.t(
+        "The runtime's active provider profile does not expose configurable models.",
+    );
+    public static modelRolePlanner = l10n.t("Planner (generates the runbook plan)");
+    public static modelRoleWorkflow = l10n.t("Workflow (executes plan steps)");
+    public static modelIdPrompt = (role: string, provider: string) =>
+        l10n.t({
+            message: "Model id for {0} on provider {1}",
+            args: [role, provider],
+            comment: ["{0} model role name, {1} provider label"],
+        });
+    public static modelConfigSaved = (role: string, modelId: string) =>
+        l10n.t({
+            message: "{0} model set to {1}.",
+            args: [role, modelId],
+            comment: ["{0} model role name, {1} model id"],
+        });
+    public static hobbesRunNoProgress = l10n.t(
+        "The Hobbes runtime reported no progress for 10 minutes; the run has been marked failed. Open the runtime log for details.",
+    );
     public static statusBarName = l10n.t("Runbook run");
     public static statusBarRunning = l10n.t("Runbook: running…");
     public static statusBarAwaitingApproval = l10n.t("Runbook: awaiting approval");

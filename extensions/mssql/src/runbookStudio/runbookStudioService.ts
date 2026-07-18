@@ -591,6 +591,76 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return { ok: true };
     }
 
+    /** Model roles the config UI exposes, read from the runtime's ACTIVE
+     *  provider profile ("whatever Hobbes supports" — planner + workflow
+     *  today; global setting, per-runbook later). */
+    public async getModelConfiguration(): Promise<
+        | {
+              providerLabel: string;
+              plannerModelId?: string;
+              workflowModelId?: string;
+          }
+        | { error: RbsError }
+    > {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            return { error: ensured.error };
+        }
+        try {
+            const doc = await ensured.adapter.getRuntimeSettingsDocument(context);
+            const profile = activeProviderProfile(doc);
+            const planner = profile?.defaultModels?.plannerModelId;
+            const workflow = profile?.defaultModels?.workflowModelId;
+            return {
+                providerLabel: String(profile?.label ?? profile?.id ?? "?"),
+                ...(typeof planner === "string" ? { plannerModelId: planner } : {}),
+                ...(typeof workflow === "string" ? { workflowModelId: workflow } : {}),
+            };
+        } catch (error) {
+            return { error: libraryError(error) };
+        }
+    }
+
+    /** Update one model role on the active provider profile via the
+     *  runtime's supported settings round-trip. Returns an error string on
+     *  refusal (e.g. the in-flight guard while a run executes). */
+    public async setModelConfiguration(
+        role: "planner" | "workflow",
+        modelId: string,
+    ): Promise<string | undefined> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            return ensured.error.message;
+        }
+        try {
+            const doc = await ensured.adapter.getRuntimeSettingsDocument(context);
+            const profile = activeProviderProfile(doc);
+            if (!profile?.defaultModels) {
+                return LocRunbookStudio.modelConfigUnavailable;
+            }
+            if (role === "planner") {
+                profile.defaultModels.plannerModelId = modelId;
+            } else {
+                profile.defaultModels.workflowModelId = modelId;
+            }
+            const refusal = await ensured.adapter.putRuntimeSettingsDocument(doc, context);
+            emitRunbookEvent(
+                context,
+                "runbookStudio.library.modelConfig",
+                refusal ? "error" : "ok",
+                {
+                    role: metaField(role),
+                    ...(refusal ? { detailClass: metaField(refusal.slice(0, 80)) } : {}),
+                },
+            );
+            return refusal;
+        } catch (error) {
+            return error instanceof Error ? error.message : String(error);
+        }
+    }
+
     /** Recent run history for a library runbook. Runs come back EMPTY (not
      *  an error) when the asset has none or the runtime no longer knows the
      *  id — the tree renders that honestly as "no runs yet". */
@@ -1214,6 +1284,26 @@ export function getRunbookStudioService(
 /** Library failure -> user-facing RbsError. Typed refusals (e.g. publish
  *  translation issues) keep their precise message; anything else gets the
  *  library-unavailable shell with the technical detail attached. */
+interface RuntimeProviderProfileDoc {
+    id?: string;
+    label?: string;
+    defaultModels?: Record<string, unknown> & {
+        plannerModelId?: unknown;
+        workflowModelId?: unknown;
+    };
+}
+
+/** The provider profile the runtime's activeProviderProfileId points at. */
+function activeProviderProfile(
+    doc: Record<string, unknown>,
+): RuntimeProviderProfileDoc | undefined {
+    const activeId = doc.activeProviderProfileId;
+    const providers = Array.isArray(doc.providers)
+        ? (doc.providers as RuntimeProviderProfileDoc[])
+        : [];
+    return providers.find((p) => p?.id === activeId) ?? providers[0];
+}
+
 function libraryError(error: unknown): RbsError {
     if (error instanceof RuntimeStartRefusedError) {
         return error.rbsError;

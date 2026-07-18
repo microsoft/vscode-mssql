@@ -114,6 +114,10 @@ interface ActivePoll {
     /** Gate node already answered — suppress re-emission while the
      *  runtime processes the resume turn. */
     gateRespondedFor?: string;
+    /** Last investigation updatedAt observed — progress signal. */
+    lastUpdatedAt?: string;
+    /** Epoch when updatedAt last moved (arms the no-progress guard). */
+    lastProgressEpoch?: number;
 }
 
 /** The slice of an investigation-snapshot envelope payload the bridge reads
@@ -200,6 +204,11 @@ export function translateWidgetToOutput(
 /** After a region failure, give the runtime this long to finalize before
  *  the host declares the run failed (visible, never silent). */
 const STALL_AFTER_FAILURE_MS = 60_000;
+
+/** A running (not suspended) workflow whose investigation record shows no
+ *  mutation for this long is declared failed. Generous because LLM-backed
+ *  Aggregation/Recommendation steps legitimately think for minutes. */
+const NO_PROGRESS_TIMEOUT_MS = 10 * 60_000;
 
 /** Selected-profile projection the bridge writes into the runtime's
  *  JsonFile connection registry. Integrated auth only in this preview. */
@@ -864,6 +873,41 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         }
     }
 
+    /** Full runtime settings document (safe projection — secrets omitted by
+     *  the runtime; the PUT round-trip is the runtime's own supported edit
+     *  path per its FR-308 comment). */
+    public async getRuntimeSettingsDocument(
+        context: RunbookOperationContext,
+    ): Promise<Record<string, unknown>> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(runtime.baseUrl, "GET", "/runtime/settings");
+        if (!response.ok) {
+            throw new Error(`settings read failed (HTTP ${response.status})`);
+        }
+        return (await response.json()) as Record<string, unknown>;
+    }
+
+    /** PUT the (mutated) settings document. Returns an error string on
+     *  refusal (409 in-flight guard / 422 validation) instead of throwing. */
+    public async putRuntimeSettingsDocument(
+        document: Record<string, unknown>,
+        context: RunbookOperationContext,
+    ): Promise<string | undefined> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(runtime.baseUrl, "PUT", "/runtime/settings", document);
+        if (response.ok) {
+            return undefined;
+        }
+        const body = (await response.json().catch(() => undefined)) as
+            | { errors?: Array<{ message?: string }>; message?: string }
+            | undefined;
+        return (
+            body?.errors?.map((e) => e.message).join("; ") ??
+            body?.message ??
+            `HTTP ${response.status}`
+        );
+    }
+
     public async initialize(context: RunbookOperationContext): Promise<RuntimeCapabilities> {
         const runtime = await this.supervisor.ensureRunning(context);
         return {
@@ -1215,9 +1259,34 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                     );
                     if (stateResponse.ok) {
                         const state = (await stateResponse.json()) as {
+                            updatedAt?: string;
                             execution?: { status?: string; activeRegionId?: string | null };
                         };
                         const executionStatus = state.execution?.status;
+                        // Progress tracking: updatedAt moves on every runtime
+                        // mutation (autosave). A run that is neither suspended
+                        // nor terminal but shows NO mutation for the ceiling
+                        // is declared failed honestly — the owner-reported
+                        // alternative is a silent forever-spinner.
+                        if (state.updatedAt !== poll.lastUpdatedAt) {
+                            poll.lastUpdatedAt = state.updatedAt;
+                            poll.lastProgressEpoch = Date.now();
+                        }
+                        if (
+                            executionStatus === "running" &&
+                            poll.lastProgressEpoch !== undefined &&
+                            Date.now() - poll.lastProgressEpoch > NO_PROGRESS_TIMEOUT_MS
+                        ) {
+                            poll.stop = true;
+                            observer.onEvent({
+                                kind: "terminal",
+                                state: "failed",
+                                verdict: "fail",
+                                errorCode: "RunbookStudio.Timeout",
+                                errorMessage: LocRunbookStudio.hobbesRunNoProgress,
+                            });
+                            return;
+                        }
                         // Gate suspension: the workflow genuinely stops in
                         // "waiting-signal" on the wait.signal region. Emit
                         // the gate request once per suspended gate node.
