@@ -23,6 +23,8 @@ import {
     groupLibraryItems,
     libraryCategoryLabel,
     libraryItemDescription,
+    libraryRunDescription,
+    LibraryRunRef,
     RunbookLibraryAsset,
 } from "./runbookLibraryModel";
 import { emitRunbookEvent, metaField, newRunbookRootContext } from "./runbookDiag";
@@ -36,7 +38,12 @@ const RUNBOOK_EDITOR_VIEW_TYPE = "mssql.runbookStudio";
 export type RunbookLibraryNode =
     | { kind: "group"; category: string; items: RunbookLibraryAsset[] }
     | { kind: "asset"; asset: RunbookLibraryAsset }
+    | { kind: "run"; run: LibraryRunRef }
     | { kind: "message"; message: string };
+
+/** Run-history children rendered per runbook (the detail endpoint returns
+ *  up to 25; the tree keeps the newest 10 to stay glanceable). */
+const MAX_RUN_HISTORY_NODES = 10;
 
 function isAssetNode(node: unknown): node is Extract<RunbookLibraryNode, { kind: "asset" }> {
     return (
@@ -75,9 +82,11 @@ export class RunbookLibraryProvider
                 return item;
             }
             case "asset": {
+                // Collapsible: children are the runbook's recent run
+                // history, fetched lazily on expand (getChildren).
                 const item = new vscode.TreeItem(
                     node.asset.title,
-                    vscode.TreeItemCollapsibleState.None,
+                    vscode.TreeItemCollapsibleState.Collapsed,
                 );
                 item.iconPath = new vscode.ThemeIcon("book");
                 item.contextValue = "runbookLibraryItem";
@@ -91,6 +100,22 @@ export class RunbookLibraryProvider
                     title: LocRunbookStudio.libraryOpenItem,
                     arguments: [node],
                 };
+                return item;
+            }
+            case "run": {
+                // Label is a short runId prefix (full ids are GUID-length);
+                // the tooltip carries the exact id for correlation.
+                const item = new vscode.TreeItem(
+                    node.run.runId.slice(0, 8),
+                    vscode.TreeItemCollapsibleState.None,
+                );
+                item.iconPath = new vscode.ThemeIcon("play-circle");
+                item.contextValue = "runbookLibraryRun";
+                const description = libraryRunDescription(node.run);
+                if (description.length > 0) {
+                    item.description = description;
+                }
+                item.tooltip = node.run.runId;
                 return item;
             }
             case "message": {
@@ -108,9 +133,13 @@ export class RunbookLibraryProvider
 
     public async getChildren(node?: RunbookLibraryNode): Promise<RunbookLibraryNode[]> {
         if (node) {
-            return node.kind === "group"
-                ? node.items.map((asset): RunbookLibraryNode => ({ kind: "asset", asset }))
-                : [];
+            if (node.kind === "group") {
+                return node.items.map((asset): RunbookLibraryNode => ({ kind: "asset", asset }));
+            }
+            if (node.kind === "asset") {
+                return this.getRunHistoryChildren(node.asset);
+            }
+            return [];
         }
         const service = this.serviceAccessor();
         if (!service) {
@@ -133,6 +162,27 @@ export class RunbookLibraryProvider
                 items: group.items,
             }),
         );
+    }
+
+    /** Recent runs under a runbook item: newest first (runtime order), a
+     *  single honest message node when there are none, and the standard
+     *  informational node on load failure (never a silently blank branch). */
+    private async getRunHistoryChildren(asset: RunbookLibraryAsset): Promise<RunbookLibraryNode[]> {
+        const service = this.serviceAccessor();
+        if (!service) {
+            return [{ kind: "message", message: LocRunbookStudio.runtimeUnavailable }];
+        }
+        const result = await service.getLibraryRunHistory(asset.id);
+        if (result.error) {
+            return [{ kind: "message", message: result.error.message }];
+        }
+        const runs = result.runs ?? [];
+        if (runs.length === 0) {
+            return [{ kind: "message", message: LocRunbookStudio.libraryNoRuns }];
+        }
+        return runs
+            .slice(0, MAX_RUN_HISTORY_NODES)
+            .map((run): RunbookLibraryNode => ({ kind: "run", run }));
     }
 }
 

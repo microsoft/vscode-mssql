@@ -35,7 +35,7 @@ import {
 } from "./runbookDiag";
 import { writeStash } from "./libraryStash";
 import { canonicalizeRunbookArtifact } from "./runbookArtifact";
-import { RunbookLibraryAsset } from "./runbookLibraryModel";
+import { LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger } from "./runbookRunLedger";
 
@@ -499,6 +499,35 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return asset ? { asset } : {};
         } catch (error) {
             emitRunbookEvent(context, "runbookStudio.library.get", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { error: libraryError(error) };
+        }
+    }
+
+    /** Recent run history for a library runbook. Runs come back EMPTY (not
+     *  an error) when the asset has none or the runtime no longer knows the
+     *  id — the tree renders that honestly as "no runs yet". */
+    public async getLibraryRunHistory(assetId: string): Promise<{
+        runs?: LibraryRunRef[];
+        error?: RbsError;
+    }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.history", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { error: ensured.error };
+        }
+        try {
+            const detail = await ensured.adapter.getLibraryContentDetail(assetId, context);
+            emitRunbookEvent(context, "runbookStudio.library.history", "ok", {
+                runCount: metaField(detail.recentRuns.length),
+            });
+            return { runs: detail.recentRuns };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.history", "error", {
                 errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
             });
             return { error: libraryError(error) };

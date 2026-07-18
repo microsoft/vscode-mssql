@@ -15,6 +15,8 @@ import {
     LIBRARY_FALLBACK_CATEGORY,
     libraryCategoryLabel,
     libraryItemDescription,
+    libraryRunDescription,
+    parseLibraryDetailResponse,
     parseLibraryListResponse,
     RunbookLibraryAsset,
 } from "../../src/runbookStudio/runbookLibraryModel";
@@ -129,6 +131,90 @@ suite("runbookLibraryModel", () => {
         test("capitalizes the first letter only", () => {
             expect(libraryCategoryLabel("investigate")).to.equal("Investigate");
             expect(libraryCategoryLabel("")).to.equal("");
+        });
+    });
+
+    suite("parseLibraryDetailResponse", () => {
+        test("maps recentRuns and ignores unknown run fields", () => {
+            const runs = parseLibraryDetailResponse({
+                item: { id: "rb-1", name: "Blocked sessions" },
+                recentRuns: [
+                    {
+                        runId: "run-a",
+                        status: "succeeded",
+                        startedAt: "2026-07-18T14:31:00Z",
+                        completedAt: "2026-07-18T14:32:00Z",
+                        connectionAlias: "prod",
+                    },
+                    { runId: "run-b", status: "failed" },
+                ],
+                publishedDescription: "ignored",
+            });
+            expect(runs).to.deep.equal([
+                { runId: "run-a", status: "succeeded", startedAt: "2026-07-18T14:31:00Z" },
+                { runId: "run-b", status: "failed" },
+            ]);
+        });
+
+        test("keeps runs with only a runId (missing optionals omitted)", () => {
+            const runs = parseLibraryDetailResponse({ recentRuns: [{ runId: "run-c" }] });
+            expect(runs).to.deep.equal([{ runId: "run-c" }]);
+        });
+
+        test("drops malformed entries and coerces bad field types away", () => {
+            const runs = parseLibraryDetailResponse({
+                recentRuns: [
+                    undefined,
+                    42,
+                    "run-x",
+                    { status: "no run id" },
+                    { runId: "" },
+                    { runId: "run-d", startedAt: 12345, status: false },
+                ],
+            });
+            expect(runs).to.deep.equal([{ runId: "run-d" }]);
+        });
+
+        test("non-conforming bodies parse to an empty history", () => {
+            expect(parseLibraryDetailResponse(undefined)).to.deep.equal([]);
+            expect(parseLibraryDetailResponse("nope")).to.deep.equal([]);
+            expect(parseLibraryDetailResponse([])).to.deep.equal([]);
+            expect(parseLibraryDetailResponse({ recentRuns: "nope" })).to.deep.equal([]);
+            expect(parseLibraryDetailResponse({ recentRuns: [] })).to.deep.equal([]);
+        });
+    });
+
+    suite("libraryRunDescription", () => {
+        // The date part is locale-dependent by design (toLocaleString);
+        // expectations are computed with the same options.
+        const localeDate = (iso: string) =>
+            new Date(iso).toLocaleString(undefined, {
+                month: "numeric",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+            });
+
+        test("joins status and start time with a separator", () => {
+            const startedAt = "2026-07-18T14:31:00Z";
+            expect(libraryRunDescription({ runId: "r", status: "succeeded", startedAt })).to.equal(
+                `succeeded · ${localeDate(startedAt)}`,
+            );
+        });
+
+        test("renders whichever part exists", () => {
+            const startedAt = "2026-07-18T14:31:00Z";
+            expect(libraryRunDescription({ runId: "r", status: "failed" })).to.equal("failed");
+            expect(libraryRunDescription({ runId: "r", startedAt })).to.equal(
+                localeDate(startedAt),
+            );
+            expect(libraryRunDescription({ runId: "r" })).to.equal("");
+        });
+
+        test("an unparseable timestamp renders status only (never Invalid Date)", () => {
+            expect(
+                libraryRunDescription({ runId: "r", status: "canceled", startedAt: "not-a-date" }),
+            ).to.equal("canceled");
         });
     });
 });

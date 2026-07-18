@@ -114,6 +114,7 @@
         "comment": ["{0} is the exported file path"]
     },
     "Runbook JSON": "Runbook JSON",
+    "No runs yet": "No runs yet",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",

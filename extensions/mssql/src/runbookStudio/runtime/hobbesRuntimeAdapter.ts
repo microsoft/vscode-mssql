@@ -28,7 +28,12 @@ import * as path from "path";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
 import { PlannedRunbook, PlannerPlanNode } from "../models/plannerMapping";
-import { parseLibraryListResponse, RunbookLibraryAsset } from "../runbookLibraryModel";
+import {
+    LibraryRunRef,
+    parseLibraryDetailResponse,
+    parseLibraryListResponse,
+    RunbookLibraryAsset,
+} from "../runbookLibraryModel";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
 import {
     gateCorrelationKey,
@@ -435,6 +440,36 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             throw new Error(`library read failed (HTTP ${response.status})`);
         }
         return (await response.json()) as Record<string, unknown>;
+    }
+
+    /** Recent run history for a library runbook, from the Library detail
+     *  endpoint. A missing asset (404) or an unparseable body is an EMPTY
+     *  history — never a throw — so the tree renders "no runs yet" instead
+     *  of failing the whole branch; other HTTP failures still throw (the
+     *  caller renders those honestly as an informational node). */
+    public async getLibraryContentDetail(
+        assetId: string,
+        context: RunbookOperationContext,
+    ): Promise<{ recentRuns: LibraryRunRef[] }> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "GET",
+            `/api/library/content/runbook/${encodeURIComponent(assetId)}`,
+        );
+        if (response.status === 404) {
+            return { recentRuns: [] };
+        }
+        if (!response.ok) {
+            throw new Error(`library detail failed (HTTP ${response.status})`);
+        }
+        let body: unknown;
+        try {
+            body = await response.json();
+        } catch {
+            return { recentRuns: [] };
+        }
+        return { recentRuns: parseLibraryDetailResponse(body) };
     }
 
     /** Archive a library asset (recoverable lifecycle transition — never

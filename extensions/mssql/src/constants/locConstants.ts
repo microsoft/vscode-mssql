@@ -200,6 +200,7 @@ export class RunbookStudio {
             comment: ["{0} is the exported file path"],
         });
     public static libraryExportFilterLabel = l10n.t("Runbook JSON");
+    public static libraryNoRuns = l10n.t("No runs yet");
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");

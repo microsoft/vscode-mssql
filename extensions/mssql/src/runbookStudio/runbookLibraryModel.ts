@@ -24,6 +24,14 @@ export interface RunbookLibraryAsset {
     updatedAt?: string;
 }
 
+/** One recent run surfaced under a library runbook, as projected from the
+ *  detail endpoint `GET /api/library/content/runbook/{id}` (`recentRuns`). */
+export interface LibraryRunRef {
+    runId: string;
+    startedAt?: string;
+    status?: string;
+}
+
 /** Grouping fallback for assets without a category. */
 export const LIBRARY_FALLBACK_CATEGORY = "other";
 
@@ -82,6 +90,72 @@ export function parseLibraryListResponse(body: unknown): RunbookLibraryAsset[] {
         });
     }
     return assets;
+}
+
+/**
+ * Parse the runtime's library detail response (`LibraryContentDetail`,
+ * camelCase over the wire: `{ item, recentRuns: [{ runId, status,
+ * startedAt, completedAt, connectionAlias }], ... }`). Only the fields the
+ * tree renders are kept; unknown fields are ignored, entries without a
+ * stable runId are dropped, and any non-conforming body parses to an
+ * empty history (never a throw — a missing detail is honestly "no runs").
+ */
+export function parseLibraryDetailResponse(body: unknown): LibraryRunRef[] {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return [];
+    }
+    const wrapped = (body as { recentRuns?: unknown }).recentRuns;
+    if (!Array.isArray(wrapped)) {
+        return [];
+    }
+    const runs: LibraryRunRef[] = [];
+    for (const entry of wrapped) {
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+            continue;
+        }
+        const record = entry as Record<string, unknown>;
+        const runId =
+            typeof record.runId === "string" && record.runId.length > 0 ? record.runId : undefined;
+        if (!runId) {
+            continue;
+        }
+        runs.push({
+            runId,
+            ...(typeof record.startedAt === "string" && record.startedAt.length > 0
+                ? { startedAt: record.startedAt }
+                : {}),
+            ...(typeof record.status === "string" && record.status.length > 0
+                ? { status: record.status }
+                : {}),
+        });
+    }
+    return runs;
+}
+
+/**
+ * Run tree-item description, e.g. "succeeded · 7/18 2:31 PM": the status
+ * verbatim plus the locale-rendered start time (either part optional; an
+ * unparseable timestamp renders status only — never "Invalid Date").
+ */
+export function libraryRunDescription(run: LibraryRunRef): string {
+    const parts: string[] = [];
+    if (typeof run.status === "string" && run.status.length > 0) {
+        parts.push(run.status);
+    }
+    if (typeof run.startedAt === "string" && run.startedAt.length > 0) {
+        const startedAt = new Date(run.startedAt);
+        if (!Number.isNaN(startedAt.getTime())) {
+            parts.push(
+                startedAt.toLocaleString(undefined, {
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                }),
+            );
+        }
+    }
+    return parts.join(" · ");
 }
 
 /**
