@@ -7866,6 +7866,13 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3cd1b8006c9db7c3ebec96a04ce2b6d3164a0a375c2424708c116c128d93cdfd">
+      <source xml:lang="en">The Hobbes runtime could not resolve the connection alias for this run.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eb85e5b179ae508851d9c3a4ad1b70f15e62bcc724ccceba39fb65ab10b7d537">
+      <source xml:lang="en">The Hobbes runtime refused to start the run ({0}).</source>
+      <note>{0} is a stable error code from the runtime</note>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
@@ -8074,6 +8081,9 @@
     </trans-unit>
     <trans-unit id="++CODE++de15064778b830c8aa582193df715ddc175d35b775d8793935d7b05ca1e5db3c">
       <source xml:lang="en">This runbook has not been compiled. Compilation turns the intent into a typed plan of registered activities.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f5751c3a34c530005b5b5778000aed78a919766b9e42266efab85b1902a9a5c4">
+      <source xml:lang="en">This runbook is not in the Hobbes runtime&apos;s library, so the &apos;hobbes&apos; runtime cannot run it. Generated runbooks run on the &apos;local&apos; runtime — set mssql.runbookStudio.runtime to &apos;local&apos; (or remove the setting to use the default).</source>
     </trans-unit>
     <trans-unit id="++CODE++4d946546745cff617ea14dd7577f4359c62971cc768f32c0b295e2866b651f0a">
       <source xml:lang="en">This runbook was created by a newer version of the extension. Update the MSSQL extension to open it. ({0})</source>

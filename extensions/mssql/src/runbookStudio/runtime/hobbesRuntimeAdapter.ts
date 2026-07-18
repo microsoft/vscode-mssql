@@ -23,6 +23,7 @@
  * P2 follow-up and slots in behind this same adapter contract.
  */
 
+import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
 import { RuntimeSupervisor } from "./runtimeSupervisor";
@@ -30,6 +31,7 @@ import {
     RunbookRuntimeAdapter,
     RuntimeCapabilities,
     RuntimeEventObserver,
+    RuntimeStartRefusedError,
     RuntimeStartRequest,
     RuntimeValidationIssue,
 } from "./runtimeAdapterTypes";
@@ -141,9 +143,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             | { runId?: string; code?: string; message?: string }
             | undefined;
         if (!launch.ok || !launchBody?.runId) {
-            throw new Error(
-                `launch refused: ${launchBody?.code ?? launch.status} ${launchBody?.message ?? ""}`.trim(),
-            );
+            throw launchRefusalError(launchBody?.code ?? `http-${launch.status}`);
         }
         const hobbesRunId = launchBody.runId;
         emitRunbookEvent(context, "runbookStudio.runtime.launchPrepared", "ok", {
@@ -156,7 +156,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             `/api/investigations/runs/${encodeURIComponent(hobbesRunId)}/confirm`,
         );
         if (!confirm.ok) {
-            throw new Error(`confirm refused: HTTP ${confirm.status}`);
+            throw launchRefusalError(`confirm-http-${confirm.status}`);
         }
 
         const poll: ActivePoll = { stop: false };
@@ -317,6 +317,44 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         } finally {
             clearTimeout(timer);
         }
+    }
+}
+
+/**
+ * Launch refusal -> user-actionable RbsError (codes from the runtime's
+ * LaunchErrorCodes contract). The by-far-most-common case is a generated
+ * runbook that does not exist in the runtime's library — tell the user
+ * exactly that and how to run it instead.
+ */
+export function launchRefusalError(refusalCode: string): RuntimeStartRefusedError {
+    switch (refusalCode) {
+        case "runbook-not-found":
+        case "runbook-version-mismatch":
+            return new RuntimeStartRefusedError(
+                {
+                    code: "RunbookStudio.RuntimeCapabilityUnsupported",
+                    message: LocRunbookStudio.hobbesRunbookNotInLibrary,
+                },
+                refusalCode,
+            );
+        case "connection-not-found":
+        case "connection-ambiguous":
+            return new RuntimeStartRefusedError(
+                {
+                    code: "RunbookStudio.BindingInvalid",
+                    message: LocRunbookStudio.hobbesConnectionNotResolved,
+                },
+                refusalCode,
+            );
+        default:
+            return new RuntimeStartRefusedError(
+                {
+                    code: "RunbookStudio.RuntimeProtocol",
+                    message: LocRunbookStudio.hobbesLaunchRefused(refusalCode),
+                    retryable: true,
+                },
+                refusalCode,
+            );
     }
 }
 

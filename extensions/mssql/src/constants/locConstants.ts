@@ -94,6 +94,18 @@ export class RunbookStudio {
     public static compileApplyFailed = l10n.t(
         "The compiled plan could not be written into the document.",
     );
+    public static hobbesRunbookNotInLibrary = l10n.t(
+        "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).",
+    );
+    public static hobbesConnectionNotResolved = l10n.t(
+        "The Hobbes runtime could not resolve the connection alias for this run.",
+    );
+    public static hobbesLaunchRefused = (code: string) =>
+        l10n.t({
+            message: "The Hobbes runtime refused to start the run ({0}).",
+            args: [code],
+            comment: ["{0} is a stable error code from the runtime"],
+        });
     public static hobbesRuntimePathMissing = l10n.t(
         "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.",
     );

@@ -12,10 +12,28 @@
  */
 
 import type {
+    RbsError,
     RunbookArtifactFile,
     RunbookNodeStateKind,
 } from "../../sharedInterfaces/runbookStudio";
 import type { RunbookOperationContext } from "../runbookDiag";
+
+/**
+ * A run the runtime REFUSED to start, with a user-actionable explanation.
+ * Adapters throw this instead of a bare Error so the service can surface
+ * the precise reason (e.g. "runbook not in the Hobbes library") rather
+ * than the generic start-failure message. `refusalCode` is a closed enum
+ * from the runtime's contract — safe for diagnostics.
+ */
+export class RuntimeStartRefusedError extends Error {
+    constructor(
+        public readonly rbsError: RbsError,
+        public readonly refusalCode?: string,
+    ) {
+        super(rbsError.message);
+        this.name = "RuntimeStartRefusedError";
+    }
+}
 
 export interface RuntimeCapabilities {
     runtimeKind: "fake" | "hobbes" | "local";

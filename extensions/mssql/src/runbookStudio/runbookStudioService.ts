@@ -47,6 +47,7 @@ import {
     RunbookRuntimeAdapter,
     RuntimeBoundaryEvent,
     RuntimeCapabilities,
+    RuntimeStartRefusedError,
 } from "./runtime/runtimeAdapterTypes";
 import { RequestType } from "vscode-languageclient";
 import type * as mssql from "vscode-mssql";
@@ -198,22 +199,26 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 runContext,
             );
         } catch (error) {
+            // A typed refusal carries the precise, user-actionable reason
+            // (e.g. "runbook not in the Hobbes library"); anything else gets
+            // the generic start-failure message.
+            const refusal = error instanceof RuntimeStartRefusedError ? error : undefined;
+            const rbsError: RbsError = refusal?.rbsError ?? {
+                code: "RunbookStudio.RuntimeProtocol",
+                message: LocRunbookStudio.runtimeStartFailed,
+                retryable: true,
+            };
             this.finishRun(active, {
                 kind: "terminal",
                 state: "failed",
-                errorCode: "RunbookStudio.RuntimeProtocol",
-                errorMessage: LocRunbookStudio.runtimeStartFailed,
+                errorCode: rbsError.code,
+                errorMessage: rbsError.message,
             });
             emitRunbookEvent(runContext, "runbookStudio.run.startFailed", "error", {
                 errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+                ...(refusal?.refusalCode ? { refusalCode: metaField(refusal.refusalCode) } : {}),
             });
-            return {
-                error: {
-                    code: "RunbookStudio.RuntimeProtocol",
-                    message: LocRunbookStudio.runtimeStartFailed,
-                    retryable: true,
-                },
-            };
+            return { error: rbsError };
         }
         return { runId };
     }

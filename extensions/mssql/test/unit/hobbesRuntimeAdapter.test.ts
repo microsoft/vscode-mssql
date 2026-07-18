@@ -12,6 +12,7 @@
 
 import { expect } from "chai";
 import {
+    launchRefusalError,
     mapRegionStatus,
     mapTerminalStatus,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
@@ -36,6 +37,26 @@ suite("hobbesRuntimeAdapter", () => {
         expect(mapRegionStatus("failed")).to.equal("failed");
         expect(mapRegionStatus("queued")).to.equal(undefined);
         expect(mapRegionStatus(undefined)).to.equal(undefined);
+    });
+
+    test("launch refusals map to user-actionable errors with the refusal code retained", () => {
+        const notFound = launchRefusalError("runbook-not-found");
+        expect(notFound.rbsError.code).to.equal("RunbookStudio.RuntimeCapabilityUnsupported");
+        expect(notFound.rbsError.message).to.contain("local");
+        expect(notFound.refusalCode).to.equal("runbook-not-found");
+
+        const versionMismatch = launchRefusalError("runbook-version-mismatch");
+        expect(versionMismatch.rbsError.code).to.equal(
+            "RunbookStudio.RuntimeCapabilityUnsupported",
+        );
+
+        const connection = launchRefusalError("connection-not-found");
+        expect(connection.rbsError.code).to.equal("RunbookStudio.BindingInvalid");
+
+        const unknown = launchRefusalError("some-future-code");
+        expect(unknown.rbsError.code).to.equal("RunbookStudio.RuntimeProtocol");
+        expect(unknown.rbsError.message).to.contain("some-future-code");
+        expect(unknown.rbsError.retryable).to.equal(true);
     });
 
     test("findFreePort returns a bindable loopback port", async () => {
