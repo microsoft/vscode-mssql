@@ -3668,6 +3668,38 @@ export class LocConstants {
                     args: [shown, total],
                     comment: ["{0} and {1} are row counts"],
                 }),
+            showingFirstRows: (shown: number, total: number) =>
+                l10n.t({
+                    message: "Showing first {0} of {1} rows.",
+                    args: [shown, total],
+                    comment: ["{0} and {1} are row counts"],
+                }),
+            noNumericColumn: l10n.t(
+                "This output has no numeric column to chart — showing the grid instead.",
+            ),
+            needsTimeColumn: l10n.t(
+                "This output needs a date/time column to chart — showing the grid instead.",
+            ),
+            barChartLabel: (value: string, category: string) =>
+                l10n.t({
+                    message: "Bar chart of {0} by {1}",
+                    args: [value, category],
+                    comment: ["{0} is a value column name, {1} is a category column name"],
+                }),
+            timeseriesLabel: (value: string, time: string) =>
+                l10n.t({
+                    message: "Line chart of {0} over {1}",
+                    args: [value, time],
+                    comment: ["{0} is a value column name, {1} is a date/time column name"],
+                }),
+            modifiedChip: l10n.t("modified"),
+            resetViewTitle: l10n.t("Reset to the default view (this run only)"),
+            viewSwitcherLabel: (title: string) =>
+                l10n.t({
+                    message: "View for {0}",
+                    args: [title],
+                    comment: ["{0} is a result widget title"],
+                }),
             describeHeading: l10n.t("What should this runbook do?"),
             describePlaceholder: l10n.t(
                 'Describe the check, validation, or investigation in plain language — e.g. "verify the Orders table has no rows with a NULL customer id and stays under 1M rows".',

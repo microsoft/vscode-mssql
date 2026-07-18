@@ -711,3 +711,108 @@
     background: transparent;
     border-color: currentColor;
 }
+
+/* Result chart renderers (bar, timeseries) — inline SVG, chart theme tokens. */
+.rbs-bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-width: 640px;
+}
+
+.rbs-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbs-bar-label {
+    flex: 0 0 150px;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rbs-bar-svg {
+    flex: 1;
+    min-width: 0;
+    display: block;
+}
+
+.rbs-bar-fill {
+    fill: var(--vscode-charts-blue, #4e9ae8);
+}
+
+.rbs-bar-value {
+    flex: 0 0 auto;
+    min-width: 56px;
+    text-align: right;
+}
+
+.rbs-ts-chart {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-template-rows: 1fr max-content;
+    gap: 3px 8px;
+    max-width: 640px;
+}
+
+.rbs-ts-y {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    color: var(--vscode-descriptionForeground);
+    font-size: 10.5px;
+}
+
+.rbs-ts-plot {
+    border-left: 1px solid var(--vscode-panel-border);
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.rbs-ts-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.rbs-ts-line {
+    fill: none;
+    stroke: var(--vscode-charts-blue, #4e9ae8);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.rbs-ts-dot {
+    fill: var(--vscode-charts-blue, #4e9ae8);
+}
+
+.rbs-ts-x {
+    grid-column: 2;
+    display: flex;
+    justify-content: space-between;
+    color: var(--vscode-descriptionForeground);
+    font-size: 10.5px;
+}
+
+/* Per-widget view switcher — ephemeral override, "this run only". */
+.rbs-view-switch {
+    font-size: 11px;
+    padding: 1px 5px;
+}
+
+.rbs-chip-modified {
+    background: transparent;
+    color: var(--vscode-descriptionForeground);
+    border-color: currentColor;
+}
+
+.rbs-view-reset {
+    padding: 0 4px;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--vscode-descriptionForeground);
+}

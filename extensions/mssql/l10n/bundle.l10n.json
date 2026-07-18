@@ -4461,6 +4461,26 @@
         "message": "Showing {0} of {1} rows.",
         "comment": ["{0} and {1} are row counts"]
     },
+    "Showing first {0} of {1} rows./{0} and {1} are row counts": {
+        "message": "Showing first {0} of {1} rows.",
+        "comment": ["{0} and {1} are row counts"]
+    },
+    "This output has no numeric column to chart — showing the grid instead.": "This output has no numeric column to chart — showing the grid instead.",
+    "This output needs a date/time column to chart — showing the grid instead.": "This output needs a date/time column to chart — showing the grid instead.",
+    "Bar chart of {0} by {1}/{0} is a value column name, {1} is a category column name": {
+        "message": "Bar chart of {0} by {1}",
+        "comment": ["{0} is a value column name, {1} is a category column name"]
+    },
+    "Line chart of {0} over {1}/{0} is a value column name, {1} is a date/time column name": {
+        "message": "Line chart of {0} over {1}",
+        "comment": ["{0} is a value column name, {1} is a date/time column name"]
+    },
+    "modified": "modified",
+    "Reset to the default view (this run only)": "Reset to the default view (this run only)",
+    "View for {0}/{0} is a result widget title": {
+        "message": "View for {0}",
+        "comment": ["{0} is a result widget title"]
+    },
     "What should this runbook do?": "What should this runbook do?",
     "Describe the check, validation, or investigation in plain language — e.g. \"verify the Orders table has no rows with a NULL customer id and stays under 1M rows\".": "Describe the check, validation, or investigation in plain language — e.g. \"verify the Orders table has no rows with a NULL customer id and stays under 1M rows\".",
     "Generate plan": "Generate plan",
