@@ -29,6 +29,7 @@ import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants"
 import { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
 import {
+    gateCorrelationKey,
     HobbesConnectionsFile,
     mergeConnectionEntry,
     translateArtifactToHobbesPlan,
@@ -67,6 +68,13 @@ interface ActivePoll {
     /** Epoch of the first failed region report — arms the stall guard (the
      *  runtime can hang post-failure, e.g. on its summarize step: U-2). */
     failedNodeAt?: number;
+    /** Observer for out-of-band emissions (gate responses). */
+    observer?: RuntimeEventObserver;
+    /** Gate node the run is currently suspended on (emitted once). */
+    gateRequestedFor?: string;
+    /** Gate node already answered — suppress re-emission while the
+     *  runtime processes the resume turn. */
+    gateRespondedFor?: string;
 }
 
 /** The slice of an investigation-snapshot envelope payload the bridge reads
@@ -464,10 +472,10 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             runtimeVersion: runtime.metadata.version ?? "unknown",
             protocolVersion: "hobbes-rest/1",
             supportsCancellation: true,
-            // The runtime supports human approval internally, but its launch
-            // surface does not expose gate round-trips yet — reported
-            // honestly as unsupported at this boundary (A2 §3.3).
-            supportsGates: false,
+            // Gates ride the runtime's suspendable wait.signal primitive:
+            // real suspension (executionStatus "waiting-signal") + resume
+            // via /api/wait-signals (verified surface).
+            supportsGates: true,
             supportsResume: runtime.metadata.supports?.checkpointing === true,
             maxConcurrentRuns: 1,
         };
@@ -629,7 +637,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // workflow.continue command arrives on the investigation thread; the
         // command dispatcher also establishes the MCP SQL connections. The
         // SSE stream carries region lifecycle events.
-        const poll: ActivePoll = { stop: false };
+        const poll: ActivePoll = { stop: false, observer };
         this.polls.set(request.runId, poll);
         void this.kickoffAndStream(activeBaseUrl, request, hobbesRunId, poll, observer);
         void this.pollRun(activeBaseUrl, request, hobbesRunId, poll, observer);
@@ -654,10 +662,44 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         return response.ok ? "cancelled" : "failed";
     }
 
-    public respondToGate(): Promise<boolean> {
-        // Gate round-trips are not exposed by the runtime's launch surface
-        // (capability reported false); refusing is the honest answer.
-        return Promise.resolve(false);
+    /** Gates publish as wait.signal suspensions; approve = persist a resume
+     *  payload + trigger a re-entry turn, reject = cancel the run. */
+    public async respondToGate(
+        runId: string,
+        nodeId: string,
+        approve: boolean,
+        context: RunbookOperationContext,
+    ): Promise<boolean> {
+        const hobbesRunId = this.hobbesRunIds.get(runId);
+        const poll = this.polls.get(runId);
+        if (!hobbesRunId || !poll || poll.stop) {
+            return false;
+        }
+        const runtime = await this.supervisor.ensureRunning(context);
+        if (!approve) {
+            const cancelled = await this.cancelRun(runId, context);
+            poll.observer?.onEvent({ kind: "gateResponded", nodeId, approved: false });
+            return cancelled === "cancelled";
+        }
+        const keyPath =
+            `/api/wait-signals/${encodeURIComponent(hobbesRunId)}/` +
+            encodeURIComponent(gateCorrelationKey(nodeId));
+        const resume = await this.request(runtime.baseUrl, "POST", `${keyPath}/resume`, {
+            approved: true,
+            source: "vscode-runbook-studio",
+        });
+        if (!resume.ok) {
+            return false;
+        }
+        // Phase-A contract: the payload persists but the workflow only
+        // re-enters on the next turn — trigger it explicitly.
+        const trigger = await this.request(runtime.baseUrl, "POST", `${keyPath}/trigger-resume`);
+        if (!trigger.ok) {
+            return false;
+        }
+        poll.gateRespondedFor = nodeId;
+        poll.observer?.onEvent({ kind: "gateResponded", nodeId, approved: true });
+        return true;
     }
 
     public dispose(): Promise<void> {
@@ -772,9 +814,37 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                     );
                     if (stateResponse.ok) {
                         const state = (await stateResponse.json()) as {
-                            execution?: { status?: string };
+                            execution?: { status?: string; activeRegionId?: string | null };
                         };
                         const executionStatus = state.execution?.status;
+                        // Gate suspension: the workflow genuinely stops in
+                        // "waiting-signal" on the wait.signal region. Emit
+                        // the gate request once per suspended gate node.
+                        if (executionStatus === "waiting-signal") {
+                            const activeRegionId = state.execution?.activeRegionId ?? undefined;
+                            const gateNode = (request.artifact.lock?.nodes ?? []).find(
+                                (n) => n.kind === "gate" && n.id === activeRegionId,
+                            );
+                            if (
+                                gateNode &&
+                                poll.gateRequestedFor !== gateNode.id &&
+                                poll.gateRespondedFor !== gateNode.id
+                            ) {
+                                poll.gateRequestedFor = gateNode.id;
+                                observer.onEvent({
+                                    kind: "nodeState",
+                                    nodeId: gateNode.id,
+                                    state: "awaitingApproval",
+                                    attempt: 1,
+                                });
+                                observer.onEvent({
+                                    kind: "gateRequested",
+                                    nodeId: gateNode.id,
+                                    impactSummary:
+                                        gateNode.label || LocRunbookStudio.approvalRequired,
+                                });
+                            }
+                        }
                         if (executionStatus === "completed" || executionStatus === "failed") {
                             poll.stop = true;
                             observer.onEvent({

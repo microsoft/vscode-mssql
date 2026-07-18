@@ -71,6 +71,15 @@ const DATABASE_INPUT = {
     description: "Primary database connection.",
 };
 
+/** One hour: a demo-friendly ceiling far under the primitive's 24h max. */
+const GATE_TIMEOUT_SECONDS = 3_600;
+
+/** Wait-signal correlation key for a gate node (adapter addresses the
+ *  wait record with this on approve). */
+export function gateCorrelationKey(nodeId: string): string {
+    return `gate:${nodeId}`;
+}
+
 function isLiteral(value: unknown): value is string | number | boolean {
     if (typeof value === "number" || typeof value === "boolean") {
         return true;
@@ -139,7 +148,10 @@ export function translateArtifactToHobbesPlan(
         }
     }
     for (const edge of lock.edges) {
-        if (edge.when !== undefined && edge.when !== "success") {
+        // "approved" maps to the wait.signal resume path (approval = the
+        // resume payload); "success" is the plain edge. Failure/rejected
+        // branches have no runtime translation yet — refuse honestly.
+        if (edge.when !== undefined && edge.when !== "success" && edge.when !== "approved") {
             issues.push(
                 `conditional edge ${edge.from}->${edge.to} [${edge.when}] is not publishable yet`,
             );
@@ -149,7 +161,26 @@ export function translateArtifactToHobbesPlan(
     const nodes: HobbesPlanNode[] = [];
     for (const node of lock.nodes) {
         if (node.kind === "gate") {
-            issues.push(`gate node '${node.id}' is not publishable yet`);
+            // Gates publish as the runtime's SUSPENDABLE wait.signal
+            // primitive: the workflow genuinely stops (executionStatus
+            // "waiting-signal"); approve = POST resume + trigger-resume,
+            // reject = cancel. Correlation key is derived from the node id
+            // so the adapter can address the wait record.
+            nodes.push({
+                id: node.id,
+                type: "Observation",
+                strategy: "primitive:wait.signal",
+                primitiveArgs: {
+                    correlationKey: gateCorrelationKey(node.id),
+                    // v1 primitive accepts only this kind; the approval
+                    // resolves via /api/wait-signals resume, not an actual
+                    // monitor incident (verified: kind is validated, the
+                    // resume path is kind-agnostic).
+                    signalKind: "monitor-incident",
+                    timeoutSeconds: GATE_TIMEOUT_SECONDS,
+                },
+                outputKey: node.id,
+            });
             continue;
         }
         if (node.kind === "report") {

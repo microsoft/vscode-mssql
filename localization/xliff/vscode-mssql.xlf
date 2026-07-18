@@ -477,6 +477,9 @@
     <trans-unit id="++CODE++ef677f59f01b2a51731f0cb0af349d7fa718b787d4cc8db79d7f3cc306e97869">
       <source xml:lang="en">Approval required</source>
     </trans-unit>
+    <trans-unit id="++CODE++b9548b17d66e75a9113ca21654118cc87e87f0e7b6c3147e10498a9a6263a561">
+      <source xml:lang="en">Approval required to continue.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
     </trans-unit>

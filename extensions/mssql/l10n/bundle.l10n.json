@@ -63,6 +63,7 @@
     },
     "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.": "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.": "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
+    "Approval required to continue.": "Approval required to continue.",
     "The Hobbes runtime refused to start the run ({0})./{0} is a stable error code from the runtime": {
         "message": "The Hobbes runtime refused to start the run ({0}).",
         "comment": ["{0} is a stable error code from the runtime"]

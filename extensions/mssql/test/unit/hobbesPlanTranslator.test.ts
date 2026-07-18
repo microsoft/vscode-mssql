@@ -147,15 +147,28 @@ suite("hobbesPlanTranslator", () => {
         );
     });
 
-    test("refuses gates and conditional edges with reasons", () => {
+    test("gates publish as suspendable wait.signal nodes; approved edges are plain", () => {
         const artifact = publishableArtifact();
-        artifact.lock!.nodes.splice(1, 0, { id: "approve", label: "Approve", kind: "gate" });
-        artifact.lock!.edges.push({ from: "approve", to: "report", when: "approved" });
+        artifact.lock!.nodes.splice(2, 0, { id: "approve", label: "Approve", kind: "gate" });
+        artifact.lock!.edges = [
+            { from: "query", to: "limit" },
+            { from: "limit", to: "approve" },
+            { from: "approve", to: "report", when: "approved" },
+        ];
+        const result = translateArtifactToHobbesPlan(artifact);
+        expect(result.issues).to.deep.equal([]);
+        const gate = result.plan!.nodes.find((n) => n.id === "approve")!;
+        expect(gate.strategy).to.equal("primitive:wait.signal");
+        expect(gate.primitiveArgs?.correlationKey).to.equal("gate:approve");
+        expect(result.plan!.edges.map((e) => `${e.from}>${e.to}`)).to.contain("approve>report");
+    });
+
+    test("failure-branch edges still refuse with reasons", () => {
+        const artifact = publishableArtifact();
+        artifact.lock!.edges.push({ from: "limit", to: "report", when: "failure" });
         const result = translateArtifactToHobbesPlan(artifact);
         expect(result.plan).to.equal(undefined);
-        const joined = result.issues.join(" | ");
-        expect(joined).to.contain("gate node 'approve'");
-        expect(joined).to.contain("conditional edge");
+        expect(result.issues.join(" ")).to.contain("conditional edge");
     });
 
     test("the local fixture publishes (its row-count bind maps to $regions)", () => {

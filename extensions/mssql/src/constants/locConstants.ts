@@ -118,6 +118,7 @@ export class RunbookStudio {
     public static hobbesRuntimeUnresponsive = l10n.t(
         "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     );
+    public static approvalRequired = l10n.t("Approval required to continue.");
     public static hobbesLaunchRefused = (code: string) =>
         l10n.t({
             message: "The Hobbes runtime refused to start the run ({0}).",
