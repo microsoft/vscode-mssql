@@ -475,7 +475,7 @@ export class LocConstants {
                     comment: ["{0} is the Quick Query shortcut name"],
                 }),
             selectedTextArgumentHint: l10n.t(
-                "Use {selected_text} or {arg} as an argument for selected query-editor text. If neither is used, selected text is appended to the query.",
+                "Insert selected query-editor text using {selected_text} or {arg}. If you don't use either placeholder, selected text is automatically appended to the end of the query.",
             ),
             selectedTextCompletionDetail: l10n.t("Selected query-editor text"),
             noShortcut: l10n.t("No shortcut"),

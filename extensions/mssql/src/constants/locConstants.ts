@@ -45,10 +45,13 @@ export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Previe
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({
-        message: "Quick Query slot must be between 1 and {0}.",
+        message: "quick query slot must be between 1 and {0}.",
         args: [maxSlot],
         comment: ["{0} is the maximum Quick Query slot number"],
     });
+export let quickQuerySelectedTextRequired = l10n.t(
+    "This Quick Query requires selected text. Select some text in the SQL editor, then try again.",
+);
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );

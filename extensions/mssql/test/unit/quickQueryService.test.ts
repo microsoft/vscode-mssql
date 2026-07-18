@@ -21,6 +21,7 @@ import {
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import {
     composeQuickQuery,
+    hasQuickQueryArgument,
     QuickQueryExecutionDependencies,
     QuickQueryRunResult,
     QuickQueryService,
@@ -70,6 +71,7 @@ suite("Quick Query Service", () => {
             ensureSqlEditorConnected: sandbox.stub().resolves(true),
             runSqlEditorQueryString: sandbox.stub().resolves(),
             showMultipleSelectionsError: sandbox.stub(),
+            showSelectedTextRequiredError: sandbox.stub(),
             createSqlEditor: sandbox.stub(),
             isSqlEditorConnected: sandbox.stub(),
             runSqlEditorQuery: sandbox.stub(),
@@ -123,6 +125,12 @@ suite("Quick Query Service", () => {
             "select * from [dbo].[Orders]",
         );
         expect(composeQuickQuery("select {arg}", "")).to.equal("select ");
+    });
+
+    test("detects supported Quick Query arguments", () => {
+        expect(hasQuickQueryArgument("select {selected_text}")).to.equal(true);
+        expect(hasQuickQueryArgument("select {arg}")).to.equal(true);
+        expect(hasQuickQueryArgument("select 1")).to.equal(false);
     });
 
     test("uses prompt connection strategy for the fallback editor", () => {
@@ -207,6 +215,37 @@ suite("Quick Query Service", () => {
         expect(runSqlEditorQueryString).to.not.have.been.called;
     });
 
+    test("shows an error when an argument query has no selected editor text", async () => {
+        const editor = createEditor();
+        const showSelectedTextRequiredError = sandbox.stub();
+        const runSqlEditorQueryString = sandbox.stub().resolves();
+        const service = configureService({
+            readQuickQueries: () =>
+                normalizeQuickQueries([{ name: "Run", query: "select {selected_text}" }]),
+            getActiveSqlEditor: sandbox.stub().returns(editor),
+            showSelectedTextRequiredError,
+            runSqlEditorQueryString,
+        });
+
+        expect(await service.run(1)).to.equal(QuickQueryRunResult.SelectedTextRequired);
+        expect(showSelectedTextRequiredError).to.have.been.calledOnce;
+        expect(runSqlEditorQueryString).to.not.have.been.called;
+    });
+
+    test("shows an error instead of opening an argument query without an active SQL editor", async () => {
+        const showSelectedTextRequiredError = sandbox.stub();
+        const createSqlEditor = sandbox.stub();
+        const service = configureService({
+            readQuickQueries: () => normalizeQuickQueries([{ name: "Run", query: "select {arg}" }]),
+            showSelectedTextRequiredError,
+            createSqlEditor,
+        });
+
+        expect(await service.run(1)).to.equal(QuickQueryRunResult.SelectedTextRequired);
+        expect(showSelectedTextRequiredError).to.have.been.calledOnce;
+        expect(createSqlEditor).to.not.have.been.called;
+    });
+
     test("rejects multiple editor selections", async () => {
         const editor = createEditor("table", 2);
         const showMultipleSelectionsError = sandbox.stub();
@@ -230,8 +269,7 @@ suite("Quick Query Service", () => {
         const createSqlEditor = sandbox.stub().resolves(editor);
         const runSqlEditorQuery = sandbox.stub().resolves();
         const service = configureService({
-            readQuickQueries: () =>
-                normalizeQuickQueries([{ name: "Run", query: "select '{arg}'" }]),
+            readQuickQueries: () => normalizeQuickQueries([{ name: "Run", query: "select 1" }]),
             readNoActiveEditorBehavior: () => QuickQueryNoActiveEditorBehavior.OpenAndRun,
             createSqlEditor,
             isSqlEditorConnected: sandbox.stub().returns(true),
@@ -242,7 +280,7 @@ suite("Quick Query Service", () => {
 
         expect(result).to.equal(QuickQueryRunResult.OpenedAndRan);
         expect(createSqlEditor).to.have.been.calledWithMatch({
-            content: "select ''",
+            content: "select 1",
             connectionStrategy: ConnectionStrategy.PromptForConnection,
         });
         expect(runSqlEditorQuery).to.have.been.calledWith(editor);

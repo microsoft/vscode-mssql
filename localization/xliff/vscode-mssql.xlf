@@ -4007,6 +4007,9 @@
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
     </trans-unit>
+    <trans-unit id="++CODE++76c675c0d1baad491929caa0671f14885712dba02766ffc38d3dbd87899fa7af">
+      <source xml:lang="en">Insert selected query-editor text using {selected_text} or {arg}. If you don&apos;t use either placeholder, selected text is automatically appended to the end of the query.</source>
+    </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
     </trans-unit>
@@ -5805,10 +5808,6 @@
     <trans-unit id="++CODE++51296d3c3409d0fc43f3c4da5cfe61aac838f739a5bf5691479a224e36341234">
       <source xml:lang="en">Quick Queries keyboard shortcuts are managed by Visual Studio Code.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d">
-      <source xml:lang="en">Quick Query slot must be between 1 and {0}.</source>
-      <note>{0} is the maximum Quick Query slot number</note>
-    </trans-unit>
     <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
       <source xml:lang="en">Quick filter all columns...</source>
     </trans-unit>
@@ -7573,6 +7572,9 @@
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
+    <trans-unit id="++CODE++bea2a38a47f82bb4b0ecab350a10dd11c5bf23f35152ab7b72f7200f4279106e">
+      <source xml:lang="en">This Quick Query requires selected text. Select some text in the SQL editor, then try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
     </trans-unit>
@@ -7883,9 +7885,6 @@
     <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
       <source xml:lang="en">Use {0} to create a new connection.</source>
       <note>{0} is the connect command</note>
-    </trans-unit>
-    <trans-unit id="++CODE++955e33ff4c86ed5bed224a00642d23550d8496db14c2653d77775e1508022574">
-      <source xml:lang="en">Use {selected_text} or {arg} as an argument for selected query-editor text. If neither is used, selected text is appended to the query.</source>
     </trans-unit>
     <trans-unit id="++CODE++f5e86af62d403420feae11b58a68c8df237889fb279d6a28cc08e11566ad5161">
       <source xml:lang="en">Used in API routes and responses</source>
@@ -8280,6 +8279,10 @@
     </trans-unit>
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c2fe0f3b926bdee99be6ec193198a2f414e083fc44960a72b946916fb344d69">
+      <source xml:lang="en">quick query slot must be between 1 and {0}.</source>
+      <note>{0} is the maximum Quick Query slot number</note>
     </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>

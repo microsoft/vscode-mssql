@@ -112,11 +112,19 @@ function registerSelectedTextCompletionProvider(
             const linePrefix = lineContent.slice(0, position.column - 1);
             const partialArgument = /\{[A-Za-z_]*$/.exec(linePrefix);
             const hasAutoClosingBrace = partialArgument && lineContent[position.column - 1] === "}";
+            const wordUntilPosition = model.getWordUntilPosition(position);
+            const currentWord =
+                model.getWordAtPosition(position) ||
+                (wordUntilPosition.word ? wordUntilPosition : undefined);
             const range = new monaco.Range(
                 position.lineNumber,
-                partialArgument ? partialArgument.index + 1 : position.column,
+                partialArgument
+                    ? partialArgument.index + 1
+                    : (currentWord?.startColumn ?? position.column),
                 position.lineNumber,
-                hasAutoClosingBrace ? position.column + 1 : position.column,
+                hasAutoClosingBrace
+                    ? position.column + 1
+                    : (currentWord?.endColumn ?? position.column),
             );
 
             return {

@@ -20,6 +20,7 @@ export enum QuickQueryRunResult {
     OpenedWithoutConnection = "openedWithoutConnection",
     ConnectionUnavailable = "connectionUnavailable",
     MultipleSelectionsNotSupported = "multipleSelectionsNotSupported",
+    SelectedTextRequired = "selectedTextRequired",
     Opened = "opened",
     NoActiveEditor = "noActiveEditor",
 }
@@ -32,6 +33,7 @@ export interface QuickQueryExecutionDependencies {
     ensureSqlEditorConnected: (editor: vscode.TextEditor) => Promise<boolean>;
     runSqlEditorQueryString: (editor: vscode.TextEditor, query: string) => Promise<void>;
     showMultipleSelectionsError: () => void;
+    showSelectedTextRequiredError: () => void;
     createSqlEditor: (options: NewQueryOptions) => Promise<vscode.TextEditor>;
     isSqlEditorConnected: (editor: vscode.TextEditor) => boolean;
     runSqlEditorQuery: (editor: vscode.TextEditor) => Promise<void>;
@@ -49,12 +51,16 @@ export function resolveQuickQueryConnectionOptions(): Pick<NewQueryOptions, "con
 
 const quickQueryArgumentTokens = ["${selectedText}", "{selectedText}", "{selected_text}", "{arg}"];
 
+export function hasQuickQueryArgument(query: string): boolean {
+    return quickQueryArgumentTokens.some((token) => query.includes(token));
+}
+
 /**
  * Applies the selected editor text to a Quick Query. Explicit argument tokens take precedence;
  * otherwise, the selection is appended exactly as entered for Azure Data Studio compatibility.
  */
 export function composeQuickQuery(query: string, selectedText: string): string {
-    const hasArgumentToken = quickQueryArgumentTokens.some((token) => query.includes(token));
+    const hasArgumentToken = hasQuickQueryArgument(query);
     if (!hasArgumentToken) {
         return query + selectedText;
     }
@@ -104,6 +110,10 @@ export class QuickQueryService {
             const selectedText = activeEditor.selection.isEmpty
                 ? ""
                 : activeEditor.document.getText(activeEditor.selection);
+            if (hasQuickQueryArgument(slot.query) && selectedText.length === 0) {
+                dependencies.showSelectedTextRequiredError();
+                return QuickQueryRunResult.SelectedTextRequired;
+            }
             const query = composeQuickQuery(slot.query, selectedText);
             if (!(await dependencies.ensureSqlEditorConnected(activeEditor))) {
                 return QuickQueryRunResult.ConnectionUnavailable;
@@ -111,6 +121,11 @@ export class QuickQueryService {
 
             await dependencies.runSqlEditorQueryString(activeEditor, query);
             return QuickQueryRunResult.Executed;
+        }
+
+        if (hasQuickQueryArgument(slot.query)) {
+            dependencies.showSelectedTextRequiredError();
+            return QuickQueryRunResult.SelectedTextRequired;
         }
 
         const noActiveEditorBehavior = dependencies.readNoActiveEditorBehavior(slotNumber);

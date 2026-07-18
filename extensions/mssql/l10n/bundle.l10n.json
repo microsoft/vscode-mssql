@@ -25,10 +25,11 @@
     "Rename Database": "Rename Database",
     "Shortcuts Configuration (Preview)": "Shortcuts Configuration (Preview)",
     "Configuration saved.": "Configuration saved.",
-    "Quick Query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
-        "message": "Quick Query slot must be between 1 and {0}.",
+    "quick query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
+        "message": "quick query slot must be between 1 and {0}.",
         "comment": ["{0} is the maximum Quick Query slot number"]
     },
+    "This Quick Query requires selected text. Select some text in the SQL editor, then try again.": "This Quick Query requires selected text. Select some text in the SQL editor, then try again.",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
     "Please select a database node in Object Explorer to rename.": "Please select a database node in Object Explorer to rename.",
@@ -2506,7 +2507,7 @@
         "message": "Query editor for {0}",
         "comment": ["{0} is the Quick Query shortcut name"]
     },
-    "Use {selected_text} or {arg} as an argument for selected query-editor text. If neither is used, selected text is appended to the query.": "Use {selected_text} or {arg} as an argument for selected query-editor text. If neither is used, selected text is appended to the query.",
+    "Insert selected query-editor text using {selected_text} or {arg}. If you don't use either placeholder, selected text is automatically appended to the end of the query.": "Insert selected query-editor text using {selected_text} or {arg}. If you don't use either placeholder, selected text is automatically appended to the end of the query.",
     "Selected query-editor text": "Selected query-editor text",
     "No shortcut": "No shortcut",
     "No query set": "No query set",

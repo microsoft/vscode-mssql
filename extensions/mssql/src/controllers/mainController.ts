@@ -2998,6 +2998,11 @@ export default class MainController implements vscode.Disposable {
                 vscode.window.showErrorMessage(
                     LocalizedConstants.msgMultipleSelectionModeNotSupported,
                 ),
+            showSelectedTextRequiredError: () => {
+                void vscode.window.showErrorMessage(
+                    LocalizedConstants.quickQuerySelectedTextRequired,
+                );
+            },
             createSqlEditor: async (options) => await this.sqlDocumentService.newQuery(options),
             isSqlEditorConnected: (editor) =>
                 this._connectionMgr.isConnected(getUriKey(editor.document.uri)),
