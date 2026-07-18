@@ -93,6 +93,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         return this.model.uriKey;
     }
 
+    /** Whether this panel is the focused editor (Save to Library target). */
+    public get isPanelActive(): boolean {
+        return this.panel.active;
+    }
+
     public navigate(route: RbsRoute): void {
         void this.sendNotification(RbsNavigateNotification.type, { route });
     }

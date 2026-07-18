@@ -483,6 +483,13 @@
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
     </trans-unit>
+    <trans-unit id="++CODE++66f4804ee23ddc092d1bae43cb88186aa541187fff7c1cc8a4aa17e59a9f4123">
+      <source xml:lang="en">Archive</source>
+    </trans-unit>
+    <trans-unit id="++CODE++11e461129b4d4d5a950797b69aea99807d51efe03e530e8dad53a46c193f581f">
+      <source xml:lang="en">Archive runbook &apos;{0}&apos;? Archived runbooks can be restored from the runtime library.</source>
+      <note>{0} is the runbook title</note>
+    </trans-unit>
     <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
       <source xml:lang="en">Are you sure you want to cancel this background task?</source>
     </trans-unit>
@@ -5350,6 +5357,9 @@
     <trans-unit id="++CODE++812efc4e39d159ddb7983d867db804f3f54f7f7359bce1f3707fb6e14d6e8623">
       <source xml:lang="en">No run yet</source>
     </trans-unit>
+    <trans-unit id="++CODE++8afe6f6b247721a14b0843ee8b0cc38dfd6c3fe3c5758c6ec7093b8fd3dc9291">
+      <source xml:lang="en">No runbooks in the library yet. Use &apos;Save to Library&apos; from Runbook Studio to publish one.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7729203e9653ff378a7e8d2168fab380389503f77bc4cd08a871de3a2a7760ef">
       <source xml:lang="en">No runs recorded</source>
     </trans-unit>
@@ -5583,6 +5593,9 @@
     <trans-unit id="++CODE++404eb1204c0e313b45f63c32657b2cabf3f3930b7a731969c82b5bc3061311ff">
       <source xml:lang="en">Open Query History</source>
     </trans-unit>
+    <trans-unit id="++CODE++f4a1c878eb888132bb4a055033eb1d66ff9c50a1ae1cdc7db52de873c35428f1">
+      <source xml:lang="en">Open Runbook</source>
+    </trans-unit>
     <trans-unit id="++CODE++2c1ff609e9acedfcd56ba1c75b3cc704ce0c59afafb9f280e75d37376028e9cd">
       <source xml:lang="en">Open SQL editor and connect</source>
     </trans-unit>
@@ -5594,6 +5607,9 @@
     </trans-unit>
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a840f4bedb16b304134c98444ca43bac77c020b9189faa847080629f7b1e08e">
+      <source xml:lang="en">Open a runbook in Runbook Studio first, then run &apos;Save to Library&apos;.</source>
     </trans-unit>
     <trans-unit id="++CODE++f22bd213b6a2f93198a3fda9b1dc6e58526c5f68f06380fc6124774c30af6faa">
       <source xml:lang="en">Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.</source>
@@ -6569,11 +6585,27 @@
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
     </trans-unit>
+    <trans-unit id="++CODE++60b832c840f91be4200151e75d67955e435b232c7fb4d4dc4ca5ff6f5f14a2a2">
+      <source xml:lang="en">Runbook &apos;{0}&apos; was archived.</source>
+      <note>{0} is the runbook title</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7c9357d64f8546bb53af1530f388b0796f3fa51ee878d96445d463ff185e142a">
+      <source xml:lang="en">Runbook &apos;{0}&apos; was saved to the library as version {1}.</source>
+      <note>{0} is the runbook name
+{1} is the library version label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++391ff70a08ea1e11b0f3df07a481091324fa6863371f12e0ce31171e9fe21442">
+      <source xml:lang="en">Runbook JSON</source>
+    </trans-unit>
     <trans-unit id="++CODE++c39a72628dac966d2c7484aba1f98e76e72f7f79d5d680008402f8a34a786356">
       <source xml:lang="en">Runbook Studio sections</source>
     </trans-unit>
     <trans-unit id="++CODE++8ed0171a9f85d99406436dd647961c928d191eee51813c9304bd43b98f666869">
       <source xml:lang="en">Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bcbd8f247b5bb8cc9f0e5645b0989d50bea62303db08270c34e3f82845b4ee82">
+      <source xml:lang="en">Runbook exported to {0}.</source>
+      <note>{0} is the exported file path</note>
     </trans-unit>
     <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
       <source xml:lang="en">Running</source>
@@ -8032,6 +8064,10 @@
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++389263d86008f9ae81c47866dbff80193a8d41f104f5a846d117b9ba0aa12ff8">
+      <source xml:lang="en">The runbook library is unavailable: {0}</source>
+      <note>{0} is a technical detail string</note>
+    </trans-unit>
     <trans-unit id="++CODE++73488d79f1e6119fc881e5d0fb7a3f6025db4abe305fed9f487859769a2771f9">
       <source xml:lang="en">The runbook runtime exited unexpectedly.</source>
     </trans-unit>
@@ -8130,6 +8166,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f5751c3a34c530005b5b5778000aed78a919766b9e42266efab85b1902a9a5c4">
       <source xml:lang="en">This runbook is not in the Hobbes runtime&apos;s library, so the &apos;hobbes&apos; runtime cannot run it. Generated runbooks run on the &apos;local&apos; runtime — set mssql.runbookStudio.runtime to &apos;local&apos; (or remove the setting to use the default).</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c847e1897b374eda914c67974975096c2e687dbc2549c74cffc93f7d027f9572">
+      <source xml:lang="en">This runbook was authored outside VS Code; import is not supported yet.</source>
     </trans-unit>
     <trans-unit id="++CODE++4d946546745cff617ea14dd7577f4359c62971cc768f32c0b295e2866b651f0a">
       <source xml:lang="en">This runbook was created by a newer version of the extension. Update the MSSQL extension to open it. ({0})</source>
@@ -9315,6 +9354,9 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
       <source xml:lang="en">Application Intent</source>
     </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.archive">
+      <source xml:lang="en">Archive Runbook</source>
+    </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
       <source xml:lang="en">Automatically display query results in a new tab instead of the query pane.</source>
     </trans-unit>
@@ -9627,6 +9669,9 @@
     <trans-unit id="mssql.dacpacDialog.export">
       <source xml:lang="en">Export BACPAC</source>
     </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.exportRunbook">
+      <source xml:lang="en">Export Runbook...</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.rowPadding">
       <source xml:lang="en">Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.</source>
     </trans-unit>
@@ -9765,6 +9810,9 @@
     <trans-unit id="mssql.profiler.openXelFile">
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
     </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.open">
+      <source xml:lang="en">Open Runbook</source>
+    </trans-unit>
     <trans-unit id="mssql.shortcutsConfiguration.open">
       <source xml:lang="en">Open Shortcuts Configuration</source>
     </trans-unit>
@@ -9815,6 +9863,9 @@
     </trans-unit>
     <trans-unit id="mssql.rebuildIntelliSenseCache">
       <source xml:lang="en">Refresh IntelliSense Cache</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.refresh">
+      <source xml:lang="en">Refresh Runbook Library</source>
     </trans-unit>
     <trans-unit id="mssql.removeObjectExplorerNode">
       <source xml:lang="en">Remove Connection</source>
@@ -9872,6 +9923,12 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
       <source xml:lang="en">Run a SQL Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookLibrary.viewName">
+      <source xml:lang="en">Runbook Library</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookStudio.saveToLibrary">
+      <source xml:lang="en">Runbook Studio: Save to Library</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.containerNameLabel">
       <source xml:lang="en">SQL Container Name</source>

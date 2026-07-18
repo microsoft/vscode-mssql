@@ -82,6 +82,32 @@
         "message": "Parameter '{0}' must be one of its allowed values.",
         "comment": ["{0} is a parameter label"]
     },
+    "The runbook library is unavailable: {0}/{0} is a technical detail string": {
+        "message": "The runbook library is unavailable: {0}",
+        "comment": ["{0} is a technical detail string"]
+    },
+    "No runbooks in the library yet. Use 'Save to Library' from Runbook Studio to publish one.": "No runbooks in the library yet. Use 'Save to Library' from Runbook Studio to publish one.",
+    "This runbook was authored outside VS Code; import is not supported yet.": "This runbook was authored outside VS Code; import is not supported yet.",
+    "Open Runbook": "Open Runbook",
+    "Archive runbook '{0}'? Archived runbooks can be restored from the runtime library./{0} is the runbook title": {
+        "message": "Archive runbook '{0}'? Archived runbooks can be restored from the runtime library.",
+        "comment": ["{0} is the runbook title"]
+    },
+    "Archive": "Archive",
+    "Runbook '{0}' was archived./{0} is the runbook title": {
+        "message": "Runbook '{0}' was archived.",
+        "comment": ["{0} is the runbook title"]
+    },
+    "Open a runbook in Runbook Studio first, then run 'Save to Library'.": "Open a runbook in Runbook Studio first, then run 'Save to Library'.",
+    "Runbook '{0}' was saved to the library as version {1}./{0} is the runbook name{1} is the library version label": {
+        "message": "Runbook '{0}' was saved to the library as version {1}.",
+        "comment": ["{0} is the runbook name", "{1} is the library version label"]
+    },
+    "Runbook exported to {0}./{0} is the exported file path": {
+        "message": "Runbook exported to {0}.",
+        "comment": ["{0} is the exported file path"]
+    },
+    "Runbook JSON": "Runbook JSON",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",

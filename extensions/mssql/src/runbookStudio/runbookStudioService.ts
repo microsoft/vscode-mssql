@@ -33,6 +33,9 @@ import {
     newRunbookRootContext,
     RunbookOperationContext,
 } from "./runbookDiag";
+import { writeStash } from "./libraryStash";
+import { canonicalizeRunbookArtifact } from "./runbookArtifact";
+import { RunbookLibraryAsset } from "./runbookLibraryModel";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger } from "./runbookRunLedger";
 
@@ -80,6 +83,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private adapter: RunbookRuntimeAdapter | undefined;
     /** The configured kind this.adapter was built for (hot-swap detection). */
     private adapterKind: string | undefined;
+    /** The lazily held Hobbes adapter for library operations (D-0012). The
+     *  library ALWAYS lives on the hobbes runtime regardless of the run
+     *  lane setting; when the run lane is also "hobbes" this is the SAME
+     *  instance as this.adapter (one supervisor, one runtime process). */
+    private hobbesAdapter: HobbesRuntimeAdapter | undefined;
     private capabilities: RuntimeCapabilities | undefined;
     /** One active run per document (v1 concurrency policy, plan §4 P6). */
     private readonly activeByDocument = new Map<string, ActiveRunBinding>();
@@ -89,6 +97,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly traceByRunId = new Map<string, string>();
 
     private readonly storageRoot: string;
+    /** Global (workspace-independent) storage root for the library stash. */
+    private readonly globalStorageUri: vscode.Uri;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -99,11 +109,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             (context.storageUri ?? context.globalStorageUri).fsPath,
             "runbookStudio",
         );
+        this.globalStorageUri = context.globalStorageUri;
         this.ledger = new RunbookRunLedger(this.storageRoot);
     }
 
     public dispose(): void {
         void this.adapter?.dispose();
+        if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
+            void this.hobbesAdapter.dispose();
+        }
+        this.hobbesAdapter = undefined;
     }
 
     // -- RunbookRunCoordinator ------------------------------------------------
@@ -382,7 +397,175 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
     }
 
+    // -- runbook library (R3, D-0012) ----------------------------------------
+
+    /** Non-archived runbook assets from the runtime library. Works on any
+     *  configured run lane — the library always targets the hobbes runtime
+     *  through a lazily held adapter. */
+    public async listLibraryRunbooks(): Promise<{
+        assets?: RunbookLibraryAsset[];
+        error?: RbsError;
+    }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.list", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { error: ensured.error };
+        }
+        try {
+            const assets = await ensured.adapter.listLibrary(context);
+            emitRunbookEvent(context, "runbookStudio.library.list", "ok", {
+                assetCount: metaField(assets.length),
+            });
+            return { assets };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.list", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { error: libraryError(error) };
+        }
+    }
+
+    /** Full library asset record; asset undefined when the id is unknown. */
+    public async getLibraryRunbook(id: string): Promise<{
+        asset?: Record<string, unknown>;
+        error?: RbsError;
+    }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.get", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { error: ensured.error };
+        }
+        try {
+            const asset = await ensured.adapter.getLibraryAsset(id, context);
+            emitRunbookEvent(context, "runbookStudio.library.get", "ok", {
+                found: metaField(asset !== undefined),
+            });
+            return asset ? { asset } : {};
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.get", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { error: libraryError(error) };
+        }
+    }
+
+    /** Archive (recoverable — never purge) a library runbook. */
+    public async deleteLibraryRunbook(id: string): Promise<{ ok: boolean; error?: RbsError }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.archive", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { ok: false, error: ensured.error };
+        }
+        try {
+            await ensured.adapter.archiveLibraryAsset(id, context);
+            emitRunbookEvent(context, "runbookStudio.library.archive", "ok", {});
+            return { ok: true };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.archive", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { ok: false, error: libraryError(error) };
+        }
+    }
+
+    /** Publish the artifact to the runtime library WITHOUT running it, and
+     *  stash the exact artifact JSON so open-from-library round-trips
+     *  (the stash write lives here — the adapter never imports vscode). */
+    public async saveToLibrary(
+        artifact: RunbookArtifactFile,
+    ): Promise<{ versionLabel?: string; error?: RbsError }> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.library.publish", "error", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return { error: ensured.error };
+        }
+        try {
+            const versionLabel = await ensured.adapter.publishOnly(artifact, context);
+            await writeStash(
+                this.globalStorageUri,
+                artifact.id,
+                canonicalizeRunbookArtifact(artifact),
+            );
+            emitRunbookEvent(context, "runbookStudio.library.publish", "ok", {
+                versionLabel: metaField(versionLabel),
+            });
+            return { versionLabel };
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.publish", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { error: libraryError(error) };
+        }
+    }
+
     // -- internals -------------------------------------------------------------
+
+    /** Library-lane adapter: reuse the run adapter when it already IS the
+     *  hobbes one, else lazily construct and hold a dedicated instance.
+     *  Construction is cheap — the supervisor launches the runtime process
+     *  only on the first actual call. */
+    private ensureHobbesAdapter(): { adapter: HobbesRuntimeAdapter } | { error: RbsError } {
+        if (this.hobbesAdapter) {
+            return { adapter: this.hobbesAdapter };
+        }
+        if (this.adapter instanceof HobbesRuntimeAdapter) {
+            this.hobbesAdapter = this.adapter;
+            return { adapter: this.adapter };
+        }
+        // The runtime is a pinned black-box package (A2 §3.3); the
+        // executable is resolved from explicit configuration or env —
+        // never guessed, never downloaded silently (ADR-8 gates that).
+        const executablePath =
+            vscode.workspace
+                .getConfiguration()
+                .get<string>("mssql.runbookStudio.hobbesRuntimePath", "") ||
+            process.env.MSSQL_HOBBES_RUNTIME ||
+            "";
+        if (!executablePath) {
+            return {
+                error: {
+                    code: "RunbookStudio.RuntimeCapabilityUnsupported",
+                    message: LocRunbookStudio.hobbesRuntimePathMissing,
+                },
+            };
+        }
+        this.hobbesAdapter = new HobbesRuntimeAdapter(
+            new RuntimeSupervisor(executablePath, this.storageRoot),
+            async (profileId) => {
+                const connectionManager = this.connectionAccess();
+                if (!connectionManager) {
+                    return undefined;
+                }
+                const profiles = await connectionManager.connectionStore.readAllConnections(false);
+                const profile = profiles.find((p) => p.id === profileId);
+                if (!profile) {
+                    return undefined;
+                }
+                return {
+                    label: profile.profileName || profile.server || profile.id,
+                    server: profile.server,
+                    ...(profile.database ? { database: profile.database } : {}),
+                    // Windows integrated auth only for the JsonFile
+                    // registry — credentials never enter the file.
+                    integratedAuth:
+                        String(profile.authenticationType ?? "").toLowerCase() === "integrated",
+                };
+            },
+        );
+        return { adapter: this.hobbesAdapter };
+    }
 
     /** Bounded runId->trace retention (survives terminal for deep links). */
     private rememberTrace(runId: string, traceId: string): void {
@@ -432,6 +615,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 fromKind: metaField(this.adapterKind ?? "none"),
                 toKind: metaField(runtimeKind),
             });
+            if (this.adapter === this.hobbesAdapter) {
+                // Disposing the run adapter also disposes the shared library
+                // adapter instance — drop the reference so library calls
+                // rebuild a fresh one instead of using a killed supervisor.
+                this.hobbesAdapter = undefined;
+            }
             await this.adapter.dispose();
             this.adapter = undefined;
             this.capabilities = undefined;
@@ -473,47 +662,13 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 }),
             );
         } else if (runtimeKind === "hobbes") {
-            // The runtime is a pinned black-box package (A2 §3.3); the
-            // executable is resolved from explicit configuration or env —
-            // never guessed, never downloaded silently (ADR-8 gates that).
-            const executablePath =
-                vscode.workspace
-                    .getConfiguration()
-                    .get<string>("mssql.runbookStudio.hobbesRuntimePath", "") ||
-                process.env.MSSQL_HOBBES_RUNTIME ||
-                "";
-            if (!executablePath) {
-                return {
-                    error: {
-                        code: "RunbookStudio.RuntimeCapabilityUnsupported",
-                        message: LocRunbookStudio.hobbesRuntimePathMissing,
-                    },
-                };
+            // Reuse the library's held instance when one exists — one
+            // supervisor per data directory, never two runtime processes.
+            const ensured = this.ensureHobbesAdapter();
+            if ("error" in ensured) {
+                return { error: ensured.error };
             }
-            adapter = new HobbesRuntimeAdapter(
-                new RuntimeSupervisor(executablePath, this.storageRoot),
-                async (profileId) => {
-                    const connectionManager = this.connectionAccess();
-                    if (!connectionManager) {
-                        return undefined;
-                    }
-                    const profiles =
-                        await connectionManager.connectionStore.readAllConnections(false);
-                    const profile = profiles.find((p) => p.id === profileId);
-                    if (!profile) {
-                        return undefined;
-                    }
-                    return {
-                        label: profile.profileName || profile.server || profile.id,
-                        server: profile.server,
-                        ...(profile.database ? { database: profile.database } : {}),
-                        // Windows integrated auth only for the JsonFile
-                        // registry — credentials never enter the file.
-                        integratedAuth:
-                            String(profile.authenticationType ?? "").toLowerCase() === "integrated",
-                    };
-                },
-            );
+            adapter = ensured.adapter;
         } else {
             return {
                 error: {
@@ -758,6 +913,22 @@ export function getRunbookStudioService(
         });
     }
     return serviceInstance;
+}
+
+/** Library failure -> user-facing RbsError. Typed refusals (e.g. publish
+ *  translation issues) keep their precise message; anything else gets the
+ *  library-unavailable shell with the technical detail attached. */
+function libraryError(error: unknown): RbsError {
+    if (error instanceof RuntimeStartRefusedError) {
+        return error.rbsError;
+    }
+    return {
+        code: "RunbookStudio.RuntimeUnavailable",
+        message: LocRunbookStudio.libraryUnavailable(
+            error instanceof Error ? error.message : String(error),
+        ),
+        retryable: true,
+    };
 }
 
 function invalidArtifactError(model: RunbookStudioDocumentModel): RbsError {

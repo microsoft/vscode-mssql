@@ -147,6 +147,49 @@ export class RunbookStudio {
             args: [label],
             comment: ["{0} is a parameter label"],
         });
+    public static libraryUnavailable = (detail: string) =>
+        l10n.t({
+            message: "The runbook library is unavailable: {0}",
+            args: [detail],
+            comment: ["{0} is a technical detail string"],
+        });
+    public static libraryEmpty = l10n.t(
+        "No runbooks in the library yet. Use 'Save to Library' from Runbook Studio to publish one.",
+    );
+    public static libraryImportUnsupported = l10n.t(
+        "This runbook was authored outside VS Code; import is not supported yet.",
+    );
+    public static libraryOpenItem = l10n.t("Open Runbook");
+    public static libraryArchiveConfirm = (title: string) =>
+        l10n.t({
+            message:
+                "Archive runbook '{0}'? Archived runbooks can be restored from the runtime library.",
+            args: [title],
+            comment: ["{0} is the runbook title"],
+        });
+    public static libraryArchiveAction = l10n.t("Archive");
+    public static libraryArchived = (title: string) =>
+        l10n.t({
+            message: "Runbook '{0}' was archived.",
+            args: [title],
+            comment: ["{0} is the runbook title"],
+        });
+    public static libraryNoActiveRunbook = l10n.t(
+        "Open a runbook in Runbook Studio first, then run 'Save to Library'.",
+    );
+    public static librarySaved = (name: string, versionLabel: string) =>
+        l10n.t({
+            message: "Runbook '{0}' was saved to the library as version {1}.",
+            args: [name, versionLabel],
+            comment: ["{0} is the runbook name", "{1} is the library version label"],
+        });
+    public static libraryExported = (path: string) =>
+        l10n.t({
+            message: "Runbook exported to {0}.",
+            args: [path],
+            comment: ["{0} is the exported file path"],
+        });
+    public static libraryExportFilterLabel = l10n.t("Runbook JSON");
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");

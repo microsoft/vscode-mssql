@@ -283,6 +283,12 @@
                     "id": "backgroundTasks",
                     "name": "%extension.backgroundTasks%",
                     "icon": "media/objectTypes/Queue.svg"
+                },
+                {
+                    "id": "mssql.runbookLibrary",
+                    "name": "%mssql.runbookLibrary.viewName%",
+                    "when": "config.mssql.runbookStudio.enabled",
+                    "icon": "media/objectTypes/Contract.svg"
                 }
             ]
         },
@@ -723,9 +729,29 @@
                     "when": "view == objectExplorer",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
+                },
+                {
+                    "command": "mssql.runbookLibrary.refresh",
+                    "when": "view == mssql.runbookLibrary",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.runbookLibrary.open",
+                    "when": "view == mssql.runbookLibrary && viewItem == runbookLibraryItem",
+                    "group": "1_open@1"
+                },
+                {
+                    "command": "mssql.runbookLibrary.exportRunbook",
+                    "when": "view == mssql.runbookLibrary && viewItem == runbookLibraryItem",
+                    "group": "2_manage@1"
+                },
+                {
+                    "command": "mssql.runbookLibrary.archive",
+                    "when": "view == mssql.runbookLibrary && viewItem == runbookLibraryItem",
+                    "group": "2_manage@2"
+                },
                 {
                     "command": "mssql.objectExplorerV2.connect",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canConnect\\b/",
@@ -1292,6 +1318,26 @@
                 {
                     "command": "mssql.runbookStudio.new",
                     "when": "config.mssql.runbookStudio.enabled"
+                },
+                {
+                    "command": "mssql.runbookStudio.saveToLibrary",
+                    "when": "config.mssql.runbookStudio.enabled"
+                },
+                {
+                    "command": "mssql.runbookLibrary.refresh",
+                    "when": "config.mssql.runbookStudio.enabled"
+                },
+                {
+                    "command": "mssql.runbookLibrary.open",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.runbookLibrary.exportRunbook",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.runbookLibrary.archive",
+                    "when": "false"
                 },
                 {
                     "command": "mssql.queryResults.showStatus",
@@ -2447,6 +2493,32 @@
             {
                 "command": "mssql.runbookStudio.new",
                 "title": "Runbook Studio: New Runbook",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.runbookStudio.saveToLibrary",
+                "title": "%mssql.runbookStudio.saveToLibrary%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.runbookLibrary.refresh",
+                "title": "%mssql.runbookLibrary.refresh%",
+                "category": "MS SQL",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "mssql.runbookLibrary.open",
+                "title": "%mssql.runbookLibrary.open%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.runbookLibrary.exportRunbook",
+                "title": "%mssql.runbookLibrary.exportRunbook%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.runbookLibrary.archive",
+                "title": "%mssql.runbookLibrary.archive%",
                 "category": "MS SQL"
             },
             {

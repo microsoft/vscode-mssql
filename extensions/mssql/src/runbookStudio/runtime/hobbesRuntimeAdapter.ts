@@ -27,6 +27,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
+import { parseLibraryListResponse, RunbookLibraryAsset } from "../runbookLibraryModel";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
 import {
     gateCorrelationKey,
@@ -317,6 +318,69 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         }
         const approved = (await approve.json()) as { versionLabel?: string };
         return approved.versionLabel ?? "1.00";
+    }
+
+    // -- library surface (R3, D-0012) ---------------------------------------
+
+    /** Publish the artifact to the runtime library WITHOUT running it —
+     *  wraps the run-path publish flow with an empty parameter record (the
+     *  translator falls back to declared parameter defaults). Returns the
+     *  approved version label. The caller (extension layer) owns the
+     *  artifact stash write — this adapter never touches vscode APIs. */
+    public async publishOnly(
+        artifact: RunbookArtifactFile,
+        context: RunbookOperationContext,
+    ): Promise<string> {
+        return this.publishArtifact(artifact, {}, context);
+    }
+
+    /** List the runtime library's non-archived runbook assets. */
+    public async listLibrary(context: RunbookOperationContext): Promise<RunbookLibraryAsset[]> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "GET",
+            "/api/runbooks?includeArchived=false",
+        );
+        if (!response.ok) {
+            throw new Error(`library list failed (HTTP ${response.status})`);
+        }
+        return parseLibraryListResponse(await response.json());
+    }
+
+    /** Full library asset record by id; undefined when it does not exist. */
+    public async getLibraryAsset(
+        id: string,
+        context: RunbookOperationContext,
+    ): Promise<Record<string, unknown> | undefined> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "GET",
+            `/api/runbooks/${encodeURIComponent(id)}`,
+        );
+        if (response.status === 404) {
+            return undefined;
+        }
+        if (!response.ok) {
+            throw new Error(`library read failed (HTTP ${response.status})`);
+        }
+        return (await response.json()) as Record<string, unknown>;
+    }
+
+    /** Archive a library asset (recoverable lifecycle transition — never
+     *  the destructive purge). */
+    public async archiveLibraryAsset(id: string, context: RunbookOperationContext): Promise<void> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "POST",
+            `/api/runbooks/${encodeURIComponent(id)}/archive`,
+            {},
+        );
+        if (!response.ok) {
+            throw new Error(`library archive failed (HTTP ${response.status})`);
+        }
     }
 
     /** POST the workflow.continue COMMAND turn and stream region lifecycle

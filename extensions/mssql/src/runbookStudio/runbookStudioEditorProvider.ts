@@ -23,10 +23,12 @@ import {
     createFixtureRunbookArtifact,
     createNewRunbookArtifact,
 } from "./runbookArtifact";
+import { registerRunbookLibrary } from "./runbookLibraryProvider";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import { RunbookStudioController } from "./runbookStudioController";
 import { RunbookStudioDocumentRegistry } from "./runbookStudioDocumentRegistry";
-import type { RbsRoute } from "../sharedInterfaces/runbookStudio";
+import { RunbookStudioService } from "./runbookStudioService";
+import type { RbsRoute, RunbookArtifactFile } from "../sharedInterfaces/runbookStudio";
 
 export const RUNBOOK_STUDIO_VIEW_TYPE = "mssql.runbookStudio";
 export const RUNBOOK_FILE_SUFFIX = ".runbook.json";
@@ -179,7 +181,35 @@ function registerRunbookStudioFeatures(
             },
         ),
     );
+    // Runbook Library tree (R3): the runtime library next to Object
+    // Explorer, sharing the lazily constructed service. The coordinator
+    // factory yields the concrete service in production; narrow honestly
+    // rather than assuming (perf/test hosts may inject bare coordinators).
+    registerRunbookLibrary(
+        context,
+        () => {
+            const coordinator = coordinatorFactory();
+            return coordinator instanceof RunbookStudioService ? coordinator : undefined;
+        },
+        () => activeRunbookArtifact(provider),
+    );
     registerRunbookStudioPerfProbe(context, provider, coordinatorFactory);
+}
+
+/** Artifact of the focused Runbook Studio panel (falls back to the only
+ *  live panel when none is focused — command palette steals focus). */
+function activeRunbookArtifact(
+    provider: RunbookStudioEditorProvider,
+): RunbookArtifactFile | undefined {
+    let chosen: RunbookStudioController | undefined;
+    for (const controller of liveControllers) {
+        if (controller.isPanelActive) {
+            chosen = controller;
+            break;
+        }
+        chosen ??= controller;
+    }
+    return chosen ? provider.documents.get(chosen.documentUriKey)?.artifact : undefined;
 }
 
 /**
