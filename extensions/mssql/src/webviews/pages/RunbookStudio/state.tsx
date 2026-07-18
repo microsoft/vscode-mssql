@@ -141,6 +141,8 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         async (
             parameterValues: Record<string, string | number | boolean | null>,
         ): Promise<string | undefined> => {
+            // A fresh run must never wear the previous attempt's error.
+            setLastError(undefined);
             setRunEvents([]);
             const result = await rpc.sendRequest(RbsStartRunRequest.type, { parameterValues });
             if (result.error) {

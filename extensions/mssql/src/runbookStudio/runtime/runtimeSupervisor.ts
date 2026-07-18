@@ -101,11 +101,19 @@ export class RuntimeSupervisor {
     }
 
     /** Restart to apply persisted runtime settings (e.g. the SQL connection
-     *  provider, which the MCP server reads only at startup). */
+     *  provider, which the MCP server reads only at startup). The old
+     *  child's exit is EXPECTED — it must not trip exit listeners. */
     public async restart(context: RunbookOperationContext): Promise<SupervisedRuntime> {
-        this.kill();
-        return this.ensureRunning(context);
+        this.restarting = true;
+        try {
+            this.kill();
+            return await this.ensureRunning(context);
+        } finally {
+            this.restarting = false;
+        }
     }
+
+    private restarting = false;
 
     /** Launch (or return the live) runtime; resolves after /health succeeds. */
     public async ensureRunning(context: RunbookOperationContext): Promise<SupervisedRuntime> {
@@ -141,7 +149,7 @@ export class RuntimeSupervisor {
         this.child = child;
         this.writePidFile(child.pid);
         child.on("exit", (code) => {
-            const unexpected = !this.disposing;
+            const unexpected = !this.disposing && !this.restarting;
             this.runtime = undefined;
             this.clearPidFile();
             emitRunbookEvent(
@@ -153,8 +161,12 @@ export class RuntimeSupervisor {
                     unexpected: metaField(unexpected),
                 },
             );
-            for (const listener of this.exitListeners) {
-                listener(unexpected);
+            // Listeners are UNEXPECTED-exit listeners: restarts and disposal
+            // must never cancel live observation of other runs.
+            if (unexpected) {
+                for (const listener of this.exitListeners) {
+                    listener(true);
+                }
             }
         });
 

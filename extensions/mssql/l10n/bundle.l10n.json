@@ -61,6 +61,7 @@
         "message": "This runbook cannot be published to the Hobbes runtime yet: {0}",
         "comment": ["{0} lists the untranslatable plan features"]
     },
+    "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.": "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     "The Hobbes runtime refused to start the run ({0})./{0} is a stable error code from the runtime": {
         "message": "The Hobbes runtime refused to start the run ({0}).",
         "comment": ["{0} is a stable error code from the runtime"]

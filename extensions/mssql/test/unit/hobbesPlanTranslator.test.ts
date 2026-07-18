@@ -83,6 +83,9 @@ suite("hobbesPlanTranslator", () => {
         expect(sql.strategy).to.equal("primitive:sql.execute-query");
         expect(sql.primitiveArgs).to.deep.equal({
             query: "SELECT COUNT(*) AS n FROM dbo.Orders",
+            // Required by the primitive — omitting it fails the region in
+            // ~76ms with PrimitiveExecutionException (observed live).
+            queryDescription: "Count orders",
         });
 
         const assert = plan.nodes[1];

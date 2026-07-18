@@ -112,6 +112,9 @@ export class RunbookStudio {
             args: [detail],
             comment: ["{0} lists the untranslatable plan features"],
         });
+    public static hobbesRunStalledAfterFailure = l10n.t(
+        "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
+    );
     public static hobbesLaunchRefused = (code: string) =>
         l10n.t({
             message: "The Hobbes runtime refused to start the run ({0}).",

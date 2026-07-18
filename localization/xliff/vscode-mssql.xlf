@@ -144,6 +144,9 @@
     <trans-unit id="++CODE++9945e065a0da35b71524b2d0b83d84f243d546c369c41928acd577ef54b2e3f1">
       <source xml:lang="en">A run is already active for this runbook.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f26553c2aa222d37e46d2602b02069adbb92cb36abc0a07b6a960df864fc3a4">
+      <source xml:lang="en">A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>

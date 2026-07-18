@@ -62,7 +62,14 @@ interface HobbesRunRecord {
 
 interface ActivePoll {
     stop: boolean;
+    /** Epoch of the first failed region report — arms the stall guard (the
+     *  runtime can hang post-failure, e.g. on its summarize step: U-2). */
+    failedNodeAt?: number;
 }
+
+/** After a region failure, give the runtime this long to finalize before
+ *  the host declares the run failed (visible, never silent). */
+const STALL_AFTER_FAILURE_MS = 60_000;
 
 /** Selected-profile projection the bridge writes into the runtime's
  *  JsonFile connection registry. Integrated auth only in this preview. */
@@ -319,6 +326,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                                     : undefined;
                             if (state && reported.get(envelope.regionId) !== state) {
                                 reported.set(envelope.regionId, state);
+                                if (state === "failed") {
+                                    poll.failedNodeAt ??= Date.now();
+                                }
                                 observer.onEvent({
                                     kind: "nodeState",
                                     nodeId: envelope.regionId,
@@ -417,8 +427,14 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // approve). Untranslatable plans refuse with exact reasons.
         const versionLabel = await this.publishArtifact(request.artifact, context);
 
+        // The connection bridge may have RESTARTED the runtime onto a new
+        // port — re-resolve before every post-bridge call (a stale base URL
+        // here surfaced live as a TypeError mid-start).
+        const live = await this.supervisor.ensureRunning(context);
+        const activeBaseUrl = live.baseUrl;
+
         // 3. Launch + confirm (mounts the investigation).
-        const launch = await this.request(runtime.baseUrl, "POST", "/api/investigations/launch", {
+        const launch = await this.request(activeBaseUrl, "POST", "/api/investigations/launch", {
             runbookId: request.artifact.id,
             runbookVersion: versionLabel,
             connectionAlias: alias,
@@ -435,7 +451,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         });
 
         const confirm = await this.request(
-            runtime.baseUrl,
+            activeBaseUrl,
             "POST",
             `/api/investigations/runs/${encodeURIComponent(hobbesRunId)}/confirm`,
         );
@@ -448,8 +464,8 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // live — probe P2). The SSE stream carries region lifecycle events.
         const poll: ActivePoll = { stop: false };
         this.polls.set(request.runId, poll);
-        void this.kickoffAndStream(runtime.baseUrl, request, hobbesRunId, poll, observer);
-        void this.pollRun(runtime.baseUrl, request, hobbesRunId, poll, observer);
+        void this.kickoffAndStream(activeBaseUrl, request, hobbesRunId, poll, observer);
+        void this.pollRun(activeBaseUrl, request, hobbesRunId, poll, observer);
     }
 
     public async cancelRun(
@@ -604,6 +620,24 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                     }
                 } catch {
                     // transient; keep polling
+                }
+                // Stall guard: a region failed but the runtime never
+                // finalized the investigation (observed live — its post-run
+                // summarize step can hang without model auth). Declare the
+                // failure honestly instead of spinning forever.
+                if (
+                    poll.failedNodeAt !== undefined &&
+                    Date.now() - poll.failedNodeAt > STALL_AFTER_FAILURE_MS
+                ) {
+                    poll.stop = true;
+                    observer.onEvent({
+                        kind: "terminal",
+                        state: "failed",
+                        verdict: "fail",
+                        errorCode: "RunbookStudio.ActivityFailed",
+                        errorMessage: LocRunbookStudio.hobbesRunStalledAfterFailure,
+                    });
+                    return;
                 }
                 await new Promise((resolve) => setTimeout(resolve, RUN_POLL_INTERVAL_MS));
             }

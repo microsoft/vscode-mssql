@@ -127,7 +127,12 @@ export function translateArtifactToHobbesPlan(artifact: RunbookArtifactFile): Tr
                     id: node.id,
                     type: "Observation",
                     strategy: "primitive:sql.execute-query",
-                    primitiveArgs: { query: sql },
+                    primitiveArgs: {
+                        query: sql,
+                        // Required by the primitive (≤80 chars; runtime
+                        // rejects the call without it — verified live).
+                        queryDescription: (node.label || node.id).slice(0, 80),
+                    },
                     outputKey: node.id,
                 });
                 break;
