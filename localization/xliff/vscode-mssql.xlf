@@ -7869,6 +7869,9 @@
     <trans-unit id="++CODE++3cd1b8006c9db7c3ebec96a04ce2b6d3164a0a375c2424708c116c128d93cdfd">
       <source xml:lang="en">The Hobbes runtime could not resolve the connection alias for this run.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7f1cec5f7f7d8417335f002f78a5761b4ece5cda71c85ac1cd6e20468c6984f2">
+      <source xml:lang="en">The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb85e5b179ae508851d9c3a4ad1b70f15e62bcc724ccceba39fb65ab10b7d537">
       <source xml:lang="en">The Hobbes runtime refused to start the run ({0}).</source>
       <note>{0} is a stable error code from the runtime</note>
@@ -8075,6 +8078,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d61a4b2a59e09dacacd07c8f32c2a1b3243269a241d27d5dac0f6b2ac82f41d9">
       <source xml:lang="en">This run has not produced any typed outputs.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0c103d2366a0e8217f89638463db07c42fa370e4f7eab854fdb7bfc2604009b">
+      <source xml:lang="en">This runbook cannot be published to the Hobbes runtime yet: {0}</source>
+      <note>{0} lists the untranslatable plan features</note>
     </trans-unit>
     <trans-unit id="++CODE++0669a8886d1a9356118127c1639eec72ec3b3a68dea6f5b5cb16559acdac69b7">
       <source xml:lang="en">This runbook declares no parameters.</source>

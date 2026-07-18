@@ -103,6 +103,15 @@ export class RunbookStudio {
     public static hobbesConnectionNotResolved = l10n.t(
         "The Hobbes runtime could not resolve the connection alias for this run.",
     );
+    public static hobbesIntegratedAuthOnly = l10n.t(
+        "The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.",
+    );
+    public static hobbesPublishRefused = (detail: string) =>
+        l10n.t({
+            message: "This runbook cannot be published to the Hobbes runtime yet: {0}",
+            args: [detail],
+            comment: ["{0} lists the untranslatable plan features"],
+        });
     public static hobbesLaunchRefused = (code: string) =>
         l10n.t({
             message: "The Hobbes runtime refused to start the run ({0}).",

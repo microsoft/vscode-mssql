@@ -95,6 +95,18 @@ export class RuntimeSupervisor {
         return this.runtime?.baseUrl;
     }
 
+    /** The runtime's isolated data directory (its library + registries). */
+    public get dataDir(): string {
+        return path.join(this.storageRoot, "hobbes-data");
+    }
+
+    /** Restart to apply persisted runtime settings (e.g. the SQL connection
+     *  provider, which the MCP server reads only at startup). */
+    public async restart(context: RunbookOperationContext): Promise<SupervisedRuntime> {
+        this.kill();
+        return this.ensureRunning(context);
+    }
+
     /** Launch (or return the live) runtime; resolves after /health succeeds. */
     public async ensureRunning(context: RunbookOperationContext): Promise<SupervisedRuntime> {
         if (this.runtime && this.child && this.child.exitCode === null) {

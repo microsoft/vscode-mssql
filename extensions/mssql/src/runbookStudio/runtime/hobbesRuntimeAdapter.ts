@@ -23,9 +23,16 @@
  * P2 follow-up and slots in behind this same adapter contract.
  */
 
+import * as fs from "fs";
+import * as path from "path";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
+import {
+    HobbesConnectionsFile,
+    mergeConnectionEntry,
+    translateArtifactToHobbesPlan,
+} from "./hobbesPlanTranslator";
 import { RuntimeSupervisor } from "./runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
@@ -57,10 +64,286 @@ interface ActivePoll {
     stop: boolean;
 }
 
+/** Selected-profile projection the bridge writes into the runtime's
+ *  JsonFile connection registry. Integrated auth only in this preview. */
+export interface BridgeableConnectionProfile {
+    label: string;
+    server: string;
+    database?: string;
+    integratedAuth: boolean;
+}
+
 export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
     private readonly polls = new Map<string, ActivePoll>();
 
-    constructor(private readonly supervisor: RuntimeSupervisor) {}
+    constructor(
+        private readonly supervisor: RuntimeSupervisor,
+        /** Resolve a VS Code connection profile id to bridgeable metadata. */
+        private readonly resolveProfile: (
+            profileId: string,
+        ) => Promise<BridgeableConnectionProfile | undefined> = () => Promise.resolve(undefined),
+    ) {}
+
+    // -- publish bridge ------------------------------------------------------
+
+    /** Ensure the runtime uses its JsonFile connection registry and that the
+     *  selected profile is registered; returns the launch alias. */
+    private async ensureConnectionBridged(
+        baseUrl: string,
+        profileId: string,
+        context: RunbookOperationContext,
+    ): Promise<string> {
+        const profile = await this.resolveProfile(profileId);
+        if (!profile) {
+            throw new RuntimeStartRefusedError(
+                {
+                    code: "RunbookStudio.BindingInvalid",
+                    message: LocRunbookStudio.connectionProfileNotFound(profileId),
+                },
+                "connection-not-found",
+            );
+        }
+        if (!profile.integratedAuth) {
+            throw new RuntimeStartRefusedError(
+                {
+                    code: "RunbookStudio.BindingInvalid",
+                    message: LocRunbookStudio.hobbesIntegratedAuthOnly,
+                },
+                "connection-auth-unsupported",
+            );
+        }
+        // The MCP server reads the provider selection at startup; switch the
+        // persisted setting and restart the runtime once when needed.
+        const settings = (await (
+            await this.request(baseUrl, "GET", "/runtime/settings")
+        ).json()) as { sqlConnectionProvider?: string };
+        if (settings.sqlConnectionProvider !== "jsonfile") {
+            await this.request(baseUrl, "PUT", "/runtime/settings", {
+                sqlConnectionProvider: "jsonfile",
+            });
+            emitRunbookEvent(context, "runbookStudio.runtime.providerSwitched", "ok", {
+                provider: metaField("jsonfile"),
+            });
+            await this.supervisor.restart(context);
+        }
+        const alias = profile.label.replace(/[^A-Za-z0-9 _.-]/g, "_");
+        const filePath = path.join(this.supervisor.dataDir, "sql-connections.json");
+        let existing: Partial<HobbesConnectionsFile> | undefined;
+        try {
+            existing = JSON.parse(fs.readFileSync(filePath, "utf8"));
+        } catch {
+            existing = undefined;
+        }
+        const merged = mergeConnectionEntry(existing, {
+            name: alias,
+            server: profile.server,
+            ...(profile.database ? { database: profile.database } : {}),
+        });
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        fs.writeFileSync(filePath, JSON.stringify(merged, undefined, 2));
+        return alias;
+    }
+
+    /** Translate + register the artifact in the runtime library (create or
+     *  revert-to-draft -> update -> approve); returns the version label. */
+    private async publishArtifact(
+        artifact: RunbookArtifactFile,
+        _context: RunbookOperationContext,
+    ): Promise<string> {
+        const runtime = await this.supervisor.ensureRunning(_context);
+        const translation = translateArtifactToHobbesPlan(artifact);
+        if (!translation.plan) {
+            throw new RuntimeStartRefusedError(
+                {
+                    code: "RunbookStudio.RuntimeCapabilityUnsupported",
+                    message: LocRunbookStudio.hobbesPublishRefused(translation.issues.join("; ")),
+                },
+                "publish-untranslatable",
+            );
+        }
+        const base = runtime.baseUrl;
+        let assetResponse = await this.request(
+            base,
+            "GET",
+            `/api/runbooks/${encodeURIComponent(artifact.id)}`,
+        );
+        let asset: Record<string, unknown>;
+        if (assetResponse.status === 404) {
+            const created = await this.request(base, "POST", "/api/runbooks", {
+                id: artifact.id,
+                title: artifact.name,
+                description: artifact.description ?? artifact.source.intent,
+                category: artifact.family ?? "validate",
+            });
+            if (!created.ok) {
+                throw launchRefusalError(`publish-create-http-${created.status}`);
+            }
+            asset = (await created.json()) as Record<string, unknown>;
+        } else if (assetResponse.ok) {
+            asset = (await assetResponse.json()) as Record<string, unknown>;
+            if (asset.state !== "draft") {
+                await this.request(
+                    base,
+                    "POST",
+                    `/api/runbooks/${encodeURIComponent(artifact.id)}/revert-to-draft`,
+                );
+                assetResponse = await this.request(
+                    base,
+                    "GET",
+                    `/api/runbooks/${encodeURIComponent(artifact.id)}`,
+                );
+                asset = (await assetResponse.json()) as Record<string, unknown>;
+            }
+        } else {
+            throw launchRefusalError(`publish-read-http-${assetResponse.status}`);
+        }
+
+        const put = await this.request(
+            base,
+            "PUT",
+            `/api/runbooks/${encodeURIComponent(artifact.id)}`,
+            {
+                ...asset,
+                plan: translation.plan,
+                inputSchema: translation.plan.inputSchema,
+                regions: (asset.regions as unknown[]) ?? [],
+            },
+            String(asset.revisionId ?? ""),
+        );
+        if (!put.ok) {
+            throw launchRefusalError(`publish-update-http-${put.status}`);
+        }
+        const approve = await this.request(
+            base,
+            "POST",
+            `/api/runbooks/${encodeURIComponent(artifact.id)}/approve`,
+            {},
+        );
+        if (!approve.ok) {
+            throw launchRefusalError(`publish-approve-http-${approve.status}`);
+        }
+        const approved = (await approve.json()) as { versionLabel?: string };
+        return approved.versionLabel ?? "1.00";
+    }
+
+    /** POST the workflow-control "continue" turn and stream region lifecycle
+     *  events back as boundary observations (verified AG-UI input shape). */
+    private async kickoffAndStream(
+        baseUrl: string,
+        request: RuntimeStartRequest,
+        hobbesRunId: string,
+        poll: ActivePoll,
+        observer: RuntimeEventObserver,
+    ): Promise<void> {
+        const knownNodeIds = new Set((request.artifact.lock?.nodes ?? []).map((n) => n.id));
+        const reported = new Map<string, string>();
+        try {
+            const response = await fetch(`${baseUrl}/agui`, {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    accept: "text/event-stream",
+                },
+                body: JSON.stringify({
+                    threadId: hobbesRunId,
+                    runId: `vscode-${Date.now().toString(36)}`,
+                    messages: [
+                        {
+                            id: `workflow-control:continue:${Date.now().toString(36)}`,
+                            role: "user",
+                            content: JSON.stringify({
+                                hobbesKind: "workflow-control",
+                                regionId: null,
+                                nodeId: null,
+                                payload: { action: "continue" },
+                            }),
+                        },
+                    ],
+                    state: {},
+                    tools: [],
+                    context: [],
+                    forwardedProps: {},
+                }),
+            });
+            if (!response.ok || !response.body) {
+                observer.onGap(1);
+                return;
+            }
+            observer.onEvent({ kind: "runState", state: "running" });
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            for (;;) {
+                const { done, value } = await reader.read();
+                if (done || poll.stop) {
+                    break;
+                }
+                buffer += decoder.decode(value, { stream: true });
+                let boundary: number;
+                while ((boundary = buffer.indexOf("\n\n")) >= 0) {
+                    const frame = buffer.slice(0, boundary);
+                    buffer = buffer.slice(boundary + 2);
+                    const data = frame
+                        .split("\n")
+                        .filter((l) => l.startsWith("data:"))
+                        .map((l) => l.slice(5).trim())
+                        .join("");
+                    if (!data) {
+                        continue;
+                    }
+                    try {
+                        const event = JSON.parse(data) as {
+                            type?: string;
+                            snapshot?: {
+                                hobbesKind?: string;
+                                regionId?: string | null;
+                                payload?: { phase?: string; status?: string };
+                            };
+                        };
+                        const envelope = event.snapshot;
+                        if (event.type !== "STATE_SNAPSHOT" || !envelope?.hobbesKind) {
+                            continue;
+                        }
+                        if (
+                            envelope.hobbesKind === "region-lifecycle" &&
+                            envelope.regionId &&
+                            knownNodeIds.has(envelope.regionId)
+                        ) {
+                            const phase = envelope.payload?.phase ?? envelope.payload?.status ?? "";
+                            const state = phase.includes("failed")
+                                ? "failed"
+                                : phase.includes("completed")
+                                  ? "succeeded"
+                                  : phase.includes("started") || phase.includes("active")
+                                    ? "running"
+                                    : undefined;
+                            if (state && reported.get(envelope.regionId) !== state) {
+                                reported.set(envelope.regionId, state);
+                                observer.onEvent({
+                                    kind: "nodeState",
+                                    nodeId: envelope.regionId,
+                                    state,
+                                    attempt: 1,
+                                    ...(state === "succeeded"
+                                        ? { outcome: "success" as const }
+                                        : state === "failed"
+                                          ? { outcome: "failure" as const }
+                                          : {}),
+                                });
+                            }
+                        }
+                    } catch {
+                        // Malformed frame: count and continue (never crash the stream).
+                        observer.onGap(1);
+                    }
+                }
+            }
+        } catch {
+            // Stream loss is not terminal — the state poll below remains the
+            // authoritative completion signal.
+            observer.onGap(1);
+        }
+    }
 
     public async initialize(context: RunbookOperationContext): Promise<RuntimeCapabilities> {
         const runtime = await this.supervisor.ensureRunning(context);
@@ -124,20 +407,21 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             connectionParameter && request.parameterValues[connectionParameter.id] != null
                 ? String(request.parameterValues[connectionParameter.id])
                 : "";
-        const inputValues: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(request.parameterValues)) {
-            if (key !== connectionParameter?.id && value !== null) {
-                inputValues[key] = value;
-            }
-        }
+        // 1. Bridge the connection: register the selected profile in the
+        // runtime's JsonFile registry (integrated auth only — credentials
+        // never enter the file) and use its alias for the launch.
+        const alias = await this.ensureConnectionBridged(runtime.baseUrl, connectionAlias, context);
 
+        // 2. Publish: translate the compiled lock into the runtime's plan IR
+        // and register it in the library via the studio API (create/update ->
+        // approve). Untranslatable plans refuse with exact reasons.
+        const versionLabel = await this.publishArtifact(request.artifact, context);
+
+        // 3. Launch + confirm (mounts the investigation).
         const launch = await this.request(runtime.baseUrl, "POST", "/api/investigations/launch", {
             runbookId: request.artifact.id,
-            ...(request.artifact.lock
-                ? { runbookVersion: request.artifact.lock.planRevision }
-                : {}),
-            connectionAlias,
-            ...(Object.keys(inputValues).length > 0 ? { inputValues } : {}),
+            runbookVersion: versionLabel,
+            connectionAlias: alias,
         });
         const launchBody = (await launch.json().catch(() => undefined)) as
             | { runId?: string; code?: string; message?: string }
@@ -159,8 +443,12 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             throw launchRefusalError(`confirm-http-${confirm.status}`);
         }
 
+        // 4. AG-UI kickoff: mounted runs execute only when a workflow-control
+        // "continue" envelope arrives on the investigation thread (verified
+        // live — probe P2). The SSE stream carries region lifecycle events.
         const poll: ActivePoll = { stop: false };
         this.polls.set(request.runId, poll);
+        void this.kickoffAndStream(runtime.baseUrl, request, hobbesRunId, poll, observer);
         void this.pollRun(runtime.baseUrl, request, hobbesRunId, poll, observer);
     }
 
@@ -287,6 +575,36 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                         return;
                     }
                 }
+                // The run record's status never finalizes on this runtime
+                // (verified live) — the investigation state's executionStatus
+                // is the honest terminal signal.
+                try {
+                    const stateResponse = await this.request(
+                        baseUrl,
+                        "GET",
+                        `/api/investigations/${encodeURIComponent(hobbesRunId)}/state`,
+                    );
+                    if (stateResponse.ok) {
+                        const state = (await stateResponse.json()) as {
+                            investigation?: { runtime?: { executionStatus?: string } };
+                            runtime?: { executionStatus?: string };
+                        };
+                        const executionStatus =
+                            state.investigation?.runtime?.executionStatus ??
+                            state.runtime?.executionStatus;
+                        if (executionStatus === "completed" || executionStatus === "failed") {
+                            poll.stop = true;
+                            observer.onEvent({
+                                kind: "terminal",
+                                state: executionStatus === "completed" ? "succeeded" : "failed",
+                                verdict: executionStatus === "completed" ? "pass" : "fail",
+                            });
+                            return;
+                        }
+                    }
+                } catch {
+                    // transient; keep polling
+                }
                 await new Promise((resolve) => setTimeout(resolve, RUN_POLL_INTERVAL_MS));
             }
         } finally {
@@ -297,22 +615,23 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
 
     private async request(
         baseUrl: string,
-        method: "GET" | "POST",
+        method: "GET" | "POST" | "PUT",
         pathAndQuery: string,
         body?: unknown,
+        ifMatch?: string,
     ): Promise<Response> {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        const headers: Record<string, string> = {
+            ...(body !== undefined ? { "content-type": "application/json" } : {}),
+            ...(ifMatch ? { "if-match": ifMatch } : {}),
+        };
         try {
             return await fetch(`${baseUrl}${pathAndQuery}`, {
                 method,
                 signal: controller.signal,
-                ...(body !== undefined
-                    ? {
-                          headers: { "content-type": "application/json" },
-                          body: JSON.stringify(body),
-                      }
-                    : {}),
+                ...(Object.keys(headers).length > 0 ? { headers } : {}),
+                ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
             });
         } finally {
             clearTimeout(timer);

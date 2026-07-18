@@ -56,6 +56,11 @@
     "The compiled plan could not be written into the document.": "The compiled plan could not be written into the document.",
     "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).": "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).",
     "The Hobbes runtime could not resolve the connection alias for this run.": "The Hobbes runtime could not resolve the connection alias for this run.",
+    "The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.": "The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.",
+    "This runbook cannot be published to the Hobbes runtime yet: {0}/{0} lists the untranslatable plan features": {
+        "message": "This runbook cannot be published to the Hobbes runtime yet: {0}",
+        "comment": ["{0} lists the untranslatable plan features"]
+    },
     "The Hobbes runtime refused to start the run ({0})./{0} is a stable error code from the runtime": {
         "message": "The Hobbes runtime refused to start the run ({0}).",
         "comment": ["{0} is a stable error code from the runtime"]

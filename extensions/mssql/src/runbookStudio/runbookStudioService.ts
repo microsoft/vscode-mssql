@@ -492,6 +492,27 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             adapter = new HobbesRuntimeAdapter(
                 new RuntimeSupervisor(executablePath, this.storageRoot),
+                async (profileId) => {
+                    const connectionManager = this.connectionAccess();
+                    if (!connectionManager) {
+                        return undefined;
+                    }
+                    const profiles =
+                        await connectionManager.connectionStore.readAllConnections(false);
+                    const profile = profiles.find((p) => p.id === profileId);
+                    if (!profile) {
+                        return undefined;
+                    }
+                    return {
+                        label: profile.profileName || profile.server || profile.id,
+                        server: profile.server,
+                        ...(profile.database ? { database: profile.database } : {}),
+                        // Windows integrated auth only for the JsonFile
+                        // registry — credentials never enter the file.
+                        integratedAuth:
+                            String(profile.authenticationType ?? "").toLowerCase() === "integrated",
+                    };
+                },
             );
         } else {
             return {
