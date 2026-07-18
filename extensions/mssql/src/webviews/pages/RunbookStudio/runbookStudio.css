@@ -318,6 +318,64 @@
     line-height: 1.5;
 }
 
+.rbs-link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+}
+
+.rbs-link-button:hover {
+    text-decoration: underline;
+}
+
+.rbs-step-details {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rbs-code {
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-widget-border, transparent);
+    border-radius: 4px;
+    max-height: 240px;
+    overflow: auto;
+}
+
+.rbs-kv {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rbs-kv-row {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.rbs-kv-key {
+    min-width: 120px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-kv-value {
+    margin: 0;
+    word-break: break-word;
+}
+
 .rbs-verdict-pass {
     color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
     background: transparent;

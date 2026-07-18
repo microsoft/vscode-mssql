@@ -4024,6 +4024,9 @@
     <trans-unit id="++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30">
       <source xml:lang="en">Hide column</source>
     </trans-unit>
+    <trans-unit id="++CODE++c9722a7a962a84359c87e56fe578f36a2bc75e66eee3ebce15963229fa12667d">
+      <source xml:lang="en">Hide details</source>
+    </trans-unit>
     <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
       <source xml:lang="en">Hide full error message</source>
     </trans-unit>
@@ -7584,6 +7587,9 @@
     <trans-unit id="++CODE++8e6a6cca7aae1d1e781d3ee04849d6b00f7aaf48f7c642f35105e4bf990a8cb4">
       <source xml:lang="en">Step</source>
     </trans-unit>
+    <trans-unit id="++CODE++f591eb07dc60d2eef68cfedf9720d91ee55794ca3649009b8827959c56c2c8d0">
+      <source xml:lang="en">Step inputs</source>
+    </trans-unit>
     <trans-unit id="++CODE++fcd9e926d4fdee12468ed2bada9c9a3836ffa503e8dd105ce430cb9dc77450df">
       <source xml:lang="en">Step {0} of {1}</source>
       <note>{0} is the current step number
@@ -7878,6 +7884,9 @@
     <trans-unit id="++CODE++eb85e5b179ae508851d9c3a4ad1b70f15e62bcc724ccceba39fb65ab10b7d537">
       <source xml:lang="en">The Hobbes runtime refused to start the run ({0}).</source>
       <note>{0} is a stable error code from the runtime</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3fea7047e326ced3a2bea06a903143dc4fd6b140d7e9c551fe56ddb06962ca4a">
+      <source xml:lang="en">The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.</source>
     </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>

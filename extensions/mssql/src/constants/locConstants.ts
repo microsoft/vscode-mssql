@@ -115,6 +115,9 @@ export class RunbookStudio {
     public static hobbesRunStalledAfterFailure = l10n.t(
         "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     );
+    public static hobbesRuntimeUnresponsive = l10n.t(
+        "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
+    );
     public static hobbesLaunchRefused = (code: string) =>
         l10n.t({
             message: "The Hobbes runtime refused to start the run ({0}).",

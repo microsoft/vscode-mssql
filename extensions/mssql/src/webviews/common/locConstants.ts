@@ -3623,6 +3623,9 @@ export class LocConstants {
             value: l10n.t("Value"),
             runButton: l10n.t("Run runbook"),
             runActiveLabel: l10n.t("Run in progress…"),
+            stepDetails: l10n.t("Details"),
+            stepInputs: l10n.t("Step inputs"),
+            hideStepDetails: l10n.t("Hide details"),
             widgetPending: l10n.t("Waiting for this step to produce output…"),
             widgetSourceMissing: l10n.t("The step this widget was bound to no longer exists."),
             dataExpiredDetail: l10n.t(

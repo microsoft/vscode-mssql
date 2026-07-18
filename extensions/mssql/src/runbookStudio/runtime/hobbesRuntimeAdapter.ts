@@ -38,6 +38,7 @@ import {
     RunbookRuntimeAdapter,
     RuntimeCapabilities,
     RuntimeEventObserver,
+    RuntimeOutputPayload,
     RuntimeStartRefusedError,
     RuntimeStartRequest,
     RuntimeValidationIssue,
@@ -45,6 +46,7 @@ import {
 
 const RUN_POLL_INTERVAL_MS = 750;
 const REQUEST_TIMEOUT_MS = 15_000;
+const HEALTH_PROBE_TIMEOUT_MS = 3_000;
 
 /** GET /api/runs/{runId} projection (InvestigationsLaunchApi.RunToJson). */
 interface HobbesRunRecord {
@@ -65,6 +67,79 @@ interface ActivePoll {
     /** Epoch of the first failed region report — arms the stall guard (the
      *  runtime can hang post-failure, e.g. on its summarize step: U-2). */
     failedNodeAt?: number;
+}
+
+/** The slice of an investigation-snapshot envelope payload the bridge reads
+ *  (full investigation clone; shapes captured live from runtime 0.1.0). */
+export interface HobbesSnapshotPayload {
+    informationSpace?: { nodes?: Array<{ id?: string; regionId?: string }> };
+    widgets?: Record<string, HobbesSnapshotWidget | undefined>;
+    /** region-lifecycle payloads reuse this type; unrelated fields ignored. */
+    phase?: string;
+    status?: string;
+}
+
+export interface HobbesSnapshotWidget {
+    id?: string;
+    typeId?: string;
+    nodeId?: string;
+    title?: string;
+    dataSource?: {
+        type?: string;
+        data?: {
+            schema?: Array<{ name?: string }>;
+            rows?: Array<Record<string, unknown>>;
+            text?: string;
+            summary?: string;
+            headline?: string;
+        };
+    };
+}
+
+/**
+ * Pure widget -> boundary output translation (exported for unit tests).
+ * Unknown widget types return undefined — honest skip, never a fake render.
+ */
+export function translateWidgetToOutput(
+    widget: HobbesSnapshotWidget,
+): RuntimeOutputPayload | undefined {
+    const data = widget.dataSource?.data;
+    if (!data) {
+        return undefined;
+    }
+    switch (widget.typeId) {
+        case "table": {
+            const columns = (data.schema ?? [])
+                .map((column) => column.name)
+                .filter((name): name is string => typeof name === "string");
+            if (columns.length === 0) {
+                return undefined;
+            }
+            const rows = (data.rows ?? []).map((row) =>
+                columns.map((column) => {
+                    const cell = row[column];
+                    return cell === null || cell === undefined
+                        ? null
+                        : typeof cell === "number" || typeof cell === "boolean"
+                          ? cell
+                          : String(cell);
+                }),
+            );
+            return { contract: "rowset/1", columns, rows };
+        }
+        case "text":
+            return typeof data.text === "string" && data.text.length > 0
+                ? { contract: "markdown/1", text: data.text }
+                : undefined;
+        case "assessment-strip": {
+            const summary = data.summary ?? data.headline;
+            return typeof summary === "string" && summary.length > 0
+                ? { contract: "markdown/1", text: summary }
+                : undefined;
+        }
+        default:
+            return undefined;
+    }
 }
 
 /** After a region failure, give the runtime this long to finalize before
@@ -251,6 +326,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
     ): Promise<void> {
         const knownNodeIds = new Set((request.artifact.lock?.nodes ?? []).map((n) => n.id));
         const reported = new Map<string, string>();
+        const emittedWidgetIds = new Set<string>();
         try {
             const response = await fetch(`${baseUrl}/agui`, {
                 method: "POST",
@@ -314,11 +390,27 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                             snapshot?: {
                                 hobbesKind?: string;
                                 regionId?: string | null;
-                                payload?: { phase?: string; status?: string };
+                                payload?: HobbesSnapshotPayload;
                             };
                         };
                         const envelope = event.snapshot;
                         if (event.type !== "STATE_SNAPSHOT" || !envelope?.hobbesKind) {
+                            continue;
+                        }
+                        if (envelope.hobbesKind === "investigation-snapshot" && envelope.payload) {
+                            // The runtime broadcasts its full investigation
+                            // clone after every primitive; region widgets in
+                            // it carry the actual result data (table rows,
+                            // threshold text, report assessment). Translate
+                            // each widget ONCE into a boundary output on its
+                            // plan node.
+                            this.emitSnapshotWidgetOutputs(
+                                envelope.payload,
+                                knownNodeIds,
+                                reported,
+                                emittedWidgetIds,
+                                observer,
+                            );
                             continue;
                         }
                         if (
@@ -405,6 +497,66 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
     }
 
     public async startRun(
+        request: RuntimeStartRequest,
+        observer: RuntimeEventObserver,
+        context: RunbookOperationContext,
+    ): Promise<void> {
+        try {
+            await this.startRunAttempt(request, observer, context);
+            return;
+        } catch (error) {
+            // Typed refusals are honest answers — never retry those.
+            if (error instanceof RuntimeStartRefusedError) {
+                throw error;
+            }
+            // Anything else (AbortError timeout, fetch failed) may mean the
+            // runtime process is WEDGED while still alive — observed live:
+            // blocked post-run summarizer dispatches starved the runtime and
+            // every later HTTP call timed out forever, with no process exit
+            // to trip recovery. Probe health; if it is truly unresponsive,
+            // restart it and retry the whole start sequence once.
+            const healthy = await this.probeHealth();
+            if (healthy) {
+                throw error;
+            }
+            emitRunbookEvent(context, "runbookStudio.runtime.unresponsiveRestart", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "unknown"),
+            });
+            await this.supervisor.restart(context);
+            try {
+                await this.startRunAttempt(request, observer, context);
+            } catch (retryError) {
+                if (retryError instanceof RuntimeStartRefusedError) {
+                    throw retryError;
+                }
+                // A timeout again means the fresh runtime is also wedged —
+                // report that; any other failure keeps its own message.
+                throw retryError instanceof Error && retryError.name === "AbortError"
+                    ? new Error(LocRunbookStudio.hobbesRuntimeUnresponsive)
+                    : retryError;
+            }
+        }
+    }
+
+    /** True when the current runtime answers /health within a short budget. */
+    private async probeHealth(): Promise<boolean> {
+        const baseUrl = this.supervisor.baseUrl;
+        if (!baseUrl) {
+            return false;
+        }
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), HEALTH_PROBE_TIMEOUT_MS);
+        try {
+            const response = await fetch(`${baseUrl}/health`, { signal: controller.signal });
+            return response.ok;
+        } catch {
+            return false;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    private async startRunAttempt(
         request: RuntimeStartRequest,
         observer: RuntimeEventObserver,
         context: RunbookOperationContext,
@@ -659,6 +811,67 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         } finally {
             this.polls.delete(request.runId);
             this.hobbesRunIds.delete(request.runId);
+        }
+    }
+
+    /**
+     * Translate the widgets inside an investigation snapshot into boundary
+     * outputs on their plan nodes (verified shapes, captured live):
+     *   table  -> rowset/1 (schema column names + row objects)
+     *   text   -> markdown/1 (threshold narrative)
+     *   assessment-strip -> markdown/1 (report assessment summary)
+     * Widget nodeId is an internal GUID; informationSpace.nodes maps it to
+     * the region id, which IS the plan node id. Each widget emits once.
+     */
+    private emitSnapshotWidgetOutputs(
+        payload: HobbesSnapshotPayload,
+        knownNodeIds: Set<string>,
+        reported: Map<string, string>,
+        emittedWidgetIds: Set<string>,
+        observer: RuntimeEventObserver,
+    ): void {
+        const widgets = payload.widgets;
+        if (!widgets) {
+            return;
+        }
+        const guidToRegion = new Map<string, string>();
+        for (const node of payload.informationSpace?.nodes ?? []) {
+            if (node.id && node.regionId) {
+                guidToRegion.set(node.id, node.regionId);
+            }
+        }
+        for (const widget of Object.values(widgets)) {
+            if (!widget || typeof widget !== "object" || emittedWidgetIds.has(widget.id ?? "")) {
+                continue;
+            }
+            const regionId = widget.nodeId ? guidToRegion.get(widget.nodeId) : undefined;
+            if (!widget.id || !regionId || !knownNodeIds.has(regionId)) {
+                continue;
+            }
+            const output = translateWidgetToOutput(widget);
+            if (!output) {
+                continue;
+            }
+            emittedWidgetIds.add(widget.id);
+            // Appending output to a terminal node re-states its terminal
+            // state (allowed); a not-yet-terminal node rides "running".
+            const known = reported.get(regionId);
+            const state =
+                known === "succeeded" || known === "failed"
+                    ? (known as "succeeded" | "failed")
+                    : "running";
+            observer.onEvent({
+                kind: "nodeState",
+                nodeId: regionId,
+                state,
+                attempt: 1,
+                ...(state === "succeeded"
+                    ? { outcome: "success" as const }
+                    : state === "failed"
+                      ? { outcome: "failure" as const }
+                      : {}),
+                output,
+            });
         }
     }
 
