@@ -885,3 +885,179 @@
     line-height: 1;
     color: var(--vscode-descriptionForeground);
 }
+
+/* Plan graph view (PlanGraphView) — pure SVG workflow canvas. Colors ride
+   theme tokens via CSS classes on the SVG elements (presentation attributes
+   cannot carry var(); CSS fill/stroke properties can). */
+
+.rbs-graph-toggle-group {
+    display: inline-flex;
+    align-self: flex-start;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.rbs-graph-toggle {
+    border: none;
+    background: transparent;
+    color: var(--vscode-descriptionForeground);
+    font-family: inherit;
+    font-size: 11.5px;
+    padding: 3px 10px;
+    cursor: pointer;
+}
+
+.rbs-graph-toggle + .rbs-graph-toggle {
+    border-left: 1px solid var(--vscode-panel-border);
+}
+
+.rbs-graph-toggle.active {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.rbs-graph-toggle:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.rbs-graph-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    border-radius: 5px;
+    background: var(--vscode-editorWidget-background, transparent);
+    padding: 6px;
+}
+
+.rbs-graph-svg {
+    display: block;
+}
+
+.rbs-graph-node-rect {
+    fill: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    stroke: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    stroke-width: 1;
+}
+
+/* State tint overlay: transparent until a run snapshot supplies a state. */
+.rbs-graph-node-tint {
+    fill: transparent;
+}
+
+.rbs-graph-kindbar-activity {
+    fill: var(--vscode-charts-blue, #3794ff);
+}
+
+.rbs-graph-kindbar-gate {
+    fill: var(--vscode-charts-yellow, #cca700);
+}
+
+.rbs-graph-kindbar-report {
+    fill: var(--vscode-charts-green, #89d185);
+}
+
+.rbs-graph-label {
+    fill: var(--vscode-foreground, #cccccc);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.rbs-graph-kind {
+    fill: var(--vscode-descriptionForeground, #9d9d9d);
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 10px;
+}
+
+.rbs-graph-edge {
+    fill: none;
+    stroke: var(--vscode-editorWidget-border, var(--vscode-panel-border, #666666));
+    stroke-width: 1.5;
+}
+
+.rbs-graph-edge-conditional {
+    stroke-dasharray: 5 3;
+}
+
+.rbs-graph-arrow {
+    fill: var(--vscode-editorWidget-border, var(--vscode-panel-border, #666666));
+}
+
+.rbs-graph-edge-chip-bg {
+    fill: var(--vscode-badge-background, #4d4d4d);
+    stroke: var(--vscode-panel-border, transparent);
+}
+
+.rbs-graph-edge-chip-text {
+    fill: var(--vscode-badge-foreground, #ffffff);
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 9.5px;
+}
+
+.rbs-graph-glyph {
+    fill: var(--vscode-descriptionForeground, #9d9d9d);
+    font-size: 11px;
+}
+
+/* Live run-state tints (border + fill wash + glyph). */
+.rbs-graph-node-running .rbs-graph-node-rect {
+    stroke: var(--vscode-progressBar-background, var(--vscode-textLink-foreground, #3794ff));
+    stroke-width: 2;
+}
+
+.rbs-graph-node-running .rbs-graph-node-tint {
+    fill: var(--vscode-progressBar-background, var(--vscode-textLink-foreground, #3794ff));
+    opacity: 0.08;
+}
+
+.rbs-graph-glyph-running {
+    fill: var(--vscode-progressBar-background, var(--vscode-textLink-foreground, #3794ff));
+}
+
+.rbs-graph-node-succeeded .rbs-graph-node-rect {
+    stroke: var(--vscode-testing-iconPassed, var(--vscode-charts-green, #89d185));
+}
+
+.rbs-graph-node-succeeded .rbs-graph-node-tint {
+    fill: var(--vscode-testing-iconPassed, var(--vscode-charts-green, #89d185));
+    opacity: 0.06;
+}
+
+.rbs-graph-glyph-succeeded {
+    fill: var(--vscode-testing-iconPassed, var(--vscode-charts-green, #89d185));
+}
+
+.rbs-graph-node-failed .rbs-graph-node-rect {
+    stroke: var(--vscode-errorForeground, #f48771);
+    stroke-width: 2;
+}
+
+.rbs-graph-node-failed .rbs-graph-node-tint {
+    fill: var(--vscode-errorForeground, #f48771);
+    opacity: 0.07;
+}
+
+.rbs-graph-glyph-failed {
+    fill: var(--vscode-errorForeground, #f48771);
+}
+
+.rbs-graph-node-awaitingApproval .rbs-graph-node-rect {
+    stroke: var(--vscode-editorWarning-foreground, #cca700);
+    stroke-width: 2;
+    animation: rbs-graph-pulse 1.4s ease-in-out infinite;
+}
+
+.rbs-graph-node-awaitingApproval .rbs-graph-node-tint {
+    fill: var(--vscode-editorWarning-foreground, #cca700);
+    opacity: 0.07;
+}
+
+.rbs-graph-glyph-awaitingApproval {
+    fill: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+@keyframes rbs-graph-pulse {
+    50% {
+        stroke-opacity: 0.35;
+    }
+}

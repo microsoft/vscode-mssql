@@ -3771,6 +3771,15 @@ export class LocConstants {
                     args: [target],
                     comment: ["{0} is a plan step name"],
                 }),
+            viewList: l10n.t("List"),
+            viewGraph: l10n.t("Graph"),
+            planViewLabel: l10n.t("Plan view"),
+            graphAriaSummary: (steps: number, edgeCount: number) =>
+                l10n.t({
+                    message: "Workflow graph: {0} steps, {1} edges",
+                    args: [steps, edgeCount],
+                    comment: ["{0} is a step count, {1} is an edge count"],
+                }),
         };
     }
 }

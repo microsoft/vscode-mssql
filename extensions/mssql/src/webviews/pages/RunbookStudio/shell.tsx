@@ -22,6 +22,7 @@ import {
 } from "../../../sharedInterfaces/runbookStudio";
 import { useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
+import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
@@ -637,6 +638,7 @@ function RunEventLog() {
 function PlanPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
+    const [planView, setPlanView] = useState<"stepper" | "graph">("stepper");
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
@@ -646,13 +648,36 @@ function PlanPage() {
     }
     return (
         <div className="rbs-page-body">
-            <PlanStepper
-                entryNodeId={artifact.entryNodeId ?? artifact.nodes[0]?.id ?? ""}
-                nodes={artifact.nodes}
-                edges={artifact.edges}
-                run={state?.run}
-                pinnedViews={artifact.pinnedViews}
-            />
+            <div className="rbs-graph-toggle-group" role="group" aria-label={loc.planViewLabel}>
+                <button
+                    className={`rbs-graph-toggle ${planView === "stepper" ? "active" : ""}`}
+                    aria-pressed={planView === "stepper"}
+                    onClick={() => setPlanView("stepper")}>
+                    {loc.viewList}
+                </button>
+                <button
+                    className={`rbs-graph-toggle ${planView === "graph" ? "active" : ""}`}
+                    aria-pressed={planView === "graph"}
+                    onClick={() => setPlanView("graph")}>
+                    {loc.viewGraph}
+                </button>
+            </div>
+            {planView === "graph" ? (
+                <PlanGraphView
+                    entryNodeId={artifact.entryNodeId ?? artifact.nodes[0]?.id ?? ""}
+                    nodes={artifact.nodes}
+                    edges={artifact.edges}
+                    run={state?.run}
+                />
+            ) : (
+                <PlanStepper
+                    entryNodeId={artifact.entryNodeId ?? artifact.nodes[0]?.id ?? ""}
+                    nodes={artifact.nodes}
+                    edges={artifact.edges}
+                    run={state?.run}
+                    pinnedViews={artifact.pinnedViews}
+                />
+            )}
         </div>
     );
 }

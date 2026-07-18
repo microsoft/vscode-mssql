@@ -4537,5 +4537,12 @@
     "if rejected → {0}/{0} is a plan step name": {
         "message": "if rejected → {0}",
         "comment": ["{0} is a plan step name"]
+    },
+    "List": "List",
+    "Graph": "Graph",
+    "Plan view": "Plan view",
+    "Workflow graph: {0} steps, {1} edges/{0} is a step count, {1} is an edge count": {
+        "message": "Workflow graph: {0} steps, {1} edges",
+        "comment": ["{0} is a step count, {1} is an edge count"]
     }
 }

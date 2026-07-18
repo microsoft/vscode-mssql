@@ -3992,6 +3992,9 @@
       <note>{0} is the part input
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++32ab018fd38a7b42f8a42c77d3453516c4f7fefdddbf18bc6eab14a4a1b0a10e">
+      <source xml:lang="en">Graph</source>
+    </trans-unit>
     <trans-unit id="++CODE++ee27322554e46143c3c56f419fc28b71a445380e4e5af7332aabdb87c7d0ec26">
       <source xml:lang="en">GraphQL</source>
     </trans-unit>
@@ -4404,6 +4407,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
       <source xml:lang="en">Link copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f202f54a7b2d8fe42aa804eabe48ef900cdf73a74c570a47fd1b1a4920a051d">
+      <source xml:lang="en">List</source>
     </trans-unit>
     <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
       <source xml:lang="en">List Connections</source>
@@ -5840,6 +5846,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cca5a81704ac9175322dcad61b697e520cf5a6091ca6849ff5aad3725c700c70">
       <source xml:lang="en">Plan revision</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3523a6beb7bd63797f5fac1f4a6c8b26f48ba7d74aa76f7b96ee94850c679c93">
+      <source xml:lang="en">Plan view</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -8771,6 +8780,10 @@
     </trans-unit>
     <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
       <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b80fca299939e1de06beabd7c5e8eddd1431470b12a3a0555c130ea6933cc5d6">
+      <source xml:lang="en">Workflow graph: {0} steps, {1} edges</source>
+      <note>{0} is a step count, {1} is an edge count</note>
     </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
