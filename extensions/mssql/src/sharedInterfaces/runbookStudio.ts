@@ -47,6 +47,7 @@ export type RunbookStudioErrorCode =
     | "RunbookStudio.TargetChanged"
     | "RunbookStudio.ApprovalInvalid"
     | "RunbookStudio.Cancelled"
+    | "RunbookStudio.Interrupted"
     | "RunbookStudio.Timeout"
     | "RunbookStudio.ReplayRefused"
     | "RunbookStudio.DataUnavailable"
@@ -204,6 +205,9 @@ export interface DataHandleRef {
     bytes?: number;
     /** Evicted per retention policy: still listed, renders as expired. */
     expired?: boolean;
+    /** Payload exceeded the per-payload byte cap; the retained detail is a
+     *  bounded prefix (honest truncation — never silently complete). */
+    truncated?: boolean;
 }
 
 export interface RunbookNodeSnapshot {
@@ -242,6 +246,19 @@ export interface RunbookRunSnapshot {
     error?: RbsError;
 }
 
+/** Plan identity carried on the run.accepted event so a journal is
+ *  self-sufficient for recovery: an interrupted run can be attributed to its
+ *  runbook, plan, and node list from the ledger file alone after restart. */
+export interface RunbookRunAcceptedMeta {
+    runbookId: string;
+    planRevision: string;
+    planHash: string;
+    nodeIds: string[];
+    /** Extension-host pid that owns the live run. Storage is shared across
+     *  windows; rehydration must never seal another live window's run. */
+    pid?: number;
+}
+
 /** One run event (A2 §4.3): monotonic per-run sequence, versioned. */
 export interface RunbookRunEvent {
     schemaVersion: typeof RUNBOOK_RUN_EVENT_SCHEMA_VERSION;
@@ -266,6 +283,11 @@ export interface RunbookRunEvent {
     outputs?: DataHandleRef[];
     gate?: RunbookPendingGate;
     error?: RbsError;
+    /** run.accepted only: plan identity for journal-only recovery. */
+    accepted?: RunbookRunAcceptedMeta;
+    /** Terminal was written DURING rehydration (the run was interrupted by
+     *  a window close), not observed from the runtime. Honest provenance. */
+    synthesized?: boolean;
 }
 
 export interface RunbookRunHistoryEntry {
@@ -299,6 +321,15 @@ export interface RbsArtifactSummary {
     pinnedViews?: Record<string, ViewKind>;
 }
 
+/** One selectable run for the History/Results run picker (persisted runs
+ *  survive restart; selecting one re-resolves its presentation). */
+export interface RbsAvailableRun {
+    runId: string;
+    startedEpochMs?: number;
+    state: RunbookRunStateKind;
+    verdict?: "pass" | "fail" | "indeterminate";
+}
+
 export interface RbsState {
     schemaVersion: typeof RBS_STATE_SCHEMA_VERSION;
     documentKind: "saved" | "untitled";
@@ -307,8 +338,14 @@ export interface RbsState {
     artifact?: RbsArtifactSummary;
     /** Set when the backing document does not parse/validate. */
     artifactError?: RbsError;
-    /** The active (latest) run for this document, if any. */
+    /** The run being presented: the user-selected run when one is selected
+     *  (rbs/selectRun), else the active/most recent run for this document. */
     run?: RunbookRunSnapshot;
+    /** runId of the run `run`/`presentation` reflect (picker highlight). */
+    selectedRunId?: string;
+    /** Prior runs (from the durable ledger) selectable in the picker,
+     *  newest first. Present when at least one run is known. */
+    availableRuns?: RbsAvailableRun[];
     /** Deterministic resolved results layout for the active run (handles
      *  only — the webview pulls pages through the controller). */
     presentation?: ResolvedPresentation;
@@ -441,6 +478,14 @@ export namespace RbsGetRunRequest {
     );
 }
 
+/** Select which run the state's `run`/`presentation` reflect. The snapshot
+ *  is resolved from the durable ledger (works across restarts); ok:false
+ *  when the run is unknown or its record is unreadable. Selecting the
+ *  currently active run returns the view to live-follow mode. */
+export namespace RbsSelectRunRequest {
+    export const type = new RequestType<{ runId: string }, { ok: boolean }, void>("rbs/selectRun");
+}
+
 /** Bounded page pull for a data handle (rows never ride notifications). */
 export namespace RbsFetchOutputPageRequest {
     export const type = new RequestType<
@@ -449,6 +494,9 @@ export namespace RbsFetchOutputPageRequest {
             columns?: string[];
             rows?: Array<Array<string | number | boolean | null>>;
             totalRows?: number;
+            /** The stored payload was truncated at the byte cap; totalRows
+             *  counts the RETAINED rows only (honest partial data). */
+            truncated?: boolean;
             error?: RbsError;
         },
         void

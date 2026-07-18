@@ -1186,6 +1186,37 @@ function PlanPage() {
     );
 }
 
+/** Run picker for the Results page: current run by default, any persisted
+ *  prior run selectable (owner ask #7 — history-backed results). */
+function ResultsRunPicker() {
+    const { state, selectRun } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const runs = state?.availableRuns ?? [];
+    if (runs.length < 2) {
+        return null;
+    }
+    const current = state?.selectedRunId ?? state?.run?.runId ?? "";
+    return (
+        <label className="rbs-output-picker">
+            <span className="rbs-muted">{loc.resultsRunPicker}</span>
+            <select
+                className="rbs-select"
+                value={current}
+                onChange={(e) => void selectRun(e.target.value)}>
+                {runs.map((run) => (
+                    <option key={run.runId} value={run.runId}>
+                        {run.startedEpochMs !== undefined
+                            ? new Date(run.startedEpochMs).toLocaleString()
+                            : run.runId}
+                        {" · "}
+                        {run.verdict ?? run.state}
+                    </option>
+                ))}
+            </select>
+        </label>
+    );
+}
+
 function ResultsPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
@@ -1197,17 +1228,23 @@ function ResultsPage() {
     }
     const presentation = state.presentation;
     if (!presentation || presentation.sections.length === 0) {
-        return <EmptyState title={loc.noOutputsTitle} detail={loc.noOutputsDetail} />;
+        return (
+            <div className="rbs-page-body">
+                <ResultsRunPicker />
+                <EmptyState title={loc.noOutputsTitle} detail={loc.noOutputsDetail} />
+            </div>
+        );
     }
     return (
         <div className="rbs-page-body">
-            {state.run.verdict ? (
-                <div className="rbs-run-header">
+            <div className="rbs-run-header">
+                {state.run.verdict ? (
                     <span className={`rbs-chip rbs-verdict-${state.run.verdict}`}>
                         {state.run.verdict}
                     </span>
-                </div>
-            ) : null}
+                ) : null}
+                <ResultsRunPicker />
+            </div>
             {presentation.sections.map((section) => (
                 <section className="rbs-section" key={section.id}>
                     <h2 className="rbs-section-title">{section.title}</h2>
@@ -1221,7 +1258,7 @@ function ResultsPage() {
 }
 
 function HistoryPage() {
-    const { state } = useRbs();
+    const { state, selectRun, navigate } = useRbs();
     const loc = locConstants.runbookStudio;
     const history = state?.history ?? [];
     if (history.length === 0) {
@@ -1236,6 +1273,7 @@ function HistoryPage() {
                         <th>{loc.started}</th>
                         <th>{loc.state}</th>
                         <th>{loc.planRevision}</th>
+                        <th>{loc.results}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1249,6 +1287,16 @@ function HistoryPage() {
                                 </span>
                             </td>
                             <td className="rbs-mono">{entry.planRevision}</td>
+                            <td>
+                                <button
+                                    type="button"
+                                    className="rbs-link-button"
+                                    onClick={() => {
+                                        void selectRun(entry.runId).then(() => navigate("results"));
+                                    }}>
+                                    {loc.viewResults}
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

@@ -36,6 +36,8 @@ export class RunbookStudioDocumentModel implements vscode.Disposable {
     private _artifact: RunbookArtifactFile | undefined;
     private _artifactError: RbsError | undefined;
     private _activeRun: RunbookRunSnapshot | undefined;
+    /** Explicit user selection of a (usually prior) run to present. */
+    private _selectedRun: RunbookRunSnapshot | undefined;
     private _history: RunbookRunHistoryEntry[] = [];
     private readonly _onDidChange = new vscode.EventEmitter<void>();
     public readonly onDidChange = this._onDidChange.event;
@@ -87,6 +89,12 @@ export class RunbookStudioDocumentModel implements vscode.Disposable {
         return this._activeRun;
     }
 
+    /** The run the webview should present: the user's explicit selection
+     *  when one is set, else the active/most recent run. */
+    public get displayRun(): RunbookRunSnapshot | undefined {
+        return this._selectedRun ?? this._activeRun;
+    }
+
     public get history(): RunbookRunHistoryEntry[] {
         return this._history;
     }
@@ -116,6 +124,13 @@ export class RunbookStudioDocumentModel implements vscode.Disposable {
 
     /** Host-authoritative run state fan-in (ledger owns durability). */
     public setActiveRun(snapshot: RunbookRunSnapshot | undefined): void {
+        // A DIFFERENT run taking the stage (run start, or rehydration on
+        // open) clears any explicit prior-run selection — the newest run
+        // is the default presentation. Live updates to the same run keep
+        // the user's selection intact.
+        if (snapshot && snapshot.runId !== this._activeRun?.runId) {
+            this._selectedRun = undefined;
+        }
         this._activeRun = snapshot;
         if (snapshot) {
             const entry: RunbookRunHistoryEntry = {
@@ -140,6 +155,14 @@ export class RunbookStudioDocumentModel implements vscode.Disposable {
 
     public seedHistory(entries: RunbookRunHistoryEntry[]): void {
         this._history = entries.slice(0, MAX_HISTORY_ENTRIES);
+        this._onDidChange.fire();
+    }
+
+    /** Present a specific run (History picker). Selecting the active run
+     *  (or undefined) returns to live-follow of the newest run. */
+    public selectRun(snapshot: RunbookRunSnapshot | undefined): void {
+        this._selectedRun =
+            snapshot && snapshot.runId !== this._activeRun?.runId ? snapshot : undefined;
         this._onDidChange.fire();
     }
 

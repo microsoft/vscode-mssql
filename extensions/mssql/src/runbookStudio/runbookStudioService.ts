@@ -38,7 +38,7 @@ import { removeStash, writeStash } from "./libraryStash";
 import { canonicalizeRunbookArtifact, deriveRunbookName } from "./runbookArtifact";
 import { activeLibraryAssetId, LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
-import { RunbookRunLedger } from "./runbookRunLedger";
+import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runbookRunLedger";
 
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
@@ -62,6 +62,7 @@ import { RequestType } from "vscode-languageclient";
 import type * as mssql from "vscode-mssql";
 import type ConnectionManager from "../controllers/connectionManager";
 import SqlToolsServerClient from "../languageservice/serviceclient";
+import * as fs from "fs";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -83,9 +84,14 @@ interface ActiveRunBinding {
     runEnded: boolean;
 }
 
+/** Retention: the newest N runs per runbook id survive GC. */
+const RETAINED_RUNS_PER_RUNBOOK = 20;
+/** Persistence sweep runs shortly after construction — off the open path. */
+const PERSISTENCE_SWEEP_DELAY_MS = 1500;
+
 export class RunbookStudioService implements RunbookRunCoordinator, vscode.Disposable {
     private readonly ledger: RunbookRunLedger;
-    private readonly resultStore = new RunbookResultStore();
+    private readonly resultStore: RunbookResultStore;
     private adapter: RunbookRuntimeAdapter | undefined;
     /** The configured kind this.adapter was built for (hot-swap detection). */
     private adapterKind: string | undefined;
@@ -107,23 +113,65 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly traceByRunId = new Map<string, string>();
 
     private readonly storageRoot: string;
+    /** Library-global persistence root (ledger + results). Run history must
+     *  follow the RUNBOOK, and runbooks are library-global (`mssql-runbook:`
+     *  stash under globalStorage) — a workspace-scoped root would strand
+     *  records the moment the same runbook opens in another window. */
+    private readonly persistRoot: string;
     /** Global (workspace-independent) storage root for the library stash. */
     private readonly globalStorageUri: vscode.Uri;
+    private sweepTimer: ReturnType<typeof setTimeout> | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
         /** Lazy — MainController constructs after feature registration. */
         private readonly connectionAccess: () => ConnectionManager | undefined,
     ) {
+        // Workspace-scoped root retained for the runtime supervisor's data
+        // dir (its library/logs stay where existing sessions put them).
         this.storageRoot = path.join(
             (context.storageUri ?? context.globalStorageUri).fsPath,
             "runbookStudio",
         );
         this.globalStorageUri = context.globalStorageUri;
-        this.ledger = new RunbookRunLedger(this.storageRoot);
+        this.persistRoot = path.join(context.globalStorageUri.fsPath, "runbookStudio");
+        // One-time migration BEFORE the ledger opens: hoist records this
+        // workspace wrote under its old workspace-scoped root so existing
+        // history reappears instead of silently starting over.
+        const migratedFiles = migrateLegacyRunStorage(this.storageRoot, this.persistRoot);
+        this.ledger = new RunbookRunLedger(this.persistRoot);
+        const persistenceContext = newRunbookRootContext("persistence");
+        this.resultStore = new RunbookResultStore(path.join(this.persistRoot, "results"), {
+            onPersistenceIssue: (kind, detail) =>
+                emitRunbookEvent(persistenceContext, "runbookStudio.persistence.issue", "warning", {
+                    issueKind: metaField(kind),
+                    detailClass: metaField(detail.slice(0, 80)),
+                }),
+        });
+        if (migratedFiles > 0) {
+            emitRunbookEvent(persistenceContext, "runbookStudio.persistence.migrated", "ok", {
+                movedFiles: metaField(migratedFiles),
+            });
+        }
+        // Retention GC + interrupted-run sealing: lazy and non-blocking —
+        // never on the document-open critical path.
+        this.sweepTimer = setTimeout(() => {
+            this.sweepTimer = undefined;
+            try {
+                this.sweepPersistence();
+            } catch (error) {
+                emitRunbookEvent(persistenceContext, "runbookStudio.persistence.gc", "error", {
+                    errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+                });
+            }
+        }, PERSISTENCE_SWEEP_DELAY_MS);
     }
 
     public dispose(): void {
+        if (this.sweepTimer) {
+            clearTimeout(this.sweepTimer);
+            this.sweepTimer = undefined;
+        }
         this.activeRunsEmitter.dispose();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
@@ -1051,16 +1099,93 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
     }
 
-    /** Seed a model's history from the durable ledger once per model. */
-    private seedHistory(model: RunbookStudioDocumentModel): void {
+    /** Seed a model's history AND last-run presentation from the durable
+     *  ledger, once per model (called on document open and defensively at
+     *  run start). Interrupted journals for this runbook are sealed first
+     *  (honest "failed — interrupted" terminals), then the most recent
+     *  run's snapshot rehydrates as the default presentation so reopening
+     *  a runbook shows its prior results, not an empty page. */
+    public seedHistory(model: RunbookStudioDocumentModel): void {
         if (this.seededModels.has(model) || !model.artifact) {
             return;
         }
         this.seededModels.add(model);
-        const entries = this.ledger.listRuns(model.artifact.id);
-        if (entries.length > 0) {
-            model.seedHistory(entries);
+        const runbookId = model.artifact.id;
+        const context = newRunbookRootContext("persistence");
+        const sealedInterrupted = this.ledger.sealInterruptedRuns(
+            LocRunbookStudio.runInterrupted,
+            runbookId,
+        );
+        // A run that survived this window's panel close is still live:
+        // re-point its binding at the freshly opened model so boundary
+        // events keep painting into the new panel.
+        const liveBinding = this.activeByDocument.get(model.uriKey);
+        if (liveBinding && !liveBinding.runEnded) {
+            liveBinding.model = model;
         }
+        const entries = this.ledger.listRuns(runbookId);
+        if (entries.length === 0) {
+            return;
+        }
+        model.seedHistory(entries);
+        let rehydratedRun = false;
+        if (liveBinding && !liveBinding.runEnded) {
+            const liveSnapshot = this.ledger.snapshotOf(liveBinding.runId);
+            if (liveSnapshot) {
+                model.setActiveRun(liveSnapshot);
+                rehydratedRun = true;
+            }
+        } else {
+            const latest = this.ledger.snapshotOf(entries[0].runId);
+            if (latest) {
+                model.setActiveRun(latest);
+                rehydratedRun = true;
+            }
+        }
+        emitRunbookEvent(context, "runbookStudio.persistence.rehydrate", "ok", {
+            runbookIdDigest: metaField(shortDigest(runbookId)),
+            runCount: metaField(entries.length),
+            sealedInterrupted: metaField(sealedInterrupted),
+            rehydratedRun: metaField(rehydratedRun),
+        });
+    }
+
+    /** Retention sweep (construction-time, deferred): seal every orphaned
+     *  interrupted journal, expire runs beyond the newest N per runbook,
+     *  and drop result-payload directories with no surviving run. */
+    private sweepPersistence(): void {
+        const context = newRunbookRootContext("persistence");
+        const sealedInterrupted = this.ledger.sealInterruptedRuns(LocRunbookStudio.runInterrupted);
+        const runs = this.ledger.listAllRuns();
+        const expired = selectExpiredRuns(runs, RETAINED_RUNS_PER_RUNBOOK);
+        let deletedRuns = 0;
+        for (const runId of expired) {
+            if (this.activeByRunId.has(runId)) {
+                continue;
+            }
+            if (this.ledger.deleteRun(runId)) {
+                deletedRuns++;
+            }
+            this.resultStore.deleteRunResults(runId);
+        }
+        // Orphaned result directories: payloads whose run no longer exists
+        // anywhere in the ledger (e.g. records expired by another window).
+        const retained = new Set(
+            runs.filter((r) => !expired.includes(r.runId)).map((r) => sanitizeRunFileId(r.runId)),
+        );
+        let deletedResultDirs = 0;
+        for (const dirId of this.resultStore.listPersistedRunIds()) {
+            if (!retained.has(dirId)) {
+                this.resultStore.deleteRunResults(dirId);
+                deletedResultDirs++;
+            }
+        }
+        emitRunbookEvent(context, "runbookStudio.persistence.gc", "ok", {
+            scannedRuns: metaField(runs.length),
+            sealedInterrupted: metaField(sealedInterrupted),
+            expiredRuns: metaField(deletedRuns),
+            deletedResultDirs: metaField(deletedResultDirs),
+        });
     }
 
     private async ensureAdapter(
@@ -1387,6 +1512,48 @@ export function getRunbookStudioService(
         });
     }
     return serviceInstance;
+}
+
+/** Move ledger journals and sealed records from the pre-persistence
+ *  workspace-scoped root into the library-global root (one-time, cheap
+ *  renames; existing targets win). Results dirs did not exist before this
+ *  scheme, so only ledger/ and runs/ move. Best-effort: a failed move
+ *  leaves the file where it was. */
+function migrateLegacyRunStorage(legacyRoot: string, persistRoot: string): number {
+    if (path.resolve(legacyRoot) === path.resolve(persistRoot)) {
+        return 0;
+    }
+    let moved = 0;
+    for (const [subdir, suffix] of [
+        ["ledger", ".jsonl"],
+        ["runs", ".record.json"],
+    ] as const) {
+        const fromDir = path.join(legacyRoot, subdir);
+        const toDir = path.join(persistRoot, subdir);
+        let files: string[];
+        try {
+            files = fs.readdirSync(fromDir);
+        } catch {
+            continue; // No legacy directory — nothing to migrate.
+        }
+        for (const file of files) {
+            if (!file.endsWith(suffix)) {
+                continue;
+            }
+            const target = path.join(toDir, file);
+            try {
+                if (fs.existsSync(target)) {
+                    continue; // The global copy is authoritative.
+                }
+                fs.mkdirSync(toDir, { recursive: true });
+                fs.renameSync(path.join(fromDir, file), target);
+                moved++;
+            } catch {
+                // Locked/cross-device oddity: leave in place, stay honest.
+            }
+        }
+    }
+    return moved;
 }
 
 /** Library failure -> user-facing RbsError. Typed refusals (e.g. publish

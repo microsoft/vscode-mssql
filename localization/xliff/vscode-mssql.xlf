@@ -6704,6 +6704,9 @@
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
     </trans-unit>
+    <trans-unit id="++CODE++50542d086235eb060b315ec5c9cf8f330b28dce81ed9bb5df6185e5f2fa86329">
+      <source xml:lang="en">Run:</source>
+    </trans-unit>
     <trans-unit id="++CODE++88e8e90af4c101a3cd57319a60a15cce412316d3b0f647fbac16aab227e9f875">
       <source xml:lang="en">Runbook &apos;{0}&apos; and its run history were deleted.</source>
       <note>{0} is the runbook title</note>
@@ -8334,6 +8337,9 @@
     <trans-unit id="++CODE++843bcce36d1ca5118f54063e1406da612d49087e8748d603e1cdbc7003b42134">
       <source xml:lang="en">This output needs a date/time column to chart — showing the grid instead.</source>
     </trans-unit>
+    <trans-unit id="++CODE++54623e8b2c722f78d23fe37acdc9223f3d0afa167f91614fa16228823d9003c5">
+      <source xml:lang="en">This run did not finish — the window closed while it was still running.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d61a4b2a59e09dacacd07c8f32c2a1b3243269a241d27d5dac0f6b2ac82f41d9">
       <source xml:lang="en">This run has not produced any typed outputs.</source>
     </trans-unit>
@@ -8789,6 +8795,9 @@
     </trans-unit>
     <trans-unit id="++CODE++56f120aa5343154a3604fcd5db4e828f39dfa0b9d3e4786c687e287e37c45bcf">
       <source xml:lang="en">View provider terms</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f26efd3574998b71c05297305fb371e00bf20b98aa6d3468a944040eeb168f98">
+      <source xml:lang="en">View results</source>
     </trans-unit>
     <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
       <source xml:lang="en">View roadmap</source>

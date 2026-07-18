@@ -29,6 +29,7 @@ import {
     RbsRespondToGateRequest,
     RbsRoute,
     RbsRunEventNotification,
+    RbsSelectRunRequest,
     RbsStartRunRequest,
     RbsState,
     RbsSetOutputViewRequest,
@@ -85,6 +86,16 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             vscode.workspace.onDidGrantWorkspaceTrust(() => this.queueStatePush()),
         );
         this.registerDisposable(this.panel.onDidChangeViewState(() => this.queueStatePush()));
+
+        // Rehydrate history + last-run presentation from the durable ledger
+        // on OPEN (not first run) — feature-detected because the coordinator
+        // seam does not declare persistence (perf/test hosts inject fakes).
+        const seeding = coordinator as
+            | (RunbookRunCoordinator & {
+                  seedHistory?: (model: RunbookStudioDocumentModel) => void;
+              })
+            | undefined;
+        seeding?.seedHistory?.(this.model);
 
         void this.whenWebviewReady()
             .then(() => this.endOpenMarker("ok"))
@@ -210,6 +221,21 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
 
         this.onRequest(RbsGetRunRequest.type, async ({ runId }) => {
             return this.coordinator?.getRun(this.model, runId);
+        });
+
+        this.onRequest(RbsSelectRunRequest.type, async ({ runId }) => {
+            if (!this.coordinator) {
+                return { ok: false };
+            }
+            // The ledger resolves sealed records across restarts; an
+            // unknown or unreadable run refuses honestly (the picker entry
+            // stays, the presentation does not change).
+            const snapshot = await this.coordinator.getRun(this.model, runId);
+            if (!snapshot) {
+                return { ok: false };
+            }
+            this.model.selectRun(snapshot);
+            return { ok: true };
         });
 
         this.onRequest(RbsFetchOutputPageRequest.type, async (page) => {
@@ -345,20 +371,29 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             };
         }
         // Pure resolution (rendering spec: deterministic, zero model calls,
-        // handles only). Same-process official candidate marker pair.
+        // handles only) for the SELECTED run — the user's History pick, or
+        // the active/most recent run by default. Same-process official
+        // candidate marker pair.
+        const displayRun = model.displayRun;
         let presentation: ReturnType<typeof resolvePresentation> | undefined;
-        if (model.activeRun) {
+        if (displayRun) {
             Perf.marker("mssql.runbookStudio.presentation.resolve.begin", "begin");
             presentation = resolvePresentation(
                 validatePresentationDefinition(artifact?.presentation),
-                model.activeRun,
+                displayRun,
             );
             Perf.marker("mssql.runbookStudio.presentation.resolve.end", "end", {
                 widgetCount: presentation.sections.reduce((n, s) => n + s.widgets.length, 0),
                 sectionCount: presentation.sections.length,
-                nodeCount: model.activeRun.nodes.length,
+                nodeCount: displayRun.nodes.length,
             });
         }
+        const availableRuns = model.history.map((entry) => ({
+            runId: entry.runId,
+            ...(entry.startedEpochMs ? { startedEpochMs: entry.startedEpochMs } : {}),
+            state: entry.state,
+            ...(entry.verdict ? { verdict: entry.verdict } : {}),
+        }));
         return {
             schemaVersion: RBS_STATE_SCHEMA_VERSION,
             documentKind: model.documentKind,
@@ -366,7 +401,9 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             workspaceTrusted: vscode.workspace.isTrusted,
             ...(summary ? { artifact: summary } : {}),
             ...(model.artifactError ? { artifactError: model.artifactError } : {}),
-            ...(model.activeRun ? { run: model.activeRun } : {}),
+            ...(displayRun ? { run: displayRun } : {}),
+            ...(displayRun ? { selectedRunId: displayRun.runId } : {}),
+            ...(availableRuns.length > 0 ? { availableRuns } : {}),
             ...(presentation ? { presentation } : {}),
             history: model.history,
             debugEnabled: vscode.workspace

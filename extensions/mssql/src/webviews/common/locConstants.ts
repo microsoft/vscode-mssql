@@ -3646,6 +3646,8 @@ export class LocConstants {
             mutatingChip: l10n.t("mutating"),
             approvalChip: l10n.t("approval"),
             queuedLabel: l10n.t("Queued."),
+            resultsRunPicker: l10n.t("Run:"),
+            viewResults: l10n.t("View results"),
             waitingOn: (steps: string) =>
                 l10n.t({
                     message: "Waiting on: {0}",

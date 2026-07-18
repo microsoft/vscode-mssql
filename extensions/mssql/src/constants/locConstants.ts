@@ -63,6 +63,9 @@ export class RunbookStudio {
     );
     public static runtimeStartFailed = l10n.t("The runbook runtime failed to start the run.");
     public static runtimeExited = l10n.t("The runbook runtime exited unexpectedly.");
+    public static runInterrupted = l10n.t(
+        "This run did not finish — the window closed while it was still running.",
+    );
     public static runtimeKindUnavailable = (kind: string) =>
         l10n.t({
             message:

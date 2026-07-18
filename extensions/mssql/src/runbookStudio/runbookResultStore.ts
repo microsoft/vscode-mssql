@@ -4,53 +4,129 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Typed output store (ADR-5, first slice): runtime boundary payloads become
- * opaque handles; the webview pulls bounded pages through the controller.
- * This slice is in-memory with per-run byte quotas — an evicted or lost
- * handle renders as "detail data expired", never as an empty result
- * (rendering-spec honesty rule). Disk spill + retention land with RBS2-5's
- * result-store hardening.
+ * Typed output store (ADR-5): runtime boundary payloads become opaque
+ * handles; the webview pulls bounded pages through the controller. Accepted
+ * payloads are byte-capped with HONEST truncation marking, spilled to disk
+ * (write-through at put time), and lazily rehydrated on a fetch miss after
+ * restart — a run's results survive the window that produced them. An
+ * evicted or unrecoverable handle renders as "detail data expired", never
+ * as an empty result (rendering-spec honesty rule).
+ *
+ * Layout: <resultsDir>/<runId>/index.json     (handleId -> file map, versioned)
+ *         <resultsDir>/<runId>/h_<n>.json     (one bounded payload each)
  */
 
+import * as fs from "fs";
+import * as path from "path";
 import { DataHandleRef } from "../sharedInterfaces/runbookStudio";
+import { sanitizeRunFileId } from "./runbookRunLedger";
 import type { RuntimeOutputPayload } from "./runtime/runtimeAdapterTypes";
 
 interface StoredOutput {
     payload: RuntimeOutputPayload;
     bytes: number;
+    truncated?: boolean;
+}
+
+export const RESULT_INDEX_SCHEMA_VERSION = 1;
+
+interface ResultIndexEntry {
+    handleId: string;
+    /** File name inside the run directory holding the payload wrapper. */
+    file: string;
+    contract: string;
+    rows?: number;
+    bytes: number;
+    truncated?: boolean;
+}
+
+interface ResultIndexFile {
+    schemaVersion: number;
+    runId: string;
+    entries: ResultIndexEntry[];
+}
+
+interface ResultPayloadFile {
+    schemaVersion: number;
+    handleId: string;
+    truncated?: boolean;
+    payload: RuntimeOutputPayload;
 }
 
 const MAX_BYTES_PER_RUN = 32 * 1024 * 1024;
 const MAX_PAGE_ROWS = 1000;
+/** Per-payload retention cap; larger payloads keep a bounded prefix and are
+ *  marked truncated (rows are additionally row-capped by the producing lane). */
+const DEFAULT_MAX_PAYLOAD_BYTES = 1024 * 1024;
+
+export interface RunbookResultStoreOptions {
+    /** Injectable for tests; production uses the 1MB default. */
+    maxPayloadBytes?: number;
+    /** Persistence problems surface here (the store stays diag-free). */
+    onPersistenceIssue?: (kind: string, detail: string) => void;
+}
 
 export class RunbookResultStore {
     private readonly outputs = new Map<string, StoredOutput>();
     private readonly runBytes = new Map<string, number>();
     private handleCounter = 0;
+    private readonly maxPayloadBytes: number;
+    private readonly onPersistenceIssue: (kind: string, detail: string) => void;
 
-    /** Store one boundary payload; returns the handle ref for the ledger. */
+    constructor(
+        /** Absent = memory-only (test hosts); results then do not survive restart. */
+        private readonly resultsDir?: string,
+        options?: RunbookResultStoreOptions,
+    ) {
+        this.maxPayloadBytes = options?.maxPayloadBytes ?? DEFAULT_MAX_PAYLOAD_BYTES;
+        this.onPersistenceIssue = options?.onPersistenceIssue ?? (() => undefined);
+    }
+
+    /** Store one boundary payload; returns the handle ref for the ledger.
+     *  The ref (and the ledger event that carries it) is the durable name;
+     *  the payload spills to disk write-through so a later session can
+     *  serve it again. */
     public put(runId: string, nodeId: string, payload: RuntimeOutputPayload): DataHandleRef {
         this.handleCounter++;
         const handleId = `${runId}/${nodeId}/${this.handleCounter.toString(36)}`;
-        const bytes = approximateBytes(payload);
-        const used = this.runBytes.get(runId) ?? 0;
-        if (used + bytes > MAX_BYTES_PER_RUN) {
-            // Over quota: the handle exists but its detail is not retained.
+        const bounded = boundPayload(payload, this.maxPayloadBytes);
+        if (!bounded) {
+            // Cannot be bounded under the cap (no rows/text to trim): the
+            // handle exists but its detail is not retained.
             return {
                 handleId,
                 contract: payload.contract,
                 ...(payload.rows ? { rows: payload.rows.length } : {}),
-                bytes,
+                bytes: approximateBytes(payload),
                 expired: true,
             };
         }
-        this.outputs.set(handleId, { payload, bytes });
-        this.runBytes.set(runId, used + bytes);
+        const used = this.runBytes.get(runId) ?? 0;
+        if (used + bounded.bytes > MAX_BYTES_PER_RUN) {
+            // Over the per-run quota: the handle exists but its detail is
+            // not retained (and never spills).
+            return {
+                handleId,
+                contract: payload.contract,
+                ...(payload.rows ? { rows: payload.rows.length } : {}),
+                bytes: bounded.bytes,
+                expired: true,
+            };
+        }
+        const stored: StoredOutput = {
+            payload: bounded.payload,
+            bytes: bounded.bytes,
+            ...(bounded.truncated ? { truncated: true } : {}),
+        };
+        this.outputs.set(handleId, stored);
+        this.runBytes.set(runId, used + bounded.bytes);
+        this.spill(runId, handleId, stored);
         return {
             handleId,
             contract: payload.contract,
-            ...(payload.rows ? { rows: payload.rows.length } : {}),
-            bytes,
+            ...(bounded.payload.rows ? { rows: bounded.payload.rows.length } : {}),
+            bytes: bounded.bytes,
+            ...(bounded.truncated ? { truncated: true } : {}),
         };
     }
 
@@ -63,13 +139,15 @@ export class RunbookResultStore {
               columns?: string[];
               rows?: Array<Array<string | number | boolean | null>>;
               totalRows?: number;
+              truncated?: boolean;
           }
         | undefined {
-        const stored = this.outputs.get(handleId);
+        const stored = this.outputs.get(handleId) ?? this.rehydrate(handleId);
         if (!stored) {
             return undefined;
         }
         const payload = stored.payload;
+        const truncatedMark = stored.truncated ? { truncated: true } : {};
         if (payload.rows) {
             const start = Math.max(0, startRow);
             const count = Math.min(Math.max(0, rowCount), MAX_PAGE_ROWS);
@@ -77,29 +155,204 @@ export class RunbookResultStore {
                 ...(payload.columns ? { columns: payload.columns } : {}),
                 rows: payload.rows.slice(start, start + count),
                 totalRows: payload.rows.length,
+                ...truncatedMark,
             };
         }
         if (payload.text !== undefined) {
-            return { columns: ["text"], rows: [[payload.text]], totalRows: 1 };
+            return { columns: ["text"], rows: [[payload.text]], totalRows: 1, ...truncatedMark };
         }
         if (payload.scalars) {
             return {
                 columns: ["name", "value"],
                 rows: Object.entries(payload.scalars).map(([k, v]) => [k, v]),
                 totalRows: Object.keys(payload.scalars).length,
+                ...truncatedMark,
             };
         }
-        return { rows: [], totalRows: 0 };
+        return { rows: [], totalRows: 0, ...truncatedMark };
     }
 
-    public dropRun(runId: string): void {
+    /** Drop a run's payloads from memory AND disk (retention GC / delete). */
+    public deleteRunResults(runId: string): void {
         for (const handleId of [...this.outputs.keys()]) {
             if (handleId.startsWith(`${runId}/`)) {
                 this.outputs.delete(handleId);
             }
         }
         this.runBytes.delete(runId);
+        if (!this.resultsDir) {
+            return;
+        }
+        try {
+            fs.rmSync(this.runDir(runId), { recursive: true, force: true });
+        } catch (error) {
+            this.onPersistenceIssue("deleteFailed", describeError(error));
+        }
     }
+
+    /** Persisted run directories (sanitized run ids) — GC orphan sweep. */
+    public listPersistedRunIds(): string[] {
+        if (!this.resultsDir) {
+            return [];
+        }
+        try {
+            return fs
+                .readdirSync(this.resultsDir, { withFileTypes: true })
+                .filter((entry) => entry.isDirectory())
+                .map((entry) => entry.name);
+        } catch {
+            return [];
+        }
+    }
+
+    // -- persistence internals ----------------------------------------------
+
+    private runDir(runId: string): string {
+        // resultsDir is always set on paths that call this.
+        return path.join(this.resultsDir!, sanitizeRunFileId(runId));
+    }
+
+    /** Write-through spill: payload file first, then the index (tmp+rename
+     *  so a crash never leaves a torn index). Failures are reported and the
+     *  in-memory copy stays valid — this session still renders. */
+    private spill(runId: string, handleId: string, stored: StoredOutput): void {
+        if (!this.resultsDir) {
+            return;
+        }
+        try {
+            const dir = this.runDir(runId);
+            fs.mkdirSync(dir, { recursive: true });
+            const file = `h_${this.handleCounter.toString(36)}.json`;
+            const wrapper: ResultPayloadFile = {
+                schemaVersion: RESULT_INDEX_SCHEMA_VERSION,
+                handleId,
+                ...(stored.truncated ? { truncated: true } : {}),
+                payload: stored.payload,
+            };
+            fs.writeFileSync(path.join(dir, file), JSON.stringify(wrapper));
+            const index = this.readIndex(runId) ?? {
+                schemaVersion: RESULT_INDEX_SCHEMA_VERSION,
+                runId,
+                entries: [],
+            };
+            index.entries = index.entries.filter((e) => e.handleId !== handleId);
+            index.entries.push({
+                handleId,
+                file,
+                contract: stored.payload.contract,
+                ...(stored.payload.rows ? { rows: stored.payload.rows.length } : {}),
+                bytes: stored.bytes,
+                ...(stored.truncated ? { truncated: true } : {}),
+            });
+            const indexPath = path.join(dir, "index.json");
+            const tempPath = indexPath + ".tmp";
+            fs.writeFileSync(tempPath, JSON.stringify(index));
+            fs.renameSync(tempPath, indexPath);
+        } catch (error) {
+            this.onPersistenceIssue("spillFailed", describeError(error));
+        }
+    }
+
+    /** Lazy rehydration on a fetch miss: resolve the handle through the
+     *  run's index, load ONLY that payload, and cache it. Any mismatch or
+     *  unreadable file resolves to undefined — expired, never invented. */
+    private rehydrate(handleId: string): StoredOutput | undefined {
+        if (!this.resultsDir) {
+            return undefined;
+        }
+        const runId = handleId.split("/")[0];
+        if (!runId || runId === handleId) {
+            return undefined;
+        }
+        const index = this.readIndex(runId);
+        const entry = index?.entries.find((e) => e.handleId === handleId);
+        if (!entry) {
+            return undefined;
+        }
+        try {
+            const wrapper = JSON.parse(
+                fs.readFileSync(path.join(this.runDir(runId), entry.file), "utf8"),
+            ) as ResultPayloadFile;
+            if (
+                wrapper.schemaVersion !== RESULT_INDEX_SCHEMA_VERSION ||
+                wrapper.handleId !== handleId ||
+                typeof wrapper.payload?.contract !== "string"
+            ) {
+                return undefined;
+            }
+            const stored: StoredOutput = {
+                payload: wrapper.payload,
+                bytes: entry.bytes,
+                ...(wrapper.truncated ? { truncated: true } : {}),
+            };
+            this.outputs.set(handleId, stored);
+            this.runBytes.set(runId, (this.runBytes.get(runId) ?? 0) + entry.bytes);
+            return stored;
+        } catch (error) {
+            this.onPersistenceIssue("rehydrateFailed", describeError(error));
+            return undefined;
+        }
+    }
+
+    private readIndex(runId: string): ResultIndexFile | undefined {
+        try {
+            const index = JSON.parse(
+                fs.readFileSync(path.join(this.runDir(runId), "index.json"), "utf8"),
+            ) as ResultIndexFile;
+            if (
+                index.schemaVersion !== RESULT_INDEX_SCHEMA_VERSION ||
+                !Array.isArray(index.entries)
+            ) {
+                return undefined;
+            }
+            return index;
+        } catch {
+            return undefined;
+        }
+    }
+}
+
+/**
+ * Enforce the per-payload byte cap with honest truncation: rows keep a
+ * bounded prefix, text keeps a bounded prefix, and anything that still
+ * cannot fit refuses retention (undefined -> expired handle). Pure.
+ */
+export function boundPayload(
+    payload: RuntimeOutputPayload,
+    maxBytes: number,
+): { payload: RuntimeOutputPayload; bytes: number; truncated?: boolean } | undefined {
+    let bytes = approximateBytes(payload);
+    if (bytes <= maxBytes) {
+        return { payload, bytes };
+    }
+    if (payload.rows && payload.rows.length > 0) {
+        let keep = Math.max(1, Math.floor((payload.rows.length * maxBytes) / bytes));
+        for (;;) {
+            const candidate = { ...payload, rows: payload.rows.slice(0, keep) };
+            bytes = approximateBytes(candidate);
+            if (bytes <= maxBytes) {
+                return { payload: candidate, bytes, truncated: true };
+            }
+            if (keep === 0) {
+                break;
+            }
+            keep = Math.floor(keep / 2);
+        }
+        return undefined;
+    }
+    if (payload.text !== undefined && payload.text.length > 0) {
+        let keep = payload.text.length;
+        while (keep > 0) {
+            keep = Math.floor(keep / 2);
+            const candidate = { ...payload, text: payload.text.slice(0, keep) };
+            bytes = approximateBytes(candidate);
+            if (bytes <= maxBytes) {
+                return { payload: candidate, bytes, truncated: true };
+            }
+        }
+        return undefined;
+    }
+    return undefined;
 }
 
 function approximateBytes(payload: RuntimeOutputPayload): number {
@@ -108,4 +361,8 @@ function approximateBytes(payload: RuntimeOutputPayload): number {
     } catch {
         return 0;
     }
+}
+
+function describeError(error: unknown): string {
+    return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 }

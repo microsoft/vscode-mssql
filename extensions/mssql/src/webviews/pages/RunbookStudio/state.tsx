@@ -31,6 +31,7 @@ import {
     RbsRespondToGateRequest,
     RbsRoute,
     RbsRunEventNotification,
+    RbsSelectRunRequest,
     RbsSetOutputViewRequest,
     RbsStartRunRequest,
     RbsState,
@@ -204,6 +205,8 @@ interface RbsContextValue {
     parameterDraft: Record<string, string>;
     setParameterDraft: (id: string, value: string) => void;
     setOutputView: (nodeId: string, view: ViewKind | undefined) => Promise<boolean>;
+    /** Show a prior run's results (persistence-backed). */
+    selectRun: (runId: string) => Promise<boolean>;
     startRun: (
         parameterValues: Record<string, string | number | boolean | null>,
     ) => Promise<string | undefined>;
@@ -323,6 +326,14 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const selectRun = useCallback(
+        async (runId: string): Promise<boolean> => {
+            const result = await rpc.sendRequest(RbsSelectRunRequest.type, { runId });
+            return result.ok;
+        },
+        [rpc],
+    );
+
     const startRun = useCallback(
         async (
             parameterValues: Record<string, string | number | boolean | null>,
@@ -392,6 +403,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             parameterDraft,
             setParameterDraft,
             setOutputView,
+            selectRun,
             startRun,
             cancelRun,
             respondToGate,
@@ -414,6 +426,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             parameterDraft,
             setParameterDraft,
             setOutputView,
+            selectRun,
             startRun,
             cancelRun,
             respondToGate,

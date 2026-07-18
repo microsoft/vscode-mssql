@@ -36,6 +36,7 @@
     "The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.": "The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.",
     "The runbook runtime failed to start the run.": "The runbook runtime failed to start the run.",
     "The runbook runtime exited unexpectedly.": "The runbook runtime exited unexpectedly.",
+    "This run did not finish — the window closed while it was still running.": "This run did not finish — the window closed while it was still running.",
     "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime./{0} is a configuration value": {
         "message": "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime.",
         "comment": ["{0} is a configuration value"]
@@ -4522,6 +4523,8 @@
     "mutating": "mutating",
     "approval": "approval",
     "Queued.": "Queued.",
+    "Run:": "Run:",
+    "View results": "View results",
     "Waiting on: {0}/{0} comma-separated names of steps this one depends on": {
         "message": "Waiting on: {0}",
         "comment": ["{0} comma-separated names of steps this one depends on"]
