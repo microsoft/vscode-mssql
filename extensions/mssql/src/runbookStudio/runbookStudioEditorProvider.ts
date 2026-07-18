@@ -25,6 +25,7 @@ import {
     createFixtureRunbookArtifact,
     createNewRunbookArtifact,
 } from "./runbookArtifact";
+import { RUNBOOK_FS_SCHEME, RunbookFileSystemProvider } from "./runbookFileSystem";
 import { registerRunbookLibrary } from "./runbookLibraryProvider";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import { RunbookStudioController } from "./runbookStudioController";
@@ -140,6 +141,21 @@ function registerRunbookStudioFeatures(
     context: vscode.ExtensionContext,
     coordinatorFactory: () => RunbookRunCoordinator | undefined,
 ): void {
+    // Virtual runbook documents (D-0014 step c): the mssql-runbook: FS
+    // provider MUST register BEFORE the custom editor. On hot-exit restore
+    // VS Code rehydrates the text model (readFile on the virtual URI)
+    // while resolving the restored tab, so the scheme has to be servable
+    // the moment the editor can resolve. It must also register even in
+    // sessions where no Runbook Studio panel ever opens — a restored
+    // window may carry mssql-runbook: tabs (or their backups) from a
+    // previous session, and readFile arrives before any panel exists.
+    context.subscriptions.push(
+        vscode.workspace.registerFileSystemProvider(
+            RUNBOOK_FS_SCHEME,
+            new RunbookFileSystemProvider(context.globalStorageUri),
+            { isCaseSensitive: true },
+        ),
+    );
     const provider = new RunbookStudioEditorProvider(context, coordinatorFactory);
     runStatusBar = new RunbookRunStatusBar();
     context.subscriptions.push(

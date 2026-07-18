@@ -39,6 +39,7 @@
         "onUri",
         "onCustomEditor:mssql.queryStudio",
         "onCommand:mssql.loadCompletionExtension",
+        "onFileSystem:mssql-runbook",
         "onNotebook:jupyter-notebook"
     ],
     "main": "./dist/extension",

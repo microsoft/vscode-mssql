@@ -17,18 +17,57 @@ import * as vscode from "vscode";
 
 const STASH_SEGMENTS = ["runbookStudio", "library"] as const;
 
+/** Suffix every stash file (and virtual runbook document) carries. */
+export const STASH_FILE_SUFFIX = ".runbook.json";
+
 /** Filesystem-safe projection of an asset id (deterministic, both ways). */
 export function sanitizeAssetId(assetId: string): string {
     return assetId.replace(/[^A-Za-z0-9._-]/g, "_");
 }
 
+/** The stash directory URI (existence not implied). */
+export function stashDirectoryUri(globalStorageUri: vscode.Uri): vscode.Uri {
+    return vscode.Uri.joinPath(globalStorageUri, ...STASH_SEGMENTS);
+}
+
 /** The stash file URI for an asset (existence not implied). */
 export function stashUri(globalStorageUri: vscode.Uri, assetId: string): vscode.Uri {
-    return vscode.Uri.joinPath(
-        globalStorageUri,
-        ...STASH_SEGMENTS,
-        `${sanitizeAssetId(assetId)}.runbook.json`,
-    );
+    return stashEntryUri(globalStorageUri, `${sanitizeAssetId(assetId)}${STASH_FILE_SUFFIX}`);
+}
+
+/** A stash entry addressed by FILE NAME — the FS provider's unit: virtual
+ *  document paths carry the sanitized file name, not the raw asset id. */
+export function stashEntryUri(globalStorageUri: vscode.Uri, fileName: string): vscode.Uri {
+    return vscode.Uri.joinPath(stashDirectoryUri(globalStorageUri), fileName);
+}
+
+/** Stat a stash entry by file name; undefined when absent. */
+export async function statStash(
+    globalStorageUri: vscode.Uri,
+    fileName: string,
+): Promise<vscode.FileStat | undefined> {
+    try {
+        return await vscode.workspace.fs.stat(stashEntryUri(globalStorageUri, fileName));
+    } catch {
+        return undefined;
+    }
+}
+
+/** Stash file names, listing order as the filesystem yields it. An absent
+ *  stash directory lists empty — the library exists before its first write. */
+export async function listStash(globalStorageUri: vscode.Uri): Promise<string[]> {
+    try {
+        const entries = await vscode.workspace.fs.readDirectory(
+            stashDirectoryUri(globalStorageUri),
+        );
+        return entries
+            .filter(
+                ([name, type]) => type === vscode.FileType.File && name.endsWith(STASH_FILE_SUFFIX),
+            )
+            .map(([name]) => name);
+    } catch {
+        return [];
+    }
 }
 
 /** Write (or overwrite) the stashed artifact JSON; returns the file URI. */
@@ -37,9 +76,7 @@ export async function writeStash(
     assetId: string,
     artifactJson: string,
 ): Promise<vscode.Uri> {
-    await vscode.workspace.fs.createDirectory(
-        vscode.Uri.joinPath(globalStorageUri, ...STASH_SEGMENTS),
-    );
+    await vscode.workspace.fs.createDirectory(stashDirectoryUri(globalStorageUri));
     const target = stashUri(globalStorageUri, assetId);
     await vscode.workspace.fs.writeFile(target, Buffer.from(artifactJson, "utf8"));
     return target;

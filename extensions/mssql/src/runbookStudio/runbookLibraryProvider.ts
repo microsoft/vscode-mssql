@@ -25,8 +25,9 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { RunbookArtifactFile } from "../sharedInterfaces/runbookStudio";
-import { readStash, sanitizeAssetId, stashUri, writeStash } from "./libraryStash";
+import { readStash, sanitizeAssetId, writeStash } from "./libraryStash";
 import { canonicalizeRunbookArtifact, createNewRunbookArtifact } from "./runbookArtifact";
+import { runbookVirtualUri } from "./runbookFileSystem";
 import {
     collectLibraryGroups,
     isArchivedLibraryAsset,
@@ -398,9 +399,14 @@ export function registerRunbookLibrary(
             if (stashed === undefined && !(await ensureStashed(node.asset.id))) {
                 return;
             }
+            // Virtual scheme (D-0014 step c): open mssql-runbook:/<id>
+            // instead of the stash's file: path — the FS provider serves the
+            // same stash bytes, and hot exit restores a clean library URI
+            // rather than a globalStorage path. Previously-opened stash-path
+            // (file:) tabs keep working; new opens prefer the virtual URI.
             await vscode.commands.executeCommand(
                 "vscode.openWith",
-                stashUri(context.globalStorageUri, node.asset.id),
+                runbookVirtualUri(node.asset.id),
                 RUNBOOK_EDITOR_VIEW_TYPE,
             );
         }),
@@ -745,9 +751,12 @@ export function registerRunbookLibrary(
                     return;
                 }
                 provider.refresh();
+                // Same virtual-scheme rationale as the open command: the new
+                // draft's document lives on mssql-runbook:, never on the
+                // stash's real path.
                 await vscode.commands.executeCommand(
                     "vscode.openWith",
-                    stashUri(context.globalStorageUri, id),
+                    runbookVirtualUri(id),
                     RUNBOOK_EDITOR_VIEW_TYPE,
                 );
             },
