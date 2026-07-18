@@ -16,6 +16,7 @@ import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
     RbsArtifactSummary,
     RbsRoute,
+    RunbookNodeSnapshot,
     RunbookParameterDefinition,
     RunbookPlanNode,
     RunbookRunSnapshot,
@@ -319,6 +320,11 @@ function GenerationConsole() {
                             {plannerConsole.phase}
                         </span>
                     </>
+                ) : null}
+                {plannerConsole.model ? (
+                    <span className="rbs-chip rbs-mono" title={plannerConsole.model.providerLabel}>
+                        {loc.modelChip(plannerConsole.model.id)}
+                    </span>
                 ) : null}
                 <div className="rbs-spacer" />
                 {!compiling ? (
@@ -764,8 +770,94 @@ function stepImpactChip(node: RunbookPlanNode | undefined): string | undefined {
     return node.blastRadius.operation === "read" ? loc.readOnlyChip : loc.mutatingChip;
 }
 
+/** Minimal duplicate of the Plan page's StepDetails (planStepper.tsx does
+ *  not export it): the SAME authored data the Plan page shows — SQL inputs
+ *  as a code block, every other input as key → value rows. */
+function TimelineStepDetails({ node }: { node: RunbookPlanNode }) {
+    const loc = locConstants.runbookStudio;
+    const inputs = Object.entries(node.inputs ?? {});
+    const sql = typeof node.inputs?.sql === "string" ? node.inputs.sql : undefined;
+    const rest = inputs.filter(([key]) => key !== "sql");
+    if (!sql && rest.length === 0) {
+        return null;
+    }
+    return (
+        <div className="rbs-step-details">
+            {sql ? <pre className="rbs-code rbs-mono">{sql}</pre> : null}
+            {rest.length > 0 ? (
+                <dl className="rbs-kv" aria-label={loc.stepInputs}>
+                    {rest.map(([key, value]) => (
+                        <div className="rbs-kv-row" key={key}>
+                            <dt className="rbs-kv-key rbs-mono">{key}</dt>
+                            <dd className="rbs-kv-value rbs-mono">
+                                {typeof value === "string" ? value : JSON.stringify(value)}
+                            </dd>
+                        </div>
+                    ))}
+                </dl>
+            ) : null}
+        </div>
+    );
+}
+
+/** Live "Working — Ns elapsed" line for an expanded RUNNING step. Mounted
+ *  only while the step is expanded AND running, so the 1s ticker exists
+ *  exactly then and never outside that window. */
+function TimelineRunningLine({ sinceMs }: { sinceMs: number | undefined }) {
+    const loc = locConstants.runbookStudio;
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        const timer = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+    const seconds = sinceMs !== undefined ? Math.max(0, Math.floor((now - sinceMs) / 1000)) : 0;
+    return (
+        <div className="rbs-tl-working" role="status">
+            <span className="rbs-spinner rbs-spinner-sm" aria-hidden />
+            <span>{loc.workingElapsed(seconds)}</span>
+        </div>
+    );
+}
+
+/** Expanded timeline step panel: the authored step detail, a live elapsed
+ *  line while the step runs, and the resolved result widgets that have
+ *  streamed in for this node so far (completed steps show their tables and
+ *  charts inline; running steps show whatever has arrived). */
+function TimelineStepPanel({
+    nodeId,
+    plan,
+    snapshot,
+    runningSinceMs,
+}: {
+    nodeId: string;
+    plan: RunbookPlanNode | undefined;
+    snapshot: RunbookNodeSnapshot | undefined;
+    runningSinceMs: number | undefined;
+}) {
+    const { state } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const widgets = (state?.presentation?.sections ?? [])
+        .flatMap((section) => section.widgets)
+        .filter((widget) => widget.nodeId === nodeId);
+    return (
+        <div className="rbs-tl-panel">
+            {plan ? <TimelineStepDetails node={plan} /> : null}
+            {snapshot?.state === "running" ? (
+                <TimelineRunningLine sinceMs={runningSinceMs} />
+            ) : null}
+            {widgets.length > 0 ? (
+                widgets.map((widget) => <ResolvedWidgetView key={widget.id} widget={widget} />)
+            ) : (
+                <div className="rbs-muted">{loc.widgetPending}</div>
+            )}
+        </div>
+    );
+}
+
 /** The mockup's "status timeline — what happened": plan-ordered step rows
- *  with state icon, impact chip, outcome one-liner, and duration. */
+ *  with state icon, impact chip, outcome one-liner, and duration. Every row
+ *  expands (chevron affordance) to the authored step detail, live progress
+ *  while running, and the results streamed in so far. */
 function RunTimeline({
     run,
     artifact,
@@ -774,6 +866,26 @@ function RunTimeline({
     artifact: RbsArtifactSummary | undefined;
 }) {
     const loc = locConstants.runbookStudio;
+    const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
+    // The run snapshot carries no reliable node start epoch, so track when
+    // each node is FIRST SEEN running client-side; the entry drops once the
+    // node leaves that state (terminal states show durationMs instead).
+    // Synced during render — idempotent set-if-absent — so the very render
+    // that observes the running transition already has the epoch to hand
+    // even if no further snapshot pushes arrive while the node runs.
+    const runningSinceRef = useRef<Map<string, number>>(new Map());
+    const runningSince = runningSinceRef.current;
+    const runningNow = new Set(run.nodes.filter((n) => n.state === "running").map((n) => n.nodeId));
+    for (const id of runningNow) {
+        if (!runningSince.has(id)) {
+            runningSince.set(id, Date.now());
+        }
+    }
+    for (const id of Array.from(runningSince.keys())) {
+        if (!runningNow.has(id)) {
+            runningSince.delete(id);
+        }
+    }
     const planNodes = new Map((artifact?.nodes ?? []).map((n) => [n.id, n]));
     const ordered =
         artifact && artifact.nodes.length > 0
@@ -793,13 +905,26 @@ function RunTimeline({
                     const plan = planNodes.get(nodeId);
                     const nodeState = snapshot?.state ?? "pending";
                     const chip = stepImpactChip(plan);
+                    const isExpanded = expandedSteps[nodeId] === true;
                     return (
                         <li className={`rbs-timeline-row rbs-tl-${nodeState}`} key={nodeId}>
                             <span aria-hidden className={`rbs-tl-icon rbs-tl-icon-${nodeState}`}>
                                 {timelineIcon(nodeState)}
                             </span>
                             <div className="rbs-tl-body">
-                                <div className="rbs-tl-head">
+                                <button
+                                    type="button"
+                                    className="rbs-tl-head rbs-tl-toggle"
+                                    aria-expanded={isExpanded}
+                                    onClick={() =>
+                                        setExpandedSteps((current) => ({
+                                            ...current,
+                                            [nodeId]: !current[nodeId],
+                                        }))
+                                    }>
+                                    <span aria-hidden className="rbs-tl-chevron">
+                                        {isExpanded ? "▾" : "▸"}
+                                    </span>
                                     <span className="rbs-tl-label">{plan?.label ?? nodeId}</span>
                                     {chip ? <span className="rbs-chip">{chip}</span> : null}
                                     <span className="rbs-tl-duration rbs-mono">
@@ -809,11 +934,26 @@ function RunTimeline({
                                               ? ""
                                               : "—"}
                                     </span>
-                                </div>
-                                <div className="rbs-muted">
+                                </button>
+                                <div
+                                    className={
+                                        nodeState === "failed" && snapshot?.message
+                                            ? "rbs-tl-error"
+                                            : "rbs-muted"
+                                    }>
                                     {snapshot?.message ??
                                         (nodeState === "pending" ? loc.queuedLabel : nodeState)}
                                 </div>
+                                {isExpanded ? (
+                                    <TimelineStepPanel
+                                        nodeId={nodeId}
+                                        plan={plan}
+                                        snapshot={snapshot}
+                                        runningSinceMs={
+                                            snapshot?.startedEpochMs ?? runningSince.get(nodeId)
+                                        }
+                                    />
+                                ) : null}
                             </div>
                         </li>
                     );

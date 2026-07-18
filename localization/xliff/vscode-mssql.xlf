@@ -8895,6 +8895,10 @@
     <trans-unit id="++CODE++dda379c1b90e63c1090d0ee8893f3eee47834358e1e1c8b9413cbd73cf992f17">
       <source xml:lang="en">Workflow steps</source>
     </trans-unit>
+    <trans-unit id="++CODE++b3acc4df0d8c011a57c3a09a01483123b82fc2b527dc4d3df34c887296cd06dd">
+      <source xml:lang="en">Working — {0}s elapsed</source>
+      <note>{0} is a whole number of seconds</note>
+    </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
     </trans-unit>
@@ -9102,6 +9106,10 @@
     </trans-unit>
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10617d30f38e16b600a8b1f5cee26f8fd9aa146f18ea7649c25fb6dd9f5814e2">
+      <source xml:lang="en">model {0}</source>
+      <note>{0} is a model identifier</note>
     </trans-unit>
     <trans-unit id="++CODE++b80012851cf027c6d8adda328907d400c95773958fb4fec3e544a02cd5eeab0e">
       <source xml:lang="en">modified</source>

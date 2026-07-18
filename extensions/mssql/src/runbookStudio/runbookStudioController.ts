@@ -147,6 +147,9 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             if (!this.coordinator) {
                 return { ok: false, error: this.runtimeUnavailableError() };
             }
+            // Best-effort model chip for the generation console — resolved
+            // in parallel, fire-and-forget; the compile never waits on it.
+            this.sendPlannerModelEvent(this.coordinator);
             // Forward each planner console event as-is — the adapter already
             // coalesces reasoning deltas, so no extra throttling here.
             return this.coordinator.compileIntent(this.model, intent, (event) => {
@@ -236,6 +239,39 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             });
             return { opened: true };
         });
+    }
+
+    /** Fire-and-forget "model" console event: resolve the planner model id
+     *  from the coordinator's model configuration (feature-detected — the
+     *  RunbookRunCoordinator interface does not declare it) so the
+     *  generation console can show a model chip. Display-only; this never
+     *  blocks and never fails the compile. */
+    private sendPlannerModelEvent(coordinator: RunbookRunCoordinator): void {
+        const candidate = coordinator as RunbookRunCoordinator & {
+            getModelConfiguration?: () => Promise<
+                | { providerLabel: string; plannerModelId?: string; workflowModelId?: string }
+                | { error: RbsError }
+            >;
+        };
+        if (
+            !("getModelConfiguration" in coordinator) ||
+            typeof candidate.getModelConfiguration !== "function"
+        ) {
+            return;
+        }
+        void candidate
+            .getModelConfiguration()
+            .then((config) => {
+                if (this.isDisposed || "error" in config || !config.plannerModelId) {
+                    return;
+                }
+                void this.sendNotification(RbsCompileProgressNotification.type, {
+                    kind: "model",
+                    text: config.plannerModelId,
+                    label: config.providerLabel,
+                });
+            })
+            .catch(() => undefined);
     }
 
     private untrustedError(): RbsError {

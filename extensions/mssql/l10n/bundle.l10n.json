@@ -4586,6 +4586,14 @@
     },
     "Inputs:": "Inputs:",
     "working": "working",
+    "model {0}/{0} is a model identifier": {
+        "message": "model {0}",
+        "comment": ["{0} is a model identifier"]
+    },
+    "Working — {0}s elapsed/{0} is a whole number of seconds": {
+        "message": "Working — {0}s elapsed",
+        "comment": ["{0} is a whole number of seconds"]
+    },
     "Plan generated in {0}/{0} is an elapsed time like 1m 43s": {
         "message": "Plan generated in {0}",
         "comment": ["{0} is an elapsed time like 1m 43s"]

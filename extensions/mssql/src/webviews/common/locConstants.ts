@@ -3744,6 +3744,18 @@ export class LocConstants {
                 }),
             inputsChipLabel: l10n.t("Inputs:"),
             consoleWorking: l10n.t("working"),
+            modelChip: (modelId: string) =>
+                l10n.t({
+                    message: "model {0}",
+                    args: [modelId],
+                    comment: ["{0} is a model identifier"],
+                }),
+            workingElapsed: (seconds: number) =>
+                l10n.t({
+                    message: "Working — {0}s elapsed",
+                    args: [seconds],
+                    comment: ["{0} is a whole number of seconds"],
+                }),
             planGeneratedIn: (elapsed: string) =>
                 l10n.t({
                     message: "Plan generated in {0}",

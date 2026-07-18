@@ -341,6 +341,8 @@ export namespace RbsUpdateIntentRequest {
  *  - "inputs-proposed": the proposed input schema (text = comma-joined names).
  *  - "phase":           coarse one-liner phases (session started, plan
  *                       synthesized, dry-run passed) — localized at source.
+ *  - "model":           the model id resolved for the planner role (text =
+ *                       the model id; label = the provider label).
  */
 export interface RbsPlannerProgressEvent {
     kind:
@@ -349,10 +351,12 @@ export interface RbsPlannerProgressEvent {
         | "reasoning"
         | "tool-call"
         | "inputs-proposed"
-        | "phase";
+        | "phase"
+        | "model";
     /** Planner turn sequence number (turn events). */
     seq?: number;
-    /** Turn label, e.g. "Gather — Confirm sustained CPU pressure". */
+    /** Turn label, e.g. "Gather — Confirm sustained CPU pressure" (turn
+     *  events); the provider label ("model"). */
     label?: string;
     /** Turn kind, e.g. "workflow-shape" | "gather-detail" (turn events). */
     turnKind?: string;

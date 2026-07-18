@@ -1305,3 +1305,60 @@
 .rbs-console-chevron {
     margin-left: 2px;
 }
+
+/* Per-step timeline expansion — click a step row to see its authored
+   detail, live progress while it runs, and the results streamed in so far. */
+
+.rbs-tl-toggle {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.rbs-tl-toggle:hover .rbs-tl-label {
+    color: var(--vscode-textLink-foreground);
+}
+
+.rbs-tl-toggle:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+}
+
+.rbs-tl-chevron {
+    flex: none;
+    width: 10px;
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-tl-panel {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 2px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    padding-left: 10px;
+}
+
+.rbs-tl-panel .rbs-widget {
+    margin-bottom: 0;
+}
+
+.rbs-tl-working {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 11.5px;
+}
+
+.rbs-tl-error {
+    color: var(--vscode-errorForeground);
+    font-weight: 500;
+}

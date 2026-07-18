@@ -71,6 +71,8 @@ export interface PlannerConsoleState {
     phase?: string;
     /** Comma-joined proposed input names, once proposed. */
     inputs?: string;
+    /** Planner model chip: model id + provider label, once resolved. */
+    model?: { id: string; providerLabel?: string };
     nextFeedId: number;
 }
 
@@ -154,6 +156,16 @@ function plannerConsoleReducer(
             return { ...state, inputs: event.text ?? "" };
         case "phase":
             return event.text ? { ...state, phase: event.text } : state;
+        case "model":
+            return event.text
+                ? {
+                      ...state,
+                      model: {
+                          id: event.text,
+                          ...(event.label ? { providerLabel: event.label } : {}),
+                      },
+                  }
+                : state;
         default:
             return state;
     }
