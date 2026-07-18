@@ -374,9 +374,21 @@ function GenerationConsole() {
 }
 
 function AuthorPage() {
-    const { state, compile, compiling, navigate } = useRbs();
+    const { state, compile, compiling, navigate, updateIntent } = useRbs();
     const loc = locConstants.runbookStudio;
     const [intentDraft, setIntentDraft] = useState<string | undefined>(undefined);
+    // Persist the typed intent into the DOCUMENT as the user pauses —
+    // otherwise a window reload (hot exit) restores the document without
+    // the prompt, because the draft lived only in webview memory.
+    useEffect(() => {
+        if (intentDraft === undefined || intentDraft === state?.artifact?.intent) {
+            return;
+        }
+        const timer = setTimeout(() => {
+            void updateIntent(intentDraft);
+        }, 750);
+        return () => clearTimeout(timer);
+    }, [intentDraft, state?.artifact?.intent, updateIntent]);
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
@@ -896,6 +908,21 @@ function RunTimeline({
               ).map((n) => n.id)
             : run.nodes.map((n) => n.nodeId);
     const snapshots = new Map(run.nodes.map((n) => [n.nodeId, n]));
+    // The runtime executes independent steps in PARALLEL waves, so a later-
+    // listed step can run while earlier-listed ones wait on dependencies —
+    // which reads as "skipped" (owner report). Name what each pending step
+    // is actually waiting for.
+    const waitingOn = (nodeId: string): string | undefined => {
+        const pending = (artifact?.edges ?? [])
+            .filter((e) => e.to === nodeId)
+            .map((e) => e.from)
+            .filter((from) => {
+                const s = snapshots.get(from)?.state;
+                return s !== "succeeded" && s !== "skipped";
+            })
+            .map((from) => planNodes.get(from)?.label ?? from);
+        return pending.length > 0 ? loc.waitingOn(pending.join(", ")) : undefined;
+    };
     return (
         <section aria-label={loc.statusTimeline}>
             <div className="rbs-timeline-title">{loc.statusTimeline}</div>
@@ -942,7 +969,9 @@ function RunTimeline({
                                             : "rbs-muted"
                                     }>
                                     {snapshot?.message ??
-                                        (nodeState === "pending" ? loc.queuedLabel : nodeState)}
+                                        (nodeState === "pending"
+                                            ? (waitingOn(nodeId) ?? loc.queuedLabel)
+                                            : nodeState)}
                                 </div>
                                 {isExpanded ? (
                                     <TimelineStepPanel

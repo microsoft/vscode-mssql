@@ -8824,6 +8824,10 @@
     <trans-unit id="++CODE++a3332cf376529da6c1c40d33793a65cbd095419611326105c148b6a0f4966c37">
       <source xml:lang="en">Waiting for this step to produce output…</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5963314e419e98677318f5f4521095a359a811c660dc6eacdfcfa2b15c3b2fb">
+      <source xml:lang="en">Waiting on: {0}</source>
+      <note>{0} comma-separated names of steps this one depends on</note>
+    </trans-unit>
     <trans-unit id="++CODE++2a625c251683ca2ba8a1125319cb76d8f3d448d9e4d5a6c97bd948145217e36f">
       <source xml:lang="en">Warehouse</source>
     </trans-unit>

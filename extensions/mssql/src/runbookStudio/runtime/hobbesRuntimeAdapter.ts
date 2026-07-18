@@ -334,20 +334,11 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                 "connection-auth-unsupported",
             );
         }
-        // The MCP server reads the provider selection at startup; switch the
-        // persisted setting and restart the runtime once when needed.
-        const settings = (await (
-            await this.request(baseUrl, "GET", "/runtime/settings")
-        ).json()) as { sqlConnectionProvider?: string };
-        if (settings.sqlConnectionProvider !== "jsonfile") {
-            await this.request(baseUrl, "PUT", "/runtime/settings", {
-                sqlConnectionProvider: "jsonfile",
-            });
-            emitRunbookEvent(context, "runbookStudio.runtime.providerSwitched", "ok", {
-                provider: metaField("jsonfile"),
-            });
-            await this.supervisor.restart(context);
-        }
+        // ORDER MATTERS (verified live: fresh setups 400'd with
+        // connection-not-found): launch-side alias resolution caches the
+        // registry AT RUNTIME STARTUP, so the connections file must be on
+        // disk BEFORE any restart, and adding a NEW alias to an already-
+        // jsonfile runtime also requires a restart to refresh that cache.
         const alias = profile.label.replace(/[^A-Za-z0-9 _.-]/g, "_");
         const filePath = path.join(this.supervisor.dataDir, "sql-connections.json");
         let existing: Partial<HobbesConnectionsFile> | undefined;
@@ -361,8 +352,28 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             server: profile.server,
             ...(profile.database ? { database: profile.database } : {}),
         });
-        fs.mkdirSync(path.dirname(filePath), { recursive: true });
-        fs.writeFileSync(filePath, JSON.stringify(merged, undefined, 2));
+        const nextContent = JSON.stringify(merged, undefined, 2);
+        const fileChanged = nextContent !== JSON.stringify(existing ?? {}, undefined, 2);
+        if (fileChanged) {
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
+            fs.writeFileSync(filePath, nextContent);
+        }
+
+        const settings = (await (
+            await this.request(baseUrl, "GET", "/runtime/settings")
+        ).json()) as { sqlConnectionProvider?: string };
+        const needsProviderSwitch = settings.sqlConnectionProvider !== "jsonfile";
+        if (needsProviderSwitch) {
+            await this.request(baseUrl, "PUT", "/runtime/settings", {
+                sqlConnectionProvider: "jsonfile",
+            });
+            emitRunbookEvent(context, "runbookStudio.runtime.providerSwitched", "ok", {
+                provider: metaField("jsonfile"),
+            });
+        }
+        if (needsProviderSwitch || fileChanged) {
+            await this.supervisor.restart(context);
+        }
         return alias;
     }
 
@@ -1212,10 +1223,18 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             connectionAlias: alias,
         });
         const launchBody = (await launch.json().catch(() => undefined)) as
-            | { runId?: string; code?: string; message?: string }
+            | { runId?: string; code?: string; message?: string; error?: string }
             | undefined;
         if (!launch.ok || !launchBody?.runId) {
-            throw launchRefusalError(launchBody?.code ?? `http-${launch.status}`);
+            // Codeless refusals carry whatever detail the body offered —
+            // a bare "http-400" hid the actual reason during live debugging.
+            const detail =
+                launchBody?.code ??
+                [`http-${launch.status}`, launchBody?.error, launchBody?.message]
+                    .filter(Boolean)
+                    .join(" ")
+                    .slice(0, 200);
+            throw launchRefusalError(detail);
         }
         const hobbesRunId = launchBody.runId;
         emitRunbookEvent(context, "runbookStudio.runtime.launchPrepared", "ok", {

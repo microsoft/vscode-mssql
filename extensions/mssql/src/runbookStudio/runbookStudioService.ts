@@ -404,14 +404,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         // A generated plan deserves a real name: when the document still
         // wears the New-Runbook placeholder, derive one from the intent
         // (the planner path may have already adopted the asset title).
-        if (artifact.name === LocRunbookStudio.newRunbookName) {
+        if (isPlaceholderRunbookName(artifact.name)) {
             artifact = { ...artifact, name: deriveRunbookName(intent) };
         }
         // Keep the LIBRARY title in sync (AI-chat naming model, owner ask):
         // when compilation produced a real name for a library-backed book,
         // push it to the asset so the tree matches the document. Best
         // effort — a plain-file doc simply 404s and stays untouched.
-        if (base.name === LocRunbookStudio.newRunbookName && artifact.name !== base.name) {
+        if (isPlaceholderRunbookName(base.name) && artifact.name !== base.name) {
             const assetId = artifact.lock?.libraryAssetRef?.assetId ?? artifact.id;
             void this.updateLibraryRunbook(assetId, { title: artifact.name }).then(() =>
                 this.activeRunsEmitter.fire(),
@@ -460,7 +460,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             let artifact = built.artifact;
             // Adopt the planner's asset title while the document still wears
             // the New-Runbook placeholder — tree and document then match.
-            if (artifact.name === LocRunbookStudio.newRunbookName && planned.title) {
+            if (isPlaceholderRunbookName(artifact.name) && planned.title) {
                 artifact = { ...artifact, name: planned.title };
             }
             // The planner saved its OWN library asset; a placeholder draft
@@ -468,12 +468,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             // never a book with history) and refresh the tree badges.
             const oldRef = base.lock?.libraryAssetRef?.assetId;
             const newRef = artifact.lock?.libraryAssetRef?.assetId;
-            if (
-                oldRef &&
-                newRef &&
-                oldRef !== newRef &&
-                base.name === LocRunbookStudio.newRunbookName
-            ) {
+            if (oldRef && newRef && oldRef !== newRef && isPlaceholderRunbookName(base.name)) {
                 void this.getLibraryRunbook(oldRef).then((found) => {
                     const state = (found.asset as { state?: string } | undefined)?.state;
                     if (state === "draft") {
@@ -796,7 +791,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         id: string;
         title: string;
         category?: string;
-    }): Promise<{ ok: boolean; error?: RbsError }> {
+    }): Promise<{ ok: boolean; title?: string; error?: RbsError }> {
         const context = newRunbookRootContext("library");
         const ensured = this.ensureHobbesAdapter();
         if ("error" in ensured) {
@@ -831,7 +826,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             emitRunbookEvent(context, "runbookStudio.library.create", "ok", {
                 hasCategory: metaField(request.category !== undefined),
             });
-            return { ok: true };
+            // The FINAL (possibly deduped) title — the caller must name the
+            // stash artifact identically or tree and document diverge.
+            return { ok: true, title };
         } catch (error) {
             emitRunbookEvent(context, "runbookStudio.library.create", "error", {
                 errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
@@ -1341,6 +1338,13 @@ export function getRunbookStudioService(
 /** Library failure -> user-facing RbsError. Typed refusals (e.g. publish
  *  translation issues) keep their precise message; anything else gets the
  *  library-unavailable shell with the technical detail attached. */
+/** "New runbook" and its deduped variants ("New runbook (2)", ...) are
+ *  placeholders that generation may rename (AI-chat naming model). */
+function isPlaceholderRunbookName(name: string): boolean {
+    const base = LocRunbookStudio.newRunbookName;
+    return name === base || (name.startsWith(`${base} (`) && name.endsWith(")"));
+}
+
 interface RuntimeProviderProfileDoc {
     id?: string;
     label?: string;

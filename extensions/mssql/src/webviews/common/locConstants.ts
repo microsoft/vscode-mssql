@@ -3646,6 +3646,12 @@ export class LocConstants {
             mutatingChip: l10n.t("mutating"),
             approvalChip: l10n.t("approval"),
             queuedLabel: l10n.t("Queued."),
+            waitingOn: (steps: string) =>
+                l10n.t({
+                    message: "Waiting on: {0}",
+                    args: [steps],
+                    comment: ["{0} comma-separated names of steps this one depends on"],
+                }),
             eventLog: l10n.t("Event log"),
             widgetPending: l10n.t("Waiting for this step to produce output…"),
             widgetSourceMissing: l10n.t("The step this widget was bound to no longer exists."),

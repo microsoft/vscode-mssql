@@ -731,7 +731,10 @@ export function registerRunbookLibrary(
                     void vscode.window.showErrorMessage(created.error.message);
                     return;
                 }
-                const artifact = createNewRunbookArtifact(title, id);
+                // The service dedupes the title ("New runbook (2)") — the
+                // stash artifact MUST carry the same name or the tree and
+                // the document header diverge (observed live: names-2.png).
+                const artifact = createNewRunbookArtifact(created.title ?? title, id);
                 const family = libraryFamilyFromCategory(category);
                 if (family !== undefined) {
                     artifact.family = family;

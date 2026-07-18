@@ -142,18 +142,26 @@ export class RuntimeSupervisor {
                 ASPNETCORE_URLS: baseUrl,
                 // The runtime must never inherit our stdio protocol streams.
                 DOTNET_NOLOGO: "1",
-                // The runtime spawns the Copilot CLI for its model calls;
-                // the CLI writes chat SESSION history under XDG state, which
-                // VS Code's Chat Sessions view then displays — polluting the
-                // user's history with planner/summarizer internals (observed
-                // live). Isolate state into our data dir; auth stays in the
-                // CLI's config home, so sign-in is unaffected. Worst case
-                // (CLI ignores the var) is the status quo.
-                XDG_STATE_HOME: path.join(dataDir, "copilot-state"),
+                // NOTE: XDG_STATE_HOME isolation for the Copilot CLI (to keep
+                // its planner sessions out of VS Code's Chat Sessions view)
+                // was REVERTED: with an empty state dir the CLI's
+                // runbook-title dispatch hung indefinitely (observed in the
+                // headless e2e — planner turns worked, the title agent never
+                // returned). Chat-history isolation needs a CLI-supported
+                // session-dir option or an upstream runtime setting (U-5).
             },
             stdio: ["ignore", "pipe", "pipe"],
             windowsHide: true,
         });
+        // CRITICAL: drain the pipes. The runtime logs verbosely to its
+        // console; an undrained 64KB pipe buffer eventually blocks EVERY
+        // thread on console writes and freezes the whole process — the
+        // root cause of the recurring "wedged runtime" (runs stall, all
+        // HTTP times out, log file stops mid-line). The file log carries
+        // the content; discard the streams after keeping a small tail for
+        // crash diagnostics.
+        child.stdout?.on("data", (chunk: Buffer) => this.keepConsoleTail(chunk));
+        child.stderr?.on("data", (chunk: Buffer) => this.keepConsoleTail(chunk));
         this.child = child;
         this.writePidFile(child.pid);
         child.on("exit", (code) => {
@@ -236,6 +244,18 @@ export class RuntimeSupervisor {
         }
         this.child = undefined;
         this.runtime = undefined;
+    }
+
+    /** Last ~16KB of the child's console output (crash diagnostics only). */
+    private consoleTail = "";
+
+    private keepConsoleTail(chunk: Buffer): void {
+        this.consoleTail = (this.consoleTail + chunk.toString("utf8")).slice(-16_384);
+    }
+
+    /** Recent console output — surfaced when the runtime dies or wedges. */
+    public get recentConsoleOutput(): string {
+        return this.consoleTail;
     }
 
     private get pidFilePath(): string {

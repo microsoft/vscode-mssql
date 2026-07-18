@@ -4521,6 +4521,10 @@
     "mutating": "mutating",
     "approval": "approval",
     "Queued.": "Queued.",
+    "Waiting on: {0}/{0} comma-separated names of steps this one depends on": {
+        "message": "Waiting on: {0}",
+        "comment": ["{0} comma-separated names of steps this one depends on"]
+    },
     "Event log": "Event log",
     "Waiting for this step to produce output…": "Waiting for this step to produce output…",
     "The step this widget was bound to no longer exists.": "The step this widget was bound to no longer exists.",
