@@ -129,6 +129,11 @@ export class RunbookStudio {
         "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     );
     public static approvalRequired = l10n.t("Approval required to continue.");
+    public static statusBarName = l10n.t("Runbook run");
+    public static statusBarRunning = l10n.t("Runbook: running…");
+    public static statusBarAwaitingApproval = l10n.t("Runbook: awaiting approval");
+    public static statusBarPassed = l10n.t("Runbook: passed");
+    public static statusBarFailed = l10n.t("Runbook: failed");
     public static hobbesLaunchRefused = (code: string) =>
         l10n.t({
             message: "The Hobbes runtime refused to start the run ({0}).",
@@ -166,8 +171,14 @@ export class RunbookStudio {
     public static libraryEmpty = l10n.t(
         "No runbooks in the library yet. Use 'Save to Library' from Runbook Studio to publish one.",
     );
-    public static libraryImportUnsupported = l10n.t(
-        "This runbook was authored outside VS Code; import is not supported yet.",
+    public static libraryImportFailed = (detail: string) =>
+        l10n.t({
+            message: "This runbook could not be imported from the library: {0}",
+            args: [detail],
+            comment: ["{0} is a technical detail string"],
+        });
+    public static libraryImportAssetMissing = l10n.t(
+        "The runbook no longer exists in the runtime library.",
     );
     public static libraryOpenItem = l10n.t("Open Runbook");
     public static libraryArchiveConfirm = (title: string) =>

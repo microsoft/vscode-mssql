@@ -2594,6 +2594,9 @@
     <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
       <source xml:lang="en">Either profileId or serverName must be provided.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a194a68a45d32cab740ebf46bee7c7dfa1420e1ea2f7df95ac5f9d36c6695323">
+      <source xml:lang="en">Elapsed</source>
+    </trans-unit>
     <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
@@ -3578,6 +3581,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
       <source xml:lang="en">Failed to update table.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7bd31a025d29d8ecfc4d7bd9f46becaa9734f74ca20f0d69003b241ce4182a02">
+      <source xml:lang="en">Failures</source>
     </trans-unit>
     <trans-unit id="++CODE++db977fde0b1cbb3a3a5c4093cbff6b231ea747d7daebfb7bd6b9280805625bcc">
       <source xml:lang="en">Feature details</source>
@@ -6557,6 +6563,9 @@
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
     </trans-unit>
+    <trans-unit id="++CODE++cd6fbedddc1e2f2ad05df517a6a2db8e06a549aa6a670ac0d42344e99c9618df">
+      <source xml:lang="en">Rows returned</source>
+    </trans-unit>
     <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
       <source xml:lang="en">Rule disabled</source>
     </trans-unit>
@@ -6620,6 +6629,21 @@
     <trans-unit id="++CODE++bcbd8f247b5bb8cc9f0e5645b0989d50bea62303db08270c34e3f82845b4ee82">
       <source xml:lang="en">Runbook exported to {0}.</source>
       <note>{0} is the exported file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0547536658b98237b894a93846eac11726bd0cd5555dd90fd9c11bfd13af433f">
+      <source xml:lang="en">Runbook run</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a74e805e3b489a2d35fb58ff19c9977f7345f4402891f2828d3ccd4481f45f1f">
+      <source xml:lang="en">Runbook: awaiting approval</source>
+    </trans-unit>
+    <trans-unit id="++CODE++09b2d7a7f5bca3061a24fee3d60c60f009f5f450e17dde9e52d95927d45daa60">
+      <source xml:lang="en">Runbook: failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c92cc767f5ab5bada77467e55c5352565cf7966c983a1137cb49d2b43c2f64d">
+      <source xml:lang="en">Runbook: passed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28cf150e0977602318ff34f2c33379d9d744422960aacda14d9400114ff6c151">
+      <source xml:lang="en">Runbook: running…</source>
     </trans-unit>
     <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
       <source xml:lang="en">Running</source>
@@ -7666,6 +7690,9 @@
       <note>{0} is the current step number
 {1} is the total number of steps</note>
     </trans-unit>
+    <trans-unit id="++CODE++1de3df70ddf4faab9d799e3c45ea53c465aae9fccacd7ac77d8e85435828e6dc">
+      <source xml:lang="en">Steps</source>
+    </trans-unit>
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
     </trans-unit>
@@ -8096,6 +8123,9 @@
       <source xml:lang="en">The runbook library is unavailable: {0}</source>
       <note>{0} is a technical detail string</note>
     </trans-unit>
+    <trans-unit id="++CODE++138c4cb6fbf5914e0e87e7fb979285cc07468216ae189f8ae5ae55d3bcfe8858">
+      <source xml:lang="en">The runbook no longer exists in the runtime library.</source>
+    </trans-unit>
     <trans-unit id="++CODE++73488d79f1e6119fc881e5d0fb7a3f6025db4abe305fed9f487859769a2771f9">
       <source xml:lang="en">The runbook runtime exited unexpectedly.</source>
     </trans-unit>
@@ -8189,6 +8219,10 @@
       <source xml:lang="en">This runbook cannot be published to the Hobbes runtime yet: {0}</source>
       <note>{0} lists the untranslatable plan features</note>
     </trans-unit>
+    <trans-unit id="++CODE++34e7da259825961bf8aa74bf67ede13ce020e91e68007c4362733a9997793be1">
+      <source xml:lang="en">This runbook could not be imported from the library: {0}</source>
+      <note>{0} is a technical detail string</note>
+    </trans-unit>
     <trans-unit id="++CODE++0669a8886d1a9356118127c1639eec72ec3b3a68dea6f5b5cb16559acdac69b7">
       <source xml:lang="en">This runbook declares no parameters.</source>
     </trans-unit>
@@ -8200,9 +8234,6 @@
     </trans-unit>
     <trans-unit id="++CODE++f5751c3a34c530005b5b5778000aed78a919766b9e42266efab85b1902a9a5c4">
       <source xml:lang="en">This runbook is not in the Hobbes runtime&apos;s library, so the &apos;hobbes&apos; runtime cannot run it. Generated runbooks run on the &apos;local&apos; runtime — set mssql.runbookStudio.runtime to &apos;local&apos; (or remove the setting to use the default).</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c847e1897b374eda914c67974975096c2e687dbc2549c74cffc93f7d027f9572">
-      <source xml:lang="en">This runbook was authored outside VS Code; import is not supported yet.</source>
     </trans-unit>
     <trans-unit id="++CODE++4d946546745cff617ea14dd7577f4359c62971cc768f32c0b295e2866b651f0a">
       <source xml:lang="en">This runbook was created by a newer version of the extension. Update the MSSQL extension to open it. ({0})</source>

@@ -10,7 +10,10 @@
  * runtime regardless of the configured run lane), grouping/sorting is the
  * pure runbookLibraryModel, and failures render as a single informational
  * node (never a silently blank tree). Open/export round-trip through the
- * publish-time artifact stash; assets authored elsewhere say so honestly.
+ * publish-time artifact stash; assets authored elsewhere (e.g. the Hobbes
+ * standalone frontend) are imported on first open — their raw runtime plan
+ * IR maps through the same planner mapping into a stash (D-0012 interop) —
+ * and only a FAILED import is surfaced.
  */
 
 import * as os from "os";
@@ -195,6 +198,30 @@ export function registerRunbookLibrary(
     activeArtifact: () => RunbookArtifactFile | undefined,
 ): void {
     const provider = new RunbookLibraryProvider(serviceAccessor);
+
+    /** True when a stash exists for the asset — importing the runtime asset
+     *  first when it was authored outside VS Code (no publish-time stash;
+     *  D-0012 library interop). A failed import shows the precise failure
+     *  reason and returns false. */
+    async function ensureStashed(assetId: string): Promise<boolean> {
+        if ((await readStash(context.globalStorageUri, assetId)) !== undefined) {
+            return true;
+        }
+        const service = serviceAccessor();
+        if (!service) {
+            void vscode.window.showErrorMessage(LocRunbookStudio.runtimeUnavailable);
+            return false;
+        }
+        const imported = await service.importLibraryRunbook(assetId);
+        if (!imported.ok) {
+            void vscode.window.showErrorMessage(
+                imported.error?.message ?? LocRunbookStudio.runtimeUnavailable,
+            );
+            return false;
+        }
+        return true;
+    }
+
     context.subscriptions.push(
         provider,
         vscode.window.createTreeView(RUNBOOK_LIBRARY_VIEW_ID, { treeDataProvider: provider }),
@@ -208,11 +235,10 @@ export function registerRunbookLibrary(
             emitRunbookEvent(operation, "runbookStudio.library.open", "ok", {
                 stashed: metaField(stashed !== undefined),
             });
-            if (stashed === undefined) {
-                // Authored outside VS Code: no source artifact to round-trip.
-                void vscode.window.showInformationMessage(
-                    LocRunbookStudio.libraryImportUnsupported,
-                );
+            // Authored outside VS Code (no publish-time stash): import the
+            // runtime asset into a stash first; only a FAILED import blocks
+            // the open (the helper already showed the exact reason).
+            if (stashed === undefined && !(await ensureStashed(node.asset.id))) {
                 return;
             }
             await vscode.commands.executeCommand(
@@ -228,14 +254,19 @@ export function registerRunbookLibrary(
                     return;
                 }
                 const operation = newRunbookRootContext("library");
+                // Outside-authored assets are imported first (same flow as
+                // open) so export always has a source artifact to project.
+                if (!(await ensureStashed(node.asset.id))) {
+                    emitRunbookEvent(operation, "runbookStudio.library.export", "error", {
+                        errorClass: metaField("ImportFailed"),
+                    });
+                    return;
+                }
                 const stashed = await readStash(context.globalStorageUri, node.asset.id);
                 if (stashed === undefined) {
-                    emitRunbookEvent(operation, "runbookStudio.library.export", "ok", {
-                        stashed: metaField(false),
-                    });
-                    void vscode.window.showInformationMessage(
-                        LocRunbookStudio.libraryImportUnsupported,
-                    );
+                    // Stash vanished between import and read — treat as the
+                    // generic unavailable case rather than exporting nothing.
+                    void vscode.window.showErrorMessage(LocRunbookStudio.runtimeUnavailable);
                     return;
                 }
                 const target = await vscode.window.showSaveDialog({

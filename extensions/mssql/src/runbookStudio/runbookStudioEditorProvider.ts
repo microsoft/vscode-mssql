@@ -27,6 +27,7 @@ import { registerRunbookLibrary } from "./runbookLibraryProvider";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import { RunbookStudioController } from "./runbookStudioController";
 import { RunbookStudioDocumentRegistry } from "./runbookStudioDocumentRegistry";
+import { RunbookRunStatusBar } from "./runbookRunStatusBar";
 import { RunbookStudioService } from "./runbookStudioService";
 import type { RbsRoute, RunbookArtifactFile } from "../sharedInterfaces/runbookStudio";
 
@@ -35,6 +36,8 @@ export const RUNBOOK_FILE_SUFFIX = ".runbook.json";
 
 /** Live controllers (one per panel) — deep-link + perf-probe seam. */
 const liveControllers = new Set<RunbookStudioController>();
+/** Singleton run status-bar pill (created with the feature registration). */
+let runStatusBar: RunbookRunStatusBar | undefined;
 /** One-shot initial routes keyed by document uri (deep links). */
 const pendingInitialRoutes = new Map<string, RbsRoute>();
 
@@ -73,6 +76,7 @@ export class RunbookStudioEditorProvider implements vscode.CustomTextEditorProvi
         Perf.marker("mssql.runbookStudio.open.begin", "begin");
         const model = this.registry.getOrCreate(document);
         model.panelCount++;
+        runStatusBar?.track(model);
         diag.emit({
             feature: "runbookStudio",
             kind: "event",
@@ -135,7 +139,9 @@ function registerRunbookStudioFeatures(
     coordinatorFactory: () => RunbookRunCoordinator | undefined,
 ): void {
     const provider = new RunbookStudioEditorProvider(context, coordinatorFactory);
+    runStatusBar = new RunbookRunStatusBar();
     context.subscriptions.push(
+        runStatusBar,
         vscode.window.registerCustomEditorProvider(RUNBOOK_STUDIO_VIEW_TYPE, provider, {
             webviewOptions: { retainContextWhenHidden: true },
             supportsMultipleEditorsPerDocument: true,

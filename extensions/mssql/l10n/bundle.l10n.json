@@ -70,6 +70,11 @@
     "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.": "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.": "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     "Approval required to continue.": "Approval required to continue.",
+    "Runbook run": "Runbook run",
+    "Runbook: running…": "Runbook: running…",
+    "Runbook: awaiting approval": "Runbook: awaiting approval",
+    "Runbook: passed": "Runbook: passed",
+    "Runbook: failed": "Runbook: failed",
     "The Hobbes runtime refused to start the run ({0})./{0} is a stable error code from the runtime": {
         "message": "The Hobbes runtime refused to start the run ({0}).",
         "comment": ["{0} is a stable error code from the runtime"]
@@ -93,7 +98,11 @@
         "comment": ["{0} is a technical detail string"]
     },
     "No runbooks in the library yet. Use 'Save to Library' from Runbook Studio to publish one.": "No runbooks in the library yet. Use 'Save to Library' from Runbook Studio to publish one.",
-    "This runbook was authored outside VS Code; import is not supported yet.": "This runbook was authored outside VS Code; import is not supported yet.",
+    "This runbook could not be imported from the library: {0}/{0} is a technical detail string": {
+        "message": "This runbook could not be imported from the library: {0}",
+        "comment": ["{0} is a technical detail string"]
+    },
+    "The runbook no longer exists in the runtime library.": "The runbook no longer exists in the runtime library.",
     "Open Runbook": "Open Runbook",
     "Archive runbook '{0}'? Archived runbooks can be restored from the runtime library./{0} is the runbook title": {
         "message": "Archive runbook '{0}'? Archived runbooks can be restored from the runtime library.",
@@ -4432,6 +4441,10 @@
     "Step inputs": "Step inputs",
     "Hide details": "Hide details",
     "Status timeline — what happened": "Status timeline — what happened",
+    "Steps": "Steps",
+    "Rows returned": "Rows returned",
+    "Failures": "Failures",
+    "Elapsed": "Elapsed",
     "Output:": "Output:",
     "Suggested": "Suggested",
     "Set by you": "Set by you",

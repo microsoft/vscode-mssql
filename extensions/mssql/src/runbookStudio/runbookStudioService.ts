@@ -42,7 +42,11 @@ import { RunbookRunLedger } from "./runbookRunLedger";
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
-import { buildPlannedArtifact, isPlannedArtifactFailure } from "./models/plannerMapping";
+import {
+    buildArtifactFromLibraryAsset,
+    buildPlannedArtifact,
+    isPlannedArtifactFailure,
+} from "./models/plannerMapping";
 import { FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
 import { HobbesRuntimeAdapter } from "./runtime/hobbesRuntimeAdapter";
 import { LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
@@ -503,6 +507,67 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             });
             return { error: libraryError(error) };
         }
+    }
+
+    /** Import an OUTSIDE-authored library runbook (no publish-time stash to
+     *  round-trip, D-0012 interop): fetch the raw asset, map its plan IR
+     *  through the SAME mapping the planner authoring path uses, and write
+     *  the stash — after which the standard open-from-library flow applies.
+     *  The built lock references the asset (+ version label), so the hobbes
+     *  lane launches the library asset directly, never translating. */
+    public async importLibraryRunbook(assetId: string): Promise<{ ok: boolean; error?: RbsError }> {
+        const context = newRunbookRootContext("library");
+        const fetched = await this.getLibraryRunbook(assetId);
+        if (fetched.error) {
+            emitRunbookEvent(context, "runbookStudio.library.import", "error", {
+                errorClass: metaField("AssetUnavailable"),
+            });
+            return { ok: false, error: fetched.error };
+        }
+        if (!fetched.asset) {
+            emitRunbookEvent(context, "runbookStudio.library.import", "error", {
+                errorClass: metaField("AssetNotFound"),
+            });
+            return {
+                ok: false,
+                error: {
+                    code: "RunbookStudio.DataUnavailable",
+                    message: LocRunbookStudio.libraryImportAssetMissing,
+                },
+            };
+        }
+        const built = buildArtifactFromLibraryAsset(fetched.asset);
+        if (isPlannedArtifactFailure(built)) {
+            emitRunbookEvent(context, "runbookStudio.library.import", "error", {
+                errorClass: metaField("MappingInvalid"),
+                detailClass: metaField(built.detail.slice(0, 80)),
+            });
+            return {
+                ok: false,
+                error: {
+                    code: "RunbookStudio.InvalidArtifact",
+                    message: LocRunbookStudio.libraryImportFailed(built.detail),
+                },
+            };
+        }
+        try {
+            // artifact.id === assetId, so the stash lands exactly where the
+            // open flow (stashUri by asset id) will look for it.
+            await writeStash(
+                this.globalStorageUri,
+                built.artifact.id,
+                canonicalizeRunbookArtifact(built.artifact),
+            );
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.library.import", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return { ok: false, error: libraryError(error) };
+        }
+        emitRunbookEvent(context, "runbookStudio.library.import", "ok", {
+            nodeCount: metaField(built.artifact.lock?.nodes.length ?? 0),
+        });
+        return { ok: true };
     }
 
     /** Recent run history for a library runbook. Runs come back EMPTY (not

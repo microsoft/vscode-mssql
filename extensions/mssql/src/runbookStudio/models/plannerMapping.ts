@@ -24,6 +24,7 @@ import {
 import {
     canonicalizeRunbookArtifact,
     computePlanHash,
+    createNewRunbookArtifact,
     isArtifactParseFailure,
     parseRunbookArtifact,
 } from "../runbookArtifact";
@@ -44,6 +45,9 @@ export interface PlannerPlanNode {
 export interface PlannedRunbook {
     /** Runtime library asset id — the asset is ALREADY saved as a draft. */
     assetId: string;
+    /** Asset version label, when known (library-import path only — the
+     *  planner session does not report one). */
+    versionLabel?: string;
     title: string;
     plan: {
         nodes: PlannerPlanNode[];
@@ -195,7 +199,10 @@ export function buildPlannedArtifact(
             entryNodeId: planned.plan.entryNodeId ?? nodes[0].id,
             nodes,
             edges,
-            libraryAssetRef: { assetId: planned.assetId },
+            libraryAssetRef: {
+                assetId: planned.assetId,
+                ...(planned.versionLabel ? { versionLabel: planned.versionLabel } : {}),
+            },
         },
     };
     candidate.lock!.planHash = computePlanHash(candidate.source, candidate.lock!);
@@ -206,4 +213,122 @@ export function buildPlannedArtifact(
         return { ok: false, detail: structural.detail };
     }
     return { ok: true, artifact: structural.artifact };
+}
+
+// ---------------------------------------------------------------------------
+// Library interop (D-0012): outside-authored runtime assets -> artifact
+// ---------------------------------------------------------------------------
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Runtime library category -> artifact family, only when it names one of
+ *  the closed family values (case-insensitive); anything else is omitted —
+ *  the artifact's family enum is closed and never guessed. */
+function familyFromCategory(
+    category: string | undefined,
+): RunbookArtifactFile["family"] | undefined {
+    const normalized = category?.trim().toLowerCase();
+    return normalized === "build" || normalized === "validate" || normalized === "investigate"
+        ? normalized
+        : undefined;
+}
+
+/**
+ * Build a complete compiled artifact from a RAW runtime library asset
+ * (`GET /api/runbooks/{id}`) — the import path for runbooks authored
+ * OUTSIDE VS Code (e.g. the Hobbes standalone frontend), which have no
+ * publish-time stash to round-trip. The plan IR flows through the SAME
+ * node/edge mapping and structural validation as the planner authoring
+ * path; the lock references the library asset (+ version label) so the
+ * hobbes lane launches it directly and never translates the lock. The
+ * intent falls back sourcePromptText -> description -> title. Boundary
+ * tolerant: malformed nodes/edges are dropped (ids are never invented);
+ * an asset without an id or without plan nodes refuses with the exact
+ * reason. Returns a failure result — never throws.
+ */
+export function buildArtifactFromLibraryAsset(
+    asset: Record<string, unknown>,
+): PlannedArtifactResult {
+    const assetId = nonEmptyString(asset.id);
+    if (assetId === undefined) {
+        return { ok: false, detail: "library asset has no id" };
+    }
+    const title = nonEmptyString(asset.title) ?? assetId;
+
+    const plan = isRecord(asset.plan) ? asset.plan : undefined;
+    const rawNodes = plan !== undefined && Array.isArray(plan.nodes) ? plan.nodes : [];
+    const rawEdges = plan !== undefined && Array.isArray(plan.edges) ? plan.edges : [];
+    const nodes: PlannerPlanNode[] = [];
+    for (const entry of rawNodes) {
+        if (!isRecord(entry)) {
+            continue;
+        }
+        const id = nonEmptyString(entry.id);
+        if (id === undefined) {
+            // Never invent a node id — edges/snapshots key off it.
+            continue;
+        }
+        const type = nonEmptyString(entry.type);
+        const role = nonEmptyString(entry.role);
+        const strategy = nonEmptyString(entry.strategy);
+        nodes.push({
+            id,
+            ...(type !== undefined ? { type } : {}),
+            ...(role !== undefined ? { role } : {}),
+            ...(strategy !== undefined ? { strategy } : {}),
+            ...(isRecord(entry.primitiveArgs) ? { primitiveArgs: entry.primitiveArgs } : {}),
+        });
+    }
+    if (nodes.length === 0) {
+        return { ok: false, detail: "library asset has no plan nodes" };
+    }
+    const edges: Array<{ from: string; to: string }> = [];
+    for (const entry of rawEdges) {
+        if (!isRecord(entry)) {
+            continue;
+        }
+        const from = nonEmptyString(entry.from);
+        const to = nonEmptyString(entry.to);
+        if (from !== undefined && to !== undefined) {
+            edges.push({ from, to });
+        }
+    }
+    const inputSchema: Array<{ name: string; kind: string }> = [];
+    for (const entry of Array.isArray(asset.inputSchema) ? asset.inputSchema : []) {
+        if (!isRecord(entry)) {
+            continue;
+        }
+        const name = nonEmptyString(entry.name);
+        const kind = nonEmptyString(entry.kind);
+        if (name !== undefined && kind !== undefined) {
+            inputSchema.push({ name, kind });
+        }
+    }
+
+    const description = nonEmptyString(asset.description);
+    const family = familyFromCategory(nonEmptyString(asset.category));
+    const versionLabel = nonEmptyString(asset.versionLabel);
+    const entryNodeId = plan === undefined ? undefined : nonEmptyString(plan.entryNodeId);
+
+    const base = createNewRunbookArtifact(title, assetId);
+    if (description !== undefined) {
+        base.description = description;
+    }
+    if (family !== undefined) {
+        base.family = family;
+    }
+    const intent = nonEmptyString(asset.sourcePromptText) ?? description ?? title;
+    return buildPlannedArtifact(base, intent, {
+        assetId,
+        ...(versionLabel !== undefined ? { versionLabel } : {}),
+        title,
+        plan: {
+            nodes,
+            edges,
+            ...(entryNodeId !== undefined ? { entryNodeId } : {}),
+        },
+        inputSchema,
+    });
 }

@@ -14,6 +14,7 @@
 
 import { expect } from "chai";
 import {
+    buildArtifactFromLibraryAsset,
     buildPlannedArtifact,
     humanizeNodeId,
     isPlannedArtifactFailure,
@@ -21,6 +22,7 @@ import {
     PlannedRunbook,
 } from "../../src/runbookStudio/models/plannerMapping";
 import { createNewRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
+import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
 
 function planned(): PlannedRunbook {
     return {
@@ -182,6 +184,137 @@ suite("plannerMapping", () => {
         expect(isPlannedArtifactFailure(result)).to.equal(true);
         if (isPlannedArtifactFailure(result)) {
             expect(result.detail).to.contain("no plan nodes");
+        }
+    });
+
+    // -- library interop (D-0012): outside-authored runtime assets ----------
+
+    /** Raw `GET /api/runbooks/{id}` payload for an OUTSIDE-authored asset
+     *  (no publish-time stash) — same plan-IR fixtures as planned(). */
+    function libraryAsset(): Record<string, unknown> {
+        return {
+            id: "blocking-queries",
+            title: "Blocking Queries",
+            description: "Find live head blockers.",
+            category: "investigate",
+            state: "approved",
+            versionLabel: "1.02",
+            sourcePromptText: "are there blocking queries?",
+            plan: {
+                entryNodeId: "probe-current-request-health",
+                nodes: planned().plan.nodes,
+                edges: planned().plan.edges,
+            },
+            inputSchema: [{ name: "database", kind: "connection" }],
+        };
+    }
+
+    function buildOk(asset: Record<string, unknown>): RunbookArtifactFile {
+        const result = buildArtifactFromLibraryAsset(asset);
+        if (isPlannedArtifactFailure(result)) {
+            throw new Error(result.detail);
+        }
+        return result.artifact;
+    }
+
+    test("buildArtifactFromLibraryAsset maps a raw outside-authored asset completely", () => {
+        const artifact = buildOk(libraryAsset());
+        expect(artifact.id).to.equal("blocking-queries");
+        expect(artifact.name).to.equal("Blocking Queries");
+        expect(artifact.description).to.equal("Find live head blockers.");
+        expect(artifact.family).to.equal("investigate");
+        // Intent prefers the authored prompt over description/title.
+        expect(artifact.source.intent).to.equal("are there blocking queries?");
+        expect(artifact.source.parameters).to.deep.equal([
+            { id: "database", label: "Target connection", type: "connection", required: true },
+        ]);
+        expect(artifact.lock?.planRevision).to.equal("1");
+        expect(artifact.lock?.planHash).to.match(/^sha256:[0-9a-f]{64}$/);
+        expect(artifact.lock?.entryNodeId).to.equal("probe-current-request-health");
+        // The lock references the asset AND its version label, so the
+        // hobbes lane launches the library asset directly.
+        expect(artifact.lock?.libraryAssetRef).to.deep.equal({
+            assetId: "blocking-queries",
+            versionLabel: "1.02",
+        });
+        // Same node mapping as the planner path: SQL visible, report kept.
+        const sqlNode = artifact.lock?.nodes.find(
+            (node) => node.id === "probe-current-request-health",
+        );
+        expect(sqlNode?.activityKind).to.equal("sql.query.read");
+        expect(sqlNode?.inputs?.sql).to.contain("sys.dm_exec_requests");
+        const report = artifact.lock?.nodes.find((node) => node.id === "final-report");
+        expect(report?.kind).to.equal("report");
+    });
+
+    test("buildArtifactFromLibraryAsset preserves the hobbes.native fallback", () => {
+        const artifact = buildOk(libraryAsset());
+        const aggregation = artifact.lock?.nodes.find(
+            (node) => node.id === "summarize-current-activity",
+        );
+        expect(aggregation).to.deep.equal({
+            id: "summarize-current-activity",
+            label: "Summarize current activity",
+            kind: "activity",
+            activityKind: "hobbes.native",
+            activityVersion: 1,
+            inputs: { strategy: "Aggregation" },
+        });
+    });
+
+    test("intent falls back sourcePromptText -> description -> title", () => {
+        const noPrompt = libraryAsset();
+        delete noPrompt.sourcePromptText;
+        expect(buildOk(noPrompt).source.intent).to.equal("Find live head blockers.");
+        const bare = libraryAsset();
+        delete bare.sourcePromptText;
+        delete bare.description;
+        const artifact = buildOk(bare);
+        expect(artifact.source.intent).to.equal("Blocking Queries");
+        expect(artifact.description).to.equal(undefined);
+    });
+
+    test("family maps only the closed values; other categories are omitted", () => {
+        const other = libraryAsset();
+        other.category = "diagnostics";
+        expect(buildOk(other).family).to.equal(undefined);
+        const cased = libraryAsset();
+        cased.category = "Validate";
+        expect(buildOk(cased).family).to.equal("validate");
+        const missing = libraryAsset();
+        delete missing.category;
+        expect(buildOk(missing).family).to.equal(undefined);
+    });
+
+    test("a missing version label leaves the asset ref without one", () => {
+        const unversioned = libraryAsset();
+        delete unversioned.versionLabel;
+        expect(buildOk(unversioned).lock?.libraryAssetRef).to.deep.equal({
+            assetId: "blocking-queries",
+        });
+    });
+
+    test("buildArtifactFromLibraryAsset refuses an empty plan with the exact detail", () => {
+        const empty = libraryAsset();
+        empty.plan = { nodes: [], edges: [] };
+        const result = buildArtifactFromLibraryAsset(empty);
+        expect(isPlannedArtifactFailure(result)).to.equal(true);
+        if (isPlannedArtifactFailure(result)) {
+            expect(result.detail).to.contain("no plan nodes");
+        }
+        const planless = libraryAsset();
+        delete planless.plan;
+        const withoutPlan = buildArtifactFromLibraryAsset(planless);
+        expect(isPlannedArtifactFailure(withoutPlan)).to.equal(true);
+    });
+
+    test("buildArtifactFromLibraryAsset refuses an asset without an id", () => {
+        const anonymous = libraryAsset();
+        delete anonymous.id;
+        const result = buildArtifactFromLibraryAsset(anonymous);
+        expect(isPlannedArtifactFailure(result)).to.equal(true);
+        if (isPlannedArtifactFailure(result)) {
+            expect(result.detail).to.contain("no id");
         }
     });
 });

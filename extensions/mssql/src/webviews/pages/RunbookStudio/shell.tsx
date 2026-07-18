@@ -453,8 +453,59 @@ function RunPage() {
                     </button>
                 </div>
             ) : null}
+            <RunMetricTiles run={run} />
             <RunTimeline run={run} artifact={state?.artifact} />
             <RunEventLog />
+        </div>
+    );
+}
+
+/** Mockup metric-tile strip: honest aggregates from the run snapshot only
+ *  (handle metadata — no payload pulls). Blank dash until data exists. */
+function RunMetricTiles({ run }: { run: RunbookRunSnapshot }) {
+    const loc = locConstants.runbookStudio;
+    const completed = run.nodes.filter((n) =>
+        ["succeeded", "failed", "skipped", "cancelled"].includes(n.state),
+    ).length;
+    const rows = run.nodes
+        .flatMap((n) => n.outputs ?? [])
+        .filter((o) => o.contract === "rowset/1" && o.rows !== undefined)
+        .reduce((sum, o) => sum + (o.rows ?? 0), 0);
+    const failures = run.nodes.filter((n) => n.state === "failed").length;
+    const elapsedMs =
+        run.startedEpochMs !== undefined
+            ? (run.endedEpochMs ?? Date.now()) - run.startedEpochMs
+            : undefined;
+    const tiles: Array<{ label: string; value: string; warn?: boolean }> = [
+        { label: loc.tileSteps, value: `${completed}/${run.nodes.length}` },
+        { label: loc.tileRows, value: rows > 0 ? rows.toLocaleString() : "—" },
+        {
+            label: loc.tileFailures,
+            value: failures > 0 ? String(failures) : "—",
+            warn: failures > 0,
+        },
+        {
+            label: loc.tileElapsed,
+            value:
+                elapsedMs !== undefined
+                    ? elapsedMs < 10_000
+                        ? `${(elapsedMs / 1000).toFixed(1)}s`
+                        : `${Math.round(elapsedMs / 1000)}s`
+                    : "—",
+        },
+    ];
+    return (
+        <div className="rbs-cards" role="group" aria-label={loc.statusTimeline}>
+            {tiles.map((tile) => (
+                <div className="rbs-card" key={tile.label}>
+                    <div className="rbs-card-label">{tile.label}</div>
+                    <div
+                        className="rbs-card-value"
+                        style={tile.warn ? { color: "var(--vscode-errorForeground)" } : undefined}>
+                        {tile.value}
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }
