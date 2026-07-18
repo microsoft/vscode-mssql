@@ -12,7 +12,9 @@
 
 import { expect } from "chai";
 import {
+    pinnedViewsOf,
     resolvePresentation,
+    upsertOutputPin,
     validatePresentationDefinition,
 } from "../../src/runbookStudio/presentation/presentationResolver";
 import {
@@ -143,5 +145,35 @@ suite("presentationResolver", () => {
         const resolved = resolvePresentation(undefined, undefined);
         expect(resolved.sections).to.deep.equal([]);
         expect(resolved.derived).to.equal(true);
+    });
+
+    test("upsertOutputPin creates, re-pins, and clears without touching authored widgets", () => {
+        // First pin creates the definition + primary section.
+        const pinned = upsertOutputPin(undefined, "query", "bar");
+        expect(pinned.revision).to.equal(1);
+        expect(pinned.sections[0].id).to.equal("primary");
+        expect(pinned.sections[0].widgets[0]).to.deep.include({
+            id: "pin-query",
+            view: "bar",
+            pinnedByUser: true,
+        });
+        expect(pinnedViewsOf(pinned)).to.deep.equal({ query: "bar" });
+
+        // Re-pin updates in place (no duplicate widget).
+        const repinned = upsertOutputPin(pinned, "query", "grid");
+        expect(repinned.sections[0].widgets).to.have.length(1);
+        expect(pinnedViewsOf(repinned)).to.deep.equal({ query: "grid" });
+
+        // Clearing removes the pin-created widget entirely.
+        const cleared = upsertOutputPin(repinned, "query", undefined);
+        expect(cleared.sections[0].widgets).to.have.length(0);
+        expect(pinnedViewsOf(cleared)).to.deep.equal({});
+
+        // Clearing an AUTHORED widget only unpins it — never deletes layout.
+        const authored = upsertOutputPin(undefined, "other", "grid");
+        authored.sections[0].widgets[0].id = "hand-made";
+        const unpinned = upsertOutputPin(authored, "other", undefined);
+        expect(unpinned.sections[0].widgets).to.have.length(1);
+        expect(unpinned.sections[0].widgets[0].pinnedByUser).to.equal(false);
     });
 });

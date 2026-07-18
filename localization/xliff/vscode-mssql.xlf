@@ -571,6 +571,9 @@
     <trans-unit id="++CODE++d95082a2ee57f3e40e3050662a346e26a872fd4d0baf57d293ac5a883f0f4ff5">
       <source xml:lang="en">Author</source>
     </trans-unit>
+    <trans-unit id="++CODE++85f930fa723218285e6109c5262e596f034321fc9971425de297c37061fbf924">
+      <source xml:lang="en">Auto (suggested)</source>
+    </trans-unit>
     <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
       <source xml:lang="en">Auto Arrange</source>
     </trans-unit>
@@ -5682,6 +5685,9 @@
     <trans-unit id="++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f">
       <source xml:lang="en">Output file</source>
     </trans-unit>
+    <trans-unit id="++CODE++457f4957af842a5251cfb7190234e6a6fc30c1cb69d7b9d086b4b39c89f8ab06">
+      <source xml:lang="en">Output:</source>
+    </trans-unit>
     <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
       <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
     </trans-unit>
@@ -7251,6 +7257,9 @@
     <trans-unit id="++CODE++4b2be143e0119f38be0df3cde1479ccef0505331124cd5f5584fa1bc6a34e581">
       <source xml:lang="en">Set backup retain days</source>
     </trans-unit>
+    <trans-unit id="++CODE++34f5c49abe674ecacbfe9cb9d2cf605d3e0875a8becf3d1fa9c463acc3c0f239">
+      <source xml:lang="en">Set by you</source>
+    </trans-unit>
     <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
       <source xml:lang="en">Setting</source>
     </trans-unit>
@@ -7681,6 +7690,9 @@
     <trans-unit id="++CODE++c36cade68fea2c699e5795c527fd1daf085d0b76a5a5bc35526765a1b5d5b974">
       <source xml:lang="en">Successfully saved results to {0}</source>
       <note>{0} is the file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++93b63bab4c3a28d73a8bb83bcdfdcc5f6ddecfc8fc702296ca159d94c5dc6e53">
+      <source xml:lang="en">Suggested</source>
     </trans-unit>
     <trans-unit id="++CODE++a21d7df04c33f5076ceee7d9b9c58339aa8c29bb9a53808233ba5b480fffd0e3">
       <source xml:lang="en">Sum</source>
@@ -8865,6 +8877,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59">
       <source xml:lang="en">no</source>
+    </trans-unit>
+    <trans-unit id="++CODE++625f8ca31f09c09190afb0803fd477ffd4bf6e3ec1e17dbdfc545dc3beb0208e">
+      <source xml:lang="en">no output</source>
     </trans-unit>
     <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
       <source xml:lang="en">none selected</source>

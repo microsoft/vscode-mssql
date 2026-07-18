@@ -598,6 +598,7 @@ function PlanPage() {
                 nodes={artifact.nodes}
                 edges={artifact.edges}
                 run={state?.run}
+                pinnedViews={artifact.pinnedViews}
             />
         </div>
     );

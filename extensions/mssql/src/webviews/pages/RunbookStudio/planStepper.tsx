@@ -20,6 +20,56 @@ import {
     RunbookPlanNode,
     RunbookRunSnapshot,
 } from "../../../sharedInterfaces/runbookStudio";
+import {
+    compatibleViews,
+    defaultViewFor,
+    expectedContractFor,
+    ViewKind,
+} from "../../../sharedInterfaces/runbookPresentation";
+import { useRbs } from "./state";
+
+/** Mockup "Output: [view ▾]" affordance: pick from the closed catalog's
+ *  contract-compatible candidates; a pin shows "Set by you", otherwise the
+ *  compiler-suggested default shows "Suggested". Gates show a quiet dash. */
+function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKind | undefined }) {
+    const { setOutputView } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const contract = expectedContractFor(node.kind, node.activityKind);
+    if (!contract) {
+        return (
+            <span className="rbs-muted">
+                {loc.outputLabel} — {loc.noOutput}
+            </span>
+        );
+    }
+    const candidates = compatibleViews(contract);
+    const current = pinned ?? defaultViewFor(contract);
+    return (
+        <span className="rbs-output-picker">
+            <span className="rbs-muted">{loc.outputLabel}</span>
+            <select
+                className="rbs-select"
+                value={pinned ?? ""}
+                aria-label={`${loc.outputLabel} ${node.label}`}
+                onChange={(e) =>
+                    void setOutputView(
+                        node.id,
+                        e.target.value === "" ? undefined : (e.target.value as ViewKind),
+                    )
+                }>
+                <option value="">{loc.autoSuggested}</option>
+                {candidates.map((view) => (
+                    <option key={view} value={view}>
+                        {view}
+                    </option>
+                ))}
+            </select>
+            <span className={`rbs-chip ${pinned ? "" : "rbs-chip-suggested"}`}>
+                {pinned ? loc.setByYouMarker : `${loc.suggestedMarker} · ${current}`}
+            </span>
+        </span>
+    );
+}
 
 function kindIcon(kind: RunbookPlanNode["kind"]): string {
     switch (kind) {
@@ -107,11 +157,13 @@ export function PlanStepper({
     nodes,
     edges,
     run,
+    pinnedViews,
 }: {
     entryNodeId: string;
     nodes: RunbookPlanNode[];
     edges: RunbookPlanEdge[];
     run?: RunbookRunSnapshot;
+    pinnedViews?: Record<string, ViewKind>;
 }) {
     const loc = locConstants.runbookStudio;
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -174,6 +226,9 @@ export function PlanStepper({
                             {snapshot?.message ? (
                                 <div className="rbs-muted rbs-step-message">{snapshot.message}</div>
                             ) : null}
+                            <div className="rbs-step-output">
+                                <OutputPicker node={node} pinned={pinnedViews?.[node.id]} />
+                            </div>
                             {hasDetails(node) ? (
                                 <>
                                     <button

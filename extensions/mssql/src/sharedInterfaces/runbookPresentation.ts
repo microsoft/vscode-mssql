@@ -47,6 +47,28 @@ export function compatibleViews(contract: string): ViewKind[] {
     return COMPATIBILITY[contract] ?? ["json"];
 }
 
+/** Authoring-time expected output contract per activity kind (the actual
+ *  contract is only known at run time; mockup state "Auto until run"). */
+export const ACTIVITY_OUTPUT_CONTRACTS: Record<string, string> = {
+    "sql.query.read": "rowset/1",
+    "assert.threshold": "scalarSet/1",
+};
+
+/** Expected contract for a plan node at authoring time; report nodes render
+ *  markdown, gates produce no output (undefined). */
+export function expectedContractFor(
+    kind: "activity" | "gate" | "report",
+    activityKind: string | undefined,
+): string | undefined {
+    if (kind === "report") {
+        return "markdown/1";
+    }
+    if (kind === "gate") {
+        return undefined;
+    }
+    return activityKind ? ACTIVITY_OUTPUT_CONTRACTS[activityKind] : undefined;
+}
+
 export function defaultViewFor(contract: string): ViewKind {
     return compatibleViews(contract)[0];
 }

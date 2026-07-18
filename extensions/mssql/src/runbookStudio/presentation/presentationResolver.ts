@@ -34,6 +34,73 @@ import {
 } from "../../sharedInterfaces/runbookStudio";
 import { isTerminalNodeState } from "../runbookRunModel";
 
+/**
+ * Pin (or clear) a node's output view in the definition — pure. Creates the
+ * definition/section on first pin; clearing removes the widget only when it
+ * was pin-created (id prefix), never a hand-authored layout entry. Bumps the
+ * revision so patches remain atomically versioned.
+ */
+export function upsertOutputPin(
+    definition: PresentationDefinition | undefined,
+    nodeId: string,
+    view: ViewKind | undefined,
+): PresentationDefinition {
+    const base: PresentationDefinition = definition ?? {
+        schemaVersion: PRESENTATION_SCHEMA_VERSION,
+        revision: 0,
+        sections: [],
+    };
+    const pinId = `pin-${nodeId}`;
+    const sections = base.sections.map((section) => ({
+        ...section,
+        widgets: section.widgets
+            .map((widget) => {
+                if (widget.source.nodeId !== nodeId || (widget.source.outputIndex ?? 0) !== 0) {
+                    return widget;
+                }
+                if (view === undefined) {
+                    // Clearing: drop pin-created widgets, unpin authored ones.
+                    return widget.id === pinId ? undefined : { ...widget, pinnedByUser: false };
+                }
+                return { ...widget, view, pinnedByUser: true };
+            })
+            .filter((w): w is NonNullable<typeof w> => w !== undefined),
+    }));
+    const hasWidget = sections.some((s) =>
+        s.widgets.some((w) => w.source.nodeId === nodeId && (w.source.outputIndex ?? 0) === 0),
+    );
+    if (view !== undefined && !hasWidget) {
+        const primary = sections.find((s) => s.id === "primary");
+        const widget = {
+            id: pinId,
+            source: { nodeId },
+            view,
+            pinnedByUser: true,
+        };
+        if (primary) {
+            primary.widgets = [...primary.widgets, widget];
+        } else {
+            sections.push({ id: "primary", widgets: [widget] });
+        }
+    }
+    return { ...base, revision: base.revision + 1, sections };
+}
+
+/** Pinned views by node id — the webview's "Set by you" markers. */
+export function pinnedViewsOf(
+    definition: PresentationDefinition | undefined,
+): Record<string, ViewKind> {
+    const pins: Record<string, ViewKind> = {};
+    for (const section of definition?.sections ?? []) {
+        for (const widget of section.widgets) {
+            if (widget.pinnedByUser && (widget.source.outputIndex ?? 0) === 0) {
+                pins[widget.source.nodeId] = widget.view;
+            }
+        }
+    }
+    return pins;
+}
+
 /** Validate a persisted definition; returns undefined when unusable (the
  *  caller derives instead — an invalid persisted layout must not blank the
  *  results surface, it degrades to the derived default). */

@@ -3627,6 +3627,11 @@ export class LocConstants {
             stepInputs: l10n.t("Step inputs"),
             hideStepDetails: l10n.t("Hide details"),
             statusTimeline: l10n.t("Status timeline — what happened"),
+            outputLabel: l10n.t("Output:"),
+            suggestedMarker: l10n.t("Suggested"),
+            setByYouMarker: l10n.t("Set by you"),
+            autoSuggested: l10n.t("Auto (suggested)"),
+            noOutput: l10n.t("no output"),
             stepsComplete: (done: number, total: number) =>
                 l10n.t({
                     message: "{0} of {1} steps complete",

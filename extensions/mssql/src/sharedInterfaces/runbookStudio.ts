@@ -12,7 +12,7 @@
  */
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
-import type { ResolvedPresentation } from "./runbookPresentation";
+import type { ResolvedPresentation, ViewKind } from "./runbookPresentation";
 
 // ---------------------------------------------------------------------------
 // Version domains
@@ -292,6 +292,8 @@ export interface RbsArtifactSummary {
     entryNodeId?: string;
     nodes: RunbookPlanNode[];
     edges: RunbookPlanEdge[];
+    /** User-pinned output views by node id (presentation definition pins). */
+    pinnedViews?: Record<string, ViewKind>;
 }
 
 export interface RbsState {
@@ -322,6 +324,16 @@ export namespace RbsUpdateIntentRequest {
     export const type = new RequestType<{ intent: string }, { applied: boolean }, void>(
         "rbs/updateIntent",
     );
+}
+
+/** Pin (or clear) the output view for a plan node — writes a pinned widget
+ *  into the artifact's presentation definition (mockup "Set by you"). */
+export namespace RbsSetOutputViewRequest {
+    export const type = new RequestType<
+        { nodeId: string; view: ViewKind | undefined },
+        { applied: boolean },
+        void
+    >("rbs/setOutputView");
 }
 
 /** Compile the intent into a plan (model-backed; catalog-constrained). */

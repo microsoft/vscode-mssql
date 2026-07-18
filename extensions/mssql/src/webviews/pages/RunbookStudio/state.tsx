@@ -27,11 +27,13 @@ import {
     RbsRespondToGateRequest,
     RbsRoute,
     RbsRunEventNotification,
+    RbsSetOutputViewRequest,
     RbsStartRunRequest,
     RbsState,
     RbsUpdateIntentRequest,
     RunbookRunEvent,
 } from "../../../sharedInterfaces/runbookStudio";
+import { ViewKind } from "../../../sharedInterfaces/runbookPresentation";
 
 interface RbsContextValue {
     state: RbsState | undefined;
@@ -47,6 +49,7 @@ interface RbsContextValue {
     connections: RbsConnectionProfileRef[];
     refreshConnections: () => void;
     updateIntent: (intent: string) => Promise<boolean>;
+    setOutputView: (nodeId: string, view: ViewKind | undefined) => Promise<boolean>;
     startRun: (
         parameterValues: Record<string, string | number | boolean | null>,
     ) => Promise<string | undefined>;
@@ -137,6 +140,14 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const setOutputView = useCallback(
+        async (nodeId: string, view: ViewKind | undefined): Promise<boolean> => {
+            const result = await rpc.sendRequest(RbsSetOutputViewRequest.type, { nodeId, view });
+            return result.applied;
+        },
+        [rpc],
+    );
+
     const startRun = useCallback(
         async (
             parameterValues: Record<string, string | number | boolean | null>,
@@ -197,6 +208,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             connections,
             refreshConnections,
             updateIntent,
+            setOutputView,
             startRun,
             cancelRun,
             respondToGate,
@@ -214,6 +226,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             connections,
             refreshConnections,
             updateIntent,
+            setOutputView,
             startRun,
             cancelRun,
             respondToGate,

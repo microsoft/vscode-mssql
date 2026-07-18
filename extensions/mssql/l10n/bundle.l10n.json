@@ -4399,6 +4399,11 @@
     "Step inputs": "Step inputs",
     "Hide details": "Hide details",
     "Status timeline — what happened": "Status timeline — what happened",
+    "Output:": "Output:",
+    "Suggested": "Suggested",
+    "Set by you": "Set by you",
+    "Auto (suggested)": "Auto (suggested)",
+    "no output": "no output",
     "{0} of {1} steps complete/{0} completed count, {1} total count": {
         "message": "{0} of {1} steps complete",
         "comment": ["{0} completed count, {1} total count"]

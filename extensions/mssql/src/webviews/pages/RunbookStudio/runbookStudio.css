@@ -487,6 +487,30 @@
     color: var(--vscode-descriptionForeground);
 }
 
+.rbs-step-output {
+    margin-top: 6px;
+}
+
+.rbs-output-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.rbs-select {
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border, transparent);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+.rbs-chip-suggested {
+    opacity: 0.75;
+}
+
 .rbs-verdict-pass {
     color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
     background: transparent;

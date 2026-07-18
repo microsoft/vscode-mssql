@@ -29,6 +29,7 @@ import {
     RbsRunEventNotification,
     RbsStartRunRequest,
     RbsState,
+    RbsSetOutputViewRequest,
     RbsUpdateIntentRequest,
     RbsCancelRunRequest,
     RbsGetRunRequest,
@@ -38,7 +39,9 @@ import {
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import {
+    pinnedViewsOf,
     resolvePresentation,
+    upsertOutputPin,
     validatePresentationDefinition,
 } from "./presentation/presentationResolver";
 
@@ -139,6 +142,23 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 return { ok: false, error: this.runtimeUnavailableError() };
             }
             return this.coordinator.compileIntent(this.model, intent);
+        });
+
+        this.onRequest(RbsSetOutputViewRequest.type, async ({ nodeId, view }) => {
+            const artifact = this.model.artifact;
+            if (!artifact?.lock?.nodes.some((n) => n.id === nodeId)) {
+                return { applied: false };
+            }
+            const definition = upsertOutputPin(
+                validatePresentationDefinition(artifact.presentation),
+                nodeId,
+                view,
+            );
+            const applied = await this.model.applyArtifactEdit({
+                ...artifact,
+                presentation: definition,
+            });
+            return { applied };
         });
 
         this.onRequest(RbsListConnectionsRequest.type, async () => {
@@ -270,6 +290,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 ...(artifact.lock ? { entryNodeId: artifact.lock.entryNodeId } : {}),
                 nodes: artifact.lock?.nodes ?? [],
                 edges: artifact.lock?.edges ?? [],
+                pinnedViews: pinnedViewsOf(validatePresentationDefinition(artifact.presentation)),
             };
         }
         // Pure resolution (rendering spec: deterministic, zero model calls,
