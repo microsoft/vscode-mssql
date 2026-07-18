@@ -61,6 +61,12 @@
         "message": "This runbook cannot be published to the Hobbes runtime yet: {0}",
         "comment": ["{0} lists the untranslatable plan features"]
     },
+    "The Hobbes runtime planner could not produce a plan: {0}/{0} is a technical detail string": {
+        "message": "The Hobbes runtime planner could not produce a plan: {0}",
+        "comment": ["{0} is a technical detail string"]
+    },
+    "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.": "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.",
+    "Target connection": "Target connection",
     "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.": "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.": "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     "Approval required to continue.": "Approval required to continue.",

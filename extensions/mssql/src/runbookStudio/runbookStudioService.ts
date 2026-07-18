@@ -42,6 +42,7 @@ import { RunbookRunLedger } from "./runbookRunLedger";
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
+import { buildPlannedArtifact, isPlannedArtifactFailure } from "./models/plannerMapping";
 import { FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
 import { HobbesRuntimeAdapter } from "./runtime/hobbesRuntimeAdapter";
 import { LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
@@ -346,8 +347,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return this.traceByRunId.get(runId);
     }
 
-    /** Intent -> catalog-constrained compiled plan, written into the
-     *  document via WorkspaceEdit (dirty/undo-safe). */
+    /** Intent -> compiled plan, written into the document via WorkspaceEdit
+     *  (dirty/undo-safe). On the hobbes lane the runtime's elicitation
+     *  planner authors the plan first (D-0010); any planner failure falls
+     *  back to the catalog-constrained vscode.lm compiler. */
     public async compileIntent(
         model: RunbookStudioDocumentModel,
         intent: string,
@@ -357,11 +360,21 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return { ok: false, error: invalidArtifactError(model) };
         }
         const context = newRunbookRootContext("compile");
-        const result = await compileIntentWithModel(base, intent, context);
-        if (result.error || !result.artifact) {
-            return { ok: false, ...(result.error ? { error: result.error } : {}) };
+        const runtimeKind = vscode.workspace
+            .getConfiguration()
+            .get<string>("mssql.runbookStudio.runtime", "local");
+        let artifact: RunbookArtifactFile | undefined;
+        if (runtimeKind === "hobbes") {
+            artifact = await this.compileWithRuntimePlanner(base, intent, context);
         }
-        const applied = await model.applyArtifactEdit(result.artifact);
+        if (!artifact) {
+            const result = await compileIntentWithModel(base, intent, context);
+            if (result.error || !result.artifact) {
+                return { ok: false, ...(result.error ? { error: result.error } : {}) };
+            }
+            artifact = result.artifact;
+        }
+        const applied = await model.applyArtifactEdit(artifact);
         if (!applied) {
             return {
                 ok: false,
@@ -372,6 +385,41 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             };
         }
         return { ok: true };
+    }
+
+    /** Runtime-planner authoring path (hobbes lane, R1.2): the planner
+     *  authors the full plan IR and saves it in the runtime library; the
+     *  compiled lock mirrors that plan and references the asset. Returns
+     *  undefined on ANY failure so the catalog compiler takes over. */
+    private async compileWithRuntimePlanner(
+        base: RunbookArtifactFile,
+        intent: string,
+        context: RunbookOperationContext,
+    ): Promise<RunbookArtifactFile | undefined> {
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {
+                errorClass: metaField("AdapterUnavailable"),
+            });
+            return undefined;
+        }
+        try {
+            const planned = await ensured.adapter.planFromPrompt(intent, context);
+            const built = buildPlannedArtifact(base, intent, planned);
+            if (isPlannedArtifactFailure(built)) {
+                emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {
+                    errorClass: metaField("MappingInvalid"),
+                    detailClass: metaField(built.detail.slice(0, 80)),
+                });
+                return undefined;
+            }
+            return built.artifact;
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            return undefined;
+        }
     }
 
     /** Saved connection profiles as opaque {id, label} handles for the

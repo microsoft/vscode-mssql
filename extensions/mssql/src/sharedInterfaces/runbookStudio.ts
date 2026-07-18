@@ -152,6 +152,9 @@ export interface CompiledRunbookLock {
     nodes: RunbookPlanNode[];
     edges: RunbookPlanEdge[];
     activityCatalogFingerprint?: string;
+    /** Plan authored by the runtime planner: the hobbes lane launches this
+     *  library asset directly and never translates the lock. */
+    libraryAssetRef?: { assetId: string; versionLabel?: string };
 }
 
 export interface RunbookArtifactFile {

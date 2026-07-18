@@ -7877,6 +7877,9 @@
     <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
       <source xml:lang="en">Target Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++f99d2bb5a944aedb608890101ecc1dc452bf30fae0666933bdf944947aff0926">
+      <source xml:lang="en">Target connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
       <source xml:lang="en">Target: {0}</source>
       <note>{0} is the task target location</note>
@@ -7936,6 +7939,13 @@
     </trans-unit>
     <trans-unit id="++CODE++7f1cec5f7f7d8417335f002f78a5761b4ece5cda71c85ac1cd6e20468c6984f2">
       <source xml:lang="en">The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca125830fe18f9a968be5ccc37c1498c2d81f5af20af9fe0f972aca1d103bff4">
+      <source xml:lang="en">The Hobbes runtime planner could not produce a plan: {0}</source>
+      <note>{0} is a technical detail string</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7b501afa65585ea057724e4a1165353748c403e4ea8d791f8f84859b36c4952d">
+      <source xml:lang="en">The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.</source>
     </trans-unit>
     <trans-unit id="++CODE++eb85e5b179ae508851d9c3a4ad1b70f15e62bcc724ccceba39fb65ab10b7d537">
       <source xml:lang="en">The Hobbes runtime refused to start the run ({0}).</source>

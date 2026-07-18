@@ -112,6 +112,16 @@ export class RunbookStudio {
             args: [detail],
             comment: ["{0} lists the untranslatable plan features"],
         });
+    public static hobbesPlannerFailed = (detail: string) =>
+        l10n.t({
+            message: "The Hobbes runtime planner could not produce a plan: {0}",
+            args: [detail],
+            comment: ["{0} is a technical detail string"],
+        });
+    public static hobbesPlannerTimeout = l10n.t(
+        "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.",
+    );
+    public static targetConnectionLabel = l10n.t("Target connection");
     public static hobbesRunStalledAfterFailure = l10n.t(
         "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     );

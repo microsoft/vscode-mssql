@@ -27,6 +27,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
+import { PlannedRunbook, PlannerPlanNode } from "../models/plannerMapping";
 import { parseLibraryListResponse, RunbookLibraryAsset } from "../runbookLibraryModel";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
 import {
@@ -49,6 +50,8 @@ import {
 const RUN_POLL_INTERVAL_MS = 750;
 const REQUEST_TIMEOUT_MS = 15_000;
 const HEALTH_PROBE_TIMEOUT_MS = 3_000;
+/** A full planner elicitation session runs 1-5 minutes (verified live). */
+const PLANNER_TIMEOUT_MS = 300_000;
 
 /** GET /api/runs/{runId} projection (InvestigationsLaunchApi.RunToJson). */
 interface HobbesRunRecord {
@@ -62,6 +65,36 @@ interface HobbesRunRecord {
         findingCount?: number;
         remediationCount?: number;
     }>;
+}
+
+/** One NDJSON line of a `/api/runbooks/from-prompt` planner session. Only
+ *  the fields the bridge reads; hundreds of thinking deltas are ignored. */
+interface PlannerStreamEvent {
+    type?: string;
+    turnSeq?: number;
+    turnLabel?: string;
+    /** Present on `error` events. */
+    message?: string;
+    /** Present on the terminal `runbook-asset` event. */
+    asset?: PlannerAssetPayload;
+}
+
+/** The slice of the saved library asset the planner bridge maps. */
+interface PlannerAssetPayload {
+    id?: string;
+    title?: string;
+    plan?: {
+        entryNodeId?: string;
+        nodes?: Array<{
+            id?: string;
+            type?: string;
+            role?: string;
+            strategy?: string;
+            primitiveArgs?: unknown;
+        }>;
+        edges?: Array<{ from?: string; to?: string }>;
+    };
+    inputSchema?: Array<{ name?: string; kind?: string }>;
 }
 
 interface ActivePoll {
@@ -320,6 +353,42 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         return approved.versionLabel ?? "1.00";
     }
 
+    /** Planner-authored plans launch their library asset AS-IS: verify it
+     *  still exists (the user may have archived/purged it), approve it when
+     *  it is still a draft, and return the version label to launch. */
+    private async ensureLibraryAssetApproved(
+        assetId: string,
+        context: RunbookOperationContext,
+    ): Promise<string> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "GET",
+            `/api/runbooks/${encodeURIComponent(assetId)}`,
+        );
+        if (response.status === 404) {
+            throw launchRefusalError("runbook-not-found");
+        }
+        if (!response.ok) {
+            throw launchRefusalError(`library-read-http-${response.status}`);
+        }
+        const asset = (await response.json()) as { state?: string; versionLabel?: string };
+        if (asset.state !== "approved") {
+            const approve = await this.request(
+                runtime.baseUrl,
+                "POST",
+                `/api/runbooks/${encodeURIComponent(assetId)}/approve`,
+                {},
+            );
+            if (!approve.ok) {
+                throw launchRefusalError(`approve-http-${approve.status}`);
+            }
+            const approved = (await approve.json()) as { versionLabel?: string };
+            return approved.versionLabel ?? asset.versionLabel ?? "1.00";
+        }
+        return asset.versionLabel ?? "1.00";
+    }
+
     // -- library surface (R3, D-0012) ---------------------------------------
 
     /** Publish the artifact to the runtime library WITHOUT running it —
@@ -380,6 +449,114 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         );
         if (!response.ok) {
             throw new Error(`library archive failed (HTTP ${response.status})`);
+        }
+    }
+
+    // -- runtime planner (R1.2, D-0010) --------------------------------------
+
+    /**
+     * Drive the runtime's elicitation planner: POST the prompt and stream
+     * the NDJSON session until the terminal `runbook-asset` (the asset is
+     * ALREADY saved in the runtime library as a draft) or `error` event.
+     * Direct fetch — NOT this.request — because the session streams for
+     * 1-5 minutes, far past the shared request budget.
+     */
+    public async planFromPrompt(
+        promptText: string,
+        context: RunbookOperationContext,
+    ): Promise<PlannedRunbook> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), PLANNER_TIMEOUT_MS);
+        try {
+            const response = await fetch(`${runtime.baseUrl}/api/runbooks/from-prompt`, {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    accept: "application/x-ndjson",
+                },
+                body: JSON.stringify({ promptText }),
+                signal: controller.signal,
+            });
+            if (!response.ok || !response.body) {
+                throw plannerRefusedError(`http-${response.status}`);
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            for (;;) {
+                const { done, value } = await reader.read();
+                if (value) {
+                    buffer += decoder.decode(value, { stream: !done });
+                }
+                const lines: string[] = [];
+                let newline: number;
+                while ((newline = buffer.indexOf("\n")) >= 0) {
+                    lines.push(buffer.slice(0, newline));
+                    buffer = buffer.slice(newline + 1);
+                }
+                if (done && buffer.trim().length > 0) {
+                    // The terminal event may not be newline-terminated.
+                    lines.push(buffer);
+                    buffer = "";
+                }
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed) {
+                        continue;
+                    }
+                    let event: PlannerStreamEvent;
+                    try {
+                        event = JSON.parse(trimmed) as PlannerStreamEvent;
+                    } catch {
+                        // Malformed line: skip (thinking deltas can be huge).
+                        continue;
+                    }
+                    if (event.type === "build-turn-started") {
+                        emitRunbookEvent(context, "runbookStudio.planner.turn", "ok", {
+                            turnLabel: metaField(event.turnLabel ?? String(event.turnSeq ?? "")),
+                        });
+                    } else if (event.type === "error") {
+                        throw plannerRefusedError(event.message ?? "planner-error");
+                    } else if (event.type === "runbook-asset" && event.asset) {
+                        const planned = mapPlannerAsset(event.asset);
+                        emitRunbookEvent(context, "runbookStudio.planner.end", "ok", {
+                            nodeCount: metaField(planned.plan.nodes.length),
+                            inputCount: metaField(planned.inputSchema.length),
+                        });
+                        return planned;
+                    }
+                    // All other event kinds (sql-expert-thinking, dry-run,
+                    // schema proposals, ...) are progress-only: ignored.
+                }
+                if (done) {
+                    throw plannerRefusedError("stream-ended-without-asset");
+                }
+            }
+        } catch (error) {
+            emitRunbookEvent(context, "runbookStudio.planner.end", "error", {
+                errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
+            });
+            if (error instanceof RuntimeStartRefusedError) {
+                throw error;
+            }
+            if (error instanceof Error && error.name === "AbortError") {
+                throw new RuntimeStartRefusedError(
+                    {
+                        code: "RunbookStudio.Timeout",
+                        message: LocRunbookStudio.hobbesPlannerTimeout,
+                        retryable: true,
+                    },
+                    "planner-timeout",
+                );
+            }
+            throw plannerRefusedError(error instanceof Error ? error.message : String(error));
+        } finally {
+            clearTimeout(timer);
+            // Release the stream on early exits (error event / mapping
+            // refusal) — the runtime would otherwise keep streaming into a
+            // dead socket. A no-op after clean completion.
+            controller.abort();
         }
     }
 
@@ -656,14 +833,16 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // never enter the file) and use its alias for the launch.
         const alias = await this.ensureConnectionBridged(runtime.baseUrl, connectionAlias, context);
 
-        // 2. Publish: translate the compiled lock into the runtime's plan IR
-        // and register it in the library via the studio API (create/update ->
-        // approve). Untranslatable plans refuse with exact reasons.
-        const versionLabel = await this.publishArtifact(
-            request.artifact,
-            request.parameterValues ?? {},
-            context,
-        );
+        // 2. Resolve the runtime-library runbook to launch. Planner-authored
+        // locks reference the library asset the planner already saved —
+        // launch it directly, never translate the lock. Catalog-compiled
+        // locks publish through the translator as before (create/update ->
+        // approve); untranslatable plans refuse with exact reasons.
+        const libraryAssetRef = request.artifact.lock?.libraryAssetRef;
+        const runbookId = libraryAssetRef?.assetId ?? request.artifact.id;
+        const versionLabel = libraryAssetRef
+            ? await this.ensureLibraryAssetApproved(libraryAssetRef.assetId, context)
+            : await this.publishArtifact(request.artifact, request.parameterValues ?? {}, context);
 
         // The connection bridge may have RESTARTED the runtime onto a new
         // port — re-resolve before every post-bridge call (a stale base URL
@@ -673,7 +852,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
 
         // 3. Launch + confirm (mounts the investigation).
         const launch = await this.request(activeBaseUrl, "POST", "/api/investigations/launch", {
-            runbookId: request.artifact.id,
+            runbookId,
             runbookVersion: versionLabel,
             connectionAlias: alias,
         });
@@ -1033,6 +1212,70 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             clearTimeout(timer);
         }
     }
+}
+
+/** Planner failure -> typed refusal with the exact detail. */
+function plannerRefusedError(detail: string): RuntimeStartRefusedError {
+    return new RuntimeStartRefusedError(
+        {
+            code: "RunbookStudio.CompileInvalid",
+            message: LocRunbookStudio.hobbesPlannerFailed(detail),
+            retryable: true,
+        },
+        "planner-failed",
+    );
+}
+
+function isRecordValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Terminal `runbook-asset` payload -> the boundary PlannedRunbook shape.
+ *  Nodes/edges missing stable ids are dropped (never invented); an asset
+ *  without an id or nodes refuses with the exact reason. */
+function mapPlannerAsset(asset: PlannerAssetPayload): PlannedRunbook {
+    const nodes: PlannerPlanNode[] = [];
+    for (const node of asset.plan?.nodes ?? []) {
+        if (typeof node?.id !== "string" || node.id.length === 0) {
+            continue;
+        }
+        nodes.push({
+            id: node.id,
+            ...(typeof node.type === "string" && node.type.length > 0 ? { type: node.type } : {}),
+            ...(typeof node.role === "string" && node.role.length > 0 ? { role: node.role } : {}),
+            ...(typeof node.strategy === "string" && node.strategy.length > 0
+                ? { strategy: node.strategy }
+                : {}),
+            ...(isRecordValue(node.primitiveArgs) ? { primitiveArgs: node.primitiveArgs } : {}),
+        });
+    }
+    if (typeof asset.id !== "string" || asset.id.length === 0 || nodes.length === 0) {
+        throw plannerRefusedError("asset-missing-id-or-nodes");
+    }
+    const edges: Array<{ from: string; to: string }> = [];
+    for (const edge of asset.plan?.edges ?? []) {
+        if (typeof edge?.from === "string" && typeof edge?.to === "string") {
+            edges.push({ from: edge.from, to: edge.to });
+        }
+    }
+    const inputSchema: Array<{ name: string; kind: string }> = [];
+    for (const input of asset.inputSchema ?? []) {
+        if (typeof input?.name === "string" && typeof input?.kind === "string") {
+            inputSchema.push({ name: input.name, kind: input.kind });
+        }
+    }
+    return {
+        assetId: asset.id,
+        title: typeof asset.title === "string" && asset.title.length > 0 ? asset.title : asset.id,
+        plan: {
+            nodes,
+            edges,
+            ...(typeof asset.plan?.entryNodeId === "string" && asset.plan.entryNodeId.length > 0
+                ? { entryNodeId: asset.plan.entryNodeId }
+                : {}),
+        },
+        inputSchema,
+    };
 }
 
 /**
