@@ -4476,6 +4476,20 @@
         "message": "Line chart of {0} over {1}",
         "comment": ["{0} is a value column name, {1} is a date/time column name"]
     },
+    "{0} rows/{0} is a row count": {
+        "message": "{0} rows",
+        "comment": ["{0} is a row count"]
+    },
+    "{0}: {1} at {2}/{0} is a series (column) name, {1} is a numeric value, {2} is an x-axis position (a date/time or a number)": {
+        "message": "{0}: {1} at {2}",
+        "comment": [
+            "{0} is a series (column) name, {1} is a numeric value, {2} is an x-axis position (a date/time or a number)"
+        ]
+    },
+    "{0} — {1}: {2}/{0} is a category name, {1} is a series (column) name, {2} is a numeric value": {
+        "message": "{0} — {1}: {2}",
+        "comment": ["{0} is a category name, {1} is a series (column) name, {2} is a numeric value"]
+    },
     "modified": "modified",
     "Reset to the default view (this run only)": "Reset to the default view (this run only)",
     "View for {0}/{0} is a result widget title": {

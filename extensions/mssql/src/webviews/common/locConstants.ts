@@ -3692,6 +3692,28 @@ export class LocConstants {
                     args: [value, time],
                     comment: ["{0} is a value column name, {1} is a date/time column name"],
                 }),
+            rowCount: (count: number) =>
+                l10n.t({
+                    message: "{0} rows",
+                    args: [count],
+                    comment: ["{0} is a row count"],
+                }),
+            seriesPointLabel: (series: string, value: string, at: string) =>
+                l10n.t({
+                    message: "{0}: {1} at {2}",
+                    args: [series, value, at],
+                    comment: [
+                        "{0} is a series (column) name, {1} is a numeric value, {2} is an x-axis position (a date/time or a number)",
+                    ],
+                }),
+            categorySeriesValue: (category: string, series: string, value: string) =>
+                l10n.t({
+                    message: "{0} — {1}: {2}",
+                    args: [category, series, value],
+                    comment: [
+                        "{0} is a category name, {1} is a series (column) name, {2} is a numeric value",
+                    ],
+                }),
             modifiedChip: l10n.t("modified"),
             resetViewTitle: l10n.t("Reset to the default view (this run only)"),
             viewSwitcherLabel: (title: string) =>

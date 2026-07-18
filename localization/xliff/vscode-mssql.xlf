@@ -9197,6 +9197,10 @@
       <source xml:lang="en">{0} renderable</source>
       <note>{0} is the number of renderable spatial features</note>
     </trans-unit>
+    <trans-unit id="++CODE++05ef0e03ed567c97b776d9487cdc757a0a6d71e22675e543df271ce71ecee2bd">
+      <source xml:lang="en">{0} rows</source>
+      <note>{0} is a row count</note>
+    </trans-unit>
     <trans-unit id="++CODE++08d28ae712434acde7968129899d99a2085a2a11f46288f0ae410bbc1d7af999">
       <source xml:lang="en">{0} rows</source>
       <note>{0} is the number of rows</note>
@@ -9254,6 +9258,10 @@
     <trans-unit id="++CODE++bd704d982ce6b1817d67a2dd5cf111819c382c799a14527875e56eff0807f3e1">
       <source xml:lang="en">{0} · online</source>
     </trans-unit>
+    <trans-unit id="++CODE++788cf6bb35f3399101324a95ab0c2cd16c3c67cf49ad5e337988a31d2036502d">
+      <source xml:lang="en">{0} — {1}: {2}</source>
+      <note>{0} is a category name, {1} is a series (column) name, {2} is a numeric value</note>
+    </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>
       <note>{0} is the first changed property label
@@ -9292,6 +9300,10 @@
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the task status
 {1} is the task message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++486db3b82fa0fcfde7a60dc13ff22faf9eb65830a76aa6b0f25e0c3346e942c9">
+      <source xml:lang="en">{0}: {1} at {2}</source>
+      <note>{0} is a series (column) name, {1} is a numeric value, {2} is an x-axis position (a date/time or a number)</note>
     </trans-unit>
     <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
       <source xml:lang="en">{0}: {1}. {2}</source>

@@ -712,7 +712,41 @@
     border-color: currentColor;
 }
 
-/* Result chart renderers (bar, timeseries) — inline SVG, chart theme tokens. */
+/* Result chart renderers (bar, timeseries) — inline SVG, chart theme tokens.
+   Series colors are set inline from the palette in widgets.tsx (SVG
+   presentation attributes cannot carry var(), the style attribute can). */
+.rbs-chart-meta {
+    font-size: 10.5px;
+}
+
+.rbs-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 12px;
+    font-size: 10.5px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+}
+
+.rbs-legend-swatch {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+.rbs-legend-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .rbs-bar-chart {
     display: flex;
     flex-direction: column;
@@ -734,14 +768,35 @@
     white-space: nowrap;
 }
 
+.rbs-bar-tracks {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rbs-bar-track {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .rbs-bar-svg {
     flex: 1;
     min-width: 0;
     display: block;
 }
 
+.rbs-bar-grid {
+    stroke: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+    opacity: 0.6;
+}
+
 .rbs-bar-fill {
-    fill: var(--vscode-charts-blue, #4e9ae8);
+    fill: var(--vscode-charts-blue, #3794ff);
 }
 
 .rbs-bar-value {
@@ -753,9 +808,12 @@
 .rbs-ts-chart {
     display: grid;
     grid-template-columns: max-content 1fr;
-    grid-template-rows: 1fr max-content;
     gap: 3px 8px;
     max-width: 640px;
+}
+
+.rbs-ts-meta {
+    grid-column: 1 / -1;
 }
 
 .rbs-ts-y {
@@ -778,16 +836,23 @@
     height: auto;
 }
 
+.rbs-ts-grid {
+    stroke: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+    opacity: 0.6;
+}
+
 .rbs-ts-line {
     fill: none;
-    stroke: var(--vscode-charts-blue, #4e9ae8);
+    stroke: var(--vscode-charts-blue, #3794ff);
     stroke-width: 2;
     stroke-linejoin: round;
     stroke-linecap: round;
 }
 
 .rbs-ts-dot {
-    fill: var(--vscode-charts-blue, #4e9ae8);
+    fill: var(--vscode-charts-blue, #3794ff);
 }
 
 .rbs-ts-x {
@@ -796,6 +861,10 @@
     justify-content: space-between;
     color: var(--vscode-descriptionForeground);
     font-size: 10.5px;
+}
+
+.rbs-ts-legend {
+    grid-column: 2;
 }
 
 /* Per-widget view switcher — ephemeral override, "this run only". */

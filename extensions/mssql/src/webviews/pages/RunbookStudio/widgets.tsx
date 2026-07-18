@@ -29,11 +29,28 @@ import { useRbs } from "./state";
 const PAGE_ROWS = 100;
 /** Bar chart shows at most this many rows (with an honest truncation note). */
 const BAR_MAX_ROWS = 30;
-/** Timeseries draws per-point dots only up to this many points. */
+/** Timeseries draws per-point dots only up to this many points (per series). */
 const TS_DOT_MAX_POINTS = 50;
+/** Timeseries plots at most this many Y series (the palette size). */
+const TS_MAX_SERIES = 6;
 const TS_VIEW_WIDTH = 600;
 const TS_VIEW_HEIGHT = 200;
 const TS_PAD = 10;
+/** Horizontal gridline positions, top→bottom, as fractions of the Y span. */
+const TS_GRID_FRACTIONS = [1, 2 / 3, 1 / 3, 0];
+/** Vertical bar-chart gridlines, as percentages of the max value. */
+const BAR_GRID_PERCENTS = [25, 50, 75, 100];
+/** Chart series palette — VS Code chart theme tokens with the default-dark
+ *  theme hexes as fallbacks. Series take colors in this fixed order; the
+ *  series count is capped at the palette size, never cycled. */
+const CHART_PALETTE = [
+    "var(--vscode-charts-blue, #3794ff)",
+    "var(--vscode-charts-red, #f14c4c)",
+    "var(--vscode-charts-yellow, #cca700)",
+    "var(--vscode-charts-green, #89d185)",
+    "var(--vscode-charts-purple, #b180d7)",
+    "var(--vscode-charts-orange, #d18616)",
+];
 
 type CellValue = string | number | boolean | null;
 
@@ -120,6 +137,15 @@ function columnCountOf(page: FetchedPage): number {
 /** Integer values get locale grouping; fractional values keep raw precision. */
 function formatNumber(value: number): string {
     return Number.isInteger(value) ? value.toLocaleString() : String(value);
+}
+
+/** Compact axis/value labels (1.2K, 3.4M); tooltips keep full precision. */
+const compactNumber = new Intl.NumberFormat(undefined, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+});
+function formatCompact(value: number): string {
+    return compactNumber.format(value);
 }
 
 interface XAxis {
@@ -244,25 +270,66 @@ function JsonView({ page }: { page: FetchedPage }) {
     );
 }
 
+/** Small header line inside a chart: the row count, or an honest partial-page
+ *  note when the widget fetched fewer rows than the output holds. */
+function ChartMeta({ page, className }: { page: FetchedPage; className?: string }) {
+    const loc = locConstants.runbookStudio;
+    const shown = page.rows?.length ?? 0;
+    const total = page.totalRows ?? shown;
+    return (
+        <div className={`rbs-chart-meta rbs-muted${className ? ` ${className}` : ""}`}>
+            {total > shown ? loc.showingRows(shown, total) : loc.rowCount(total)}
+        </div>
+    );
+}
+
+/** Legend row: color swatch + column name per series. Identity never rides on
+ *  color alone — the swatch always sits beside the readable column name. */
+function ChartLegend({
+    entries,
+    className,
+}: {
+    entries: Array<{ name: string; color: string }>;
+    className?: string;
+}) {
+    return (
+        <div className={`rbs-chart-legend${className ? ` ${className}` : ""}`}>
+            {entries.map((entry, index) => (
+                <span className="rbs-legend-item" key={index} title={entry.name}>
+                    <span
+                        className="rbs-legend-swatch"
+                        style={{ background: entry.color }}
+                        aria-hidden="true"
+                    />
+                    <span className="rbs-legend-name">{entry.name}</span>
+                </span>
+            ))}
+        </div>
+    );
+}
+
 /** Horizontal bar chart for rowset pages: category = first non-numeric
  *  column (row index when every column is numeric), value = first numeric
- *  column. Degrades honestly to the grid when no numeric column exists. */
+ *  column — or grouped pairs (shared scale, 2-color legend) when there are
+ *  exactly two numeric columns beside a category. Rows sort by value
+ *  descending before the top-30 cut; bars carry native <title> tooltips with
+ *  full precision, compact value labels, and subtle gridlines at
+ *  25/50/75/100% of max. Degrades honestly to the grid when no numeric
+ *  column exists. */
 function BarChartView({ page }: { page: FetchedPage }) {
     const loc = locConstants.runbookStudio;
     const rows = page.rows ?? [];
     const columnCount = columnCountOf(page);
-    let valueColumn = -1;
+    const numericColumns: number[] = [];
     let categoryColumn = -1;
     for (let i = 0; i < columnCount; i++) {
         if (isNumericColumn(rows, i)) {
-            if (valueColumn === -1) {
-                valueColumn = i;
-            }
+            numericColumns.push(i);
         } else if (categoryColumn === -1) {
             categoryColumn = i;
         }
     }
-    if (valueColumn === -1) {
+    if (numericColumns.length === 0) {
         return (
             <>
                 <div className="rbs-muted">{loc.noNumericColumn}</div>
@@ -270,61 +337,105 @@ function BarChartView({ page }: { page: FetchedPage }) {
             </>
         );
     }
-    const bars = rows.slice(0, BAR_MAX_ROWS).map((row, index) => {
-        const categoryCell = categoryColumn >= 0 ? row[categoryColumn] : undefined;
-        return {
-            label:
-                categoryColumn >= 0
-                    ? categoryCell === null || categoryCell === undefined
-                        ? "NULL"
-                        : String(categoryCell)
-                    : String(index + 1),
-            value: numericCellValue(row[valueColumn]),
-        };
-    });
-    const maxValue = Math.max(0, ...bars.map((bar) => bar.value ?? 0));
+    // Exactly two numeric columns beside a category → grouped pairs on one
+    // shared scale (never a dual axis); otherwise the first numeric column.
+    const grouped = numericColumns.length === 2 && categoryColumn >= 0;
+    const seriesColumns = grouped ? numericColumns : numericColumns.slice(0, 1);
+    const series = seriesColumns.map((column, index) => ({
+        name: page.columns?.[column] ?? String(column + 1),
+        color: CHART_PALETTE[index],
+    }));
+    const bars = rows
+        .map((row, index) => {
+            const categoryCell = categoryColumn >= 0 ? row[categoryColumn] : undefined;
+            return {
+                label:
+                    categoryColumn >= 0
+                        ? categoryCell === null || categoryCell === undefined
+                            ? "NULL"
+                            : String(categoryCell)
+                        : String(index + 1),
+                values: seriesColumns.map((column) => numericCellValue(row[column])),
+            };
+        })
+        .sort(
+            (a, b) =>
+                (b.values[0] ?? Number.NEGATIVE_INFINITY) -
+                (a.values[0] ?? Number.NEGATIVE_INFINITY),
+        )
+        .slice(0, BAR_MAX_ROWS);
+    const maxValue = Math.max(0, ...bars.flatMap((bar) => bar.values.map((value) => value ?? 0)));
     const totalRows = page.totalRows ?? rows.length;
-    const valueName = page.columns?.[valueColumn];
     const categoryName = categoryColumn >= 0 ? page.columns?.[categoryColumn] : undefined;
+    const barHeight = grouped ? 12 : 16;
     return (
         <div
             className="rbs-bar-chart"
             role="group"
             aria-label={
-                valueName !== undefined && categoryName !== undefined
-                    ? loc.barChartLabel(valueName, categoryName)
+                categoryName !== undefined
+                    ? loc.barChartLabel(series.map((entry) => entry.name).join(", "), categoryName)
                     : undefined
             }>
+            <ChartMeta page={page} />
+            {grouped ? <ChartLegend entries={series} /> : null}
             {bars.map((bar, index) => {
-                const fraction =
-                    maxValue > 0 && bar.value !== undefined && bar.value > 0
-                        ? bar.value / maxValue
-                        : 0;
-                const display = bar.value === undefined ? "NULL" : formatNumber(bar.value);
+                const titles = bar.values.map((value, seriesIndex) => {
+                    const exact = value === undefined ? "NULL" : formatNumber(value);
+                    return grouped
+                        ? loc.categorySeriesValue(bar.label, series[seriesIndex].name, exact)
+                        : `${bar.label}: ${exact}`;
+                });
                 return (
                     <div
                         className="rbs-bar-row"
                         key={index}
                         role="img"
-                        aria-label={`${bar.label}: ${display}`}>
+                        aria-label={titles.join("; ")}>
                         <span className="rbs-bar-label" title={bar.label}>
                             {bar.label}
                         </span>
-                        <svg
-                            className="rbs-bar-svg"
-                            height="16"
-                            aria-hidden="true"
-                            focusable="false">
-                            <rect
-                                className="rbs-bar-fill"
-                                x="0"
-                                y="2"
-                                rx="2"
-                                height="12"
-                                width={`${(fraction * 100).toFixed(2)}%`}
-                            />
-                        </svg>
-                        <span className="rbs-bar-value rbs-mono">{display}</span>
+                        <div className="rbs-bar-tracks">
+                            {bar.values.map((value, seriesIndex) => {
+                                const fraction =
+                                    maxValue > 0 && value !== undefined && value > 0
+                                        ? value / maxValue
+                                        : 0;
+                                return (
+                                    <div className="rbs-bar-track" key={seriesIndex}>
+                                        <svg
+                                            className="rbs-bar-svg"
+                                            height={barHeight}
+                                            aria-hidden="true"
+                                            focusable="false">
+                                            <title>{titles[seriesIndex]}</title>
+                                            {BAR_GRID_PERCENTS.map((percent) => (
+                                                <line
+                                                    className="rbs-bar-grid"
+                                                    key={percent}
+                                                    x1={`${percent}%`}
+                                                    x2={`${percent}%`}
+                                                    y1="0"
+                                                    y2="100%"
+                                                />
+                                            ))}
+                                            <rect
+                                                className="rbs-bar-fill"
+                                                style={{ fill: series[seriesIndex].color }}
+                                                x="0"
+                                                y="2"
+                                                rx="2"
+                                                height={barHeight - 4}
+                                                width={`${(fraction * 100).toFixed(2)}%`}
+                                            />
+                                        </svg>
+                                        <span className="rbs-bar-value rbs-mono">
+                                            {value === undefined ? "NULL" : formatCompact(value)}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 );
             })}
@@ -336,8 +447,11 @@ function BarChartView({ page }: { page: FetchedPage }) {
 }
 
 /** Line chart for rowset pages: X = first date/time (or monotonic numeric)
- *  column, Y = first numeric column other than X. Degrades honestly to the
- *  grid when no usable axis exists. Fixed viewBox, min/max axis labels only. */
+ *  column, Y = every other numeric column (up to six series), each polyline
+ *  in its own chart theme color with a legend row under the plot. Four light
+ *  gridlines with compact tick labels, first/middle/last X labels, native
+ *  SVG <title> tooltips on lines and points. Degrades honestly to the grid
+ *  when no usable axis exists. */
 function TimeseriesView({ page }: { page: FetchedPage }) {
     const loc = locConstants.runbookStudio;
     const rows = page.rows ?? [];
@@ -359,14 +473,14 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
             </>
         );
     }
-    let yColumn = -1;
-    for (let i = 0; i < columnCount; i++) {
+    const axis = xAxis;
+    const seriesColumns: number[] = [];
+    for (let i = 0; i < columnCount && seriesColumns.length < TS_MAX_SERIES; i++) {
         if (i !== xColumn && isNumericColumn(rows, i)) {
-            yColumn = i;
-            break;
+            seriesColumns.push(i);
         }
     }
-    if (yColumn === -1) {
+    if (seriesColumns.length === 0) {
         return (
             <>
                 <div className="rbs-muted">{loc.noNumericColumn}</div>
@@ -374,15 +488,25 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
             </>
         );
     }
-    const axis = xAxis;
-    const points = rows
-        .map((row, index) => ({ x: axis.values[index], y: numericCellValue(row[yColumn]) }))
-        .filter(
-            (point): point is { x: number; y: number } =>
-                point.x !== undefined && point.y !== undefined,
-        )
-        .sort((a, b) => a.x - b.x);
-    if (points.length === 0) {
+    const series = seriesColumns
+        .map((column, index) => ({
+            column,
+            name: page.columns?.[column] ?? String(column + 1),
+            color: CHART_PALETTE[index],
+            points: rows
+                .map((row, rowIndex) => ({
+                    x: axis.values[rowIndex],
+                    y: numericCellValue(row[column]),
+                }))
+                .filter(
+                    (point): point is { x: number; y: number } =>
+                        point.x !== undefined && point.y !== undefined,
+                )
+                .sort((a, b) => a.x - b.x),
+        }))
+        .filter((entry) => entry.points.length > 0);
+    const allPoints = series.flatMap((entry) => entry.points);
+    if (allPoints.length === 0) {
         return (
             <>
                 <div className="rbs-muted">{loc.needsTimeColumn}</div>
@@ -390,27 +514,34 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
             </>
         );
     }
-    const xMin = points[0].x;
-    const xMax = points[points.length - 1].x;
-    const yMin = Math.min(...points.map((point) => point.y));
-    const yMax = Math.max(...points.map((point) => point.y));
+    const xMin = Math.min(...allPoints.map((point) => point.x));
+    const xMax = Math.max(...allPoints.map((point) => point.x));
+    const yMin = Math.min(...allPoints.map((point) => point.y));
+    const yMax = Math.max(...allPoints.map((point) => point.y));
     const xSpan = xMax - xMin || 1;
     const ySpan = yMax - yMin || 1;
     const px = (x: number) => TS_PAD + ((x - xMin) / xSpan) * (TS_VIEW_WIDTH - 2 * TS_PAD);
     const py = (y: number) =>
         TS_VIEW_HEIGHT - TS_PAD - ((y - yMin) / ySpan) * (TS_VIEW_HEIGHT - 2 * TS_PAD);
-    const polylinePoints = points
-        .map((point) => `${px(point.x).toFixed(1)},${py(point.y).toFixed(1)}`)
-        .join(" ");
+    const yTicks = TS_GRID_FRACTIONS.map((fraction) => yMin + fraction * (yMax - yMin));
     const xName = page.columns?.[xColumn] ?? String(xColumn + 1);
-    const yName = page.columns?.[yColumn] ?? String(yColumn + 1);
-    const formatX = (value: number) =>
+    const seriesNames = series.map((entry) => entry.name).join(", ");
+    const formatXTick = (value: number) =>
+        axis.isTime
+            ? new Date(value).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })
+            : formatCompact(value);
+    const formatXExact = (value: number) =>
         axis.isTime ? new Date(value).toLocaleString() : formatNumber(value);
     return (
-        <div className="rbs-ts-chart" role="img" aria-label={loc.timeseriesLabel(yName, xName)}>
+        <div
+            className="rbs-ts-chart"
+            role="group"
+            aria-label={loc.timeseriesLabel(seriesNames, xName)}>
+            <ChartMeta page={page} className="rbs-ts-meta" />
             <div className="rbs-ts-y rbs-mono" aria-hidden="true">
-                <span>{formatNumber(yMax)}</span>
-                <span>{formatNumber(yMin)}</span>
+                {yTicks.map((tick, index) => (
+                    <span key={index}>{formatCompact(tick)}</span>
+                ))}
             </div>
             <div className="rbs-ts-plot">
                 <svg
@@ -418,24 +549,58 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
                     viewBox={`0 0 ${TS_VIEW_WIDTH} ${TS_VIEW_HEIGHT}`}
                     aria-hidden="true"
                     focusable="false">
-                    <polyline className="rbs-ts-line" points={polylinePoints} />
-                    {points.length <= TS_DOT_MAX_POINTS
-                        ? points.map((point, index) => (
-                              <circle
-                                  className="rbs-ts-dot"
-                                  key={index}
-                                  cx={px(point.x).toFixed(1)}
-                                  cy={py(point.y).toFixed(1)}
-                                  r="3"
-                              />
-                          ))
-                        : null}
+                    {yTicks.map((tick, index) => (
+                        <line
+                            className="rbs-ts-grid"
+                            key={index}
+                            x1={TS_PAD}
+                            x2={TS_VIEW_WIDTH - TS_PAD}
+                            y1={py(tick).toFixed(1)}
+                            y2={py(tick).toFixed(1)}
+                        />
+                    ))}
+                    {series.map((entry) => (
+                        <g key={entry.column}>
+                            <polyline
+                                className="rbs-ts-line"
+                                style={{ stroke: entry.color }}
+                                points={entry.points
+                                    .map(
+                                        (point) =>
+                                            `${px(point.x).toFixed(1)},${py(point.y).toFixed(1)}`,
+                                    )
+                                    .join(" ")}>
+                                <title>{entry.name}</title>
+                            </polyline>
+                            {entry.points.length <= TS_DOT_MAX_POINTS
+                                ? entry.points.map((point, pointIndex) => (
+                                      <circle
+                                          className="rbs-ts-dot"
+                                          style={{ fill: entry.color }}
+                                          key={pointIndex}
+                                          cx={px(point.x).toFixed(1)}
+                                          cy={py(point.y).toFixed(1)}
+                                          r="3">
+                                          <title>
+                                              {loc.seriesPointLabel(
+                                                  entry.name,
+                                                  formatNumber(point.y),
+                                                  formatXExact(point.x),
+                                              )}
+                                          </title>
+                                      </circle>
+                                  ))
+                                : null}
+                        </g>
+                    ))}
                 </svg>
             </div>
             <div className="rbs-ts-x rbs-mono" aria-hidden="true">
-                <span>{formatX(xMin)}</span>
-                <span>{formatX(xMax)}</span>
+                <span>{formatXTick(xMin)}</span>
+                <span>{formatXTick(xMin + (xMax - xMin) / 2)}</span>
+                <span>{formatXTick(xMax)}</span>
             </div>
+            <ChartLegend entries={series} className="rbs-ts-legend" />
         </div>
     );
 }
