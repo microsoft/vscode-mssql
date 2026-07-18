@@ -464,6 +464,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
     public async planFromPrompt(
         promptText: string,
         context: RunbookOperationContext,
+        onProgress?: (label: string) => void,
     ): Promise<PlannedRunbook> {
         const runtime = await this.supervisor.ensureRunning(context);
         const controller = new AbortController();
@@ -516,6 +517,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                         emitRunbookEvent(context, "runbookStudio.planner.turn", "ok", {
                             turnLabel: metaField(event.turnLabel ?? String(event.turnSeq ?? "")),
                         });
+                        if (event.turnLabel) {
+                            onProgress?.(event.turnLabel);
+                        }
                     } else if (event.type === "error") {
                         throw plannerRefusedError(event.message ?? "planner-error");
                     } else if (event.type === "runbook-asset" && event.asset) {

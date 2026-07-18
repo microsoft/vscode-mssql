@@ -18,6 +18,7 @@ import {
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     RbsCancelRunRequest,
+    RbsCompileProgressNotification,
     RbsCompileRequest,
     RbsConnectionProfileRef,
     RbsError,
@@ -45,6 +46,8 @@ interface RbsContextValue {
     lastError: RbsError | undefined;
     dismissError: () => void;
     compiling: boolean;
+    /** Latest planner phase label while compiling ("Workflow shape", ...). */
+    compileProgress: string | undefined;
     compile: (intent: string) => Promise<boolean>;
     connections: RbsConnectionProfileRef[];
     refreshConnections: () => void;
@@ -92,6 +95,9 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         rpc.onNotification(RbsNavigateNotification.type, ({ route: target }) => {
             navigate(target);
         });
+        rpc.onNotification(RbsCompileProgressNotification.type, ({ label }) => {
+            setCompileProgress(label);
+        });
         rpc.onNotification(RbsRunEventNotification.type, (event) => {
             setRunEvents((current) => {
                 const next = current.concat(event);
@@ -105,10 +111,12 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     const dismissError = useCallback(() => setLastError(undefined), []);
 
     const [compiling, setCompiling] = useState(false);
+    const [compileProgress, setCompileProgress] = useState<string | undefined>(undefined);
     const compile = useCallback(
         async (intent: string): Promise<boolean> => {
             setLastError(undefined);
             setCompiling(true);
+            setCompileProgress(undefined);
             try {
                 const result = await rpc.sendRequest(RbsCompileRequest.type, { intent });
                 if (result.error) {
@@ -117,6 +125,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
                 return result.ok;
             } finally {
                 setCompiling(false);
+                setCompileProgress(undefined);
             }
         },
         [rpc],
@@ -204,6 +213,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             lastError,
             dismissError,
             compiling,
+            compileProgress,
             compile,
             connections,
             refreshConnections,
@@ -222,6 +232,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             lastError,
             dismissError,
             compiling,
+            compileProgress,
             compile,
             connections,
             refreshConnections,

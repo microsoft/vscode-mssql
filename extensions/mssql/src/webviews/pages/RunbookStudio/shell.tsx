@@ -140,7 +140,7 @@ function StepsBanner({ stage }: { stage: 1 | 2 | 3 }) {
 }
 
 function AuthorPage() {
-    const { state, compile, compiling, navigate } = useRbs();
+    const { state, compile, compiling, compileProgress, navigate } = useRbs();
     const loc = locConstants.runbookStudio;
     const [intentDraft, setIntentDraft] = useState<string | undefined>(undefined);
     if (state?.artifactError) {
@@ -203,6 +203,11 @@ function AuthorPage() {
                               : loc.generatePlan}
                     </button>
                     {compiling ? <span className="rbs-spinner" aria-hidden /> : null}
+                    {compiling && compileProgress ? (
+                        <span className="rbs-muted" role="status">
+                            {compileProgress}…
+                        </span>
+                    ) : null}
                 </div>
             </section>
             {artifact.hasLock ? (

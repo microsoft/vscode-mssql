@@ -18,6 +18,7 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import {
     RbsArtifactSummary,
+    RbsCompileProgressNotification,
     RbsCompileRequest,
     RbsError,
     RbsFetchOutputPageRequest,
@@ -146,7 +147,9 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             if (!this.coordinator) {
                 return { ok: false, error: this.runtimeUnavailableError() };
             }
-            return this.coordinator.compileIntent(this.model, intent);
+            return this.coordinator.compileIntent(this.model, intent, (label) => {
+                void this.sendNotification(RbsCompileProgressNotification.type, { label });
+            });
         });
 
         this.onRequest(RbsSetOutputViewRequest.type, async ({ nodeId, view }) => {

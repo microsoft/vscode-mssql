@@ -52,10 +52,13 @@ export interface RunbookRunCoordinator {
     /** Diagnostics trace for a run this window started (Debug Console link). */
     traceIdOf(runId: string): string | undefined;
 
-    /** Intent -> compiled plan written into the document (WorkspaceEdit). */
+    /** Intent -> compiled plan written into the document (WorkspaceEdit).
+     *  onProgress receives coarse phase labels while a slow compiler (the
+     *  runtime planner) works — display-only, never persisted. */
     compileIntent(
         model: RunbookStudioDocumentModel,
         intent: string,
+        onProgress?: (label: string) => void,
     ): Promise<{ ok: boolean; error?: RbsError }>;
 
     /** Saved connections as opaque {id, label} handles (parameter sheet). */

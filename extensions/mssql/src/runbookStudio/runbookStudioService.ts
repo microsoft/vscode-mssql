@@ -354,6 +354,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     public async compileIntent(
         model: RunbookStudioDocumentModel,
         intent: string,
+        onProgress?: (label: string) => void,
     ): Promise<{ ok: boolean; error?: RbsError }> {
         const base = model.artifact;
         if (!base) {
@@ -365,7 +366,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             .get<string>("mssql.runbookStudio.runtime", "local");
         let artifact: RunbookArtifactFile | undefined;
         if (runtimeKind === "hobbes") {
-            artifact = await this.compileWithRuntimePlanner(base, intent, context);
+            artifact = await this.compileWithRuntimePlanner(base, intent, context, onProgress);
         }
         if (!artifact) {
             const result = await compileIntentWithModel(base, intent, context);
@@ -395,6 +396,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         base: RunbookArtifactFile,
         intent: string,
         context: RunbookOperationContext,
+        onProgress?: (label: string) => void,
     ): Promise<RunbookArtifactFile | undefined> {
         const ensured = this.ensureHobbesAdapter();
         if ("error" in ensured) {
@@ -404,7 +406,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return undefined;
         }
         try {
-            const planned = await ensured.adapter.planFromPrompt(intent, context);
+            const planned = await ensured.adapter.planFromPrompt(intent, context, onProgress);
             const built = buildPlannedArtifact(base, intent, planned);
             if (isPlannedArtifactFailure(built)) {
                 emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {

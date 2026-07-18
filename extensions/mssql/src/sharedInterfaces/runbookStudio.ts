@@ -329,6 +329,11 @@ export namespace RbsUpdateIntentRequest {
     );
 }
 
+/** Coarse compile-phase progress (runtime planner turns) — display only. */
+export namespace RbsCompileProgressNotification {
+    export const type = new NotificationType<{ label: string }>("rbs/compileProgress");
+}
+
 /** Pin (or clear) the output view for a plan node — writes a pinned widget
  *  into the artifact's presentation definition (mockup "Set by you"). */
 export namespace RbsSetOutputViewRequest {
