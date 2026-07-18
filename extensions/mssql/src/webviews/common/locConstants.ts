@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
-import type { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsConfiguration";
+import {
+    ConfigurableKeyCommandId,
+    QuickQueryNoActiveEditorBehavior,
+} from "../../sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
@@ -356,11 +359,21 @@ export class LocConstants {
             subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
-                "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.",
+                "Run saved SQL instantly with custom keyboard shortcuts. Use {selected_text} to insert selected query-editor text; otherwise, it is appended to the query.",
             ),
             quickQueriesKeyboardShortcutsBanner: l10n.t(
                 "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
             ),
+            advancedOptions: l10n.t("Advanced"),
+            noActiveEditorBehaviorLabel: l10n.t("When no SQL editor is active"),
+            noActiveEditorBehaviorDescription: l10n.t(
+                "Choose whether to open the Quick Query in a new SQL editor and whether to run it.",
+            ),
+            noActiveEditorBehaviorOptions: {
+                [QuickQueryNoActiveEditorBehavior.Open]: l10n.t("Open query"),
+                [QuickQueryNoActiveEditorBehavior.OpenAndRun]: l10n.t("Open and run query"),
+                [QuickQueryNoActiveEditorBehavior.DoNothing]: l10n.t("Do nothing"),
+            } satisfies Record<QuickQueryNoActiveEditorBehavior, string>,
             openKeyboardShortcutsEditor: l10n.t("Open Keyboard Shortcuts editor."),
             webviewShortcuts: l10n.t("Extension Shortcuts"),
             webviewShortcutsDescription: l10n.t(
@@ -437,7 +450,6 @@ export class LocConstants {
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
             keybinding: l10n.t("Keybinding"),
-            autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
             showAllShortcuts: l10n.t("Show All"),
@@ -462,6 +474,10 @@ export class LocConstants {
                     args: [name],
                     comment: ["{0} is the Quick Query shortcut name"],
                 }),
+            selectedTextArgumentHint: l10n.t(
+                "Use {selected_text} or {arg} as an argument for selected query-editor text. If neither is used, selected text is appended to the query.",
+            ),
+            selectedTextCompletionDetail: l10n.t("Selected query-editor text"),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
             searchWebviewShortcuts: l10n.t("Search extension shortcut"),

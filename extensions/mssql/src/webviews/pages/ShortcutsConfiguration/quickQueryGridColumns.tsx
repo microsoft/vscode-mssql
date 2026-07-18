@@ -14,10 +14,6 @@ import {
 } from "@slickgrid-universal/common";
 import { type Column } from "slickgrid-react";
 import { locConstants } from "../../common/locConstants";
-import {
-    QuickQueryExecutionMode,
-    QuickQuerySlot,
-} from "../../../sharedInterfaces/shortcutsConfiguration";
 
 const shortcutKeyboardIconMarkup = renderToStaticMarkup(<Keyboard16Regular aria-hidden />);
 const openIconMarkup = renderToStaticMarkup(<Open16Regular aria-hidden />);
@@ -27,10 +23,8 @@ export interface QuickQueryGridRow {
     id: number;
     index: number;
     commandId: string;
-    slot: QuickQuerySlot;
     name: string;
     query: string;
-    autoExecute: boolean;
 }
 
 function createDialogEditor(openDialog: (row: QuickQueryGridRow) => void) {
@@ -85,13 +79,12 @@ export interface UseQuickQueryColumnsParams {
     onRecordShortcut: (commandId: string) => void;
     onShowAllShortcuts: () => void;
     onEditQuery: (index: number) => void;
-    updateQuickQuery: (index: number, value: QuickQuerySlot) => void;
     clearQuickQueryValues: (index: number, commandId: string) => void;
 }
 
 /**
  * Builds the SlickGrid column definitions for the Quick Queries grid, including the dialog-backed
- * shortcut/query editors and the inline auto-execute and clear cell renderers.
+ * shortcut/query editors and the inline clear cell renderer.
  */
 export function useQuickQueryColumns({
     classes,
@@ -99,7 +92,6 @@ export function useQuickQueryColumns({
     onRecordShortcut,
     onShowAllShortcuts,
     onEditQuery,
-    updateQuickQuery,
     clearQuickQueryValues,
 }: UseQuickQueryColumnsParams): Column<QuickQueryGridRow>[] {
     return useMemo<Column<QuickQueryGridRow>[]>(() => {
@@ -152,54 +144,6 @@ export function useQuickQueryColumns({
                     display.textContent = row.name;
                     display.title = row.name;
                     cell.append(display);
-                    return cell;
-                },
-            },
-            {
-                id: "autoExecute",
-                name: loc.autoExecute,
-                field: "autoExecute",
-                cssClass: classes.quickQueryCenteredCell,
-                maxWidth: 115,
-                minWidth: 105,
-                width: 110,
-                formatter: (_row, _cell, _value, _column, row) => {
-                    const cell = createCell(classes.quickQueryCenteredCell);
-                    const setAutoExecute = (autoExecute: boolean) => {
-                        const executionMode = autoExecute
-                            ? QuickQueryExecutionMode.OpenAndRun
-                            : QuickQueryExecutionMode.Open;
-                        if (executionMode !== row.slot.executionMode) {
-                            updateQuickQuery(row.index, {
-                                ...row.slot,
-                                executionMode,
-                            });
-                        }
-                    };
-                    cell.addEventListener("mousedown", (event) => event.stopPropagation());
-                    cell.addEventListener("click", (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        setAutoExecute(!row.autoExecute);
-                    });
-                    const checkbox = document.createElement("input");
-                    checkbox.type = "checkbox";
-                    checkbox.checked = row.autoExecute;
-                    checkbox.className = classes.quickQueryCheckboxInput;
-                    checkbox.setAttribute("aria-label", `${loc.autoExecute}: ${row.name}`);
-                    checkbox.addEventListener("mousedown", (event) => event.stopPropagation());
-                    checkbox.addEventListener("click", (event) => {
-                        event.stopPropagation();
-                        setAutoExecute((event.currentTarget as HTMLInputElement).checked);
-                    });
-                    checkbox.addEventListener("keydown", (event) => {
-                        event.stopPropagation();
-                        if (event.key === "Enter") {
-                            event.preventDefault();
-                            setAutoExecute(!row.autoExecute);
-                        }
-                    });
-                    cell.append(checkbox);
                     return cell;
                 },
             },
@@ -288,9 +232,7 @@ export function useQuickQueryColumns({
                 formatter: (_row, _cell, _value, _column, row) => {
                     const cell = createCell(classes.quickQueryCenteredCell);
                     const button = document.createElement("button");
-                    const isEmpty =
-                        row.query.trim().length === 0 &&
-                        row.slot.executionMode === QuickQueryExecutionMode.Open;
+                    const isEmpty = row.query.trim().length === 0;
                     button.type = "button";
                     button.className = classes.quickQueryClearButton;
                     button.disabled = isEmpty;
@@ -308,13 +250,5 @@ export function useQuickQueryColumns({
                 },
             },
         ];
-    }, [
-        classes,
-        clearQuickQueryValues,
-        loc,
-        onEditQuery,
-        onRecordShortcut,
-        onShowAllShortcuts,
-        updateQuickQuery,
-    ]);
+    }, [classes, clearQuickQueryValues, loc, onEditQuery, onRecordShortcut, onShowAllShortcuts]);
 }

@@ -372,6 +372,43 @@ export class SqlOutputContentProvider {
     }
 
     /**
+     * Runs SQL text against the connection owned by an editor URI without reading or changing the
+     * editor document. Results remain associated with that editor's normal results view.
+     */
+    public async runQueryString(
+        statusView: StatusView,
+        uri: string,
+        query: string,
+        title: string,
+        promise?: Deferred<boolean>,
+    ): Promise<void> {
+        if (!this.tryAcquireExecutionSlot(uri)) {
+            promise?.reject(false);
+            return;
+        }
+
+        try {
+            const runner = await this.initializeRunnerAndWebviewState(
+                statusView ? statusView : this._statusView,
+                uri,
+                title,
+            );
+            if (!runner) {
+                this.releaseExecutionSlot(uri);
+                promise?.reject(false);
+                return;
+            }
+
+            this.releaseExecutionSlotOnComplete(runner);
+            await runner.runQueryString(query, promise);
+        } catch (error) {
+            this.releaseExecutionSlot(uri);
+            promise?.reject(false);
+            logger.error(`Error running query string for ${uri}: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
      * Runs a query against the database for the current statement based on the cursor position.
      * If there is a selection, it will run the selection else it will run the current statement.
      * @param statusView The status view to use for showing query progress
@@ -599,12 +636,15 @@ export class SqlOutputContentProvider {
                     selection: batch.selection,
                     isError: false,
                     time: time,
-                    link: {
-                        text: LocalizedConstants.runQueryBatchStartLine(
-                            batch.selection.startLine + 1,
-                        ),
-                        uri: queryRunner.uri,
-                    },
+                    link:
+                        queryRunner.executionSource === "quickQuery"
+                            ? undefined
+                            : {
+                                  text: LocalizedConstants.runQueryBatchStartLine(
+                                      batch.selection.startLine + 1,
+                                  ),
+                                  uri: queryRunner.uri,
+                              },
                 };
 
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(

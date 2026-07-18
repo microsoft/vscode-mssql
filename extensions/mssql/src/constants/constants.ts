@@ -337,6 +337,7 @@ export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configQuickQueries = "mssql.quickQueries";
+export const configQuickQueryNoActiveEditorBehavior = "mssql.quickQueries.noActiveEditorBehavior";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
 /** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";

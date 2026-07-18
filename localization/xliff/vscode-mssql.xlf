@@ -550,9 +550,6 @@
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
     </trans-unit>
-    <trans-unit id="++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae">
-      <source xml:lang="en">Auto-execute</source>
-    </trans-unit>
     <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
       <source xml:lang="en">Auto-pause</source>
     </trans-unit>
@@ -1094,6 +1091,9 @@
     </trans-unit>
     <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
       <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35097bb98527ad83c4a5ba8af0ac01550e95b4f631aa1f48b73ba32b2d0997f5">
+      <source xml:lang="en">Choose whether to open the Quick Query in a new SQL editor and whether to run it.</source>
     </trans-unit>
     <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
       <source xml:lang="en">Circular reference detected: &apos;{0}&apos; → &apos;{1}&apos; creates a cycle</source>
@@ -2356,6 +2356,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c6f902ac30a459d53f79efa0c1d45fc2d272ebbfe609ada31ebb309eec06ed7c">
       <source xml:lang="en">Do not connect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e66b291192aa84ad61215ab4088c33788f16cced0023f7701058f98d10c9c104">
+      <source xml:lang="en">Do nothing</source>
     </trans-unit>
     <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
       <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -5307,6 +5310,9 @@
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
     </trans-unit>
+    <trans-unit id="++CODE++9e4c9ebec5f1181fa486ac03b365c0660be572842760e5c805cbfaa56ebb0fd5">
+      <source xml:lang="en">Open and run query</source>
+    </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
     </trans-unit>
@@ -5327,6 +5333,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8aee9274d23ae999a48821c73c1f93cc31da17f54dbf089e957b56046a062e71">
+      <source xml:lang="en">Open query</source>
     </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
@@ -6184,6 +6193,9 @@
 {1} is the connection ID
 {2} is the SQL query</note>
     </trans-unit>
+    <trans-unit id="++CODE++15f0a73febb41e5763fb9beb423512a44bd978ff5063bc197d35c4f9455ab7b4">
+      <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {selected_text} to insert selected query-editor text; otherwise, it is appended to the query.</source>
+    </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
     </trans-unit>
@@ -6338,9 +6350,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
       <source xml:lang="en">Save connection profile changes without establishing a connection</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6">
-      <source xml:lang="en">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</source>
     </trans-unit>
     <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
       <source xml:lang="en">Save password</source>
@@ -6757,6 +6766,9 @@
     </trans-unit>
     <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
       <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
+      <source xml:lang="en">Selected query-editor text</source>
     </trans-unit>
     <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
       <source xml:lang="en">Selection</source>
@@ -7872,6 +7884,9 @@
       <source xml:lang="en">Use {0} to create a new connection.</source>
       <note>{0} is the connect command</note>
     </trans-unit>
+    <trans-unit id="++CODE++955e33ff4c86ed5bed224a00642d23550d8496db14c2653d77775e1508022574">
+      <source xml:lang="en">Use {selected_text} or {arg} as an argument for selected query-editor text. If neither is used, selected text is appended to the query.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f5e86af62d403420feae11b58a68c8df237889fb279d6a28cc08e11566ad5161">
       <source xml:lang="en">Used in API routes and responses</source>
     </trans-unit>
@@ -8062,6 +8077,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
       <source xml:lang="en">What&apos;s next?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4ce547bb5ead69516ae5e3b167a7acb16723117a803582a9776204daef4f625c">
+      <source xml:lang="en">When no SQL editor is active</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -8722,7 +8740,7 @@
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries">
-      <source xml:lang="en">Configure up to 10 Quick Queries that can be opened or run from commands.</source>
+      <source xml:lang="en">Configure up to 10 Quick Queries that execute from commands.</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect (MSSQL)</source>
@@ -8754,8 +8772,8 @@
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode">
-      <source xml:lang="en">Controls whether this Quick Query opens in an editor or opens and runs immediately.</source>
+    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior">
+      <source xml:lang="en">Controls what a Quick Query does when no SQL editor is active.</source>
     </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
@@ -8822,6 +8840,9 @@
     </trans-unit>
     <trans-unit id="mssql.newEditorConnectionBehavior.none.description">
       <source xml:lang="en">Do not auto-connect. You must connect each SQL file manually.</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior.doNothing">
+      <source xml:lang="en">Do not open or execute the query.</source>
     </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -8979,6 +9000,15 @@
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode">
+      <source xml:lang="en">Legacy behavior used when no SQL editor is active.</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode.open">
+      <source xml:lang="en">Legacy open mode.</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
+      <source xml:lang="en">Legacy open-and-run mode.</source>
+    </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL</source>
     </trans-unit>
@@ -9081,11 +9111,11 @@
     <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
       <source xml:lang="en">Open in MSSQL extension</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
-      <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
+    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior.openAndRun">
+      <source xml:lang="en">Open the query in a new SQL editor and execute it after connecting.</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.open">
-      <source xml:lang="en">Open the query in a SQL editor.</source>
+    <trans-unit id="mssql.quickQueries.noActiveEditorBehavior.open">
+      <source xml:lang="en">Open the query in a new SQL editor without executing it.</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
@@ -9122,6 +9152,9 @@
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
       <source xml:lang="en">Rename Database...</source>
+    </trans-unit>
+    <trans-unit id="mssql.quickQueries.executionMode.deprecationMessage">
+      <source xml:lang="en">Replaced by the advanced no-active-editor behavior. This value is preserved until you explicitly configure the new setting.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
@@ -9184,7 +9217,7 @@
       <source xml:lang="en">SQL Tools (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.query">
-      <source xml:lang="en">SQL text for this Quick Query.</source>
+      <source xml:lang="en">SQL text for this Quick Query. Use {selected_text} to insert selected query-editor text; otherwise, it is appended.</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>

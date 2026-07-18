@@ -6,12 +6,15 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     Button,
+    Dropdown,
+    Field,
     Input,
     Link,
     makeStyles,
     mergeClasses,
     MessageBar,
     MessageBarBody,
+    Option,
     Tab,
     TabList,
     tokens,
@@ -32,7 +35,8 @@ import {
     ConfigurableKeyCommand,
     configurableKeyCommands,
     getQuickQueryCommandId,
-    QuickQueryExecutionMode,
+    normalizeQuickQueryNoActiveEditorBehavior,
+    QuickQueryNoActiveEditorBehavior,
     quickQueryCount,
 } from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutsConfigurationContext } from "./shortcutsConfigurationStateProvider";
@@ -259,12 +263,6 @@ const useStyles = makeStyles({
         userSelect: "none",
         whiteSpace: "nowrap",
         width: "100%",
-    },
-    quickQueryCheckboxInput: {
-        cursor: "pointer",
-        height: "16px",
-        margin: 0,
-        width: "16px",
     },
     quickQueryShortcutCell: {
         alignItems: "center",
@@ -565,6 +563,10 @@ const useStyles = makeStyles({
     webviewShortcuts: {
         padding: "0 16px",
     },
+    advancedQuickQueryDropdown: {
+        maxWidth: "420px",
+        width: "100%",
+    },
 });
 
 export const ShortcutsConfigurationPage = () => {
@@ -589,12 +591,14 @@ export const ShortcutsConfigurationPage = () => {
 
     const {
         quickQueries,
+        quickQueryNoActiveEditorBehavior,
         webviewShortcuts,
         saveState,
         errorMessage: saveErrorMessage,
         updateQuickQuery,
         clearQuickQueryValues,
         updateWebviewShortcut,
+        updateQuickQueryNoActiveEditorBehavior,
         saveAndClose,
     } = useShortcutsConfigurationSave({
         context,
@@ -625,10 +629,8 @@ export const ShortcutsConfigurationPage = () => {
                     id: index + 1,
                     index,
                     commandId,
-                    slot,
                     name: slot.name,
                     query: slot.query,
-                    autoExecute: slot.executionMode === QuickQueryExecutionMode.OpenAndRun,
                 };
             }),
         [quickQueries],
@@ -685,7 +687,6 @@ export const ShortcutsConfigurationPage = () => {
             void context?.openQuickQueryKeybindings();
         },
         onEditQuery: (index) => setEditingQueryIndex(index),
-        updateQuickQuery,
         clearQuickQueryValues,
     });
 
@@ -736,6 +737,30 @@ export const ShortcutsConfigurationPage = () => {
                         </div>
                     </div>
                 </div>
+                <CollapsibleSection title={loc.advancedOptions}>
+                    <Field
+                        label={loc.noActiveEditorBehaviorLabel}
+                        hint={loc.noActiveEditorBehaviorDescription}>
+                        <Dropdown
+                            className={classes.advancedQuickQueryDropdown}
+                            aria-label={loc.noActiveEditorBehaviorLabel}
+                            value={
+                                loc.noActiveEditorBehaviorOptions[quickQueryNoActiveEditorBehavior]
+                            }
+                            selectedOptions={[quickQueryNoActiveEditorBehavior]}
+                            onOptionSelect={(_event, data) => {
+                                updateQuickQueryNoActiveEditorBehavior(
+                                    normalizeQuickQueryNoActiveEditorBehavior(data.optionValue),
+                                );
+                            }}>
+                            {Object.values(QuickQueryNoActiveEditorBehavior).map((behavior) => (
+                                <Option key={behavior} value={behavior}>
+                                    {loc.noActiveEditorBehaviorOptions[behavior]}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
+                </CollapsibleSection>
                 {editingQuery && editingQueryIndex !== undefined && (
                     <QuickQueryEditorDialog
                         slot={editingQuery}

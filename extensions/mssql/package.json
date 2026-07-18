@@ -2182,53 +2182,43 @@
                     "default": [
                         {
                             "name": "Query 1",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 2",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 3",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 4",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 5",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 6",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 7",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 8",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 9",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 10",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         }
                     ],
                     "minItems": 0,
@@ -2255,10 +2245,27 @@
                                     "%mssql.quickQueries.executionMode.open%",
                                     "%mssql.quickQueries.executionMode.openAndRun%"
                                 ],
-                                "description": "%mssql.quickQueries.executionMode%"
+                                "description": "%mssql.quickQueries.executionMode%",
+                                "deprecationMessage": "%mssql.quickQueries.executionMode.deprecationMessage%"
                             }
                         }
                     },
+                    "scope": "application"
+                },
+                "mssql.quickQueries.noActiveEditorBehavior": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "openAndRun",
+                        "doNothing"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.quickQueries.noActiveEditorBehavior.open%",
+                        "%mssql.quickQueries.noActiveEditorBehavior.openAndRun%",
+                        "%mssql.quickQueries.noActiveEditorBehavior.doNothing%"
+                    ],
+                    "default": "open",
+                    "description": "%mssql.quickQueries.noActiveEditorBehavior%",
                     "scope": "application"
                 },
                 "mssql.shortcuts": {

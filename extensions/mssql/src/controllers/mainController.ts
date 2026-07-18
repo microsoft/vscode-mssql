@@ -135,6 +135,7 @@ import { quickQueryService } from "../quickQueries/quickQueryService";
 import {
     getQuickQueryCommandId,
     normalizeQuickQueries,
+    resolveQuickQueryNoActiveEditorBehavior,
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
@@ -2954,8 +2955,49 @@ export default class MainController implements vscode.Disposable {
                 normalizeQuickQueries(
                     vscode.workspace.getConfiguration().get(Constants.configQuickQueries),
                 ),
+            readNoActiveEditorBehavior: (slotNumber) => {
+                const configuration = vscode.workspace.getConfiguration();
+                const configuredBehavior = configuration.inspect<string>(
+                    Constants.configQuickQueryNoActiveEditorBehavior,
+                );
+                const explicitBehavior =
+                    configuredBehavior?.globalValue ??
+                    configuredBehavior?.workspaceValue ??
+                    configuredBehavior?.workspaceFolderValue;
+                const slots = configuration.get<unknown[]>(Constants.configQuickQueries);
+                return resolveQuickQueryNoActiveEditorBehavior(explicitBehavior, slots, slotNumber);
+            },
             openConfiguration: (focusedQuickQuerySlot) =>
                 this.openShortcutsConfiguration(focusedQuickQuerySlot),
+            getActiveSqlEditor: () => {
+                const editor = vscode.window.activeTextEditor;
+                return editor?.document.languageId === Constants.languageId ? editor : undefined;
+            },
+            ensureSqlEditorConnected: async (editor) => {
+                const uri = getUriKey(editor.document.uri);
+                return (
+                    (await this.ensureReadyToExecuteQuery()) && this._connectionMgr.isConnected(uri)
+                );
+            },
+            runSqlEditorQueryString: async (editor, query) => {
+                const uri = getUriKey(editor.document.uri);
+                if (!this._connectionMgr.isConnected(uri)) {
+                    return;
+                }
+
+                await this._connectionMgr.refreshAzureAccountToken(uri);
+                store.deleteUriState(uri);
+                await this._outputContentProvider.runQueryString(
+                    this._statusview,
+                    uri,
+                    query,
+                    path.basename(editor.document.fileName),
+                );
+            },
+            showMultipleSelectionsError: () =>
+                vscode.window.showErrorMessage(
+                    LocalizedConstants.msgMultipleSelectionModeNotSupported,
+                ),
             createSqlEditor: async (options) => await this.sqlDocumentService.newQuery(options),
             isSqlEditorConnected: (editor) =>
                 this._connectionMgr.isConnected(getUriKey(editor.document.uri)),
