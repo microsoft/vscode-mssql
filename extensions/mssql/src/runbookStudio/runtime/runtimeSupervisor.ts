@@ -142,6 +142,14 @@ export class RuntimeSupervisor {
                 ASPNETCORE_URLS: baseUrl,
                 // The runtime must never inherit our stdio protocol streams.
                 DOTNET_NOLOGO: "1",
+                // The runtime spawns the Copilot CLI for its model calls;
+                // the CLI writes chat SESSION history under XDG state, which
+                // VS Code's Chat Sessions view then displays — polluting the
+                // user's history with planner/summarizer internals (observed
+                // live). Isolate state into our data dir; auth stays in the
+                // CLI's config home, so sign-in is unaffected. Worst case
+                // (CLI ignores the var) is the status quo.
+                XDG_STATE_HOME: path.join(dataDir, "copilot-state"),
             },
             stdio: ["ignore", "pipe", "pipe"],
             windowsHide: true,

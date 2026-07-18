@@ -560,6 +560,15 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             throw new Error(`library update failed (read HTTP ${read.status})`);
         }
         const asset = (await read.json()) as Record<string, unknown>;
+        // Skip a no-op PUT: any save reverts approved assets to draft
+        // (RunbookStore.RevertToDraftOnEdit), so writing an identical
+        // title/category would demote for nothing.
+        const unchanged =
+            (changes.title === undefined || changes.title === asset.title) &&
+            (changes.category === undefined || changes.category === asset.category);
+        if (unchanged) {
+            return;
+        }
         const put = await this.request(
             runtime.baseUrl,
             "PUT",

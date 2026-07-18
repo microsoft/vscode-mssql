@@ -407,6 +407,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         if (artifact.name === LocRunbookStudio.newRunbookName) {
             artifact = { ...artifact, name: deriveRunbookName(intent) };
         }
+        // Keep the LIBRARY title in sync (AI-chat naming model, owner ask):
+        // when compilation produced a real name for a library-backed book,
+        // push it to the asset so the tree matches the document. Best
+        // effort — a plain-file doc simply 404s and stays untouched.
+        if (base.name === LocRunbookStudio.newRunbookName && artifact.name !== base.name) {
+            const assetId = artifact.lock?.libraryAssetRef?.assetId ?? artifact.id;
+            void this.updateLibraryRunbook(assetId, { title: artifact.name }).then(() =>
+                this.activeRunsEmitter.fire(),
+            );
+        }
         const applied = await model.applyArtifactEdit(artifact);
         if (!applied) {
             return {
@@ -796,10 +806,23 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return { ok: false, error: ensured.error };
         }
         try {
+            // "New runbook", "New runbook (2)", ... — placeholder drafts must
+            // be tellable apart in the tree until generation names them.
+            let title = request.title;
+            try {
+                const existing = new Set(
+                    (await ensured.adapter.listLibrary(context)).map((a) => a.title.toLowerCase()),
+                );
+                for (let n = 2; existing.has(title.toLowerCase()); n++) {
+                    title = `${request.title} (${n})`;
+                }
+            } catch {
+                // Listing is best-effort; a duplicate title is not fatal.
+            }
             await ensured.adapter.createLibraryAsset(
                 {
                     id: request.id,
-                    title: request.title,
+                    title,
                     description: "",
                     ...(request.category ? { category: request.category } : {}),
                 },
