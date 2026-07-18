@@ -308,9 +308,11 @@ function ParameterValueEditor({
 }
 
 function ParametersPage() {
-    const { state, startRun } = useRbs();
+    const { state, startRun, parameterDraft, setParameterDraft } = useRbs();
     const loc = locConstants.runbookStudio;
-    const [values, setValues] = useState<Record<string, string>>({});
+    // Draft lives in the provider so navigating away (or starting a run)
+    // never wipes what the user configured.
+    const values = parameterDraft;
     const [starting, setStarting] = useState(false);
     if (state?.artifactError) {
         return <InvalidArtifact />;
@@ -365,12 +367,7 @@ function ParametersPage() {
                                     <ParameterValueEditor
                                         parameter={parameter}
                                         value={values[parameter.id] ?? ""}
-                                        onChange={(next) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                [parameter.id]: next,
-                                            }))
-                                        }
+                                        onChange={(next) => setParameterDraft(parameter.id, next)}
                                     />
                                 </td>
                             </tr>

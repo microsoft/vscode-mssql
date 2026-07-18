@@ -52,6 +52,10 @@ interface RbsContextValue {
     connections: RbsConnectionProfileRef[];
     refreshConnections: () => void;
     updateIntent: (intent: string) => Promise<boolean>;
+    /** Parameter form draft — lives here so route changes and started runs
+     *  never wipe what the user configured. */
+    parameterDraft: Record<string, string>;
+    setParameterDraft: (id: string, value: string) => void;
     setOutputView: (nodeId: string, view: ViewKind | undefined) => Promise<boolean>;
     startRun: (
         parameterValues: Record<string, string | number | boolean | null>,
@@ -149,6 +153,11 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const [parameterDraft, setParameterDraftState] = useState<Record<string, string>>({});
+    const setParameterDraft = useCallback((id: string, value: string) => {
+        setParameterDraftState((current) => ({ ...current, [id]: value }));
+    }, []);
+
     const setOutputView = useCallback(
         async (nodeId: string, view: ViewKind | undefined): Promise<boolean> => {
             const result = await rpc.sendRequest(RbsSetOutputViewRequest.type, { nodeId, view });
@@ -218,6 +227,8 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             connections,
             refreshConnections,
             updateIntent,
+            parameterDraft,
+            setParameterDraft,
             setOutputView,
             startRun,
             cancelRun,
@@ -237,6 +248,8 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             connections,
             refreshConnections,
             updateIntent,
+            parameterDraft,
+            setParameterDraft,
             setOutputView,
             startRun,
             cancelRun,
