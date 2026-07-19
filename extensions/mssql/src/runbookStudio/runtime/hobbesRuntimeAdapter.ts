@@ -44,6 +44,7 @@ import {
 import { RuntimeSupervisor } from "./runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
+    RuntimeBoundaryEvent,
     RuntimeCapabilities,
     RuntimeEventObserver,
     RuntimeOutputPayload,
@@ -180,6 +181,11 @@ interface PlannerAssetPayload {
 
 interface ActivePoll {
     stop: boolean;
+    /** Plan identity + shared observations from AG-UI and REST polling.
+     *  Sharing one map lets terminal settlement distinguish executed nodes
+     *  from genuinely unreached branch nodes without post-terminal events. */
+    knownNodeIds: Set<string>;
+    reportedNodeStates: Map<string, string>;
     /** Epoch of the first failed region report — arms the stall guard (the
      *  runtime can hang post-failure, e.g. on its summarize step: U-2). */
     failedNodeAt?: number;
@@ -920,8 +926,8 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         poll: ActivePoll,
         observer: RuntimeEventObserver,
     ): Promise<void> {
-        const knownNodeIds = new Set((request.artifact.lock?.nodes ?? []).map((n) => n.id));
-        const reported = new Map<string, string>();
+        const knownNodeIds = poll.knownNodeIds;
+        const reported = poll.reportedNodeStates;
         const emittedWidgetIds = new Set<string>();
         try {
             const response = await fetch(`${baseUrl}/agui`, {
@@ -1270,7 +1276,12 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // workflow.continue command arrives on the investigation thread; the
         // command dispatcher also establishes the MCP SQL connections. The
         // SSE stream carries region lifecycle events.
-        const poll: ActivePoll = { stop: false, observer };
+        const poll: ActivePoll = {
+            stop: false,
+            observer,
+            knownNodeIds: new Set((request.artifact.lock?.nodes ?? []).map((node) => node.id)),
+            reportedNodeStates: new Map(),
+        };
         this.polls.set(request.runId, poll);
         void this.kickoffAndStream(activeBaseUrl, request, hobbesRunId, poll, observer);
         void this.pollRun(activeBaseUrl, request, hobbesRunId, poll, observer);
@@ -1300,6 +1311,14 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // Cancel button "did nothing" — the poll spun on forever). The
         // boundary terminalizes honestly itself: cancellation was requested
         // and accepted; stop observing.
+        for (const event of terminalNodeSettlementEvents(
+            poll.knownNodeIds,
+            poll.reportedNodeStates,
+            "cancelled",
+        )) {
+            poll.reportedNodeStates.set(event.nodeId, event.state);
+            poll.observer?.onEvent(event);
+        }
         poll.stop = true;
         poll.observer?.onEvent({ kind: "terminal", state: "cancelled" });
         return "cancelled";
@@ -1330,8 +1349,8 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         }
         const runtime = await this.supervisor.ensureRunning(context);
         if (!approve) {
-            const cancelled = await this.cancelRun(runId, context);
             poll.observer?.onEvent({ kind: "gateResponded", nodeId, approved: false });
+            const cancelled = await this.cancelRun(runId, context);
             return cancelled === "cancelled";
         }
         const keyPath =
@@ -1377,8 +1396,8 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         observer: RuntimeEventObserver,
     ): Promise<void> {
         this.hobbesRunIds.set(request.runId, hobbesRunId);
-        const knownNodeIds = new Set((request.artifact.lock?.nodes ?? []).map((node) => node.id));
-        const reportedNodeStates = new Map<string, string>();
+        const knownNodeIds = poll.knownNodeIds;
+        const reportedNodeStates = poll.reportedNodeStates;
         let reportedRunning = false;
         try {
             for (;;) {
@@ -1440,6 +1459,14 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                     }
                     const terminal = mapTerminalStatus(record.status);
                     if (terminal) {
+                        for (const event of terminalNodeSettlementEvents(
+                            knownNodeIds,
+                            reportedNodeStates,
+                            terminal,
+                        )) {
+                            reportedNodeStates.set(event.nodeId, event.state);
+                            observer.onEvent(event);
+                        }
                         poll.stop = true;
                         observer.onEvent({
                             kind: "terminal",
@@ -1509,6 +1536,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                                 poll.gateRespondedFor !== gateNode.id
                             ) {
                                 poll.gateRequestedFor = gateNode.id;
+                                reportedNodeStates.set(gateNode.id, "awaitingApproval");
                                 observer.onEvent({
                                     kind: "nodeState",
                                     nodeId: gateNode.id,
@@ -1524,10 +1552,20 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                             }
                         }
                         if (executionStatus === "completed" || executionStatus === "failed") {
+                            const terminalState =
+                                executionStatus === "completed" ? "succeeded" : "failed";
+                            for (const event of terminalNodeSettlementEvents(
+                                knownNodeIds,
+                                reportedNodeStates,
+                                terminalState,
+                            )) {
+                                reportedNodeStates.set(event.nodeId, event.state);
+                                observer.onEvent(event);
+                            }
                             poll.stop = true;
                             observer.onEvent({
                                 kind: "terminal",
-                                state: executionStatus === "completed" ? "succeeded" : "failed",
+                                state: terminalState,
                                 verdict: executionStatus === "completed" ? "pass" : "fail",
                             });
                             return;
@@ -1749,6 +1787,51 @@ export function launchRefusalError(refusalCode: string): RuntimeStartRefusedErro
                 refusalCode,
             );
     }
+}
+
+/**
+ * Settle nodes for which the runtime produced no execution evidence before
+ * the run terminal. On a successful conditional workflow those nodes are
+ * the not-taken branch. On failure/cancellation they were never reached.
+ * Active nodes are cancelled only after the runtime accepted cancellation;
+ * an active node on success/failure remains untouched because guessing its
+ * terminal outcome would violate the adapter's boundary-honesty rule.
+ */
+export function terminalNodeSettlementEvents(
+    knownNodeIds: ReadonlySet<string>,
+    reportedNodeStates: ReadonlyMap<string, string>,
+    terminalState: "succeeded" | "failed" | "cancelled",
+): Array<Extract<RuntimeBoundaryEvent, { kind: "nodeState" }>> {
+    const events: Array<Extract<RuntimeBoundaryEvent, { kind: "nodeState" }>> = [];
+    for (const nodeId of knownNodeIds) {
+        const state = reportedNodeStates.get(nodeId);
+        if (state === undefined) {
+            events.push({
+                kind: "nodeState",
+                nodeId,
+                state: "skipped",
+                attempt: 0,
+                outcome: "skipped",
+                message:
+                    terminalState === "succeeded"
+                        ? LocRunbookStudio.branchNotTaken
+                        : LocRunbookStudio.runEndedBeforeStep,
+            });
+        } else if (
+            terminalState === "cancelled" &&
+            (state === "running" || state === "awaitingApproval")
+        ) {
+            events.push({
+                kind: "nodeState",
+                nodeId,
+                state: "cancelled",
+                attempt: 1,
+                outcome: "cancelled",
+                message: LocRunbookStudio.stepCancelled,
+            });
+        }
+    }
+    return events;
 }
 
 /** Runtime region status -> node state ("running" regions poll as running). */

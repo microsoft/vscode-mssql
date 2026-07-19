@@ -12,6 +12,7 @@
 
 import { expect } from "chai";
 import {
+    compatibleViews,
     pinnedViewsOf,
     resolvePresentation,
     upsertOutputPin,
@@ -74,6 +75,10 @@ function definition(): PresentationDefinition {
 }
 
 suite("presentationResolver", () => {
+    test("rowset candidates expose both shipped chart renderers", () => {
+        expect(compatibleViews("rowset/1")).to.deep.equal(["grid", "bar", "timeseries", "json"]);
+    });
+
     test("resolution is deterministic", () => {
         const a = resolvePresentation(definition(), snapshot());
         const b = resolvePresentation(definition(), snapshot());

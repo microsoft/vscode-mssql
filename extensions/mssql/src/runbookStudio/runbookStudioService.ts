@@ -1112,42 +1112,56 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.seededModels.add(model);
         const runbookId = model.artifact.id;
         const context = newRunbookRootContext("persistence");
-        const sealedInterrupted = this.ledger.sealInterruptedRuns(
-            LocRunbookStudio.runInterrupted,
-            runbookId,
-        );
-        // A run that survived this window's panel close is still live:
-        // re-point its binding at the freshly opened model so boundary
-        // events keep painting into the new panel.
-        const liveBinding = this.activeByDocument.get(model.uriKey);
-        if (liveBinding && !liveBinding.runEnded) {
-            liveBinding.model = model;
-        }
-        const entries = this.ledger.listRuns(runbookId);
-        if (entries.length === 0) {
-            return;
-        }
-        model.seedHistory(entries);
-        let rehydratedRun = false;
-        if (liveBinding && !liveBinding.runEnded) {
-            const liveSnapshot = this.ledger.snapshotOf(liveBinding.runId);
-            if (liveSnapshot) {
-                model.setActiveRun(liveSnapshot);
-                rehydratedRun = true;
+        Perf.marker("mssql.runbookStudio.run.recover.begin", "begin", undefined, context.traceId);
+        let outcome = "failed";
+        try {
+            const sealedInterrupted = this.ledger.sealInterruptedRuns(
+                LocRunbookStudio.runInterrupted,
+                runbookId,
+            );
+            // A run that survived this window's panel close is still live:
+            // re-point its binding at the freshly opened model so boundary
+            // events keep painting into the new panel.
+            const liveBinding = this.activeByDocument.get(model.uriKey);
+            if (liveBinding && !liveBinding.runEnded) {
+                liveBinding.model = model;
             }
-        } else {
-            const latest = this.ledger.snapshotOf(entries[0].runId);
-            if (latest) {
-                model.setActiveRun(latest);
-                rehydratedRun = true;
+            const entries = this.ledger.listRuns(runbookId);
+            if (entries.length === 0) {
+                outcome = sealedInterrupted > 0 ? "sealedInterrupted" : "empty";
+                emitRunbookEvent(context, "runbookStudio.persistence.rehydrate", "ok", {
+                    runbookIdDigest: metaField(shortDigest(runbookId)),
+                    runCount: metaField(0),
+                    sealedInterrupted: metaField(sealedInterrupted),
+                    rehydratedRun: metaField(false),
+                });
+                return;
             }
+            model.seedHistory(entries);
+            let rehydratedRun = false;
+            if (liveBinding && !liveBinding.runEnded) {
+                const liveSnapshot = this.ledger.snapshotOf(liveBinding.runId);
+                if (liveSnapshot) {
+                    model.setActiveRun(liveSnapshot);
+                    rehydratedRun = true;
+                }
+            } else {
+                const latest = this.ledger.snapshotOf(entries[0].runId);
+                if (latest) {
+                    model.setActiveRun(latest);
+                    rehydratedRun = true;
+                }
+            }
+            outcome = rehydratedRun ? "rehydrated" : "historyOnly";
+            emitRunbookEvent(context, "runbookStudio.persistence.rehydrate", "ok", {
+                runbookIdDigest: metaField(shortDigest(runbookId)),
+                runCount: metaField(entries.length),
+                sealedInterrupted: metaField(sealedInterrupted),
+                rehydratedRun: metaField(rehydratedRun),
+            });
+        } finally {
+            Perf.marker("mssql.runbookStudio.run.recover.end", "end", { outcome }, context.traceId);
         }
-        emitRunbookEvent(context, "runbookStudio.persistence.rehydrate", "ok", {
-            runbookIdDigest: metaField(shortDigest(runbookId)),
-            runCount: metaField(entries.length),
-            sealedInterrupted: metaField(sealedInterrupted),
-            rehydratedRun: metaField(rehydratedRun),
-        });
     }
 
     /** Retention sweep (construction-time, deferred): seal every orphaned

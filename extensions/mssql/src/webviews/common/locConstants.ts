@@ -3666,13 +3666,13 @@ export class LocConstants {
                     args: [view],
                     comment: ["{0} is a renderer kind id"],
                 }),
-            driftBadge: l10n.t("fallback view"),
-            driftDetail: (requested: string) =>
+            driftBadge: l10n.t("Review required"),
+            driftDetail: (requested: string, actual: string) =>
                 l10n.t({
                     message:
-                        "The chosen '{0}' view is not compatible with this output anymore; a compatible view is shown instead.",
-                    args: [requested],
-                    comment: ["{0} is a renderer kind id"],
+                        "The saved '{0}' view no longer matches this output. Showing '{1}' instead. Review this widget's presentation before saving the runbook.",
+                    args: [requested, actual],
+                    comment: ["{0} and {1} are renderer kind ids"],
                 }),
             showingRows: (shown: number, total: number) =>
                 l10n.t({

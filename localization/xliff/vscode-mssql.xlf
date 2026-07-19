@@ -931,6 +931,9 @@
       <source xml:lang="en">Canceling the query failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++80aa8267452e6acff1a7d85f3f06923dc34f20fb027017e4cd660abddc133ee6">
+      <source xml:lang="en">Cancelled before the step completed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d09d0b9c54e5b4f0d495d4ecb562baa57fced06448e89522241c5b6e1b8641a4">
       <source xml:lang="en">Cannot access the Docker socket. Your user may not be in the &apos;docker&apos; group, or VS Code was started before group membership took effect. Run &apos;sudo usermod -aG docker $USER&apos; and then log out and back in (or reboot) before relaunching VS Code.</source>
     </trans-unit>
@@ -5560,6 +5563,12 @@
     <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
       <source xml:lang="en">Not equal to</source>
     </trans-unit>
+    <trans-unit id="++CODE++a3ed00f505d799835fb0b1f9db367ef237cbbf7c792a540100fe80e0dd060592">
+      <source xml:lang="en">Not executed — branch not taken.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6aa34eafbc0334f1a7e063c4576517be5c7a2be687acedfeab2e29bbb90b670f">
+      <source xml:lang="en">Not executed — the run ended before this step.</source>
+    </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
     </trans-unit>
@@ -6628,6 +6637,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
       <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0742e3a82fe8b57c37b57a9e81cf8b1ff50df2d1378496cffd8f118ab5359ef">
+      <source xml:lang="en">Review required</source>
     </trans-unit>
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
@@ -8137,10 +8149,6 @@
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ea7a428b0f5939085e1d4497ece0b8b13331110a985dc12a00bbec3a27f29a27">
-      <source xml:lang="en">The chosen &apos;{0}&apos; view is not compatible with this output anymore; a compatible view is shown instead.</source>
-      <note>{0} is a renderer kind id</note>
-    </trans-unit>
     <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
       <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
     </trans-unit>
@@ -8262,6 +8270,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d4264a01a18abb343b9d61223a43e5483da0927048f1f2b86b08c184ab5e94e6">
       <source xml:lang="en">The runtime&apos;s active provider profile does not expose configurable models.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2dec4a1dbe2852819e5a638c8045f9981969a1e949eb39f8608effa4b407d5ff">
+      <source xml:lang="en">The saved &apos;{0}&apos; view no longer matches this output. Showing &apos;{1}&apos; instead. Review this widget&apos;s presentation before saving the runbook.</source>
+      <note>{0} and {1} are renderer kind ids</note>
     </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -9088,9 +9100,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7">
       <source xml:lang="en">equals</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2eadc1d4386a44310bfa2d5856d010b8f2209ba71c80d384b22583e98e516480">
-      <source xml:lang="en">fallback view</source>
     </trans-unit>
     <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
       <source xml:lang="en">greater than</source>

@@ -35,7 +35,11 @@ export type ViewKind =
 /** Data contract -> compatible views, preference-ordered (first = default).
  *  `json` is the universal last-resort renderer for every contract. */
 const COMPATIBILITY: Record<string, ViewKind[]> = {
-    "rowset/1": ["grid", "bar", "json"],
+    // Shape-specific renderers validate their stronger requirements after
+    // the bounded page arrives. Keeping timeseries in the rowset candidate
+    // set makes the already-shipped renderer reachable; it degrades visibly
+    // to Grid when no time/monotonic X column exists.
+    "rowset/1": ["grid", "bar", "timeseries", "json"],
     "scalarSet/1": ["scalar-cards", "grid", "json"],
     "markdown/1": ["markdown", "json"],
     "log/1": ["log-view", "json"],

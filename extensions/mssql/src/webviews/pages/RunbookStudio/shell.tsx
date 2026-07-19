@@ -1220,6 +1220,32 @@ function ResultsRunPicker() {
 function ResultsPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
+    const paintedResults = useRef<Map<string, string>>(new Map());
+    const widgets = (state?.presentation?.sections ?? []).flatMap((section) => section.widgets);
+    const readyWidgets = widgets.filter((widget) => widget.state === "ready");
+    const runId = state?.run?.runId;
+    const resultSignature = readyWidgets
+        .map(
+            (widget) =>
+                `${widget.id}:${widget.handleId ?? ""}:${widget.view}:${widget.rows ?? ""}:${widget.drift?.requestedView ?? ""}`,
+        )
+        .join("|");
+    useEffect(() => {
+        if (!runId || readyWidgets.length === 0) {
+            return;
+        }
+        const previous = paintedResults.current.get(runId);
+        paintedResults.current.set(runId, resultSignature);
+        if (previous === undefined) {
+            perfMarkAfterNextPaint("mssql.runbookStudio.results.firstUsefulRender", {
+                widgetCount: readyWidgets.length,
+            });
+        } else if (previous !== resultSignature) {
+            perfMarkAfterNextPaint("mssql.runbookStudio.results.updateApplied", {
+                updateKind: "snapshot",
+            });
+        }
+    }, [readyWidgets.length, resultSignature, runId]);
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }

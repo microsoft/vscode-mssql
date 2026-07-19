@@ -725,7 +725,7 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
                 {widget.drift ? (
                     <span
                         className="rbs-chip rbs-chip-warn"
-                        title={loc.driftDetail(widget.drift.requestedView)}>
+                        title={loc.driftDetail(widget.drift.requestedView, widget.view)}>
                         {loc.driftBadge}
                     </span>
                 ) : null}
@@ -733,6 +733,11 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
                     <span className="rbs-muted rbs-mono">{widget.contract}</span>
                 ) : null}
             </div>
+            {widget.drift ? (
+                <div className="rbs-drift-notice" role="status">
+                    {loc.driftDetail(widget.drift.requestedView, widget.view)}
+                </div>
+            ) : null}
             {body}
         </section>
     );

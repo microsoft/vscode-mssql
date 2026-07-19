@@ -15,7 +15,9 @@
  * classes on the SVG elements — see runbookStudio.css .rbs-graph-*).
  */
 
+import { useEffect } from "react";
 import { locConstants } from "../../common/locConstants";
+import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
     RunbookNodeSnapshot,
     RunbookNodeStateKind,
@@ -258,6 +260,13 @@ export function PlanGraphView({
     run?: RunbookRunSnapshot;
 }) {
     const loc = locConstants.runbookStudio;
+    useEffect(() => {
+        if (nodes.length > 0) {
+            perfMarkAfterNextPaint("mssql.runbookStudio.plan.renderComplete", {
+                nodeCount: nodes.length,
+            });
+        }
+    }, [nodes.length]);
     if (nodes.length === 0) {
         // Total layout rule: never a blank panel.
         return (

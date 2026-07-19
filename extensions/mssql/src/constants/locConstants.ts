@@ -66,6 +66,8 @@ export class RunbookStudio {
     public static runInterrupted = l10n.t(
         "This run did not finish — the window closed while it was still running.",
     );
+    public static branchNotTaken = l10n.t("Not executed — branch not taken.");
+    public static runEndedBeforeStep = l10n.t("Not executed — the run ended before this step.");
     public static runtimeKindUnavailable = (kind: string) =>
         l10n.t({
             message:
@@ -135,6 +137,7 @@ export class RunbookStudio {
         "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     );
     public static approvalRequired = l10n.t("Approval required to continue.");
+    public static stepCancelled = l10n.t("Cancelled before the step completed.");
     public static plannerCancelled = l10n.t(
         "Plan generation was cancelled. Edit the prompt and generate again.",
     );

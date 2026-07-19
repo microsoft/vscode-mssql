@@ -37,6 +37,8 @@
     "The runbook runtime failed to start the run.": "The runbook runtime failed to start the run.",
     "The runbook runtime exited unexpectedly.": "The runbook runtime exited unexpectedly.",
     "This run did not finish — the window closed while it was still running.": "This run did not finish — the window closed while it was still running.",
+    "Not executed — branch not taken.": "Not executed — branch not taken.",
+    "Not executed — the run ended before this step.": "Not executed — the run ended before this step.",
     "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime./{0} is a configuration value": {
         "message": "The configured runbook runtime '{0}' is not available in this build. Set mssql.runbookStudio.runtime to 'fake' to use the deterministic preview runtime.",
         "comment": ["{0} is a configuration value"]
@@ -74,6 +76,7 @@
     "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.": "A step failed and the Hobbes runtime did not finalize the run. The run has been marked failed; check Open diagnostics for the step error.",
     "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.": "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     "Approval required to continue.": "Approval required to continue.",
+    "Cancelled before the step completed.": "Cancelled before the step completed.",
     "Plan generation was cancelled. Edit the prompt and generate again.": "Plan generation was cancelled. Edit the prompt and generate again.",
     "The runtime's active provider profile does not expose configurable models.": "The runtime's active provider profile does not expose configurable models.",
     "Planner (generates the runbook plan)": "Planner (generates the runbook plan)",
@@ -4537,10 +4540,10 @@
         "message": "The '{0}' view is not available yet in this preview.",
         "comment": ["{0} is a renderer kind id"]
     },
-    "fallback view": "fallback view",
-    "The chosen '{0}' view is not compatible with this output anymore; a compatible view is shown instead./{0} is a renderer kind id": {
-        "message": "The chosen '{0}' view is not compatible with this output anymore; a compatible view is shown instead.",
-        "comment": ["{0} is a renderer kind id"]
+    "Review required": "Review required",
+    "The saved '{0}' view no longer matches this output. Showing '{1}' instead. Review this widget's presentation before saving the runbook./{0} and {1} are renderer kind ids": {
+        "message": "The saved '{0}' view no longer matches this output. Showing '{1}' instead. Review this widget's presentation before saving the runbook.",
+        "comment": ["{0} and {1} are renderer kind ids"]
     },
     "Showing {0} of {1} rows./{0} and {1} are row counts": {
         "message": "Showing {0} of {1} rows.",

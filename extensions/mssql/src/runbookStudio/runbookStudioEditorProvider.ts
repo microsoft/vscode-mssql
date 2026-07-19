@@ -20,11 +20,7 @@ import * as vscode from "vscode";
 import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
-import {
-    canonicalizeRunbookArtifact,
-    createFixtureRunbookArtifact,
-    createNewRunbookArtifact,
-} from "./runbookArtifact";
+import { canonicalizeRunbookArtifact, createFixtureRunbookArtifact } from "./runbookArtifact";
 import { RUNBOOK_FS_SCHEME, RunbookFileSystemProvider } from "./runbookFileSystem";
 import { registerRunbookLibrary } from "./runbookLibraryProvider";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
@@ -165,21 +161,15 @@ function registerRunbookStudioFeatures(
             supportsMultipleEditorsPerDocument: true,
         }),
         { dispose: () => provider.disposeAll() },
-        vscode.commands.registerCommand("mssql.runbookStudio.new", async () => {
-            const artifact = createNewRunbookArtifact(
-                LocRunbookStudio.newRunbookName,
-                `runbook-${Date.now().toString(36)}`,
-            );
-            const doc = await vscode.workspace.openTextDocument({
-                language: "json",
-                content: canonicalizeRunbookArtifact(artifact),
-            });
-            await vscode.commands.executeCommand(
-                "vscode.openWith",
-                doc.uri,
-                RUNBOOK_STUDIO_VIEW_TYPE,
-            );
-        }),
+        // The command-palette entry and the Library toolbar must use the
+        // SAME library-first creation path (D-0014). The old palette path
+        // created an untitled loose document, so the new runbook was absent
+        // from the Library until an explicit publish and could be stranded
+        // by hot exit. The library command creates the runtime draft and
+        // stash first, then opens its mssql-runbook: virtual document.
+        vscode.commands.registerCommand("mssql.runbookStudio.new", () =>
+            vscode.commands.executeCommand("mssql.runbookLibrary.newRunbook"),
+        ),
         // Deep-link target (A2 §9.2): open a run's document at a route.
         // Run-id resolution against the ledger arrives with RBS2-7; the
         // command shape is stable from day one.

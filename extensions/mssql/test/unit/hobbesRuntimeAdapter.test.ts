@@ -16,6 +16,7 @@ import {
     mapRegionStatus,
     mapTerminalStatus,
     ReasoningCoalescer,
+    terminalNodeSettlementEvents,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
 import { findFreePort } from "../../src/runbookStudio/runtime/runtimeSupervisor";
 
@@ -38,6 +39,44 @@ suite("hobbesRuntimeAdapter", () => {
         expect(mapRegionStatus("failed")).to.equal("failed");
         expect(mapRegionStatus("queued")).to.equal(undefined);
         expect(mapRegionStatus(undefined)).to.equal(undefined);
+    });
+
+    test("successful conditional runs settle unreported nodes as branch-not-taken", () => {
+        const events = terminalNodeSettlementEvents(
+            new Set(["query", "chosen", "not-taken"]),
+            new Map([
+                ["query", "succeeded"],
+                ["chosen", "succeeded"],
+            ]),
+            "succeeded",
+        );
+
+        expect(events).to.have.length(1);
+        expect(events[0]).to.include({
+            kind: "nodeState",
+            nodeId: "not-taken",
+            state: "skipped",
+            outcome: "skipped",
+        });
+        expect(events[0].message).to.contain("branch not taken");
+    });
+
+    test("accepted cancellation settles active and unreached nodes before the terminal", () => {
+        const events = terminalNodeSettlementEvents(
+            new Set(["done", "active", "waiting", "later"]),
+            new Map([
+                ["done", "succeeded"],
+                ["active", "running"],
+                ["waiting", "awaitingApproval"],
+            ]),
+            "cancelled",
+        );
+
+        expect(events.map((event) => [event.nodeId, event.state])).to.deep.equal([
+            ["active", "cancelled"],
+            ["waiting", "cancelled"],
+            ["later", "skipped"],
+        ]);
     });
 
     test("launch refusals map to user-actionable errors with the refusal code retained", () => {

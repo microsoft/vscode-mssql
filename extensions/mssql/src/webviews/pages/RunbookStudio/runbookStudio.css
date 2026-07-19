@@ -78,6 +78,15 @@
     white-space: nowrap;
 }
 
+.rbs-drift-notice {
+    margin: 0 0 8px;
+    padding: 6px 8px;
+    color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+    background: var(--vscode-inputValidation-warningBackground, var(--vscode-editor-background));
+    border: 1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-contrastBorder));
+    border-radius: 3px;
+}
+
 .rbs-rail {
     grid-area: rail;
     display: flex;
