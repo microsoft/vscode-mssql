@@ -253,17 +253,24 @@ suite("runbook capability preflight", () => {
         expect(admission.status).to.equal("incompatible");
     });
 
-    test("preview developer activities are enabled only for the fake runtime profile", () => {
+    test("developer sandbox activities are admitted by fake and guarded local lanes", () => {
         const manifest = classifyRunbookIntent(
             "Build a DACPAC and provision an ephemeral sandbox.",
         ).requirements;
         const local = preflightRunbookRequirements(manifest, preflightContextForRuntime("local"));
-        expect(local.status).to.equal("incompatible");
-        expect(local.issues?.map((issue) => issue.code)).to.include("activity.previewOnly");
+        expect(local.status).to.equal("readyAfterBinding");
+        expect(local.issues?.map((issue) => issue.code)).to.not.include("activity.previewOnly");
+
+        const localAdmission = preflightRunbookRequirements(manifest, {
+            ...preflightContextForRuntime("local", "admission"),
+            providerAvailable: true,
+            bindings: { connection: true, provisionedTarget: true },
+        });
+        expect(localAdmission.status).to.equal("ready");
 
         const fake = preflightRunbookRequirements(manifest, {
             ...preflightContextForRuntime("fake", "admission"),
-            bindings: { provisionedTarget: true },
+            bindings: { connection: true, provisionedTarget: true },
         });
         expect(fake.status).to.equal("ready");
     });

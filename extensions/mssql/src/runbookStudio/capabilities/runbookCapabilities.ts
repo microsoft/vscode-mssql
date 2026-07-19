@@ -55,9 +55,8 @@ export interface RunbookPreflightContext {
 }
 
 /** Deterministic product policy for the selectable VS Code runtime lanes.
- * The local lane may write bounded build outputs inside the workspace, but
- * effectful sandbox/deployment activities remain fake-only until their real
- * executors and recovery protocols land. */
+ * The local lane permits only the installed guarded effects: workspace build
+ * outputs plus approval-bound disposable localhost database operations. */
 export function preflightContextForRuntime(
     runtimeKind: string,
     phase: RunbookPreflightContext["phase"] = "authoring",
@@ -79,7 +78,7 @@ export function preflightContextForRuntime(
             allowedEffects: ["read", "mutate"],
             approvalSupported: true,
             allowPreviewActivities: false,
-            supportedRollbackContracts: ["none", "automatic"],
+            supportedRollbackContracts: ["none", "automatic", "required"],
         };
     }
     return {
@@ -133,12 +132,14 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         target: "ephemeralSqlDatabase",
         effect: "mutate",
         approvalRequired: true,
+        connectionRequirement: "required",
         rollbackContract: "required",
         outputContract: "databaseLease/1",
     },
     "sandbox.dispose": {
         target: "ephemeralSqlDatabase",
         effect: "mutate",
+        connectionRequirement: "provisioned",
         rollbackContract: "automatic",
         outputContract: "cleanupEvidence/1",
     },

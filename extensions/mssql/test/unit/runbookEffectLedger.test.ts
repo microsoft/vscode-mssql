@@ -43,6 +43,7 @@ suite("runbookEffectLedger", () => {
             bindingDigest: "sha256:binding",
             targetFingerprint: "sha256:target",
             retrySemantics: "operatorDecisionRequired",
+            ownerPid: process.pid,
             policy: { version: "runbook-policy/1", outcome: "allowed" },
             approval: {
                 approvalId: "approval-1",

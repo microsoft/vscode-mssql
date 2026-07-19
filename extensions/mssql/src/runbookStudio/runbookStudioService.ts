@@ -50,9 +50,14 @@ import {
 } from "./capabilities/runbookCapabilities";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runbookRunLedger";
-import { RunbookEffectLedger } from "./runbookEffectLedger";
+import {
+    deriveRunbookEffectId,
+    RunbookEffectLedger,
+    RunbookEffectSnapshot,
+} from "./runbookEffectLedger";
 import {
     buildRunbookApprovalChallenge,
+    RunbookApprovalChallenge,
     RunbookApprovalEvidence,
     RunbookApprovalLedger,
 } from "./runbookApprovalLedger";
@@ -66,14 +71,29 @@ import {
     buildPlannedArtifact,
     isPlannedArtifactFailure,
 } from "./models/plannerMapping";
-import { FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
+import { ActivityInvocationIdentity, FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
 import {
     HobbesRuntimeAdapter,
     LibraryDocumentBaseline,
     LibraryDocumentCommitResult,
     LibraryDocumentConflictResolution,
 } from "./runtime/hobbesRuntimeAdapter";
-import { LocalActivityError, LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
+import {
+    LocalActivityError,
+    LocalSandboxCleanupResult,
+    LocalSandboxLeaseResult,
+    LocalSqlActivityDelegate,
+} from "./runtime/localSqlDelegate";
+import {
+    buildCreateLocalSandboxSql,
+    buildDropLocalSandboxSql,
+    buildProbeLocalSandboxSql,
+    effectIdFromLocalSandboxLeaseRef,
+    isStrictLoopbackSqlServer,
+    localSandboxDatabaseName,
+    localSandboxLeaseRef,
+    LocalSandboxProbe,
+} from "./runtime/localSandboxOperations";
 import {
     buildLocalDacpac,
     buildLocalDeploymentPreviewResult,
@@ -94,6 +114,8 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as fs from "fs";
 import { DacFxService } from "../services/dacFxService";
 import { TaskExecutionMode } from "../enums";
+import { digestRunbookValue } from "./runbookDigest";
+import type { IConnectionProfileWithSource } from "../models/interfaces";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -103,6 +125,7 @@ const SimpleExecuteRequestType = new RequestType<
 
 let runCounter = 0;
 let previewCounter = 0;
+let sandboxCounter = 0;
 
 function nextRunId(): string {
     runCounter++;
@@ -119,12 +142,14 @@ interface ActiveRunBinding {
     pendingApprovals: Map<
         string,
         {
-            approvalId: string;
+            challenge: RunbookApprovalChallenge;
             challengeDigest: string;
-            activityNodeId: string;
         }
     >;
-    approvedEffects: Map<string, RunbookApprovalEvidence>;
+    approvedEffects: Map<
+        string,
+        { challenge: RunbookApprovalChallenge; evidence: RunbookApprovalEvidence }
+    >;
 }
 
 /** Retention: the newest N runs per runbook id survive GC. */
@@ -166,6 +191,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     /** Global (workspace-independent) storage root for the library stash. */
     private readonly globalStorageUri: vscode.Uri;
     private sweepTimer: ReturnType<typeof setTimeout> | undefined;
+    private effectRecoveryInProgress = false;
+    private effectRecoveryWarningShown = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -207,6 +234,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             this.sweepTimer = undefined;
             try {
                 this.sweepPersistence();
+                void this.recoverOutstandingSandboxEffects();
             } catch (error) {
                 emitRunbookEvent(persistenceContext, "runbookStudio.persistence.gc", "error", {
                     errorClass: metaField(error instanceof Error ? error.name : "UnknownError"),
@@ -514,12 +542,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         if (pendingApproval) {
             try {
                 this.approvalLedger.decide(
-                    pendingApproval.approvalId,
+                    pendingApproval.challenge.approvalId,
                     approve ? "approved" : "rejected",
                 );
                 if (approve) {
                     const evidence = this.approvalLedger.approvedEvidence(
-                        pendingApproval.approvalId,
+                        pendingApproval.challenge.approvalId,
                         pendingApproval.challengeDigest,
                     );
                     if (!evidence) {
@@ -527,7 +555,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     }
                     // Write-ahead authorization: a local activity can begin
                     // immediately when the adapter gate is released.
-                    active.approvedEffects.set(pendingApproval.activityNodeId, evidence);
+                    active.approvedEffects.set(pendingApproval.challenge.activityNodeId, {
+                        challenge: pendingApproval.challenge,
+                        evidence,
+                    });
                 }
             } catch {
                 return {
@@ -547,7 +578,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         );
         if (!accepted) {
             if (pendingApproval) {
-                active.approvedEffects.delete(pendingApproval.activityNodeId);
+                active.approvedEffects.delete(pendingApproval.challenge.activityNodeId);
             }
             return {
                 accepted: false,
@@ -1537,6 +1568,81 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         });
     }
 
+    /** Recover disposable localhost databases after a terminal run or a host
+     * restart. Another live extension host retains ownership; ambiguous or
+     * marker-mismatched effects are surfaced and never dropped blindly. */
+    private async recoverOutstandingSandboxEffects(runId?: string): Promise<void> {
+        if (this.effectRecoveryInProgress) {
+            return;
+        }
+        this.effectRecoveryInProgress = true;
+        const context = newRunbookRootContext("effect-recovery");
+        let recovered = 0;
+        let deferred = 0;
+        let liveOwner = 0;
+        let attention = 0;
+        try {
+            const scan = this.effectLedger.scanRecovery();
+            attention += scan.unreadableFiles.length;
+            for (const entry of scan.outstanding) {
+                const snapshot = entry.snapshot;
+                if (
+                    snapshot.identity.activityKind !== "sandbox.provision" ||
+                    (runId !== undefined && snapshot.identity.runId !== runId)
+                ) {
+                    continue;
+                }
+                if (this.activeByRunId.has(snapshot.identity.runId)) {
+                    deferred++;
+                    continue;
+                }
+                const ownerPid = snapshot.identity.ownerPid;
+                if (
+                    ownerPid !== undefined &&
+                    ownerPid !== process.pid &&
+                    isProcessAlive(ownerPid)
+                ) {
+                    liveOwner++;
+                    continue;
+                }
+                if (snapshot.state === "needsOperatorDecision") {
+                    attention++;
+                    continue;
+                }
+                try {
+                    await this.cleanupLocalSandboxEffect(snapshot);
+                    recovered++;
+                } catch {
+                    const latest = this.effectLedger.recoverEffect(
+                        snapshot.identity.effectId,
+                    )?.snapshot;
+                    if (latest?.state === "cleaned" || latest?.state === "failedNoEffect") {
+                        recovered++;
+                    } else if (latest?.state === "needsOperatorDecision") {
+                        attention++;
+                    } else {
+                        deferred++;
+                    }
+                }
+            }
+            emitRunbookEvent(context, "runbookStudio.effect.recovery", "ok", {
+                recovered: metaField(recovered),
+                deferred: metaField(deferred),
+                liveOwner: metaField(liveOwner),
+                attention: metaField(attention),
+                unreadableJournals: metaField(scan.unreadableFiles.length),
+            });
+            if (attention > 0 && !this.effectRecoveryWarningShown) {
+                this.effectRecoveryWarningShown = true;
+                void vscode.window.showWarningMessage(
+                    LocRunbookStudio.sandboxRecoveryAttention(attention),
+                );
+            }
+        } finally {
+            this.effectRecoveryInProgress = false;
+        }
+    }
+
     private async ensureAdapter(
         context: RunbookOperationContext,
     ): Promise<{ adapter: RunbookRuntimeAdapter } | { error: RbsError }> {
@@ -1583,29 +1689,37 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 new LocalSqlActivityDelegate({
                     inspectWorkspace: inspectLocalWorkspace,
                     buildDacpac: buildLocalDacpac,
+                    provisionSandbox: (nodeId, baseConnectionRef, invocation, cancelled) =>
+                        this.provisionLocalSandbox(
+                            nodeId,
+                            baseConnectionRef,
+                            invocation,
+                            cancelled,
+                        ),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
-                    connect: async (profileId, ownerUri) => {
+                    disposeSandbox: (nodeId, leaseRef, invocation, cancelled) =>
+                        this.disposeLocalSandbox(nodeId, leaseRef, invocation, cancelled),
+                    connect: async (databaseRef, ownerUri) => {
                         const connectionManager = this.connectionAccess();
                         if (!connectionManager) {
                             return false;
                         }
-                        const profiles =
-                            await connectionManager.connectionStore.readAllConnections(false);
-                        const profile = profiles.find((p) => p.id === profileId);
-                        if (!profile) {
-                            throw new Error(LocRunbookStudio.connectionProfileNotFound(profileId));
-                        }
-                        return connectionManager.connect(ownerUri, profile, {
+                        const resolved = await this.resolveRunbookConnection(databaseRef);
+                        return connectionManager.connect(ownerUri, resolved.profile, {
                             connectionSource: "runbookStudio",
                         });
                     },
-                    execute: (ownerUri, queryString) =>
+                    execute: (ownerUri, queryString, cancellationToken) =>
                         Promise.resolve(
-                            SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
-                                ownerUri,
-                                queryString,
-                            }),
+                            SqlToolsServerClient.instance.sendRequest(
+                                SimpleExecuteRequestType,
+                                {
+                                    ownerUri,
+                                    queryString,
+                                },
+                                cancellationToken,
+                            ),
                         ),
                     disconnect: async (ownerUri) => {
                         await this.connectionAccess()?.disconnect(ownerUri);
@@ -1673,9 +1787,518 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return { adapter };
     }
 
+    private async provisionLocalSandbox(
+        nodeId: string,
+        baseConnectionRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSandboxLeaseResult> {
+        const authorization = this.requireApprovedEffect(nodeId, invocation);
+        const baseProfile = await this.requireSavedConnection(baseConnectionRef);
+        this.assertSandboxBaseProfile(baseProfile);
+
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "sandbox.provision",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const databaseName = localSandboxDatabaseName(effectId);
+        const ownershipMarkerDigest = digestRunbookValue(effectId);
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "sandbox.provision",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({ effectId, databaseName }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "resumable",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "sqlDatabase",
+                resourceId: databaseName,
+                connectionProfileId: baseProfile.id,
+                ownershipMarkerDigest,
+            },
+        });
+
+        return this.withSandboxConnection(
+            baseProfile,
+            "provision",
+            isCancellationRequested,
+            async (ownerUri, cancellationToken) => {
+                try {
+                    const before = await this.probeLocalSandbox(ownerUri, databaseName);
+                    if (before.exists) {
+                        this.effectLedger.recordNoEffectFailure(effectId, "DatabaseNameCollision");
+                        throw new LocalActivityError(
+                            LocRunbookStudio.sandboxOwnershipMismatch,
+                            "RunbookStudio.TargetChanged",
+                        );
+                    }
+                    await SqlToolsServerClient.instance.sendRequest(
+                        SimpleExecuteRequestType,
+                        {
+                            ownerUri,
+                            queryString: buildCreateLocalSandboxSql(databaseName, effectId),
+                        },
+                        cancellationToken,
+                    );
+                    const created = await this.probeLocalSandbox(ownerUri, databaseName);
+                    if (!created.exists || created.ownershipMarker !== effectId) {
+                        if (created.exists) {
+                            this.effectLedger.requireOperatorDecision(
+                                effectId,
+                                "OwnershipMarkerMissingOrChanged",
+                            );
+                        } else {
+                            this.effectLedger.recordNoEffectFailure(
+                                effectId,
+                                "DatabaseCreateNotObserved",
+                            );
+                        }
+                        throw new LocalActivityError(
+                            LocRunbookStudio.sandboxProvisionFailed,
+                            "RunbookStudio.ActivityFailed",
+                        );
+                    }
+                    this.effectLedger.recordEffectObserved(effectId, {
+                        resourceKind: "sqlDatabase",
+                        resourceId: databaseName,
+                        ownershipMarkerDigest,
+                        connectionProfileId: baseProfile.id,
+                        outputHandles: [localSandboxLeaseRef(effectId)],
+                    });
+                    return {
+                        effectId,
+                        leaseId: effectId,
+                        connectionRef: localSandboxLeaseRef(effectId),
+                        databaseName,
+                        createdAtUtc: new Date().toISOString(),
+                    };
+                } catch (error) {
+                    await this.settleSandboxProvisionFailure(ownerUri, effectId, databaseName);
+                    if (
+                        error instanceof vscode.CancellationError ||
+                        cancellationToken.isCancellationRequested ||
+                        isCancellationRequested()
+                    ) {
+                        throw new LocalActivityError(
+                            LocRunbookStudio.dacpacPreviewCancelled,
+                            "RunbookStudio.ActivityCancelled",
+                        );
+                    }
+                    throw error;
+                }
+            },
+        );
+    }
+
+    private async disposeLocalSandbox(
+        _nodeId: string,
+        leaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSandboxCleanupResult> {
+        const effectId = effectIdFromLocalSandboxLeaseRef(leaseRef);
+        if (!effectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxOwnershipMismatch,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const recovered = this.effectLedger.recoverEffect(effectId);
+        if (!recovered || recovered.snapshot.identity.runId !== invocation.runId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxOwnershipMismatch,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        return this.cleanupLocalSandboxEffect(recovered.snapshot);
+    }
+
+    private requireApprovedEffect(
+        nodeId: string,
+        invocation: ActivityInvocationIdentity,
+    ): {
+        challenge: RunbookApprovalChallenge;
+        evidence: RunbookApprovalEvidence;
+    } {
+        const active = this.activeByRunId.get(invocation.runId);
+        const authorization = active?.approvedEffects.get(nodeId);
+        if (
+            !active ||
+            !authorization ||
+            authorization.challenge.planHash !== invocation.planHash ||
+            authorization.challenge.planRevision !== invocation.planRevision ||
+            authorization.challenge.attempt !== invocation.attempt ||
+            authorization.challenge.activityNodeId !== nodeId ||
+            authorization.challenge.activityKind !== "sandbox.provision"
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxApprovalRequired,
+                "RunbookStudio.ApprovalInvalid",
+            );
+        }
+        const rebuilt = buildRunbookApprovalChallenge({
+            runId: invocation.runId,
+            artifact: active.artifact,
+            parameterValues: active.parameterValues,
+            gateNodeId: authorization.challenge.gateNodeId,
+            attempt: invocation.attempt,
+        });
+        if (
+            !rebuilt ||
+            digestRunbookValue(rebuilt) !== digestRunbookValue(authorization.challenge) ||
+            !this.approvalLedger.approvedEvidence(
+                authorization.challenge.approvalId,
+                digestRunbookValue(authorization.challenge),
+            )
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxApprovalRequired,
+                "RunbookStudio.ApprovalInvalid",
+            );
+        }
+        return authorization;
+    }
+
+    private async cleanupLocalSandboxEffect(
+        initial: RunbookEffectSnapshot,
+    ): Promise<LocalSandboxCleanupResult> {
+        let snapshot = initial;
+        if (snapshot.state === "cleaned") {
+            return cleanupResult(snapshot, snapshot.cleanupEvidenceDigest ?? "sha256:unknown");
+        }
+        if (snapshot.state === "needsOperatorDecision" || snapshot.state === "failedNoEffect") {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const recovery = snapshot.identity.recovery;
+        const resource = snapshot.resource;
+        const databaseName = resource?.resourceId ?? recovery?.resourceId;
+        const connectionProfileId = resource?.connectionProfileId ?? recovery?.connectionProfileId;
+        const expectedDatabaseName = localSandboxDatabaseName(snapshot.identity.effectId);
+        const expectedMarkerDigest = digestRunbookValue(snapshot.identity.effectId);
+        if (
+            !databaseName ||
+            !connectionProfileId ||
+            !recovery ||
+            recovery.resourceKind !== "sqlDatabase" ||
+            databaseName !== expectedDatabaseName ||
+            recovery.resourceId !== expectedDatabaseName ||
+            recovery.connectionProfileId !== connectionProfileId ||
+            recovery.ownershipMarkerDigest !== expectedMarkerDigest ||
+            (resource !== undefined &&
+                (resource.resourceKind !== "sqlDatabase" ||
+                    resource.resourceId !== expectedDatabaseName ||
+                    resource.connectionProfileId !== connectionProfileId ||
+                    resource.ownershipMarkerDigest !== expectedMarkerDigest))
+        ) {
+            this.effectLedger.requireOperatorDecision(
+                snapshot.identity.effectId,
+                "RecoveryMetadataInvalid",
+            );
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const baseProfile = await this.requireSavedConnection(connectionProfileId);
+        this.assertSandboxBaseProfile(baseProfile);
+        return this.withSandboxConnection(
+            baseProfile,
+            "cleanup",
+            () => false,
+            async (ownerUri) => {
+                const probe = await this.probeLocalSandbox(ownerUri, databaseName);
+                if (probe.exists && probe.ownershipMarker !== snapshot.identity.effectId) {
+                    if (snapshot.state !== "needsOperatorDecision") {
+                        this.effectLedger.requireOperatorDecision(
+                            snapshot.identity.effectId,
+                            "OwnershipMarkerMissingOrChanged",
+                        );
+                    }
+                    throw new LocalActivityError(
+                        LocRunbookStudio.sandboxOwnershipMismatch,
+                        "RunbookStudio.TargetChanged",
+                    );
+                }
+                if (snapshot.state === "prepared") {
+                    if (!probe.exists) {
+                        this.effectLedger.recordNoEffectFailure(
+                            snapshot.identity.effectId,
+                            "RecoveredBeforeEffect",
+                        );
+                        throw new LocalActivityError(
+                            LocRunbookStudio.sandboxEffectRecoveryRequired,
+                            "RunbookStudio.EffectRecoveryRequired",
+                        );
+                    }
+                    snapshot = this.effectLedger.recordEffectObserved(snapshot.identity.effectId, {
+                        resourceKind: "sqlDatabase",
+                        resourceId: databaseName,
+                        ownershipMarkerDigest: expectedMarkerDigest,
+                        connectionProfileId,
+                        outputHandles: [localSandboxLeaseRef(snapshot.identity.effectId)],
+                    });
+                }
+                if (snapshot.state === "effectObserved") {
+                    snapshot = this.effectLedger.startCleanup(snapshot.identity.effectId);
+                }
+                if (probe.exists) {
+                    try {
+                        await SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+                            ownerUri,
+                            queryString: buildDropLocalSandboxSql(
+                                databaseName,
+                                snapshot.identity.effectId,
+                            ),
+                        });
+                    } catch (error) {
+                        const afterFailure = await this.probeLocalSandbox(ownerUri, databaseName);
+                        if (afterFailure.exists) {
+                            this.effectLedger.requireOperatorDecision(
+                                snapshot.identity.effectId,
+                                "CleanupOutcomeUnknown",
+                            );
+                            throw error;
+                        }
+                    }
+                }
+                const after = await this.probeLocalSandbox(ownerUri, databaseName);
+                if (after.exists) {
+                    this.effectLedger.requireOperatorDecision(
+                        snapshot.identity.effectId,
+                        "CleanupDidNotRemoveDatabase",
+                    );
+                    throw new LocalActivityError(
+                        LocRunbookStudio.sandboxCleanupFailed,
+                        "RunbookStudio.EffectRecoveryRequired",
+                    );
+                }
+                const cleanupEvidenceDigest = digestRunbookValue({
+                    effectId: snapshot.identity.effectId,
+                    databaseName,
+                    cleaned: true,
+                });
+                snapshot = this.effectLedger.completeCleanup(
+                    snapshot.identity.effectId,
+                    cleanupEvidenceDigest,
+                );
+                return cleanupResult(snapshot, cleanupEvidenceDigest);
+            },
+        );
+    }
+
+    private async settleSandboxProvisionFailure(
+        ownerUri: string,
+        effectId: string,
+        databaseName: string,
+    ): Promise<void> {
+        const current = this.effectLedger.recoverEffect(effectId)?.snapshot;
+        if (!current || current.state !== "prepared") {
+            return;
+        }
+        try {
+            const probe = await this.probeLocalSandbox(ownerUri, databaseName);
+            if (!probe.exists) {
+                this.effectLedger.recordNoEffectFailure(effectId, "ProvisionFailedBeforeEffect");
+            } else if (probe.ownershipMarker === effectId) {
+                const recovery = current.identity.recovery!;
+                this.effectLedger.recordEffectObserved(effectId, {
+                    resourceKind: "sqlDatabase",
+                    resourceId: databaseName,
+                    ownershipMarkerDigest: recovery.ownershipMarkerDigest,
+                    connectionProfileId: recovery.connectionProfileId,
+                    outputHandles: [localSandboxLeaseRef(effectId)],
+                });
+            } else {
+                this.effectLedger.requireOperatorDecision(effectId, "ProvisionOutcomeUnknown");
+            }
+        } catch {
+            const latest = this.effectLedger.recoverEffect(effectId)?.snapshot;
+            if (latest?.state === "prepared") {
+                this.effectLedger.requireOperatorDecision(effectId, "ProvisionProbeFailed");
+            }
+        }
+    }
+
+    private async probeLocalSandbox(
+        ownerUri: string,
+        databaseName: string,
+    ): Promise<LocalSandboxProbe> {
+        const result = await SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+            ownerUri,
+            queryString: buildProbeLocalSandboxSql(databaseName),
+        });
+        const row = result.rows?.[0];
+        const exists = row?.[0]?.displayValue === "1";
+        const marker = row?.[1];
+        return {
+            exists,
+            ...(!marker || marker.isNull ? {} : { ownershipMarker: marker.displayValue }),
+        };
+    }
+
+    private async withSandboxConnection<T>(
+        baseProfile: IConnectionProfileWithSource,
+        purpose: string,
+        isCancellationRequested: () => boolean,
+        action: (ownerUri: string, cancellationToken: vscode.CancellationToken) => Promise<T>,
+    ): Promise<T> {
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewServiceUnavailable,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        sandboxCounter++;
+        const ownerUri = `runbookstudio://sandbox-${purpose}/${sandboxCounter.toString(36)}`;
+        const profile = { ...baseProfile, database: "master" } as mssql.IConnectionInfo;
+        const cancellation = new vscode.CancellationTokenSource();
+        const poll = setInterval(() => {
+            if (isCancellationRequested()) {
+                cancellation.cancel();
+            }
+        }, 50);
+        let connected = false;
+        try {
+            connected = await connectionManager.connect(ownerUri, profile, {
+                connectionSource: "runbookStudio",
+                shouldHandleErrors: false,
+            });
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            return await action(ownerUri, cancellation.token);
+        } finally {
+            clearInterval(poll);
+            cancellation.dispose();
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // Cleanup evidence remains authoritative; session close is best effort.
+                }
+            }
+        }
+    }
+
+    private async requireSavedConnection(profileId: string): Promise<IConnectionProfileWithSource> {
+        const connectionManager = this.connectionAccess();
+        const profiles = await connectionManager?.connectionStore.readAllConnections(false);
+        const profile = profiles?.find((candidate) => candidate.id === profileId);
+        if (!profile) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectionProfileNotFound(profileId),
+                "RunbookStudio.TargetNotFound",
+            );
+        }
+        return profile;
+    }
+
+    private assertSandboxBaseProfile(profile: IConnectionProfileWithSource): void {
+        if (!isStrictLoopbackSqlServer(profile.server)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxLoopbackRequired,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        if (profile.connectionString?.trim()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxStructuredProfileRequired,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+    }
+
+    private async resolveRunbookConnection(databaseRef: string): Promise<{
+        profile: mssql.IConnectionInfo;
+        targetDatabase: string;
+    }> {
+        const effectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
+        if (!effectId) {
+            const profile = await this.requireSavedConnection(databaseRef);
+            return { profile, targetDatabase: profile.database };
+        }
+        const snapshot = this.effectLedger.recoverEffect(effectId)?.snapshot;
+        const resource = snapshot?.resource;
+        const recovery = snapshot?.identity.recovery;
+        const expectedDatabaseName = localSandboxDatabaseName(effectId);
+        const expectedMarkerDigest = digestRunbookValue(effectId);
+        if (
+            !snapshot ||
+            snapshot.state !== "effectObserved" ||
+            !resource?.connectionProfileId ||
+            resource.resourceKind !== "sqlDatabase" ||
+            resource.resourceId !== expectedDatabaseName ||
+            resource.ownershipMarkerDigest !== expectedMarkerDigest ||
+            !recovery ||
+            recovery.resourceId !== expectedDatabaseName ||
+            recovery.connectionProfileId !== resource.connectionProfileId ||
+            recovery.ownershipMarkerDigest !== expectedMarkerDigest
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.TargetNotFound",
+            );
+        }
+        const baseProfile = await this.requireSavedConnection(resource.connectionProfileId);
+        this.assertSandboxBaseProfile(baseProfile);
+        const probe = await this.withSandboxConnection(
+            baseProfile,
+            "verify",
+            () => false,
+            async (ownerUri) => this.probeLocalSandbox(ownerUri, expectedDatabaseName),
+        );
+        if (!probe.exists || probe.ownershipMarker !== effectId) {
+            this.effectLedger.requireOperatorDecision(
+                effectId,
+                "ProvisionedResourceMissingOrChanged",
+            );
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxOwnershipMismatch,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        return {
+            profile: { ...baseProfile, database: resource.resourceId } as mssql.IConnectionInfo,
+            targetDatabase: resource.resourceId,
+        };
+    }
+
     private async previewLocalDacpacDeployment(
         dacpacPath: string,
-        profileId: string,
+        databaseRef: string,
         isCancellationRequested: () => boolean,
     ) {
         const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested);
@@ -1693,15 +2316,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 "RunbookStudio.ProviderUnavailable",
             );
         }
-        const profiles = await connectionManager.connectionStore.readAllConnections(false);
-        const profile = profiles.find((candidate) => candidate.id === profileId);
-        if (!profile) {
-            throw new LocalActivityError(
-                LocRunbookStudio.connectionProfileNotFound(profileId),
-                "RunbookStudio.TargetNotFound",
-            );
-        }
-        const targetDatabase = profile.database?.trim();
+        const resolvedConnection = await this.resolveRunbookConnection(databaseRef);
+        const profile = resolvedConnection.profile;
+        const targetDatabase = resolvedConnection.targetDatabase.trim();
         if (!targetDatabase) {
             throw new LocalActivityError(
                 LocRunbookStudio.dacpacPreviewDatabaseRequired,
@@ -1842,9 +2459,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     if (approvalChallenge) {
                         const approval = this.approvalLedger.requestApproval(approvalChallenge);
                         active.pendingApprovals.set(event.nodeId, {
-                            approvalId: approvalChallenge.approvalId,
+                            challenge: approvalChallenge,
                             challengeDigest: approval.challengeDigest,
-                            activityNodeId: approvalChallenge.activityNodeId,
                         });
                     }
                     const snapshot = this.ledger.append(active.runId, {
@@ -1947,6 +2563,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             this.activeByDocument.delete(active.model.uriKey);
         }
         this.activeRunsEmitter.fire();
+        void this.recoverOutstandingSandboxEffects(active.runId);
     }
 
     private onRuntimeExit(active: ActiveRunBinding, unexpected: boolean): void {
@@ -1962,6 +2579,35 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             errorCode: "RunbookStudio.RuntimeExited",
             errorMessage: LocRunbookStudio.runtimeExited,
         });
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+function cleanupResult(
+    snapshot: RunbookEffectSnapshot,
+    cleanupEvidenceDigest: string,
+): LocalSandboxCleanupResult {
+    const databaseName = snapshot.resource?.resourceId ?? snapshot.identity.recovery?.resourceId;
+    if (!databaseName) {
+        throw new Error("cleaned sandbox effect is missing its resource identity");
+    }
+    return {
+        effectId: snapshot.identity.effectId,
+        leaseId: snapshot.identity.effectId,
+        databaseName,
+        cleaned: true,
+        cleanedAtUtc: new Date(snapshot.lastUpdatedEpochMs).toISOString(),
+        cleanupEvidenceDigest,
+    };
+}
+
+function isProcessAlive(pid: number): boolean {
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch (error) {
+        return (error as NodeJS.ErrnoException).code === "EPERM";
     }
 }
 

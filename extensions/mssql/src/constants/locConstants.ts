@@ -295,6 +295,46 @@ export class RunbookStudio {
         "DacFx returned an empty or invalid deployment report.",
     );
     public static dacpacPreviewNoSchemaChanges = l10n.t("No schema changes");
+    public static sandboxProvisioned = (databaseName: string) =>
+        l10n.t({
+            message: "Disposable database '{0}' was provisioned.",
+            args: [databaseName],
+            comment: ["{0} is a generated local database name"],
+        });
+    public static sandboxDisposed = (databaseName: string) =>
+        l10n.t({
+            message: "Disposable database '{0}' was removed.",
+            args: [databaseName],
+            comment: ["{0} is a generated local database name"],
+        });
+    public static sandboxApprovalRequired = l10n.t(
+        "The disposable database operation does not have a matching durable approval.",
+    );
+    public static sandboxLoopbackRequired = l10n.t(
+        "Disposable database targets currently require an explicit localhost or loopback SQL Server connection.",
+    );
+    public static sandboxStructuredProfileRequired = l10n.t(
+        "Disposable database targets require a structured saved connection rather than a connection-string profile.",
+    );
+    public static sandboxEffectRecoveryRequired = l10n.t(
+        "This disposable database effect already has recovery state. Resolve its cleanup before retrying.",
+    );
+    public static sandboxOwnershipMismatch = l10n.t(
+        "The disposable database ownership marker does not match this runbook lease. Automatic cleanup was refused.",
+    );
+    public static sandboxProvisionFailed = l10n.t(
+        "The disposable database could not be provisioned safely.",
+    );
+    public static sandboxCleanupFailed = l10n.t(
+        "The disposable database could not be removed safely and requires recovery.",
+    );
+    public static sandboxRecoveryAttention = (count: number) =>
+        l10n.t({
+            message:
+                "Runbook Studio found {0} disposable database effect(s) that require operator review. Automatic cleanup was refused.",
+            args: [count],
+            comment: ["{0} is a count of effects requiring review"],
+        });
     public static databaseProjectMustBeSqlproj = (projectPath: string) =>
         l10n.t({
             message: "Database project target '{0}' must be a .sqlproj file.",

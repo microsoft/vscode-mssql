@@ -20,7 +20,11 @@ import type * as mssql from "vscode-mssql";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookPlanNode } from "../../sharedInterfaces/runbookStudio";
 import { isReadOnlySql } from "../readOnlySql";
-import { ActivityExecutionDelegate, NodeExecution } from "./fakeRuntimeAdapter";
+import {
+    ActivityExecutionDelegate,
+    ActivityInvocationIdentity,
+    NodeExecution,
+} from "./fakeRuntimeAdapter";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -28,7 +32,11 @@ export { isReadOnlySql } from "../readOnlySql";
  *  SqlToolsServiceClient; tests inject fakes). */
 export interface LocalSqlOperations {
     connect(profileId: string, ownerUri: string): Promise<boolean>;
-    execute(ownerUri: string, sql: string): Promise<mssql.SimpleExecuteResult>;
+    execute(
+        ownerUri: string,
+        sql: string,
+        cancellationToken?: import("vscode").CancellationToken,
+    ): Promise<mssql.SimpleExecuteResult>;
     disconnect(ownerUri: string): Promise<void>;
     inspectWorkspace(): Promise<LocalWorkspaceSnapshot>;
     buildDacpac(
@@ -40,6 +48,18 @@ export interface LocalSqlOperations {
         databaseRef: string,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDeploymentPreviewResult>;
+    provisionSandbox(
+        nodeId: string,
+        baseConnectionRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSandboxLeaseResult>;
+    disposeSandbox(
+        nodeId: string,
+        leaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSandboxCleanupResult>;
 }
 
 export interface LocalWorkspaceSnapshot {
@@ -72,6 +92,23 @@ export interface LocalDeploymentPreviewResult {
     generatedAtUtc: string;
 }
 
+export interface LocalSandboxLeaseResult {
+    effectId: string;
+    leaseId: string;
+    connectionRef: string;
+    databaseName: string;
+    createdAtUtc: string;
+}
+
+export interface LocalSandboxCleanupResult {
+    effectId: string;
+    leaseId: string;
+    databaseName: string;
+    cleaned: boolean;
+    cleanedAtUtc: string;
+    cleanupEvidenceDigest: string;
+}
+
 /** Expected host refusal with a stable, non-secret error classification. */
 export class LocalActivityError extends Error {
     constructor(
@@ -92,7 +129,9 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly supportedActivityKinds = new Set([
         "workspace.inspect",
         "dacpac.build",
+        "sandbox.provision",
         "dacpac.deploy.preview",
+        "sandbox.dispose",
         "sql.query.read",
     ]);
 
@@ -104,12 +143,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             parameterValues: Record<string, string | number | boolean | null>;
             resolveBind: (input: unknown) => unknown;
             isCancellationRequested: () => boolean;
-            invocation: {
-                runId: string;
-                planRevision: string;
-                planHash: string;
-                attempt: number;
-            };
+            invocation: ActivityInvocationIdentity;
         },
     ): Promise<NodeExecution | undefined> {
         switch (node.activityKind) {
@@ -117,8 +151,12 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.inspectWorkspace();
             case "dacpac.build":
                 return this.buildDacpac(node, binding);
+            case "sandbox.provision":
+                return this.provisionSandbox(node, binding);
             case "dacpac.deploy.preview":
                 return this.previewDacpacDeployment(node, binding);
+            case "sandbox.dispose":
+                return this.disposeSandbox(node, binding);
             case "sql.query.read":
                 return this.executeSql(node, binding);
             default:
@@ -317,6 +355,98 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     changeCount: result.changeCount,
                     reportSha256: result.reportSha256,
                 },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async provisionSandbox(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const baseConnectionRef = binding.resolveBind(node.inputs?.sandbox);
+        if (typeof baseConnectionRef !== "string" || baseConnectionRef.trim().length === 0) {
+            return {
+                success: false,
+                message: LocRunbookStudio.parameterRequired("sandbox"),
+                errorCode: "RunbookStudio.BindingInvalid",
+            };
+        }
+        try {
+            const result = await this.operations.provisionSandbox(
+                node.id,
+                baseConnectionRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                message: LocRunbookStudio.sandboxProvisioned(result.databaseName),
+                output: {
+                    contract: "databaseLease/1",
+                    scalars: {
+                        leaseId: result.leaseId,
+                        connectionRef: result.connectionRef,
+                        databaseName: result.databaseName,
+                        effectId: result.effectId,
+                        createdAtUtc: result.createdAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    leaseId: result.leaseId,
+                    connectionRef: result.connectionRef,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async disposeSandbox(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const leaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof leaseRef !== "string" || leaseRef.trim().length === 0) {
+            return {
+                success: false,
+                message: LocRunbookStudio.parameterRequired("database"),
+                errorCode: "RunbookStudio.BindingInvalid",
+            };
+        }
+        try {
+            const result = await this.operations.disposeSandbox(
+                node.id,
+                leaseRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                message: LocRunbookStudio.sandboxDisposed(result.databaseName),
+                output: {
+                    contract: "cleanupEvidence/1",
+                    scalars: {
+                        effectId: result.effectId,
+                        leaseId: result.leaseId,
+                        databaseName: result.databaseName,
+                        cleaned: result.cleaned,
+                        cleanedAtUtc: result.cleanedAtUtc,
+                        cleanupEvidenceDigest: result.cleanupEvidenceDigest,
+                        executionMode: "local",
+                    },
+                },
+                values: { cleaned: result.cleaned },
             };
         } catch (error) {
             return activityFailure(error);

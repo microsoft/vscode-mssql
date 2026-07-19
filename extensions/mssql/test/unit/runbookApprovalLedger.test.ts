@@ -103,7 +103,7 @@ suite("runbookApprovalLedger", () => {
             artifact,
             parameterValues: {
                 projectPath: "Database.sqlproj",
-                sandboxName: profileCanary,
+                sandboxConnection: profileCanary,
             },
             gateNodeId: "approve-sandbox",
         });
@@ -124,13 +124,13 @@ suite("runbookApprovalLedger", () => {
         const first = buildRunbookApprovalChallenge({
             runId: "run-fixture",
             artifact,
-            parameterValues: { sandboxName: "profile-a", projectPath: "A.sqlproj" },
+            parameterValues: { sandboxConnection: "profile-a", projectPath: "A.sqlproj" },
             gateNodeId: "approve-sandbox",
         })!;
         const rebound = buildRunbookApprovalChallenge({
             runId: "run-fixture",
             artifact,
-            parameterValues: { sandboxName: "profile-b", projectPath: "A.sqlproj" },
+            parameterValues: { sandboxConnection: "profile-b", projectPath: "A.sqlproj" },
             gateNodeId: "approve-sandbox",
         })!;
         const revisedArtifact = structuredClone(artifact);
@@ -138,7 +138,7 @@ suite("runbookApprovalLedger", () => {
         const revised = buildRunbookApprovalChallenge({
             runId: "run-fixture",
             artifact: revisedArtifact,
-            parameterValues: { sandboxName: "profile-a", projectPath: "A.sqlproj" },
+            parameterValues: { sandboxConnection: "profile-a", projectPath: "A.sqlproj" },
             gateNodeId: "approve-sandbox",
         })!;
 

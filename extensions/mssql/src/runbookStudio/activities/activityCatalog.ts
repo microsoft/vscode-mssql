@@ -99,23 +99,22 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
     {
         kind: "sandbox.provision",
         version: 1,
-        label: "Provision ephemeral SQL target (deterministic preview)",
+        label: "Provision disposable local SQL database",
         description:
-            "Creates a typed fake lease and connection reference; no container, process, or database is created.",
+            "Creates an ownership-marked database on an explicitly bound loopback SQL Server and records a durable cleanup lease.",
         inputs: [
             {
                 name: "sandbox",
                 kind: "bind",
                 required: true,
-                description: "Portable sandbox specification parameter",
+                description: "Saved localhost SQL Server connection profile",
             },
         ],
         outputContract: "databaseLease/1",
         producedValues: ["connectionRef", "leaseId"],
         target: { kind: "ephemeralSqlDatabase", bindingInput: "sandbox" },
-        previewOnly: true,
         blastRadius: {
-            resource: "container",
+            resource: "databaseSchema",
             operation: "provision",
             targetEnvironment: "ephemeral",
             reversibility: "autoReversible",
@@ -157,9 +156,9 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
     {
         kind: "sandbox.dispose",
         version: 1,
-        label: "Dispose ephemeral SQL target (deterministic preview)",
+        label: "Dispose local SQL database lease",
         description:
-            "Consumes a fake lease connection reference and produces typed cleanup evidence.",
+            "Verifies an ownership-marked Runbook Studio lease, removes its generated database, and records durable cleanup evidence.",
         inputs: [
             {
                 name: "database",
@@ -171,9 +170,8 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         outputContract: "cleanupEvidence/1",
         producedValues: ["cleaned"],
         target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
-        previewOnly: true,
         blastRadius: {
-            resource: "container",
+            resource: "databaseSchema",
             operation: "delete",
             targetEnvironment: "ephemeral",
             reversibility: "irreversible",

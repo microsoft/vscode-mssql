@@ -61,7 +61,7 @@ suite("Runbook Studio target bindings", () => {
         expect(
             validateTargetBindings(createDeveloperValidationPreviewArtifact(), {
                 projectPath: "Database.sqlproj",
-                sandboxName: "preview-sandbox",
+                sandboxConnection: "preview-profile",
             }),
         ).to.deep.equal([]);
     });

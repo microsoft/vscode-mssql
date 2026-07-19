@@ -4,11 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Deterministic Phase-2 developer validation preview. This artifact is an
- * executable contract fixture for the fake runtime: it proves typed Build ->
- * approval -> provision -> deployment preview -> cleanup flow while the fake
- * lane performs no filesystem, DacFx, process, container, network, or SQL
- * work. The local lane can execute the inspection/build prefix separately.
+ * Developer validation chain. The fake lane remains a deterministic contract
+ * fixture; the local lane executes the guarded build -> approval -> disposable
+ * localhost database -> DacFx report -> cleanup workflow end to end.
  */
 
 import {
@@ -53,26 +51,26 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
         },
         {
             id: "build-dacpac",
-            label: "Build DACPAC contract preview",
+            label: "Build DACPAC",
             kind: "activity",
             activityKind: "dacpac.build",
             inputs: { project: "$params.projectPath" },
         },
         {
             id: "approve-sandbox",
-            label: "Approve deterministic sandbox preview",
+            label: "Approve disposable local database",
             kind: "gate",
         },
         {
             id: "provision-sandbox",
-            label: "Provision ephemeral target contract preview",
+            label: "Provision disposable local database",
             kind: "activity",
             activityKind: "sandbox.provision",
-            inputs: { sandbox: "$params.sandboxName" },
+            inputs: { sandbox: "$params.sandboxConnection" },
         },
         {
             id: "preview-deploy",
-            label: "Preview DACPAC deployment contract",
+            label: "Preview DACPAC deployment",
             kind: "activity",
             activityKind: "dacpac.deploy.preview",
             inputs: {
@@ -82,24 +80,24 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
         },
         {
             id: "dispose-sandbox",
-            label: "Dispose ephemeral target contract preview",
+            label: "Dispose disposable local database",
             kind: "activity",
             activityKind: "sandbox.dispose",
             inputs: { database: "$nodes.provision-sandbox.connectionRef" },
         },
-        { id: "report", label: "Summarize developer validation preview", kind: "report" },
+        { id: "report", label: "Summarize developer validation", kind: "report" },
     ]);
 
     const artifact: RunbookArtifactFile = {
         schemaVersion: 1,
         id: "fixture-developer-validation-preview",
-        name: "Developer validation chain (deterministic preview)",
+        name: "Developer validation chain",
         description:
-            "Fake-runtime-only contract proof for build, ephemeral target, deployment preview, and cleanup evidence.",
+            "Build a database project, validate its deployment against a disposable local database, and retain typed cleanup evidence.",
         family: "validate",
         source: {
             schemaVersion: RUNBOOK_SOURCE_SCHEMA_VERSION,
-            intent: "Build the database project, approve and provision an isolated target, preview deployment, clean up, and report typed evidence without performing real effects.",
+            intent: "Build the database project, approve and provision an isolated local target, preview deployment, clean up, and report typed evidence.",
             parameters: [
                 {
                     id: "projectPath",
@@ -108,11 +106,10 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                     required: true,
                 },
                 {
-                    id: "sandboxName",
-                    label: "Sandbox specification",
-                    type: "string",
+                    id: "sandboxConnection",
+                    label: "Local SQL Server connection",
+                    type: "connection",
                     required: true,
-                    default: "preview-sandbox",
                 },
             ],
             requirements: {
@@ -130,6 +127,7 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                     }),
                     requirement("sandbox.provision", "mutate", "databaseLease/1", {
                         approvalRequired: true,
+                        connectionRequirement: "required",
                         rollbackContract: "required",
                     }),
                     requirement("dacpac.deploy.preview", "read", "deploymentPreview/1", {
@@ -137,6 +135,7 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                         providerRequirement: "execution",
                     }),
                     requirement("sandbox.dispose", "mutate", "cleanupEvidence/1", {
+                        connectionRequirement: "provisioned",
                         rollbackContract: "automatic",
                     }),
                 ],

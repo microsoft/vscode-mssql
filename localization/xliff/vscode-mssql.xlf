@@ -2549,6 +2549,20 @@
     <trans-unit id="++CODE++7bba5bcc44de61b37dcadb5824fac7130483b749da0c5e9eea5e02765e06e37d">
       <source xml:lang="en">Displays the unified data type (including length, scale and precision) for the column</source>
     </trans-unit>
+    <trans-unit id="++CODE++0fec9c926788464362db6b3aedd9bb35d8d105a3ab3b206e256ae71ea05b1b97">
+      <source xml:lang="en">Disposable database &apos;{0}&apos; was provisioned.</source>
+      <note>{0} is a generated local database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++22212b36cacfa7b5bd569715934ca172e6558ebef4ec6c83b01c97147b182ace">
+      <source xml:lang="en">Disposable database &apos;{0}&apos; was removed.</source>
+      <note>{0} is a generated local database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++29461b52bdf58748c2629b9bbcec3b9b8f4772572ec921c571950be7c9110697">
+      <source xml:lang="en">Disposable database targets currently require an explicit localhost or loopback SQL Server connection.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4441b7487ffe6245b44c5d1ba93df47dc562b8718ad166a5835d29216a3a4995">
+      <source xml:lang="en">Disposable database targets require a structured saved connection rather than a connection-string profile.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
       <source xml:lang="en">Dissatisfied</source>
     </trans-unit>
@@ -6895,6 +6909,10 @@
     <trans-unit id="++CODE++391ff70a08ea1e11b0f3df07a481091324fa6863371f12e0ce31171e9fe21442">
       <source xml:lang="en">Runbook JSON</source>
     </trans-unit>
+    <trans-unit id="++CODE++60c489ad9075f4f1d463126d52c9034c922d11c21cfaca8545176faba1d6ed4c">
+      <source xml:lang="en">Runbook Studio found {0} disposable database effect(s) that require operator review. Automatic cleanup was refused.</source>
+      <note>{0} is a count of effects requiring review</note>
+    </trans-unit>
     <trans-unit id="++CODE++c39a72628dac966d2c7484aba1f98e76e72f7f79d5d680008402f8a34a786356">
       <source xml:lang="en">Runbook Studio sections</source>
     </trans-unit>
@@ -8366,6 +8384,18 @@
     <trans-unit id="++CODE++baadb07c802b54c6a6777b0c539ee88a41fcacd184f31195df3d08f47816eb7c">
       <source xml:lang="en">The detail data for this output has expired. The run record remains available.</source>
     </trans-unit>
+    <trans-unit id="++CODE++85015c1a95bddecb9d2798a75e0eba075ce8492f3f1ebf7d86333502c0564a45">
+      <source xml:lang="en">The disposable database could not be provisioned safely.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a90e0db198c93ed470498d006772a25ffd6ae806527699ac43088fc81407eb2">
+      <source xml:lang="en">The disposable database could not be removed safely and requires recovery.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fbf5c3329465e220bb83cd358728ad609a76eb2f7774439570773607dee3d218">
+      <source xml:lang="en">The disposable database operation does not have a matching durable approval.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7c9c7b7c7d53d65077b59199401df891da7d4bff30b94539fe5b33df5c2624c">
+      <source xml:lang="en">The disposable database ownership marker does not match this runbook lease. Automatic cleanup was refused.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
     </trans-unit>
@@ -8507,6 +8537,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++74aad90f9cdc5bb5164cc8a20ffada00a5ab882b9f8890e4000c2294ff7facd5">
+      <source xml:lang="en">This disposable database effect already has recovery state. Resolve its cleanup before retrying.</source>
     </trans-unit>
     <trans-unit id="++CODE++7f129869f60215068dcf146370b2142bd3346d2429c7927605dd4e18882f9b4f">
       <source xml:lang="en">This file is not a valid runbook</source>

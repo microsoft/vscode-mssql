@@ -234,7 +234,7 @@ suite("fakeRuntimeAdapter", () => {
                 artifact,
                 parameterValues: {
                     projectPath: "Database.sqlproj",
-                    sandboxName: "preview-sandbox",
+                    sandboxConnection: "preview-profile",
                 },
             },
             observer,
@@ -272,7 +272,7 @@ suite("fakeRuntimeAdapter", () => {
         expect(preview.output?.scalars).to.include({ changeCount: 3, preview: true });
     });
 
-    test("local delegates accept build activities but refuse preview-only sandbox work", async () => {
+    test("a closed delegate list refuses activity kinds the host omitted", async () => {
         const local = new FakeRuntimeAdapter({
             runtimeKind: "local",
             supportedActivityKinds: new Set([

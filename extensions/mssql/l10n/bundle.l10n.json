@@ -173,6 +173,25 @@
     "DacFx could not generate a deployment report for the selected target.": "DacFx could not generate a deployment report for the selected target.",
     "DacFx returned an empty or invalid deployment report.": "DacFx returned an empty or invalid deployment report.",
     "No schema changes": "No schema changes",
+    "Disposable database '{0}' was provisioned./{0} is a generated local database name": {
+        "message": "Disposable database '{0}' was provisioned.",
+        "comment": ["{0} is a generated local database name"]
+    },
+    "Disposable database '{0}' was removed./{0} is a generated local database name": {
+        "message": "Disposable database '{0}' was removed.",
+        "comment": ["{0} is a generated local database name"]
+    },
+    "The disposable database operation does not have a matching durable approval.": "The disposable database operation does not have a matching durable approval.",
+    "Disposable database targets currently require an explicit localhost or loopback SQL Server connection.": "Disposable database targets currently require an explicit localhost or loopback SQL Server connection.",
+    "Disposable database targets require a structured saved connection rather than a connection-string profile.": "Disposable database targets require a structured saved connection rather than a connection-string profile.",
+    "This disposable database effect already has recovery state. Resolve its cleanup before retrying.": "This disposable database effect already has recovery state. Resolve its cleanup before retrying.",
+    "The disposable database ownership marker does not match this runbook lease. Automatic cleanup was refused.": "The disposable database ownership marker does not match this runbook lease. Automatic cleanup was refused.",
+    "The disposable database could not be provisioned safely.": "The disposable database could not be provisioned safely.",
+    "The disposable database could not be removed safely and requires recovery.": "The disposable database could not be removed safely and requires recovery.",
+    "Runbook Studio found {0} disposable database effect(s) that require operator review. Automatic cleanup was refused./{0} is a count of effects requiring review": {
+        "message": "Runbook Studio found {0} disposable database effect(s) that require operator review. Automatic cleanup was refused.",
+        "comment": ["{0} is a count of effects requiring review"]
+    },
     "Database project target '{0}' must be a .sqlproj file./{0} is the requested project path": {
         "message": "Database project target '{0}' must be a .sqlproj file.",
         "comment": ["{0} is the requested project path"]

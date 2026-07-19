@@ -76,14 +76,16 @@ export interface ActivityExecutionDelegate {
             parameterValues: Record<string, string | number | boolean | null>;
             resolveBind: (input: unknown) => unknown;
             isCancellationRequested: () => boolean;
-            invocation: {
-                runId: string;
-                planRevision: string;
-                planHash: string;
-                attempt: number;
-            };
+            invocation: ActivityInvocationIdentity;
         },
     ): Promise<NodeExecution | undefined>;
+}
+
+export interface ActivityInvocationIdentity {
+    runId: string;
+    planRevision: string;
+    planHash: string;
+    attempt: number;
 }
 
 export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {

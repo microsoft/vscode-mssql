@@ -41,6 +41,21 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             reportTruncated: false,
             generatedAtUtc: "2026-07-19T20:02:00.000Z",
         }),
+        provisionSandbox: async () => ({
+            effectId: `effect-${"d".repeat(64)}`,
+            leaseId: "lease-1",
+            connectionRef: `runbook-sql-lease:effect-${"d".repeat(64)}`,
+            databaseName: `RunbookStudio_${"d".repeat(20)}`,
+            createdAtUtc: "2026-07-19T20:03:00.000Z",
+        }),
+        disposeSandbox: async () => ({
+            effectId: `effect-${"d".repeat(64)}`,
+            leaseId: "lease-1",
+            databaseName: `RunbookStudio_${"d".repeat(20)}`,
+            cleaned: true,
+            cleanedAtUtc: "2026-07-19T20:04:00.000Z",
+            cleanupEvidenceDigest: "sha256:cleanup",
+        }),
         ...overrides,
     };
 }
@@ -194,15 +209,49 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("sandbox provision and dispose emit opaque lease and cleanup evidence", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const provision = await delegate.executeActivity(
+            activity("sandbox.provision", { sandbox: "$params.sandbox" }),
+            binding((value) => (value === "$params.sandbox" ? "profile-id" : value)),
+        );
+        expect(provision?.success).to.equal(true);
+        expect(provision?.output?.contract).to.equal("databaseLease/1");
+        expect(provision?.values?.connectionRef).to.match(/^runbook-sql-lease:effect-/);
+        expect(provision?.output?.scalars).to.include({
+            databaseName: `RunbookStudio_${"d".repeat(20)}`,
+            executionMode: "local",
+        });
+
+        const dispose = await delegate.executeActivity(
+            activity("sandbox.dispose", { database: "$nodes.provision.connectionRef" }),
+            binding((value) =>
+                value === "$nodes.provision.connectionRef"
+                    ? `runbook-sql-lease:effect-${"d".repeat(64)}`
+                    : value,
+            ),
+        );
+        expect(dispose?.success).to.equal(true);
+        expect(dispose?.output?.contract).to.equal("cleanupEvidence/1");
+        expect(dispose?.values).to.deep.equal({ cleaned: true });
+        expect(dispose?.output?.scalars).to.include({
+            cleaned: true,
+            cleanupEvidenceDigest: "sha256:cleanup",
+            executionMode: "local",
+        });
+    });
+
     test("advertises only locally implemented activities", () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         expect([...delegate.supportedActivityKinds]).to.have.members([
             "workspace.inspect",
             "dacpac.build",
+            "sandbox.provision",
             "dacpac.deploy.preview",
+            "sandbox.dispose",
             "sql.query.read",
         ]);
-        expect(delegate.supportedActivityKinds.has("sandbox.provision")).to.equal(false);
+        expect(delegate.supportedActivityKinds.has("dacpac.deploy")).to.equal(false);
     });
 
     test("deployment report summarization counts operations and alerts", () => {

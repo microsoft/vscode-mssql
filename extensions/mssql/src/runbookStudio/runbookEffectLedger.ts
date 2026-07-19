@@ -45,6 +45,10 @@ export interface RunbookEffectIdentity {
     bindingDigest: string;
     targetFingerprint: string;
     retrySemantics: RunbookEffectRetrySemantics;
+    /** Process that crossed the effect boundary; recovery skips another
+     * plausibly live extension host. */
+    /** Absent only on journals written before process ownership was added. */
+    ownerPid?: number;
     policy: {
         version: string;
         outcome: "allowed";
@@ -52,6 +56,14 @@ export interface RunbookEffectIdentity {
     approval?: {
         approvalId: string;
         approvalDigest: string;
+    };
+    /** Non-secret information sufficient to probe/clean a crash-window
+     * resource even when effect.observed was never appended. */
+    recovery?: {
+        resourceKind: string;
+        resourceId: string;
+        connectionProfileId: string;
+        ownershipMarkerDigest: string;
     };
 }
 
@@ -61,6 +73,8 @@ export interface RunbookEffectResource {
     resourceId: string;
     /** Digest of the ownership marker used to authorize automatic cleanup. */
     ownershipMarkerDigest: string;
+    /** Opaque saved-profile id used to reconnect for cleanup. */
+    connectionProfileId?: string;
     outputHandles?: string[];
 }
 
@@ -490,6 +504,8 @@ function validateIdentity(identity: RunbookEffectIdentity): void {
         identity.attempt < 1 ||
         !Number.isSafeInteger(identity.activityVersion) ||
         identity.activityVersion < 1 ||
+        (identity.ownerPid !== undefined &&
+            (!Number.isSafeInteger(identity.ownerPid) || identity.ownerPid < 1)) ||
         identity.policy.outcome !== "allowed"
     ) {
         throw new RunbookEffectLedgerError("invalidIdentity", "effect identity is invalid");
@@ -498,12 +514,21 @@ function validateIdentity(identity: RunbookEffectIdentity): void {
         requireNonEmpty(identity.approval.approvalId, "approval.approvalId");
         requireNonEmpty(identity.approval.approvalDigest, "approval.approvalDigest");
     }
+    if (identity.recovery) {
+        requireNonEmpty(identity.recovery.resourceKind, "recovery.resourceKind");
+        requireNonEmpty(identity.recovery.resourceId, "recovery.resourceId");
+        requireNonEmpty(identity.recovery.connectionProfileId, "recovery.connectionProfileId");
+        requireNonEmpty(identity.recovery.ownershipMarkerDigest, "recovery.ownershipMarkerDigest");
+    }
 }
 
 function validateResource(resource: RunbookEffectResource): void {
     requireNonEmpty(resource.resourceKind, "resourceKind");
     requireNonEmpty(resource.resourceId, "resourceId");
     requireNonEmpty(resource.ownershipMarkerDigest, "ownershipMarkerDigest");
+    if (resource.connectionProfileId !== undefined) {
+        requireNonEmpty(resource.connectionProfileId, "connectionProfileId");
+    }
 }
 
 function requireNonEmpty(value: string | undefined, label: string): void {

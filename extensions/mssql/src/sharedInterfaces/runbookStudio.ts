@@ -49,6 +49,7 @@ export type RunbookStudioErrorCode =
     | "RunbookStudio.TargetChanged"
     | "RunbookStudio.ApprovalInvalid"
     | "RunbookStudio.ApprovalPersistenceFailed"
+    | "RunbookStudio.EffectRecoveryRequired"
     | "RunbookStudio.Cancelled"
     | "RunbookStudio.Interrupted"
     | "RunbookStudio.Timeout"
