@@ -162,6 +162,16 @@
         "message": "The SQL project build produced an empty or invalid artifact at '{0}'.",
         "comment": ["{0} is the DACPAC file path"]
     },
+    "Deployment preview found {0} schema changes and {1} alerts./{0} is a schema change count{1} is a DacFx alert count": {
+        "message": "Deployment preview found {0} schema changes and {1} alerts.",
+        "comment": ["{0} is a schema change count", "{1} is a DacFx alert count"]
+    },
+    "DACPAC deployment preview was cancelled.": "DACPAC deployment preview was cancelled.",
+    "The DacFx service is not available for deployment preview.": "The DacFx service is not available for deployment preview.",
+    "The selected connection must specify a target database for deployment preview.": "The selected connection must specify a target database for deployment preview.",
+    "DacFx could not generate a deployment report for the selected target.": "DacFx could not generate a deployment report for the selected target.",
+    "DacFx returned an empty or invalid deployment report.": "DacFx returned an empty or invalid deployment report.",
+    "No schema changes": "No schema changes",
     "Database project target '{0}' must be a .sqlproj file./{0} is the requested project path": {
         "message": "Database project target '{0}' must be a .sqlproj file.",
         "comment": ["{0} is the requested project path"]

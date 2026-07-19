@@ -278,6 +278,7 @@ suite("fakeRuntimeAdapter", () => {
             supportedActivityKinds: new Set([
                 "workspace.inspect",
                 "dacpac.build",
+                "dacpac.deploy.preview",
                 "sql.query.read",
             ]),
             executeActivity: async () => undefined,

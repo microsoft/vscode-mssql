@@ -14,6 +14,7 @@ import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { DOMParser, type Document as XmlDocument } from "@xmldom/xmldom";
 import * as constants from "../../constants/constants";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { ProjectController } from "../../controllers/projectController";
@@ -23,10 +24,12 @@ import { SqlProjectsService } from "../../services/sqlProjectsService";
 import {
     LocalActivityError,
     LocalDacpacBuildResult,
+    LocalDeploymentPreviewResult,
     LocalWorkspaceSnapshot,
 } from "./localSqlDelegate";
 
 const MAX_DISCOVERED_PROJECTS = 100;
+const MAX_DEPLOYMENT_REPORT_BYTES = 256 * 1024;
 const CANCEL_POLL_MS = 50;
 
 export async function inspectLocalWorkspace(): Promise<LocalWorkspaceSnapshot> {
@@ -131,37 +134,136 @@ export async function buildLocalDacpac(
         );
     }
 
-    const normalizedArtifactPath = path.normalize(artifactPath);
-    await assertPathInWorkspace(
-        normalizedArtifactPath,
-        folders,
-        LocRunbookStudio.dacpacArtifactLabel,
-    );
+    const artifact = await verifyLocalDacpacArtifact(artifactPath, isCancellationRequested);
+    const diagnosticCount = countProjectDiagnostics(path.dirname(projectPath));
+    return {
+        projectPath,
+        artifactPath: artifact.artifactPath,
+        artifactSizeBytes: artifact.artifactSizeBytes,
+        artifactSha256: artifact.artifactSha256,
+        diagnosticCount,
+        builtAtUtc: new Date().toISOString(),
+    };
+}
+
+export async function verifyLocalDacpacArtifact(
+    requestedPath: string,
+    isCancellationRequested: () => boolean,
+): Promise<{
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+}> {
+    const folders = vscode.workspace.workspaceFolders ?? [];
+    const artifactPath = path.normalize(requestedPath);
+    if (path.extname(artifactPath).toLowerCase() !== ".dacpac") {
+        throw new LocalActivityError(
+            LocRunbookStudio.dacpacArtifactInvalid(artifactPath),
+            "RunbookStudio.ArtifactInvalid",
+        );
+    }
+    await assertPathInWorkspace(artifactPath, folders, LocRunbookStudio.dacpacArtifactLabel);
     let artifactStat: fs.Stats;
     try {
-        artifactStat = await fs.promises.stat(normalizedArtifactPath);
+        artifactStat = await fs.promises.stat(artifactPath);
     } catch {
         throw new LocalActivityError(
-            LocRunbookStudio.dacpacArtifactNotCreated(normalizedArtifactPath),
+            LocRunbookStudio.dacpacArtifactNotCreated(artifactPath),
             "RunbookStudio.ArtifactMissing",
         );
     }
     if (!artifactStat.isFile() || artifactStat.size === 0) {
         throw new LocalActivityError(
-            LocRunbookStudio.dacpacArtifactInvalid(normalizedArtifactPath),
+            LocRunbookStudio.dacpacArtifactInvalid(artifactPath),
             "RunbookStudio.ArtifactInvalid",
         );
     }
-
-    const artifactSha256 = await sha256File(normalizedArtifactPath, isCancellationRequested);
-    const diagnosticCount = countProjectDiagnostics(path.dirname(projectPath));
     return {
-        projectPath,
-        artifactPath: normalizedArtifactPath,
+        artifactPath,
         artifactSizeBytes: artifactStat.size,
-        artifactSha256,
-        diagnosticCount,
-        builtAtUtc: new Date().toISOString(),
+        artifactSha256: await sha256File(artifactPath, isCancellationRequested),
+    };
+}
+
+export function buildLocalDeploymentPreviewResult(
+    dacpacPath: string,
+    targetDatabase: string,
+    operationId: string,
+    report: string,
+): LocalDeploymentPreviewResult {
+    if (!report.trim()) {
+        throw new LocalActivityError(
+            LocRunbookStudio.dacpacPreviewReportInvalid,
+            "RunbookStudio.DeploymentReportInvalid",
+        );
+    }
+    let parseFailed = false;
+    let document: XmlDocument | undefined;
+    try {
+        document = new DOMParser({
+            onError: (level) => {
+                if (level !== "warning") {
+                    parseFailed = true;
+                }
+            },
+        }).parseFromString(report, "application/xml");
+    } catch {
+        parseFailed = true;
+    }
+    if (parseFailed || !document?.documentElement) {
+        throw new LocalActivityError(
+            LocRunbookStudio.dacpacPreviewReportInvalid,
+            "RunbookStudio.DeploymentReportInvalid",
+        );
+    }
+
+    const operationCounts = new Map<string, number>();
+    let alertCount = 0;
+    const elements = document.getElementsByTagName("*");
+    for (let index = 0; index < elements.length; index++) {
+        const element = elements.item(index);
+        if (!element) {
+            continue;
+        }
+        const localName = element.localName || element.nodeName.split(":").at(-1);
+        if (localName === "Alert") {
+            alertCount++;
+        }
+        if (localName !== "Operation") {
+            continue;
+        }
+        const name = element.getAttribute("Name") || "Other";
+        let itemCount = 0;
+        const children = element.getElementsByTagName("*");
+        for (let childIndex = 0; childIndex < children.length; childIndex++) {
+            const child = children.item(childIndex);
+            if ((child?.localName || child?.nodeName.split(":").at(-1)) === "Item") {
+                itemCount++;
+            }
+        }
+        operationCounts.set(name, (operationCounts.get(name) ?? 0) + itemCount);
+    }
+    const changeCount = [...operationCounts.values()].reduce((sum, count) => sum + count, 0);
+    const operationSummary = [...operationCounts.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([name, count]) => `${name}: ${count}`)
+        .join("; ");
+    const reportBytes = Buffer.from(report, "utf8");
+    const reportTruncated = reportBytes.byteLength > MAX_DEPLOYMENT_REPORT_BYTES;
+    const reportXml = reportTruncated
+        ? `${reportBytes.subarray(0, MAX_DEPLOYMENT_REPORT_BYTES).toString("utf8")}\n<!-- report projection truncated -->`
+        : report;
+    return {
+        dacpacPath,
+        targetDatabase,
+        operationId,
+        changeCount,
+        alertCount,
+        operationSummary: operationSummary || LocRunbookStudio.dacpacPreviewNoSchemaChanges,
+        reportSha256: crypto.createHash("sha256").update(report).digest("hex"),
+        reportXml,
+        reportTruncated,
+        generatedAtUtc: new Date().toISOString(),
     };
 }
 

@@ -125,9 +125,9 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
     {
         kind: "dacpac.deploy.preview",
         version: 1,
-        label: "Preview DACPAC deployment (deterministic preview)",
+        label: "Preview DACPAC deployment",
         description:
-            "Produces a typed fake deployment report and script from bound DACPAC and ephemeral-target outputs.",
+            "Generates a read-only DacFx deployment report for an explicitly bound SQL database without applying changes.",
         inputs: [
             {
                 name: "dacpac",
@@ -139,17 +139,17 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
                 name: "database",
                 kind: "bind",
                 required: true,
-                description: "Bind to a sandbox.provision connectionRef",
+                description:
+                    "Bind to a saved connection parameter or sandbox.provision connectionRef",
             },
         ],
         outputContract: "deploymentPreview/1",
-        producedValues: ["changeCount", "scriptPath"],
-        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
-        previewOnly: true,
+        producedValues: ["changeCount", "reportSha256"],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
         blastRadius: {
             resource: "databaseSchema",
             operation: "read",
-            targetEnvironment: "ephemeral",
+            targetEnvironment: "development",
             reversibility: "noEffect",
             breadth: "bounded",
         },

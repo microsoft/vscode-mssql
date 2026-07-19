@@ -492,15 +492,18 @@ function executeNode(
                 message: "3 schema changes previewed (no deployment executed)",
                 output: {
                     contract: "deploymentPreview/1",
+                    text: '<DeploymentReport><Operations><Operation Name="Create"><Item Value="preview" /></Operation></Operations></DeploymentReport>',
                     scalars: {
                         changeCount: 3,
-                        scriptPath: "preview://artifacts/deploy.sql",
+                        alertCount: 0,
+                        operationSummary: "Create: 3",
+                        reportSha256: "preview-report-sha256",
                         preview: true,
                     },
                 },
                 values: {
                     changeCount: 3,
-                    scriptPath: "preview://artifacts/deploy.sql",
+                    reportSha256: "preview-report-sha256",
                 },
             };
         }

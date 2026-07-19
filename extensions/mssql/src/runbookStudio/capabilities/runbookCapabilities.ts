@@ -143,9 +143,10 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         outputContract: "cleanupEvidence/1",
     },
     "dacpac.deploy.preview": {
-        target: "ephemeralSqlDatabase",
+        target: "sqlDatabase",
         effect: "read",
-        connectionRequirement: "provisioned",
+        connectionRequirement: "required",
+        providerRequirement: "execution",
         outputContract: "deploymentPreview/1",
     },
     "dacpac.deploy": {
@@ -434,7 +435,24 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("sandbox.provision");
         requested.add("sandbox.dispose");
     }
-    if (has(text, /\bdeploy(ment|ed)?\b/)) {
+    const requestsDeploymentPreview = has(
+        text,
+        /\bdeployment\s+(change\s+)?(preview|report|script)\b|\b(preview|dry[- ]?run)\b.{0,30}\bdeploy(ment)?\b|\bwhat (would|will) change\b.{0,30}\bdeploy(ment)?\b/,
+    );
+    const requestsActualDeployment = text
+        .split(/[.;\n]/)
+        .some(
+            (clause) =>
+                has(clause, /\b(deploy(ed|ing|s)?|deployment|publish)\b/) &&
+                !has(clause, /\b(preview|report|script|dry[- ]?run|what (would|will) change)\b/),
+        );
+    if (requestsDeploymentPreview) {
+        if (has(text, /\b(database|sql) project\b/)) {
+            requested.add("dacpac.build");
+        }
+        requested.add("dacpac.deploy.preview");
+    }
+    if (requestsActualDeployment) {
         requested.add("dacpac.deploy.preview");
         requested.add("dacpac.deploy");
     }
@@ -465,7 +483,11 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     if (has(text, /\b(replay|reproduce)\b.{0,40}\b(production|incident)\b/)) {
         requested.add("incident.replay.sandbox");
     }
-    if (has(text, /\b(evidence|artifact|report|ci\/cd|pipeline)\b/) && family !== "investigate") {
+    if (
+        (has(text, /\b(evidence|artifact|ci\/cd|pipeline)\b/) ||
+            (!requestsDeploymentPreview && has(text, /\breport\b/))) &&
+        family !== "investigate"
+    ) {
         requested.add("evidence.bundle");
     }
     if (requested.size === 0) {

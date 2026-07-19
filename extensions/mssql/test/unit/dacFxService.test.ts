@@ -11,8 +11,9 @@ import { DacFxService } from "../../src/services/dacFxService";
 import { SqlTasksService, TaskCompletionHandler } from "../../src/services/sqlTasksService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as Constants from "../../src/constants/constants";
-import { DeploymentScenario } from "../../src/enums";
+import { DeploymentScenario, TaskExecutionMode } from "../../src/enums";
 import * as dacFxContracts from "../../src/models/contracts/dacFx/dacFxContracts";
+import * as vscode from "vscode";
 
 chai.use(sinonChai);
 
@@ -461,6 +462,39 @@ suite("DacFxService Tests", () => {
                 { scenario: DeploymentScenario.SchemaCompare },
             );
             expect(result).to.equal(expectedResult);
+        });
+
+        test("deployment plan generation forwards cancellation to DacFx", async () => {
+            const expectedResult = {
+                success: true,
+                errorMessage: "",
+                operationId: "preview-1",
+                report: "<DeploymentReport />",
+            };
+            sqlToolsClientStub.sendRequest.resolves(expectedResult);
+            const service = new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
+            const cancellation = new vscode.CancellationTokenSource();
+
+            const result = await service.generateDeployPlan(
+                "C:\\repo\\bin\\Debug\\Database.dacpac",
+                "TargetDatabase",
+                "runbookstudio://preview/1",
+                TaskExecutionMode.execute,
+                cancellation.token,
+            );
+
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledOnceWith(
+                dacFxContracts.GenerateDeployPlanRequest.type,
+                {
+                    packageFilePath: "C:\\repo\\bin\\Debug\\Database.dacpac",
+                    databaseName: "TargetDatabase",
+                    ownerUri: "runbookstudio://preview/1",
+                    taskExecutionMode: TaskExecutionMode.execute,
+                },
+                cancellation.token,
+            );
+            expect(result).to.equal(expectedResult);
+            cancellation.dispose();
         });
 
         test("should send request with GetCodeAnalysisRulesRequest.type and empty params", async () => {

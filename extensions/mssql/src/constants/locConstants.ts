@@ -272,6 +272,26 @@ export class RunbookStudio {
             args: [artifactPath],
             comment: ["{0} is the DACPAC file path"],
         });
+    public static dacpacPreviewGenerated = (changeCount: number, alertCount: number) =>
+        l10n.t({
+            message: "Deployment preview found {0} schema changes and {1} alerts.",
+            args: [changeCount, alertCount],
+            comment: ["{0} is a schema change count", "{1} is a DacFx alert count"],
+        });
+    public static dacpacPreviewCancelled = l10n.t("DACPAC deployment preview was cancelled.");
+    public static dacpacPreviewServiceUnavailable = l10n.t(
+        "The DacFx service is not available for deployment preview.",
+    );
+    public static dacpacPreviewDatabaseRequired = l10n.t(
+        "The selected connection must specify a target database for deployment preview.",
+    );
+    public static dacpacPreviewFailed = l10n.t(
+        "DacFx could not generate a deployment report for the selected target.",
+    );
+    public static dacpacPreviewReportInvalid = l10n.t(
+        "DacFx returned an empty or invalid deployment report.",
+    );
+    public static dacpacPreviewNoSchemaChanges = l10n.t("No schema changes");
     public static databaseProjectMustBeSqlproj = (projectPath: string) =>
         l10n.t({
             message: "Database project target '{0}' must be a .sqlproj file.",

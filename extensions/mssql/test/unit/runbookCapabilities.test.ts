@@ -293,4 +293,33 @@ suite("runbook capability preflight", () => {
         expect(local.status).to.equal("incompatible");
         expect(local.issues?.map((issue) => issue.code)).to.include("provider.unavailable");
     });
+
+    test("read-only deployment preview is executable without enabling deployment", () => {
+        const manifest = classifyRunbookIntent(
+            "Generate a deployment preview report for this database project.",
+        ).requirements;
+        const kinds = manifest.activities.map((activity) => activity.kind);
+        const local = preflightRunbookRequirements(manifest, {
+            ...preflightContextForRuntime("local", "admission"),
+            providerAvailable: true,
+            bindings: { connection: true },
+        });
+
+        expect(kinds).to.deep.equal(["workspace.inspect", "dacpac.build", "dacpac.deploy.preview"]);
+        expect(kinds).to.not.include("dacpac.deploy");
+        expect(local.status).to.equal("ready");
+    });
+
+    test("an actual deployment remains design-only", () => {
+        const manifest = classifyRunbookIntent("Deploy this database project.").requirements;
+        const local = preflightRunbookRequirements(manifest, {
+            ...preflightContextForRuntime("local", "admission"),
+            providerAvailable: true,
+            bindings: { connection: true },
+        });
+
+        expect(manifest.activities.map((activity) => activity.kind)).to.include("dacpac.deploy");
+        expect(local.status).to.equal("designOnly");
+        expect(local.missingActivityKinds).to.include("dacpac.deploy@1");
+    });
 });

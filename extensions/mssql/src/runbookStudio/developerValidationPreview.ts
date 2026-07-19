@@ -120,6 +120,7 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                 targets: [
                     { kind: "workspace", environment: "local" },
                     { kind: "databaseProject", environment: "local" },
+                    { kind: "sqlDatabase", environment: "ephemeral" },
                     { kind: "ephemeralSqlDatabase", environment: "ephemeral" },
                 ],
                 activities: [
@@ -133,6 +134,7 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                     }),
                     requirement("dacpac.deploy.preview", "read", "deploymentPreview/1", {
                         connectionRequirement: "provisioned",
+                        providerRequirement: "execution",
                     }),
                     requirement("sandbox.dispose", "mutate", "cleanupEvidence/1", {
                         rollbackContract: "automatic",

@@ -208,6 +208,7 @@ export class DacFxService implements mssql.IDacFxService {
         targetDatabaseName: string,
         ownerUri: string,
         taskExecutionMode: TaskExecutionMode,
+        cancellationToken?: vscode.CancellationToken,
     ): Thenable<mssql.GenerateDeployPlanResult> {
         const params: mssql.GenerateDeployPlanParams = {
             packageFilePath: packageFilePath,
@@ -215,7 +216,11 @@ export class DacFxService implements mssql.IDacFxService {
             ownerUri: ownerUri,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(dacFxContracts.GenerateDeployPlanRequest.type, params);
+        return this._client.sendRequest(
+            dacFxContracts.GenerateDeployPlanRequest.type,
+            params,
+            cancellationToken,
+        );
     }
 
     public getOptionsFromProfile(profilePath: string): Thenable<mssql.DacFxOptionsResult> {

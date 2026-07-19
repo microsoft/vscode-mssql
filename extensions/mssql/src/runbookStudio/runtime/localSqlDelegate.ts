@@ -35,6 +35,11 @@ export interface LocalSqlOperations {
         projectPath: string,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDacpacBuildResult>;
+    previewDacpacDeployment(
+        dacpacPath: string,
+        databaseRef: string,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDeploymentPreviewResult>;
 }
 
 export interface LocalWorkspaceSnapshot {
@@ -51,6 +56,20 @@ export interface LocalDacpacBuildResult {
     artifactSha256: string;
     diagnosticCount: number;
     builtAtUtc: string;
+}
+
+export interface LocalDeploymentPreviewResult {
+    dacpacPath: string;
+    targetDatabase: string;
+    operationId: string;
+    changeCount: number;
+    alertCount: number;
+    operationSummary: string;
+    reportSha256: string;
+    /** Bounded XML projection; the SHA-256 covers the complete report. */
+    reportXml: string;
+    reportTruncated: boolean;
+    generatedAtUtc: string;
 }
 
 /** Expected host refusal with a stable, non-secret error classification. */
@@ -73,6 +92,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly supportedActivityKinds = new Set([
         "workspace.inspect",
         "dacpac.build",
+        "dacpac.deploy.preview",
         "sql.query.read",
     ]);
 
@@ -91,6 +111,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.inspectWorkspace();
             case "dacpac.build":
                 return this.buildDacpac(node, binding);
+            case "dacpac.deploy.preview":
+                return this.previewDacpacDeployment(node, binding);
             case "sql.query.read":
                 return this.executeSql(node, binding);
             default:
@@ -231,6 +253,67 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     // best-effort cleanup; the run outcome is already decided
                 }
             }
+        }
+    }
+
+    private async previewDacpacDeployment(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+        },
+    ): Promise<NodeExecution> {
+        const dacpacPath = binding.resolveBind(node.inputs?.dacpac);
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof dacpacPath !== "string" || dacpacPath.trim().length === 0) {
+            return {
+                success: false,
+                message: LocRunbookStudio.parameterRequired("dacpac"),
+                errorCode: "RunbookStudio.BindingInvalid",
+            };
+        }
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return {
+                success: false,
+                message: LocRunbookStudio.parameterRequired("database"),
+                errorCode: "RunbookStudio.BindingInvalid",
+            };
+        }
+        try {
+            const result = await this.operations.previewDacpacDeployment(
+                dacpacPath.trim(),
+                databaseRef.trim(),
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                message: LocRunbookStudio.dacpacPreviewGenerated(
+                    result.changeCount,
+                    result.alertCount,
+                ),
+                output: {
+                    contract: "deploymentPreview/1",
+                    text: result.reportXml,
+                    scalars: {
+                        dacpacPath: result.dacpacPath,
+                        targetDatabase: result.targetDatabase,
+                        operationId: result.operationId,
+                        changeCount: result.changeCount,
+                        alertCount: result.alertCount,
+                        operationSummary: result.operationSummary,
+                        reportSha256: result.reportSha256,
+                        reportTruncated: result.reportTruncated,
+                        generatedAtUtc: result.generatedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    changeCount: result.changeCount,
+                    reportSha256: result.reportSha256,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
         }
     }
 }

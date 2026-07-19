@@ -2171,6 +2171,9 @@
       <source xml:lang="en">DACPAC deployed successfully to database &apos;{0}&apos;</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++8d1cb7fd2b24ac6f2b7899fc1aaaf0bb00d12126232fc70f04557368e3dd27d3">
+      <source xml:lang="en">DACPAC deployment preview was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0609a32cfa46dae87152f2ffa8ed3dea85080ad1acf25effef9c8b188f373be7">
       <source xml:lang="en">DACPAC evidence collection was cancelled.</source>
     </trans-unit>
@@ -2183,6 +2186,12 @@
     </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60362ceff08b0d6db80ba99b35761975ee75d521a0b990e0cddaba799c09bc90">
+      <source xml:lang="en">DacFx could not generate a deployment report for the selected target.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7094c7bdade900aeafdd090b8a9c85cc522d4c9bd5c87aac74ae4163a7184780">
+      <source xml:lang="en">DacFx returned an empty or invalid deployment report.</source>
     </trans-unit>
     <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
       <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -2419,6 +2428,11 @@
     </trans-unit>
     <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
       <source xml:lang="en">Deployment in progress</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2bdfdcf941b8bb50a008981173fd730504575adb22715859f55a2f67ca47d792">
+      <source xml:lang="en">Deployment preview found {0} schema changes and {1} alerts.</source>
+      <note>{0} is a schema change count
+{1} is a DacFx alert count</note>
     </trans-unit>
     <trans-unit id="++CODE++00f7e8c272e77d2652568b950f67d2d6e43b6713b557e23441e767f1bf9ddf98">
       <source xml:lang="en">Describe</source>
@@ -5532,6 +5546,9 @@
     <trans-unit id="++CODE++888283ba2a42e1c07343cf71f33fa8147854d1a7b41eff48cfa4075f6ff83838">
       <source xml:lang="en">No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5ff556be3ff560aacea9a07aef13fb661fbc12bbea9b817564d16111a62980c7">
+      <source xml:lang="en">No schema changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
     </trans-unit>
@@ -8250,6 +8267,9 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a2b90b68eaa36b468cd402c81b1ae4983b4b93de687e455ecd6b390220d4848b">
+      <source xml:lang="en">The DacFx service is not available for deployment preview.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3cd1b8006c9db7c3ebec96a04ce2b6d3164a0a375c2424708c116c128d93cdfd">
       <source xml:lang="en">The Hobbes runtime could not resolve the connection alias for this run.</source>
     </trans-unit>
@@ -8431,6 +8451,9 @@
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++47017ba7a201bcf5268bb94b5ef5baf30a5b7e7d1b951cd763e9bd7be468c8aa">
+      <source xml:lang="en">The selected connection must specify a target database for deployment preview.</source>
     </trans-unit>
     <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
       <source xml:lang="en">The selected file is not a valid XEL file.</source>

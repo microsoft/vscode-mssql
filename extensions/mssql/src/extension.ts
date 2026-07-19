@@ -123,7 +123,11 @@ class MssqlActivation {
         // closure over the module-scoped controller (assigned later in
         // activation, well before any document can resolve).
         registerRunbookStudio(context, () =>
-            getRunbookStudioService(context, () => controller?.connectionManager),
+            getRunbookStudioService(
+                context,
+                () => controller?.connectionManager,
+                () => controller?.dacFxService,
+            ),
         );
         registerSqlDataPlane(context);
 

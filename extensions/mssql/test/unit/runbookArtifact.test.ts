@@ -63,7 +63,7 @@ suite("runbookArtifact", () => {
             expect(
                 parsed.lock?.nodes.find((node) => node.id === "preview-deploy")?.target,
             ).to.deep.equal({
-                kind: "ephemeralSqlDatabase",
+                kind: "sqlDatabase",
                 binding: {
                     source: "nodeOutput",
                     nodeId: "provision-sandbox",

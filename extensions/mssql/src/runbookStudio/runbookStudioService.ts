@@ -67,8 +67,13 @@ import {
     LibraryDocumentCommitResult,
     LibraryDocumentConflictResolution,
 } from "./runtime/hobbesRuntimeAdapter";
-import { LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
-import { buildLocalDacpac, inspectLocalWorkspace } from "./runtime/localDeveloperOperations";
+import { LocalActivityError, LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
+import {
+    buildLocalDacpac,
+    buildLocalDeploymentPreviewResult,
+    inspectLocalWorkspace,
+    verifyLocalDacpacArtifact,
+} from "./runtime/localDeveloperOperations";
 import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
@@ -81,6 +86,8 @@ import type * as mssql from "vscode-mssql";
 import type ConnectionManager from "../controllers/connectionManager";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as fs from "fs";
+import { DacFxService } from "../services/dacFxService";
+import { TaskExecutionMode } from "../enums";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -89,6 +96,7 @@ const SimpleExecuteRequestType = new RequestType<
 >("query/simpleexecute");
 
 let runCounter = 0;
+let previewCounter = 0;
 
 function nextRunId(): string {
     runCounter++;
@@ -144,6 +152,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         context: vscode.ExtensionContext,
         /** Lazy — MainController constructs after feature registration. */
         private readonly connectionAccess: () => ConnectionManager | undefined,
+        private readonly dacFxAccess: () => DacFxService | undefined = () => undefined,
     ) {
         // Workspace-scoped root retained for the runtime supervisor's data
         // dir (its library/logs stay where existing sessions put them).
@@ -1501,6 +1510,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 new LocalSqlActivityDelegate({
                     inspectWorkspace: inspectLocalWorkspace,
                     buildDacpac: buildLocalDacpac,
+                    previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
+                        this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     connect: async (profileId, ownerUri) => {
                         const connectionManager = this.connectionAccess();
                         if (!connectionManager) {
@@ -1587,6 +1598,111 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.adapter = adapter;
         this.adapterKind = runtimeKind;
         return { adapter };
+    }
+
+    private async previewLocalDacpacDeployment(
+        dacpacPath: string,
+        profileId: string,
+        isCancellationRequested: () => boolean,
+    ) {
+        const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested);
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const connectionManager = this.connectionAccess();
+        const dacFxService = this.dacFxAccess();
+        if (!connectionManager || !dacFxService) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewServiceUnavailable,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const profiles = await connectionManager.connectionStore.readAllConnections(false);
+        const profile = profiles.find((candidate) => candidate.id === profileId);
+        if (!profile) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectionProfileNotFound(profileId),
+                "RunbookStudio.TargetNotFound",
+            );
+        }
+        const targetDatabase = profile.database?.trim();
+        if (!targetDatabase) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewDatabaseRequired,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+
+        previewCounter++;
+        const ownerUri = `runbookstudio://dacfx-preview/${previewCounter.toString(36)}`;
+        const cancellation = new vscode.CancellationTokenSource();
+        const cancellationPoll = setInterval(() => {
+            if (isCancellationRequested()) {
+                cancellation.cancel();
+            }
+        }, 50);
+        let connected = false;
+        try {
+            connected = await connectionManager.connect(ownerUri, profile, {
+                connectionSource: "runbookStudio",
+            });
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            const result = await dacFxService.generateDeployPlan(
+                artifact.artifactPath,
+                targetDatabase,
+                ownerUri,
+                TaskExecutionMode.execute,
+                cancellation.token,
+            );
+            if (cancellation.token.isCancellationRequested || isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            if (!result.success || !result.report) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewFailed,
+                    "RunbookStudio.DeploymentPreviewFailed",
+                );
+            }
+            return buildLocalDeploymentPreviewResult(
+                artifact.artifactPath,
+                targetDatabase,
+                result.operationId,
+                result.report,
+            );
+        } catch (error) {
+            if (
+                error instanceof vscode.CancellationError ||
+                cancellation.token.isCancellationRequested ||
+                isCancellationRequested()
+            ) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            throw error;
+        } finally {
+            clearInterval(cancellationPoll);
+            cancellation.dispose();
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // Best effort: the preview request has already settled.
+                }
+            }
+        }
     }
 
     /** Boundary event -> ledger event -> model snapshot (host authority). */
@@ -1770,9 +1886,10 @@ let serviceInstance: RunbookStudioService | undefined;
 export function getRunbookStudioService(
     context: vscode.ExtensionContext,
     connectionAccess: () => ConnectionManager | undefined = () => undefined,
+    dacFxAccess: () => DacFxService | undefined = () => undefined,
 ): RunbookStudioService {
     if (!serviceInstance) {
-        serviceInstance = new RunbookStudioService(context, connectionAccess);
+        serviceInstance = new RunbookStudioService(context, connectionAccess, dacFxAccess);
         context.subscriptions.push({
             dispose: () => {
                 serviceInstance?.dispose();

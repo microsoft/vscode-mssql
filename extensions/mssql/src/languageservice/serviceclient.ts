@@ -656,9 +656,14 @@ export default class SqlToolsServiceClient {
      * Send a request to the service client
      * @param type The of the request to make
      * @param params The params to pass with the request
+     * @param cancellationToken Optional token forwarded to the language client request
      * @returns A thenable object for when the request receives a response
      */
-    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
+    public sendRequest<P, R, E>(
+        type: RequestType<P, R, E>,
+        params?: P,
+        cancellationToken?: vscode.CancellationToken,
+    ): Thenable<R> {
         if (this.client !== undefined) {
             // Diagnostics: JSON-RPC boundary span (near no-op when no sink is
             // active). The method name is protocol metadata, never payload.
@@ -678,18 +683,20 @@ export default class SqlToolsServiceClient {
                           }
                         : {}),
                 });
-                return this.client.sendRequest(type, params as RequestParam<P>).then(
-                    (result) => {
-                        span.end("ok");
-                        return result;
-                    },
-                    (error) => {
-                        span.fail(error);
-                        throw error;
-                    },
-                );
+                return this.client
+                    .sendRequest(type, params as RequestParam<P>, cancellationToken)
+                    .then(
+                        (result) => {
+                            span.end("ok");
+                            return result;
+                        },
+                        (error) => {
+                            span.fail(error);
+                            throw error;
+                        },
+                    );
             }
-            return this.client.sendRequest(type, params as RequestParam<P>);
+            return this.client.sendRequest(type, params as RequestParam<P>, cancellationToken);
         }
         return Promise.reject(
             new Error("Cannot send request before the language client is initialized"),
