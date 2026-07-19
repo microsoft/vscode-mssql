@@ -50,6 +50,12 @@ function binding(resolveBind: (input: unknown) => unknown = (input) => input) {
         parameterValues: {},
         resolveBind,
         isCancellationRequested: () => false,
+        invocation: {
+            runId: "run-1",
+            planRevision: "1",
+            planHash: "sha256:plan",
+            attempt: 1,
+        },
     };
 }
 

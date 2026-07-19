@@ -51,6 +51,11 @@ import {
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runbookRunLedger";
 import { RunbookEffectLedger } from "./runbookEffectLedger";
+import {
+    buildRunbookApprovalChallenge,
+    RunbookApprovalEvidence,
+    RunbookApprovalLedger,
+} from "./runbookApprovalLedger";
 
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
@@ -109,6 +114,17 @@ interface ActiveRunBinding {
     model: RunbookStudioDocumentModel;
     context: RunbookOperationContext;
     runEnded: boolean;
+    artifact: RunbookArtifactFile;
+    parameterValues: Record<string, string | number | boolean | null>;
+    pendingApprovals: Map<
+        string,
+        {
+            approvalId: string;
+            challengeDigest: string;
+            activityNodeId: string;
+        }
+    >;
+    approvedEffects: Map<string, RunbookApprovalEvidence>;
 }
 
 /** Retention: the newest N runs per runbook id survive GC. */
@@ -119,6 +135,7 @@ const PERSISTENCE_SWEEP_DELAY_MS = 1500;
 export class RunbookStudioService implements RunbookRunCoordinator, vscode.Disposable {
     private readonly ledger: RunbookRunLedger;
     private readonly effectLedger: RunbookEffectLedger;
+    private readonly approvalLedger: RunbookApprovalLedger;
     private readonly resultStore: RunbookResultStore;
     private adapter: RunbookRuntimeAdapter | undefined;
     /** The configured kind this.adapter was built for (hot-swap detection). */
@@ -170,6 +187,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const migratedFiles = migrateLegacyRunStorage(this.storageRoot, this.persistRoot);
         this.ledger = new RunbookRunLedger(this.persistRoot);
         this.effectLedger = new RunbookEffectLedger(this.persistRoot);
+        this.approvalLedger = new RunbookApprovalLedger(this.persistRoot);
         const persistenceContext = newRunbookRootContext("persistence");
         this.resultStore = new RunbookResultStore(path.join(this.persistRoot, "results"), {
             onPersistenceIssue: (kind, detail) =>
@@ -373,7 +391,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
 
         const runId = nextRunId();
         const runContext = childRunbookContext(context, { runId });
-        const active: ActiveRunBinding = { runId, model, context: runContext, runEnded: false };
+        const active: ActiveRunBinding = {
+            runId,
+            model,
+            context: runContext,
+            runEnded: false,
+            artifact,
+            parameterValues: binding.values,
+            pendingApprovals: new Map(),
+            approvedEffects: new Map(),
+        };
         this.activeByDocument.set(model.uriKey, active);
         this.activeByRunId.set(runId, active);
         this.rememberTrace(runId, runContext.traceId);
@@ -483,6 +510,35 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 },
             };
         }
+        const pendingApproval = active.pendingApprovals.get(nodeId);
+        if (pendingApproval) {
+            try {
+                this.approvalLedger.decide(
+                    pendingApproval.approvalId,
+                    approve ? "approved" : "rejected",
+                );
+                if (approve) {
+                    const evidence = this.approvalLedger.approvedEvidence(
+                        pendingApproval.approvalId,
+                        pendingApproval.challengeDigest,
+                    );
+                    if (!evidence) {
+                        throw new Error("approved evidence was not durable");
+                    }
+                    // Write-ahead authorization: a local activity can begin
+                    // immediately when the adapter gate is released.
+                    active.approvedEffects.set(pendingApproval.activityNodeId, evidence);
+                }
+            } catch {
+                return {
+                    accepted: false,
+                    error: {
+                        code: "RunbookStudio.ApprovalPersistenceFailed",
+                        message: LocRunbookStudio.approvalPersistenceFailed,
+                    },
+                };
+            }
+        }
         const accepted = await this.adapter.respondToGate(
             runId,
             nodeId,
@@ -490,6 +546,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             childRunbookContext(active.context, { nodeId }),
         );
         if (!accepted) {
+            if (pendingApproval) {
+                active.approvedEffects.delete(pendingApproval.activityNodeId);
+            }
             return {
                 accepted: false,
                 error: {
@@ -498,6 +557,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 },
             };
         }
+        active.pendingApprovals.delete(nodeId);
         return { accepted: true };
     }
 
@@ -1439,6 +1499,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const expired = selectExpiredRuns(runs, RETAINED_RUNS_PER_RUNBOOK);
         let deletedRuns = 0;
         let deletedEffectJournals = 0;
+        let deletedApprovalRecords = 0;
         for (const runId of expired) {
             if (this.activeByRunId.has(runId)) {
                 continue;
@@ -1448,6 +1509,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             this.resultStore.deleteRunResults(runId);
             deletedEffectJournals += this.effectLedger.deleteTerminalEffectsForRun(runId);
+            deletedApprovalRecords += this.approvalLedger.deleteApprovalsForRun(runId);
         }
         // Orphaned result directories: payloads whose run no longer exists
         // anywhere in the ledger (e.g. records expired by another window).
@@ -1468,8 +1530,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             expiredRuns: metaField(deletedRuns),
             deletedResultDirs: metaField(deletedResultDirs),
             deletedEffectJournals: metaField(deletedEffectJournals),
+            deletedApprovalRecords: metaField(deletedApprovalRecords),
             outstandingEffects: metaField(effectRecovery.outstanding.length),
             unreadableEffectJournals: metaField(effectRecovery.unreadableFiles.length),
+            pendingApprovals: metaField(this.approvalLedger.listPending().length),
         });
     }
 
@@ -1769,6 +1833,20 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         { gateKind: "approval" },
                         active.context.traceId,
                     );
+                    const approvalChallenge = buildRunbookApprovalChallenge({
+                        runId: active.runId,
+                        artifact: active.artifact,
+                        parameterValues: active.parameterValues,
+                        gateNodeId: event.nodeId,
+                    });
+                    if (approvalChallenge) {
+                        const approval = this.approvalLedger.requestApproval(approvalChallenge);
+                        active.pendingApprovals.set(event.nodeId, {
+                            approvalId: approvalChallenge.approvalId,
+                            challengeDigest: approval.challengeDigest,
+                            activityNodeId: approvalChallenge.activityNodeId,
+                        });
+                    }
                     const snapshot = this.ledger.append(active.runId, {
                         type: "gate.requested",
                         epochMs: Date.now(),

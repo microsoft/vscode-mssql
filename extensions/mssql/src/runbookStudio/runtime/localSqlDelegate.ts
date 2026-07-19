@@ -104,6 +104,12 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             parameterValues: Record<string, string | number | boolean | null>;
             resolveBind: (input: unknown) => unknown;
             isCancellationRequested: () => boolean;
+            invocation: {
+                runId: string;
+                planRevision: string;
+                planHash: string;
+                attempt: number;
+            };
         },
     ): Promise<NodeExecution | undefined> {
         switch (node.activityKind) {

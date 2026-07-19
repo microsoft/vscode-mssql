@@ -48,6 +48,7 @@ export type RunbookStudioErrorCode =
     | "RunbookStudio.CompileInvalid"
     | "RunbookStudio.TargetChanged"
     | "RunbookStudio.ApprovalInvalid"
+    | "RunbookStudio.ApprovalPersistenceFailed"
     | "RunbookStudio.Cancelled"
     | "RunbookStudio.Interrupted"
     | "RunbookStudio.Timeout"

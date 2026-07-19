@@ -295,6 +295,49 @@ suite("fakeRuntimeAdapter", () => {
         }
     });
 
+    test("delegated activities receive stable run and plan invocation identity", async () => {
+        const artifact = createFixtureRunbookArtifact();
+        let invocation:
+            | {
+                  runId: string;
+                  planRevision: string;
+                  planHash: string;
+                  attempt: number;
+              }
+            | undefined;
+        const local = new FakeRuntimeAdapter({
+            runtimeKind: "local",
+            supportedActivityKinds: new Set(["sql.query.read"]),
+            executeActivity: async (node, binding) => {
+                if (node.id === "query") {
+                    invocation = binding.invocation;
+                }
+                return undefined;
+            },
+        });
+        const observer = new CollectingObserver();
+        try {
+            await local.startRun(
+                {
+                    runId: "invocation-identity",
+                    artifact,
+                    parameterValues: { target: "profile-1", maxCount: 100 },
+                },
+                observer,
+                ctx(),
+            );
+            await observer.terminal;
+            expect(invocation).to.deep.equal({
+                runId: "invocation-identity",
+                planRevision: artifact.lock?.planRevision,
+                planHash: artifact.lock?.planHash,
+                attempt: 1,
+            });
+        } finally {
+            await local.dispose();
+        }
+    });
+
     test("cancellation during a delegated build settles the active node as cancelled", async () => {
         const artifact = createFixtureRunbookArtifact();
         artifact.lock = {

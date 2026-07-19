@@ -22,6 +22,7 @@
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
+import { canonicalRunbookJson } from "./runbookDigest";
 
 export const RUNBOOK_EFFECT_LEDGER_SCHEMA_VERSION = 1 as const;
 
@@ -512,21 +513,7 @@ function requireNonEmpty(value: string | undefined, label: string): void {
 }
 
 function identitiesEqual(left: RunbookEffectIdentity, right: RunbookEffectIdentity): boolean {
-    return canonicalJson(left) === canonicalJson(right);
-}
-
-function canonicalJson(value: unknown): string {
-    if (Array.isArray(value)) {
-        return `[${value.map(canonicalJson).join(",")}]`;
-    }
-    if (value !== null && typeof value === "object") {
-        const record = value as Record<string, unknown>;
-        return `{${Object.keys(record)
-            .sort((left, right) => left.localeCompare(right))
-            .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`)
-            .join(",")}}`;
-    }
-    return JSON.stringify(value);
+    return canonicalRunbookJson(left) === canonicalRunbookJson(right);
 }
 
 function readJournal(filePath: string): {

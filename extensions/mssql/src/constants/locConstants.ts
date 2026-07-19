@@ -76,6 +76,9 @@ export class RunbookStudio {
             comment: ["{0} is a configuration value"],
         });
     public static gateNotPending = l10n.t("This approval is no longer pending.");
+    public static approvalPersistenceFailed = l10n.t(
+        "The approval decision could not be saved safely. The operation was not released.",
+    );
     public static compileModelUnavailable = l10n.t(
         "No language model is available to compile this runbook. Install and sign in to GitHub Copilot (or another VS Code language model provider), then try again.",
     );

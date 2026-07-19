@@ -8315,6 +8315,9 @@
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2aaa4378deeeca374707ffd306cd16f674e3002b3004770d868ad40b43778fc3">
+      <source xml:lang="en">The approval decision could not be saved safely. The operation was not released.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>

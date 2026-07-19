@@ -44,6 +44,7 @@
         "comment": ["{0} is a configuration value"]
     },
     "This approval is no longer pending.": "This approval is no longer pending.",
+    "The approval decision could not be saved safely. The operation was not released.": "The approval decision could not be saved safely. The operation was not released.",
     "No language model is available to compile this runbook. Install and sign in to GitHub Copilot (or another VS Code language model provider), then try again.": "No language model is available to compile this runbook. Install and sign in to GitHub Copilot (or another VS Code language model provider), then try again.",
     "Language model access was declined. Grant this extension access to your language models to compile runbooks.": "Language model access was declined. Grant this extension access to your language models to compile runbooks.",
     "The model could not produce a valid plan from this intent ({0}). Try rephrasing the intent./{0} is a technical validation detail": {

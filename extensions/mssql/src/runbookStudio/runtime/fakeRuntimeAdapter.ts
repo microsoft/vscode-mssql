@@ -76,6 +76,12 @@ export interface ActivityExecutionDelegate {
             parameterValues: Record<string, string | number | boolean | null>;
             resolveBind: (input: unknown) => unknown;
             isCancellationRequested: () => boolean;
+            invocation: {
+                runId: string;
+                planRevision: string;
+                planHash: string;
+                attempt: number;
+            };
         },
     ): Promise<NodeExecution | undefined>;
 }
@@ -299,6 +305,12 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                             resolveBind: (input) =>
                                 resolveBind(input, request.parameterValues, nodeValues),
                             isCancellationRequested: () => run.cancelRequested,
+                            invocation: {
+                                runId: request.runId,
+                                planRevision: lock.planRevision,
+                                planHash: lock.planHash,
+                                attempt: 1,
+                            },
                         });
                     } catch (error) {
                         result = {
