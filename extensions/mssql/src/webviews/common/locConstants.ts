@@ -3623,6 +3623,7 @@ export class LocConstants {
             value: l10n.t("Value"),
             runButton: l10n.t("Run runbook"),
             runActiveLabel: l10n.t("Run in progress…"),
+            rerun: l10n.t("Rerun"),
             stepDetails: l10n.t("Details"),
             stepInputs: l10n.t("Step inputs"),
             hideStepDetails: l10n.t("Hide details"),

@@ -25,6 +25,7 @@ import {
     isArtifactParseFailure,
     parseRunbookArtifact,
 } from "./runbookArtifact";
+import { RUNBOOK_FS_SCHEME } from "./runbookFileSystem";
 
 const MAX_HISTORY_ENTRIES = 50;
 
@@ -106,7 +107,15 @@ export class RunbookStudioDocumentModel implements vscode.Disposable {
         this._onDidChange.fire();
     }
 
-    /** Replace the artifact content through a WorkspaceEdit (dirty/undo-safe). */
+    /**
+     * Replace the artifact content through a WorkspaceEdit. Loose exported
+     * files keep normal VS Code dirty/undo/save semantics. Library documents
+     * are different: their virtual URI is an editor projection of the
+     * runtime library, so every accepted edit is committed immediately.
+     * Leaving those buffers dirty made closing a runbook offer "Don't Save"
+     * and could reopen an old stash after the runtime planner had already
+     * updated the asset.
+     */
     public async applyArtifactEdit(next: RunbookArtifactFile): Promise<boolean> {
         const text = canonicalizeRunbookArtifact(next);
         const edit = new vscode.WorkspaceEdit();
@@ -119,7 +128,11 @@ export class RunbookStudioDocumentModel implements vscode.Disposable {
             ),
             text,
         );
-        return vscode.workspace.applyEdit(edit);
+        const applied = await vscode.workspace.applyEdit(edit);
+        if (!applied || document.uri.scheme !== RUNBOOK_FS_SCHEME) {
+            return applied;
+        }
+        return document.save();
     }
 
     /** Host-authoritative run state fan-in (ledger owns durability). */

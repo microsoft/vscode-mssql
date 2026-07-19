@@ -12,7 +12,8 @@
  * blank panel (rendering-spec total-layout rule).
  */
 
-import { useEffect, useRef, useState } from "react";
+import debounce from "lodash/debounce";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -378,18 +379,22 @@ function AuthorPage() {
             setCancelPending(false);
         }
     }, [compiling]);
-    // Persist the typed intent into the DOCUMENT as the user pauses —
-    // otherwise a window reload (hot exit) restores the document without
-    // the prompt, because the draft lived only in webview memory.
+    // Persist the typed intent into the library-backed DOCUMENT as the user
+    // pauses. Flush on blur/route change so a draft does not live only in
+    // webview memory when the panel is closed.
+    const persistIntent = useMemo(
+        () =>
+            debounce((intent: string) => {
+                void updateIntent(intent);
+            }, 750),
+        [updateIntent],
+    );
     useEffect(() => {
-        if (intentDraft === undefined || intentDraft === state?.artifact?.intent) {
-            return;
-        }
-        const timer = setTimeout(() => {
-            void updateIntent(intentDraft);
-        }, 750);
-        return () => clearTimeout(timer);
-    }, [intentDraft, state?.artifact?.intent, updateIntent]);
+        return () => {
+            persistIntent.flush();
+            persistIntent.cancel();
+        };
+    }, [persistIntent]);
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
@@ -405,7 +410,12 @@ function AuthorPage() {
         { label: loc.exampleFreshness, intent: loc.exampleFreshnessIntent },
     ];
     const onGenerate = async () => {
-        const compiled = await compile(intent.trim());
+        const nextIntent = intent.trim();
+        persistIntent.cancel();
+        if (nextIntent !== artifact.intent && !(await updateIntent(nextIntent))) {
+            return;
+        }
+        const compiled = await compile(nextIntent);
         if (compiled) {
             setIntentDraft(undefined);
         }
@@ -421,7 +431,12 @@ function AuthorPage() {
                     placeholder={loc.describePlaceholder}
                     value={intent}
                     rows={4}
-                    onChange={(e) => setIntentDraft(e.target.value)}
+                    onChange={(e) => {
+                        const next = e.target.value;
+                        setIntentDraft(next);
+                        persistIntent(next);
+                    }}
+                    onBlur={() => persistIntent.flush()}
                     disabled={compiling}
                 />
                 <div className="rbs-capability-notice" role="note">
@@ -566,34 +581,17 @@ function ParameterValueEditor({
 /** Parameter bind form (connection dropdown + parameter inputs + Run
  *  button) — the body of the merged Run page's collapsible Parameters
  *  section. */
-function ParametersSection() {
-    const { state, startRun, parameterDraft, setParameterDraft } = useRbs();
+function ParametersSection({ starting, onRun }: { starting: boolean; onRun: () => Promise<void> }) {
+    const { state, parameterDraft, setParameterDraft } = useRbs();
     const loc = locConstants.runbookStudio;
     // Draft lives in the provider so navigating away (or starting a run)
     // never wipes what the user configured.
     const values = parameterDraft;
-    const [starting, setStarting] = useState(false);
     const parameters = state?.artifact?.parameters ?? [];
     const runActive =
         state?.run !== undefined && !["succeeded", "failed", "cancelled"].includes(state.run.state);
     const canRun =
         (state?.workspaceTrusted ?? false) && (state?.artifact?.hasLock ?? false) && !runActive;
-    const onRun = async () => {
-        setStarting(true);
-        try {
-            const parameterValues: Record<string, string | number | boolean | null> = {};
-            for (const parameter of parameters) {
-                const raw = values[parameter.id];
-                if (raw === undefined || raw === "") {
-                    continue;
-                }
-                parameterValues[parameter.id] = parameter.type === "boolean" ? raw === "true" : raw;
-            }
-            await startRun(parameterValues);
-        } finally {
-            setStarting(false);
-        }
-    };
     return (
         <>
             {parameters.length === 0 ? (
@@ -695,11 +693,21 @@ function CollapsibleSection({
  * appears once a run exists. Routes "parameters" and "debug" alias here.
  */
 function RunPage() {
-    const { state, route, openDiagnostics, cancelRun, respondToGate } = useRbs();
+    const {
+        state,
+        route,
+        navigate,
+        startRun,
+        parameterDraft,
+        openDiagnostics,
+        cancelRun,
+        respondToGate,
+    } = useRbs();
     const loc = locConstants.runbookStudio;
     const run = state?.run;
     const [paramsExpanded, setParamsExpanded] = useState(true);
     const [statusExpanded, setStatusExpanded] = useState(true);
+    const [starting, setStarting] = useState(false);
     const lastRunIdRef = useRef<string | undefined>(undefined);
     const routeRef = useRef(route);
     routeRef.current = route;
@@ -732,13 +740,29 @@ function RunPage() {
     const completed =
         run?.nodes.filter((n) => ["succeeded", "failed", "skipped", "cancelled"].includes(n.state))
             .length ?? 0;
+    const runWithCurrentParameters = async () => {
+        setStarting(true);
+        try {
+            const parameterValues: Record<string, string | number | boolean | null> = {};
+            for (const parameter of state?.artifact?.parameters ?? []) {
+                const raw = parameterDraft[parameter.id];
+                if (raw === undefined || raw === "") {
+                    continue;
+                }
+                parameterValues[parameter.id] = parameter.type === "boolean" ? raw === "true" : raw;
+            }
+            await startRun(parameterValues);
+        } finally {
+            setStarting(false);
+        }
+    };
     return (
         <div className="rbs-page-body">
             <CollapsibleSection
                 title={loc.parameters}
                 expanded={paramsExpanded}
                 onToggle={() => setParamsExpanded((current) => !current)}>
-                <ParametersSection />
+                <ParametersSection starting={starting} onRun={runWithCurrentParameters} />
             </CollapsibleSection>
             {run ? (
                 <CollapsibleSection
@@ -763,7 +787,19 @@ function RunPage() {
                                     onClick={() => void cancelRun(run.runId)}>
                                     {loc.cancelRun}
                                 </button>
-                            ) : null}
+                            ) : (
+                                <>
+                                    <button
+                                        className="rbs-btn rbs-btn-primary"
+                                        disabled={starting}
+                                        onClick={() => void runWithCurrentParameters()}>
+                                        {loc.rerun}
+                                    </button>
+                                    <button className="rbs-btn" onClick={() => navigate("results")}>
+                                        {loc.viewResults}
+                                    </button>
+                                </>
+                            )}
                             <button className="rbs-btn" onClick={() => openDiagnostics(run.runId)}>
                                 {loc.openDiagnostics}
                             </button>

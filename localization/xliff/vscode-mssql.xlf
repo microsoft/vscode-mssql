@@ -6522,6 +6522,9 @@
     <trans-unit id="++CODE++7e069f05fe75d06f806f4772b8ab6ad6ab63626da27cd0d7f215913e529b1d43">
       <source xml:lang="en">Requires user authentication</source>
     </trans-unit>
+    <trans-unit id="++CODE++4004a79eaf29661f3548d4131219d944e668bc53c073de136e71c39a60f031a9">
+      <source xml:lang="en">Rerun</source>
+    </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>

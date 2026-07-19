@@ -235,6 +235,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     const [route, navigate] = useState<RbsRoute>("author");
     const [runEvents, setRunEvents] = useState<RunbookRunEvent[]>([]);
     const [lastError, setLastError] = useState<RbsError | undefined>(undefined);
+    const [autoResultsRunId, setAutoResultsRunId] = useState<string | undefined>(undefined);
     const initialRouteConsumedRef = useRef(false);
 
     // One-shot deep-link route from the initial snapshot.
@@ -351,10 +352,24 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
                 setLastError(result.error);
                 return undefined;
             }
+            setAutoResultsRunId(result.runId);
             return result.runId;
         },
         [rpc],
     );
+
+    // Follow only runs launched by this webview. A terminal run restored
+    // from history must not unexpectedly redirect the user on open.
+    useEffect(() => {
+        if (
+            autoResultsRunId !== undefined &&
+            state?.run?.runId === autoResultsRunId &&
+            ["succeeded", "failed", "cancelled"].includes(state.run.state)
+        ) {
+            setAutoResultsRunId(undefined);
+            navigate("results");
+        }
+    }, [autoResultsRunId, state?.run?.runId, state?.run?.state]);
 
     const cancelRun = useCallback(
         async (runId: string): Promise<void> => {
