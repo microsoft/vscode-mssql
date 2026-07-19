@@ -92,6 +92,13 @@ export class RunbookStudio {
     public static sqlNotReadOnly = l10n.t(
         "This activity only runs read-only SELECT statements; the generated SQL was refused.",
     );
+    public static planQueryUnavailable = l10n.t(
+        "This plan step is not an executable read-only SQL query.",
+    );
+    public static queryStudioDisabled = l10n.t(
+        "Query Studio is disabled. Enable mssql.queryStudio.enabled and reload VS Code to execute this query.",
+    );
+    public static queryStudioOpenFailed = l10n.t("Query Studio could not open this plan query.");
     public static connectionProfileNotFound = (id: string) =>
         l10n.t({
             message: "Connection profile '{0}' was not found.",

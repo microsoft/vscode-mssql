@@ -1256,6 +1256,7 @@ function PlanPage() {
                     edges={artifact.edges}
                     run={state?.run}
                     pinnedViews={artifact.pinnedViews}
+                    enableQueryExecution
                 />
             )}
         </div>

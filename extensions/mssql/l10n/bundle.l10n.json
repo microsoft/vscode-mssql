@@ -51,6 +51,9 @@
         "comment": ["{0} is a technical validation detail"]
     },
     "This activity only runs read-only SELECT statements; the generated SQL was refused.": "This activity only runs read-only SELECT statements; the generated SQL was refused.",
+    "This plan step is not an executable read-only SQL query.": "This plan step is not an executable read-only SQL query.",
+    "Query Studio is disabled. Enable mssql.queryStudio.enabled and reload VS Code to execute this query.": "Query Studio is disabled. Enable mssql.queryStudio.enabled and reload VS Code to execute this query.",
+    "Query Studio could not open this plan query.": "Query Studio could not open this plan query.",
     "Connection profile '{0}' was not found./{0} is a connection profile id": {
         "message": "Connection profile '{0}' was not found.",
         "comment": ["{0} is a connection profile id"]
@@ -4526,6 +4529,8 @@
     "Run runbook": "Run runbook",
     "Run in progress…": "Run in progress…",
     "Rerun": "Rerun",
+    "Execute query": "Execute query",
+    "Opening Query Studio…": "Opening Query Studio…",
     "Step inputs": "Step inputs",
     "Hide details": "Hide details",
     "Status timeline — what happened": "Status timeline — what happened",

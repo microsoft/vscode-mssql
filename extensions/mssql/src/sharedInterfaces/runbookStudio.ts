@@ -474,6 +474,17 @@ export namespace RbsSetOutputViewRequest {
     >("rbs/setOutputView");
 }
 
+/** Open a compiled read-query step in Query Studio and execute it against
+ *  the explicitly bound saved connection. Executable SQL never crosses
+ *  from the webview; the extension host resolves it again by node id. */
+export namespace RbsExecutePlanQueryRequest {
+    export const type = new RequestType<
+        { nodeId: string; connectionValues: Record<string, string> },
+        { opened: boolean; error?: RbsError },
+        void
+    >("rbs/executePlanQuery");
+}
+
 /** Compile the intent into a plan (model-backed; catalog-constrained). */
 export namespace RbsCompileRequest {
     export const type = new RequestType<

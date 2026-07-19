@@ -20,7 +20,10 @@
 import type * as mssql from "vscode-mssql";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookPlanNode } from "../../sharedInterfaces/runbookStudio";
+import { isReadOnlySql } from "../readOnlySql";
 import { ActivityExecutionDelegate, NodeExecution } from "./fakeRuntimeAdapter";
+
+export { isReadOnlySql } from "../readOnlySql";
 
 /** Injected host operations (real implementations wire ConnectionManager +
  *  SqlToolsServiceClient; tests inject fakes). */
@@ -33,23 +36,6 @@ export interface LocalSqlOperations {
 const MAX_STORED_ROWS = 5000;
 
 let queryCounter = 0;
-
-/** Conservative single-statement read-only guard (pure, tested). */
-export function isReadOnlySql(sql: string): boolean {
-    const withoutComments = sql
-        .replace(/\/\*[\s\S]*?\*\//g, " ")
-        .replace(/--[^\n]*/g, " ")
-        .trim();
-    if (withoutComments.length === 0) {
-        return false;
-    }
-    // Single statement only: a semicolon may appear solely as the final char.
-    const withoutTrailingSemicolon = withoutComments.replace(/;\s*$/, "");
-    if (withoutTrailingSemicolon.includes(";")) {
-        return false;
-    }
-    return /^(select|with)\b/i.test(withoutTrailingSemicolon);
-}
 
 export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly runtimeKind = "local" as const;

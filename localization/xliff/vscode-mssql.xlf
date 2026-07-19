@@ -3063,6 +3063,9 @@
     <trans-unit id="++CODE++bcee7af9ed6ff5fd5d2ab891504e131bb92f0a78f9149309fb2bad179f9711a1">
       <source xml:lang="en">Execute only the T-SQL statement under the cursor</source>
     </trans-unit>
+    <trans-unit id="++CODE++3c2445c4b77dfeb6f38759a13a0a6558331ca648164e54fd7d86e53ebf6c1e11">
+      <source xml:lang="en">Execute query</source>
+    </trans-unit>
     <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
       <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API builder</source>
       <note>{0} is the operation name</note>
@@ -5777,6 +5780,9 @@
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++308c0ed88daef001ffc8b8c31d9afc3cd1efa60fb9cfea045f4a39cfc23fbec6">
+      <source xml:lang="en">Opening Query Studio…</source>
+    </trans-unit>
     <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
       <source xml:lang="en">Opening schema designer...</source>
     </trans-unit>
@@ -6270,6 +6276,12 @@
     <trans-unit id="++CODE++d99dd3f5eca08c181708213b2607143fdd8813040f25e98a4987eec3c94d1570">
       <source xml:lang="en">Query Profiler: {0}</source>
       <note>{0} is the file name or session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++71feb41e51b80572d1b34dd3ca2b70c1430f0b40e0f768b10e1e04e676866794">
+      <source xml:lang="en">Query Studio could not open this plan query.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7037309a2cd1dffcab0e386ed994a3c6ab2d0d00c580e845023db31a3f55335f">
+      <source xml:lang="en">Query Studio is disabled. Enable mssql.queryStudio.enabled and reload VS Code to execute this query.</source>
     </trans-unit>
     <trans-unit id="++CODE++3dd2984885ceb7c9591c74b48a11baafda636d82b815b8dd6b6ea010633eb5a5">
       <source xml:lang="en">Query editor for {0}</source>
@@ -8403,6 +8415,9 @@
     </trans-unit>
     <trans-unit id="++CODE++843bcce36d1ca5118f54063e1406da612d49087e8748d603e1cdbc7003b42134">
       <source xml:lang="en">This output needs a date/time column to chart — showing the grid instead.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db51a1686bafa83de3720f93b749c733e1c7eeecb086624cebcc1156da3b6515">
+      <source xml:lang="en">This plan step is not an executable read-only SQL query.</source>
     </trans-unit>
     <trans-unit id="++CODE++54623e8b2c722f78d23fe37acdc9223f3d0afa167f91614fa16228823d9003c5">
       <source xml:lang="en">This run did not finish — the window closed while it was still running.</source>

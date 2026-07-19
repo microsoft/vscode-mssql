@@ -362,6 +362,11 @@
     overflow: auto;
 }
 
+.rbs-step-query-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .rbs-kv {
     margin: 0;
     display: flex;

@@ -237,10 +237,20 @@ export function displayOrder(
 }
 
 /** SQL renders as a code block; everything else as key → value rows. */
-function StepDetails({ node }: { node: RunbookPlanNode }) {
+function StepDetails({
+    node,
+    enableQueryExecution,
+}: {
+    node: RunbookPlanNode;
+    enableQueryExecution: boolean;
+}) {
+    const { executePlanQuery, state } = useRbs();
     const loc = locConstants.runbookStudio;
+    const [openingQuery, setOpeningQuery] = useState(false);
     const inputs = Object.entries(node.inputs ?? {});
     const sql = typeof node.inputs?.sql === "string" ? node.inputs.sql : undefined;
+    const canExecuteQuery =
+        enableQueryExecution && sql !== undefined && node.activityKind === "sql.query.read";
     const rest = inputs.filter(([key]) => key !== "sql");
     if (!sql && rest.length === 0) {
         return null;
@@ -248,6 +258,25 @@ function StepDetails({ node }: { node: RunbookPlanNode }) {
     return (
         <div className="rbs-step-details">
             {sql ? <pre className="rbs-code rbs-mono">{sql}</pre> : null}
+            {canExecuteQuery ? (
+                <div className="rbs-step-query-actions">
+                    <button
+                        type="button"
+                        className="rbs-btn"
+                        disabled={openingQuery || !state?.workspaceTrusted}
+                        title={!state?.workspaceTrusted ? loc.untrustedDetail : undefined}
+                        onClick={async () => {
+                            setOpeningQuery(true);
+                            try {
+                                await executePlanQuery(node.id);
+                            } finally {
+                                setOpeningQuery(false);
+                            }
+                        }}>
+                        {openingQuery ? loc.openingQueryStudio : loc.executeQuery}
+                    </button>
+                </div>
+            ) : null}
             {rest.length > 0 ? (
                 <dl className="rbs-kv" aria-label={loc.stepInputs}>
                     {rest.map(([key, value]) => (
@@ -282,12 +311,15 @@ export function PlanStepper({
     edges,
     run,
     pinnedViews,
+    enableQueryExecution = false,
 }: {
     entryNodeId: string;
     nodes: RunbookPlanNode[];
     edges: RunbookPlanEdge[];
     run?: RunbookRunSnapshot;
     pinnedViews?: Record<string, ViewKind>;
+    /** Plan-page-only action; compact Author previews remain observational. */
+    enableQueryExecution?: boolean;
 }) {
     const loc = locConstants.runbookStudio;
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -367,7 +399,12 @@ export function PlanStepper({
                                         }>
                                         {expanded[node.id] ? loc.hideStepDetails : loc.stepDetails}
                                     </button>
-                                    {expanded[node.id] ? <StepDetails node={node} /> : null}
+                                    {expanded[node.id] ? (
+                                        <StepDetails
+                                            node={node}
+                                            enableQueryExecution={enableQueryExecution}
+                                        />
+                                    ) : null}
                                 </>
                             ) : null}
                         </div>

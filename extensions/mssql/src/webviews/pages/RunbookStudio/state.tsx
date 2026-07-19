@@ -24,6 +24,7 @@ import {
     RbsCompileRequest,
     RbsConnectionProfileRef,
     RbsError,
+    RbsExecutePlanQueryRequest,
     RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
@@ -205,6 +206,8 @@ interface RbsContextValue {
     parameterDraft: Record<string, string>;
     setParameterDraft: (id: string, value: string) => void;
     setOutputView: (nodeId: string, view: ViewKind | undefined) => Promise<boolean>;
+    /** Open and execute a compiled read-query node in Query Studio. */
+    executePlanQuery: (nodeId: string) => Promise<boolean>;
     /** Show a prior run's results (persistence-backed). */
     selectRun: (runId: string) => Promise<boolean>;
     startRun: (
@@ -327,6 +330,31 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const executePlanQuery = useCallback(
+        async (nodeId: string): Promise<boolean> => {
+            setLastError(undefined);
+            const connectionValues: Record<string, string> = {};
+            for (const parameter of state?.artifact?.parameters ?? []) {
+                if (parameter.type !== "connection") {
+                    continue;
+                }
+                const value = parameterDraft[parameter.id];
+                if (value !== undefined && value !== "") {
+                    connectionValues[parameter.id] = value;
+                }
+            }
+            const result = await rpc.sendRequest(RbsExecutePlanQueryRequest.type, {
+                nodeId,
+                connectionValues,
+            });
+            if (result.error) {
+                setLastError(result.error);
+            }
+            return result.opened;
+        },
+        [rpc, state?.artifact?.parameters, parameterDraft],
+    );
+
     const selectRun = useCallback(
         async (runId: string): Promise<boolean> => {
             const result = await rpc.sendRequest(RbsSelectRunRequest.type, { runId });
@@ -418,6 +446,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             parameterDraft,
             setParameterDraft,
             setOutputView,
+            executePlanQuery,
             selectRun,
             startRun,
             cancelRun,
@@ -441,6 +470,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             parameterDraft,
             setParameterDraft,
             setOutputView,
+            executePlanQuery,
             selectRun,
             startRun,
             cancelRun,

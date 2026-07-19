@@ -22,6 +22,7 @@ import {
     RbsCompileProgressNotification,
     RbsCompileRequest,
     RbsError,
+    RbsExecutePlanQueryRequest,
     RbsFetchOutputPageRequest,
     RbsListConnectionsRequest,
     RbsNavigateNotification,
@@ -41,6 +42,7 @@ import {
 } from "../sharedInterfaces/runbookStudio";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { preflightRunbookRequirements } from "./capabilities/runbookCapabilities";
+import { resolvePlanQueryLaunch } from "./planQueryLaunch";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import {
     pinnedViewsOf,
@@ -189,6 +191,75 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 presentation: definition,
             });
             return { applied };
+        });
+
+        this.onRequest(RbsExecutePlanQueryRequest.type, async ({ nodeId, connectionValues }) => {
+            if (!vscode.workspace.isTrusted) {
+                return { opened: false, error: this.untrustedError() };
+            }
+            const artifact = this.model.artifact;
+            if (!artifact) {
+                return {
+                    opened: false,
+                    error: {
+                        code: "RunbookStudio.InvalidArtifact" as const,
+                        message: LocRunbookStudio.planQueryUnavailable,
+                    },
+                };
+            }
+            const resolved = resolvePlanQueryLaunch(artifact, nodeId, connectionValues);
+            if (resolved.ok === false) {
+                const policyDenied = resolved.reason === "sqlNotReadOnly";
+                const bindingMissing = resolved.reason === "connectionValueMissing";
+                return {
+                    opened: false,
+                    error: {
+                        code: policyDenied
+                            ? ("RunbookStudio.ActivityPolicyDenied" as const)
+                            : bindingMissing
+                              ? ("RunbookStudio.BindingInvalid" as const)
+                              : ("RunbookStudio.InvalidArtifact" as const),
+                        message: policyDenied
+                            ? LocRunbookStudio.sqlNotReadOnly
+                            : bindingMissing
+                              ? LocRunbookStudio.parameterRequired(
+                                    resolved.connectionParameterLabel ?? "connection",
+                                )
+                              : LocRunbookStudio.planQueryUnavailable,
+                    },
+                };
+            }
+            if (
+                !vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>("mssql.queryStudio.enabled", false)
+            ) {
+                return {
+                    opened: false,
+                    error: {
+                        code: "RunbookStudio.RuntimeCapabilityUnsupported" as const,
+                        message: LocRunbookStudio.queryStudioDisabled,
+                    },
+                };
+            }
+            try {
+                await vscode.commands.executeCommand("mssql.queryStudio.newQueryFromContext", {
+                    profileId: resolved.profileId,
+                    initialSql: resolved.sql,
+                    autoRun: true,
+                    source: "runbookStudioPlan",
+                });
+                return { opened: true };
+            } catch {
+                return {
+                    opened: false,
+                    error: {
+                        code: "RunbookStudio.Internal" as const,
+                        message: LocRunbookStudio.queryStudioOpenFailed,
+                        retryable: true,
+                    },
+                };
+            }
         });
 
         this.onRequest(RbsListConnectionsRequest.type, async () => {

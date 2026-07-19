@@ -3630,6 +3630,8 @@ export class LocConstants {
             runActiveLabel: l10n.t("Run in progress…"),
             rerun: l10n.t("Rerun"),
             stepDetails: l10n.t("Details"),
+            executeQuery: l10n.t("Execute query"),
+            openingQueryStudio: l10n.t("Opening Query Studio…"),
             stepInputs: l10n.t("Step inputs"),
             hideStepDetails: l10n.t("Hide details"),
             statusTimeline: l10n.t("Status timeline — what happened"),
