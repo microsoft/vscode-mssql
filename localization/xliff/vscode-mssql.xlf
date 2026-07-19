@@ -624,6 +624,9 @@
     <trans-unit id="++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652">
       <source xml:lang="en">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e674447337e83c1346f6122ed69f35bf5526e2a11842b2f2b788f3fb67d714ca">
+      <source xml:lang="en">Available</source>
+    </trans-unit>
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
     </trans-unit>
@@ -788,6 +791,9 @@
     <trans-unit id="++CODE++bd9e4be7933baafca2a9806ee618f7371c78f98b06064c26600bb18992282fde">
       <source xml:lang="en">Behavior when free offer limit is reached</source>
     </trans-unit>
+    <trans-unit id="++CODE++88dd60fe2aa1be29fdb5fdb1683cb5687a57e980468d6ffbed584145e6299719">
+      <source xml:lang="en">Best match for this step&apos;s expected output contract.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
       <source xml:lang="en">Between</source>
     </trans-unit>
@@ -933,6 +939,9 @@
     </trans-unit>
     <trans-unit id="++CODE++80aa8267452e6acff1a7d85f3f06923dc34f20fb027017e4cd660abddc133ee6">
       <source xml:lang="en">Cancelled before the step completed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cb7a30606f67b4ff9c2b85887d8ac5f87356ae21bfce7e1986c4395b68dc14ee">
+      <source xml:lang="en">Candidates come from the step&apos;s expected data contract. The actual result is validated at run time and falls back visibly if its shape changed.</source>
     </trans-unit>
     <trans-unit id="++CODE++d09d0b9c54e5b4f0d495d4ecb562baa57fced06448e89522241c5b6e1b8641a4">
       <source xml:lang="en">Cannot access the Docker socket. Your user may not be in the &apos;docker&apos; group, or VS Code was started before group membership took effect. Run &apos;sudo usermod -aG docker $USER&apos; and then log out and back in (or reboot) before relaunching VS Code.</source>
@@ -1167,11 +1176,18 @@
     <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
       <source xml:lang="en">Choose color</source>
     </trans-unit>
+    <trans-unit id="++CODE++bf1f770f8672e9b54bee89f3f3c7dbeaae64367d86a0edc5c1819dab66ca1696">
+      <source xml:lang="en">Choose output view</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
       <source xml:lang="en">Choose the Right Version</source>
     </trans-unit>
     <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
       <source xml:lang="en">Choose the behavior for new editors</source>
+    </trans-unit>
+    <trans-unit id="++CODE++474b836a1b59baae6e15b021ee8bb93c8ef10c850971ba53d9ee7cdc3ddbd73a">
+      <source xml:lang="en">Choose the output view for {0}</source>
+      <note>{0} is a runbook step label</note>
     </trans-unit>
     <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
       <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
@@ -1437,6 +1453,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
       <source xml:lang="en">Compatibility Level</source>
+    </trans-unit>
+    <trans-unit id="++CODE++863a5ece309b40403af900846f7d3b2f1ff93efbf3fb7409e72282e34570253b">
+      <source xml:lang="en">Compatible with this step&apos;s expected output contract.</source>
     </trans-unit>
     <trans-unit id="++CODE++635e3f4e5a4db594d8597d8ff8f3783908f1d1380751e0ae9078235dab7830a9">
       <source xml:lang="en">Compiled plan</source>
@@ -3606,6 +3625,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7bd31a025d29d8ecfc4d7bd9f46becaa9734f74ca20f0d69003b241ce4182a02">
       <source xml:lang="en">Failures</source>
+    </trans-unit>
+    <trans-unit id="++CODE++325e84939c6410fa2e09372b2b49328fdf22136efbd5ca1d6746667edfb92abc">
+      <source xml:lang="en">Fallback</source>
     </trans-unit>
     <trans-unit id="++CODE++db977fde0b1cbb3a3a5c4093cbff6b231ea747d7daebfb7bd6b9280805625bcc">
       <source xml:lang="en">Feature details</source>
@@ -6337,6 +6359,9 @@
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
+    <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
+      <source xml:lang="en">Recommended</source>
+    </trans-unit>
     <trans-unit id="++CODE++8cb3da9c49a18274300475b2f9dbf9edd0a194821a1ce05c7d8351ffee8abdaa">
       <source xml:lang="en">Record shortcut</source>
     </trans-unit>
@@ -8395,6 +8420,9 @@
       <source xml:lang="en">This runbook was created by a newer version of the extension. Update the MSSQL extension to open it. ({0})</source>
       <note>{0} is a technical detail string</note>
     </trans-unit>
+    <trans-unit id="++CODE++fe7c308744af85e1b26e84b0c8a550277e37fb301dc51f647dc41ff07ba16f3d">
+      <source xml:lang="en">This saved view no longer matches the step&apos;s expected output contract. Choose a compatible replacement or return to the suggested view.</source>
+    </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
     </trans-unit>
@@ -8573,6 +8601,9 @@
     <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
       <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca184496974204a0bd3fd4925e0540bc4b0df6fcc232994d29754272b7183812">
+      <source xml:lang="en">Unavailable</source>
+    </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
     </trans-unit>
@@ -8593,6 +8624,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d">
       <source xml:lang="en">Unfreeze columns/rows</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2d3431497571878295d6dcf650a748a3cc2ec867816d5ecc256c759b254ecd9c">
+      <source xml:lang="en">Universal fallback that preserves the typed output.</source>
     </trans-unit>
     <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
       <source xml:lang="en">Unknown</source>
@@ -8690,6 +8724,9 @@
     <trans-unit id="++CODE++50564b2fb586a6f8ee172cd303c720768a52904367132b2cafb6d7a4eb9de5dd">
       <source xml:lang="en">Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d96731fd2926469b200dfbd0f5cb625fa66164a30ede1b42712b4bb56b03be27">
+      <source xml:lang="en">Use suggested view</source>
+    </trans-unit>
     <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
       <source xml:lang="en">Use the default server setting</source>
     </trans-unit>
@@ -8727,6 +8764,9 @@
     <trans-unit id="++CODE++d18de1563a616cb53199d56202336f6b481375ac8ecb8d0eeafb53466f42c4bf">
       <source xml:lang="en">Username is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++a9825f7e4bf8bf420c5c48a55d5cc6fc8af1d70f1ff905aa4677f922b3f830ff">
+      <source xml:lang="en">Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4c0f47c92a61b83f5a3505071ff1ba53361768bccee0021da6a0d341daa653a1">
       <source xml:lang="en">Uses the WITH KEEP_REPLICATION option during restore</source>
     </trans-unit>
@@ -8738,6 +8778,9 @@
     </trans-unit>
     <trans-unit id="++CODE++65ae913d6e4b65d9fd4e5dadb2105c2fa92c333afb13006d3254bff50ff418b2">
       <source xml:lang="en">Uses the WITH RESTRICTED_USER option during restore</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c2159f5452403d405ba1e36cb86322b997126d7b787be6ed0b291379b6249a77">
+      <source xml:lang="en">Using the suggested view</source>
     </trans-unit>
     <trans-unit id="++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7">
       <source xml:lang="en">Using {0} ({1})...</source>
@@ -8928,6 +8971,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
       <source xml:lang="en">What&apos;s next?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba085d3e0a98793193992bd9e8c811a6c462345946a6d97382bd27651f92b6fe">
+      <source xml:lang="en">Why these options?</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>

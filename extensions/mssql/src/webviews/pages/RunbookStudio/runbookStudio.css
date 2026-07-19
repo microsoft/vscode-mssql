@@ -507,6 +507,141 @@
     font-size: 12px;
 }
 
+.rbs-output-authoring {
+    max-width: 520px;
+}
+
+.rbs-output-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 112px;
+    justify-content: space-between;
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border, var(--vscode-panel-border));
+    border-radius: 3px;
+    padding: 3px 7px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.rbs-output-trigger:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.rbs-output-trigger:focus-visible,
+.rbs-output-candidate:focus-within {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 1px;
+}
+
+.rbs-output-candidate-panel {
+    margin-top: 7px;
+    padding: 10px;
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    border-radius: 5px;
+    background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+    box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+}
+
+.rbs-output-candidate-heading,
+.rbs-output-candidate-title,
+.rbs-output-candidate-footer {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.rbs-output-candidate-heading {
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.rbs-output-candidate-list {
+    display: grid;
+    gap: 5px;
+}
+
+.rbs-output-candidate {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.rbs-output-candidate:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.rbs-output-candidate.selected {
+    border-color: var(--vscode-focusBorder);
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.rbs-output-candidate input {
+    margin: 2px 0 0;
+    accent-color: var(--vscode-focusBorder);
+}
+
+.rbs-output-candidate-copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.rbs-candidate-recommended {
+    color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+    border-color: currentColor;
+}
+
+.rbs-candidate-fallback {
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-candidate-unavailable {
+    color: var(--vscode-errorForeground);
+    border-color: currentColor;
+}
+
+.rbs-output-candidate-unavailable {
+    cursor: not-allowed;
+    border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground));
+    background: var(--vscode-inputValidation-errorBackground, transparent);
+}
+
+.rbs-output-candidate.selected .rbs-muted {
+    color: var(--vscode-list-activeSelectionForeground);
+    opacity: 0.8;
+}
+
+.rbs-output-candidate-footer {
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.rbs-output-candidate-why {
+    max-width: 310px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-output-candidate-why summary {
+    cursor: pointer;
+    text-align: right;
+}
+
+.rbs-output-candidate-why p {
+    margin: 6px 0 0;
+    line-height: 1.4;
+}
+
 .rbs-select {
     background: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);

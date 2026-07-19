@@ -12,7 +12,7 @@
  * follow-up, this stepper is its readable baseline.
  */
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import {
     RunbookNodeSnapshot,
@@ -24,6 +24,7 @@ import {
     compatibleViews,
     defaultViewFor,
     expectedContractFor,
+    viewCandidateTier,
     ViewKind,
 } from "../../../sharedInterfaces/runbookPresentation";
 import { useRbs } from "./state";
@@ -34,6 +35,9 @@ import { useRbs } from "./state";
 function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKind | undefined }) {
     const { setOutputView } = useRbs();
     const loc = locConstants.runbookStudio;
+    const candidatePanelId = useId();
+    const [open, setOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
     const contract = expectedContractFor(node.kind, node.activityKind);
     if (!contract) {
         return (
@@ -44,30 +48,150 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
     }
     const candidates = compatibleViews(contract);
     const current = pinned ?? defaultViewFor(contract);
+    const unavailablePin = pinned && !candidates.includes(pinned) ? pinned : undefined;
+
+    const chooseView = async (view: ViewKind | undefined) => {
+        setSaving(true);
+        try {
+            if (await setOutputView(node.id, view)) {
+                setOpen(false);
+            }
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
-        <span className="rbs-output-picker">
-            <span className="rbs-muted">{loc.outputLabel}</span>
-            <select
-                className="rbs-select"
-                value={pinned ?? ""}
-                aria-label={`${loc.outputLabel} ${node.label}`}
-                onChange={(e) =>
-                    void setOutputView(
-                        node.id,
-                        e.target.value === "" ? undefined : (e.target.value as ViewKind),
-                    )
-                }>
-                <option value="">{loc.autoSuggested}</option>
-                {candidates.map((view) => (
-                    <option key={view} value={view}>
-                        {view}
-                    </option>
-                ))}
-            </select>
-            <span className={`rbs-chip ${pinned ? "" : "rbs-chip-suggested"}`}>
-                {pinned ? loc.setByYouMarker : `${loc.suggestedMarker} · ${current}`}
-            </span>
-        </span>
+        <div className="rbs-output-authoring">
+            <div className="rbs-output-picker">
+                <span className="rbs-muted">{loc.outputLabel}</span>
+                <button
+                    type="button"
+                    className="rbs-output-trigger"
+                    aria-label={loc.chooseOutputViewFor(node.label)}
+                    aria-expanded={open}
+                    aria-controls={candidatePanelId}
+                    onClick={() => setOpen((value) => !value)}>
+                    <span className="rbs-mono">{current}</span>
+                    <span aria-hidden>⌄</span>
+                </button>
+                <span
+                    className={`rbs-chip ${pinned ? "" : "rbs-chip-suggested"} ${unavailablePin ? "rbs-candidate-unavailable" : ""}`}>
+                    {unavailablePin
+                        ? loc.driftBadge
+                        : pinned
+                          ? loc.setByYouMarker
+                          : loc.suggestedMarker}
+                </span>
+            </div>
+            {open ? (
+                <div
+                    id={candidatePanelId}
+                    className="rbs-output-candidate-panel"
+                    onKeyDown={(event) => {
+                        if (event.key === "Escape") {
+                            setOpen(false);
+                        }
+                    }}>
+                    <div className="rbs-output-candidate-heading">
+                        <strong>{loc.chooseOutputView}</strong>
+                        <span className="rbs-chip rbs-mono">{contract}</span>
+                    </div>
+                    <div
+                        className="rbs-output-candidate-list"
+                        role="radiogroup"
+                        aria-label={loc.chooseOutputViewFor(node.label)}>
+                        {unavailablePin ? (
+                            <label className="rbs-output-candidate rbs-output-candidate-unavailable">
+                                <input
+                                    type="radio"
+                                    name={candidatePanelId}
+                                    value={unavailablePin}
+                                    checked
+                                    disabled
+                                    readOnly
+                                />
+                                <span className="rbs-output-candidate-copy">
+                                    <span className="rbs-output-candidate-title">
+                                        <span className="rbs-mono">{unavailablePin}</span>
+                                        <span className="rbs-chip rbs-candidate-unavailable">
+                                            {loc.unavailableMarker}
+                                        </span>
+                                        <span className="rbs-muted">{loc.setByYouMarker}</span>
+                                    </span>
+                                    <span className="rbs-muted">
+                                        {loc.pinnedViewUnavailableReason}
+                                    </span>
+                                </span>
+                            </label>
+                        ) : null}
+                        {candidates.map((view) => {
+                            const tier = viewCandidateTier(contract, view);
+                            const tierLabel =
+                                tier === "recommended"
+                                    ? loc.recommendedMarker
+                                    : tier === "fallback"
+                                      ? loc.fallbackMarker
+                                      : loc.availableMarker;
+                            const reason =
+                                tier === "fallback"
+                                    ? loc.viewCandidateFallbackReason
+                                    : contract === "rowset/1" &&
+                                        (view === "bar" || view === "timeseries")
+                                      ? loc.viewCandidateShapeReason
+                                      : tier === "recommended"
+                                        ? loc.viewCandidateRecommendedReason
+                                        : loc.viewCandidateCompatibleReason;
+                            return (
+                                <label
+                                    key={view}
+                                    className={`rbs-output-candidate ${current === view ? "selected" : ""}`}>
+                                    <input
+                                        type="radio"
+                                        name={candidatePanelId}
+                                        value={view}
+                                        checked={current === view}
+                                        disabled={saving}
+                                        onChange={() => void chooseView(view)}
+                                    />
+                                    <span className="rbs-output-candidate-copy">
+                                        <span className="rbs-output-candidate-title">
+                                            <span className="rbs-mono">{view}</span>
+                                            <span className={`rbs-chip rbs-candidate-${tier}`}>
+                                                {tierLabel}
+                                            </span>
+                                            {pinned === view ? (
+                                                <span className="rbs-muted">
+                                                    {loc.setByYouMarker}
+                                                </span>
+                                            ) : null}
+                                        </span>
+                                        <span className="rbs-muted">{reason}</span>
+                                    </span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                    <div className="rbs-output-candidate-footer">
+                        {pinned ? (
+                            <button
+                                type="button"
+                                className="rbs-link-button"
+                                disabled={saving}
+                                onClick={() => void chooseView(undefined)}>
+                                {loc.useSuggestedView}
+                            </button>
+                        ) : (
+                            <span className="rbs-muted">{loc.usingSuggestedView}</span>
+                        )}
+                        <details className="rbs-output-candidate-why">
+                            <summary>{loc.whyTheseOptions}</summary>
+                            <p>{loc.whyTheseOptionsDetail}</p>
+                        </details>
+                    </div>
+                </div>
+            ) : null}
+        </div>
     );
 }
 

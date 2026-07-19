@@ -51,6 +51,20 @@ export function compatibleViews(contract: string): ViewKind[] {
     return COMPATIBILITY[contract] ?? ["json"];
 }
 
+/** Authoring-time candidate rank used by native editors. This is semantic
+ *  metadata, not visual styling: the first compatible view is recommended,
+ *  JSON is the total fallback when a richer view exists, and every other
+ *  compatible renderer is an available alternative. */
+export type ViewCandidateTier = "recommended" | "available" | "fallback";
+
+export function viewCandidateTier(contract: string, view: ViewKind): ViewCandidateTier {
+    const candidates = compatibleViews(contract);
+    if (view === candidates[0]) {
+        return "recommended";
+    }
+    return view === "json" ? "fallback" : "available";
+}
+
 /** Authoring-time expected output contract per activity kind (the actual
  *  contract is only known at run time; mockup state "Auto until run"). */
 export const ACTIVITY_OUTPUT_CONTRACTS: Record<string, string> = {

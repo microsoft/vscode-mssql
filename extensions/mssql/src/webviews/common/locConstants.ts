@@ -3636,6 +3636,38 @@ export class LocConstants {
             setByYouMarker: l10n.t("Set by you"),
             autoSuggested: l10n.t("Auto (suggested)"),
             noOutput: l10n.t("no output"),
+            chooseOutputView: l10n.t("Choose output view"),
+            chooseOutputViewFor: (step: string) =>
+                l10n.t({
+                    message: "Choose the output view for {0}",
+                    args: [step],
+                    comment: ["{0} is a runbook step label"],
+                }),
+            recommendedMarker: l10n.t("Recommended"),
+            availableMarker: l10n.t("Available"),
+            fallbackMarker: l10n.t("Fallback"),
+            unavailableMarker: l10n.t("Unavailable"),
+            viewCandidateRecommendedReason: l10n.t(
+                "Best match for this step's expected output contract.",
+            ),
+            viewCandidateCompatibleReason: l10n.t(
+                "Compatible with this step's expected output contract.",
+            ),
+            viewCandidateShapeReason: l10n.t(
+                "Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.",
+            ),
+            viewCandidateFallbackReason: l10n.t(
+                "Universal fallback that preserves the typed output.",
+            ),
+            pinnedViewUnavailableReason: l10n.t(
+                "This saved view no longer matches the step's expected output contract. Choose a compatible replacement or return to the suggested view.",
+            ),
+            useSuggestedView: l10n.t("Use suggested view"),
+            usingSuggestedView: l10n.t("Using the suggested view"),
+            whyTheseOptions: l10n.t("Why these options?"),
+            whyTheseOptionsDetail: l10n.t(
+                "Candidates come from the step's expected data contract. The actual result is validated at run time and falls back visibly if its shape changed.",
+            ),
             stepsComplete: (done: number, total: number) =>
                 l10n.t({
                     message: "{0} of {1} steps complete",

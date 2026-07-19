@@ -21,6 +21,7 @@ import {
 import {
     PresentationDefinition,
     PRESENTATION_SCHEMA_VERSION,
+    viewCandidateTier,
 } from "../../src/sharedInterfaces/runbookPresentation";
 import { RunbookRunSnapshot } from "../../src/sharedInterfaces/runbookStudio";
 
@@ -77,6 +78,10 @@ function definition(): PresentationDefinition {
 suite("presentationResolver", () => {
     test("rowset candidates expose both shipped chart renderers", () => {
         expect(compatibleViews("rowset/1")).to.deep.equal(["grid", "bar", "timeseries", "json"]);
+        expect(viewCandidateTier("rowset/1", "grid")).to.equal("recommended");
+        expect(viewCandidateTier("rowset/1", "bar")).to.equal("available");
+        expect(viewCandidateTier("rowset/1", "json")).to.equal("fallback");
+        expect(viewCandidateTier("unknown/1", "json")).to.equal("recommended");
     });
 
     test("resolution is deterministic", () => {
