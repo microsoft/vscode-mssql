@@ -107,6 +107,14 @@ import {
     inspectLocalWorkspace,
     verifyLocalDacpacArtifact,
 } from "./runtime/localDeveloperOperations";
+import {
+    cleanupStaleLocalDacpacArtifacts,
+    disposeStagedLocalDacpacArtifact,
+    LocalDacpacStageError,
+    stageLocalDacpacArtifact,
+    type StagedLocalDacpacArtifact,
+    verifyStagedLocalDacpacArtifact,
+} from "./runtime/localDacpacStaging";
 import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
@@ -163,6 +171,8 @@ interface ActiveRunBinding {
 
 /** Retention: the newest N runs per runbook id survive GC. */
 const RETAINED_RUNS_PER_RUNBOOK = 20;
+/** A crashed host can strand a private stage; live stages are far younger. */
+const STAGED_DACPAC_RETENTION_MS = 24 * 60 * 60 * 1000;
 /** Persistence sweep runs shortly after construction — off the open path. */
 const PERSISTENCE_SWEEP_DELAY_MS = 1500;
 
@@ -1576,6 +1586,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 deletedResultDirs++;
             }
         }
+        const stagedDacpacCleanup = cleanupStaleLocalDacpacArtifacts(
+            path.join(this.persistRoot, "artifact-staging"),
+            Date.now() - STAGED_DACPAC_RETENTION_MS,
+        );
         const effectRecovery = this.effectLedger.scanRecovery();
         emitRunbookEvent(context, "runbookStudio.persistence.gc", "ok", {
             scannedRuns: metaField(runs.length),
@@ -1584,6 +1598,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             deletedResultDirs: metaField(deletedResultDirs),
             deletedEffectJournals: metaField(deletedEffectJournals),
             deletedApprovalRecords: metaField(deletedApprovalRecords),
+            deletedStagedDacpacs: metaField(stagedDacpacCleanup.deletedFiles),
+            deletedStagingDirectories: metaField(stagedDacpacCleanup.deletedDirectories),
             outstandingEffects: metaField(effectRecovery.outstanding.length),
             unreadableEffectJournals: metaField(effectRecovery.unreadableFiles.length),
             pendingApprovals: metaField(this.approvalLedger.listPending().length),
@@ -2030,155 +2046,184 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 "RunbookStudio.DeploymentPreviewChanged",
             );
         }
-        const approvedPreview = await this.previewLocalDacpacDeployment(
-            artifact.artifactPath,
-            databaseRef,
-            isCancellationRequested,
-        );
-        if (approvedPreview.reportSha256 !== approvedPreviewDigest) {
-            throw new LocalActivityError(
-                LocRunbookStudio.dacpacDeployPreviewChanged,
-                "RunbookStudio.DeploymentPreviewChanged",
-            );
-        }
-        if (isCancellationRequested()) {
-            throw new LocalActivityError(
-                LocRunbookStudio.dacpacPreviewCancelled,
-                "RunbookStudio.ActivityCancelled",
-            );
-        }
-        const resolved = await this.resolveRunbookConnection(databaseRef);
-        if (!resolved.sandbox || resolved.sandbox.effectId !== leaseEffectId) {
-            throw new LocalActivityError(
-                LocRunbookStudio.dacpacDeployTargetRequired,
-                "RunbookStudio.ActivityPolicyDenied",
-            );
-        }
-        const connectionManager = this.connectionAccess();
-        const dacFxService = this.dacFxAccess();
-        if (!connectionManager || !dacFxService) {
-            throw new LocalActivityError(
-                LocRunbookStudio.dacpacPreviewServiceUnavailable,
-                "RunbookStudio.ProviderUnavailable",
-            );
-        }
-        const effectId = deriveRunbookEffectId({
-            runId: invocation.runId,
-            nodeId,
-            attempt: invocation.attempt,
-            activityKind: "dacpac.deploy",
-            activityVersion: authorization.challenge.activityVersion,
-        });
-        if (this.effectLedger.recoverEffect(effectId)) {
-            throw new LocalActivityError(
-                LocRunbookStudio.sandboxEffectRecoveryRequired,
-                "RunbookStudio.EffectRecoveryRequired",
-            );
-        }
-        this.effectLedger.prepareEffect({
-            effectId,
-            runId: invocation.runId,
-            nodeId,
-            attempt: invocation.attempt,
-            activityKind: "dacpac.deploy",
-            activityVersion: authorization.challenge.activityVersion,
-            idempotencyKey: digestRunbookValue({
-                effectId,
-                artifactSha256: artifact.artifactSha256,
-                approvedPreviewDigest,
-                databaseName: resolved.targetDatabase,
-            }),
-            planHash: invocation.planHash,
-            bindingDigest: authorization.challenge.resolvedArgumentDigest,
-            targetFingerprint: authorization.challenge.targetFingerprint,
-            retrySemantics: "atMostOnceUnknownOutcome",
-            ownerPid: process.pid,
-            policy: {
-                version: authorization.challenge.policyVersion,
-                outcome: "allowed",
-            },
-            approval: authorization.evidence,
-            recovery: {
-                resourceKind: "dacpacDeployment",
-                resourceId: resolved.targetDatabase,
-                connectionProfileId: resolved.sandbox.connectionProfileId,
-                ownershipMarkerDigest: resolved.sandbox.ownershipMarkerDigest,
-            },
-        });
-
-        sandboxCounter++;
-        const ownerUri = `runbookstudio://dacfx-deploy/${sandboxCounter.toString(36)}`;
-        let connected = false;
-        let deploymentStarted = false;
-        let operationId = "";
+        let stagedArtifact: StagedLocalDacpacArtifact;
         try {
-            connected = await connectionManager.connect(ownerUri, resolved.profile, {
-                connectionSource: "runbookStudio",
-                shouldHandleErrors: false,
-            });
-            if (!connected) {
-                throw new LocalActivityError(
-                    LocRunbookStudio.connectFailed,
-                    "RunbookStudio.ActivityFailed",
-                );
-            }
-            // DacFx deployment is a critical effect section. Cancellation is
-            // observed before it starts and again by the run walker after it
-            // settles; abandoning the request would create an unknown live
-            // server-side task while cleanup races it.
-            deploymentStarted = true;
-            const result = await dacFxService.deployDacpac(
+            stagedArtifact = await stageLocalDacpacArtifact(
+                path.join(this.persistRoot, "artifact-staging"),
                 artifact.artifactPath,
-                resolved.targetDatabase,
-                true,
-                ownerUri,
-                TaskExecutionMode.execute,
+                approvedArtifactDigest,
+                isCancellationRequested,
             );
-            operationId = result.operationId;
-            if (!result.success) {
+        } catch (error) {
+            throw localDacpacStageActivityError(error);
+        }
+        try {
+            const approvedPreview = await this.generateLocalDacpacDeploymentPreview(
+                stagedArtifact.stagedPath,
+                databaseRef,
+                isCancellationRequested,
+            );
+            if (approvedPreview.reportSha256 !== approvedPreviewDigest) {
                 throw new LocalActivityError(
-                    LocRunbookStudio.dacpacDeployFailed,
-                    "RunbookStudio.DeploymentFailed",
+                    LocRunbookStudio.dacpacDeployPreviewChanged,
+                    "RunbookStudio.DeploymentPreviewChanged",
                 );
             }
-            this.effectLedger.recordEffectObserved(effectId, {
-                resourceKind: "dacpacDeployment",
-                resourceId: resolved.targetDatabase,
-                ownershipMarkerDigest: resolved.sandbox.ownershipMarkerDigest,
-                connectionProfileId: resolved.sandbox.connectionProfileId,
-                outputHandles: [databaseRef, operationId],
-            });
-        } catch (error) {
-            if (!deploymentStarted) {
-                this.effectLedger.recordNoEffectFailure(effectId, "DeploymentNotStarted");
+            if (isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
             }
-            throw error;
-        } finally {
-            if (connected) {
+            const resolved = await this.resolveRunbookConnection(databaseRef);
+            if (!resolved.sandbox || resolved.sandbox.effectId !== leaseEffectId) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacDeployTargetRequired,
+                    "RunbookStudio.ActivityPolicyDenied",
+                );
+            }
+            const connectionManager = this.connectionAccess();
+            const dacFxService = this.dacFxAccess();
+            if (!connectionManager || !dacFxService) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewServiceUnavailable,
+                    "RunbookStudio.ProviderUnavailable",
+                );
+            }
+            const effectId = deriveRunbookEffectId({
+                runId: invocation.runId,
+                nodeId,
+                attempt: invocation.attempt,
+                activityKind: "dacpac.deploy",
+                activityVersion: authorization.challenge.activityVersion,
+            });
+            if (this.effectLedger.recoverEffect(effectId)) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sandboxEffectRecoveryRequired,
+                    "RunbookStudio.EffectRecoveryRequired",
+                );
+            }
+            this.effectLedger.prepareEffect({
+                effectId,
+                runId: invocation.runId,
+                nodeId,
+                attempt: invocation.attempt,
+                activityKind: "dacpac.deploy",
+                activityVersion: authorization.challenge.activityVersion,
+                idempotencyKey: digestRunbookValue({
+                    effectId,
+                    artifactSha256: stagedArtifact.artifactSha256,
+                    approvedPreviewDigest,
+                    databaseName: resolved.targetDatabase,
+                }),
+                planHash: invocation.planHash,
+                bindingDigest: authorization.challenge.resolvedArgumentDigest,
+                targetFingerprint: authorization.challenge.targetFingerprint,
+                retrySemantics: "atMostOnceUnknownOutcome",
+                ownerPid: process.pid,
+                policy: {
+                    version: authorization.challenge.policyVersion,
+                    outcome: "allowed",
+                },
+                approval: authorization.evidence,
+                recovery: {
+                    resourceKind: "dacpacDeployment",
+                    resourceId: resolved.targetDatabase,
+                    connectionProfileId: resolved.sandbox.connectionProfileId,
+                    ownershipMarkerDigest: resolved.sandbox.ownershipMarkerDigest,
+                },
+            });
+
+            sandboxCounter++;
+            const ownerUri = `runbookstudio://dacfx-deploy/${sandboxCounter.toString(36)}`;
+            let connected = false;
+            let deploymentStarted = false;
+            let operationId = "";
+            try {
+                connected = await connectionManager.connect(ownerUri, resolved.profile, {
+                    connectionSource: "runbookStudio",
+                    shouldHandleErrors: false,
+                });
+                if (!connected) {
+                    throw new LocalActivityError(
+                        LocRunbookStudio.connectFailed,
+                        "RunbookStudio.ActivityFailed",
+                    );
+                }
                 try {
-                    await connectionManager.disconnect(ownerUri);
-                } catch {
-                    // The durable effect record precedes any reported success.
+                    await verifyStagedLocalDacpacArtifact(stagedArtifact, isCancellationRequested);
+                } catch (error) {
+                    throw localDacpacStageActivityError(error);
+                }
+                // DacFx deployment is a critical effect section. Cancellation
+                // is observed before it starts and again by the run walker
+                // after it settles; abandoning the request would create an
+                // unknown server-side task while cleanup races it.
+                deploymentStarted = true;
+                const result = await dacFxService.deployDacpac(
+                    stagedArtifact.stagedPath,
+                    resolved.targetDatabase,
+                    true,
+                    ownerUri,
+                    TaskExecutionMode.execute,
+                );
+                operationId = result.operationId;
+                if (!result.success) {
+                    throw new LocalActivityError(
+                        LocRunbookStudio.dacpacDeployFailed,
+                        "RunbookStudio.DeploymentFailed",
+                    );
+                }
+                this.effectLedger.recordEffectObserved(effectId, {
+                    resourceKind: "dacpacDeployment",
+                    resourceId: resolved.targetDatabase,
+                    ownershipMarkerDigest: resolved.sandbox.ownershipMarkerDigest,
+                    connectionProfileId: resolved.sandbox.connectionProfileId,
+                    outputHandles: [databaseRef, operationId],
+                });
+            } catch (error) {
+                if (!deploymentStarted) {
+                    this.effectLedger.recordNoEffectFailure(effectId, "DeploymentNotStarted");
+                }
+                throw error;
+            } finally {
+                if (connected) {
+                    try {
+                        await connectionManager.disconnect(ownerUri);
+                    } catch {
+                        // The durable effect record precedes any reported success.
+                    }
                 }
             }
-        }
 
-        const postDeploy = await this.previewLocalDacpacDeployment(
-            artifact.artifactPath,
-            databaseRef,
-            () => false,
-        );
-        return {
-            effectId,
-            dacpacPath: artifact.artifactPath,
-            artifactSha256: artifact.artifactSha256,
-            databaseName: resolved.targetDatabase,
-            operationId,
-            approvedPreviewDigest,
-            postDeployReportSha256: postDeploy.reportSha256,
-            postDeployChangeCount: postDeploy.changeCount,
-            deployedAtUtc: new Date().toISOString(),
-        };
+            const postDeploy = await this.generateLocalDacpacDeploymentPreview(
+                stagedArtifact.stagedPath,
+                databaseRef,
+                () => false,
+            );
+            return {
+                effectId,
+                dacpacPath: artifact.artifactPath,
+                artifactSha256: stagedArtifact.artifactSha256,
+                databaseName: resolved.targetDatabase,
+                operationId,
+                approvedPreviewDigest,
+                postDeployReportSha256: postDeploy.reportSha256,
+                postDeployChangeCount: postDeploy.changeCount,
+                deployedAtUtc: new Date().toISOString(),
+            };
+        } finally {
+            try {
+                await disposeStagedLocalDacpacArtifact(stagedArtifact);
+            } catch {
+                emitRunbookEvent(
+                    newRunbookRootContext("artifact-staging"),
+                    "runbookStudio.dacpac.stageCleanup",
+                    "warning",
+                    { runIdDigest: metaField(shortDigest(invocation.runId)) },
+                );
+            }
+        }
     }
 
     private async bundleLocalEvidence(
@@ -2666,6 +2711,20 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         isCancellationRequested: () => boolean,
     ) {
         const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested);
+        return this.generateLocalDacpacDeploymentPreview(
+            artifact.artifactPath,
+            databaseRef,
+            isCancellationRequested,
+        );
+    }
+
+    /** Generate a report from a path already admitted by a stronger boundary
+     * (workspace verification or extension-controlled content staging). */
+    private async generateLocalDacpacDeploymentPreview(
+        verifiedDacpacPath: string,
+        databaseRef: string,
+        isCancellationRequested: () => boolean,
+    ) {
         if (isCancellationRequested()) {
             throw new LocalActivityError(
                 LocRunbookStudio.dacpacPreviewCancelled,
@@ -2710,7 +2769,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 );
             }
             const result = await dacFxService.generateDeployPlan(
-                artifact.artifactPath,
+                verifiedDacpacPath,
                 targetDatabase,
                 ownerUri,
                 TaskExecutionMode.execute,
@@ -2729,7 +2788,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 );
             }
             return buildLocalDeploymentPreviewResult(
-                artifact.artifactPath,
+                verifiedDacpacPath,
                 targetDatabase,
                 result.operationId,
                 result.report,
@@ -3110,6 +3169,19 @@ function shortDigest(value: string): string {
         hash = (hash * 31 + value.charCodeAt(i)) | 0;
     }
     return (hash >>> 0).toString(16);
+}
+
+function localDacpacStageActivityError(error: unknown): LocalActivityError {
+    if (error instanceof LocalDacpacStageError && error.reason === "cancelled") {
+        return new LocalActivityError(
+            LocRunbookStudio.dacpacPreviewCancelled,
+            "RunbookStudio.ActivityCancelled",
+        );
+    }
+    return new LocalActivityError(
+        LocRunbookStudio.dacpacDeployArtifactChanged,
+        "RunbookStudio.DeploymentPreviewChanged",
+    );
 }
 
 interface ParameterBinding {
